@@ -69,12 +69,12 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 .icon-btn{width:44px;height:44px;border-radius:0;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 200ms linear,color 200ms linear;flex-shrink:0;position:relative;}
 .icon-btn::before{content:'';position:absolute;inset:-12px;}
 .icon-btn svg{width:15px;height:15px;flex-shrink:0;}
-.icon-btn-dark{color:#111;background:rgba(0,0,0,.1);}.icon-btn-dark:hover{background:rgba(0,0,0,.85);color:#fff;}
+.icon-btn-dark{color:#fff;background:rgba(0,0,0,.35);}.icon-btn-dark:hover{background:rgba(0,0,0,.85);}
 .icon-btn-light{color:#111;background:rgba(0,0,0,.07);}.icon-btn-light:hover{background:rgba(0,0,0,.85);color:#fff;}
 
 /* ══ HOVER ══ */
 .nav-link,.sns-link,.footer-sns-link,.view-all,.roastery-cta,.tci-link,.hero-cta,.hdr-icon-btn,.season-cta{transition:opacity 200ms linear;cursor:pointer;}
-.nav-link{opacity:.55;}.nav-link:hover{opacity:1;}
+.nav-link{opacity:.70;}.nav-link:hover{opacity:1;}
 .sns-link{opacity:.45;display:flex;align-items:center;}.sns-link:hover{opacity:1;}
 .footer-sns-link{opacity:.4;display:flex;align-items:center;}.footer-sns-link:hover{opacity:.9;}
 .cta-link{align-self:flex-start;opacity:.45;transition:opacity 200ms linear;cursor:pointer;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-primary);border-bottom:.5px solid var(--color-text-primary);padding-bottom:3px;}.cta-link:hover{opacity:1;}
@@ -245,23 +245,18 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 .popup{
   width:300px;background:var(--color-background-primary);
   border:1px solid #2c2c2c;
-  overflow:visible;position:relative;
+  overflow:hidden;position:relative;
 }
 .x-btn{
-  position:absolute;top:0;right:0;
-  transform:translate(calc(50% - 4px),calc(-50% + 4px));
-  width:32px;height:32px;
+  position:absolute;top:12px;right:12px;
+  width:44px;height:44px;
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;z-index:20;background:transparent;
+  cursor:pointer;z-index:20;
+  background:rgba(0,0,0,.35);color:#fff;
+  transition:background 200ms linear;
+  flex-shrink:0;
 }
-.x-btn-inner{
-  width:26px;height:26px;border-radius:50%;
-  background:#2c2c2c;
-  display:flex;align-items:center;justify-content:center;
-  opacity:.95;transition:opacity 200ms linear;
-  pointer-events:none;flex-shrink:0;
-}
-.x-btn:hover .x-btn-inner{opacity:1;}
+.x-btn:hover{background:rgba(0,0,0,.85);}
 .popup-img{
   position:relative;
   width:300px;height:300px;
@@ -269,12 +264,11 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
   overflow:hidden;flex-shrink:0;
 }
 .popup-img-badge{position:absolute;bottom:12px;left:16px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.85);}
-.popup-body{padding:16px 18px 20px;cursor:pointer;}
+.popup-body{padding:14px 16px 16px 18px;cursor:pointer;display:flex;flex-direction:column;}
 .popup-body-lbl{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:6px;}
-.popup-body-title{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--color-text-primary);line-height:1.3;margin-bottom:6px;}
-.popup-body-price{font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:16px;}
-.popup-icon-btn{width:36px;height:36px;border-radius:50%;border:.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 200ms linear;color:var(--color-text-secondary);}
-.popup-icon-btn:hover{background:var(--color-background-secondary);}
+.popup-body-title{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--color-text-primary);line-height:1.3;}
+.popup-icon-btn{width:44px;height:44px;border-radius:0;border:none;background:rgba(0,0,0,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 200ms linear,color 200ms linear;color:#111;flex-shrink:0;}
+.popup-icon-btn:hover{background:rgba(0,0,0,.85);color:#fff;}
 </style>
 </head>
 <body>
@@ -454,14 +448,14 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 <!-- POPUP -->
 <div class="popup-outer" id="popup-outer">
   <div class="popup">
-    <span class="x-btn" id="popup-close-btn">
-      <span class="x-btn-inner"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"><path d="M1 1l8 8M9 1l-8 8"/></svg></span>
-    </span>
-    <div class="popup-img" id="popup-img-area" style="cursor:pointer;"><div class="popup-img-badge">New Beans</div></div>
+    <div class="popup-img" id="popup-img-area" style="cursor:pointer;">
+      <div class="popup-img-badge">New Beans</div>
+      <span class="x-btn" id="popup-close-btn"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l8 8M9 1l-8 8"/></svg></span>
+    </div>
     <div class="popup-body" id="popup-body-area" data-slug="buku-hurupa">
       <div class="popup-body-lbl">Ethiopia · Natural</div>
       <div class="popup-body-title">부쿠 후루파</div>
-      <div style="display:flex;justify-content:flex-end;">
+      <div style="flex:1;display:flex;justify-content:flex-end;align-items:flex-end;margin-top:8px;">
         <div class="popup-icon-btn"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M8 3l4 4-4 4"/></svg></div>
       </div>
     </div>
@@ -733,6 +727,9 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 
 /* 푸터 */
 #lp-footer-wrap{flex-shrink:0;}
+
+/* 비밀번호 재설정 시 뒤로가기 wrap 높이만큼 body padding 보정 */
+#lp-back-wrap.visible ~ #lp-body{padding-top:38px;}
 </style>
 
 <!-- PRODUCT DETAIL PAGE -->
@@ -902,7 +899,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 <style>
 /* ── PRODUCT DETAIL PAGE ── */
 #product-detail-page{
-  position:fixed;inset:0;z-index:162;
+  position:fixed;inset:0;z-index:166;
   background:#fff;display:none;flex-direction:column;overflow-y:auto;
 }
 #product-detail-page.open{display:flex;}
@@ -984,7 +981,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
   width:72px;height:72px;
   background:var(--color-background-secondary);
   cursor:pointer;overflow:hidden;
-  border:1px solid transparent;
+  border:2px solid transparent;
   transition:border-color 200ms linear;
   flex-shrink:0;
 }
