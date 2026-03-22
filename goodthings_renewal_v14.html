@@ -348,6 +348,8 @@ body{font-family:var(--font-en);background:#ffffff;}
   transition:opacity 300ms ease, transform 300ms ease;
 }
 .popup-outer.hidden{opacity:0;pointer-events:none;transform:translateY(8px);}
+/* 서브페이지가 열려 있으면 팝업 즉시 숨김 (타이밍 무관) */
+body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:translateY(8px);}
 .popup{
   width:300px;background:var(--color-background-primary);
   border:1px solid rgba(0,0,0,.15);
@@ -1217,6 +1219,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   display:inline-flex;align-items:center;justify-content:center;
   width:28px;height:28px;border:none;background:transparent;
   color:var(--color-text-tertiary);cursor:pointer;flex-shrink:0;
+  margin-left:-6px;
   transition:color var(--duration-hover) linear;
 }
 #ocp-copy-btn:hover{color:var(--color-text-primary);}
