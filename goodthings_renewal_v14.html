@@ -13,8 +13,15 @@
   --color-background-primary:#ffffff;
   --color-background-secondary:#f5f5f5;
   --color-border-primary:#dddddd;
-  --color-border-secondary:#dddddd;
+  --color-border-secondary:#dddddd; /* primary와 동일 — 추후 색상 분기 시 여기서 조정 */
   --color-border-tertiary:#eeeeee;
+  --color-error:#d32f2f;
+  /* ── 버튼 타이포그래피 토큰 ── */
+  --btn-font-family:'DM Sans',sans-serif;
+  --btn-font-size:15px;           /* primary / secondary CTA 공통 */
+  --btn-font-weight:500;
+  --btn-letter-spacing:.04em;     /* uppercase 없음 */
+  --btn-link-font-size:13px;      /* 링크형 버튼 (chp-link, cp-continue-link 등) */
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'DM Sans',sans-serif;background:#ffffff;}
@@ -44,14 +51,68 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 .hero,.season-banner,.roastery,.footer-bg-wrap,.footer{width:100%;}
 
 /* ── sticky 헤더 (어나운스는 스크롤 시 밀려남, 헤더만 고정) ── */
-#site-ann-wrap{margin-bottom:0;}
+#site-ann-wrap{margin-bottom:0;position:relative;z-index:51;}
 #site-hdr-wrap{
-  position:sticky;top:0;z-index:50;margin-bottom:4px;
+  position:sticky;top:0;z-index:50;
   background:rgba(255,255,255,.72);
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
   border:.5px solid rgba(255,255,255,.4);
   overflow:visible;
+  transition:background 700ms ease, border-color 700ms ease;
+}
+/* ── 헤더 다크 모드 — 딥 다크 브라운 글래스모피즘 ── */
+#site-hdr-wrap.hdr-dark{
+  background:rgba(18,9,3,.78);
+  border-color:rgba(255,255,255,.08);
+}
+/* 다크 모드 — 네비 텍스트 */
+#site-hdr-wrap .nav-link{
+  transition:color 700ms ease, opacity 200ms linear;
+}
+#site-hdr-wrap.hdr-dark .nav-link{
+  color:rgba(255,255,255,.85); /* 전역 opacity:.70 오버라이드 */
+  opacity:1;
+}
+#site-hdr-wrap.hdr-dark .nav-link:hover{
+  color:#fff; opacity:1;
+}
+/* 다크 모드 — 아이콘 */
+#site-hdr-wrap .hi{
+  transition:color 700ms ease;
+}
+#site-hdr-wrap.hdr-dark .hi{
+  color:rgba(255,255,255,.90);
+}
+#site-hdr-wrap.hdr-dark .hdr-icon-btn{
+  opacity:.80; /* 전역 .5 → 다크 모드에서 .80으로 상향 */
+}
+#site-hdr-wrap.hdr-dark .hdr-icon-btn:hover{
+  opacity:1;
+}
+/* 다크 모드 — SNS/로고/배지 */
+#site-hdr-wrap .sns-icon{
+  transition:color 200ms ease;
+}
+#site-hdr-wrap.hdr-dark .sns-link{
+  opacity:.60;
+}
+#site-hdr-wrap.hdr-dark .sns-link:hover{
+  opacity:1;
+}
+#site-hdr-wrap.hdr-dark .sns-icon{
+  color:rgba(255,255,255,.90);
+}
+#site-hdr-wrap #logo-img{
+  transition:filter 700ms ease;
+}
+#site-hdr-wrap.hdr-dark #logo-img{
+  filter:invert(1);
+}
+#site-hdr-wrap.hdr-dark .cart-badge{
+  background:rgba(255,255,255,.9);
+  color:#111;
+  transition:background 700ms ease, color 700ms ease;
 }
 
 /* srp도 동일 */
@@ -83,7 +144,9 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 .tci-link{display:inline-block;opacity:.45;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-primary);border-bottom:.5px solid var(--color-text-primary);padding-bottom:3px;}.tci-link:hover{opacity:1;}
 .footer-col-link{display:block;font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:300;color:rgba(255,255,255,.5);margin-bottom:0;padding:5px 0;line-height:1;cursor:pointer;transition:color 200ms linear;}.footer-col-link:hover{color:rgba(255,255,255,.9);}
 .hero-cta{display:inline-block;opacity:.8;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.8);border-bottom:.5px solid rgba(255,255,255,.35);padding-bottom:3px;}.hero-cta:hover{opacity:1;}
-.hdr-icon-btn{opacity:.5;display:flex;align-items:center;justify-content:center;}.hdr-icon-btn:hover{opacity:1;}
+.hdr-icon-btn{opacity:.5;display:flex;align-items:center;justify-content:center;position:relative;}.hdr-icon-btn:hover{opacity:1;}
+.cart-badge{position:absolute;top:-6px;right:-7px;min-width:20px;height:20px;padding:0 4px;border-radius:10px;background:#111;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;display:none;align-items:center;justify-content:center;line-height:1;pointer-events:none;box-sizing:border-box;}
+.cart-badge.visible{display:flex;}
 
 /* 카드 hover */
 .bean-card,.moment-card,.cat-card{position:relative;cursor:pointer;}
@@ -108,7 +171,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 .cat-card:hover .cat-img-inner{transform:scale(1.06);}
 
 .section-cta{padding:28px 20px 90px;display:flex;justify-content:center;align-items:flex-start;border-top:.5px solid var(--color-background-primary);}
-.badge{position:absolute;top:12px;left:12px;font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:4px 8px;line-height:1;z-index:2;}
+.badge{position:absolute;top:12px;left:12px;font-size:13px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:4px 8px;line-height:1;z-index:2;}
 .badge-new{background:#111;color:#fff;}.badge-pop{background:#c8a84b;color:#fff;}.badge-ltd{background:#fff;color:#111;border:.5px solid #bbb;}
 .pkg{width:50%;height:70%;border-radius:1px;}
 .bean-meta{padding:16px 20px 20px;border-top:.5px solid var(--color-border-tertiary);}
@@ -132,12 +195,15 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 .hi{width:30px;height:30px;display:block;color:var(--color-text-primary);}
 
 /* ── HERO ── */
-.hero{position:relative;min-height:100vh;background:#111;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;padding:0;}
-.hero-bg{position:absolute;inset:0;background:linear-gradient(160deg,#2a2a2a 0%,#111 60%,#000 100%);}
+/* 히어로가 어나운스+헤더 뒤로 완전히 풀블리드 — 헤더/어나운스가 위에 float */
+#hero-blk{margin-top:calc(-50px - 80px);} /* -(ann 50px + hdr 80px) */
+.hero{position:relative;min-height:calc(100vh + 130px);background:#111;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;padding:0;}
+.hero-bg{position:absolute;inset:0;background:url('images/hero-bg.png') center center/cover no-repeat;}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.35) 50%,rgba(0,0,0,.15) 100%);}
 .hero-c{position:relative;z-index:1;width:100%;max-width:1440px;margin:0 auto;padding:60px 40px 80px;}
-.hero-tag{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:16px;}
+.hero-tag{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:16px;}
 .hero-h{font-family:'DM Sans',sans-serif;font-size:64px;font-weight:600;color:#fff;line-height:1.05;letter-spacing:-.03em;margin-bottom:16px;}
-.hero-sub{font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:300;color:rgba(255,255,255,.65);line-height:1.9;margin-bottom:32px;}
+.hero-sub{font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:300;color:rgba(255,255,255,.80);line-height:1.9;margin-bottom:32px;}
 
 /* ── CAFE MENU ── */
 .season-banner{position:relative;height:480px;overflow:hidden;background:linear-gradient(135deg,#f5e6d0 0%,#e8c9a0 35%,#c9956c 70%,#8b5a2b 100%);display:flex;align-items:flex-end;margin:0;padding:0;}
@@ -215,7 +281,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 .moments-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;}
 .moment-card{background:var(--color-background-secondary);aspect-ratio:1/1;overflow:hidden;}.moment-card:first-child{grid-row:1/3;aspect-ratio:auto;}
 .moment-overlay{position:absolute;bottom:0;left:0;right:0;padding:16px 20px;background:linear-gradient(0deg,rgba(0,0,0,.45) 0%,transparent 100%);z-index:2;}
-.moment-tag{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6);}
+.moment-tag{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6);}
 
 /* ── FOOTER ── */
 .footer{background:var(--color-text-primary);padding:0;}
@@ -226,7 +292,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 .f-sns-icon{width:28px;height:28px;color:#fff;}
 .f-tagline{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;color:rgba(255,255,255,.55);}
 .f-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding-top:40px;border-top:.5px solid rgba(255,255,255,.1);margin-top:48px;}
-.f-col-title{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:14px;line-height:1;}
+.f-col-title{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:14px;line-height:1;}
 .f-bottom-wrap{padding:32px 0 40px;border-top:.5px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:8px;margin-top:48px;}
 .f-biz-row{display:flex;align-items:center;justify-content:space-between;}
 .f-biz{font-size:12px;color:rgba(255,255,255,.4);letter-spacing:.01em;line-height:1.6;}
@@ -260,7 +326,8 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 .popup-img{
   position:relative;
   width:300px;height:300px;
-  background:linear-gradient(160deg,#2a1e0e 0%,#7a4220 50%,#c0845a 100%);
+  background:url('images/pd_img_buku_hurufa.png') center center/cover no-repeat,
+             linear-gradient(160deg,#2a1e0e 0%,#7a4220 50%,#c0845a 100%);
   overflow:hidden;flex-shrink:0;
 }
 .popup-img-badge{position:absolute;bottom:12px;left:16px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.85);}
@@ -295,14 +362,14 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
     <div class="hdr-icons">
       <span class="hdr-icon-btn" id="search-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg></span>
       <span class="hdr-icon-btn" id="login-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg></span>
-      <span class="hdr-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg></span>
+      <span class="hdr-icon-btn" id="main-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg><span class="cart-badge" id="main-cart-badge"></span></span>
     </div>
   </div>
 </div>
 <div class="sc">Header</div>
 
 <!-- HERO -->
-<div class="blk">
+<div class="blk" id="hero-blk" data-header-theme="dark">
   <div class="hero">
     <div class="hero-bg"></div>
     <div class="hero-c">
@@ -316,7 +383,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 <div class="sc">Hero</div>
 
 <!-- CAFE MENU -->
-<div class="blk">
+<div class="blk" data-header-theme="light">
   <div class="season-banner">
     <div class="season-banner-inner"></div>
     <div class="season-txt">
@@ -346,7 +413,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 <div class="sc">Cafe Menu</div>
 
 <!-- PHILOSOPHY -->
-<div class="blk">
+<div class="blk" data-header-theme="light">
   <div class="phil">
     <div class="phil-txt">
       <div class="phil-lbl">Our Philosophy</div>
@@ -360,14 +427,14 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 <div class="sc">Philosophy</div>
 
 <!-- ONLINE STORE -->
-<div class="blk">
+<div class="blk" data-header-theme="light">
   <div class="beans-sec">
     <div class="sec-title">Online Store</div>
     <div class="beans-grid">
-      <div class="bean-card" data-slug="buku-hurupa"><div class="bean-img"><span class="badge badge-new">New</span><div class="bean-img-inner" style="background:#f0ece4;"><div class="pkg" style="background:linear-gradient(135deg,#c8956c,#8b5a2b);"></div></div></div><div class="bean-meta"><div class="bean-org">Ethiopia</div><div class="bean-name">부쿠 후루파</div><div class="bean-flv">블루베리 · 재스민 · 다크초콜릿</div><div class="bean-prc">₩18,000~</div></div></div>
-      <div class="bean-card" data-slug="kaganda-aa"><div class="bean-img"><span class="badge badge-ltd">수량 한정</span><div class="bean-img-inner" style="background:#ede8e0;"><div class="pkg" style="background:linear-gradient(135deg,#a0856a,#6b4226);"></div></div></div><div class="bean-meta"><div class="bean-org">Kenya</div><div class="bean-name">카간다 AA</div><div class="bean-flv">자몽 · 흑설탕 · 레드커런트</div><div class="bean-prc">₩20,000~</div></div></div>
-      <div class="bean-card" data-slug="waikan"><div class="bean-img"><span class="badge badge-pop">인기 No.1</span><div class="bean-img-inner" style="background:#f5f0eb;"><div class="pkg" style="background:linear-gradient(135deg,#b8956c,#7a4f2a);"></div></div></div><div class="bean-meta"><div class="bean-org">Guatemala</div><div class="bean-name">와이칸</div><div class="bean-flv">캐러멜 · 사과 · 크림</div><div class="bean-prc">₩17,000~</div></div></div>
-      <div class="bean-card" data-slug="autumn-night"><div class="bean-img"><div class="bean-img-inner" style="background:#ece7de;"><div class="pkg" style="background:linear-gradient(135deg,#9e8060,#68432a);"></div></div></div><div class="bean-meta"><div class="bean-org">Peru</div><div class="bean-name">가을의 밤</div><div class="bean-flv">캐러멜 · 견과류 · 다크카카오</div><div class="bean-prc">₩14,000~</div></div></div>
+      <div class="bean-card" data-slug="buku-hurupa"><div class="bean-img"><span class="badge badge-new">New</span><div class="bean-img-inner" style="background:#f0ece4;"><div class="pkg" style="background:linear-gradient(135deg,#c8956c,#8b5a2b);"></div></div></div><div class="bean-meta"><div class="bean-org">Ethiopia</div><div class="bean-name">부쿠 후루파</div><div class="bean-flv">블루베리 · 재스민 · 다크초콜릿</div><div class="bean-prc">₩18,000</div></div></div>
+      <div class="bean-card" data-slug="kaganda-aa"><div class="bean-img"><span class="badge badge-ltd">수량 한정</span><div class="bean-img-inner" style="background:#ede8e0;"><div class="pkg" style="background:linear-gradient(135deg,#a0856a,#6b4226);"></div></div></div><div class="bean-meta"><div class="bean-org">Kenya</div><div class="bean-name">카간다 AA</div><div class="bean-flv">자몽 · 흑설탕 · 레드커런트</div><div class="bean-prc">₩20,000</div></div></div>
+      <div class="bean-card" data-slug="waikan"><div class="bean-img"><span class="badge badge-pop">인기 No.1</span><div class="bean-img-inner" style="background:#f5f0eb;"><div class="pkg" style="background:linear-gradient(135deg,#b8956c,#7a4f2a);"></div></div></div><div class="bean-meta"><div class="bean-org">Guatemala</div><div class="bean-name">와이칸</div><div class="bean-flv">캐러멜 · 사과 · 크림</div><div class="bean-prc">₩17,000</div></div></div>
+      <div class="bean-card" data-slug="autumn-night"><div class="bean-img"><div class="bean-img-inner" style="background:#ece7de;"><div class="pkg" style="background:linear-gradient(135deg,#9e8060,#68432a);"></div></div></div><div class="bean-meta"><div class="bean-org">Peru</div><div class="bean-name">가을의 밤</div><div class="bean-flv">캐러멜 · 견과류 · 다크카카오</div><div class="bean-prc">₩14,000</div></div></div>
     </div>
   </div>
   <div class="section-cta"><span class="view-all">View All →</span></div>
@@ -375,7 +442,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 <div class="sc">Online Store</div>
 
 <!-- ROASTERY -->
-<div class="blk">
+<div class="blk" data-header-theme="dark">
   <div class="roastery">
     <div class="roastery-bg"></div>
     <div class="roastery-c">
@@ -389,7 +456,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 <div class="sc">Roastery</div>
 
 <!-- TWO COL -->
-<div class="blk">
+<div class="blk" data-header-theme="light">
   <div class="two-col">
     <div class="tci"><div class="tci-img"><div class="tci-img-inner"></div></div><div class="tci-lbl">Business</div><div class="tci-h">원두 납품 & 비즈니스</div><div class="tci-body">카페, 레스토랑, 오피스를 위한 맞춤 원두 납품 서비스를 제공합니다.</div><span class="tci-link">Work with Us →</span></div>
     <div class="tci"><div class="tci-img"><div class="tci-img-inner"></div></div><div class="tci-lbl">Subscription</div><div class="tci-h">정기 배송</div><div class="tci-body">매달 엄선된 싱글 오리진 원두를 정기적으로 받아보세요.</div><span class="tci-link">Shop →</span></div>
@@ -398,7 +465,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 <div class="sc">Services</div>
 
 <!-- GOOD DAYS -->
-<div class="blk">
+<div class="blk" data-header-theme="light">
   <div class="gooddays-sec">
     <div class="sec-title">Good Days</div>
     <div class="moments-grid">
@@ -462,8 +529,44 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
   </div>
 </div>
 
+<!-- CART DRAWER -->
+<div id="cart-drawer-overlay"></div>
+<div id="cart-drawer">
+  <div class="cd-header">
+    <span class="cd-title" id="cd-title">장바구니 (0)</span>
+    <span class="icon-btn icon-btn-light" id="cd-close-btn" style="flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l8 8M9 1l-8 8"/></svg></span>
+  </div>
+  <div class="cd-body">
+    <div class="cd-promo">15,000원 이상 구매 시 무료 배송</div>
+    <div class="cd-items" id="cd-items">
+      <div class="cd-empty">
+        <p class="cd-empty-msg">장바구니가 비어 있습니다.</p>
+        <span class="cd-empty-cta" id="cd-empty-shop-btn">쇼핑 계속하기 →</span>
+      </div>
+    </div>
+    <div class="cd-shipping-item" id="cd-shipping-item" style="display:none;">
+      <span class="cd-si-label">배송비</span>
+      <span class="cd-si-notice" id="cd-si-notice"></span>
+      <span class="cd-si-price" id="cd-si-price"></span>
+    </div>
+    <div class="cd-footer" id="cd-footer" style="display:none;">
+      <div class="cd-subtotal-row">
+        <span class="cd-subtotal-label">결제예정금액</span>
+        <div class="cd-subtotal-right">
+          <span class="cd-subtotal-price" id="cd-subtotal">₩0</span>
+          <div class="cd-note">부가세 포함</div>
+        </div>
+      </div>
+      <div class="cd-cta-row">
+        <div class="cd-cta-secondary">장바구니 보기</div>
+        <div class="cd-cta-primary">주문하기</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- LOGIN PAGE -->
-<div id="login-page">
+<div id="login-page" class="sub-page">
   <div id="lp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
   <div id="lp-hdr-wrap" class="blk">
     <div class="hdr">
@@ -482,7 +585,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
       <div class="hdr-icons">
         <span class="hdr-icon-btn" id="lp-search-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg></span>
         <span class="hdr-icon-btn" id="lp-user-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg></span>
-        <span class="hdr-icon-btn" id="lp-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg></span>
+        <span class="hdr-icon-btn" id="lp-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg><span class="cart-badge" id="lp-cart-badge"></span></span>
       </div>
     </div>
   </div>
@@ -504,6 +607,12 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
         <span id="lp-switch-link"></span>
       </div>
     </div>
+    <!-- 비회원 구매 박스 (결제 페이지 → 로그인 진입 시 표시) -->
+    <div id="lp-guest-buy-box" style="display:none;">
+      <p class="lp-guest-buy-desc">비회원도 상품구매가 가능하나<br>회원혜택에서 제외됩니다.</p>
+      <button id="lp-guest-buy-btn" class="lp-guest-buy-btn">GUEST BUY</button>
+    </div>
+
     <!-- 우측: 폼 영역 -->
     <div id="lp-right">
       <!-- 로그인 폼 -->
@@ -615,7 +724,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 <style>
 /* ── LOGIN PAGE ── */
 #login-page{
-  position:fixed;inset:0;z-index:165;
+  position:fixed;inset:0;z-index:170;
   background:#fff;display:none;flex-direction:column;overflow-y:auto;
 }
 #login-page.open{display:flex;}
@@ -730,10 +839,406 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 
 /* 비밀번호 재설정 시 뒤로가기 wrap 높이만큼 body padding 보정 */
 #lp-back-wrap.visible ~ #lp-body{padding-top:38px;}
+
+/* ── 비회원 구매 박스 ── */
+#lp-guest-buy-box{
+  border:.5px solid var(--color-border-primary);
+  padding:24px;margin-top:32px;
+  display:flex;flex-direction:column;gap:16px;align-items:flex-start;
+}
+.lp-guest-buy-desc{
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:300;
+  color:var(--color-text-secondary);line-height:1.7;
+}
+.lp-guest-buy-btn{
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;
+  background:#111;color:#fff;border:none;
+  padding:14px 28px;cursor:pointer;
+  transition:opacity 200ms linear;
+}
+.lp-guest-buy-btn:hover{opacity:.7;}
+</style>
+
+<!-- ── CART PAGE / CHECKOUT PAGE / ORDER COMPLETE PAGE CSS ── -->
+<style>
+/* ══ CART PAGE ══ */
+#cart-page{
+  position:fixed;inset:0;z-index:155;
+  background:#fff;display:none;flex-direction:column;overflow-y:auto;
+}
+#cart-page.open{display:flex;}
+#cp-hdr-wrap{
+  position:sticky;top:0;z-index:50;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:.5px solid var(--color-border-tertiary);
+  flex-shrink:0;overflow:visible;
+}
+#cp-logo-img{transition:opacity 200ms linear;}
+#cp-logo-img:hover{opacity:.5;}
+
+/* 본문 */
+#cp-body{flex:1;}
+#cp-inner{max-width:1440px;margin:0 auto;padding:48px 40px 80px;}
+
+/* 페이지 헤더 */
+#cp-page-header{display:flex;align-items:baseline;gap:24px;margin-bottom:32px;}
+#cp-title-text{font-family:'DM Sans',sans-serif;font-size:32px;font-weight:500;letter-spacing:-.02em;}
+.cp-continue-link{
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;
+  color:var(--color-text-tertiary);cursor:pointer;
+  border-bottom:.5px solid var(--color-border-primary);padding-bottom:1px;
+  transition:color 200ms linear;
+}
+.cp-continue-link:hover{color:var(--color-text-primary);}
+
+/* 테이블 헤더 */
+.cp-table-hdr{
+  display:grid;grid-template-columns:1fr 120px 140px 120px;
+  padding:0 0 12px;
+  border-bottom:.5px solid var(--color-border-primary);
+  font-family:'DM Sans',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--color-text-tertiary);
+}
+.cp-th-price,.cp-th-qty,.cp-th-total{text-align:center;}
+
+/* 아이템 행 */
+.cp-item{
+  display:grid;grid-template-columns:1fr 120px 140px 120px;
+  align-items:center;
+  padding:24px 0;
+  border-bottom:.5px solid var(--color-border-tertiary);
+  position:relative;
+}
+.cp-item-product{display:flex;align-items:center;gap:20px;}
+.cp-item-img{width:100px;height:100px;flex-shrink:0;background:var(--color-background-secondary);}
+.cp-item-info{display:flex;flex-direction:column;gap:6px;}
+.cp-item-category{font-family:'DM Sans',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);}
+.cp-item-name{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;color:var(--color-text-primary);line-height:1.35;}
+.cp-item-remove-link{
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;
+  color:var(--color-text-tertiary);cursor:pointer;width:fit-content;
+  border-bottom:.5px solid var(--color-border-primary);
+  transition:color 200ms linear;margin-top:4px;
+}
+.cp-item-remove-link:hover{color:var(--color-text-primary);}
+.cp-item-price{font-family:'DM Sans',sans-serif;font-size:15px;color:var(--color-text-secondary);text-align:center;}
+.cp-item-qty{display:flex;align-items:center;justify-content:center;}
+.cp-item-total{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--color-text-primary);text-align:center;}
+
+/* 빈 상태 */
+#cp-empty-state{padding:72px 0;display:flex;flex-direction:column;align-items:center;gap:16px;}
+.cp-empty-msg{font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:300;color:var(--color-text-tertiary);}
+
+/* 배송비 행 */
+.cp-shipping-row{
+  display:flex;align-items:center;gap:16px;
+  padding:16px 0;
+  border-bottom:.5px solid var(--color-border-tertiary);
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;
+}
+.cp-shipping-label{font-weight:300;color:var(--color-text-secondary);width:100px;flex-shrink:0;}
+.cp-shipping-notice{flex:1;color:var(--color-text-tertiary);}
+.cp-shipping-price{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--color-text-primary);min-width:80px;text-align:right;}
+.cp-shipping-price.free{color:#2a7a3a;}
+
+/* 푸터 */
+#cp-footer{padding:24px 0 0;display:flex;justify-content:flex-end;}
+.cp-footer-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:320px;}
+.cp-subtotal-row{display:flex;align-items:baseline;gap:24px;justify-content:space-between;width:100%;}
+.cp-subtotal-label{font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:300;color:var(--color-text-secondary);}
+.cp-subtotal-price{font-family:'DM Sans',sans-serif;font-size:22px;font-weight:500;color:var(--color-text-primary);}
+.cp-tax-note{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;color:var(--color-text-tertiary);}
+.cp-order-btn{
+  width:100%;height:52px;
+  background:#111;color:#fff;border:none;
+  font-family:var(--btn-font-family);font-size:var(--btn-font-size);font-weight:var(--btn-font-weight);
+  letter-spacing:var(--btn-letter-spacing);cursor:pointer;margin-top:8px;
+  transition:opacity 200ms linear;
+}
+.cp-order-btn:hover{opacity:.8;}
+
+/* 장바구니 페이지 푸터 */
+#cp-footer-wrap{flex-shrink:0;}
+
+/* ══ CHECKOUT PAGE ══ */
+#checkout-page{
+  position:fixed;inset:0;z-index:155;
+  background:#fff;display:none;flex-direction:column;overflow-y:auto;
+}
+#checkout-page.open{display:flex;}
+
+/* 결제 미니 헤더 */
+#chp-hdr-wrap{
+  position:sticky;top:0;z-index:50;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:.5px solid var(--color-border-tertiary);
+  flex-shrink:0;
+}
+.chp-hdr-inner{
+  max-width:1440px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  height:64px;padding:0 40px;
+}
+#chp-logo-img{transition:opacity 200ms linear;cursor:pointer;}
+#chp-logo-img:hover{opacity:.5;}
+
+/* 2열 바디 */
+#chp-body{
+  flex:1;
+  display:grid;
+  grid-template-columns:1fr 420px;
+  max-width:1440px;width:100%;margin:0 auto;
+  padding:0 40px 80px;
+  gap:60px;
+  align-items:start;
+}
+
+/* 좌측 폼 */
+#chp-left{padding-top:48px;}
+.chp-section{margin-bottom:40px;}
+.chp-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.chp-section-title{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:500;letter-spacing:-.01em;color:var(--color-text-primary);}
+.chp-link{
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  color:var(--color-text-primary);cursor:pointer;
+  border-bottom:.5px solid var(--color-border-primary);padding-bottom:1px;
+  transition:opacity 200ms linear;
+}
+.chp-link:hover{opacity:.55;}
+.chp-section-desc{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;color:var(--color-text-tertiary);margin-bottom:16px;line-height:1.6;}
+
+/* 폼 필드 */
+.chp-field{position:relative;margin-bottom:16px;}
+.chp-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.chp-input{
+  width:100%;height:48px;padding:0 14px;
+  border:.5px solid var(--color-border-primary);
+  background:#fff;outline:none;
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:300;
+  color:var(--color-text-primary);
+  transition:border-color 200ms linear;
+  appearance:none;
+}
+.chp-input:focus{border-color:var(--color-text-primary);}
+.chp-input:disabled{opacity:.35;cursor:not-allowed;background:var(--color-background-secondary);}
+.chp-input::placeholder{color:var(--color-text-tertiary);}
+select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23888' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+
+/* 에러 상태 */
+.chp-field.error .chp-input{border-color:var(--color-error);}
+.chp-error-msg{display:none;font-family:'Noto Sans KR',sans-serif;font-size:12px;color:var(--color-error);margin-top:6px;}
+.chp-field.error .chp-error-msg{display:block;}
+
+/* 주소 검색 행 */
+.chp-addr-row{display:flex;gap:8px;align-items:center;}
+.chp-addr-row .chp-input{flex:1;}
+.chp-addr-search-btn{
+  height:48px;padding:0 16px;flex-shrink:0;
+  border:.5px solid var(--color-border-primary);background:#fff;
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;
+  cursor:pointer;white-space:nowrap;transition:background 200ms linear,color 200ms linear;
+}
+.chp-addr-search-btn:hover{background:#111;color:#fff;}
+
+/* 체크박스 행 */
+.chp-checkbox-row{display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;color:var(--color-text-secondary);}
+.chp-checkbox-row input[type="checkbox"]{width:16px;height:16px;cursor:pointer;accent-color:#111;}
+
+/* 이메일 계속하기 버튼 */
+.chp-email-continue-btn{
+  width:100%;height:48px;background:#111;color:#fff;border:none;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;
+  letter-spacing:.04em;cursor:pointer;margin-top:16px;
+  transition:opacity 200ms linear;
+}
+.chp-email-continue-btn:hover{opacity:.8;}
+
+/* 로그인 제안 배너 */
+#chp-login-notice{
+  margin-top:12px;padding:12px 16px;
+  background:var(--color-background-secondary);
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;
+  color:var(--color-text-secondary);
+  border-left:2px solid var(--color-border-primary);
+}
+
+/* 비회원 주문 안내 */
+#ocp-guest-notice{
+  width:100%;padding:14px 20px;
+  background:var(--color-background-secondary);
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;
+  color:var(--color-text-secondary);
+  border-left:2px solid var(--color-border-primary);
+  text-align:center;line-height:1.6;
+}
+
+/* 결제수단 */
+#chp-payment-methods{display:flex;flex-direction:column;gap:0;margin-bottom:20px;border:.5px solid var(--color-border-primary);}
+.chp-payment-item{border-bottom:.5px solid var(--color-border-tertiary);}
+.chp-payment-item:last-child{border-bottom:none;}
+.chp-payment-method{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 20px;cursor:pointer;
+  background:var(--color-background-primary);
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:300;
+  color:var(--color-text-secondary);
+  transition:background 200ms linear;
+}
+.chp-payment-item.active .chp-payment-method{background:var(--color-background-secondary);font-weight:400;color:var(--color-text-primary);}
+.chp-payment-method input[type="radio"]{accent-color:#111;width:16px;height:16px;}
+.chp-payment-detail{padding:0 20px 16px;background:var(--color-background-secondary);}
+.chp-payment-item:not(.active) .chp-payment-detail{display:none;}
+
+/* 약관 동의 */
+.chp-agree-all-row{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  padding:16px 0;border-bottom:.5px solid var(--color-border-primary);
+  margin-bottom:0;
+}
+.chp-agree-all-label{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--color-text-primary);}
+.chp-agree-items{border-bottom:.5px solid var(--color-border-primary);}
+.chp-agree-item{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 0;border-top:.5px solid var(--color-border-tertiary);
+  cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;
+  color:var(--color-text-secondary);
+}
+.chp-agree-item input[type="checkbox"]{width:16px;height:16px;accent-color:#111;flex-shrink:0;}
+.chp-agree-item span:nth-child(2){flex:1;}
+.chp-agree-arrow{color:var(--color-text-tertiary);font-size:18px;line-height:1;}
+#chp-agree-section.error .chp-agree-items{border-color:var(--color-error);}
+
+/* 결제하기 버튼 */
+.chp-submit-btn{
+  width:100%;height:56px;background:#111;color:#fff;border:none;
+  font-family:var(--btn-font-family);font-size:var(--btn-font-size);font-weight:var(--btn-font-weight);
+  letter-spacing:var(--btn-letter-spacing);cursor:pointer;margin-top:32px;
+  transition:opacity 200ms linear;
+}
+.chp-submit-btn:hover{opacity:.8;}
+
+/* 법적 안내 */
+.chp-legal-note{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:300;color:var(--color-text-tertiary);line-height:1.7;margin-top:24px;}
+.chp-legal-links{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;}
+.chp-legal-link{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--color-text-tertiary);cursor:pointer;border-bottom:.5px solid var(--color-border-tertiary);padding-bottom:1px;transition:color 200ms linear;}
+.chp-legal-link:hover{color:var(--color-text-primary);}
+
+/* 우측 주문 요약 */
+#chp-right{
+  position:sticky;top:80px;
+  padding-top:48px;
+  border-left:.5px solid var(--color-border-tertiary);
+  padding-left:40px;
+}
+.chp-sum-item{
+  display:flex;align-items:center;gap:16px;
+  padding:12px 0;border-bottom:.5px solid var(--color-border-tertiary);
+}
+.chp-sum-item-img-wrap{position:relative;flex-shrink:0;}
+.chp-sum-item-img{width:56px;height:56px;background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary);}
+.chp-sum-item-qty{
+  position:absolute;top:-8px;right:-8px;
+  width:20px;height:20px;border-radius:50%;
+  background:#111;color:#fff;
+  font-family:'DM Sans',sans-serif;font-size:11px;
+  display:flex;align-items:center;justify-content:center;
+}
+.chp-sum-item-info{flex:1;}
+.chp-sum-item-name{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:400;color:var(--color-text-primary);line-height:1.3;margin-bottom:4px;}
+.chp-sum-item-sub{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:300;color:var(--color-text-tertiary);}
+.chp-sum-item-price{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;}
+
+.chp-coupon-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 0;border-bottom:.5px solid var(--color-border-primary);
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:300;
+  color:var(--color-text-secondary);cursor:pointer;margin-top:8px;
+}
+.chp-coupon-arrow{font-size:20px;color:var(--color-text-tertiary);}
+.chp-summary-totals{padding-top:16px;}
+.chp-sum-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 0;
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:300;
+  color:var(--color-text-secondary);
+}
+.chp-sum-row span:last-child{font-family:'DM Sans',sans-serif;}
+.chp-sum-total-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 0;
+  border-top:.5px solid var(--color-border-primary);
+  margin-top:8px;
+  font-family:'DM Sans',sans-serif;font-size:18px;font-weight:500;
+  color:var(--color-text-primary);
+}
+
+/* ══ ORDER COMPLETE PAGE ══ */
+#order-complete-page{
+  position:fixed;inset:0;z-index:155;
+  background:#fff;display:none;flex-direction:column;overflow-y:auto;
+}
+#order-complete-page.open{display:flex;}
+#ocp-hdr-wrap{
+  position:sticky;top:0;z-index:50;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:.5px solid var(--color-border-tertiary);
+  flex-shrink:0;
+}
+#ocp-body{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:80px 40px;}
+#ocp-inner{
+  width:100%;max-width:580px;
+  display:flex;flex-direction:column;align-items:center;gap:24px;
+}
+#ocp-check-icon{color:var(--color-text-primary);opacity:.85;}
+#ocp-title{
+  font-family:'DM Sans',sans-serif;font-size:28px;font-weight:500;
+  letter-spacing:-.02em;text-align:center;
+}
+#ocp-order-num{
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:300;
+  color:var(--color-text-tertiary);
+}
+#ocp-order-num strong{font-family:'DM Sans',sans-serif;font-weight:500;color:var(--color-text-primary);margin-left:4px;}
+#ocp-summary{
+  width:100%;border:.5px solid var(--color-border-primary);
+  padding:24px;display:flex;flex-direction:column;gap:0;
+}
+.ocp-item{
+  display:flex;align-items:center;gap:16px;
+  padding:12px 0;border-bottom:.5px solid var(--color-border-tertiary);
+}
+.ocp-item:last-child{border-bottom:none;}
+.ocp-item-img{width:48px;height:48px;flex-shrink:0;background:var(--color-background-secondary);}
+.ocp-item-info{flex:1;}
+.ocp-item-name{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:400;color:var(--color-text-primary);}
+.ocp-item-sub{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:300;color:var(--color-text-tertiary);margin-top:3px;}
+.ocp-item-price{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.ocp-sum-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 0 0;
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:300;color:var(--color-text-secondary);
+}
+.ocp-sum-total{border-top:.5px solid var(--color-border-primary);padding-top:16px;margin-top:8px;}
+.ocp-sum-total span:first-child{font-weight:400;color:var(--color-text-primary);}
+.ocp-sum-total span:last-child{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:500;color:var(--color-text-primary);}
+.ocp-sum-note{font-size:12px;color:var(--color-text-tertiary);padding-top:12px;}
+.ocp-sum-note span{flex:1;}
+#ocp-actions{width:100%;}
+.ocp-btn-primary{
+  width:100%;height:52px;background:#111;color:#fff;border:none;
+  font-family:var(--btn-font-family);font-size:var(--btn-font-size);font-weight:var(--btn-font-weight);
+  letter-spacing:var(--btn-letter-spacing);cursor:pointer;
+  transition:opacity 200ms linear;
+}
+.ocp-btn-primary:hover{opacity:.8;}
 </style>
 
 <!-- PRODUCT DETAIL PAGE -->
-<div id="product-detail-page">
+<div id="product-detail-page" class="sub-page">
   <div id="pd-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
   <div id="pd-hdr-wrap" class="blk">
     <div class="hdr">
@@ -752,7 +1257,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
       <div class="hdr-icons">
         <span class="hdr-icon-btn" id="pd-search-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg></span>
         <span class="hdr-icon-btn" id="pd-login-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg></span>
-        <span class="hdr-icon-btn" id="pd-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg></span>
+        <span class="hdr-icon-btn" id="pd-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg><span class="cart-badge" id="pd-cart-badge"></span></span>
       </div>
     </div>
   </div>
@@ -760,10 +1265,6 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
   <div id="pd-body">
     <!-- 1440px 제한 래퍼 -->
     <div id="pd-inner">
-      <span id="pd-back-btn" class="back-btn">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>
-        이전 화면으로 돌아가기
-      </span>
 
       <!-- 메인 2단 그리드 -->
       <div id="pd-content">
@@ -829,8 +1330,15 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
             </div>
           </div>
 
-          <!-- 수량 + 총액 -->
+          <!-- 용량 + 수량 + 총액 -->
           <div id="pd-purchase-row">
+            <div id="pd-volume-wrap">
+              <span class="pd-qty-label">용량</span>
+              <div class="pd-select-wrap">
+                <select id="pd-volume-select"></select>
+                <svg class="pd-select-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
             <div id="pd-qty-wrap">
               <span class="pd-qty-label">수량</span>
               <div id="pd-qty-ctrl">
@@ -1003,17 +1511,17 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
   line-height:1.3;margin-bottom:12px;
 }
 #pd-status{
-  font-size:11px;letter-spacing:.05em;text-transform:uppercase;
-  color:#888;border:.5px solid #ccc;
+  font-size:13px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--color-text-tertiary);border:.5px solid var(--color-border-primary);
   padding:3px 8px;margin-bottom:12px;width:fit-content;
 }
 #pd-divider{border-top:.5px solid var(--color-border-tertiary);margin:24px 0;}
 #pd-purchase-row{
-  display:flex;align-items:center;justify-content:space-between;
+  display:flex;align-items:flex-start;gap:12px;
   margin-bottom:20px;
 }
-#pd-qty-wrap,#pd-total-wrap{display:flex;flex-direction:column;gap:8px;}
-#pd-total-wrap{align-items:flex-end;}
+#pd-qty-wrap,#pd-total-wrap,#pd-volume-wrap{display:flex;flex-direction:column;gap:8px;}
+#pd-total-wrap{align-items:flex-end;margin-left:auto;}
 .pd-qty-label{
   font-size:13px;letter-spacing:.08em;text-transform:uppercase;
   color:var(--color-text-tertiary);
@@ -1023,13 +1531,13 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
   border:.5px solid var(--color-border-secondary);
 }
 #pd-qty-minus,#pd-qty-plus{
-  width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+  width:42px;height:42px;display:flex;align-items:center;justify-content:center;
   cursor:pointer;font-size:18px;color:var(--color-text-secondary);
   transition:opacity 200ms linear;user-select:none;
 }
 #pd-qty-minus:hover,#pd-qty-plus:hover{opacity:.5;}
 #pd-qty-num{
-  min-width:48px;height:40px;display:flex;align-items:center;justify-content:center;
+  min-width:48px;height:42px;display:flex;align-items:center;justify-content:center;
   font-size:15px;font-weight:500;color:var(--color-text-primary);
   border-left:.5px solid var(--color-border-secondary);
   border-right:.5px solid var(--color-border-secondary);
@@ -1038,6 +1546,23 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
   font-family:'DM Sans',sans-serif;font-size:20px;font-weight:600;
   color:var(--color-text-primary);letter-spacing:-.01em;
 }
+/* 용량 선택 */
+#pd-volume-wrap{display:none;}
+#pd-volume-wrap.visible{display:flex;}
+.pd-select-wrap{position:relative;display:inline-flex;align-items:center;height:44px;border:.5px solid var(--color-border-secondary);box-sizing:border-box;}
+#pd-volume-select{
+  height:100%;padding:0 36px 0 12px;
+  border:none;outline:none;cursor:pointer;
+  background:transparent;
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;
+  color:var(--color-text-primary);appearance:none;-webkit-appearance:none;
+  min-width:120px;
+}
+.pd-select-arrow{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  pointer-events:none;color:var(--color-text-secondary);
+}
+#pd-volume-select option{padding:9px 12px;}
 /* 일반/정기 배송 탭 */
 #pd-order-type-wrap{display:none;margin-bottom:24px;}
 #pd-order-type-wrap.visible{display:block;}
@@ -1086,6 +1611,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 .pd-sub-period.active .pd-sub-period-dot{display:block;}
 /* 주기 텍스트 */
 .pd-sub-period-label{
+  flex:1;
   font-family:'DM Sans',sans-serif;font-size:13px;font-weight:400;
   color:var(--color-text-secondary);flex:1;
 }
@@ -1099,8 +1625,8 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 #pd-cart-btn{
   display:flex;align-items:center;justify-content:center;
   background:#111;color:#fff;
-  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
-  letter-spacing:.08em;text-transform:uppercase;
+  font-family:var(--btn-font-family);font-size:var(--btn-font-size);font-weight:var(--btn-font-weight);
+  letter-spacing:var(--btn-letter-spacing);
   height:52px;cursor:pointer;width:100%;
   transition:opacity 200ms linear;margin-bottom:0;
 }
@@ -1188,11 +1714,69 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 }
 .cart-toast-meta{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;color:rgba(255,255,255,.65);}
 
+/* ── 장바구니 드로어 ── */
+#cart-drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:800;opacity:0;pointer-events:none;transition:opacity 300ms ease;}
+#cart-drawer-overlay.open{opacity:1;pointer-events:auto;}
+#cart-drawer{position:fixed;top:0;right:0;height:100%;width:664px;max-width:100vw;background:#fff;z-index:801;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 350ms cubic-bezier(.25,.46,.45,.94);}
+#cart-drawer.open{transform:translateX(0);}
+/* 헤더 고정 — Section Label 타이포 */
+.cd-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px 0 28px;height:64px;border-bottom:.5px solid var(--color-border-secondary);flex-shrink:0;}
+.cd-title{font-family:'DM Sans',sans-serif;font-size:24px;font-weight:500;letter-spacing:-0.01em;color:var(--color-text-primary);}
+/* 스크롤 바디 */
+.cd-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.cd-promo{padding:11px 28px;background:var(--color-background-secondary);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);border-bottom:.5px solid var(--color-border-tertiary);flex-shrink:0;}
+.cd-items{flex:1;}
+/* 아이템 — SRP 포맷 정렬: 156px 정사각 썸네일, align-items:center */
+.cd-item{height:218px;position:relative;display:flex;align-items:center;gap:32px;padding:0 0 0 28px;border-bottom:.5px solid var(--color-border-tertiary);cursor:default;transition:opacity 200ms linear;}
+.cd-item:hover{opacity:.75;}
+.cd-item-img{width:100px;height:100px;flex-shrink:0;overflow:hidden;background:var(--color-background-secondary);}
+.cd-item-info{flex:1;display:flex;flex-direction:column;gap:8px;padding-right:52px;}
+/* 타이포 — SRP 아이템과 통일 */
+.cd-item-category{font-family:'DM Sans',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);}
+.cd-item-name{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:500;color:var(--color-text-primary);line-height:1.35;}
+.cd-item-price-orig{font-family:'DM Sans',sans-serif;font-size:15px;color:var(--color-text-secondary);}
+.cd-item-sub-badge{display:inline-block;font-family:'DM Sans',sans-serif;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--color-text-tertiary);border:.5px solid var(--color-border-primary);padding:3px 8px;width:fit-content;}
+/* 수량+합계 행: 상단 자동 여백으로 하단 고정 */
+.cd-item-row{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:4px;}
+.cd-item-price{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--color-text-primary);}
+/* 수량 스테퍼 — design system 버튼 (border-radius:0, .5px border) */
+.cd-qty{display:flex;align-items:center;}
+.cd-qty-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:.5px solid var(--color-border-primary);cursor:pointer;font-size:16px;font-weight:300;color:var(--color-text-primary);user-select:none;transition:background 200ms linear,color 200ms linear;}
+.cd-qty-btn:hover{background:#111;color:#fff;}
+.cd-qty-num{width:44px;height:32px;display:flex;align-items:center;justify-content:center;border-top:.5px solid var(--color-border-primary);border-bottom:.5px solid var(--color-border-primary);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--color-text-primary);}
+/* 삭제 X — 아이템 우상단, 아이콘 버튼 시스템 */
+.cd-remove{position:absolute;top:0;right:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(17,17,17,.25);transition:color 200ms linear;}
+.cd-remove:hover{color:var(--color-text-primary);}
+/* 빈 상태 */
+.cd-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:72px 28px;gap:16px;}
+.cd-empty-msg{font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:300;color:var(--color-text-tertiary);}
+/* CTA 링크 시스템 — opacity .45 → 1 */
+.cd-empty-cta{font-family:'DM Sans',sans-serif;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-primary);border-bottom:.5px solid var(--color-text-primary);padding-bottom:3px;cursor:pointer;opacity:.45;transition:opacity 200ms linear;}
+.cd-empty-cta:hover{opacity:1;}
+/* 푸터 — 좌우 패딩 아이템 텍스트 컬럼과 정렬 */
+.cd-footer{flex-shrink:0;border-top:.5px solid var(--color-border-secondary);padding:24px 28px 32px;}
+.cd-subtotal-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+.cd-subtotal-label{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);}
+.cd-subtotal-price{font-family:'DM Sans',sans-serif;font-size:32px;font-weight:500;color:var(--color-text-primary);}
+/* 배송비 아이템 행 — 리스트 하단 고정 */
+.cd-shipping-item{display:flex;align-items:center;gap:0;padding:16px 28px;border-top:.5px solid var(--color-border-tertiary);flex-shrink:0;}
+.cd-si-label{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);flex-shrink:0;padding-right:20px;border-right:.5px solid var(--color-border-primary);margin-right:20px;}
+.cd-si-notice{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;color:var(--color-text-tertiary);flex:1;line-height:1.5;}
+.cd-si-price{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:400;letter-spacing:.04em;color:var(--color-text-primary);flex-shrink:0;margin-left:16px;}
+.cd-si-price.free{color:#2a7a3a;font-weight:500;}
+.cd-subtotal-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.cd-note{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;color:var(--color-text-tertiary);}
+/* CTA 버튼 — Primary #111 fill / Secondary .5px border, border-radius:0 */
+.cd-cta-row{display:flex;gap:8px;}
+.cd-cta-secondary{flex:1;height:52px;display:flex;align-items:center;justify-content:center;gap:6px;border:.5px solid #111;font-family:var(--btn-font-family);font-size:var(--btn-font-size);font-weight:var(--btn-font-weight);letter-spacing:var(--btn-letter-spacing);color:#111;cursor:pointer;transition:opacity 200ms linear;}
+.cd-cta-secondary:hover{opacity:.45;}
+.cd-cta-primary{flex:1;height:52px;display:flex;align-items:center;justify-content:center;gap:6px;background:#111;font-family:var(--btn-font-family);font-size:var(--btn-font-size);font-weight:var(--btn-font-weight);letter-spacing:var(--btn-letter-spacing);color:#fff;cursor:pointer;transition:opacity 200ms linear;}
+.cd-cta-primary:hover{opacity:.8;}
 
 /* 푸터 래퍼 */
 #pd-footer-wrap .footer{margin-top:0;}
 </style>
-<div id="search-overlay">
+<div id="search-overlay" class="sub-page">
   <div id="search-overlay-bg"></div>
   <div id="search-overlay-inner">
     <div id="search-form-wrap">
@@ -1207,7 +1791,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
 </div>
 
 <!-- SEARCH RESULT PAGE -->
-<div id="search-result-page">
+<div id="search-result-page" class="sub-page">
 
   <!-- 공통 어나운스 + 헤더 -->
   <div id="srp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
@@ -1228,7 +1812,7 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
       <div class="hdr-icons">
         <span class="hdr-icon-btn" id="srp-search-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg></span>
         <span class="hdr-icon-btn" id="srp-login-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg></span>
-        <span class="hdr-icon-btn" id="srp-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg></span>
+        <span class="hdr-icon-btn" id="srp-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg><span class="cart-badge" id="srp-cart-badge"></span></span>
       </div>
     </div>
   </div>
@@ -1292,6 +1876,305 @@ body{font-family:'DM Sans',sans-serif;background:#ffffff;}
     </div>
   </div>
 
+</div>
+
+<!-- ══════════════════════════════════════════════
+     CART PAGE
+════════════════════════════════════════════════ -->
+<div id="cart-page" class="sub-page">
+  <div id="cp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
+  <div id="cp-hdr-wrap" class="blk">
+    <div class="hdr">
+      <div class="hdr-left">
+        <img id="cp-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
+        <a class="sns-link" href="https://www.instagram.com/goodthings_roasters/" target="_blank">
+          <svg class="sns-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+      </div>
+      <div class="hdr-nav">
+        <span class="nav-link">The Story</span>
+        <span class="nav-link">Shop</span>
+        <span class="nav-link">Work with Us</span>
+        <span class="nav-link">Good Days</span>
+      </div>
+      <div class="hdr-icons">
+        <span class="hdr-icon-btn" id="cp-search-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg></span>
+        <span class="hdr-icon-btn" id="cp-login-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg></span>
+        <span class="hdr-icon-btn" id="cp-cart-icon-btn" style="position:relative;"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg><span class="cart-badge" id="cp-cart-badge"></span></span>
+      </div>
+    </div>
+  </div>
+  <div id="cp-body">
+    <div id="cp-inner">
+      <div id="cp-page-header">
+        <h1 id="cp-title-text">장바구니</h1>
+        <span id="cp-continue-btn" class="cp-continue-link">쇼핑 계속하기</span>
+      </div>
+      <div class="cp-table-hdr">
+        <span class="cp-th-product">상품</span>
+        <span class="cp-th-price">가격</span>
+        <span class="cp-th-qty">수량</span>
+        <span class="cp-th-total">합계</span>
+      </div>
+      <div id="cp-items-list"></div>
+      <div id="cp-empty-state" style="display:none;">
+        <p class="cp-empty-msg">장바구니가 비어 있습니다.</p>
+        <span id="cp-empty-shop-btn" class="cp-continue-link">쇼핑 계속하기 →</span>
+      </div>
+      <div class="cp-shipping-row" id="cp-shipping-row" style="display:none;">
+        <span class="cp-shipping-label">배송비</span>
+        <span class="cp-shipping-notice" id="cp-shipping-notice"></span>
+        <span class="cp-shipping-price" id="cp-shipping-price"></span>
+      </div>
+      <div id="cp-footer" style="display:none;">
+        <div class="cp-footer-right">
+          <div class="cp-subtotal-row">
+            <span class="cp-subtotal-label">결제예정금액</span>
+            <span class="cp-subtotal-price" id="cp-subtotal-price">₩0</span>
+          </div>
+          <div class="cp-tax-note">부가세 포함</div>
+          <button id="cp-order-btn" class="cp-order-btn">주문하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="blk" id="cp-footer-wrap"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     CHECKOUT PAGE
+════════════════════════════════════════════════ -->
+<div id="checkout-page" class="sub-page">
+  <div id="chp-hdr-wrap">
+    <div class="chp-hdr-inner">
+      <img id="chp-logo-img" style="height:28px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
+      <span class="hdr-icon-btn" id="chp-cart-icon-btn" style="position:relative;">
+        <svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg>
+        <span class="cart-badge" id="chp-cart-badge"></span>
+      </span>
+    </div>
+  </div>
+  <div id="chp-body">
+    <!-- 좌측 폼 -->
+    <div id="chp-left">
+      <!-- 연락처 -->
+      <div class="chp-section">
+        <div class="chp-section-header">
+          <h2 class="chp-section-title">연락처</h2>
+          <span id="chp-login-link" class="chp-link">로그인</span>
+        </div>
+        <div class="chp-field" data-required="true">
+          <input class="chp-input" id="chp-email" type="email" placeholder="이메일 주소">
+          <div class="chp-error-msg">이메일 주소를 입력해 주세요.</div>
+        </div>
+        <label class="chp-checkbox-row">
+          <input type="checkbox" checked>
+          <span>주문 내역을 이메일로 받기</span>
+        </label>
+        <button id="chp-email-continue-btn" class="chp-email-continue-btn" type="button">이 이메일로 계속하기</button>
+        <!-- 이메일 확인 후 로그인 제안 배너 -->
+        <div id="chp-login-notice" style="display:none;">
+          이미 계정이 있으시면 <span id="chp-notice-login-link" class="chp-link">로그인</span>하면 정보가 자동으로 채워집니다.
+        </div>
+      </div>
+
+      <!-- 배송지 이하 — 이메일 확인 후 표시 -->
+      <div id="chp-form-rest" style="display:none;">
+
+      <!-- 배송지 -->
+      <div class="chp-section">
+        <h2 class="chp-section-title">배송지</h2>
+        <div class="chp-field" data-required="true">
+          <input class="chp-input" id="chp-firstname" type="text" placeholder="이름">
+          <div class="chp-error-msg">이름을 입력해 주세요.</div>
+        </div>
+        <div class="chp-field chp-addr-row">
+          <input class="chp-input" id="chp-zipcode" type="text" placeholder="우편번호" style="flex:1;">
+          <button class="chp-addr-search-btn" type="button">주소 검색</button>
+        </div>
+        <div class="chp-field" data-required="true">
+          <input class="chp-input" id="chp-addr1" type="text" placeholder="기본주소">
+          <div class="chp-error-msg">주소를 입력해 주세요.</div>
+        </div>
+        <div class="chp-field">
+          <input class="chp-input" id="chp-addr2" type="text" placeholder="나머지주소 (선택 입력 가능)" disabled>
+        </div>
+        <div class="chp-field" data-required="true">
+          <input class="chp-input" id="chp-phone" type="tel" placeholder="휴대전화">
+          <div class="chp-error-msg">휴대전화를 입력해 주세요.</div>
+        </div>
+        <div class="chp-field">
+          <select class="chp-input chp-select" id="chp-delivery-msg">
+            <option value="">-- 메시지 선택 (선택사항) --</option>
+            <option>부재 시 경비실에 맡겨 주세요.</option>
+            <option>부재 시 문 앞에 놓아 주세요.</option>
+            <option>직접 받겠습니다.</option>
+            <option>배송 전 연락 바랍니다.</option>
+            <option value="direct">직접 입력</option>
+          </select>
+        </div>
+        <div class="chp-field" id="chp-delivery-custom-field" style="display:none;">
+          <input class="chp-input" id="chp-delivery-custom" type="text" placeholder="배송 메시지를 입력해 주세요.">
+        </div>
+      </div>
+
+      <!-- 비회원 주문조회 비밀번호 (비로그인 시만 표시) -->
+      <div class="chp-section" id="chp-guest-section">
+        <h2 class="chp-section-title">비회원 주문조회 비밀번호</h2>
+        <p class="chp-section-desc">영문대소문자/숫자/특수문자 중 2가지 이상 조합, 10자~16자</p>
+        <div class="chp-field" data-required="true" data-guest="true">
+          <input class="chp-input" id="chp-guest-pw" type="password" placeholder="비밀번호">
+          <div class="chp-error-msg">비밀번호를 입력해 주세요.</div>
+        </div>
+        <div class="chp-field" data-required="true" data-guest="true">
+          <input class="chp-input" id="chp-guest-pw2" type="password" placeholder="비밀번호 확인" disabled>
+          <div class="chp-error-msg">비밀번호 확인을 입력해 주세요.</div>
+        </div>
+      </div>
+
+      <!-- 결제수단 -->
+      <div class="chp-section">
+        <h2 class="chp-section-title">결제수단</h2>
+        <div id="chp-payment-methods">
+          <div class="chp-payment-item active" id="chp-pm-transfer">
+            <label class="chp-payment-method">
+              <input type="radio" name="chp-payment" value="transfer" checked>
+              <span>무통장입금</span>
+            </label>
+            <div class="chp-payment-detail" id="chp-transfer-detail">
+              <div class="chp-field" data-required="true" data-payment="transfer">
+                <select class="chp-input chp-select" id="chp-bank">
+                  <option value="">입금은행 선택</option>
+                  <option>국민은행</option><option>신한은행</option><option>우리은행</option>
+                  <option>하나은행</option><option>기업은행</option><option>농협은행</option>
+                  <option>카카오뱅크</option><option>토스뱅크</option>
+                </select>
+                <div class="chp-error-msg">입금은행을 선택해 주세요.</div>
+              </div>
+              <div class="chp-field" data-required="true" data-payment="transfer">
+                <input class="chp-input" id="chp-depositor" type="text" placeholder="입금자명">
+                <div class="chp-error-msg">입금자명을 입력해 주세요.</div>
+              </div>
+            </div>
+          </div>
+          <div class="chp-payment-item" id="chp-pm-card">
+            <label class="chp-payment-method">
+              <input type="radio" name="chp-payment" value="card">
+              <span>신용카드</span>
+            </label>
+            <div class="chp-payment-detail" id="chp-card-detail">
+              <div class="chp-field" data-required="true" data-payment="card">
+                <select class="chp-input chp-select" id="chp-card-company">
+                  <option value="">카드사 선택</option>
+                  <option>신한카드</option><option>국민카드</option><option>현대카드</option>
+                  <option>롯데카드</option><option>우리카드</option><option>하나카드</option>
+                  <option>삼성카드</option><option>BC카드</option>
+                </select>
+                <div class="chp-error-msg">카드사를 선택해 주세요.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 약관 동의 -->
+      <div class="chp-section" id="chp-agree-section">
+        <label class="chp-agree-all-row">
+          <input type="checkbox" id="chp-agree-all">
+          <span class="chp-agree-all-label">모든 약관 동의</span>
+        </label>
+        <div class="chp-agree-items">
+          <label class="chp-agree-item">
+            <input type="checkbox" class="chp-agree-check">
+            <span>[필수] 쇼핑몰 이용약관 동의</span>
+            <span class="chp-agree-arrow">›</span>
+          </label>
+          <label class="chp-agree-item">
+            <input type="checkbox" class="chp-agree-check">
+            <span>[필수] 개인정보 수집 및 이용 동의</span>
+            <span class="chp-agree-arrow">›</span>
+          </label>
+          <label class="chp-agree-item">
+            <input type="checkbox" class="chp-agree-check">
+            <span>구매조건 확인 및 결제진행 동의</span>
+          </label>
+        </div>
+      </div>
+
+      <button id="chp-submit-btn" class="chp-submit-btn">결제하기</button>
+
+      <p class="chp-legal-note">정기배송 상품이 포함되어 있습니다. 결제 후 설정된 주기에 따라 자동으로 결제되며, 정기배송은 마이페이지에서 언제든지 취소하실 수 있습니다.</p>
+      <div class="chp-legal-links">
+        <span class="chp-legal-link">배송 안내</span>
+        <span class="chp-legal-link">개인정보처리방침</span>
+        <span class="chp-legal-link">이용약관</span>
+        <span class="chp-legal-link">전자상거래 법률 고지</span>
+        <span class="chp-legal-link">취소·반품 안내</span>
+      </div>
+      </div><!-- /chp-form-rest -->
+    </div>
+
+    <!-- 우측 주문 요약 -->
+    <div id="chp-right">
+      <div id="chp-summary-items"></div>
+      <div class="chp-coupon-row">
+        <span>쿠폰 코드</span>
+        <span class="chp-coupon-arrow">›</span>
+      </div>
+      <div class="chp-summary-totals">
+        <div class="chp-sum-row">
+          <span id="chp-sum-label">소계 · 0개 상품</span>
+          <span id="chp-sum-subtotal">₩0</span>
+        </div>
+        <div class="chp-sum-row">
+          <span>배송비</span>
+          <span id="chp-sum-shipping">무료</span>
+        </div>
+        <div class="chp-sum-total-row">
+          <span>합계</span>
+          <span id="chp-sum-total">₩0</span>
+        </div>
+        <div class="chp-sum-row" id="chp-sum-sub-row" style="display:none;">
+          <span>정기배송 금액</span>
+          <span id="chp-sum-sub"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     ORDER COMPLETE PAGE
+════════════════════════════════════════════════ -->
+<div id="order-complete-page" class="sub-page">
+  <div id="ocp-hdr-wrap">
+    <div class="chp-hdr-inner">
+      <img id="ocp-logo-img" style="height:28px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
+    </div>
+  </div>
+  <div id="ocp-body">
+    <div id="ocp-inner">
+      <div id="ocp-check-icon">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="28" cy="28" r="26"/><polyline points="17,28 25,36 39,20"/></svg>
+      </div>
+      <h1 id="ocp-title">주문이 완료되었습니다.</h1>
+      <div id="ocp-order-num">주문번호 <strong id="ocp-order-num-val" title="클릭하여 복사" style="cursor:pointer;border-bottom:.5px solid var(--color-border-primary);"></strong><span id="ocp-copy-toast" style="display:none;font-size:12px;color:var(--color-text-tertiary);margin-left:8px;">복사됨 ✓</span></div>
+      <div id="ocp-guest-notice" style="display:none;"></div>
+      <div id="ocp-summary">
+        <div id="ocp-summary-items"></div>
+        <div class="ocp-sum-row ocp-sum-total">
+          <span>결제금액</span>
+          <span id="ocp-total">₩0</span>
+        </div>
+        <div class="ocp-sum-row ocp-sum-note">
+          <span>주문 확인 이메일을 발송하였습니다. 메일함을 확인해 주세요.</span>
+        </div>
+      </div>
+      <div id="ocp-actions">
+        <button id="ocp-home-btn" class="ocp-btn-primary">쇼핑 계속하기</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 </div>
@@ -1486,10 +2369,19 @@ const srpl=document.getElementById('srp-logo-img');
 if(srpl){srpl.src=src;}
 const srpfl=document.getElementById('srp-footer-logo-img');
 if(srpfl){srpfl.src=src;srpfl.style.cssText='height:30px;width:auto;display:block;filter:invert(1);';}
+// 장바구니 페이지 로고
+const cpl=document.getElementById('cp-logo-img');
+if(cpl){cpl.src=src;}
+// 결제 페이지 로고
+const chpl=document.getElementById('chp-logo-img');
+if(chpl){chpl.src=src;}
+// 주문 완료 페이지 로고
+const ocpl=document.getElementById('ocp-logo-img');
+if(ocpl){ocpl.src=src;}
 
 // 샘플 상품 데이터 (매진/재고없음 포함)
 const PRODUCTS=[
-  {category:'Coffee Bean',name:'부쿠 후루파',price:'₩18,000~',color:'linear-gradient(135deg,#c8956c,#8b5a2b)',status:null,slug:'buku-hurupa',subscription:true,
+  {category:'Coffee Bean',name:'부쿠 후루파',price:'₩18,000',volumes:[{label:'100g',price:10000},{label:'200g',price:18000},{label:'500g',price:40000}],color:'linear-gradient(135deg,#c8956c,#8b5a2b)',status:null,slug:'buku-hurupa',subscription:true,
    images:['linear-gradient(135deg,#c8956c,#8b5a2b)','linear-gradient(160deg,#a06840,#6b3a18)','linear-gradient(135deg,#e0b87a,#9a6030)'],
    storyImages:['linear-gradient(160deg,#5a3a20,#2a1a0a)','linear-gradient(135deg,#8a6040,#4a2a10)','linear-gradient(160deg,#c8956c,#6b3a18)','linear-gradient(135deg,#3a2010,#1a0a00)'],
    storyTexts:[
@@ -1500,31 +2392,31 @@ const PRODUCTS=[
    ],
    desc:'에티오피아 부쿠 후루파 농장에서 수확한 내추럴 프로세싱 원두입니다. 블루베리와 재스민의 향이 어우러지며, 다크초콜릿의 묵직한 여운이 특징입니다.',
    specs:'생산지: 에티오피아 구지 · 농장: 부쿠 후루파 · 품종: 헤이룸 · 정제: Natural · 고도: 1,900–2,200m · 테이스팅 노트: 블루베리, 재스민, 다크초콜릿'},
-  {category:'Coffee Bean',name:'카간다 AA',price:'₩20,000~',color:'linear-gradient(135deg,#a0856a,#6b4226)',status:null,slug:'kaganda-aa',subscription:true,
+  {category:'Coffee Bean',name:'카간다 AA',price:'₩20,000',volumes:[{label:'100g',price:11000},{label:'200g',price:20000},{label:'500g',price:45000}],color:'linear-gradient(135deg,#a0856a,#6b4226)',status:null,slug:'kaganda-aa',subscription:true,
    images:['linear-gradient(135deg,#a0856a,#6b4226)','linear-gradient(160deg,#c4a07a,#7a5030)'],
    desc:'케냐 카간다 농장의 AA 등급 원두로, 케냐 특유의 밝고 화사한 산미를 지녔습니다.',
    specs:'생산지: 케냐 키암부 · 등급: AA · 품종: SL28, SL34 · 정제: Washed · 테이스팅 노트: 자몽, 흑설탕, 레드커런트'},
-  {category:'Coffee Bean',name:'와이칸',price:'₩17,000~',color:'linear-gradient(135deg,#b8956c,#7a4f2a)',status:null,slug:'waikan',subscription:true,
+  {category:'Coffee Bean',name:'와이칸',price:'₩17,000',volumes:[{label:'100g',price:9500},{label:'200g',price:17000},{label:'500g',price:38000}],color:'linear-gradient(135deg,#b8956c,#7a4f2a)',status:null,slug:'waikan',subscription:true,
    images:['linear-gradient(135deg,#b8956c,#7a4f2a)'],
    desc:'과테말라 와이칸 농장의 원두로, 부드러운 바디감과 달콤한 캐러멜 풍미가 균형을 이룹니다.',
    specs:'생산지: 과테말라 안티과 · 농장: 와이칸 · 품종: Bourbon · 정제: Washed · 테이스팅 노트: 캐러멜, 사과, 크림'},
-  {category:'Coffee Bean',name:'가을의 밤',price:'₩14,000~',color:'linear-gradient(135deg,#9e8060,#68432a)',status:null,slug:'autumn-night',subscription:true,
+  {category:'Coffee Bean',name:'가을의 밤',price:'₩14,000',volumes:[{label:'100g',price:8000},{label:'200g',price:14000},{label:'500g',price:30000}],color:'linear-gradient(135deg,#9e8060,#68432a)',status:null,slug:'autumn-night',subscription:true,
    images:['linear-gradient(135deg,#9e8060,#68432a)','linear-gradient(160deg,#7a6050,#4a2a18)'],
    desc:'굿띵스 시그니처 블렌드. 가을 밤처럼 깊고 포근한 풍미를 담았습니다.',
    specs:'생산지: 페루 · 품종: Typica, Bourbon · 정제: Washed · 테이스팅 노트: 캐러멜, 견과류, 다크카카오'},
-  {category:'Coffee Bean',name:'예가체프 G1',price:'₩19,000~',color:'linear-gradient(135deg,#d4a574,#8b5e3c)',status:'매진',slug:'yirgacheffe-g1',
+  {category:'Coffee Bean',name:'예가체프 G1',price:'₩19,000',volumes:[{label:'100g',price:11000},{label:'200g',price:19000},{label:'500g',price:42000}],color:'linear-gradient(135deg,#d4a574,#8b5e3c)',status:'매진',slug:'yirgacheffe-g1',
    images:['linear-gradient(135deg,#d4a574,#8b5e3c)'],
    desc:'에티오피아 예가체프 지역의 G1 등급 원두입니다.',
    specs:'생산지: 에티오피아 예가체프 · 등급: G1 · 정제: Washed · 테이스팅 노트: 베르가못, 레몬, 재스민'},
-  {category:'Coffee Bean',name:'콜롬비아 수프리모',price:'₩16,000~',color:'linear-gradient(135deg,#c4845a,#7a4020)',status:null,slug:'colombia-supremo',subscription:true,
+  {category:'Coffee Bean',name:'콜롬비아 수프리모',price:'₩16,000',volumes:[{label:'100g',price:9000},{label:'200g',price:16000},{label:'500g',price:36000}],color:'linear-gradient(135deg,#c4845a,#7a4020)',status:null,slug:'colombia-supremo',subscription:true,
    images:['linear-gradient(135deg,#c4845a,#7a4020)','linear-gradient(160deg,#e0a07a,#9a5030)','linear-gradient(135deg,#a06040,#5a2810)'],
    desc:'콜롬비아 수프리모 등급의 균형 잡힌 원두입니다.',
    specs:'생산지: 콜롬비아 우일라 · 등급: Supremo · 정제: Washed · 테이스팅 노트: 캐러멜, 다크초콜릿, 헤이즐넛'},
-  {category:'Coffee Bean',name:'케냐 AA 키암부',price:'₩21,000~',color:'linear-gradient(135deg,#b87040,#6b3a18)',status:'재고 없음',slug:'kenya-aa-kiambu',
+  {category:'Coffee Bean',name:'케냐 AA 키암부',price:'₩21,000',volumes:[{label:'100g',price:12000},{label:'200g',price:21000},{label:'500g',price:47000}],color:'linear-gradient(135deg,#b87040,#6b3a18)',status:'재고 없음',slug:'kenya-aa-kiambu',
    images:['linear-gradient(135deg,#b87040,#6b3a18)'],
    desc:'케냐 키암부 지역의 AA 등급 프리미엄 원두입니다.',
    specs:'생산지: 케냐 키암부 · 등급: AA · 정제: Washed · 테이스팅 노트: 블랙커런트, 자두, 다크초콜릿'},
-  {category:'Coffee Bean',name:'브라질 세하도',price:'₩13,000~',color:'linear-gradient(135deg,#a06840,#5a3010)',status:null,slug:'brazil-cerrado',subscription:true,
+  {category:'Coffee Bean',name:'브라질 세하도',price:'₩13,000',volumes:[{label:'100g',price:7500},{label:'200g',price:13000},{label:'500g',price:28000}],color:'linear-gradient(135deg,#a06840,#5a3010)',status:null,slug:'brazil-cerrado',subscription:true,
    images:['linear-gradient(135deg,#a06840,#5a3010)','linear-gradient(160deg,#c08050,#703818)'],
    desc:'브라질 세하도 지역의 풍부하고 묵직한 바디감의 원두입니다.',
    specs:'생산지: 브라질 미나스 제라이스 · 정제: Natural · 테이스팅 노트: 다크초콜릿, 견과류, 캐러멜'},
@@ -1536,15 +2428,18 @@ const PRODUCTS=[
    images:['linear-gradient(135deg,#aaa,#666)'],
    desc:'집에서도 카페의 맛을 경험할 수 있는 드립백 세트입니다. 3종 각 2개입 구성.',
    specs:'구성: 3종 × 2개입 (총 6개) · 용량: 10g/개 · 권장 물 온도: 88–92°C'},
-  {category:'Coffee Bean',name:'파나마 게이샤',price:'₩38,000~',color:'linear-gradient(135deg,#e0b080,#a06830)',status:'수량 한정',slug:'panama-geisha',subscription:true,
+  {category:'Coffee Bean',name:'파나마 게이샤',price:'₩38,000',volumes:[{label:'100g',price:38000},{label:'200g',price:72000}],color:'linear-gradient(135deg,#e0b080,#a06830)',status:'수량 한정',slug:'panama-geisha',subscription:true,
    images:['linear-gradient(135deg,#e0b080,#a06830)','linear-gradient(160deg,#f0c890,#b07840)','linear-gradient(135deg,#c09060,#805020)'],
    desc:'세계 최고 품질의 파나마 게이샤 품종입니다. 꽃향기와 과일의 섬세한 풍미가 특징입니다.',
    specs:'생산지: 파나마 보케테 · 품종: Geisha · 정제: Washed · 고도: 1,600m · 테이스팅 노트: 자스민, 복숭아, 망고'},
-  {category:'Coffee Bean',name:'코스타리카 따라주',price:'₩17,500~',color:'linear-gradient(135deg,#c09060,#7a5030)',status:null,slug:'costarica-tarazu',subscription:true,
+  {category:'Coffee Bean',name:'코스타리카 따라주',price:'₩17,500',volumes:[{label:'100g',price:10000},{label:'200g',price:17500},{label:'500g',price:40000}],color:'linear-gradient(135deg,#c09060,#7a5030)',status:null,slug:'costarica-tarazu',subscription:true,
    images:['linear-gradient(135deg,#c09060,#7a5030)','linear-gradient(160deg,#d8a878,#8a6038)'],
    desc:'코스타리카 따라주 지역의 밝고 깨끗한 산미와 달콤한 여운의 원두입니다.',
    specs:'생산지: 코스타리카 따라주 · 정제: Honey · 테이스팅 노트: 복숭아, 패션프루트, 캐러멜'},
 ];
+
+// 정기배송 주기별 할인율
+const SUB_DISCOUNTS={'2':0,'4':0.05,'6':0.08,'8':0.10};
 
 // ── 이미지 갤러리 상태 ──
 let _pdImages=[];
@@ -1740,8 +2635,9 @@ function openProductPage(slug){
   if(p.status){statusEl.textContent=p.status;statusEl.style.display='inline-block';}
   else{statusEl.style.display='none';}
 
-  // 가격 파싱 (₩18,000~ → 18000)
-  const basePrice=parseInt(p.price.replace(/[^0-9]/g,''))||0;
+  // 가격 파싱
+  let basePrice=p.volumes&&p.volumes.length?p.volumes[0].price:(parseInt(p.price.replace(/[^0-9]/g,''))||0);
+  let currentVolIdx=0;
   let qty=1;
 
   function formatPrice(n){
@@ -1749,10 +2645,33 @@ function openProductPage(slug){
   }
   function updateTotal(){
     document.getElementById('pd-qty-num').textContent=qty;
-    document.getElementById('pd-total-price').textContent=formatPrice(basePrice*qty)+(p.price.includes('~')?'~':'');
+    document.getElementById('pd-total-price').textContent=formatPrice(basePrice*qty);
     // 수량 1 이하 마이너스 버튼 비활성
     document.getElementById('pd-qty-minus').style.opacity=qty<=1?'.2':'1';
     document.getElementById('pd-qty-minus').style.pointerEvents=qty<=1?'none':'auto';
+  }
+
+  // 용량 선택 (Coffee Bean 전용)
+  const volWrap=document.getElementById('pd-volume-wrap');
+  const volSelOld=document.getElementById('pd-volume-select');
+  if(p.volumes&&p.volumes.length&&p.category==='Coffee Bean'){
+    volWrap.classList.add('visible');
+    const volSel=volSelOld.cloneNode(false);
+    volSelOld.parentNode.replaceChild(volSel,volSelOld);
+    p.volumes.forEach((v,i)=>{
+      const opt=document.createElement('option');
+      opt.value=i;opt.textContent=v.label;
+      volSel.appendChild(opt);
+    });
+    volSel.value='0';currentVolIdx=0;basePrice=p.volumes[0].price;
+    volSel.addEventListener('change',()=>{
+      currentVolIdx=parseInt(volSel.value);
+      basePrice=p.volumes[currentVolIdx].price;
+      updateTotal();
+      if(p.subscription)renderSubPrices(basePrice);
+    });
+  }else{
+    volWrap.classList.remove('visible');
   }
 
   // 초기화
@@ -1790,11 +2709,30 @@ function openProductPage(slug){
   document.querySelectorAll('.pd-sub-period').forEach(l=>l.classList.remove('active'));
   document.querySelector('.pd-sub-period').classList.add('active');
 
+  // 정기배송 주기별 가격 렌더
+  function renderSubPrices(price){
+    document.querySelectorAll('.pd-sub-period').forEach(label=>{
+      const period=label.querySelector('input').value;
+      const disc=SUB_DISCOUNTS[period]||0;
+      const priceDiv=label.querySelector('.pd-sub-period-price');
+      if(disc>0){
+        const finalPrice=Math.round(price*(1-disc));
+        priceDiv.innerHTML=
+          `<span class="pd-sub-price-original">${formatPrice(price)}</span>`+
+          `<span class="pd-sub-price-final">${formatPrice(finalPrice)}</span>`;
+      } else {
+        priceDiv.innerHTML=`<span class="pd-sub-price-same">${formatPrice(price)}</span>`;
+      }
+    });
+  }
+
   if(p.subscription){
     orderTypeWrap.classList.add('visible');
     tabNormal.classList.add('active');
     tabSub.classList.remove('active');
     subOptions.classList.remove('visible');
+
+    renderSubPrices(basePrice);
 
     tabNormal.onclick=()=>{
       tabNormal.classList.add('active');tabSub.classList.remove('active');
@@ -1865,15 +2803,19 @@ function openProductPage(slug){
     const isSubTab=tabSub&&tabSub.classList.contains('active');
     const selectedPeriod=document.querySelector('.pd-sub-period.active input');
     const periodVal=selectedPeriod?selectedPeriod.value:null;
+    const selVol=p.volumes&&p.volumes.length?p.volumes[currentVolIdx]:null;
     const cartInfo={
       name:p.name,
-      price:p.price,
+      price:formatPrice(basePrice),
       qty:qty,
       type:isSubTab&&p.subscription?'subscription':'normal',
       period:isSubTab&&p.subscription&&periodVal?`${periodVal}주마다`:null,
+      slug:p.slug,
+      color:p.color,
+      category:p.category,
+      volume:selVol?selVol.label:null,
     };
-    // 장바구니 토스트 메시지
-    showCartToast(cartInfo);
+    addToCart(cartInfo);
   };
   document.querySelectorAll('.pd-accordion').forEach(acc=>{
     acc.classList.remove('open');
@@ -1916,6 +2858,10 @@ function openLoginPage(){
   if(lpl)lpl.src=src;
   const lpfl=document.getElementById('lp-footer-logo-img');
   if(lpfl){lpfl.src=src;lpfl.style.cssText='height:30px;width:auto;display:block;filter:invert(1);';}
+  // 일반 진입 시 비회원 구매 박스 숨김 (결제 페이지에서 진입 시엔 별도로 표시)
+  const guestBox=document.getElementById('lp-guest-buy-box');
+  if(guestBox)guestBox.style.display='none';
+  window._lpFromCheckout=false;
 }
 function closeLoginPage(){
   loginPage.classList.remove('open');
@@ -1980,14 +2926,29 @@ document.getElementById('lp-naver-btn').addEventListener('click',()=>{
 document.getElementById('lp-google-btn').addEventListener('click',()=>{
   alert('Google 로그인:\nGoogle Cloud Console에서 OAuth 2.0 클라이언트 ID를 발급받아 연동하세요.');
 });
-// ── 팝업 닫기 ──
+// ── 팝업 ──
 (function(){
   const popupOuter=document.getElementById('popup-outer');
   const closeBtn=document.getElementById('popup-close-btn');
   const imgArea=document.getElementById('popup-img-area');
   const bodyArea=document.getElementById('popup-body-area');
 
-  // X 버튼 → 완전 닫기 (메인 복귀해도 재노출 안 함)
+  // 메인 페이지 여부 판단: 서브페이지가 모두 닫혀 있으면 메인
+  function isMainPage(){
+    return !document.querySelector('.sub-page.open');
+  }
+
+  // 팝업 동기화: 메인이면 보이고, 서브페이지면 숨김 (dismissed 제외)
+  function syncPopup(){
+    if(popupOuter.dataset.dismissed==='true') return;
+    if(isMainPage()){
+      popupOuter.classList.remove('hidden');
+    } else {
+      popupOuter.classList.add('hidden');
+    }
+  }
+
+  // X 버튼 → 완전 닫기 (세션 내 재노출 없음)
   if(closeBtn){
     closeBtn.addEventListener('click',e=>{
       e.stopPropagation();
@@ -1996,12 +2957,10 @@ document.getElementById('lp-google-btn').addEventListener('click',()=>{
     });
   }
 
-  // 이미지 + 텍스트 클릭 → 상세 페이지 이동, 팝업 임시 숨김
+  // 팝업 클릭 → 상세 페이지로 이동
   function goToProduct(){
     const slug=bodyArea.dataset.slug;
     if(slug){
-      popupOuter.classList.add('hidden');
-      // 이전 페이지를 닫지 않고 기억만 함
       const loginPage=document.getElementById('login-page');
       const srPage=document.getElementById('search-result-page');
       if(loginPage&&loginPage.classList.contains('open')){
@@ -2009,7 +2968,6 @@ document.getElementById('lp-google-btn').addEventListener('click',()=>{
         loginPage.classList.remove('open');
       } else if(srPage&&srPage.classList.contains('open')){
         window._pdPrevPage='search';
-        // 검색결과는 닫지 않음 — 상세 위에 열림
       } else {
         window._pdPrevPage='main';
       }
@@ -2019,29 +2977,10 @@ document.getElementById('lp-google-btn').addEventListener('click',()=>{
   if(imgArea)imgArea.addEventListener('click',goToProduct);
   if(bodyArea)bodyArea.addEventListener('click',goToProduct);
 
-  // pd-back-btn / 로고 클릭으로 메인 복귀 시 팝업 재노출
-  // closeResultPage / goHome 래퍼로 감지
-  const _origCloseResultPage=window.closeResultPage;
-  const pdBackBtn=document.getElementById('pd-back-btn');
-  if(pdBackBtn){
-    pdBackBtn.addEventListener('click',()=>{
-      // 상세→검색결과로 돌아갈 때는 재노출 안 함
-    });
-  }
-
-  // goHome 후 팝업 재노출 — goHome 정의 후 래핑
-  document.addEventListener('DOMContentLoaded',()=>{});
-  // MutationObserver로 product-detail-page가 닫힐 때 감지
-  const pdPage=document.getElementById('product-detail-page');
-  if(pdPage){
-    new MutationObserver(()=>{
-      const isOpen=pdPage.classList.contains('open');
-      if(!isOpen&&popupOuter.dataset.dismissed!=='true'){
-        // 상세 페이지가 닫히고, X버튼으로 닫은 게 아니면 재노출
-        popupOuter.classList.remove('hidden');
-      }
-    }).observe(pdPage,{attributes:true,attributeFilter:['class']});
-  }
+  // 모든 서브페이지의 class 변화 감시 → syncPopup 호출
+  document.querySelectorAll('.sub-page').forEach(el=>{
+    new MutationObserver(syncPopup).observe(el,{attributes:true,attributeFilter:['class']});
+  });
 })();
 
 // ── 아코디언 토글 ──
@@ -2064,20 +3003,106 @@ document.querySelectorAll('.pd-accordion-hd').forEach(hd=>{
   }
 })();
 
-// ── 장바구니 토스트 ──
-function showCartToast(info){
-  let toast=document.getElementById('cart-toast');
-  if(!toast){
-    toast=document.createElement('div');
-    toast.id='cart-toast';
-    document.body.appendChild(toast);
+// ── 장바구니 드로어 ──
+let cartItems=[];
+
+function parseCartPrice(str){return parseInt((str||'0').replace(/[₩,\s]/g,''))||0;}
+
+function openCartDrawer(){
+  document.getElementById('cart-drawer-overlay').classList.add('open');
+  document.getElementById('cart-drawer').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeCartDrawer(){
+  document.getElementById('cart-drawer-overlay').classList.remove('open');
+  document.getElementById('cart-drawer').classList.remove('open');
+  const anyPageOpen=document.querySelector('#product-detail-page.open,#search-result-page.open,#login-page.open,#search-overlay.open');
+  if(!anyPageOpen)document.body.style.overflow='';
+}
+function addToCart(info){
+  const existIdx=cartItems.findIndex(i=>i.slug===info.slug&&i.type===info.type&&i.period===info.period&&i.volume===info.volume);
+  if(existIdx>=0){cartItems[existIdx].qty+=info.qty;}
+  else{cartItems.push({id:Date.now(),slug:info.slug||'',name:info.name,price:info.price,priceNum:parseCartPrice(info.price),qty:info.qty,color:info.color||'#eee',type:info.type||'normal',period:info.period||null,category:info.category||'',volume:info.volume||null});}
+  renderCartDrawer();
+  updateCartBadge();
+  openCartDrawer();
+}
+function updateCartBadge(){
+  const total=cartItems.reduce((s,i)=>s+i.qty,0);
+  ['main','pd','srp','lp','cp','chp'].forEach(prefix=>{
+    const badge=document.getElementById(`${prefix}-cart-badge`);
+    if(!badge)return;
+    if(total===0){badge.classList.remove('visible');badge.textContent='';}
+    else{badge.textContent=total>99?'99+':String(total);badge.classList.add('visible');}
+  });
+}
+function removeCartItem(id){cartItems=cartItems.filter(i=>i.id!==id);renderCartDrawer();updateCartBadge();}
+function updateCartQty(id,delta){
+  const item=cartItems.find(i=>i.id===id);
+  if(!item)return;
+  item.qty=Math.max(1,item.qty+delta);
+  renderCartDrawer();updateCartBadge();
+}
+function renderCartDrawer(){
+  const list=document.getElementById('cd-items');
+  const footer=document.getElementById('cd-footer');
+  const subtotalEl=document.getElementById('cd-subtotal');
+  const titleEl=document.getElementById('cd-title');
+  const totalQty=cartItems.reduce((s,i)=>s+i.qty,0);
+  titleEl.textContent=`장바구니 (${totalQty})`;
+  if(cartItems.length===0){
+    list.innerHTML=`<div class="cd-empty"><p class="cd-empty-msg">장바구니가 비어 있습니다.</p><span class="cd-empty-cta" id="cd-empty-shop-btn">쇼핑 계속하기 →</span></div>`;
+    document.getElementById('cd-empty-shop-btn').addEventListener('click',closeCartDrawer);
+    footer.style.display='none';
+    const si=document.getElementById('cd-shipping-item');
+    if(si)si.style.display='none';
+    return;
   }
-  const subLine=info.type==='subscription'&&info.period
-    ?`<span class="cart-toast-sub">정기 배송 · ${info.period}</span>`:'';
-  toast.innerHTML=`<div class="cart-toast-inner"><div class="cart-toast-name">${info.name}</div>${subLine}<div class="cart-toast-meta">${info.qty}개 · ${info.price} — 장바구니에 담겼습니다.</div></div>`;
-  toast.classList.add('show');
-  clearTimeout(toast._t);
-  toast._t=setTimeout(()=>toast.classList.remove('show'),3200);
+  footer.style.display='';
+  list.innerHTML=cartItems.map(item=>`
+    <div class="cd-item">
+      <div class="cd-item-img" style="background:${item.color};"></div>
+      <div class="cd-item-info">
+        <div class="cd-item-category">${item.category}</div>
+        <div class="cd-item-name">${item.name}</div>
+        <div class="cd-item-price-orig">${item.price}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${item.volume?`<div class="cd-item-sub-badge">${item.volume}</div>`:''}
+          ${item.type==='subscription'&&item.period?`<div class="cd-item-sub-badge">정기 배송 · ${item.period}</div>`:''}
+        </div>
+        <div class="cd-item-row">
+          <div class="cd-qty">
+            <span class="cd-qty-btn" onclick="updateCartQty(${item.id},-1)">−</span>
+            <span class="cd-qty-num">${item.qty}</span>
+            <span class="cd-qty-btn" onclick="updateCartQty(${item.id},1)">+</span>
+          </div>
+          <span class="cd-item-price">₩${(item.priceNum*item.qty).toLocaleString('ko-KR')}</span>
+        </div>
+      </div>
+      <span class="cd-remove" onclick="removeCartItem(${item.id})" title="삭제"><svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l8 8M9 1l-8 8"/></svg></span>
+    </div>`).join('');
+  const subtotal=cartItems.reduce((s,i)=>s+(i.priceNum*i.qty),0);
+  const free=subtotal>=15000;
+  const shipping=free?0:3000;
+  const total=subtotal+shipping;
+  subtotalEl.textContent=`₩${total.toLocaleString('ko-KR')}`;
+  // 배송비 아이템 행
+  const shippingItem=document.getElementById('cd-shipping-item');
+  const siNotice=document.getElementById('cd-si-notice');
+  const siPrice=document.getElementById('cd-si-price');
+  if(shippingItem){shippingItem.style.display='';}
+  if(siPrice){
+    siPrice.textContent=free?'무료':'₩3,000';
+    siPrice.className='cd-si-price'+(free?' free':'');
+  }
+  if(siNotice){
+    if(free){
+      siNotice.textContent='무료 배송이 적용됩니다.';
+    } else {
+      const remain=(15000-subtotal).toLocaleString('ko-KR');
+      siNotice.textContent=`₩${remain} 더 구매하시면 무료 배송됩니다.`;
+    }
+  }
 }
 
 // ── 서브페이지 헤더 버튼 공통 연결 ──
@@ -2090,11 +3115,13 @@ const srpLoginBtn=document.getElementById('srp-login-btn');
 if(srpLoginBtn)srpLoginBtn.addEventListener('click',openLoginPage);
 
 // lp (로그인 페이지) — user 버튼은 이미 로그인 페이지이므로 무시
-// 장바구니 버튼 — 추후 장바구니 페이지 구현 시 연결 예정
-['pd-cart-icon-btn','srp-cart-icon-btn','lp-cart-icon-btn'].forEach(id=>{
+// ── 장바구니 아이콘 버튼 연결 ──
+['main-cart-icon-btn','pd-cart-icon-btn','srp-cart-icon-btn','lp-cart-icon-btn'].forEach(id=>{
   const el=document.getElementById(id);
-  if(el)el.style.cursor='pointer';
+  if(el)el.addEventListener('click',openCartDrawer);
 });
+document.getElementById('cd-close-btn').addEventListener('click',closeCartDrawer);
+document.getElementById('cart-drawer-overlay').addEventListener('click',closeCartDrawer);
 
 // ── 메인 Bean 카드 클릭 → 상세 페이지 ──
 document.querySelectorAll('.bean-card[data-slug]').forEach(el=>{
@@ -2108,6 +3135,9 @@ function goHome(){
   document.getElementById('product-detail-page').classList.remove('open');
   document.getElementById('search-result-page').classList.remove('open');
   document.getElementById('login-page').classList.remove('open');
+  document.getElementById('cart-page').classList.remove('open');
+  document.getElementById('checkout-page').classList.remove('open');
+  document.getElementById('order-complete-page').classList.remove('open');
   overlay.classList.remove('open');
   document.body.style.overflow='';
   window.scrollTo({top:0,behavior:'instant'});
@@ -2118,19 +3148,6 @@ function goHome(){
   if(el)el.addEventListener('click',goHome);
 });
 const productDetailPage=document.getElementById('product-detail-page');
-document.getElementById('pd-back-btn').addEventListener('click',()=>{
-  productDetailPage.classList.remove('open');
-  const prev=window._pdPrevPage||'main';
-  window._pdPrevPage=null;
-  if(prev==='login'){
-    loginPage.classList.add('open');
-    document.body.style.overflow='hidden';
-  } else if(prev==='search'||resultPage.classList.contains('open')){
-    document.body.style.overflow='hidden';
-  } else {
-    document.body.style.overflow='';
-  }
-});
 document.getElementById('pd-search-btn').addEventListener('click',openOverlay);
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&productDetailPage.classList.contains('open')){
@@ -2138,6 +3155,432 @@ document.addEventListener('keydown',e=>{
     resultPage.classList.add('open');
     document.body.style.overflow='hidden';
   }
-});</script>
+});
+
+// ── 헤더 다크/라이트 테마 자동 전환 ──
+(function(){
+  const hdrWrap=document.getElementById('site-hdr-wrap');
+  const sections=document.querySelectorAll('[data-header-theme]');
+  let rafPending=false;
+
+  function updateHeaderTheme(){
+    if(rafPending)return;
+    rafPending=true;
+    requestAnimationFrame(()=>{
+      rafPending=false;
+      const midY=hdrWrap.offsetHeight/2;
+      let theme='dark'; // 최상단(hero)이 기본 dark
+      let bestTop=-Infinity;
+      sections.forEach(el=>{
+        const top=el.getBoundingClientRect().top;
+        if(top<=midY&&top>bestTop){
+          bestTop=top;
+          theme=el.dataset.headerTheme;
+        }
+      });
+      hdrWrap.classList.toggle('hdr-dark',theme==='dark');
+    });
+  }
+
+  window.addEventListener('scroll',updateHeaderTheme,{passive:true});
+  updateHeaderTheme(); // 초기 실행
+})();
+
+// ════════════════════════════════════════════════
+//  PROTOTYPE STATE
+// ════════════════════════════════════════════════
+window.isLoggedIn=false; // 프로토타입 로그인 상태 토글
+
+// ════════════════════════════════════════════════
+//  CART PAGE
+// ════════════════════════════════════════════════
+function openCartPage(){
+  closeCartDrawer();
+  document.getElementById('product-detail-page').classList.remove('open');
+  document.getElementById('search-result-page').classList.remove('open');
+  const page=document.getElementById('cart-page');
+  page.classList.add('open');
+  page.scrollTop=0;
+  renderCartPage();
+  updateCartBadge();
+}
+function closeCartPage(){
+  document.getElementById('cart-page').classList.remove('open');
+}
+function renderCartPage(){
+  const itemsList=document.getElementById('cp-items-list');
+  const emptyState=document.getElementById('cp-empty-state');
+  const footer=document.getElementById('cp-footer');
+  const shippingRow=document.getElementById('cp-shipping-row');
+  const subtotalPrice=document.getElementById('cp-subtotal-price');
+  if(cartItems.length===0){
+    itemsList.innerHTML='';
+    emptyState.style.display='';
+    footer.style.display='none';
+    shippingRow.style.display='none';
+    return;
+  }
+  emptyState.style.display='none';
+  footer.style.display='';
+  shippingRow.style.display='';
+  itemsList.innerHTML=cartItems.map(item=>`
+    <div class="cp-item">
+      <div class="cp-item-product">
+        <div class="cp-item-img" style="background:${item.color};"></div>
+        <div class="cp-item-info">
+          <div class="cp-item-category">${item.category}</div>
+          <div class="cp-item-name">${item.name}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+            ${item.volume?`<div class="cd-item-sub-badge">${item.volume}</div>`:''}
+            ${item.type==='subscription'&&item.period?`<div class="cd-item-sub-badge">정기 배송 · ${item.period}</div>`:''}
+          </div>
+          <span class="cp-item-remove-link" onclick="removeCartItem(${item.id});renderCartPage();">삭제</span>
+        </div>
+      </div>
+      <div class="cp-item-price">${item.price}</div>
+      <div class="cp-item-qty">
+        <span class="cd-qty-btn" onclick="updateCartQty(${item.id},-1);renderCartPage();">−</span>
+        <span class="cd-qty-num">${item.qty}</span>
+        <span class="cd-qty-btn" onclick="updateCartQty(${item.id},1);renderCartPage();">+</span>
+      </div>
+      <div class="cp-item-total">₩${(item.priceNum*item.qty).toLocaleString('ko-KR')}</div>
+    </div>
+  `).join('');
+  const subtotal=cartItems.reduce((s,i)=>s+(i.priceNum*i.qty),0);
+  const free=subtotal>=15000;
+  const shipping=free?0:3000;
+  const total=subtotal+shipping;
+  subtotalPrice.textContent=`₩${total.toLocaleString('ko-KR')}`;
+  const notice=document.getElementById('cp-shipping-notice');
+  const price=document.getElementById('cp-shipping-price');
+  if(free){
+    notice.textContent='무료 배송이 적용됩니다.';
+    price.textContent='무료';
+    price.className='cp-shipping-price free';
+  } else {
+    const remain=(15000-subtotal).toLocaleString('ko-KR');
+    notice.textContent=`₩${remain} 더 구매하시면 무료 배송됩니다.`;
+    price.textContent='₩3,000';
+    price.className='cp-shipping-price';
+  }
+}
+
+// ════════════════════════════════════════════════
+//  CHECKOUT PAGE
+// ════════════════════════════════════════════════
+function openCheckoutPage(from){
+  window._checkoutFrom=from||'drawer';
+  document.getElementById('product-detail-page').classList.remove('open');
+  document.getElementById('search-result-page').classList.remove('open');
+  const page=document.getElementById('checkout-page');
+  page.classList.add('open');
+  page.scrollTop=0;
+  const formRest=document.getElementById('chp-form-rest');
+  const continueBtn=document.getElementById('chp-email-continue-btn');
+  const loginNotice=document.getElementById('chp-login-notice');
+  if(window.isLoggedIn){
+    // 로그인 상태: 폼 전체 바로 표시, 데이터 자동 채움
+    formRest.style.display='';
+    continueBtn.style.display='none';
+    loginNotice.style.display='none';
+    document.getElementById('chp-guest-section').style.display='none';
+    document.getElementById('chp-email').value='user@goodthings.kr';
+    document.getElementById('chp-firstname').value='김굿씽';
+    document.getElementById('chp-phone').value='010-0000-0000';
+  } else {
+    // 비로그인: 이메일만 표시, 나머지 폼 숨김
+    formRest.style.display='none';
+    continueBtn.style.display='';
+    loginNotice.style.display='none';
+    document.getElementById('chp-guest-section').style.display='';
+    // 이메일 필드 초기화
+    document.getElementById('chp-email').value='';
+  }
+  updateCheckoutPaymentMethod();
+  renderCheckoutSummary();
+  updateCartBadge();
+  if(!window.isLoggedIn){
+    setTimeout(()=>document.getElementById('chp-email').focus(),350);
+  }
+}
+function closeCheckoutPage(){
+  document.getElementById('checkout-page').classList.remove('open');
+  clearCheckoutErrors();
+}
+function renderCheckoutSummary(){
+  const itemsEl=document.getElementById('chp-summary-items');
+  itemsEl.innerHTML=cartItems.map(item=>`
+    <div class="chp-sum-item">
+      <div class="chp-sum-item-img-wrap">
+        <div class="chp-sum-item-img" style="background:${item.color};"></div>
+        <span class="chp-sum-item-qty">${item.qty}</span>
+      </div>
+      <div class="chp-sum-item-info">
+        <div class="chp-sum-item-name">${item.name}</div>
+        <div class="chp-sum-item-sub">${item.volume||''}${item.type==='subscription'&&item.period?' · 정기배송 '+item.period:''}</div>
+      </div>
+      <div class="chp-sum-item-price">₩${(item.priceNum*item.qty).toLocaleString('ko-KR')}</div>
+    </div>
+  `).join('');
+  const totalQty=cartItems.reduce((s,i)=>s+i.qty,0);
+  const subtotal=cartItems.reduce((s,i)=>s+(i.priceNum*i.qty),0);
+  const free=subtotal>=15000;
+  const shipping=free?0:3000;
+  const total=subtotal+shipping;
+  document.getElementById('chp-sum-label').textContent=`소계 · ${totalQty}개 상품`;
+  document.getElementById('chp-sum-subtotal').textContent=`₩${subtotal.toLocaleString('ko-KR')}`;
+  document.getElementById('chp-sum-shipping').textContent=free?'무료':'₩3,000';
+  document.getElementById('chp-sum-total').textContent=`₩${total.toLocaleString('ko-KR')}`;
+  const subItems=cartItems.filter(i=>i.type==='subscription');
+  const subRow=document.getElementById('chp-sum-sub-row');
+  if(subItems.length>0){
+    const subTotal=subItems.reduce((s,i)=>s+(i.priceNum*i.qty),0);
+    subRow.style.display='';
+    document.getElementById('chp-sum-sub').textContent=`매주 ₩${subTotal.toLocaleString('ko-KR')}`;
+  } else {
+    subRow.style.display='none';
+  }
+}
+function updateCheckoutPaymentMethod(){
+  const checked=document.querySelector('input[name="chp-payment"]:checked');
+  if(!checked)return;
+  document.querySelectorAll('.chp-payment-item').forEach(item=>item.classList.remove('active'));
+  checked.closest('.chp-payment-item').classList.add('active');
+}
+function clearCheckoutErrors(){
+  document.querySelectorAll('#checkout-page .chp-field.error').forEach(f=>f.classList.remove('error'));
+  const agreeSection=document.getElementById('chp-agree-section');
+  if(agreeSection)agreeSection.classList.remove('error');
+}
+function validateCheckoutForm(){
+  let valid=true;
+  const paymentVal=document.querySelector('input[name="chp-payment"]:checked')?.value;
+  document.querySelectorAll('#checkout-page .chp-field[data-required="true"]').forEach(field=>{
+    // payment-specific 필드 — 현재 선택된 결제수단과 다르면 스킵
+    if(field.dataset.payment&&field.dataset.payment!==paymentVal)return;
+    // 비회원 필드 — 로그인 상태면 스킵
+    if(field.dataset.guest&&window.isLoggedIn)return;
+    const input=field.querySelector('input,select');
+    if(!input)return;
+    if(!input.value.trim()){
+      field.classList.add('error');
+      valid=false;
+    } else {
+      field.classList.remove('error');
+    }
+  });
+  // 비회원 비밀번호 불일치 검증
+  if(!window.isLoggedIn){
+    const pw=document.getElementById('chp-guest-pw');
+    const pw2=document.getElementById('chp-guest-pw2');
+    if(pw&&pw2&&pw.value&&pw2.value&&pw.value!==pw2.value){
+      const field=pw2.closest('.chp-field');
+      const errMsg=field.querySelector('.chp-error-msg');
+      if(errMsg)errMsg.textContent='비밀번호가 일치하지 않습니다.';
+      field.classList.add('error');
+      valid=false;
+    } else if(pw2&&pw2._validate){
+      pw2._validate();
+    }
+  }
+  // 약관 동의
+  const checks=document.querySelectorAll('.chp-agree-check');
+  const allChecked=Array.from(checks).every(cb=>cb.checked);
+  if(!allChecked){
+    document.getElementById('chp-agree-section')?.classList.add('error');
+    valid=false;
+  }
+  return valid;
+}
+
+// ════════════════════════════════════════════════
+//  ORDER COMPLETE PAGE
+// ════════════════════════════════════════════════
+function openOrderCompletePage(){
+  const page=document.getElementById('order-complete-page');
+  page.classList.add('open');
+  page.scrollTop=0;
+  renderOrderComplete();
+  updateCartBadge();
+}
+function closeOrderCompletePage(){
+  document.getElementById('order-complete-page').classList.remove('open');
+}
+function renderOrderComplete(){
+  const now=new Date();
+  const dateStr=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+  const randNum=String(Math.floor(Math.random()*99999)).padStart(5,'0');
+  const orderNum=`GT-${dateStr}-${randNum}`;
+  const numEl=document.getElementById('ocp-order-num-val');
+  numEl.textContent=orderNum;
+  // 주문번호 클릭 → 클립보드 복사
+  numEl.onclick=()=>{
+    navigator.clipboard.writeText(orderNum).then(()=>{
+      const toast=document.getElementById('ocp-copy-toast');
+      toast.style.display='inline';
+      setTimeout(()=>toast.style.display='none',2000);
+    }).catch(()=>{});
+  };
+  // 비회원 주문 조회 안내
+  const guestNotice=document.getElementById('ocp-guest-notice');
+  if(!window.isLoggedIn){
+    guestNotice.innerHTML='비회원 주문 조회 시 <strong>주문번호</strong>와 입력하신 <strong>비밀번호</strong>가 필요합니다.<br>주문번호를 클릭하면 복사됩니다.';
+    guestNotice.style.display='';
+  } else {
+    guestNotice.style.display='none';
+  }
+  const itemsEl=document.getElementById('ocp-summary-items');
+  itemsEl.innerHTML=cartItems.map(item=>`
+    <div class="ocp-item">
+      <div class="ocp-item-img" style="background:${item.color};"></div>
+      <div class="ocp-item-info">
+        <div class="ocp-item-name">${item.name}</div>
+        <div class="ocp-item-sub">${item.volume||''} · 수량 ${item.qty}</div>
+      </div>
+      <div class="ocp-item-price">₩${(item.priceNum*item.qty).toLocaleString('ko-KR')}</div>
+    </div>
+  `).join('');
+  const subtotal=cartItems.reduce((s,i)=>s+(i.priceNum*i.qty),0);
+  const free=subtotal>=15000;
+  const total=subtotal+(free?0:3000);
+  document.getElementById('ocp-total').textContent=`₩${total.toLocaleString('ko-KR')}`;
+}
+
+// ════════════════════════════════════════════════
+//  BUTTON WIRING
+// ════════════════════════════════════════════════
+// 장바구니 드로어 CTA
+document.querySelector('.cd-cta-secondary').addEventListener('click',openCartPage);
+document.querySelector('.cd-cta-primary').addEventListener('click',()=>{closeCartDrawer();openCheckoutPage('drawer');});
+
+// 장바구니 페이지
+document.getElementById('cp-order-btn').addEventListener('click',()=>{closeCartPage();openCheckoutPage('cart-page');});
+document.getElementById('cp-continue-btn').addEventListener('click',closeCartPage);
+document.getElementById('cp-empty-shop-btn').addEventListener('click',closeCartPage);
+document.getElementById('cp-logo-img').addEventListener('click',()=>{closeCartPage();});
+document.getElementById('cp-login-btn').addEventListener('click',()=>{closeCartPage();openLoginPage();});
+document.getElementById('cp-cart-icon-btn').addEventListener('click',openCartDrawer);
+document.getElementById('cp-search-btn').addEventListener('click',openOverlay);
+
+// 결제 페이지
+document.getElementById('chp-logo-img').addEventListener('click',()=>{closeCheckoutPage();goHome();});
+document.getElementById('chp-cart-icon-btn').addEventListener('click',openCartDrawer);
+document.getElementById('chp-login-link').addEventListener('click',()=>{closeCheckoutPage();openLoginPage();});
+document.getElementById('chp-notice-login-link').addEventListener('click',()=>{closeCheckoutPage();openLoginPage();});
+
+// 이메일 계속하기 버튼
+document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
+  const emailField=document.querySelector('#checkout-page .chp-field[data-required="true"]');
+  const emailInput=document.getElementById('chp-email');
+  if(!emailInput.value.trim()){emailField.classList.add('error');return;}
+  emailField.classList.remove('error');
+  // 로그인 제안 배너 표시 (비로그인 시)
+  if(!window.isLoggedIn){
+    document.getElementById('chp-login-notice').style.display='';
+  }
+  // 나머지 폼 표시
+  const formRest=document.getElementById('chp-form-rest');
+  formRest.style.display='';
+  document.getElementById('chp-email-continue-btn').style.display='none';
+  // 배송지 섹션으로 부드럽게 스크롤
+  setTimeout(()=>formRest.scrollIntoView({behavior:'smooth',block:'start'}),50);
+});
+
+// 나머지주소 — 기본주소 입력 후 활성화
+(function(){
+  const addr1=document.getElementById('chp-addr1');
+  const addr2=document.getElementById('chp-addr2');
+  function enableAddr2(){if(addr1.value.trim())addr2.disabled=false;}
+  addr1.addEventListener('input',enableAddr2);
+  document.querySelector('.chp-addr-search-btn').addEventListener('click',()=>{
+    document.getElementById('chp-zipcode').value='06234';
+    addr1.value='서울 강남구 테헤란로 123';
+    addr2.disabled=false;
+    addr2.focus();
+  });
+})();
+
+// 비밀번호 확인 — 비밀번호 입력 후 활성화 + 불일치 검증
+(function(){
+  const pw=document.getElementById('chp-guest-pw');
+  const pw2=document.getElementById('chp-guest-pw2');
+  pw.addEventListener('input',()=>{
+    if(!pw.value.trim()){
+      pw2.disabled=true;
+      pw2.value='';
+      pw2.closest('.chp-field').classList.remove('error');
+    } else {
+      pw2.disabled=false;
+      if(pw2.value)validatePw2();
+    }
+  });
+  function validatePw2(){
+    const field=pw2.closest('.chp-field');
+    const errMsg=field.querySelector('.chp-error-msg');
+    if(!pw2.value.trim()){
+      errMsg.textContent='비밀번호 확인을 입력해 주세요.';
+      field.classList.add('error');
+    } else if(pw.value!==pw2.value){
+      errMsg.textContent='비밀번호가 일치하지 않습니다.';
+      field.classList.add('error');
+    } else {
+      field.classList.remove('error');
+    }
+  }
+  pw2.addEventListener('input',validatePw2);
+  pw2.addEventListener('blur',validatePw2);
+  pw2._validate=validatePw2;
+})();
+
+// 배송 메시지 직접 입력
+document.getElementById('chp-delivery-msg').addEventListener('change',function(){
+  const customField=document.getElementById('chp-delivery-custom-field');
+  customField.style.display=(this.value==='direct')?'':'none';
+  if(this.value==='direct')document.getElementById('chp-delivery-custom').focus();
+});
+
+// 결제수단 라디오
+document.querySelectorAll('input[name="chp-payment"]').forEach(radio=>{
+  radio.addEventListener('change',()=>{
+    updateCheckoutPaymentMethod();
+  });
+});
+
+// 약관 전체 동의
+document.getElementById('chp-agree-all').addEventListener('change',function(){
+  document.querySelectorAll('.chp-agree-check').forEach(cb=>cb.checked=this.checked);
+});
+document.querySelectorAll('.chp-agree-check').forEach(cb=>{
+  cb.addEventListener('change',()=>{
+    const all=document.querySelectorAll('.chp-agree-check');
+    document.getElementById('chp-agree-all').checked=Array.from(all).every(c=>c.checked);
+  });
+});
+
+// 결제하기 버튼 — 폼 유효 시 바로 주문 완료 (로그인/비로그인 무관)
+document.getElementById('chp-submit-btn').addEventListener('click',()=>{
+  if(!validateCheckoutForm()){
+    // 첫 번째 에러 필드로 스크롤
+    const firstErr=document.querySelector('#checkout-page .chp-field.error, #chp-agree-section.error');
+    if(firstErr)firstErr.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  closeCheckoutPage();
+  openOrderCompletePage();
+  cartItems=[];updateCartBadge();
+});
+
+// GUEST BUY 버튼
+const lpGuestBuyBtn=document.getElementById('lp-guest-buy-btn');
+if(lpGuestBuyBtn)lpGuestBuyBtn.addEventListener('click',()=>{
+  closeLoginPage();
+  openOrderCompletePage();
+  cartItems=[];updateCartBadge();
+});
+
+// 주문 완료 페이지
+document.getElementById('ocp-home-btn').addEventListener('click',()=>{closeOrderCompletePage();goHome();});
+document.getElementById('ocp-logo-img').addEventListener('click',()=>{closeOrderCompletePage();goHome();});</script>
+
 </body>
 </html>
