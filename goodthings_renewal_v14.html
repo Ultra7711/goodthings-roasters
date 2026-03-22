@@ -44,6 +44,18 @@
   --ease-linear:linear;
   --ease-default:ease-out;
   --ease-drawer:cubic-bezier(.25,.46,.45,.94);
+  /* ── 탭 컴포넌트 토큰 ── */
+  --tab-height:52px;
+  --tab-font-family:var(--font-en);
+  --tab-font-size:13px;
+  --tab-font-weight:400;
+  --tab-font-weight-active:500;
+  --tab-letter-spacing:.04em;
+  --tab-color:var(--color-text-secondary);
+  --tab-color-active:var(--color-text-primary);
+  --tab-border:.5px solid var(--color-border-secondary);
+  --tab-border-active:1px solid var(--color-text-primary);
+  --tab-border-hover:rgba(0,0,0,.4);
   /* ── z-index 계층 토큰 ── */
   --z-sticky:50;                  /* sticky 헤더 */
   --z-page:100;                   /* 풀스크린 서브 페이지 기본값 (열릴 때 JS가 동적으로 올림) */
@@ -1545,17 +1557,17 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   margin-bottom:20px;
 }
 .pd-order-tab{
-  height:52px;background:#fff;
-  border:.5px solid var(--color-border-secondary);
-  font-family:var(--font-en);font-size:13px;font-weight:400;
-  letter-spacing:.04em;color:var(--color-text-secondary);
-  cursor:pointer;transition:all 200ms linear;
+  height:var(--tab-height);background:#fff;
+  border:var(--tab-border);
+  font-family:var(--tab-font-family);font-size:var(--tab-font-size);font-weight:var(--tab-font-weight);
+  letter-spacing:var(--tab-letter-spacing);color:var(--tab-color);
+  cursor:pointer;transition:all var(--duration-hover) linear;
 }
 .pd-order-tab.active{
-  border:1px solid #111;
-  color:var(--color-text-primary);font-weight:500;
+  border:var(--tab-border-active);
+  color:var(--tab-color-active);font-weight:var(--tab-font-weight-active);
 }
-.pd-order-tab:hover:not(.active){border-color:rgba(0,0,0,.4);color:var(--color-text-primary);}
+.pd-order-tab:hover:not(.active){border-color:var(--tab-border-hover);color:var(--tab-color-active);}
 /* 정기 배송 주기 선택 — 세로 라디오 리스트 */
 #pd-sub-options{display:none;margin-bottom:24px;}
 #pd-sub-options.visible{display:block;}
