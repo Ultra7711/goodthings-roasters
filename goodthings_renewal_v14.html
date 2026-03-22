@@ -1595,7 +1595,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 .pd-sub-discount{font-size:11px;font-weight:500;color:#c0392b;}
 .pd-sub-price-original{font-size:12px;color:var(--color-text-tertiary);text-decoration:line-through;}
 .pd-sub-price-final{font-size:13px;font-weight:500;color:var(--color-text-primary);}
-.pd-sub-price-same{font-size:13px;color:var(--color-text-tertiary);}
+.pd-sub-price-same{font-size:13px;font-weight:500;color:var(--color-text-primary);}
 #pd-cart-btn{
   display:flex;align-items:center;justify-content:center;
   background:#111;color:#fff;
@@ -2667,17 +2667,8 @@ function openProductPage(slug){
   // 정기배송 주기별 가격 렌더
   function renderSubPrices(price){
     document.querySelectorAll('.pd-sub-period').forEach(label=>{
-      const period=label.querySelector('input').value;
-      const disc=SUB_DISCOUNTS[period]||0;
       const priceDiv=label.querySelector('.pd-sub-period-price');
-      if(disc>0){
-        const finalPrice=Math.round(price*(1-disc));
-        priceDiv.innerHTML=
-          `<span class="pd-sub-price-original">${formatPrice(price)}</span>`+
-          `<span class="pd-sub-price-final">${formatPrice(finalPrice)}</span>`;
-      } else {
-        priceDiv.innerHTML=`<span class="pd-sub-price-same">${formatPrice(price)}</span>`;
-      }
+      priceDiv.innerHTML=`<span class="pd-sub-price-same">${formatPrice(price)}</span>`;
     });
   }
 
@@ -2759,12 +2750,18 @@ function openProductPage(slug){
     const selectedPeriod=document.querySelector('.pd-sub-period.active input');
     const periodVal=selectedPeriod?selectedPeriod.value:null;
     const selVol=p.volumes&&p.volumes.length?p.volumes[currentVolIdx]:null;
+    const isSubOrder=isSubTab&&p.subscription;
+    const subDisc=isSubOrder&&periodVal?SUB_DISCOUNTS[periodVal]||0:0;
+    const discountedPrice=subDisc>0?Math.round(basePrice*(1-subDisc)):basePrice;
     const cartInfo={
       name:p.name,
-      price:formatPrice(basePrice),
+      price:formatPrice(discountedPrice),      // 표시 가격 (할인 적용)
+      priceNum:discountedPrice,                 // 합산용 (할인 적용)
+      originalPriceNum:basePrice,               // 원가 (취소선 표시용)
+      discountRate:subDisc,                     // 할인율 (0이면 미적용)
       qty:qty,
-      type:isSubTab&&p.subscription?'subscription':'normal',
-      period:isSubTab&&p.subscription&&periodVal?`${periodVal}주마다`:null,
+      type:isSubOrder?'subscription':'normal',
+      period:isSubOrder&&periodVal?`${periodVal}주마다`:null,
       slug:p.slug,
       color:p.color,
       category:p.category,
@@ -2972,10 +2969,18 @@ function closeCartDrawer(){
   const anyPageOpen=document.querySelector('#product-detail-page.open,#search-result-page.open,#login-page.open,#search-overlay.open');
   if(!anyPageOpen)document.body.style.overflow='';
 }
+// 정기배송 배지 텍스트 생성 — 할인율 확정 시 자동으로 "· -N%" 표시
+function formatSubBadge(item){
+  if(item.type!=='subscription'||!item.period)return '';
+  let text=`정기 배송 · ${item.period}`;
+  if(item.discountRate>0)text+=` · ${Math.round(item.discountRate*100)}% 할인`;
+  return text;
+}
+
 function addToCart(info){
   const existIdx=cartItems.findIndex(i=>i.slug===info.slug&&i.type===info.type&&i.period===info.period&&i.volume===info.volume);
   if(existIdx>=0){cartItems[existIdx].qty+=info.qty;}
-  else{cartItems.push({id:Date.now(),slug:info.slug||'',name:info.name,price:info.price,priceNum:parseCartPrice(info.price),qty:info.qty,color:info.color||'#eee',type:info.type||'normal',period:info.period||null,category:info.category||'',volume:info.volume||null});}
+  else{cartItems.push({id:Date.now(),slug:info.slug||'',name:info.name,price:info.price,priceNum:info.priceNum??parseCartPrice(info.price),originalPriceNum:info.originalPriceNum??info.priceNum??parseCartPrice(info.price),discountRate:info.discountRate??0,qty:info.qty,color:info.color||'#eee',type:info.type||'normal',period:info.period||null,category:info.category||'',volume:info.volume||null});}
   renderCartDrawer();
   updateCartBadge();
   openCartDrawer();
@@ -3021,7 +3026,7 @@ function renderCartDrawer(){
         <div class="cd-item-price-orig">${item.price}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           ${item.volume?`<div class="cd-item-sub-badge">${item.volume}</div>`:''}
-          ${item.type==='subscription'&&item.period?`<div class="cd-item-sub-badge">정기 배송 · ${item.period}</div>`:''}
+          ${formatSubBadge(item)?`<div class="cd-item-sub-badge">${formatSubBadge(item)}</div>`:''}
         </div>
         <div class="cd-item-row">
           <div class="cd-qty">
@@ -3187,7 +3192,7 @@ function renderCartPage(){
           <div class="cp-item-name">${item.name}</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
             ${item.volume?`<div class="cd-item-sub-badge">${item.volume}</div>`:''}
-            ${item.type==='subscription'&&item.period?`<div class="cd-item-sub-badge">정기 배송 · ${item.period}</div>`:''}
+            ${formatSubBadge(item)?`<div class="cd-item-sub-badge">${formatSubBadge(item)}</div>`:''}
           </div>
           <span class="cp-item-remove-link" onclick="removeCartItem(${item.id});renderCartPage();">삭제</span>
         </div>
