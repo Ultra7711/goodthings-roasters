@@ -12,8 +12,8 @@
   --font-kr:'Noto Sans KR',sans-serif;
   /* ── 컬러 토큰 ── */
   --color-text-primary:#111111;
-  --color-text-secondary:#444444;
-  --color-text-tertiary:#888888;
+  --color-text-secondary:#333333;
+  --color-text-tertiary:#555555;
   --color-background-primary:#ffffff;
   --color-background-secondary:#f5f5f5;
   --color-border-primary:#dddddd;
@@ -108,13 +108,14 @@ body{font-family:var(--font-en);background:#ffffff;}
 #site-hdr-wrap.hdr-dark .hi{
   color:rgba(255,255,255,.90);
 }
-#site-hdr-wrap.hdr-dark .hdr-icon-btn{
+#site-hdr-wrap.hdr-dark .hdr-icon-btn .hi{
   opacity:.80; /* 전역 .5 → 다크 모드에서 .80으로 상향 */
 }
-#site-hdr-wrap.hdr-dark .hdr-icon-btn:hover{
+#site-hdr-wrap.hdr-dark .hdr-icon-btn:hover .hi{
   opacity:1;
 }
 /* 다크 모드 — SNS/로고/배지 */
+#site-hdr-wrap.hdr-dark .cart-badge{background:#fff;color:#111;}
 #site-hdr-wrap .sns-icon{
   transition:color 200ms ease;
 }
@@ -132,11 +133,6 @@ body{font-family:var(--font-en);background:#ffffff;}
 }
 #site-hdr-wrap.hdr-dark #logo-img{
   filter:invert(1);
-}
-#site-hdr-wrap.hdr-dark .cart-badge{
-  background:rgba(255,255,255,.9);
-  color:#111;
-  transition:background 700ms ease, color 700ms ease;
 }
 
 /* srp도 동일 */
@@ -168,7 +164,10 @@ body{font-family:var(--font-en);background:#ffffff;}
 .tci-link{display:inline-block;opacity:.45;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-primary);border-bottom:.5px solid var(--color-text-primary);padding-bottom:3px;}.tci-link:hover{opacity:1;}
 .footer-col-link{display:block;font-family:var(--font-kr);font-size:12px;font-weight:300;color:rgba(255,255,255,.5);margin-bottom:0;padding:5px 0;line-height:1;cursor:pointer;transition:color 200ms linear;}.footer-col-link:hover{color:rgba(255,255,255,.9);}
 .hero-cta{display:inline-block;opacity:.8;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.8);border-bottom:.5px solid rgba(255,255,255,.35);padding-bottom:3px;}.hero-cta:hover{opacity:1;}
-.hdr-icon-btn{opacity:.5;display:flex;align-items:center;justify-content:center;position:relative;}.hdr-icon-btn:hover{opacity:1;}
+.hdr-icon-btn{display:flex;align-items:center;justify-content:center;position:relative;}
+.hdr-icon-btn .hi{opacity:.5;transition:opacity var(--duration-hover) var(--ease-default);}
+.hdr-icon-btn:hover .hi{opacity:1;}
+.cart-badge{opacity:1!important;}
 .cart-badge{position:absolute;top:-6px;right:-7px;min-width:20px;height:20px;padding:0 4px;border-radius:10px;background:#111;color:#fff;font-family:var(--font-en);font-size:13px;font-weight:500;display:none;align-items:center;justify-content:center;line-height:1;pointer-events:none;box-sizing:border-box;}
 .cart-badge.visible{display:flex;}
 
@@ -236,7 +235,7 @@ body{font-family:var(--font-en);background:#ffffff;}
 .season-txt{position:relative;z-index:1;padding:0 40px 60px;display:flex;align-items:flex-end;justify-content:space-between;}
 .season-txt .icon-btn{margin-bottom:0px;}
 .season-copy{display:flex;flex-direction:column;gap:8px;}
-.season-tag{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:rgba(0,0,0,.35);}
+.season-tag{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:rgba(0,0,0,.65);}
 .season-h{font-family:var(--font-en);font-size:36px;font-weight:600;letter-spacing:-.02em;color:#111;line-height:1.15;}
 .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:none;outline:none;}
 .cat-card{overflow:hidden;margin:0;padding:0;display:flex;flex-direction:column;}
@@ -561,7 +560,7 @@ body{font-family:var(--font-en);background:#ffffff;}
     <span class="icon-btn icon-btn-light" id="cd-close-btn" style="flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l8 8M9 1l-8 8"/></svg></span>
   </div>
   <div class="cd-body">
-    <div class="cd-promo">15,000원 이상 구매 시 무료 배송</div>
+    <div class="cd-promo" id="cd-promo">15,000원 이상 구매 시 무료 배송</div>
     <div class="cd-items" id="cd-items">
       <div class="cd-empty">
         <p class="cd-empty-msg">장바구니가 비어 있습니다.</p>
@@ -596,9 +595,6 @@ body{font-family:var(--font-en);background:#ffffff;}
     <div class="hdr">
       <div class="hdr-left">
         <img id="lp-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
-        <a class="sns-link" href="https://www.instagram.com/goodthings_roasters/" target="_blank">
-          <svg class="sns-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-        </a>
       </div>
       <div class="hdr-nav">
         <span class="nav-link">The Story</span>
@@ -709,35 +705,7 @@ body{font-family:var(--font-en);background:#ffffff;}
   </div>
 
   <!-- 공통 푸터 -->
-  <div class="blk" id="lp-footer-wrap">
-    <div class="footer">
-      <div class="f-inner">
-      <div class="f-brand">
-        <div class="f-logo"><img id="lp-footer-logo-img" alt="GOOD THINGS"></div>
-        <a class="footer-sns-link" href="https://www.instagram.com/goodthings_roasters/" target="_blank">
-          <svg class="f-sns-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-        </a>
-      </div>
-      <div class="f-tagline">Good Things, Simply Roasted.</div>
-      <div class="f-cols">
-        <div><div class="f-col-title">The Story</div><span class="footer-col-link">Philosophy</span><span class="footer-col-link">Roastery</span><span class="footer-col-link">Cafe & Location</span></div>
-        <div><div class="f-col-title">Shop</div><span class="footer-col-link">온라인 스토어</span><span class="footer-col-link">메뉴</span><span class="footer-col-link">굿즈</span></div>
-        <div><div class="f-col-title">Work with Us</div><span class="footer-col-link">원두 납품</span><span class="footer-col-link">Wholesale</span><span class="footer-col-link">Contact</span></div>
-        <div><div class="f-col-title">Good Days</div><span class="footer-col-link">Gallery</span><span class="footer-col-link">Q&A</span></div>
-      </div>
-      <div class="f-bottom-wrap">
-        <div class="f-biz-row">
-          <div class="f-biz">© 2026 주식회사 브이티이코프 &nbsp;·&nbsp; 사업자번호 510-81-30238 &nbsp;·&nbsp; Tel 010-9062-9910</div>
-          <div class="f-address">경북 구미시 인동21길 22-11</div>
-        </div>
-        <div class="f-legal">
-          <span class="f-legal-link">이용약관</span>
-          <span class="f-legal-link">개인정보처리방침</span>
-        </div>
-      </div>
-      </div><!-- /f-inner -->
-    </div>
-  </div>
+  <div class="blk" id="lp-footer-wrap"></div>
 </div>
 
 <style>
@@ -803,7 +771,7 @@ body{font-family:var(--font-en);background:#ffffff;}
   transition:border-color 200ms linear;
 }
 .lp-input:focus{border-bottom-color:#111;}
-.lp-input::placeholder{color:rgba(0,0,0,.2);font-size:15px;}
+.lp-input::placeholder{color:rgba(0,0,0,.45);font-size:15px;}
 
 /* 비밀번호 찾기 */
 #lp-forgot{margin-bottom:32px;margin-top:-8px;}
@@ -1271,9 +1239,6 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
     <div class="hdr">
       <div class="hdr-left">
         <img id="pd-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
-        <a class="sns-link" href="https://www.instagram.com/goodthings_roasters/" target="_blank">
-          <svg class="sns-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-        </a>
       </div>
       <div class="hdr-nav">
         <span class="nav-link">The Story</span>
@@ -1398,7 +1363,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
                 <p><strong>평일 오후 2시 이전 주문 시 당일 발송</strong></p>
                 <br>
                 <p><strong>[ 국내 배송 안내 ]</strong></p>
-                <p>· 기본 배송비 3,000원 / 15,000원 이상 구매 시 무료 배송</p>
+                <p id="pd-shipping-info">· 기본 배송비 3,000원 / 15,000원 이상 구매 시 무료 배송</p>
                 <p>· 주문 후 평균 1–3 영업일 이내 출고됩니다.</p>
                 <p>· 토·일·공휴일은 발송이 이루어지지 않으며, 다음 영업일에 순차 발송됩니다.</p>
                 <br>
@@ -1785,7 +1750,8 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 .cd-cta-primary:hover{opacity:.8;}
 
 /* 푸터 래퍼 */
-#pd-footer-wrap .footer{margin-top:0;}
+#pd-footer-wrap .footer,#chp-footer-wrap .footer,#ocp-footer-wrap .footer{margin-top:0;}
+#chp-footer-wrap,#ocp-footer-wrap{flex-shrink:0;}
 </style>
 <div id="search-overlay" class="sub-page">
   <div id="search-overlay-bg"></div>
@@ -1810,9 +1776,6 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
     <div class="hdr">
       <div class="hdr-left">
         <img id="srp-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
-        <a class="sns-link" href="https://www.instagram.com/goodthings_roasters/" target="_blank">
-          <svg class="sns-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-        </a>
       </div>
       <div class="hdr-nav">
         <span class="nav-link">The Story</span>
@@ -1857,35 +1820,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   </div>
 
   <!-- 공통 푸터 -->
-  <div class="blk" id="srp-footer-wrap">
-    <div class="footer">
-      <div class="f-inner">
-      <div class="f-brand">
-        <div class="f-logo"><img id="srp-footer-logo-img" alt="GOOD THINGS"></div>
-        <a class="footer-sns-link" href="https://www.instagram.com/goodthings_roasters/" target="_blank">
-          <svg class="f-sns-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-        </a>
-      </div>
-      <div class="f-tagline">Good Things, Simply Roasted.</div>
-      <div class="f-cols">
-        <div><div class="f-col-title">The Story</div><span class="footer-col-link">Philosophy</span><span class="footer-col-link">Roastery</span><span class="footer-col-link">Cafe & Location</span></div>
-        <div><div class="f-col-title">Shop</div><span class="footer-col-link">온라인 스토어</span><span class="footer-col-link">메뉴</span><span class="footer-col-link">굿즈</span></div>
-        <div><div class="f-col-title">Work with Us</div><span class="footer-col-link">원두 납품</span><span class="footer-col-link">Wholesale</span><span class="footer-col-link">Contact</span></div>
-        <div><div class="f-col-title">Good Days</div><span class="footer-col-link">Gallery</span><span class="footer-col-link">Q&A</span></div>
-      </div>
-      <div class="f-bottom-wrap">
-        <div class="f-biz-row">
-          <div class="f-biz">© 2026 주식회사 브이티이코프 &nbsp;·&nbsp; 사업자번호 510-81-30238 &nbsp;·&nbsp; Tel 010-9062-9910</div>
-          <div class="f-address">경북 구미시 인동21길 22-11</div>
-        </div>
-        <div class="f-legal">
-          <span class="f-legal-link">이용약관</span>
-          <span class="f-legal-link">개인정보처리방침</span>
-        </div>
-      </div>
-      </div><!-- /f-inner -->
-    </div>
-  </div>
+  <div class="blk" id="srp-footer-wrap"></div>
 
 </div>
 
@@ -1898,9 +1833,6 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
     <div class="hdr">
       <div class="hdr-left">
         <img id="cp-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
-        <a class="sns-link" href="https://www.instagram.com/goodthings_roasters/" target="_blank">
-          <svg class="sns-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-        </a>
       </div>
       <div class="hdr-nav">
         <span class="nav-link">The Story</span>
@@ -2152,6 +2084,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
       </div>
     </div>
   </div>
+  <div class="blk" id="chp-footer-wrap"></div>
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -2186,6 +2119,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
       </div>
     </div>
   </div>
+  <div class="blk" id="ocp-footer-wrap"></div>
 </div>
 
 </div>
@@ -2225,7 +2159,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   color:#111111;letter-spacing:-.01em;
   caret-color:#111;
 }
-#search-input::placeholder{color:rgba(0,0,0,.25);}
+#search-input::placeholder{color:rgba(0,0,0,.45);}
 #search-submit-btn{
   opacity:.4;cursor:pointer;display:flex;align-items:center;
   transition:opacity 200ms linear;color:#111;flex-shrink:0;
@@ -2277,7 +2211,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   color:#111111;letter-spacing:-.01em;
   caret-color:#111;
 }
-#srp-input::placeholder,#srp-no-input::placeholder{color:rgba(0,0,0,.25);}
+#srp-input::placeholder,#srp-no-input::placeholder{color:rgba(0,0,0,.45);}
 #srp-submit-btn,#srp-no-submit-btn{
   opacity:.4;cursor:pointer;display:flex;align-items:center;
   transition:opacity 200ms linear;color:#111;flex-shrink:0;
@@ -2378,8 +2312,6 @@ if(sl){sl.src=src;}
 // 검색 결과 페이지 로고
 const srpl=document.getElementById('srp-logo-img');
 if(srpl){srpl.src=src;}
-const srpfl=document.getElementById('srp-footer-logo-img');
-if(srpfl){srpfl.src=src;srpfl.style.cssText='height:30px;width:auto;display:block;filter:invert(1);';}
 // 장바구니 페이지 로고
 const cpl=document.getElementById('cp-logo-img');
 if(cpl){cpl.src=src;}
@@ -2518,6 +2450,12 @@ const srpNoInput=document.getElementById('srp-no-input');
 const srpSubmitBtn=document.getElementById('srp-submit-btn');
 const srpNoSubmitBtn=document.getElementById('srp-no-submit-btn');
 const srpSearchBtn=document.getElementById('srp-search-btn');
+
+// ── 스토어 설정 (어드민 연동 예정: FREE_SHIPPING_THRESHOLD, SHIPPING_FEE) ──
+const STORE_CONFIG={
+  FREE_SHIPPING_THRESHOLD:30000, // 무료배송 기준금액 (원)
+  SHIPPING_FEE:3000,             // 기본 배송비 (원)
+};
 
 // 서브 페이지 z-index 동적 관리 — 열릴 때마다 최상위로 올림
 let _zPageTop=100;
@@ -2877,8 +2815,6 @@ function openLoginPage(){
   setLoginMode('login');
   const lpl=document.getElementById('lp-logo-img');
   if(lpl)lpl.src=src;
-  const lpfl=document.getElementById('lp-footer-logo-img');
-  if(lpfl){lpfl.src=src;lpfl.style.cssText='height:30px;width:auto;display:block;filter:invert(1);';}
   // 일반 진입 시 비회원 구매 박스 숨김 (결제 페이지에서 진입 시엔 별도로 표시)
   const guestBox=document.getElementById('lp-guest-buy-box');
   if(guestBox)guestBox.style.display='none';
@@ -2920,8 +2856,8 @@ function setLoginMode(mode){
   if(cancelBtn)cancelBtn.style.display=isReset?'inline':'none';
 
   // 소셜 로그인 + 구분선 — reset 시 숨김
-  document.getElementById('lp-divider-wrap').style.display=isReset?'none':'flex';
-  document.getElementById('lp-social').style.display=isReset?'none':'flex';
+  document.getElementById('lp-divider-wrap').style.visibility=isReset?'hidden':'visible';
+  document.getElementById('lp-social').style.visibility=isReset?'hidden':'visible';
 }
 document.getElementById('lp-switch-link').addEventListener('click', ()=>{
   const cur=document.getElementById('lp-form-login').style.display!=='none'?'login':'register';
@@ -3011,14 +2947,15 @@ document.querySelectorAll('.pd-accordion-hd').forEach(hd=>{
   });
 });
 
-// ── 상세 페이지 푸터 주입 ──
+// ── 서브 페이지 푸터 주입 (모든 서브 페이지 공통) ──
 (function(){
   const src=document.querySelector('.footer');
-  const wrap=document.getElementById('pd-footer-wrap');
-  if(src&&wrap){
-    const clone=src.cloneNode(true);
-    wrap.appendChild(clone);
-  }
+  if(!src)return;
+  ['lp-footer-wrap','srp-footer-wrap','cp-footer-wrap',
+   'pd-footer-wrap','chp-footer-wrap','ocp-footer-wrap'].forEach(id=>{
+    const wrap=document.getElementById(id);
+    if(wrap)wrap.appendChild(src.cloneNode(true));
+  });
 })();
 
 // ── 장바구니 드로어 ──
@@ -3100,8 +3037,8 @@ function renderCartDrawer(){
       <span class="cd-remove" onclick="removeCartItem(${item.id})" title="삭제"><svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l8 8M9 1l-8 8"/></svg></span>
     </div>`).join('');
   const subtotal=cartItems.reduce((s,i)=>s+(i.priceNum*i.qty),0);
-  const free=subtotal>=15000;
-  const shipping=free?0:3000;
+  const free=subtotal>=STORE_CONFIG.FREE_SHIPPING_THRESHOLD;
+  const shipping=free?0:STORE_CONFIG.SHIPPING_FEE;
   const total=subtotal+shipping;
   subtotalEl.textContent=`₩${total.toLocaleString('ko-KR')}`;
   // 배송비 아이템 행
@@ -3110,14 +3047,14 @@ function renderCartDrawer(){
   const siPrice=document.getElementById('cd-si-price');
   if(shippingItem){shippingItem.style.display='';}
   if(siPrice){
-    siPrice.textContent=free?'무료':'₩3,000';
+    siPrice.textContent=free?'무료':`₩${STORE_CONFIG.SHIPPING_FEE.toLocaleString('ko-KR')}`;
     siPrice.className='cd-si-price'+(free?' free':'');
   }
   if(siNotice){
     if(free){
       siNotice.textContent='무료 배송이 적용됩니다.';
     } else {
-      const remain=(15000-subtotal).toLocaleString('ko-KR');
+      const remain=(STORE_CONFIG.FREE_SHIPPING_THRESHOLD-subtotal).toLocaleString('ko-KR');
       siNotice.textContent=`₩${remain} 더 구매하시면 무료 배송됩니다.`;
     }
   }
@@ -3267,8 +3204,8 @@ function renderCartPage(){
     </div>
   `).join('');
   const subtotal=cartItems.reduce((s,i)=>s+(i.priceNum*i.qty),0);
-  const free=subtotal>=15000;
-  const shipping=free?0:3000;
+  const free=subtotal>=STORE_CONFIG.FREE_SHIPPING_THRESHOLD;
+  const shipping=free?0:STORE_CONFIG.SHIPPING_FEE;
   const total=subtotal+shipping;
   subtotalPrice.textContent=`₩${total.toLocaleString('ko-KR')}`;
   const notice=document.getElementById('cp-shipping-notice');
@@ -3278,9 +3215,9 @@ function renderCartPage(){
     price.textContent='무료';
     price.className='cp-shipping-price free';
   } else {
-    const remain=(15000-subtotal).toLocaleString('ko-KR');
+    const remain=(STORE_CONFIG.FREE_SHIPPING_THRESHOLD-subtotal).toLocaleString('ko-KR');
     notice.textContent=`₩${remain} 더 구매하시면 무료 배송됩니다.`;
-    price.textContent='₩3,000';
+    price.textContent=`₩${STORE_CONFIG.SHIPPING_FEE.toLocaleString('ko-KR')}`;
     price.className='cp-shipping-price';
   }
 }
@@ -3345,12 +3282,12 @@ function renderCheckoutSummary(){
   `).join('');
   const totalQty=cartItems.reduce((s,i)=>s+i.qty,0);
   const subtotal=cartItems.reduce((s,i)=>s+(i.priceNum*i.qty),0);
-  const free=subtotal>=15000;
-  const shipping=free?0:3000;
+  const free=subtotal>=STORE_CONFIG.FREE_SHIPPING_THRESHOLD;
+  const shipping=free?0:STORE_CONFIG.SHIPPING_FEE;
   const total=subtotal+shipping;
   document.getElementById('chp-sum-label').textContent=`결제예정금액 · ${totalQty}개 상품`;
   document.getElementById('chp-sum-subtotal').textContent=`₩${subtotal.toLocaleString('ko-KR')}`;
-  document.getElementById('chp-sum-shipping').textContent=free?'무료':'₩3,000';
+  document.getElementById('chp-sum-shipping').textContent=free?'무료':`₩${STORE_CONFIG.SHIPPING_FEE.toLocaleString('ko-KR')}`;
   document.getElementById('chp-sum-total').textContent=`₩${total.toLocaleString('ko-KR')}`;
   const subItems=cartItems.filter(i=>i.type==='subscription');
   const subRow=document.getElementById('chp-sum-sub-row');
@@ -3463,10 +3400,24 @@ function renderOrderComplete(){
     </div>
   `).join('');
   const subtotal=cartItems.reduce((s,i)=>s+(i.priceNum*i.qty),0);
-  const free=subtotal>=15000;
-  const total=subtotal+(free?0:3000);
+  const free=subtotal>=STORE_CONFIG.FREE_SHIPPING_THRESHOLD;
+  const total=subtotal+(free?0:STORE_CONFIG.SHIPPING_FEE);
   document.getElementById('ocp-total').textContent=`₩${total.toLocaleString('ko-KR')}`;
 }
+
+// ── 배송 안내 문구 초기화 (STORE_CONFIG 기반 동기화) ──
+(()=>{
+  const fmt=n=>n.toLocaleString('ko-KR');
+  const thr=STORE_CONFIG.FREE_SHIPPING_THRESHOLD;
+  const fee=STORE_CONFIG.SHIPPING_FEE;
+  document.querySelectorAll('.ann').forEach(el=>{
+    el.textContent=`원두 구매 ${fmt(thr)}원 이상 무료 배송 · Specialty Coffee for All`;
+  });
+  const cdPromo=document.getElementById('cd-promo');
+  if(cdPromo)cdPromo.textContent=`${fmt(thr)}원 이상 구매 시 무료 배송`;
+  const pdInfo=document.getElementById('pd-shipping-info');
+  if(pdInfo)pdInfo.textContent=`· 기본 배송비 ${fmt(fee)}원 / ${fmt(thr)}원 이상 구매 시 무료 배송`;
+})();
 
 // ════════════════════════════════════════════════
 //  BUTTON WIRING
