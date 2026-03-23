@@ -66,6 +66,12 @@
   --text-link-border:.5px solid var(--color-text-primary);
   --text-link-padding-bottom:1px;
   --text-link-opacity-hover:.5;
+  /* subtle variant — 비권장 액션(삭제 등), 기본 약하게 + 호버 시 primary로 */
+  --text-link-subtle-font-weight:300;
+  --text-link-subtle-letter-spacing:.04em;
+  --text-link-subtle-color:var(--color-text-tertiary);
+  --text-link-subtle-border:.5px solid var(--color-border-primary);
+  --text-link-subtle-color-hover:var(--color-text-primary);
   /* ── z-index 계층 토큰 ── */
   --z-sticky:50;                  /* sticky 헤더 */
   --z-page:100;                   /* 풀스크린 서브 페이지 기본값 (열릴 때 JS가 동적으로 올림) */
@@ -1038,12 +1044,13 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 .cp-item-category{font-family:var(--font-en);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);}
 .cp-item-name{font-family:var(--font-en);font-size:16px;font-weight:500;color:var(--color-text-primary);line-height:1.35;}
 .cp-item-remove-link{
-  font-family:var(--font-kr);font-size:13px;font-weight:300;
-  color:var(--color-text-tertiary);cursor:pointer;width:fit-content;
-  border-bottom:.5px solid var(--color-border-primary);
+  font-size:var(--text-link-font-size);font-weight:var(--text-link-subtle-font-weight);
+  letter-spacing:var(--text-link-subtle-letter-spacing);
+  color:var(--text-link-subtle-color);cursor:pointer;width:fit-content;
+  border-bottom:var(--text-link-subtle-border);padding-bottom:var(--text-link-padding-bottom);
   transition:color 200ms linear;margin-top:4px;
 }
-.cp-item-remove-link:hover{color:var(--color-text-primary);}
+.cp-item-remove-link:hover{color:var(--text-link-subtle-color-hover);}
 .cp-item-price{font-family:var(--font-en);font-size:15px;color:var(--color-text-secondary);text-align:center;}
 .cp-item-qty{display:flex;align-items:center;justify-content:center;}
 .cp-item-total{font-family:var(--font-en);font-size:15px;font-weight:500;color:var(--color-text-primary);text-align:center;}
