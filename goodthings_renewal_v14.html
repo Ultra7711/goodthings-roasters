@@ -998,18 +998,19 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 
 /* 본문 */
 #cp-body{flex:1;}
-#cp-inner{max-width:1440px;margin:0 auto;padding:48px 40px 80px;}
+#cp-inner{max-width:1440px;margin:0 auto;padding:100px 40px 80px;}
 
 /* 페이지 헤더 */
 #cp-page-header{display:flex;align-items:baseline;gap:24px;margin-bottom:32px;}
-#cp-title-text{font-family:var(--font-en);font-size:32px;font-weight:500;letter-spacing:-.02em;}
+#cp-title-text{font-family:var(--font-en);font-size:36px;font-weight:500;letter-spacing:-.02em;}
 .cp-continue-link{
-  font-family:var(--font-kr);font-size:13px;font-weight:300;
-  color:var(--color-text-tertiary);cursor:pointer;
-  border-bottom:.5px solid var(--color-border-primary);padding-bottom:1px;
-  transition:color 200ms linear;
+  font-size:var(--text-link-font-size);font-weight:var(--text-link-font-weight);
+  letter-spacing:var(--text-link-letter-spacing);
+  color:var(--text-link-color);cursor:pointer;
+  border-bottom:var(--text-link-border);padding-bottom:var(--text-link-padding-bottom);
+  transition:opacity 200ms linear;
 }
-.cp-continue-link:hover{color:var(--color-text-primary);}
+.cp-continue-link:hover{opacity:var(--text-link-opacity-hover);}
 
 /* 테이블 헤더 */
 .cp-table-hdr{
@@ -1582,7 +1583,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 }
 #pd-inner{
   width:100%;max-width:1440px;margin:0 auto;
-  padding:40px 0 0;
+  padding:100px 0 0;
   flex:1;
 }
 
@@ -2754,6 +2755,11 @@ function openOverlay(){
   searchDim.classList.add('open');
   overlay.classList.add('open'); // 팝업 노출 규칙 추적용
   document.body.style.overflow='hidden';
+  // 활성 서브 페이지 내부 스크롤바 숨김 (native scrollbar 투과 방지)
+  document.querySelectorAll('.sub-page.open').forEach(p=>{
+    p.dataset.prevOverflow=p.style.overflowY||'';
+    p.style.overflowY='hidden';
+  });
   setTimeout(()=>searchInput.focus(),200);
 }
 function closeOverlay(){
@@ -2762,6 +2768,13 @@ function closeOverlay(){
   overlay.classList.remove('open');
   document.body.style.overflow='';
   searchInput.value='';
+  // 서브 페이지 스크롤바 복원
+  document.querySelectorAll('.sub-page').forEach(p=>{
+    if(p.dataset.prevOverflow!==undefined){
+      p.style.overflowY=p.dataset.prevOverflow;
+      delete p.dataset.prevOverflow;
+    }
+  });
 }
 
 function renderResults(page){
@@ -3106,6 +3119,7 @@ function openLoginPage(){
   window._lpFromCheckout=false;
 }
 function closeLoginPage(){
+  if(overlay.classList.contains('open'))closeOverlay();
   loginPage.classList.remove('open');
   document.body.style.overflow='';
 }
@@ -3249,6 +3263,7 @@ let cartItems=[];
 function parseCartPrice(str){return parseInt((str||'0').replace(/[₩,\s]/g,''))||0;}
 
 function openCartDrawer(){
+  if(overlay.classList.contains('open'))closeOverlay();
   renderCartDrawer();
   document.getElementById('cart-drawer-overlay').classList.add('open');
   document.getElementById('cart-drawer').classList.add('open');
@@ -3456,6 +3471,7 @@ function openCartPage(){
   updateCartBadge();
 }
 function closeCartPage(){
+  if(overlay.classList.contains('open'))closeOverlay();
   document.getElementById('cart-page').classList.remove('open');
 }
 function renderCartPage(){
