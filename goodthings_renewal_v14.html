@@ -709,11 +709,11 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
     <div id="lp-left">
       <div id="lp-title-row">
         <div id="lp-page-title"></div>
-        <span id="lp-reset-cancel-btn" class="cp-continue-link" style="display:none;">취소하기</span>
       </div>
       <div id="lp-switch-wrap">
         <span id="lp-switch-txt"></span>
         <span id="lp-switch-link"></span>
+        <span id="lp-reset-cancel-btn" style="display:none;">취소하기</span>
       </div>
     </div>
     <!-- 비회원 구매 박스 (결제 페이지 → 로그인 진입 시 표시) -->
@@ -918,8 +918,14 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 /* 푸터 */
 #lp-footer-wrap{flex-shrink:0;}
 
-/* 비밀번호 재설정 취소 버튼 — 타이틀 인라인 배치 */
-#lp-title-row{display:flex;align-items:baseline;gap:24px;}
+#lp-reset-cancel-btn{
+  font-size:var(--text-link-font-size);font-weight:var(--text-link-font-weight);
+  letter-spacing:var(--text-link-letter-spacing);
+  color:var(--text-link-color);cursor:pointer;
+  border-bottom:var(--text-link-border);padding-bottom:var(--text-link-padding-bottom);
+  width:fit-content;transition:opacity 200ms linear;
+}
+#lp-reset-cancel-btn:hover{opacity:var(--text-link-opacity-hover);}
 
 /* ── 비회원 구매 박스 ── */
 #lp-guest-buy-box{
