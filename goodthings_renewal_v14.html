@@ -2887,6 +2887,7 @@ function closeResultPage(){
 }
 
 function openProductPage(slug){
+  if(overlay.classList.contains('open'))closeOverlay();
   const p=PRODUCTS.find(x=>x.slug===slug);
   if(!p)return;
   const page=document.getElementById('product-detail-page');
@@ -3114,6 +3115,7 @@ const lpLogoImg=document.getElementById('lp-logo-img');
 const lpSearchBtn=document.getElementById('lp-search-btn');
 
 function openLoginPage(){
+  if(overlay.classList.contains('open'))closeOverlay();
   bringPageToFront(loginPage);
   loginPage.classList.add('open');
   document.body.style.overflow='hidden';
@@ -3467,6 +3469,7 @@ window.isLoggedIn=false; // 프로토타입 로그인 상태 토글
 //  CART PAGE
 // ════════════════════════════════════════════════
 function openCartPage(){
+  if(overlay.classList.contains('open'))closeOverlay();
   closeCartDrawer();
   document.getElementById('product-detail-page').classList.remove('open');
   document.getElementById('search-result-page').classList.remove('open');
