@@ -412,7 +412,9 @@ body{font-family:var(--font-en);background:#ffffff;}
 .f-col-title{font-family:var(--font-en);font-size:13px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:14px;line-height:1;}
 .f-bottom-wrap{padding:32px 0 40px;border-top:.5px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:8px;margin-top:48px;}
 .f-biz-row{display:flex;align-items:center;justify-content:space-between;}
-.f-biz{font-size:12px;color:var(--on-dark-muted);letter-spacing:.01em;line-height:1.6;}
+.f-biz{font-size:12px;color:var(--on-dark-muted);letter-spacing:.01em;line-height:1.6;display:flex;flex-wrap:wrap;align-items:center;}
+.f-biz-item{white-space:nowrap;}
+.f-biz-sep{white-space:nowrap;padding:0 .35em;}
 .f-address{font-family:var(--font-kr);font-size:12px;font-weight:300;color:var(--on-dark-muted);}
 .f-legal{display:flex;align-items:center;}
 .f-legal-link{font-size:12px;color:var(--on-dark-muted);cursor:pointer;transition:color 200ms linear;padding:0 8px;border-right:.5px solid rgba(255,255,255,.12);line-height:1;}
@@ -658,7 +660,15 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
     </div>
     <div class="f-bottom-wrap">
       <div class="f-biz-row">
-        <div class="f-biz">© 2026 주식회사 브이티이코프 &nbsp;·&nbsp; 대표 김주호 &nbsp;·&nbsp; 사업자 등록번호 510-81-30238 &nbsp;·&nbsp; 통신판매업 신고번호 2023-경북구미-0508 &nbsp;·&nbsp; 주소 경북 구미시 인동21길 22-11 &nbsp;·&nbsp; 전화번호 010-9062-9910 &nbsp;·&nbsp; 이메일 jung6419@naver.com</div>
+        <div class="f-biz">
+          <span class="f-biz-item">© 2026 주식회사 브이티이코프</span><span class="f-biz-sep">·</span>
+          <span class="f-biz-item">대표 김주호</span><span class="f-biz-sep">·</span>
+          <span class="f-biz-item">사업자 등록번호 510-81-30238</span><span class="f-biz-sep">·</span>
+          <span class="f-biz-item">통신판매업 신고번호 2023-경북구미-0508</span><span class="f-biz-sep">·</span>
+          <span class="f-biz-item">주소 경북 구미시 인동21길 22-11</span><span class="f-biz-sep">·</span>
+          <span class="f-biz-item">전화번호 010-9062-9910</span><span class="f-biz-sep">·</span>
+          <span class="f-biz-item">이메일 jung6419@naver.com</span>
+        </div>
       </div>
       <div class="f-legal">
         <span class="f-legal-link">이용약관</span>
