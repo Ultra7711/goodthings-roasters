@@ -73,6 +73,19 @@
   --z-drawer:200;                 /* 카트 드로어 (bg: 200, panel: 201) */
   --z-modal:300;                  /* 검색 오버레이 */
   --z-top:400;                    /* 툴팁, 토스트 등 최상위 */
+  /* ── 검색 패널 토큰 ──
+     공통: 메인 드롭 패널(#search-drop) + 검색결과 입력 섹션(#srp-input-section) */
+  --search-panel-height:60px;
+  --search-panel-padding-x:40px;
+  --search-panel-icon-size:18px;
+  --search-panel-icon-opacity:.35;
+  --search-panel-input-font-size:18px;
+  --search-panel-input-font-weight:300;
+  --search-panel-input-letter-spacing:-.01em;
+  --search-panel-bg:rgba(255,255,255,.72);
+  --search-panel-backdrop:blur(16px);
+  --search-panel-divider-color:rgba(0,0,0,.1);   /* 헤더-패널 인셋 구분선 */
+  --search-panel-border-bottom-color:rgba(0,0,0,.08); /* 패널 하단 보더 */
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--font-en);background:#ffffff;}
@@ -431,10 +444,10 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 <!-- SEARCH DROP PANEL -->
 <div id="search-drop">
   <div id="search-drop-inner">
-    <input id="search-input" type="text" placeholder="검색어를 입력하세요" autocomplete="off" spellcheck="false">
-    <span id="search-submit-btn">
-      <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>
+    <span id="search-icon">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>
     </span>
+    <input id="search-input" type="text" placeholder="검색어를 입력하세요" autocomplete="off" spellcheck="false">
   </div>
 </div>
 <div id="search-dim"></div>
@@ -1861,28 +1874,30 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 
   <!-- 본문 -->
   <div id="srp-body">
-    <!-- 결과 있음 -->
-    <div id="srp-has-results">
-      <div id="srp-query-label"></div>
-      <div id="srp-input-row">
+    <!-- 공통 입력창 (흰 배경 — 헤더의 연장) -->
+    <div id="srp-input-section">
+      <div id="srp-input-inner">
+        <span id="srp-search-icon">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>
+        </span>
         <input id="srp-input" type="text" placeholder="검색어를 입력하세요" autocomplete="off" spellcheck="false">
-        <span id="srp-submit-btn">
-          <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>
-        </span>
       </div>
-      <div id="srp-divider-top"></div>
-      <div id="srp-results-list"></div>
-      <div id="srp-divider-bottom"></div>
-      <div id="srp-pagination"></div>
     </div>
-    <!-- 결과 없음 -->
-    <div id="srp-no-results">
-      <div id="srp-no-query-label"></div>
-      <div id="srp-no-input-row">
-        <input id="srp-no-input" type="text" placeholder="검색어를 입력하세요" autocomplete="off" spellcheck="false">
-        <span id="srp-no-submit-btn">
-          <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>
-        </span>
+    <!-- 딤 오버레이 (입력창 포커스 시) -->
+    <div id="srp-dim"></div>
+    <!-- 결과 컨텐츠 -->
+    <div id="srp-content">
+      <!-- 결과 있음 -->
+      <div id="srp-has-results">
+        <div id="srp-query-label"></div>
+        <div id="srp-divider-top"></div>
+        <div id="srp-results-list"></div>
+        <div id="srp-divider-bottom"></div>
+        <div id="srp-pagination"></div>
+      </div>
+      <!-- 결과 없음 -->
+      <div id="srp-no-results">
+        <div id="srp-no-query-label"></div>
       </div>
     </div>
   </div>
@@ -2203,42 +2218,47 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 
 /* ── 검색 드롭 패널 ── */
 #search-drop{
-  position:fixed;top:129px;left:0;right:0;
+  position:fixed;top:128px;left:0;right:0;
   z-index:320;
-  background:rgba(255,255,255,.72);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border-bottom:.5px solid rgba(0,0,0,.08);
+  background:var(--search-panel-bg);
+  backdrop-filter:var(--search-panel-backdrop);
+  -webkit-backdrop-filter:var(--search-panel-backdrop);
+  border-bottom:.5px solid var(--search-panel-border-bottom-color);
   overflow:hidden;
   max-height:0;opacity:0;
   transition:max-height 300ms cubic-bezier(.4,0,.2,1),opacity 200ms ease;
 }
 #search-drop::before{
-  content:'';position:absolute;top:0;left:40px;right:40px;
-  height:.5px;background:rgba(0,0,0,.1);
+  content:'';position:absolute;top:0;
+  left:var(--search-panel-padding-x);right:var(--search-panel-padding-x);
+  height:.5px;background:var(--search-panel-divider-color);
 }
 #search-drop.open{max-height:62px;opacity:1;}
 #search-drop-inner{
-  height:60px;display:flex;align-items:center;
-  width:100%;max-width:1440px;margin:0 auto;padding:0 40px;gap:12px;
+  height:var(--search-panel-height);display:flex;align-items:center;
+  width:100%;max-width:1440px;margin:0 auto;
+  padding:0 var(--search-panel-padding-x);gap:12px;
   box-sizing:border-box;
 }
 #search-input{
   flex:1;background:transparent;border:none;outline:none;
-  font-family:var(--font-en);font-size:18px;font-weight:300;
-  color:var(--color-text-primary);letter-spacing:-.01em;
+  font-family:var(--font-en);
+  font-size:var(--search-panel-input-font-size);
+  font-weight:var(--search-panel-input-font-weight);
+  color:var(--color-text-primary);
+  letter-spacing:var(--search-panel-input-letter-spacing);
   caret-color:#111;
 }
 #search-input::placeholder{color:var(--color-text-placeholder);}
-#search-submit-btn{
-  opacity:.4;cursor:pointer;display:flex;align-items:center;
-  transition:opacity 200ms linear;color:#111;flex-shrink:0;
+#search-icon{
+  opacity:var(--search-panel-icon-opacity);
+  display:flex;align-items:center;
+  color:#111;flex-shrink:0;pointer-events:none;
 }
-#search-submit-btn:hover{opacity:1;}
 
 /* ── 검색 딤 오버레이 ── */
 #search-dim{
-  position:fixed;top:189px;left:0;right:0;bottom:0; /* 129px ann+hdr + 60px search panel */
+  position:fixed;top:188px;left:0;right:0;bottom:0; /* 128px ann+hdr + 60px search panel */
   background:rgba(0,0,0,.35);
   opacity:0;pointer-events:none;
   transition:opacity 300ms ease;
@@ -2256,65 +2276,88 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 #search-result-page.open{display:flex;}
 
 /* srp 어나운스 + 헤더 */
-#srp-hdr-wrap{border-bottom:.5px solid var(--color-border-tertiary);}
+#srp-hdr-wrap{/* border-bottom 없음 — 구분선은 #srp-input-section::before 인셋 패턴으로 처리 */}
 
-/* srp 본문 — 입력창을 오버레이와 동일 top:250px 기준으로 맞춤 */
+/* srp 본문 */
 #srp-body{
   flex:1;
   width:100%;
   display:flex;
   flex-direction:column;
-  align-items:center;
-  padding-top:130px;
   padding-bottom:60px;
 }
+/* 입력창 섹션 — 흰 배경, 헤더의 연장 */
+#srp-input-section{
+  position:relative;
+  background:#fff;
+  border-bottom:.5px solid var(--search-panel-border-bottom-color);
+  width:100%;
+  flex-shrink:0;
+}
+#srp-input-section::before{
+  content:'';position:absolute;top:0;
+  left:var(--search-panel-padding-x);right:var(--search-panel-padding-x);
+  height:.5px;background:var(--search-panel-divider-color);
+}
+#srp-input-inner{
+  height:var(--search-panel-height);display:flex;align-items:center;
+  width:100%;max-width:1440px;margin:0 auto;
+  padding:0 var(--search-panel-padding-x);gap:12px;
+  box-sizing:border-box;
+}
+#srp-input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:var(--font-en);
+  font-size:var(--search-panel-input-font-size);
+  font-weight:var(--search-panel-input-font-weight);
+  color:var(--color-text-primary);
+  letter-spacing:var(--search-panel-input-letter-spacing);
+  caret-color:#111;
+}
+#srp-input::placeholder{color:var(--color-text-placeholder);}
+#srp-search-icon{
+  opacity:var(--search-panel-icon-opacity);
+  display:flex;align-items:center;
+  color:#111;flex-shrink:0;pointer-events:none;
+}
+/* 결과 컨텐츠 */
+#srp-content{flex:1;width:100%;}
+/* srp 딤 오버레이 — 입력창 포커스 시 결과 영역 위에 표시 */
+#srp-dim{
+  position:fixed;
+  top:191px;left:0;right:0;bottom:0; /* ann(50)+hdr(80)+input(61) */
+  background:rgba(0,0,0,.35);
+  opacity:0;pointer-events:none;
+  transition:opacity 300ms ease;
+  z-index:5;
+}
+#srp-dim.active{opacity:1;pointer-events:all;}
 #srp-query-label,#srp-no-query-label{
   font-family:var(--font-en);font-size:20px;font-weight:500;
   color:var(--color-text-primary);letter-spacing:-.01em;
-  width:580px;margin-bottom:40px;line-height:1.4;
+  width:100%;max-width:1440px;margin:0 auto;
+  padding:40px 40px 24px;
+  box-sizing:border-box;
+  line-height:1.4;
   text-align:center;
 }
-/* 입력창 — 오버레이와 동일 580x60 */
-#srp-input-row,#srp-no-input-row{
-  display:flex;align-items:center;
-  background:#fff;
-  border:.5px solid rgba(0,0,0,.12);
-  padding:0 18px;
-  width:580px;height:60px;
-  margin-bottom:32px;
-  flex-shrink:0;
-}
-#srp-input,#srp-no-input{
-  flex:1;background:transparent;border:none;outline:none;
-  font-family:var(--font-en);font-size:16px;font-weight:400;
-  color:#111111;letter-spacing:-.01em;
-  caret-color:#111;
-}
-#srp-input::placeholder,#srp-no-input::placeholder{color:var(--color-text-placeholder);}
-#srp-submit-btn,#srp-no-submit-btn{
-  opacity:.4;cursor:pointer;display:flex;align-items:center;
-  transition:opacity 200ms linear;color:#111;flex-shrink:0;
-  margin-left:12px;
-}
-#srp-submit-btn:hover,#srp-no-submit-btn:hover{opacity:1;}
 #srp-divider-top,#srp-divider-bottom,#srp-results-list,#srp-pagination{
   width:100%;max-width:1440px;padding:0 40px;box-sizing:border-box;
+  margin:0 auto;
 }
 #srp-divider-top{border-top:.5px solid var(--color-border-tertiary);}
 #srp-divider-bottom{border-top:.5px solid var(--color-border-tertiary);}
-#srp-results-list{min-height:1250px;/* 250px × 5 */}
+#srp-results-list{min-height:1090px;/* 218px × 5 */}
 .srp-result-item{
   display:flex;align-items:center;gap:32px;
-  height:250px;
-  padding:0 40px;
+  height:218px;
   border-bottom:.5px solid var(--color-border-tertiary);
   cursor:pointer;
   box-sizing:border-box;
-  max-width:1440px;width:100%;margin:0 auto;
 }
 .srp-result-item:last-child{border-bottom:none;}
 .srp-result-thumb{
-  width:156px;height:156px;flex-shrink:0;
+  width:100px;height:100px;flex-shrink:0;
   background:var(--color-background-secondary);overflow:hidden;
   position:relative;
 }
@@ -2367,7 +2410,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   min-width:28px;height:32px;display:flex;align-items:center;justify-content:center;
   color:var(--color-text-tertiary);letter-spacing:.04em;pointer-events:none;
 }
-#srp-has-results,#srp-no-results{display:none;width:100%;align-items:center;flex-direction:column;}
+#srp-has-results,#srp-no-results{display:none;width:100%;flex-direction:column;}
 #srp-has-results.show,#srp-no-results.show{display:flex;}
 
 /* 서브페이지 로고 — 홈 버튼 */
@@ -2517,7 +2560,6 @@ let currentResults=[];
 const overlay=document.getElementById('search-overlay');
 const searchInput=document.getElementById('search-input');
 const searchBtn=document.getElementById('search-btn');
-const searchSubmitBtn=document.getElementById('search-submit-btn');
 const searchDrop=document.getElementById('search-drop');
 const searchDim=document.getElementById('search-dim');
 const resultPage=document.getElementById('search-result-page');
@@ -2528,9 +2570,7 @@ const srpNoQueryLabel=document.getElementById('srp-no-query-label');
 const srpResultsList=document.getElementById('srp-results-list');
 const srpPagination=document.getElementById('srp-pagination');
 const srpInput=document.getElementById('srp-input');
-const srpNoInput=document.getElementById('srp-no-input');
-const srpSubmitBtn=document.getElementById('srp-submit-btn');
-const srpNoSubmitBtn=document.getElementById('srp-no-submit-btn');
+const srpDim=document.getElementById('srp-dim');
 const srpSearchBtn=document.getElementById('srp-search-btn');
 
 // ── 스토어 설정 (어드민 연동 예정: FREE_SHIPPING_THRESHOLD, SHIPPING_FEE) ──
@@ -2642,15 +2682,14 @@ function openResultPage(query){
       )
     :[];
   srpInput.value=q;
-  srpNoInput.value=q;
 
   if(q&&currentResults.length>0){
-    srpQueryLabel.textContent='검색 결과가 '+currentResults.length+'건이 있습니다.';
+    srpQueryLabel.textContent='"'+q+'"에 대한, 검색 결과가 '+currentResults.length+'건 있습니다.';
     renderResults(1);
     srpHas.classList.add('show');
     srpNo.classList.remove('show');
   } else {
-    srpNoQueryLabel.textContent=q?'"'+q+'"에 대한 검색 결과가 없습니다.':'검색어를 입력하지 않았습니다.';
+    srpNoQueryLabel.textContent=q?'"'+q+'"에 대한, 검색 결과가 없습니다.':'검색어를 입력하지 않았습니다.';
     srpNo.classList.add('show');
     srpHas.classList.remove('show');
   }
@@ -2871,7 +2910,6 @@ function openProductPage(slug){
 
 searchBtn.addEventListener('click',openOverlay);
 searchDim.addEventListener('click',closeOverlay);
-searchSubmitBtn.addEventListener('click',()=>openResultPage(searchInput.value));
 searchInput.addEventListener('keydown',e=>{if(e.key==='Enter')openResultPage(searchInput.value);});
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
@@ -2879,11 +2917,11 @@ document.addEventListener('keydown',e=>{
     if(resultPage.classList.contains('open'))closeResultPage();
   }
 });
-srpSubmitBtn.addEventListener('click',()=>openResultPage(srpInput.value));
-srpNoSubmitBtn.addEventListener('click',()=>openResultPage(srpNoInput.value));
 srpInput.addEventListener('keydown',e=>{if(e.key==='Enter')openResultPage(srpInput.value);});
-srpNoInput.addEventListener('keydown',e=>{if(e.key==='Enter')openResultPage(srpNoInput.value);});
-srpSearchBtn.addEventListener('click',openOverlay);
+srpInput.addEventListener('focus',()=>srpDim.classList.add('active'));
+srpInput.addEventListener('blur',()=>srpDim.classList.remove('active'));
+srpDim.addEventListener('click',()=>srpInput.blur());
+srpSearchBtn.addEventListener('click',()=>srpInput.focus());
 
 // ── 로그인 페이지 ──
 const loginPage=document.getElementById('login-page');
