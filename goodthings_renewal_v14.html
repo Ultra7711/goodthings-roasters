@@ -92,6 +92,18 @@
   /* Secondary Light — 밝은 배경 위, 배경 박스 없음 (아이템 삭제 등) */
   --close-btn-secondary-light-color:rgba(17,17,17,.25);
   --close-btn-secondary-light-color-hover:#111;
+  /* ── 화살표 버튼 토큰 ──
+     Primary: 대형 (메인 이미지 슬라이더 등)
+     Secondary: 소형 (썸네일 스트립 등, 현재 pd-img-arrow 크기)
+     dark: 어두운 배경 위 / light: 밝은 배경 위 */
+  --arrow-btn-primary-svg:100px;
+  --arrow-btn-primary-padding:14px;
+  --arrow-btn-secondary-svg:40px;
+  --arrow-btn-secondary-padding:6px;
+  --arrow-btn-dark-color:#fff;
+  --arrow-btn-dark-color-hover:#fff;
+  --arrow-btn-light-color:#111;
+  --arrow-btn-light-color-hover:#111;
   /* ── 강조 알림 문구 토큰 ──
      용도: 빈 상태 안내, 검색 결과 문구 등 화면 중앙 단독 표시 텍스트 */
   --notice-font-size:20px;
@@ -436,6 +448,25 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 .close-btn-secondary-light:hover{color:var(--close-btn-secondary-light-color-hover);}
 /* .x-btn: 팝업 이미지 위 위치 고정 래퍼 (visual은 close-btn-* 클래스에서 처리) */
 .x-btn{position:absolute;top:12px;right:12px;z-index:20;}
+/* ── 화살표 버튼 공통 ── */
+.arrow-btn{
+  background:none;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:color 200ms linear;
+}
+.arrow-btn svg{display:block;flex-shrink:0;}
+.arrow-btn:disabled{cursor:default;}
+/* Size */
+.arrow-btn-primary{padding:var(--arrow-btn-primary-padding);}
+.arrow-btn-primary svg{width:var(--arrow-btn-primary-svg);height:var(--arrow-btn-primary-svg);stroke-width:.6;}
+.arrow-btn-secondary{padding:var(--arrow-btn-secondary-padding);}
+.arrow-btn-secondary svg{width:var(--arrow-btn-secondary-svg);height:var(--arrow-btn-secondary-svg);}
+/* Color — dark (어두운 배경 위) */
+.arrow-btn-dark{color:var(--arrow-btn-dark-color);}
+.arrow-btn-dark:not(:disabled):hover{color:var(--arrow-btn-dark-color-hover);}
+/* Color — light (밝은 배경 위) */
+.arrow-btn-light{color:var(--arrow-btn-light-color);}
+.arrow-btn-light:not(:disabled):hover{color:var(--arrow-btn-light-color-hover);}
 .popup-img{
   position:relative;
   width:300px;height:300px;
@@ -1398,17 +1429,18 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
         <!-- 좌: 이미지 갤러리 -->
         <div id="pd-img-wrap">
           <div id="pd-img-main-wrap">
-            <button class="pd-img-arrow" id="pd-img-prev" aria-label="이전">
-              <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            <button class="pd-img-arrow arrow-btn arrow-btn-primary arrow-btn-light" id="pd-img-prev" aria-label="이전">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <div id="pd-img"></div>
-            <button class="pd-img-arrow" id="pd-img-next" aria-label="다음">
-              <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <button class="pd-img-arrow arrow-btn arrow-btn-primary arrow-btn-light" id="pd-img-next" aria-label="다음">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
           <div id="pd-img-bottom">
-            <div id="pd-img-arrows"></div>
-            <div id="pd-thumbs"></div>
+            <div id="pd-thumbs-wrap">
+              <div id="pd-thumbs"></div>
+            </div>
           </div>
         </div>
 
@@ -1571,30 +1603,58 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   position:relative;width:100%;
 }
 #pd-img{
+  position:relative;
   width:100%;aspect-ratio:1/1;
   background:var(--color-background-secondary);
   overflow:hidden;
 }
+#pd-img::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(0,0,0,0);
+  transition:background 200ms linear;
+  pointer-events:none;z-index:1;
+}
+#pd-img-main-wrap:hover #pd-img::after{background:rgba(0,0,0,.06);}
 
-/* 화살표 — 이미지 위 오버레이, 배경 없는 thin line, 250% 확대 */
+/* 화살표 — 이미지 위 오버레이 (색상·크기는 arrow-btn-* 클래스에서 처리) */
 .pd-img-arrow{
   position:absolute;top:50%;transform:translateY(-50%);
-  background:none;border:none;cursor:pointer;padding:12px;
-  color:#111;
-  opacity:0;transition:opacity 200ms linear;
-  display:flex;align-items:center;justify-content:center;
-  z-index:2;
+  opacity:0;z-index:2;
+  transition:opacity 200ms linear,color 200ms linear;
 }
-#pd-img-main-wrap:hover .pd-img-arrow{opacity:.5;}
-.pd-img-arrow:hover{opacity:1 !important;}
-#pd-img-prev{left:0;}
-#pd-img-next{right:0;}
-.pd-img-arrow.hidden{display:none;}
+#pd-img-main-wrap:hover .pd-img-arrow:not(:disabled){opacity:.5;}
+#pd-img-main-wrap:hover .pd-img-arrow:disabled{opacity:.15;}
+.pd-img-arrow:not(:disabled):hover{opacity:1 !important;}
+#pd-img-prev{left:-26px;}
+#pd-img-next{right:-26px;}
+.pd-img-arrow.hidden,.pd-thumb-arrow.hidden{display:none;}
 
 /* 썸네일 */
-#pd-img-bottom{display:flex;align-items:center;gap:16px;}
-#pd-img-arrows{display:none;}
-#pd-thumbs{display:flex;gap:8px;flex-wrap:wrap;}
+#pd-img-bottom{display:flex;align-items:center;}
+#pd-thumbs-wrap{
+  display:flex;align-items:center;
+  width:100%;overflow:hidden;
+}
+#pd-thumbs{
+  display:flex;gap:8px;
+  flex-wrap:nowrap;overflow-x:auto;
+  scrollbar-width:none;flex:1;
+}
+#pd-thumbs::-webkit-scrollbar{display:none;}
+/* 썸네일 스크롤 화살표 — PC 마우스 호버 시 표시 */
+.pd-thumb-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  opacity:0;pointer-events:none;z-index:2;
+  transition:opacity 200ms linear,color 200ms linear;
+}
+#pd-thumb-prev{left:0;}
+#pd-thumb-next{right:0;}
+@media(pointer:fine){
+  #pd-thumbs-wrap:hover .pd-thumb-arrow:not(:disabled){opacity:1;pointer-events:all;}
+  #pd-thumbs-wrap:hover .pd-thumb-arrow:disabled{opacity:.2;}
+}
+/* 터치 환경: 메인 이미지 화살표 숨김 */
+@media(pointer:coarse){.pd-img-arrow{display:none;}}
 .pd-thumb{
   width:72px;height:72px;
   background:var(--color-background-secondary);
@@ -1603,8 +1663,8 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   transition:border-color 200ms linear;
   flex-shrink:0;
 }
-.pd-thumb.active{border-color:#111;}
 .pd-thumb:hover{border-color:rgba(0,0,0,.3);}
+.pd-thumb.active,.pd-thumb.active:hover{border-color:#111;}
 
 /* 우: 정보 */
 #pd-info{
@@ -2506,7 +2566,7 @@ if(ocpl){ocpl.src=src;}
 // 샘플 상품 데이터 (매진/재고없음 포함)
 const PRODUCTS=[
   {category:'Coffee Bean',name:'부쿠 후루파',price:'₩18,000',volumes:[{label:'100g',price:10000},{label:'200g',price:18000},{label:'500g',price:40000}],color:'linear-gradient(135deg,#c8956c,#8b5a2b)',status:null,slug:'buku-hurupa',subscription:true,
-   images:['linear-gradient(135deg,#c8956c,#8b5a2b)','linear-gradient(160deg,#a06840,#6b3a18)','linear-gradient(135deg,#e0b87a,#9a6030)'],
+   images:[{bg:'linear-gradient(135deg,#c8956c,#8b5a2b)',bgTheme:'light'},{bg:'linear-gradient(160deg,#a06840,#6b3a18)',bgTheme:'dark'},{bg:'linear-gradient(135deg,#e0b87a,#9a6030)',bgTheme:'light'}],
    storyImages:['linear-gradient(160deg,#5a3a20,#2a1a0a)','linear-gradient(135deg,#8a6040,#4a2a10)','linear-gradient(160deg,#c8956c,#6b3a18)','linear-gradient(135deg,#3a2010,#1a0a00)'],
    storyTexts:[
      '에티오피아 구지 지역 해발 1,900m 이상의 고지대. 부쿠 후루파 농장은 이 험준한 땅에서 헤이룸 품종 원두를 재배합니다.\n\n낮과 밤의 극단적인 기온 차이가 원두에 깊은 밀도와 복합적인 향미를 만들어냅니다.',
@@ -2517,47 +2577,47 @@ const PRODUCTS=[
    desc:'에티오피아 부쿠 후루파 농장에서 수확한 내추럴 프로세싱 원두입니다. 블루베리와 재스민의 향이 어우러지며, 다크초콜릿의 묵직한 여운이 특징입니다.',
    specs:'생산지: 에티오피아 구지 · 농장: 부쿠 후루파 · 품종: 헤이룸 · 정제: Natural · 고도: 1,900–2,200m · 테이스팅 노트: 블루베리, 재스민, 다크초콜릿'},
   {category:'Coffee Bean',name:'카간다 AA',price:'₩20,000',volumes:[{label:'100g',price:11000},{label:'200g',price:20000},{label:'500g',price:45000}],color:'linear-gradient(135deg,#a0856a,#6b4226)',status:null,slug:'kaganda-aa',subscription:true,
-   images:['linear-gradient(135deg,#a0856a,#6b4226)','linear-gradient(160deg,#c4a07a,#7a5030)'],
+   images:[{bg:'linear-gradient(135deg,#a0856a,#6b4226)',bgTheme:'light'},{bg:'linear-gradient(160deg,#c4a07a,#7a5030)',bgTheme:'light'}],
    desc:'케냐 카간다 농장의 AA 등급 원두로, 케냐 특유의 밝고 화사한 산미를 지녔습니다.',
    specs:'생산지: 케냐 키암부 · 등급: AA · 품종: SL28, SL34 · 정제: Washed · 테이스팅 노트: 자몽, 흑설탕, 레드커런트'},
   {category:'Coffee Bean',name:'와이칸',price:'₩17,000',volumes:[{label:'100g',price:9500},{label:'200g',price:17000},{label:'500g',price:38000}],color:'linear-gradient(135deg,#b8956c,#7a4f2a)',status:null,slug:'waikan',subscription:true,
-   images:['linear-gradient(135deg,#b8956c,#7a4f2a)'],
+   images:[{bg:'linear-gradient(135deg,#b8956c,#7a4f2a)',bgTheme:'light'}],
    desc:'과테말라 와이칸 농장의 원두로, 부드러운 바디감과 달콤한 캐러멜 풍미가 균형을 이룹니다.',
    specs:'생산지: 과테말라 안티과 · 농장: 와이칸 · 품종: Bourbon · 정제: Washed · 테이스팅 노트: 캐러멜, 사과, 크림'},
   {category:'Coffee Bean',name:'가을의 밤',price:'₩14,000',volumes:[{label:'100g',price:8000},{label:'200g',price:14000},{label:'500g',price:30000}],color:'linear-gradient(135deg,#9e8060,#68432a)',status:null,slug:'autumn-night',subscription:true,
-   images:['linear-gradient(135deg,#9e8060,#68432a)','linear-gradient(160deg,#7a6050,#4a2a18)'],
+   images:[{bg:'linear-gradient(135deg,#9e8060,#68432a)',bgTheme:'light'},{bg:'linear-gradient(160deg,#7a6050,#4a2a18)',bgTheme:'dark'}],
    desc:'굿띵스 시그니처 블렌드. 가을 밤처럼 깊고 포근한 풍미를 담았습니다.',
    specs:'생산지: 페루 · 품종: Typica, Bourbon · 정제: Washed · 테이스팅 노트: 캐러멜, 견과류, 다크카카오'},
   {category:'Coffee Bean',name:'예가체프 G1',price:'₩19,000',volumes:[{label:'100g',price:11000},{label:'200g',price:19000},{label:'500g',price:42000}],color:'linear-gradient(135deg,#d4a574,#8b5e3c)',status:'매진',slug:'yirgacheffe-g1',
-   images:['linear-gradient(135deg,#d4a574,#8b5e3c)'],
+   images:[{bg:'linear-gradient(135deg,#d4a574,#8b5e3c)',bgTheme:'light'}],
    desc:'에티오피아 예가체프 지역의 G1 등급 원두입니다.',
    specs:'생산지: 에티오피아 예가체프 · 등급: G1 · 정제: Washed · 테이스팅 노트: 베르가못, 레몬, 재스민'},
   {category:'Coffee Bean',name:'콜롬비아 수프리모',price:'₩16,000',volumes:[{label:'100g',price:9000},{label:'200g',price:16000},{label:'500g',price:36000}],color:'linear-gradient(135deg,#c4845a,#7a4020)',status:null,slug:'colombia-supremo',subscription:true,
-   images:['linear-gradient(135deg,#c4845a,#7a4020)','linear-gradient(160deg,#e0a07a,#9a5030)','linear-gradient(135deg,#a06040,#5a2810)'],
+   images:[{bg:'linear-gradient(135deg,#c4845a,#7a4020)',bgTheme:'light'},{bg:'linear-gradient(160deg,#e0a07a,#9a5030)',bgTheme:'light'},{bg:'linear-gradient(135deg,#a06040,#5a2810)',bgTheme:'dark'}],
    desc:'콜롬비아 수프리모 등급의 균형 잡힌 원두입니다.',
    specs:'생산지: 콜롬비아 우일라 · 등급: Supremo · 정제: Washed · 테이스팅 노트: 캐러멜, 다크초콜릿, 헤이즐넛'},
   {category:'Coffee Bean',name:'케냐 AA 키암부',price:'₩21,000',volumes:[{label:'100g',price:12000},{label:'200g',price:21000},{label:'500g',price:47000}],color:'linear-gradient(135deg,#b87040,#6b3a18)',status:'재고 없음',slug:'kenya-aa-kiambu',
-   images:['linear-gradient(135deg,#b87040,#6b3a18)'],
+   images:[{bg:'linear-gradient(135deg,#b87040,#6b3a18)',bgTheme:'light'}],
    desc:'케냐 키암부 지역의 AA 등급 프리미엄 원두입니다.',
    specs:'생산지: 케냐 키암부 · 등급: AA · 정제: Washed · 테이스팅 노트: 블랙커런트, 자두, 다크초콜릿'},
   {category:'Coffee Bean',name:'브라질 세하도',price:'₩13,000',volumes:[{label:'100g',price:7500},{label:'200g',price:13000},{label:'500g',price:28000}],color:'linear-gradient(135deg,#a06840,#5a3010)',status:null,slug:'brazil-cerrado',subscription:true,
-   images:['linear-gradient(135deg,#a06840,#5a3010)','linear-gradient(160deg,#c08050,#703818)'],
+   images:[{bg:'linear-gradient(135deg,#a06840,#5a3010)',bgTheme:'dark'},{bg:'linear-gradient(160deg,#c08050,#703818)',bgTheme:'light'}],
    desc:'브라질 세하도 지역의 풍부하고 묵직한 바디감의 원두입니다.',
    specs:'생산지: 브라질 미나스 제라이스 · 정제: Natural · 테이스팅 노트: 다크초콜릿, 견과류, 캐러멜'},
   {category:'Goods',name:'굿띵스 텀블러',price:'₩32,000',color:'linear-gradient(135deg,#888,#444)',status:null,slug:'tumbler',
-   images:['linear-gradient(135deg,#888,#444)','linear-gradient(135deg,#aaa,#666)'],
+   images:[{bg:'linear-gradient(135deg,#888,#444)',bgTheme:'dark'},{bg:'linear-gradient(135deg,#aaa,#666)',bgTheme:'dark'}],
    desc:'굿띵스 로고가 새겨진 스테인리스 텀블러입니다. 보온·보냉 기능을 갖춘 일상의 동반자.',
    specs:'소재: 스테인리스 스틸 · 용량: 355ml · 색상: 매트 블랙'},
   {category:'Goods',name:'굿띵스 드립백 세트',price:'₩15,000',color:'linear-gradient(135deg,#aaa,#666)',status:null,slug:'drip-bag-set',
-   images:['linear-gradient(135deg,#aaa,#666)'],
+   images:[{bg:'linear-gradient(135deg,#aaa,#666)',bgTheme:'dark'}],
    desc:'집에서도 카페의 맛을 경험할 수 있는 드립백 세트입니다. 3종 각 2개입 구성.',
    specs:'구성: 3종 × 2개입 (총 6개) · 용량: 10g/개 · 권장 물 온도: 88–92°C'},
   {category:'Coffee Bean',name:'파나마 게이샤',price:'₩38,000',volumes:[{label:'100g',price:38000},{label:'200g',price:72000}],color:'linear-gradient(135deg,#e0b080,#a06830)',status:'수량 한정',slug:'panama-geisha',subscription:true,
-   images:['linear-gradient(135deg,#e0b080,#a06830)','linear-gradient(160deg,#f0c890,#b07840)','linear-gradient(135deg,#c09060,#805020)'],
+   images:[{bg:'linear-gradient(135deg,#e0b080,#a06830)',bgTheme:'light'},{bg:'linear-gradient(160deg,#f0c890,#b07840)',bgTheme:'light'},{bg:'linear-gradient(135deg,#c09060,#805020)',bgTheme:'light'}],
    desc:'세계 최고 품질의 파나마 게이샤 품종입니다. 꽃향기와 과일의 섬세한 풍미가 특징입니다.',
    specs:'생산지: 파나마 보케테 · 품종: Geisha · 정제: Washed · 고도: 1,600m · 테이스팅 노트: 자스민, 복숭아, 망고'},
   {category:'Coffee Bean',name:'코스타리카 따라주',price:'₩17,500',volumes:[{label:'100g',price:10000},{label:'200g',price:17500},{label:'500g',price:40000}],color:'linear-gradient(135deg,#c09060,#7a5030)',status:null,slug:'costarica-tarazu',subscription:true,
-   images:['linear-gradient(135deg,#c09060,#7a5030)','linear-gradient(160deg,#d8a878,#8a6038)'],
+   images:[{bg:'linear-gradient(135deg,#c09060,#7a5030)',bgTheme:'light'},{bg:'linear-gradient(160deg,#d8a878,#8a6038)',bgTheme:'light'}],
    desc:'코스타리카 따라주 지역의 밝고 깨끗한 산미와 달콤한 여운의 원두입니다.',
    specs:'생산지: 코스타리카 따라주 · 정제: Honey · 테이스팅 노트: 복숭아, 패션프루트, 캐러멜'},
 ];
@@ -2580,20 +2640,32 @@ function renderPdGallery(images){
   // 메인 이미지
   function setMain(idx){
     _pdImgIdx=idx;
-    mainEl.style.background=_pdImages[idx];
+    const img=_pdImages[idx];
+    const bg=typeof img==='string'?img:img.bg;
+    const theme=typeof img==='object'&&img.bgTheme?img.bgTheme:'light';
+    mainEl.style.background=bg;
+    // 화살표 dark/light 테마 전환
+    [prevBtn,nextBtn].forEach(btn=>{
+      btn.classList.remove('arrow-btn-dark','arrow-btn-light');
+      btn.classList.add(theme==='dark'?'arrow-btn-dark':'arrow-btn-light');
+    });
     // 썸네일 active
     thumbsEl.querySelectorAll('.pd-thumb').forEach((t,i)=>{
       t.classList.toggle('active',i===idx);
     });
-    // 화살표 표시
-    prevBtn.classList.toggle('hidden',_pdImages.length<=1);
-    nextBtn.classList.toggle('hidden',_pdImages.length<=1);
+    // 화살표 표시 및 disable
+    const multi=_pdImages.length>1;
+    prevBtn.classList.toggle('hidden',!multi);
+    nextBtn.classList.toggle('hidden',!multi);
+    prevBtn.disabled=idx===0;
+    nextBtn.disabled=idx===_pdImages.length-1;
   }
 
   // 썸네일 렌더
   thumbsEl.innerHTML='';
   if(_pdImages.length>1){
-    _pdImages.forEach((bg,i)=>{
+    _pdImages.forEach((img,i)=>{
+      const bg=typeof img==='string'?img:img.bg;
       const th=document.createElement('div');
       th.className='pd-thumb'+(i===0?' active':'');
       th.style.background=bg;
@@ -2604,9 +2676,43 @@ function renderPdGallery(images){
 
   setMain(0);
 
-  // 화살표 이벤트
-  prevBtn.onclick=()=>setMain((_pdImgIdx-1+_pdImages.length)%_pdImages.length);
-  nextBtn.onclick=()=>setMain((_pdImgIdx+1)%_pdImages.length);
+  // 메인 이미지 화살표 이벤트
+  prevBtn.onclick=()=>{ if(_pdImgIdx>0) setMain(_pdImgIdx-1); };
+  nextBtn.onclick=()=>{ if(_pdImgIdx<_pdImages.length-1) setMain(_pdImgIdx+1); };
+
+  // 썸네일 스트립 스크롤 화살표 (PC: 8개 이상 넘칠 때)
+  const thumbsWrap=document.getElementById('pd-thumbs-wrap');
+  let tPrev=document.getElementById('pd-thumb-prev');
+  let tNext=document.getElementById('pd-thumb-next');
+  if(!tPrev){
+    const svgPrev='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+    const svgNext='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+    tPrev=document.createElement('button');
+    tPrev.id='pd-thumb-prev';
+    tPrev.className='pd-thumb-arrow arrow-btn arrow-btn-secondary arrow-btn-light';
+    tPrev.setAttribute('aria-label','이전');
+    tPrev.innerHTML=svgPrev;
+    tNext=document.createElement('button');
+    tNext.id='pd-thumb-next';
+    tNext.className='pd-thumb-arrow arrow-btn arrow-btn-secondary arrow-btn-light';
+    tNext.setAttribute('aria-label','다음');
+    tNext.innerHTML=svgNext;
+    thumbsWrap.insertBefore(tPrev,thumbsEl);
+    thumbsWrap.appendChild(tNext);
+  }
+  function updateThumbScroll(){
+    const overflow=thumbsEl.scrollWidth>thumbsEl.clientWidth+1;
+    tPrev.classList.toggle('hidden',!overflow);
+    tNext.classList.toggle('hidden',!overflow);
+    if(overflow){
+      tPrev.disabled=thumbsEl.scrollLeft<=0;
+      tNext.disabled=thumbsEl.scrollLeft>=thumbsEl.scrollWidth-thumbsEl.clientWidth-1;
+    }
+  }
+  tPrev.onclick=()=>{ thumbsEl.scrollBy({left:-160,behavior:'smooth'}); };
+  tNext.onclick=()=>{ thumbsEl.scrollBy({left:160,behavior:'smooth'}); };
+  thumbsEl.addEventListener('scroll',updateThumbScroll);
+  setTimeout(updateThumbScroll,0);
 }
 
 
