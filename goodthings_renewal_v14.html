@@ -56,7 +56,9 @@
   --tab-border:.5px solid var(--color-border-secondary);
   --tab-border-active:1px solid var(--color-text-primary);
   --tab-border-hover:rgba(0,0,0,.4);
-  /* ── 텍스트 링크 버튼 토큰 ── */
+  /* ── 텍스트 링크 버튼 토큰 ──
+     주의: height:auto 요소에만 적용. 고정 height 요소에 쓰면
+     border-bottom이 컨테이너 하단으로 밀림 → align-self:center 병행 필요 */
   --text-link-font-size:13px;
   --text-link-font-weight:500;
   --text-link-letter-spacing:.04em;
@@ -1071,7 +1073,8 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 .chp-addr-row{display:flex;gap:8px;align-items:center;}
 .chp-addr-row .chp-input{flex:1;}
 .chp-addr-search-btn{
-  height:48px;padding:0;flex-shrink:0;
+  /* height 고정 없이 align-self:center로 수직 정렬 — text-link 토큰 규칙 준수 */
+  padding:0;flex-shrink:0;align-self:center;
   border:none;border-bottom:var(--text-link-border);
   background:transparent;
   font-family:var(--font-en);
@@ -1079,6 +1082,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   letter-spacing:var(--text-link-letter-spacing);
   color:var(--text-link-color);
   cursor:pointer;white-space:nowrap;
+  padding-bottom:var(--text-link-padding-bottom);
   transition:opacity 200ms linear;
 }
 .chp-addr-search-btn:hover{opacity:var(--text-link-opacity-hover);}
