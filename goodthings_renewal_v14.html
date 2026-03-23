@@ -162,9 +162,7 @@ body{font-family:var(--font-en);background:#ffffff;}
 .cat-grid,
 .section-cta,
 .phil,
-.beans-sec,
 .roastery-c,
-.two-col,
 .gooddays-sec,
 .f-inner{
   max-width:1440px;
@@ -279,7 +277,7 @@ body{font-family:var(--font-en);background:#ffffff;}
 
 /* ── CTA 버튼 ── */
 .cta-btn{
-  display:inline-flex;align-items:center;justify-content:center;
+  display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;
   height:var(--cta-btn-height);
   padding:0 var(--cta-btn-padding-x);
   font-family:var(--font-en);font-size:var(--cta-btn-font-size);font-weight:var(--cta-btn-font-weight);
@@ -334,13 +332,13 @@ body{font-family:var(--font-en);background:#ffffff;}
 .bean-name{font-size:var(--type-heading-s-size);font-weight:600;color:#fff;line-height:1.3;}
 .bean-flv{font-size:13px;font-weight:400;color:rgba(255,255,255,.65);margin-bottom:10px;}
 .bean-prc{font-size:15px;font-weight:600;color:#fff;}
-.f-bottom-wrap{padding:32px 40px 40px;border-top:.5px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:8px;margin-top:48px;}
+.f-bottom-wrap{padding:32px 60px 40px;border-top:.5px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:8px;margin-top:48px;}
 
 /* ── ANNOUNCEMENT ── */
 .ann{background:var(--color-text-primary);color:var(--color-background-primary);text-align:center;padding:0;height:50px;display:flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:.06em;}
 
 /* ── HEADER ── */
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:24px 40px;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:24px 60px;}
 .hdr-left{display:flex;align-items:center;gap:20px;}
 .hdr-logo img{height:30px;width:auto;display:block;}
 .sns-icon{width:28px;height:28px;color:var(--color-text-primary);}
@@ -355,7 +353,7 @@ body{font-family:var(--font-en);background:#ffffff;}
 .hero{position:relative;min-height:100vh;background:#111;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;padding:0;}
 .hero-bg{position:absolute;inset:0;background:url('images/hero-bg.png') center center/cover no-repeat;}
 .hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.35) 50%,rgba(0,0,0,.15) 100%);}
-.hero-c{position:relative;z-index:1;width:100%;max-width:1440px;margin:0 auto;padding:60px 40px 80px;}
+.hero-c{position:relative;z-index:1;width:100%;max-width:1440px;margin:0 auto;padding:60px 60px 80px;}
 .hero-tag{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--on-dark-tertiary);margin-bottom:16px;}
 .hero-h{font-family:var(--font-en);font-size:64px;font-weight:600;color:#fff;line-height:1.05;letter-spacing:-.03em;margin-bottom:16px;}
 .hero-sub{font-family:var(--font-kr);font-size:var(--type-body-ui-size);font-weight:var(--type-body-ui-weight);color:var(--on-dark-secondary);line-height:1.9;margin-bottom:32px;}
@@ -369,9 +367,9 @@ body{font-family:var(--font-en);background:#ffffff;}
 .season-copy{display:flex;flex-direction:column;align-items:center;gap:12px;}
 .season-tag{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.2em;text-transform:uppercase;color:#684200;}
 .season-h{font-family:var(--font-en);font-size:var(--type-display-size);font-weight:300;letter-spacing:-.02em;color:#684200;line-height:1.1;}
-.season-cta{background:#684200;color:#fff;border:none;height:38px;padding:0 28px;font-family:var(--font-en);font-size:var(--type-label-size);font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:opacity 200ms linear;}
+.season-cta{background:#684200;color:#fff;border:none;height:var(--cta-btn-height);padding:0 var(--cta-btn-padding-x);font-family:var(--font-en);font-size:var(--cta-btn-font-size);font-weight:var(--cta-btn-font-weight);letter-spacing:var(--cta-btn-letter-spacing);text-transform:uppercase;cursor:pointer;transition:opacity 200ms linear;}
 .season-cta:hover{opacity:.75;}
-.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:none;outline:none;margin-top:80px;}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;border:none;outline:none;margin-top:80px;padding:0 60px;}
 .cat-card{overflow:hidden;margin:0;padding:0;cursor:pointer;}
 .cat-img{height:45vw;width:100%;overflow:hidden;position:relative;display:block;font-size:0;line-height:0;margin:0;padding:0;}
 .cat-img::before{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.18) 55%,transparent 100%);pointer-events:none;z-index:1;}
@@ -388,62 +386,73 @@ body{font-family:var(--font-en);background:#ffffff;}
 .img-dessert{background:url('images/img_cafemenu_dessert_main.png') center/cover no-repeat;}
 
 /* ── PHILOSOPHY ── */
-.phil{display:grid;grid-template-columns:1fr 1fr;margin-top:80px;}
-.phil-txt{padding:120px 40px;display:flex;flex-direction:column;justify-content:center;border-right:.5px solid var(--color-border-tertiary);}
+.phil{display:grid;grid-template-columns:1fr 1fr;margin-top:80px;padding-right:60px;}
+.phil-txt{padding:120px 60px;display:flex;flex-direction:column;justify-content:center;border-right:.5px solid var(--color-border-tertiary);}
 .phil-lbl{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.14em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:20px;}
 .phil-h{font-family:var(--font-en);font-size:var(--type-display-size);font-weight:var(--type-display-weight);letter-spacing:-.02em;color:var(--color-text-primary);margin-bottom:24px;line-height:1.2;}
 .phil-body{font-family:var(--font-kr);font-size:var(--type-body-reading-size);font-weight:var(--type-body-reading-weight);line-height:2.1;color:var(--color-text-secondary);margin-bottom:36px;}
-.phil-img{position:relative;overflow:hidden;background:linear-gradient(160deg,#2a1e0e 0%,#5a3a1a 40%,#8b5a2b 100%);min-height:560px;}
-.phil-img-inner{width:100%;height:100%;position:absolute;inset:0;background:inherit;transition:transform 500ms cubic-bezier(.25,.46,.45,.94);}
-.phil:hover .phil-img-inner{transform:scale(1.04);}
+.phil-img{position:relative;overflow:hidden;background:#2a1e0e;min-height:560px;}
+.phil-img-inner{width:100%;height:100%;position:absolute;inset:0;background:url('images/img_philosophy.png') center/cover no-repeat;}
 
 /* ── BEANS ── */
 .beans-sec{padding:80px 0 0;}
 .sec-title{font-size:var(--type-heading-m-size);font-weight:var(--type-heading-m-weight);letter-spacing:-.01em;margin-bottom:24px;}
-.beans-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;}
 .bean-meta{display:none;}
+/* marquee */
+.beans-marquee{overflow:hidden;cursor:pointer;}
+.beans-marquee:hover .beans-track{animation-play-state:paused;}
+.beans-track{display:flex;gap:0;width:max-content;will-change:transform;backface-visibility:hidden;animation:beans-scroll 28s linear infinite;}
+@keyframes beans-scroll{from{transform:translateX(0);}to{transform:translateX(-1440px);}}
+.bean-card{overflow:hidden;flex-shrink:0;width:360px;margin:0;}
 
 /* ── ROASTERY ── */
-.roastery{position:relative;min-height:480px;background:#1a1a1a;display:flex;align-items:flex-end;overflow:hidden;}
+.roastery{position:relative;min-height:480px;background:#1a1a1a;display:flex;align-items:flex-end;overflow:hidden;margin-top:80px;}
 .roastery-bg{position:absolute;inset:0;background:linear-gradient(90deg,#0d0d0d 0%,#1f1f1f 100%);}
-.roastery-c{position:relative;z-index:1;padding:60px 40px;width:100%;max-width:1440px;}
+.roastery-c{position:relative;z-index:1;padding:60px 60px;width:100%;max-width:1440px;}
 .roastery-lbl{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.14em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:16px;}
 .roastery-h{font-family:var(--font-en);font-size:var(--type-display-size);font-weight:var(--type-display-weight);color:#fff;line-height:1.2;margin-bottom:16px;}
 .roastery-body{font-family:var(--font-kr);font-size:var(--type-body-ui-size);font-weight:var(--type-body-ui-weight);color:var(--on-dark-muted);line-height:1.9;margin-bottom:24px;}
 
 /* ── TWO COL ── */
-.two-col{display:grid;grid-template-columns:1fr 1fr;}
-.tci{padding:60px 40px;border-right:.5px solid var(--color-border-tertiary);cursor:pointer;}.tci:last-child{border-right:none;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:0 60px;max-width:1440px;margin:80px auto 0;width:100%;}
+.tci{overflow:hidden;cursor:pointer;}
 .tci-img{
-  position:relative;aspect-ratio:3/2;width:100%;
-  background:var(--color-background-secondary);
-  margin-bottom:28px;overflow:hidden;
+  position:relative;aspect-ratio:1/1;width:100%;
+  overflow:hidden;font-size:0;
+}
+.tci-img::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.18) 55%,transparent 100%);
+  pointer-events:none;z-index:1;
 }
 .tci-img::after{
   content:'';position:absolute;inset:0;
   background:rgba(0,0,0,0);
-  transition:background 200ms linear;pointer-events:none;z-index:1;
+  transition:background 200ms linear;pointer-events:none;z-index:2;
 }
-.tci:hover .tci-img::after{background:rgba(0,0,0,.06);}
+.tci:hover .tci-img::after{background:rgba(0,0,0,.08);}
 .tci-img-inner{
   width:100%;height:100%;
-  background:var(--color-background-secondary);
+  background:var(--color-background-secondary) center/cover no-repeat;
   transition:transform 400ms cubic-bezier(.25,.46,.45,.94);
 }
-.tci:hover .tci-img-inner{transform:scale(1.06);}
-.tci-lbl{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:10px;}
-.tci-h{font-size:var(--type-heading-m-size);font-weight:var(--type-heading-m-weight);color:var(--color-text-primary);margin-bottom:12px;}
-.tci-body{font-family:var(--font-kr);font-size:var(--type-body-ui-size);font-weight:var(--type-body-ui-weight);color:var(--color-text-secondary);line-height:1.9;margin-bottom:20px;}
+.tci:hover .tci-img-inner{transform:scale(1.04);}
+.img-business{background-image:url('images/img_services_business.png');}
+.img-subscription{background-image:url('images/img_services_subscription.png');}
+.tci-overlay{position:absolute;bottom:0;left:0;right:0;padding:28px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;gap:4px;}
+.tci-lbl{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:2px;}
+.tci-h{font-size:var(--type-heading-s-size);font-weight:600;color:#fff;line-height:1.3;}
+.tci-body{font-family:var(--font-kr);font-size:var(--type-body-ui-size);font-weight:var(--type-body-ui-weight);color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:10px;}
 
 /* ── GOOD DAYS ── */
-.gooddays-sec{padding:80px 40px 0;}
+.gooddays-sec{padding:80px 60px 0;}
 .moments-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;}
 .moment-card{background:var(--color-background-secondary);aspect-ratio:1/1;overflow:hidden;}.moment-card:first-child{grid-row:1/3;aspect-ratio:auto;}
 
 
 /* ── FOOTER ── */
 .footer{background:var(--color-text-primary);padding:0;}
-.f-inner{padding:80px 40px 0;}
+.f-inner{padding:80px 60px 0;}
 .f-brand{display:flex;align-items:center;gap:20px;margin-bottom:8px;}
 .f-logo img{height:30px;width:auto;display:block;filter:invert(1);}
 .footer-sns-link{line-height:1;}
@@ -641,7 +650,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
       <div class="phil-lbl">Our Philosophy</div>
       <div class="phil-h">Good Things,<br>Take Time.</div>
       <div class="phil-body">빠름보다 바름을 선택합니다.<br>정직한 로스팅, 일관된 품질, 그리고 진심.<br>굿띵스가 지켜온 단 하나의 기준입니다.</div>
-      <span class="cta-link">The Story →</span>
+      <button class="cta-btn cta-btn-light-filled">The Story</button>
     </div>
     <div class="phil-img"><div class="phil-img-inner"></div></div>
   </div>
@@ -651,59 +660,57 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 <!-- ONLINE STORE -->
 <div class="blk" data-header-theme="light">
   <div class="beans-sec">
-    <div class="beans-grid">
-      <div class="bean-card" data-slug="buku-hurupa">
-        <div class="bean-img">
-          <div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div>
-          <span class="badge badge-new">New</span>
-          <div class="bean-overlay">
-            <div class="bean-org">Ethiopia</div>
-            <div class="bean-name">부쿠 후루파</div>
-            <div class="bean-flv">블루베리 · 재스민 · 다크초콜릿</div>
-            <div class="bean-prc">₩18,000</div>
-          </div>
+    <div class="beans-marquee">
+      <div class="beans-track">
+        <!-- set 1 -->
+        <div class="bean-card" data-slug="buku-hurupa"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><span class="badge badge-new">New</span><div class="bean-overlay"><div class="bean-org">Ethiopia</div><div class="bean-name">부쿠 후루파</div><div class="bean-flv">블루베리 · 재스민 · 다크초콜릿</div><div class="bean-prc">₩18,000</div></div></div></div>
+        <div class="bean-card" data-slug="kaganda-aa"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><span class="badge badge-ltd">수량 한정</span><div class="bean-overlay"><div class="bean-org">Kenya</div><div class="bean-name">카간다 AA</div><div class="bean-flv">자몽 · 흑설탕 · 레드커런트</div><div class="bean-prc">₩20,000</div></div></div></div>
+        <div class="bean-card" data-slug="waikan"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><span class="badge badge-pop">인기 No.1</span><div class="bean-overlay"><div class="bean-org">Guatemala</div><div class="bean-name">와이칸</div><div class="bean-flv">캐러멜 · 사과 · 크림</div><div class="bean-prc">₩17,000</div></div></div></div>
+        <div class="bean-card" data-slug="autumn-night"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><div class="bean-overlay"><div class="bean-org">Peru</div><div class="bean-name">가을의 밤</div><div class="bean-flv">캐러멜 · 견과류 · 다크카카오</div><div class="bean-prc">₩14,000</div></div></div></div>
+        <!-- set 2 -->
+        <div class="bean-card" data-slug="buku-hurupa"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><span class="badge badge-new">New</span><div class="bean-overlay"><div class="bean-org">Ethiopia</div><div class="bean-name">부쿠 후루파</div><div class="bean-flv">블루베리 · 재스민 · 다크초콜릿</div><div class="bean-prc">₩18,000</div></div></div></div>
+        <div class="bean-card" data-slug="kaganda-aa"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><span class="badge badge-ltd">수량 한정</span><div class="bean-overlay"><div class="bean-org">Kenya</div><div class="bean-name">카간다 AA</div><div class="bean-flv">자몽 · 흑설탕 · 레드커런트</div><div class="bean-prc">₩20,000</div></div></div></div>
+        <div class="bean-card" data-slug="waikan"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><span class="badge badge-pop">인기 No.1</span><div class="bean-overlay"><div class="bean-org">Guatemala</div><div class="bean-name">와이칸</div><div class="bean-flv">캐러멜 · 사과 · 크림</div><div class="bean-prc">₩17,000</div></div></div></div>
+        <div class="bean-card" data-slug="autumn-night"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><div class="bean-overlay"><div class="bean-org">Peru</div><div class="bean-name">가을의 밤</div><div class="bean-flv">캐러멜 · 견과류 · 다크카카오</div><div class="bean-prc">₩14,000</div></div></div></div>
+        <!-- set 3 -->
+        <div class="bean-card" data-slug="buku-hurupa"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><span class="badge badge-new">New</span><div class="bean-overlay"><div class="bean-org">Ethiopia</div><div class="bean-name">부쿠 후루파</div><div class="bean-flv">블루베리 · 재스민 · 다크초콜릿</div><div class="bean-prc">₩18,000</div></div></div></div>
+        <div class="bean-card" data-slug="kaganda-aa"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><span class="badge badge-ltd">수량 한정</span><div class="bean-overlay"><div class="bean-org">Kenya</div><div class="bean-name">카간다 AA</div><div class="bean-flv">자몽 · 흑설탕 · 레드커런트</div><div class="bean-prc">₩20,000</div></div></div></div>
+        <div class="bean-card" data-slug="waikan"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><span class="badge badge-pop">인기 No.1</span><div class="bean-overlay"><div class="bean-org">Guatemala</div><div class="bean-name">와이칸</div><div class="bean-flv">캐러멜 · 사과 · 크림</div><div class="bean-prc">₩17,000</div></div></div></div>
+        <div class="bean-card" data-slug="autumn-night"><div class="bean-img"><div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div><div class="bean-overlay"><div class="bean-org">Peru</div><div class="bean-name">가을의 밤</div><div class="bean-flv">캐러멜 · 견과류 · 다크카카오</div><div class="bean-prc">₩14,000</div></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="sc">Online Store</div>
+
+<!-- TWO COL -->
+<div class="blk" data-header-theme="light">
+  <div class="two-col">
+    <div class="tci">
+      <div class="tci-img">
+        <div class="tci-img-inner img-business"></div>
+        <div class="tci-overlay">
+          <div class="tci-lbl">Business</div>
+          <div class="tci-h">원두 납품 & 비즈니스</div>
+          <div class="tci-body">카페, 레스토랑, 오피스를 위한<br>맞춤 원두 납품 서비스를 제공합니다.</div>
+          <button class="cta-btn cta-btn-dark-outline">Get in Touch</button>
         </div>
       </div>
-      <div class="bean-card" data-slug="kaganda-aa">
-        <div class="bean-img">
-          <div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div>
-          <span class="badge badge-ltd">수량 한정</span>
-          <div class="bean-overlay">
-            <div class="bean-org">Kenya</div>
-            <div class="bean-name">카간다 AA</div>
-            <div class="bean-flv">자몽 · 흑설탕 · 레드커런트</div>
-            <div class="bean-prc">₩20,000</div>
-          </div>
-        </div>
-      </div>
-      <div class="bean-card" data-slug="waikan">
-        <div class="bean-img">
-          <div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div>
-          <span class="badge badge-pop">인기 No.1</span>
-          <div class="bean-overlay">
-            <div class="bean-org">Guatemala</div>
-            <div class="bean-name">와이칸</div>
-            <div class="bean-flv">캐러멜 · 사과 · 크림</div>
-            <div class="bean-prc">₩17,000</div>
-          </div>
-        </div>
-      </div>
-      <div class="bean-card" data-slug="autumn-night">
-        <div class="bean-img">
-          <div class="bean-img-inner" style="background:url('images/pd_img_buku_hurufa.png') center/cover no-repeat;"></div>
-          <div class="bean-overlay">
-            <div class="bean-org">Peru</div>
-            <div class="bean-name">가을의 밤</div>
-            <div class="bean-flv">캐러멜 · 견과류 · 다크카카오</div>
-            <div class="bean-prc">₩14,000</div>
-          </div>
+    </div>
+    <div class="tci">
+      <div class="tci-img">
+        <div class="tci-img-inner img-subscription"></div>
+        <div class="tci-overlay">
+          <div class="tci-lbl">Subscription</div>
+          <div class="tci-h">정기 배송</div>
+          <div class="tci-body">매달 엄선된 싱글 오리진 원두를<br>정기적으로 받아보세요.</div>
+          <button class="cta-btn cta-btn-dark-outline">Subscribe Now</button>
         </div>
       </div>
     </div>
   </div>
-  <div class="section-cta"><span class="view-all">View All →</span></div>
 </div>
-<div class="sc">Online Store</div>
+<div class="sc">Services</div>
 
 <!-- ROASTERY -->
 <div class="blk" data-header-theme="dark">
@@ -718,15 +725,6 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   </div>
 </div>
 <div class="sc">Roastery</div>
-
-<!-- TWO COL -->
-<div class="blk" data-header-theme="light">
-  <div class="two-col">
-    <div class="tci"><div class="tci-img"><div class="tci-img-inner"></div></div><div class="tci-lbl">Business</div><div class="tci-h">원두 납품 & 비즈니스</div><div class="tci-body">카페, 레스토랑, 오피스를 위한 맞춤 원두 납품 서비스를 제공합니다.</div><span class="tci-link">Get in Touch →</span></div>
-    <div class="tci"><div class="tci-img"><div class="tci-img-inner"></div></div><div class="tci-lbl">Subscription</div><div class="tci-h">정기 배송</div><div class="tci-body">매달 엄선된 싱글 오리진 원두를 정기적으로 받아보세요.</div><span class="tci-link">Subscribe Now →</span></div>
-  </div>
-</div>
-<div class="sc">Services</div>
 
 <!-- GOOD DAYS -->
 <div class="blk" data-header-theme="light">
@@ -973,7 +971,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   flex:1;display:grid;
   grid-template-columns:1fr 1fr;
   max-width:1440px;width:100%;margin:0 auto;
-  padding:100px 40px 80px;gap:40px;
+  padding:100px 60px 80px;gap:40px;
   align-items:start;
 }
 
@@ -1117,7 +1115,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 
 /* 본문 */
 #cp-body{flex:1;}
-#cp-inner{max-width:1440px;margin:0 auto;padding:100px 40px 80px;}
+#cp-inner{max-width:1440px;margin:0 auto;padding:100px 60px 80px;}
 
 /* 페이지 헤더 */
 #cp-page-header{display:flex;align-items:baseline;gap:24px;margin-bottom:32px;}
@@ -1221,7 +1219,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 .chp-hdr-inner{
   max-width:1440px;margin:0 auto;
   display:flex;align-items:center;justify-content:space-between;
-  height:64px;padding:0 40px;
+  height:64px;padding:0 60px;
 }
 #chp-logo-img{transition:opacity 200ms linear;cursor:pointer;}
 #chp-logo-img:hover{opacity:.5;}
@@ -1232,7 +1230,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   display:grid;
   grid-template-columns:1fr 420px;
   max-width:1440px;width:100%;margin:0 auto;
-  padding:0 40px 80px;
+  padding:0 60px 80px;
   gap:60px;
   align-items:start;
 }
@@ -1448,7 +1446,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   border-bottom:.5px solid var(--color-border-tertiary);
   flex-shrink:0;
 }
-#ocp-body{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:80px 40px;}
+#ocp-body{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:80px 60px;}
 #ocp-inner{
   width:100%;max-width:580px;
   display:flex;flex-direction:column;align-items:center;gap:24px;
@@ -1718,7 +1716,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 #pd-img-wrap{
   position:sticky;top:80px;
   display:flex;flex-direction:column;gap:12px;
-  padding:0 20px 80px 40px;
+  padding:0 20px 80px 60px;
 }
 #pd-img-main-wrap{
   position:relative;width:100%;
@@ -1790,7 +1788,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 /* 우: 정보 */
 #pd-info{
   display:flex;flex-direction:column;
-  padding:0 40px 80px 20px;
+  padding:0 60px 80px 20px;
 }
 #pd-category{
   font-size:13px;letter-spacing:.06em;text-transform:uppercase;
@@ -1979,7 +1977,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   margin-right:20px;
 }
 .pd-story-txt{
-  padding:40px 40px 40px 20px;
+  padding:40px 60px 40px 20px;
   display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start;
   font-family:var(--font-kr);font-size:var(--type-body-reading-size);font-weight:var(--type-body-reading-weight);
   color:var(--color-text-secondary);line-height:2;
@@ -2574,13 +2572,13 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   color:var(--notice-color);letter-spacing:var(--notice-letter-spacing);
   width:100%;height:200px;
   display:flex;align-items:center;justify-content:center;
-  padding:0 40px;
+  padding:0 60px;
   box-sizing:border-box;
   line-height:1.4;
   text-align:center;
 }
 #srp-divider-top,#srp-divider-bottom,#srp-results-list,#srp-pagination{
-  width:100%;max-width:1440px;padding:0 40px;box-sizing:border-box;
+  width:100%;max-width:1440px;padding:0 60px;box-sizing:border-box;
   margin:0 auto;
 }
 #srp-divider-top{border-top:.5px solid var(--color-border-tertiary);}
