@@ -458,7 +458,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 <div id="site-hdr-wrap" class="blk">
   <div class="hdr">
     <div class="hdr-left">
-      <img id="logo-img" style="height:30px;width:auto;display:block;" alt="GOOD THINGS">
+      <img id="logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
       <a class="sns-link" href="https://www.instagram.com/goodthings_roasters/" target="_blank">
         <svg class="sns-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
       </a>
@@ -3285,8 +3285,8 @@ function goHome(){
   document.body.style.overflow='';
   window.scrollTo({top:0,behavior:'instant'});
 }
-// 서브페이지 로고 클릭 → 홈
-['srp-logo-img','pd-logo-img','lp-logo-img'].forEach(id=>{
+// 로고 클릭 → 홈 (메인 포함 전 페이지)
+['logo-img','srp-logo-img','pd-logo-img','lp-logo-img'].forEach(id=>{
   const el=document.getElementById(id);
   if(el)el.addEventListener('click',goHome);
 });
@@ -3621,7 +3621,7 @@ document.querySelector('.cd-cta-primary').addEventListener('click',()=>{closeCar
 document.getElementById('cp-order-btn').addEventListener('click',()=>{closeCartPage();openCheckoutPage('cart-page');});
 document.getElementById('cp-continue-btn').addEventListener('click',closeCartPage);
 document.getElementById('cp-empty-shop-btn').addEventListener('click',closeCartPage);
-document.getElementById('cp-logo-img').addEventListener('click',()=>{closeCartPage();});
+document.getElementById('cp-logo-img').addEventListener('click',()=>{closeCartPage();goHome();});
 document.getElementById('cp-login-btn').addEventListener('click',()=>{closeCartPage();openLoginPage();});
 document.getElementById('cp-cart-icon-btn').addEventListener('click',openCartDrawer);
 document.getElementById('cp-search-btn').addEventListener('click',openOverlay);
