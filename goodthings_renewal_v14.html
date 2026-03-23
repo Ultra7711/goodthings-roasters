@@ -484,6 +484,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 .popup-body-lbl{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:6px;}
 .popup-body-title{font-family:var(--font-en);font-size:15px;font-weight:500;color:var(--color-text-primary);line-height:1.3;}
 </style>
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
 <div class="root">
@@ -3546,6 +3547,7 @@ function renderCartPage(){
 //  CHECKOUT PAGE
 // ════════════════════════════════════════════════
 function openCheckoutPage(from){
+  if(overlay.classList.contains('open'))closeOverlay();
   window._checkoutFrom=from||'drawer';
   document.getElementById('product-detail-page').classList.remove('open');
   document.getElementById('search-result-page').classList.remove('open');
@@ -3562,9 +3564,9 @@ function openCheckoutPage(from){
     continueBtn.style.display='none';
     loginNotice.style.display='none';
     document.getElementById('chp-guest-section').style.display='none';
-    document.getElementById('chp-email').value='user@goodthings.kr';
-    document.getElementById('chp-firstname').value='김굿씽';
-    document.getElementById('chp-phone').value='010-0000-0000';
+    document.getElementById('chp-email').value='';
+    document.getElementById('chp-firstname').value='';
+    document.getElementById('chp-phone').value='';
   } else {
     // 비로그인: 이메일만 표시, 나머지 폼 숨김
     formRest.style.display='none';
@@ -3789,10 +3791,14 @@ document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
   function enableAddr2(){if(addr1.value.trim())addr2.disabled=false;}
   addr1.addEventListener('input',enableAddr2);
   document.querySelector('.chp-addr-search-btn').addEventListener('click',()=>{
-    document.getElementById('chp-zipcode').value='06234';
-    addr1.value='서울 강남구 테헤란로 123';
-    addr2.disabled=false;
-    addr2.focus();
+    new daum.Postcode({
+      oncomplete(data){
+        document.getElementById('chp-zipcode').value=data.zonecode;
+        addr1.value=data.roadAddress||data.jibunAddress;
+        addr2.disabled=false;
+        addr2.focus();
+      }
+    }).open();
   });
 })();
 
