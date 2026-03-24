@@ -187,7 +187,9 @@ body{font-family:var(--font-en);background:#ffffff;}
 }
 /* ── 헤더 다크 모드 — 딥 다크 브라운 글래스모피즘 ── */
 #site-hdr-wrap.hdr-dark{
-  background:rgba(18,9,3,.78);
+  background:rgba(17,17,17,.78);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
   border-color:rgba(255,255,255,.08);
 }
 /* 다크 모드 — 네비 텍스트 */
@@ -354,14 +356,14 @@ body{font-family:var(--font-en);background:#ffffff;}
 .hero-bg{position:absolute;inset:0;background:url('images/hero-bg.png') center center/cover no-repeat;}
 .hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.35) 50%,rgba(0,0,0,.15) 100%);}
 .hero-c{position:relative;z-index:1;width:100%;max-width:1440px;margin:0 auto;padding:60px 60px 80px;}
-.hero-tag{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--on-dark-tertiary);margin-bottom:16px;}
-.hero-h{font-family:var(--font-en);font-size:64px;font-weight:600;color:#fff;line-height:1.05;letter-spacing:-.03em;margin-bottom:16px;}
-.hero-sub{font-family:var(--font-kr);font-size:var(--type-body-ui-size);font-weight:var(--type-body-ui-weight);color:var(--on-dark-secondary);line-height:1.9;margin-bottom:32px;}
+.hero-tag{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--on-dark-tertiary);margin-bottom:6px;}
+.hero-h{font-family:var(--font-en);font-size:64px;font-weight:600;color:#fff;line-height:1.05;letter-spacing:-.03em;margin-bottom:20px;}
+.hero-sub{font-family:var(--font-kr);font-size:var(--type-body-reading-size);font-weight:var(--type-body-reading-weight);color:var(--on-dark-secondary);line-height:1.75;margin-bottom:36px;}
 .hero-btns{display:flex;align-items:center;gap:12px;}
 
 /* ── CAFE MENU ── */
 #cafe-menu-blk{margin-top:80px;}
-.season-banner{position:relative;height:720px;overflow:hidden;background:url('images/img_season_banner.png') center/cover no-repeat;display:flex;align-items:center;justify-content:center;margin:0;padding:0;}
+.season-banner{position:relative;height:480px;overflow:hidden;background:url('images/img_season_banner.png') center/cover no-repeat;display:flex;align-items:center;justify-content:center;margin:0;padding:0;}
 .season-banner-inner{width:100%;height:100%;position:absolute;inset:0;}
 .season-txt{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:58px;text-align:center;padding:0;}
 .season-copy{display:flex;flex-direction:column;align-items:center;gap:12px;}
@@ -379,19 +381,19 @@ body{font-family:var(--font-en);background:#ffffff;}
 .cat-card:hover .cat-img-inner{transform:scale(1.06);}
 .cat-overlay{position:absolute;bottom:0;left:0;right:0;padding:28px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
 .cat-title{font-family:var(--font-en);font-size:var(--type-heading-s-size);font-weight:600;color:#fff;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
-.cat-desc{font-family:var(--font-kr);font-size:var(--type-body-ui-size);font-weight:var(--type-body-ui-weight);color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:14px;}
+.cat-desc{font-family:var(--font-kr);font-size:var(--type-body-ui-size);font-weight:var(--type-body-ui-weight);color:rgba(255,255,255,.75);line-height:1.75;margin-bottom:16px;}
 .cat-cta{margin-top:4px;}
 .img-coffee{background:url('images/img_cafemenu_coffee_main.png') center/cover no-repeat;}
 .img-beverage{background:url('images/img_cafemenu_beverage_main.png') center/cover no-repeat;}
 .img-dessert{background:url('images/img_cafemenu_dessert_main.png') center/cover no-repeat;}
 
 /* ── PHILOSOPHY ── */
-.phil{display:grid;grid-template-columns:1fr 1fr;margin-top:80px;padding-right:60px;}
+.phil{display:grid;grid-template-columns:minmax(320px,1fr) 670px;margin-top:80px;padding-right:60px;}
 .phil-txt{padding:120px 60px;display:flex;flex-direction:column;justify-content:center;border-right:.5px solid var(--color-border-tertiary);}
-.phil-lbl{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.14em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:20px;}
-.phil-h{font-family:var(--font-en);font-size:var(--type-display-size);font-weight:var(--type-display-weight);letter-spacing:-.02em;color:var(--color-text-primary);margin-bottom:24px;line-height:1.2;}
-.phil-body{font-family:var(--font-kr);font-size:var(--type-body-reading-size);font-weight:var(--type-body-reading-weight);line-height:2.1;color:var(--color-text-secondary);margin-bottom:36px;}
-.phil-img{position:relative;overflow:hidden;background:#2a1e0e;min-height:560px;}
+.phil-lbl{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.14em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:6px;}
+.phil-h{font-family:var(--font-en);font-size:var(--type-display-size);font-weight:var(--type-display-weight);letter-spacing:-.02em;color:var(--color-text-primary);margin-bottom:20px;line-height:1.2;}
+.phil-body{font-family:var(--font-kr);font-size:var(--type-body-reading-size);font-weight:var(--type-body-reading-weight);line-height:1.75;color:var(--color-text-secondary);margin-bottom:36px;}
+.phil-img{position:relative;overflow:hidden;background:#2a1e0e;height:640px;}
 .phil-img-inner{width:100%;height:100%;position:absolute;inset:0;background:url('images/img_philosophy.png') center/cover no-repeat;}
 
 /* ── BEANS ── */
@@ -407,17 +409,17 @@ body{font-family:var(--font-en);background:#ffffff;}
 
 /* ── ROASTERY ── */
 .roastery{position:relative;min-height:480px;background:#1a1a1a;display:flex;align-items:flex-end;overflow:hidden;margin-top:80px;}
-.roastery-bg{position:absolute;inset:0;background:linear-gradient(90deg,#0d0d0d 0%,#1f1f1f 100%);}
+.roastery-bg{position:absolute;inset:0;background:url('images/img_roastery.png') center/cover no-repeat;}
 .roastery-c{position:relative;z-index:1;padding:60px 60px;width:100%;max-width:1440px;}
-.roastery-lbl{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.14em;text-transform:uppercase;color:var(--on-dark-muted);margin-bottom:16px;}
-.roastery-h{font-family:var(--font-en);font-size:var(--type-display-size);font-weight:var(--type-display-weight);color:#fff;line-height:1.2;margin-bottom:16px;}
-.roastery-body{font-family:var(--font-kr);font-size:var(--type-body-ui-size);font-weight:var(--type-body-ui-weight);color:var(--on-dark-muted);line-height:1.9;margin-bottom:24px;}
+.roastery-lbl{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.14em;text-transform:uppercase;color:var(--on-dark-tertiary);margin-bottom:6px;}
+.roastery-h{font-family:var(--font-kr);font-size:var(--type-display-size);font-weight:var(--type-display-weight);color:#fff;line-height:1.2;margin-bottom:20px;}
+.roastery-body{font-family:var(--font-kr);font-size:var(--type-body-reading-size);font-weight:var(--type-body-reading-weight);color:var(--on-dark-secondary);line-height:1.75;margin-bottom:36px;}
 
 /* ── TWO COL ── */
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:0 60px;max-width:1440px;margin:80px auto 0;width:100%;}
 .tci{overflow:hidden;cursor:pointer;}
 .tci-img{
-  position:relative;aspect-ratio:1/1;width:100%;
+  position:relative;height:640px;width:100%;
   overflow:hidden;font-size:0;
 }
 .tci-img::before{
@@ -439,15 +441,15 @@ body{font-family:var(--font-en);background:#ffffff;}
 .tci:hover .tci-img-inner{transform:scale(1.04);}
 .img-business{background-image:url('images/img_services_business.png');}
 .img-subscription{background-image:url('images/img_services_subscription.png');}
-.tci-overlay{position:absolute;bottom:0;left:0;right:0;padding:28px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;gap:4px;}
+.tci-overlay{position:absolute;bottom:0;left:0;right:0;padding:28px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
 .tci-lbl{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:2px;}
 .tci-h{font-size:var(--type-heading-s-size);font-weight:600;color:#fff;line-height:1.3;}
-.tci-body{font-family:var(--font-kr);font-size:var(--type-body-ui-size);font-weight:var(--type-body-ui-weight);color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:10px;}
+.tci-body{font-family:var(--font-kr);font-size:var(--type-body-ui-size);font-weight:var(--type-body-ui-weight);color:rgba(255,255,255,.75);line-height:1.75;margin-bottom:20px;}
 
 /* ── GOOD DAYS ── */
-.gooddays-sec{padding:80px 60px 0;}
-.moments-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;}
-.moment-card{background:var(--color-background-secondary);aspect-ratio:1/1;overflow:hidden;}.moment-card:first-child{grid-row:1/3;aspect-ratio:auto;}
+.gooddays-sec{padding:80px 60px;}
+.moments-grid{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:repeat(2,1fr);gap:20px;height:640px;}
+.moment-card{background:var(--color-background-secondary);overflow:hidden;}.moment-card:first-child{grid-row:1/3;}
 
 
 /* ── FOOTER ── */
@@ -605,7 +607,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
         <span class="season-tag">2026 · Spring</span>
         <span class="season-h">Good Things in Bloom.</span>
       </div>
-      <button class="season-cta">Special Menu</button>
+      <button class="season-cta">Special Menu Launch</button>
     </div>
   </div>
   <div class="cat-grid">
@@ -720,7 +722,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
       <div class="roastery-lbl">Where Every Cup Begins</div>
       <div class="roastery-h">로스터리에서<br>직접 만나보세요.</div>
       <div class="roastery-body">경북 구미에 위치한 굿띵스 카페에서<br>로스팅 현장을 직접 경험하세요.</div>
-      <span class="roastery-cta">Cafe & Location →</span>
+      <button class="cta-btn cta-btn-dark-filled">Cafe & Location</button>
     </div>
   </div>
 </div>
@@ -729,7 +731,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 <!-- GOOD DAYS -->
 <div class="blk" data-header-theme="light">
   <div class="gooddays-sec">
-    <div class="sec-title">Good Days</div>
+
     <div class="moments-grid">
       <div class="moment-card"><div class="moment-img" style="background:url('images/img_gallaery_sample_01.png') center/cover no-repeat;"></div></div>
       <div class="moment-card"><div class="moment-img" style="background:url('images/img_gallaery_sample_02.png') center/cover no-repeat;"></div></div>
@@ -738,7 +740,6 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
       <div class="moment-card"><div class="moment-img" style="background:url('images/img_gallaery_sample_05.png') center/cover no-repeat;"></div></div>
     </div>
   </div>
-  <div class="section-cta"><span class="view-all">Gallery →</span></div>
 </div>
 <div class="sc">Good Days</div>
 
