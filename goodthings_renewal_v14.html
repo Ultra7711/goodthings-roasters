@@ -1452,26 +1452,24 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   text-align:center;line-height:1.6;
 }
 
-/* 결제수단 */
-#chp-payment-methods{display:flex;flex-direction:column;gap:0;margin-bottom:20px;}
-.chp-payment-item{border-bottom:.5px solid var(--color-border-tertiary);transition:background .3s ease;}
-.chp-payment-item:last-child{border-bottom:none;}
-.chp-payment-item:not(.active){background:var(--color-background-secondary);}
+/* 결제수단 탭 */
+#chp-payment-methods{display:grid;grid-template-columns:1fr 1fr;position:relative;margin-top:20px;margin-bottom:24px;}
+#chp-payment-methods::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--color-border-primary);}
+#chp-payment-indicator{position:absolute;bottom:0;left:0;width:50%;height:2px;background:#1a1a1a;transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:1;}
+#chp-payment-indicator.to-card{transform:translateX(100%);}
+.chp-payment-item{display:flex;justify-content:flex-start;background:transparent;padding-left:0;}
 .chp-payment-method{
-  display:flex;align-items:center;gap:12px;
-  padding:16px 0;cursor:pointer;
-  background:transparent;
-  font-family:var(--font-kr);font-size:14px;font-weight:300;
+  display:inline-flex;align-items:center;
+  padding:20px 0 16px;cursor:pointer;background:transparent;
+  font-family:var(--font-kr);font-size:16px;font-weight:400;
   color:var(--color-text-tertiary);
-  transition:color .3s ease;
+  transition:color .2s ease;
 }
-.chp-payment-item.active{border-left:2px solid #1a1a1a;padding-left:20px;}
-.chp-payment-item:not(.active){padding-left:22px;}
-.chp-payment-item.active .chp-payment-method{font-weight:400;color:var(--color-text-primary);}
-.chp-payment-method input[type="radio"]{accent-color:#1a1a1a;width:16px;height:16px;}
-.chp-payment-detail{padding:0 0 16px 0;}
-.chp-payment-item.active .chp-payment-detail{padding-left:0;}
-.chp-payment-item:not(.active) .chp-payment-detail{display:none;}
+.chp-payment-item.active .chp-payment-method{font-weight:500;color:var(--color-text-primary);}
+.chp-payment-method input[type="radio"]{display:none;}
+.chp-payment-detail{padding:0 0 20px;}
+@keyframes chp-fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.chp-payment-detail.fade-in{animation:chp-fadein .25s ease;}
 
 /* 약관 동의 */
 .chp-agree-all-row{
@@ -2570,46 +2568,47 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
       <div class="chp-section">
         <h2 class="chp-section-title">결제수단</h2>
         <div id="chp-payment-methods">
+          <div id="chp-payment-indicator"></div>
           <div class="chp-payment-item active" id="chp-pm-transfer">
             <label class="chp-payment-method">
               <input type="radio" name="chp-payment" value="transfer" checked>
               <span>무통장입금</span>
             </label>
-            <div class="chp-payment-detail" id="chp-transfer-detail">
-              <div class="chp-field" data-required="true" data-payment="transfer">
-                <select class="chp-input chp-select" id="chp-bank">
-                  <option value="" disabled hidden></option>
-                  <option>국민은행</option><option>신한은행</option><option>우리은행</option>
-                  <option>하나은행</option><option>기업은행</option><option>농협은행</option>
-                  <option>카카오뱅크</option><option>토스뱅크</option>
-                </select>
-                <label class="chp-floating-label" for="chp-bank">입금은행</label>
-                <div class="chp-error-msg">입금은행을 선택해 주세요.</div>
-              </div>
-              <div class="chp-field" data-required="true" data-payment="transfer">
-                <input class="chp-input" id="chp-depositor" type="text" placeholder=" ">
-                <label class="chp-floating-label" for="chp-depositor">입금자명</label>
-                <div class="chp-error-msg">입금자명을 입력해 주세요.</div>
-              </div>
-            </div>
           </div>
           <div class="chp-payment-item" id="chp-pm-card">
             <label class="chp-payment-method">
               <input type="radio" name="chp-payment" value="card">
               <span>신용카드</span>
             </label>
-            <div class="chp-payment-detail" id="chp-card-detail">
-              <div class="chp-field" data-required="true" data-payment="card">
-                <select class="chp-input chp-select" id="chp-card-company">
-                  <option value="" disabled hidden></option>
-                  <option>신한카드</option><option>국민카드</option><option>현대카드</option>
-                  <option>롯데카드</option><option>우리카드</option><option>하나카드</option>
-                  <option>삼성카드</option><option>BC카드</option>
-                </select>
-                <label class="chp-floating-label" for="chp-card-company">카드사</label>
-                <div class="chp-error-msg">카드사를 선택해 주세요.</div>
-              </div>
-            </div>
+          </div>
+        </div>
+        <div class="chp-payment-detail" id="chp-transfer-detail">
+          <div class="chp-field" data-required="true" data-payment="transfer">
+            <select class="chp-input chp-select" id="chp-bank">
+              <option value="" disabled hidden></option>
+              <option>국민은행</option><option>신한은행</option><option>우리은행</option>
+              <option>하나은행</option><option>기업은행</option><option>농협은행</option>
+              <option>카카오뱅크</option><option>토스뱅크</option>
+            </select>
+            <label class="chp-floating-label" for="chp-bank">입금은행</label>
+            <div class="chp-error-msg">입금은행을 선택해 주세요.</div>
+          </div>
+          <div class="chp-field" data-required="true" data-payment="transfer">
+            <input class="chp-input" id="chp-depositor" type="text" placeholder=" ">
+            <label class="chp-floating-label" for="chp-depositor">입금자명</label>
+            <div class="chp-error-msg">입금자명을 입력해 주세요.</div>
+          </div>
+        </div>
+        <div class="chp-payment-detail" id="chp-card-detail" style="display:none">
+          <div class="chp-field" data-required="true" data-payment="card">
+            <select class="chp-input chp-select" id="chp-card-company">
+              <option value="" disabled hidden></option>
+              <option>신한카드</option><option>국민카드</option><option>현대카드</option>
+              <option>롯데카드</option><option>우리카드</option><option>하나카드</option>
+              <option>삼성카드</option><option>BC카드</option>
+            </select>
+            <label class="chp-floating-label" for="chp-card-company">카드사</label>
+            <div class="chp-error-msg">카드사를 선택해 주세요.</div>
           </div>
         </div>
       </div>
@@ -4390,6 +4389,19 @@ function updateCheckoutPaymentMethod(){
   if(!checked)return;
   document.querySelectorAll('.chp-payment-item').forEach(item=>item.classList.remove('active'));
   checked.closest('.chp-payment-item').classList.add('active');
+  // 인디케이터 슬라이드
+  const indicator=document.getElementById('chp-payment-indicator');
+  if(indicator)indicator.classList.toggle('to-card',checked.value==='card');
+  // 상세 패널 페이드 전환
+  const transferDetail=document.getElementById('chp-transfer-detail');
+  const cardDetail=document.getElementById('chp-card-detail');
+  const showDetail=checked.value==='transfer'?transferDetail:cardDetail;
+  const hideDetail=checked.value==='transfer'?cardDetail:transferDetail;
+  hideDetail.style.display='none';
+  showDetail.style.display='';
+  showDetail.classList.remove('fade-in');
+  void showDetail.offsetWidth; // reflow
+  showDetail.classList.add('fade-in');
 }
 function clearCheckoutErrors(){
   document.querySelectorAll('#checkout-page .chp-field.error').forEach(f=>f.classList.remove('error'));
