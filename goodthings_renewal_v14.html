@@ -950,10 +950,12 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
         <div class="chp-field">
           <input class="chp-input" id="lp-login-email" type="email" placeholder=" " autocomplete="email">
           <label class="chp-floating-label" for="lp-login-email">이메일 주소</label>
+          <div class="chp-helper" id="lp-login-email-helper">이메일 주소를 입력하세요.</div>
         </div>
         <div class="chp-field">
           <input class="chp-input" id="lp-login-pw" type="password" placeholder=" " autocomplete="current-password">
           <label class="chp-floating-label" for="lp-login-pw">비밀번호</label>
+          <div class="chp-helper" id="lp-login-pw-helper">비밀번호를 입력하세요.</div>
         </div>
         <div id="lp-forgot"><span>비밀번호를 잊으셨나요?</span></div>
         <button class="lp-submit-btn">로그인</button>
@@ -963,18 +965,22 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
         <div class="chp-field">
           <input class="chp-input" id="lp-reg-name" type="text" placeholder=" " autocomplete="name">
           <label class="chp-floating-label" for="lp-reg-name">이름</label>
+          <div class="chp-helper" id="lp-reg-name-helper">이름을 입력하세요.</div>
         </div>
         <div class="chp-field">
           <input class="chp-input" id="lp-reg-email" type="email" placeholder=" " autocomplete="email">
           <label class="chp-floating-label" for="lp-reg-email">이메일 주소</label>
+          <div class="chp-helper" id="lp-reg-email-helper">이메일 주소를 입력하세요.</div>
         </div>
         <div class="chp-field">
           <input class="chp-input" id="lp-reg-pw" type="password" placeholder=" " autocomplete="new-password">
           <label class="chp-floating-label" for="lp-reg-pw">비밀번호</label>
+          <div class="chp-helper" id="lp-reg-pw-helper">영문, 숫자, 특수문자 중 2가지 이상 조합, 6~16자</div>
         </div>
         <div class="chp-field">
-          <input class="chp-input" id="lp-reg-pw2" type="password" placeholder=" " autocomplete="new-password">
+          <input class="chp-input" id="lp-reg-pw2" type="password" placeholder=" " autocomplete="new-password" disabled>
           <label class="chp-floating-label" for="lp-reg-pw2">비밀번호 확인</label>
+          <div class="chp-helper" id="lp-reg-pw2-helper">비밀번호를 한 번 더 입력하세요.</div>
         </div>
         <button class="lp-submit-btn">계정 만들기</button>
       </div>
@@ -983,6 +989,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
         <div class="chp-field">
           <input class="chp-input" id="lp-reset-email" type="email" placeholder=" " autocomplete="email">
           <label class="chp-floating-label" for="lp-reset-email">이메일 주소</label>
+          <div class="chp-helper" id="lp-reset-email-helper">가입 시 등록한 이메일 주소를 입력하세요.</div>
         </div>
         <button class="lp-submit-btn" id="lp-reset-submit-btn">전송</button>
       </div>
@@ -3945,8 +3952,125 @@ if(lpResetCancel)lpResetCancel.addEventListener('click',()=>setLoginMode('login'
       const el=document.getElementById(id);
       if(el)attachClear(el);
     });
+    // 비밀번호 확인 순차 활성화 (lp-reg-pw2)
+    const pw=document.getElementById('lp-reg-pw');
+    const pw2=document.getElementById('lp-reg-pw2');
+    if(pw&&pw2){
+      pw.addEventListener('input',()=>{
+        if(!pw.value.trim()){
+          pw2.disabled=true;
+          pw2.value='';
+          pw2.closest('.chp-field').classList.remove('input-warn');
+          const h=document.getElementById('lp-reg-pw2-helper');
+          if(h)h.classList.remove('visible','warn');
+        } else {
+          pw2.disabled=false;
+        }
+      });
+    }
   };
   window.initLpFields();
+})();
+
+// ── 로그인 페이지 Helper Text 검증 ──
+(function(){
+  function setWarn(field,helper,isWarn){
+    helper.classList.toggle('warn',isWarn);
+    field.classList.toggle('input-warn',isWarn);
+  }
+  function hideHelper(helper,field){
+    helper.classList.remove('visible','warn');
+    field.classList.remove('input-warn');
+  }
+  function isEmailValid(v){return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(v);}
+  function isPwValid(v){const t=[/[a-z]/.test(v),/[A-Z]/.test(v),/\d/.test(v),/[^a-zA-Z\d]/.test(v)].filter(Boolean).length;return t>=2&&v.length>=6&&v.length<=16;}
+
+  // ── 이메일 필드 공통 로직 ──
+  function attachEmailValidation(inp,helper,hintText){
+    const WARN='잘못된 형식입니다. (예: example@email.com)';
+    inp.addEventListener('focus',()=>{
+      const field=inp.closest('.chp-field');
+      if(!inp.value){helper.textContent=hintText;helper.classList.add('visible');setWarn(field,helper,false);}
+    });
+    inp.addEventListener('input',()=>{
+      const field=inp.closest('.chp-field');
+      if(!inp.value){helper.textContent=hintText;helper.classList.add('visible');setWarn(field,helper,false);}
+      else{helper.classList.remove('visible');setWarn(field,helper,false);}
+    });
+    inp.addEventListener('blur',()=>{
+      const v=inp.value;const field=inp.closest('.chp-field');
+      if(!v){hideHelper(helper,field);return;}
+      const valid=isEmailValid(v);
+      helper.textContent=valid?hintText:WARN;
+      setWarn(field,helper,!valid);
+      valid?helper.classList.remove('visible'):helper.classList.add('visible');
+    });
+  }
+
+  // ── 단순 hint 필드 (이름, 비밀번호 로그인) ──
+  function attachHintOnly(inp,helper,hintText){
+    inp.addEventListener('focus',()=>{
+      if(!inp.value){helper.textContent=hintText;helper.classList.add('visible');}
+    });
+    inp.addEventListener('input',()=>{
+      if(inp.value)helper.classList.remove('visible');
+      else{helper.textContent=hintText;helper.classList.add('visible');}
+    });
+    inp.addEventListener('blur',()=>hideHelper(helper,inp.closest('.chp-field')));
+  }
+
+  // ── 비밀번호 조건 검증 ──
+  function attachPwValidation(inp,helper,pw2Inp){
+    const HINT='영문, 숫자, 특수문자 중 2가지 이상 조합, 6~16자';
+    inp.addEventListener('focus',()=>{
+      if(!inp.value||!isPwValid(inp.value)){helper.textContent=HINT;helper.classList.add('visible');setWarn(inp.closest('.chp-field'),helper,false);}
+    });
+    inp.addEventListener('input',()=>{
+      const v=inp.value;const field=inp.closest('.chp-field');
+      if(!v){setWarn(field,helper,false);return;}
+      const valid=isPwValid(v);
+      helper.textContent=HINT;
+      setWarn(field,helper,!valid);
+      valid?helper.classList.remove('visible'):helper.classList.add('visible');
+      if(pw2Inp&&pw2Inp.value)pw2Inp.dispatchEvent(new Event('input',{bubbles:true}));
+    });
+    inp.addEventListener('blur',()=>{
+      if(!inp.value||isPwValid(inp.value)){helper.classList.remove('visible');setWarn(inp.closest('.chp-field'),helper,false);}
+    });
+  }
+
+  // ── 비밀번호 확인 ──
+  function attachPw2Validation(inp2,helper,pwInp){
+    const HINT='비밀번호를 한 번 더 입력하세요.';
+    const WARN='비밀번호가 일치하지 않습니다.';
+    inp2.addEventListener('focus',()=>{
+      if(!inp2.value){helper.textContent=HINT;helper.classList.add('visible');setWarn(inp2.closest('.chp-field'),helper,false);}
+    });
+    inp2.addEventListener('input',()=>{
+      const v=inp2.value;const field=inp2.closest('.chp-field');
+      if(!v){helper.textContent=HINT;helper.classList.add('visible');setWarn(field,helper,false);return;}
+      const match=v===pwInp.value;
+      helper.textContent=match?HINT:WARN;
+      setWarn(field,helper,!match);
+      match?helper.classList.remove('visible'):helper.classList.add('visible');
+    });
+    inp2.addEventListener('blur',()=>{
+      if(!inp2.value||inp2.value===pwInp.value)hideHelper(helper,inp2.closest('.chp-field'));
+    });
+  }
+
+  // ── 적용 ──
+  const g=id=>document.getElementById(id);
+  // 로그인 폼
+  attachEmailValidation(g('lp-login-email'),g('lp-login-email-helper'),'이메일 주소를 입력하세요.');
+  attachHintOnly(g('lp-login-pw'),g('lp-login-pw-helper'),'비밀번호를 입력하세요.');
+  // 회원가입 폼
+  attachHintOnly(g('lp-reg-name'),g('lp-reg-name-helper'),'이름을 입력하세요.');
+  attachEmailValidation(g('lp-reg-email'),g('lp-reg-email-helper'),'이메일 주소를 입력하세요.');
+  attachPwValidation(g('lp-reg-pw'),g('lp-reg-pw-helper'),g('lp-reg-pw2'));
+  attachPw2Validation(g('lp-reg-pw2'),g('lp-reg-pw2-helper'),g('lp-reg-pw'));
+  // 비밀번호 재설정 폼
+  attachEmailValidation(g('lp-reset-email'),g('lp-reset-email-helper'),'가입 시 등록한 이메일 주소를 입력하세요.');
 })();
 
 // 소셜 로그인 버튼 (실제 연동 시 각 OAuth URL로 교체)
