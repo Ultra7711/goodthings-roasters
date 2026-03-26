@@ -872,7 +872,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 <div id="cart-drawer" role="dialog" aria-label="장바구니">
   <div class="cd-header">
     <span class="cd-title" id="cd-title">장바구니 (0)</span>
-    <span class="close-btn close-btn-primary-light" id="cd-close-btn" role="button" aria-label="장바구니 닫기" tabindex="0"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l8 8M9 1l-8 8"/></svg></span>
+    <span class="close-btn" id="cd-close-btn" role="button" aria-label="장바구니 닫기" tabindex="0"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l12 12M13 1L1 13"/></svg></span>
   </div>
   <div class="cd-body">
     <div class="cd-promo" id="cd-promo">15,000원 이상 구매 시 무료 배송</div>
@@ -1230,9 +1230,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   position:relative;
 }
 .cp-item-product{display:flex;align-items:center;gap:20px;}
-.cp-item-img{width:100px;height:100px;flex-shrink:0;background:var(--color-background-secondary);position:relative;overflow:hidden;cursor:pointer;}
-.cp-item-img::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,0);transition:background var(--duration-hover) linear;pointer-events:none;}
-.cp-item-img:hover::after{background:rgba(0,0,0,.06);}
+.cp-item-img{width:100px;height:100px;flex-shrink:0;background:var(--color-background-secondary);overflow:hidden;cursor:pointer;}
 .cp-item-info{display:flex;flex-direction:column;gap:6px;}
 .cp-item-category{font-family:var(--font-en);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);}
 .cp-item-name{font-family:var(--font-en);font-size:var(--type-heading-m-size);font-weight:var(--type-heading-m-weight);color:var(--color-text-primary);line-height:1.35;}
@@ -1320,7 +1318,8 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 
 /* 좌측 폼 */
 #chp-left{padding-top:48px;}
-.chp-section{margin-bottom:40px;}
+.chp-section{margin-bottom:56px;padding-top:56px;border-top:.5px solid var(--color-border-tertiary);}
+.chp-section:first-child{border-top:none;padding-top:0;}
 .chp-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
 .chp-section-title{font-family:var(--font-en);font-size:var(--type-heading-m-size);font-weight:var(--type-heading-m-weight);letter-spacing:-.01em;color:var(--color-text-primary);margin-bottom:20px;}
 .chp-section-header .chp-section-title{margin-bottom:0;}
@@ -1337,10 +1336,10 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 #chp-guest-section .chp-section-title{margin-bottom:6px;}
 
 /* 폼 필드 */
-.chp-field{position:relative;margin-bottom:16px;}
+.chp-field{position:relative;margin-bottom:24px;}
 .chp-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .chp-input{
-  width:100%;height:48px;padding:0;
+  width:100%;height:56px;padding:20px 0 4px;
   border:none;border-bottom:.5px solid var(--color-border-secondary);
   background:transparent;outline:none;
   font-family:var(--font-kr);font-size:var(--type-input-size);font-weight:var(--type-input-weight);
@@ -1349,32 +1348,68 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   appearance:none;
 }
 .chp-input:focus{border-bottom-color:var(--color-text-primary);}
-.chp-input:disabled{opacity:.35;cursor:not-allowed;}
-.chp-input::placeholder{color:var(--color-text-placeholder);}
+.chp-input:disabled{opacity:.25;cursor:not-allowed;background:var(--color-background-secondary);}
+.chp-input::placeholder{color:transparent;}
+/* Floating Label */
+.chp-floating-label{
+  position:absolute;left:0;top:28px;transform:translateY(-50%);
+  font-family:var(--font-kr);font-size:var(--type-input-size);font-weight:var(--type-input-weight);
+  color:var(--color-text-placeholder);
+  pointer-events:none;
+  transition:all 200ms cubic-bezier(.4,0,.2,1);
+  transform-origin:left top;
+}
+.chp-input:focus ~ .chp-floating-label,
+.chp-input:not(:placeholder-shown) ~ .chp-floating-label{
+  top:4px;transform:translateY(0) scale(.75);
+  color:var(--color-text-tertiary);
+}
+.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
+.chp-input:disabled ~ .chp-floating-label{opacity:.3;}
+/* Helper Text */
+.chp-helper{
+  font-family:var(--font-kr);font-size:12px;font-weight:400;
+  color:var(--color-text-tertiary);margin-top:6px;
+  display:none;line-height:1.5;
+}
+.chp-helper.visible{display:block;}
+.chp-helper.warn{color:var(--color-error);}
+/* 경고 시 보더 컬러 강조 */
+.chp-field.input-warn .chp-input{border-bottom-color:var(--color-error);}
 select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23888' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 2px center;padding-right:20px;}
+
+/* 인풋 액션 아이콘 (삭제 X / 비밀번호 눈) */
+.chp-field{position:relative;}
+.chp-input-action{
+  position:absolute;right:0;top:35px;transform:translateY(-50%);
+  display:none;align-items:center;justify-content:center;
+  width:28px;height:28px;cursor:pointer;
+  color:var(--color-text-tertiary);background:transparent;border:none;padding:0;
+  transition:color 200ms linear;
+}
+.chp-input-action:hover{color:var(--color-text-primary);}
+.chp-input-action.visible{display:flex;}
+.chp-field .chp-input{padding-right:36px;}
 
 /* 에러 상태 */
 .chp-field.error .chp-input{border-bottom-color:var(--color-error);}
 .chp-error-msg{display:none;font-family:var(--font-kr);font-size:12px;color:var(--color-error);margin-top:6px;}
 .chp-field.error .chp-error-msg{display:block;}
 
-/* 주소 검색 행 */
-.chp-addr-row{display:flex;gap:8px;align-items:center;}
-.chp-addr-row .chp-input{flex:1;}
+/* 우편번호 + 기본주소 한 줄 */
+.chp-addr-inline{display:grid;grid-template-columns:140px 1fr;gap:16px;}
+/* 우편번호 검색 아이콘 (인풋 내부) */
 .chp-addr-search-btn{
-  /* height 고정 없이 align-self:center로 수직 정렬 — text-link 토큰 규칙 준수 */
-  padding:0;flex-shrink:0;align-self:center;
-  border:none;border-bottom:var(--text-link-border);
-  background:transparent;
-  font-family:var(--font-en);
-  font-size:var(--text-link-font-size);font-weight:var(--text-link-font-weight);
-  letter-spacing:var(--text-link-letter-spacing);
-  color:var(--text-link-color);
-  cursor:pointer;white-space:nowrap;
-  padding-bottom:var(--text-link-padding-bottom);
-  transition:opacity 200ms linear;
+  position:absolute;right:0;top:28px;transform:translateY(-50%);
+  display:flex;align-items:center;justify-content:center;
+  width:28px;height:28px;cursor:pointer;
+  background:transparent;border:none;padding:0;
+  color:var(--color-text-tertiary);
+  transition:top 200ms cubic-bezier(.4,0,.2,1), color 200ms linear;
 }
-.chp-addr-search-btn:hover{opacity:var(--text-link-opacity-hover);}
+.chp-addr-search-btn:hover{color:var(--color-text-primary);}
+.chp-field:focus-within .chp-addr-search-btn,
+.chp-field.has-value .chp-addr-search-btn{top:35px;}
 
 /* 체크박스 행 */
 .chp-checkbox-row{display:flex;align-items:center;gap:10px;cursor:pointer;font-family:var(--font-kr);font-size:13px;font-weight:400;color:var(--color-text-secondary);}
@@ -1391,13 +1426,13 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 .chp-email-continue-btn:hover{opacity:.85;transform:scale(1.01);}
 .chp-email-continue-btn:active{transform:scale(.99);}
 
-/* 로그인 제안 배너 */
+/* 로그인 안내 (소프트 힌트) */
 #chp-login-notice{
-  margin-top:12px;padding:12px 16px;
-  background:var(--color-background-secondary);
+  margin-top:28px;
   font-family:var(--font-kr);font-size:13px;font-weight:400;
-  color:var(--color-text-secondary);
-  border-left:2px solid var(--color-border-primary);
+  color:var(--color-text-tertiary);
+  text-align:center;
+  line-height:1.6;
 }
 
 /* 비회원 주문 안내 */
@@ -1411,21 +1446,24 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 }
 
 /* 결제수단 */
-#chp-payment-methods{display:flex;flex-direction:column;gap:0;margin-bottom:20px;border:.5px solid var(--color-border-primary);}
-.chp-payment-item{border-bottom:.5px solid var(--color-border-tertiary);}
+#chp-payment-methods{display:flex;flex-direction:column;gap:0;margin-bottom:20px;}
+.chp-payment-item{border-bottom:.5px solid var(--color-border-tertiary);transition:background .3s ease;}
 .chp-payment-item:last-child{border-bottom:none;}
+.chp-payment-item:not(.active){background:var(--color-background-secondary);}
 .chp-payment-method{
   display:flex;align-items:center;gap:12px;
-  padding:16px 20px;cursor:pointer;
-  background:var(--color-background-primary);
+  padding:16px 0;cursor:pointer;
+  background:transparent;
   font-family:var(--font-kr);font-size:14px;font-weight:300;
-  color:var(--color-text-secondary);
-  transition:background .4s ease;
+  color:var(--color-text-tertiary);
+  transition:color .3s ease;
 }
-.chp-payment-item.active{border-left:2px solid #1a1a1a;}
-.chp-payment-item.active .chp-payment-method{background:var(--color-background-secondary);font-weight:400;color:var(--color-text-primary);}
+.chp-payment-item.active{border-left:2px solid #1a1a1a;padding-left:20px;}
+.chp-payment-item:not(.active){padding-left:22px;}
+.chp-payment-item.active .chp-payment-method{font-weight:400;color:var(--color-text-primary);}
 .chp-payment-method input[type="radio"]{accent-color:#1a1a1a;width:16px;height:16px;}
-.chp-payment-detail{padding:0 20px 16px;background:var(--color-background-secondary);}
+.chp-payment-detail{padding:0 0 16px 0;}
+.chp-payment-item.active .chp-payment-detail{padding-left:0;}
 .chp-payment-item:not(.active) .chp-payment-detail{display:none;}
 
 /* 약관 동의 */
@@ -1445,7 +1483,8 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 }
 .chp-agree-item input[type="checkbox"]{width:18px;height:18px;accent-color:#1a1a1a;flex-shrink:0;}
 .chp-agree-item span:nth-child(2){flex:1;}
-.chp-agree-arrow{color:var(--color-text-tertiary);font-size:18px;line-height:1;}
+.chp-agree-arrow{color:var(--color-text-tertiary);display:flex;align-items:center;transition:color 200ms linear;}
+.chp-agree-item:hover .chp-agree-arrow{color:var(--color-text-primary);}
 #chp-agree-section.error .chp-agree-items{border-color:var(--color-error);}
 
 /* 결제하기 버튼 */
@@ -1460,7 +1499,13 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 .chp-submit-btn:active{transform:scale(.99);}
 
 /* 법적 안내 */
-.chp-legal-note{font-family:var(--font-kr);font-size:12px;font-weight:300;color:var(--color-text-tertiary);line-height:1.7;margin-top:24px;}
+.chp-legal-note{
+  font-family:var(--font-kr);font-size:13px;font-weight:400;
+  color:var(--color-text-secondary);line-height:1.7;margin-top:24px;
+  padding:16px 20px;
+  background:var(--color-background-secondary);
+  border-left:2px solid var(--color-text-primary);
+}
 .chp-legal-links{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;}
 .chp-legal-link{font-family:var(--font-en);font-size:12px;color:var(--color-text-tertiary);cursor:pointer;border-bottom:.5px solid var(--color-border-tertiary);padding-bottom:1px;transition:color 200ms linear;}
 .chp-legal-link:hover{color:var(--color-text-primary);}
@@ -1482,8 +1527,6 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 }
 .chp-sum-item-img-wrap{position:relative;flex-shrink:0;}
 .chp-sum-item-img{width:56px;height:56px;background:var(--color-background-secondary);border:.5px solid var(--color-border-tertiary);position:relative;overflow:hidden;}
-.chp-sum-item-img::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,0);transition:background var(--duration-hover) linear;pointer-events:none;}
-.chp-sum-item-img:hover::after{background:rgba(0,0,0,.06);}
 .chp-sum-item-qty{
   position:absolute;top:-8px;right:-8px;
   width:20px;height:20px;border-radius:50%;
@@ -1524,6 +1567,13 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 .chp-sum-total-row span:last-child{
   font-family:var(--font-en);font-size:var(--type-price-l-size);font-weight:var(--type-price-l-weight);color:var(--color-text-primary);
 }
+.chp-sum-sub-block{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;margin-top:12px;
+  background:var(--color-background-secondary);
+  font-family:var(--font-kr);font-size:13px;font-weight:400;color:var(--color-text-secondary);
+}
+.chp-sum-sub-block span:last-child{font-family:var(--font-en);font-weight:500;color:var(--color-text-primary);}
 
 /* ══ ORDER COMPLETE PAGE ══ */
 #order-complete-page{
@@ -1963,10 +2013,11 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 }
 #pd-qty-minus,#pd-qty-plus{
   width:42px;height:42px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:18px;color:var(--color-text-secondary);
-  transition:opacity 200ms linear;user-select:none;
+  cursor:pointer;font-size:18px;color:var(--color-text-primary);
+  transition:background .3s ease, color .3s ease;
+  user-select:none;
 }
-#pd-qty-minus:hover,#pd-qty-plus:hover{opacity:.5;}
+#pd-qty-minus:hover,#pd-qty-plus:hover{background:#1a1a1a;color:#fff;}
 #pd-qty-num{
   min-width:48px;height:42px;display:flex;align-items:center;justify-content:center;
   font-size:15px;font-weight:500;color:var(--color-text-primary);
@@ -2207,6 +2258,8 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 #cart-drawer.open{transform:translateX(0);}
 /* 헤더 고정 — Section Label 타이포 */
 .cd-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px 0 28px;height:64px;border-bottom:.5px solid var(--color-border-secondary);flex-shrink:0;}
+#cd-close-btn{background:transparent;color:#1a1a1a;}
+#cd-close-btn:hover{background:transparent;opacity:.45;}
 .cd-title{font-family:var(--font-en);font-size:24px;font-weight:500;letter-spacing:-0.01em;color:var(--color-text-primary);}
 /* 스크롤 바디 */
 .cd-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
@@ -2214,9 +2267,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 .cd-items{flex:1;}
 /* 아이템 — 176px 컴팩트 레이아웃 */
 .cd-item{min-height:176px;position:relative;display:flex;align-items:center;gap:24px;padding:0 0 0 28px;border-bottom:.5px solid var(--color-border-tertiary);cursor:default;}
-.cd-item-img{width:100px;height:100px;flex-shrink:0;overflow:hidden;background:var(--color-background-secondary);position:relative;cursor:pointer;}
-.cd-item-img::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,0);transition:background var(--duration-hover) linear;pointer-events:none;}
-.cd-item-img:hover::after{background:rgba(0,0,0,.06);}
+.cd-item-img{width:100px;height:100px;flex-shrink:0;overflow:hidden;background:var(--color-background-secondary);cursor:pointer;}
 .cd-item-info{flex:1;display:flex;flex-direction:column;gap:6px;padding-right:44px;}
 /* 타이포 — SRP 아이템과 통일 */
 .cd-item-category{font-family:var(--font-en);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);}
@@ -2230,9 +2281,9 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 .cd-item-price{font-family:var(--font-en);font-size:15px;font-weight:500;color:var(--color-text-primary);text-align:right;min-width:64px;}
 /* 수량 스테퍼 — design system 버튼 */
 .cd-qty{display:flex;align-items:center;}
-.cd-qty-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:.5px solid var(--color-border-primary);cursor:pointer;font-size:15px;font-weight:300;color:var(--color-text-primary);user-select:none;transition:background .3s ease, color .3s ease, transform .5s var(--ease-spring);will-change:transform;backface-visibility:hidden;}
-.cd-qty-btn:hover{background:#1a1a1a;color:#fff;transform:scale(1.08);}
-.cd-qty-btn:active{transform:scale(.95);}
+.cd-qty-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:.5px solid var(--color-border-primary);cursor:pointer;font-size:15px;font-weight:300;color:var(--color-text-primary);user-select:none;transition:background .3s ease, color .3s ease;}
+.cd-qty-btn:hover{background:#1a1a1a;color:#fff;}
+.cd-qty-btn.disabled{color:rgba(26,26,26,.5);pointer-events:none;}
 .cd-qty-num{width:36px;height:28px;display:flex;align-items:center;justify-content:center;border-top:.5px solid var(--color-border-primary);border-bottom:.5px solid var(--color-border-primary);font-family:var(--font-en);font-size:13px;color:var(--color-text-primary);}
 /* 삭제 X — 아이템 우상단 */
 .cd-remove{position:absolute;top:30px;right:16px;width:var(--close-btn-size);height:var(--close-btn-size);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--close-btn-secondary-light-color);transition:color var(--duration-hover) linear;}
@@ -2425,20 +2476,16 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
       <div class="chp-section">
         <div class="chp-section-header">
           <h2 class="chp-section-title">연락처</h2>
-          <span id="chp-login-link" class="chp-link">로그인</span>
         </div>
         <div class="chp-field" data-required="true">
-          <input class="chp-input" id="chp-email" type="email" placeholder="이메일 주소">
+          <input class="chp-input" id="chp-email" type="email" placeholder=" ">
+          <label class="chp-floating-label" for="chp-email">이메일 주소</label>
+          <div class="chp-helper" id="chp-email-helper">이메일 주소를 입력하세요.</div>
           <div class="chp-error-msg">이메일 주소를 입력해 주세요.</div>
         </div>
-        <label class="chp-checkbox-row">
-          <input type="checkbox" checked>
-          <span>주문 내역을 이메일로 받기</span>
-        </label>
         <button id="chp-email-continue-btn" class="chp-email-continue-btn" type="button">로그인 없이 계속하기</button>
-        <!-- 이메일 확인 후 로그인 제안 배너 -->
-        <div id="chp-login-notice" style="display:none;">
-          이미 회원인 경우, <span id="chp-notice-login-link" class="chp-link">로그인</span>하면 정보가 자동으로 채워집니다.
+        <div id="chp-login-notice">
+          이미 회원이신가요? <span id="chp-login-btn" class="chp-link">로그인</span>하면 배송지 정보가 자동으로 채워집니다.
         </div>
       </div>
 
@@ -2449,23 +2496,33 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
       <div class="chp-section">
         <h2 class="chp-section-title">배송지</h2>
         <div class="chp-field" data-required="true">
-          <input class="chp-input" id="chp-firstname" type="text" placeholder="이름">
+          <input class="chp-input" id="chp-firstname" type="text" placeholder=" ">
+          <label class="chp-floating-label" for="chp-firstname">이름</label>
           <div class="chp-error-msg">이름을 입력해 주세요.</div>
         </div>
-        <div class="chp-field chp-addr-row">
-          <input class="chp-input" id="chp-zipcode" type="text" placeholder="우편번호" style="flex:1;">
-          <button class="chp-addr-search-btn" type="button">주소 검색</button>
-        </div>
         <div class="chp-field" data-required="true">
-          <input class="chp-input" id="chp-addr1" type="text" placeholder="기본주소">
-          <div class="chp-error-msg">주소를 입력해 주세요.</div>
+          <input class="chp-input" id="chp-phone" type="tel" placeholder=" ">
+          <label class="chp-floating-label" for="chp-phone">휴대전화</label>
+          <div class="chp-helper" id="chp-phone-helper">전화번호를 입력해 주세요.</div>
+          <div class="chp-error-msg">휴대전화를 입력해 주세요.</div>
+        </div>
+        <div class="chp-addr-inline">
+          <div class="chp-field" data-required="true">
+            <input class="chp-input" id="chp-zipcode" type="text" placeholder=" " maxlength="5" style="padding-right:36px;">
+            <label class="chp-floating-label" for="chp-zipcode">우편번호</label>
+            <button class="chp-addr-search-btn" type="button" title="주소 검색" data-mode="search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg></button>
+            <div class="chp-helper" id="chp-zipcode-helper">우편번호를 입력하세요.</div>
+            <div class="chp-error-msg">우편번호를 입력해 주세요.</div>
+          </div>
+          <div class="chp-field" data-required="true">
+            <input class="chp-input" id="chp-addr1" type="text" placeholder=" ">
+            <label class="chp-floating-label" for="chp-addr1">기본주소</label>
+            <div class="chp-error-msg">주소를 입력해 주세요.</div>
+          </div>
         </div>
         <div class="chp-field">
-          <input class="chp-input" id="chp-addr2" type="text" placeholder="나머지주소 (선택 입력 가능)" disabled>
-        </div>
-        <div class="chp-field" data-required="true">
-          <input class="chp-input" id="chp-phone" type="tel" placeholder="휴대전화">
-          <div class="chp-error-msg">휴대전화를 입력해 주세요.</div>
+          <input class="chp-input" id="chp-addr2" type="text" placeholder=" " disabled>
+          <label class="chp-floating-label" for="chp-addr2">나머지주소 (선택 입력 가능)</label>
         </div>
         <div class="chp-field">
           <select class="chp-input chp-select" id="chp-delivery-msg">
@@ -2478,20 +2535,25 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
           </select>
         </div>
         <div class="chp-field" id="chp-delivery-custom-field" style="display:none;">
-          <input class="chp-input" id="chp-delivery-custom" type="text" placeholder="배송 메시지를 입력해 주세요.">
+          <input class="chp-input" id="chp-delivery-custom" type="text" placeholder=" ">
+          <label class="chp-floating-label" for="chp-delivery-custom">배송 메시지를 입력해 주세요.</label>
         </div>
       </div>
 
       <!-- 비회원 주문조회 비밀번호 (비로그인 시만 표시) -->
       <div class="chp-section" id="chp-guest-section">
         <h2 class="chp-section-title">비회원 주문조회 비밀번호</h2>
-        <p class="chp-section-desc">비회원 주문 조회 시 주문번호와 입력하신 비밀번호가 필요합니다.<br>(영문대소문자/숫자/특수문자 중 2가지 이상 조합, 10자~16자)</p>
+        <p class="chp-section-desc">비회원 주문 조회 시 주문번호와 입력하신 비밀번호가 필요합니다.</p>
         <div class="chp-field" data-required="true" data-guest="true">
-          <input class="chp-input" id="chp-guest-pw" type="password" placeholder="비밀번호">
+          <input class="chp-input" id="chp-guest-pw" type="password" placeholder=" ">
+          <label class="chp-floating-label" for="chp-guest-pw">비밀번호</label>
+          <div class="chp-helper" id="chp-pw-helper">영문 대소문자/숫자/특수문자 중 2가지 이상 조합, 6~16자</div>
           <div class="chp-error-msg">비밀번호를 입력해 주세요.</div>
         </div>
         <div class="chp-field" data-required="true" data-guest="true">
-          <input class="chp-input" id="chp-guest-pw2" type="password" placeholder="비밀번호 확인" disabled>
+          <input class="chp-input" id="chp-guest-pw2" type="password" placeholder=" " disabled>
+          <label class="chp-floating-label" for="chp-guest-pw2">비밀번호 확인</label>
+          <div class="chp-helper" id="chp-pw2-helper">비밀번호가 일치하지 않습니다.</div>
           <div class="chp-error-msg">비밀번호 확인을 입력해 주세요.</div>
         </div>
       </div>
@@ -2516,7 +2578,8 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
                 <div class="chp-error-msg">입금은행을 선택해 주세요.</div>
               </div>
               <div class="chp-field" data-required="true" data-payment="transfer">
-                <input class="chp-input" id="chp-depositor" type="text" placeholder="입금자명">
+                <input class="chp-input" id="chp-depositor" type="text" placeholder=" ">
+                <label class="chp-floating-label" for="chp-depositor">입금자명</label>
                 <div class="chp-error-msg">입금자명을 입력해 주세요.</div>
               </div>
             </div>
@@ -2551,12 +2614,12 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
           <label class="chp-agree-item">
             <input type="checkbox" class="chp-agree-check">
             <span>[필수] 쇼핑몰 이용약관 동의</span>
-            <span class="chp-agree-arrow">›</span>
+            <span class="chp-agree-arrow"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M4 2l4 4-4 4"/></svg></span>
           </label>
           <label class="chp-agree-item">
             <input type="checkbox" class="chp-agree-check">
             <span>[필수] 개인정보 수집 및 이용 동의</span>
-            <span class="chp-agree-arrow">›</span>
+            <span class="chp-agree-arrow"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M4 2l4 4-4 4"/></svg></span>
           </label>
           <label class="chp-agree-item">
             <input type="checkbox" class="chp-agree-check">
@@ -2565,9 +2628,13 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
         </div>
       </div>
 
+      <label class="chp-checkbox-row" style="margin-bottom:16px;">
+        <input type="checkbox" checked>
+        <span>주문 내역을 이메일로 받기</span>
+      </label>
       <button id="chp-submit-btn" class="chp-submit-btn">결제하기</button>
 
-      <p class="chp-legal-note">정기배송 상품이 포함되어 있습니다. 결제 후 설정된 주기에 따라 자동으로 결제되며, 정기배송은 마이페이지에서 언제든지 취소하실 수 있습니다.</p>
+      <p class="chp-legal-note" id="chp-sub-notice" style="display:none;">정기배송 상품이 포함되어 있습니다. 결제 후 설정된 주기에 따라 자동으로 결제되며, 정기배송은 마이페이지에서 언제든지 취소하실 수 있습니다.</p>
       <div class="chp-legal-links">
         <span class="chp-legal-link">배송 안내</span>
         <span class="chp-legal-link">개인정보처리방침</span>
@@ -2599,7 +2666,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
           <span>결제예정금액</span>
           <span id="chp-sum-total">0원</span>
         </div>
-        <div class="chp-sum-row" id="chp-sum-sub-row" style="display:none;">
+        <div class="chp-sum-sub-block" id="chp-sum-sub-row" style="display:none;">
           <span>정기배송 금액</span>
           <span id="chp-sum-sub"></span>
         </div>
@@ -2795,19 +2862,14 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
   display:flex;align-items:center;gap:32px;
   height:218px;
   border-bottom:.5px solid var(--color-border-tertiary);
-  cursor:pointer;
   box-sizing:border-box;
-  transition:background .3s ease;
 }
-.srp-result-item:hover{background:var(--color-background-secondary);}
 .srp-result-item:last-child{border-bottom:none;}
 .srp-result-thumb{
   width:100px;height:100px;flex-shrink:0;
   background:var(--color-background-secondary);overflow:hidden;
-  position:relative;
+  cursor:pointer;
 }
-.srp-result-thumb::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,0);transition:background var(--duration-hover) linear;pointer-events:none;}
-.srp-result-item:hover .srp-result-thumb::after{background:rgba(0,0,0,.06);}
 .srp-result-thumb-inner{width:100%;height:100%;}
 .srp-result-info{flex:1;display:flex;flex-direction:column;gap:8px;}
 .srp-result-category{
@@ -3429,9 +3491,9 @@ function renderResults(page){
       </div>
     </div>`).join('');
 
-  srpResultsList.querySelectorAll('.srp-result-item').forEach(el=>{
+  srpResultsList.querySelectorAll('.srp-result-thumb').forEach(el=>{
     el.addEventListener('click',()=>{
-      const slug=el.dataset.slug;
+      const slug=el.closest('.srp-result-item').dataset.slug;
       window._pdPrevPage='search';
       openProductPage(slug);
     });
@@ -3545,7 +3607,7 @@ function openProductPage(slug){
     document.getElementById('pd-qty-num').textContent=qty;
     document.getElementById('pd-total-price').textContent=formatPrice(basePrice*qty);
     // 수량 1 이하 마이너스 버튼 비활성
-    document.getElementById('pd-qty-minus').style.opacity=qty<=1?'.2':'1';
+    document.getElementById('pd-qty-minus').style.opacity=qty<=1?'.5':'1';
     document.getElementById('pd-qty-minus').style.pointerEvents=qty<=1?'none':'auto';
   }
 
@@ -4028,7 +4090,7 @@ function renderCartDrawer(){
   /* full-width buttons — equalizeBtnRow not needed */
   list.innerHTML=cartItems.map(item=>`
     <div class="cd-item">
-      <div class="cd-item-img" style="background:${item.image?`${item.image.bg||item.color} url('${item.image.src}') center/contain no-repeat`:item.color};"></div>
+      <div class="cd-item-img" data-action="thumb" data-slug="${item.slug}" style="background:${item.image?`${item.image.bg||item.color} url('${item.image.src}') center/contain no-repeat`:item.color};"></div>
       <div class="cd-item-info">
         <div class="cd-item-category">${item.category}</div>
         <div class="cd-item-name">${splitProductName(item.name,'inline')}</div>
@@ -4039,7 +4101,7 @@ function renderCartDrawer(){
         <div class="cd-item-row">
           <span class="cd-item-price-orig">${item.price}</span>
           <div class="cd-qty">
-            <span class="cd-qty-btn" data-action="qty" data-id="${item.id}" data-delta="-1">−</span>
+            <span class="cd-qty-btn${item.qty<=1?' disabled':''}" data-action="qty" data-id="${item.id}" data-delta="-1">−</span>
             <span class="cd-qty-num">${item.qty}</span>
             <span class="cd-qty-btn" data-action="qty" data-id="${item.id}" data-delta="1">+</span>
           </div>
@@ -4195,7 +4257,7 @@ function renderCartPage(){
   itemsList.innerHTML=cartItems.map(item=>`
     <div class="cp-item">
       <div class="cp-item-product">
-        <div class="cp-item-img" style="background:${item.image?`${item.image.bg||item.color} url('${item.image.src}') center/contain no-repeat`:item.color};"></div>
+        <div class="cp-item-img" data-action="thumb-cp" data-slug="${item.slug}" style="background:${item.image?`${item.image.bg||item.color} url('${item.image.src}') center/contain no-repeat`:item.color};"></div>
         <div class="cp-item-info">
           <div class="cp-item-category">${item.category}</div>
           <div class="cp-item-name">${splitProductName(item.name,'inline')}</div>
@@ -4207,7 +4269,7 @@ function renderCartPage(){
       </div>
       <div class="cp-item-price">${item.price}</div>
       <div class="cp-item-qty">
-        <span class="cd-qty-btn" data-action="qty-cp" data-id="${item.id}" data-delta="-1">−</span>
+        <span class="cd-qty-btn${item.qty<=1?' disabled':''}" data-action="qty-cp" data-id="${item.id}" data-delta="-1">−</span>
         <span class="cd-qty-num">${item.qty}</span>
         <span class="cd-qty-btn" data-action="qty-cp" data-id="${item.id}" data-delta="1">+</span>
       </div>
@@ -4246,11 +4308,12 @@ function openCheckoutPage(from){
   bringPageToFront(page);
   page.classList.add('open');
   page.scrollTop=0;
+  clearCheckoutErrors();
   const formRest=document.getElementById('chp-form-rest');
   const continueBtn=document.getElementById('chp-email-continue-btn');
   const loginNotice=document.getElementById('chp-login-notice');
   if(window.isLoggedIn){
-    // 로그인 상태: 폼 전체 바로 표시, 데이터 자동 채움
+    // 로그인 상태: 폼 전체 바로 표시, 연락처 섹션 숨김
     formRest.style.display='';
     continueBtn.style.display='none';
     loginNotice.style.display='none';
@@ -4259,12 +4322,11 @@ function openCheckoutPage(from){
     document.getElementById('chp-firstname').value='';
     document.getElementById('chp-phone').value='';
   } else {
-    // 비로그인: 이메일만 표시, 나머지 폼 숨김
+    // 비로그인: 이메일 + 버튼만 표시, 나머지 폼 숨김
     formRest.style.display='none';
     continueBtn.style.display='';
-    loginNotice.style.display='none';
+    loginNotice.style.display='';
     document.getElementById('chp-guest-section').style.display='';
-    // 이메일 필드 초기화
     document.getElementById('chp-email').value='';
   }
   updateCheckoutPaymentMethod();
@@ -4283,7 +4345,7 @@ function renderCheckoutSummary(){
   itemsEl.innerHTML=cartItems.map(item=>`
     <div class="chp-sum-item">
       <div class="chp-sum-item-img-wrap">
-        <div class="chp-sum-item-img" style="background:${item.color};"></div>
+        <div class="chp-sum-item-img" style="background:${item.image?`${item.image.bg||item.color} url('${item.image.src}') center/contain no-repeat`:item.color};"></div>
         <span class="chp-sum-item-qty">${item.qty}</span>
       </div>
       <div class="chp-sum-item-info">
@@ -4311,6 +4373,7 @@ function renderCheckoutSummary(){
   } else {
     subRow.style.display='none';
   }
+  document.getElementById('chp-sub-notice').style.display=subItems.length>0?'':'none';
 }
 function updateCheckoutPaymentMethod(){
   const checked=document.querySelector('input[name="chp-payment"]:checked');
@@ -4454,8 +4517,8 @@ document.getElementById('cp-search-btn').addEventListener('click',openOverlay);
 // 결제 페이지
 document.getElementById('chp-logo-img').addEventListener('click',()=>{closeCheckoutPage();goHome();});
 document.getElementById('chp-cart-icon-btn').addEventListener('click',openCartDrawer);
-document.getElementById('chp-login-link').addEventListener('click',()=>{closeCheckoutPage();openLoginPage();});
-document.getElementById('chp-notice-login-link').addEventListener('click',()=>{closeCheckoutPage();openLoginPage();});
+document.getElementById('chp-login-btn').addEventListener('click',()=>{closeCheckoutPage();openLoginPage();});
+
 
 // 이메일 계속하기 버튼
 document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
@@ -4463,33 +4526,115 @@ document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
   const emailInput=document.getElementById('chp-email');
   if(!emailInput.value.trim()){emailField.classList.add('error');return;}
   emailField.classList.remove('error');
-  // 로그인 제안 배너 표시 (비로그인 시)
-  if(!window.isLoggedIn){
-    document.getElementById('chp-login-notice').style.display='';
-  }
-  // 나머지 폼 표시
+  // 버튼·안내 숨기고 나머지 폼 표시
+  document.getElementById('chp-email-continue-btn').style.display='none';
+  document.getElementById('chp-login-notice').style.display='none';
   const formRest=document.getElementById('chp-form-rest');
   formRest.style.display='';
-  document.getElementById('chp-email-continue-btn').style.display='none';
   // 배송지 섹션으로 부드럽게 스크롤
   setTimeout(()=>formRest.scrollIntoView({behavior:'smooth',block:'start'}),50);
 });
 
-// 나머지주소 — 기본주소 입력 후 활성화
+// 나머지주소 — 기본주소 입력 후 활성화 + 우편번호 검색/클리어 아이콘
 (function(){
   const addr1=document.getElementById('chp-addr1');
   const addr2=document.getElementById('chp-addr2');
+  const zipInp=document.getElementById('chp-zipcode');
+  const searchBtn=document.querySelector('.chp-addr-search-btn');
+  const zipHelper=document.getElementById('chp-zipcode-helper');
+  const SEARCH_SVG='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>';
+  const CLEAR_SVG='<svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.5" fill="currentColor" opacity=".35"/><path d="M6 6l4 4M10 6L6 10" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>';
+
   function enableAddr2(){if(addr1.value.trim())addr2.disabled=false;}
   addr1.addEventListener('input',enableAddr2);
-  document.querySelector('.chp-addr-search-btn').addEventListener('click',()=>{
-    new daum.Postcode({
-      oncomplete(data){
-        document.getElementById('chp-zipcode').value=data.zonecode;
-        addr1.value=data.roadAddress||data.jibunAddress;
-        addr2.disabled=false;
-        addr2.focus();
+
+  function updateZipIcon(){
+    const v=zipInp.value;
+    const focused=document.activeElement===zipInp;
+    const zipField=zipInp.closest('.chp-field');
+    // has-value: 값이 있으면 항상 아래 위치 유지
+    if(v) zipField.classList.add('has-value');
+    else zipField.classList.remove('has-value');
+    // 아이콘: 포커스 중 + 값 있을 때만 클리어, 나머지는 검색
+    if(v&&focused){
+      searchBtn.innerHTML=CLEAR_SVG;
+      searchBtn.title='삭제';
+      searchBtn.dataset.mode='clear';
+    } else {
+      searchBtn.innerHTML=SEARCH_SVG;
+      searchBtn.title='주소 검색';
+      searchBtn.dataset.mode='search';
+    }
+  }
+  function validateZip(){
+    const v=zipInp.value;
+    const zipField=zipInp.closest('.chp-field');
+    if(!v){
+      zipHelper.textContent='우편번호를 입력하세요.';
+      zipHelper.classList.remove('visible','warn');
+      zipField.classList.remove('input-warn');
+      return;
+    }
+    const isValid=/^\d{5}$/.test(v);
+    if(isValid){
+      zipHelper.textContent='우편번호를 입력하세요.';
+      zipHelper.classList.remove('visible','warn');
+      zipField.classList.remove('input-warn');
+    } else {
+      zipHelper.textContent='잘못된 형식입니다.';
+      zipHelper.classList.add('visible','warn');
+      zipField.classList.add('input-warn');
+    }
+  }
+  zipInp.addEventListener('focus',()=>{
+    updateZipIcon();
+    if(!zipInp.value){
+      zipHelper.textContent='우편번호를 입력하세요.';
+      zipHelper.classList.add('visible');
+      zipHelper.classList.remove('warn');
+      zipInp.closest('.chp-field').classList.remove('input-warn');
+    }
+  });
+  zipInp.addEventListener('input',()=>{
+    updateZipIcon();
+    // 숫자 외 문자 입력 시 즉시 warn
+    const v=zipInp.value;
+    const zipField=zipInp.closest('.chp-field');
+    if(v&&/[^\d]/.test(v)){
+      zipHelper.textContent='잘못된 형식입니다.';
+      zipHelper.classList.add('visible','warn');
+      zipField.classList.add('input-warn');
+    } else {
+      zipHelper.classList.remove('visible','warn');
+      zipField.classList.remove('input-warn');
+    }
+  });
+  zipInp.addEventListener('blur',()=>{updateZipIcon();validateZip();});
+
+  // mousedown에서 preventDefault → blur 이벤트 차단 (클릭 시 mode 변경 방지)
+  searchBtn.addEventListener('mousedown',e=>e.preventDefault());
+
+  // 검색 또는 클리어 클릭 — mode 대신 실제 값 유무로 판단
+  searchBtn.addEventListener('click',()=>{
+    if(zipInp.value){
+      zipInp.value='';
+      zipInp.dispatchEvent(new Event('input',{bubbles:true}));
+      validateZip();
+      zipInp.focus();
+    } else {
+      if(typeof daum!=='undefined'){
+        new daum.Postcode({
+          oncomplete(data){
+            zipInp.value=data.zonecode;
+            zipInp.dispatchEvent(new Event('input',{bubbles:true}));
+            addr1.value=data.roadAddress||data.jibunAddress;
+            addr1.dispatchEvent(new Event('input',{bubbles:true}));
+            addr2.disabled=false;
+            addr2.focus();
+          }
+        }).open();
       }
-    }).open();
+    }
   });
 })();
 
@@ -4509,20 +4654,182 @@ document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
   });
   function validatePw2(){
     const field=pw2.closest('.chp-field');
-    const errMsg=field.querySelector('.chp-error-msg');
+    const helper=document.getElementById('chp-pw2-helper');
     if(!pw2.value.trim()){
-      errMsg.textContent='비밀번호 확인을 입력해 주세요.';
-      field.classList.add('error');
+      // 빈 값: 에러 상태 해제만 (submit 시 validateCheckoutForm이 처리)
+      field.classList.remove('error','input-warn');
+      if(helper)helper.classList.remove('visible','warn');
     } else if(pw.value!==pw2.value){
-      errMsg.textContent='비밀번호가 일치하지 않습니다.';
-      field.classList.add('error');
-    } else {
+      // 불일치: helper text 사용
       field.classList.remove('error');
+      field.classList.add('input-warn');
+      if(helper){helper.classList.add('visible');helper.classList.add('warn');}
+    } else {
+      // 일치: 모두 해제
+      field.classList.remove('error','input-warn');
+      if(helper){helper.classList.remove('visible','warn');}
     }
   }
   pw2.addEventListener('input',validatePw2);
   pw2.addEventListener('blur',validatePw2);
   pw2._validate=validatePw2;
+})();
+
+// ── 인풋 필드 UX: 비밀번호 눈 토글 + 삭제 X 아이콘 ──
+(function(){
+  const EYE_OPEN='<svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.2"/></svg>';
+  const EYE_CLOSED='<svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.2"/><line x1="2" y1="14" x2="14" y2="2"/></svg>';
+  const CLEAR_X='<svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.5" fill="currentColor" opacity=".35"/><path d="M6 6l4 4M10 6L6 10" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>';
+
+  // 비밀번호 눈 아이콘
+  document.querySelectorAll('#chp-guest-pw, #chp-guest-pw2').forEach(inp=>{
+    const btn=document.createElement('button');
+    btn.type='button';btn.className='chp-input-action chp-pw-toggle';
+    btn.innerHTML=EYE_OPEN;btn.title='비밀번호 보기';
+    btn.addEventListener('click',()=>{
+      const showing=inp.type==='text';
+      inp.type=showing?'password':'text';
+      btn.innerHTML=showing?EYE_OPEN:EYE_CLOSED;
+      btn.title=showing?'비밀번호 보기':'비밀번호 가리기';
+    });
+    inp.closest('.chp-field').appendChild(btn);
+    inp.addEventListener('input',()=>{btn.classList.toggle('visible',!!inp.value);});
+  });
+
+  // 일반 필드 삭제 X 아이콘 (비밀번호·select·disabled 제외)
+  document.querySelectorAll('#chp-form-rest .chp-input').forEach(inp=>{
+    if(inp.type==='password'||inp.tagName==='SELECT'||inp.id==='chp-zipcode')return;
+    const btn=document.createElement('button');
+    btn.type='button';btn.className='chp-input-action chp-clear-btn';
+    btn.innerHTML=CLEAR_X;btn.title='삭제';
+    btn.addEventListener('click',()=>{inp.value='';inp.dispatchEvent(new Event('input',{bubbles:true}));inp.focus();});
+    inp.closest('.chp-field').appendChild(btn);
+    inp.addEventListener('input',()=>{btn.classList.toggle('visible',!!inp.value);});
+    inp.addEventListener('focus',()=>{if(inp.value)btn.classList.add('visible');});
+    inp.addEventListener('blur',()=>{btn.classList.remove('visible');});
+  });
+})();
+
+// ── Helper Text 실시간 검증 ──
+(function(){
+  function setWarn(field, helper, isWarn){
+    helper.classList.toggle('warn', isWarn);
+    field.classList.toggle('input-warn', isWarn);
+  }
+
+  // ── 이메일: 로컬파트@도메인 패턴 체크 ──
+  const emailInp=document.getElementById('chp-email');
+  const emailHelper=document.getElementById('chp-email-helper');
+  function isEmailValid(v){return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(v);}
+  const EMAIL_HINT='이메일 주소를 입력하세요.';
+  const EMAIL_WARN='잘못된 형식입니다.';
+  emailInp.addEventListener('focus',()=>{
+    const field=emailInp.closest('.chp-field');
+    if(!emailInp.value){
+      emailHelper.textContent=EMAIL_HINT;
+      emailHelper.classList.add('visible');
+      setWarn(field,emailHelper,false);
+    }
+  });
+  emailInp.addEventListener('input',()=>{
+    // 입력 중에는 경고 없음 — 값을 지우면 hint로 복귀
+    const field=emailInp.closest('.chp-field');
+    if(!emailInp.value){
+      emailHelper.textContent=EMAIL_HINT;
+      emailHelper.classList.add('visible');
+      setWarn(field,emailHelper,false);
+    } else {
+      emailHelper.classList.remove('visible');
+      setWarn(field,emailHelper,false);
+    }
+  });
+  emailInp.addEventListener('blur',()=>{
+    const v=emailInp.value;
+    const field=emailInp.closest('.chp-field');
+    if(!v){emailHelper.textContent=EMAIL_HINT;emailHelper.classList.remove('visible');setWarn(field,emailHelper,false);return;}
+    const valid=isEmailValid(v);
+    emailHelper.textContent=valid?EMAIL_HINT:EMAIL_WARN;
+    setWarn(field,emailHelper,!valid);
+    if(valid)emailHelper.classList.remove('visible');
+    else emailHelper.classList.add('visible');
+  });
+
+  // ── 휴대전화: 자동 하이픈 + 숫자 검증 ──
+  const phoneInp=document.getElementById('chp-phone');
+  const phoneHelper=document.getElementById('chp-phone-helper');
+  function formatPhone(val){
+    const d=val.replace(/\D/g,'').slice(0,11);
+    if(d.length<=3)return d;
+    // 010/011 등 11자리: 3-4-4 / 그 외 10자리: 3-3-4
+    const is11=(d.startsWith('010')||d.startsWith('011')||d.startsWith('016')||d.startsWith('017')||d.startsWith('018')||d.startsWith('019'));
+    const mid=is11?4:3;
+    if(d.length<=3+mid)return d.slice(0,3)+'-'+d.slice(3);
+    return d.slice(0,3)+'-'+d.slice(3,3+mid)+'-'+d.slice(3+mid);
+  }
+  const PHONE_HINT='전화번호를 입력해 주세요.';
+  const PHONE_WARN='잘못된 형식입니다.';
+  phoneInp.addEventListener('focus',()=>{
+    const hasInvalid=/[^\d\-]/.test(phoneInp.value);
+    const digits=phoneInp.value.replace(/\D/g,'');
+    if(!phoneInp.value||hasInvalid||digits.length<10){
+      phoneHelper.textContent=hasInvalid?PHONE_WARN:PHONE_HINT;
+      phoneHelper.classList.add('visible');
+      setWarn(phoneInp.closest('.chp-field'),phoneHelper,hasInvalid);
+    }
+  });
+  phoneInp.addEventListener('input',function(){
+    const v=this.value;
+    const hasInvalid=/[^\d\-]/.test(v);
+    if(hasInvalid){
+      phoneHelper.textContent=PHONE_WARN;
+      phoneHelper.classList.add('visible');
+      setWarn(this.closest('.chp-field'),phoneHelper,true);
+      return;
+    }
+    // 숫자/하이픈만: 자동 하이픈 포맷
+    const cursor=this.selectionStart;
+    const prev=this.value;
+    const formatted=formatPhone(this.value);
+    this.value=formatted;
+    const diff=formatted.length-prev.length;
+    this.setSelectionRange(cursor+diff,cursor+diff);
+    const digits=formatted.replace(/\D/g,'');
+    const isComplete=digits.length>=10;
+    const isWarn=!!formatted&&!isComplete;
+    phoneHelper.textContent=isWarn?PHONE_WARN:PHONE_HINT;
+    setWarn(this.closest('.chp-field'),phoneHelper,isWarn);
+    if(!formatted||isComplete)phoneHelper.classList.remove('visible');
+  });
+  phoneInp.addEventListener('blur',()=>{
+    const hasInvalid=/[^\d\-]/.test(phoneInp.value);
+    const digits=phoneInp.value.replace(/\D/g,'');
+    if(!phoneInp.value||(digits.length>=10&&!hasInvalid)){
+      phoneHelper.classList.remove('visible');
+      setWarn(phoneInp.closest('.chp-field'),phoneHelper,false);
+    }
+  });
+
+  // ── 비밀번호: 조건 안내 + 미충족 경고 ──
+  const pwInp=document.getElementById('chp-guest-pw');
+  const pwHelper=document.getElementById('chp-pw-helper');
+  function isPwValid(v){const t=[/[a-z]/.test(v),/[A-Z]/.test(v),/\d/.test(v),/[^a-zA-Z\d]/.test(v)].filter(Boolean).length;return t>=2&&v.length>=6&&v.length<=16;}
+  pwInp.addEventListener('focus',()=>{
+    if(!pwInp.value||!isPwValid(pwInp.value)){pwHelper.classList.add('visible');setWarn(pwInp.closest('.chp-field'),pwHelper,false);}
+  });
+  pwInp.addEventListener('input',()=>{
+    const v=pwInp.value;
+    if(!v){setWarn(pwInp.closest('.chp-field'),pwHelper,false);return;}
+    const valid=isPwValid(v);
+    setWarn(pwInp.closest('.chp-field'),pwHelper,!valid);
+    if(valid)pwHelper.classList.remove('visible');
+    // 비밀번호2 재검증
+    if(pw2Inp.value)pw2Inp.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  pwInp.addEventListener('blur',()=>{
+    if(!pwInp.value||isPwValid(pwInp.value)){pwHelper.classList.remove('visible');setWarn(pwInp.closest('.chp-field'),pwHelper,false);}
+  });
+
+  // pw2 검증은 validatePw2()가 담당하므로 별도 리스너 불필요
 })();
 
 // 배송 메시지 직접 입력
@@ -4624,6 +4931,7 @@ document.getElementById('cd-items').addEventListener('click',e=>{
   const id=Number(el.dataset.id);
   if(el.dataset.action==='qty')updateCartQty(id,Number(el.dataset.delta));
   else if(el.dataset.action==='remove')removeCartItem(id);
+  else if(el.dataset.action==='thumb'){closeCartDrawer();window._pdPrevPage='main';openProductPage(el.dataset.slug);}
 });
 // ── 이벤트 위임: 장바구니 페이지 ──
 document.getElementById('cp-items-list').addEventListener('click',e=>{
@@ -4632,6 +4940,7 @@ document.getElementById('cp-items-list').addEventListener('click',e=>{
   const id=Number(el.dataset.id);
   if(el.dataset.action==='qty-cp'){updateCartQty(id,Number(el.dataset.delta));renderCartPage();}
   else if(el.dataset.action==='remove-cp'){removeCartItem(id);renderCartPage();}
+  else if(el.dataset.action==='thumb-cp'){window._pdPrevPage='main';openProductPage(el.dataset.slug);}
 });
 
 // ── PD: Note / Roasting / Recipe 렌더 함수 ──
