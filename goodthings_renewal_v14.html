@@ -1376,12 +1376,12 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 .chp-helper.warn{color:var(--color-error);}
 /* 경고 시 보더 컬러 강조 */
 .chp-field.input-warn .chp-input{border-bottom-color:var(--color-error);}
-select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23888' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 2px center;padding-right:20px;}
+select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23999' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 4px center;padding-right:28px;}
 /* select floating label — :placeholder-shown 미지원으로 별도 제어 */
 select.chp-input{color:transparent;}
 select.chp-input option{color:var(--color-text-primary);}
 .chp-field.has-value select.chp-input{color:var(--color-text-primary);}
-select.chp-input:not(:focus) ~ .chp-floating-label{top:50%;transform:translateY(-50%) scale(1);color:var(--color-text-secondary);}
+select.chp-input:not(:focus) ~ .chp-floating-label{top:50%;transform:translateY(-50%) scale(1);color:var(--color-text-placeholder);}
 select.chp-input:focus ~ .chp-floating-label,.chp-field.has-value select.chp-input ~ .chp-floating-label{top:4px;transform:translateY(0) scale(.75);color:var(--color-text-tertiary);}
 select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 
@@ -2572,13 +2572,13 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
           <div class="chp-payment-item active" id="chp-pm-transfer">
             <label class="chp-payment-method">
               <input type="radio" name="chp-payment" value="transfer" checked>
-              <span>무통장입금</span>
+              <span>계좌이체 / 무통장입금</span>
             </label>
           </div>
           <div class="chp-payment-item" id="chp-pm-card">
             <label class="chp-payment-method">
               <input type="radio" name="chp-payment" value="card">
-              <span>신용카드</span>
+              <span>체크 / 신용카드</span>
             </label>
           </div>
         </div>
