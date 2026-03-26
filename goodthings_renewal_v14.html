@@ -1317,7 +1317,8 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 }
 
 /* 좌측 폼 */
-#chp-left{padding-top:48px;}
+#chp-left{padding-top:48px;position:relative;}
+#chp-left::after{content:'';position:absolute;top:33px;bottom:0;right:-30px;width:.5px;background:var(--color-border-tertiary);}
 .chp-section{margin-bottom:56px;padding-top:56px;border-top:.5px solid var(--color-border-tertiary);}
 .chp-section:first-child{border-top:none;padding-top:0;}
 #chp-guest-section,#chp-payment-section,#chp-agree-section{border-top:none;padding-top:0;}
@@ -1515,15 +1516,14 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   border-left:2px solid var(--color-text-primary);
 }
 .chp-legal-links{display:flex;flex-wrap:wrap;justify-content:space-between;row-gap:10px;margin-top:40px;}
+.chp-legal-links::after{content:'';flex:1 0 100%;}
 .chp-legal-link{flex:0 0 auto;font-family:var(--font-en);font-size:12px;color:var(--color-text-tertiary);cursor:pointer;border-bottom:.5px solid var(--color-border-tertiary);padding-bottom:1px;transition:color 200ms linear;}
 .chp-legal-link:hover{color:var(--color-text-primary);}
-.chp-legal-ghost{flex:0 0 auto;visibility:hidden;pointer-events:none;font-size:12px;}
 
 /* 우측 주문 요약 */
 #chp-right{
   position:sticky;top:80px;
   padding-top:33px;
-  border-left:.5px solid var(--color-border-tertiary);
   padding-left:40px;
 }
 #chp-right-title{
@@ -2645,10 +2645,6 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
         <span class="chp-legal-link">이용약관</span>
         <span class="chp-legal-link">전자상거래 법률 고지</span>
         <span class="chp-legal-link">취소·반품 안내</span>
-        <span class="chp-legal-ghost">배송 안내</span>
-        <span class="chp-legal-ghost">개인정보처리방침</span>
-        <span class="chp-legal-ghost">이용약관</span>
-        <span class="chp-legal-ghost">전자상거래 법률 고지</span>
       </div>
       </div><!-- /chp-form-rest -->
     </div>
