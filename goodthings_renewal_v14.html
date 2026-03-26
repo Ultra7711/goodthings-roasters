@@ -999,20 +999,27 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
         <span class="lp-divider-txt">간편 로그인</span>
         <div class="lp-divider-line"></div>
       </div>
-      <!-- 소셜 로그인 아이콘 3개 나란히 -->
+      <!-- 소셜 로그인 — 각 1줄 -->
       <div id="lp-social">
-        <button class="lp-social-icon-btn" id="lp-kakao-btn" title="카카오로 시작하기">
-          <svg width="22" height="22" viewBox="0 0 24 24"><ellipse cx="12" cy="11.5" rx="10" ry="9" fill="#3C1E1E"/><path d="M12 5c-3.9 0-7 2.4-7 5.4 0 1.9 1.2 3.5 3.1 4.5l-.8 2.9 3.3-2.1c.4.1.9.1 1.4.1 3.9 0 7-2.4 7-5.4S15.9 5 12 5z" fill="#FFE812"/></svg>
-          <span>카카오</span>
+        <button class="lp-social-btn" id="lp-kakao-btn">
+          <!-- 카카오 말풍선 심볼 — 제공 SVG 경로 정규화 (viewBox 284.17 407.7 26 26 → 0 0 26 26) -->
+          <span class="lp-social-icon"><svg width="24" height="24" viewBox="0 0 26 26" fill="none"><path d="M13,0c-7.18,0-13,5.01-13,11.19,0,4.02,2.47,7.55,6.17,9.52-.27,1.1-.98,4-1.13,4.62-.18.77.26.76.54.55.22-.16,3.56-2.63,5-3.7.78.13,1.59.19,2.41.19,7.18,0,13-5.01,13-11.19S20.18,0,13,0" fill="#3C1E1E"/></svg></span>
+          <span class="lp-social-label">카카오로 계속하기</span>
         </button>
-        <button class="lp-social-icon-btn" id="lp-naver-btn" title="네이버로 시작하기">
-          <svg width="22" height="22" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#03C75A"/><path d="M6 18V6l5.3 7.7V6H14v12l-5.3-7.7V18H6z" fill="white"/></svg>
-          <span>네이버</span>
+        <button class="lp-social-btn" id="lp-naver-btn">
+          <!-- 네이버 N 심볼 — 제공 SVG polygon 정규화 (284.17,408.87 기준 원점 이동, viewBox 26×24) -->
+          <span class="lp-social-icon"><svg width="24" height="24" viewBox="0 0 26 24" fill="none"><polygon points="26,0 26,24 17.27,24 8.72,11.91 8.72,24 0,24 0,0 8.72,0 17.27,12.56 17.27,0 26,0" fill="#fff"/></svg></span>
+          <span class="lp-social-label">네이버로 계속하기</span>
         </button>
-        <button class="lp-social-icon-btn" id="lp-google-btn" title="Google로 시작하기">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#fff" stroke="#e0e0e0" stroke-width=".5"/><path d="M21 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.6c-.2 1.3-1 2.4-2.1 3.1v2.6h3.4c2-1.8 3.1-4.5 3.1-7.5z" fill="#4285F4"/><path d="M12 22c2.7 0 5-.9 6.9-2.4l-3.4-2.6c-.9.6-2.1 1-3.5 1-2.7 0-5-1.8-5.8-4.3H2.7v2.7C4.6 20.9 8 22 12 22z" fill="#34A853"/><path d="M6.2 13.7c-.2-.6-.3-1.1-.3-1.7s.1-1.2.3-1.7V7.6H2.7C2 9 1.6 10.4 1.6 12s.4 3 1.1 4.4l3.5-2.7z" fill="#FBBC05"/><path d="M12 5c1.5 0 2.9.5 3.9 1.5l2.9-2.9C17 2.8 14.7 2 12 2 8 2 4.6 4.1 2.7 7.3l3.5 2.7C7 7.6 9.3 5 12 5z" fill="#EA4335"/></svg>
-          <span>Google</span>
+        <button class="lp-social-btn" id="lp-google-btn">
+          <!-- Google G 로고 — 공식 4색, 26×26 기준 -->
+          <span class="lp-social-icon"><svg width="24" height="24" viewBox="0 0 48 48" fill="none"><path d="M47.5 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h13.2c-.6 3-2.3 5.6-4.9 7.3v6h7.9c4.6-4.3 7.3-10.6 7.3-17.5z" fill="#4285F4"/><path d="M24 48c6.6 0 12.2-2.2 16.2-6l-7.9-6c-2.2 1.5-5 2.3-8.3 2.3-6.4 0-11.8-4.3-13.7-10.1H2.1v6.2C6.1 42.9 14.5 48 24 48z" fill="#34A853"/><path d="M10.3 28.2A14.6 14.6 0 019.5 24c0-1.5.3-2.9.8-4.2V13.6H2.1A24 24 0 000 24c0 3.9.9 7.5 2.1 10.4l8.2-6.2z" fill="#FBBC05"/><path d="M24 9.6c3.6 0 6.8 1.2 9.3 3.6l7-7C36.2 2.2 30.6 0 24 0 14.5 0 6.1 5.1 2.1 13.6l8.2 6.2C12.2 13.9 17.6 9.6 24 9.6z" fill="#EA4335"/></svg></span>
+          <span class="lp-social-label">Google로 계속하기</span>
         </button>
+      </div>
+      <!-- 비회원 주문 조회 -->
+      <div id="lp-guest-order-wrap">
+        <button id="lp-guest-order-btn">비회원 주문 조회하기</button>
       </div>
     </div>
   </div>
@@ -1113,22 +1120,52 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   color:var(--color-text-tertiary);white-space:nowrap;
 }
 
-/* 소셜 로그인 — 구분선 폭과 동일하게 균등 분할 */
-#lp-social{display:flex;gap:8px;}
-.lp-social-icon-btn{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;
-  padding:14px 0;
+/* 소셜 로그인 — 1줄씩 */
+#lp-social{display:flex;flex-direction:column;gap:10px;}
+.lp-social-btn{
+  display:flex;align-items:center;
+  width:100%;height:52px;padding:0 20px;
   border:.5px solid var(--color-border-secondary);
   background:#fff;cursor:pointer;
-  transition:transform .5s var(--ease-spring), background .4s ease, box-shadow .4s ease;
+  position:relative;
+  transition:transform .5s var(--ease-spring), opacity .3s ease, box-shadow .4s ease;
   will-change:transform;backface-visibility:hidden;
 }
-.lp-social-icon-btn:hover{background:var(--color-background-secondary);transform:translateY(-2px);box-shadow:0 4px 12px rgba(26,26,26,.06);}
-.lp-social-icon-btn:active{transform:translateY(0);}
-.lp-social-icon-btn span{
-  font-family:var(--font-kr);font-size:12px;font-weight:300;
-  color:var(--color-text-secondary);letter-spacing:.02em;
+.lp-social-btn:hover{opacity:.85;transform:scale(1.01);}
+.lp-social-btn:active{transform:scale(.99);}
+.lp-social-icon{
+  position:absolute;left:20px;top:50%;transform:translateY(-50%);
+  display:flex;align-items:center;
+  width:24px;height:24px;
 }
+.lp-social-icon svg{width:24px;height:24px;}
+.lp-social-label{
+  flex:1;text-align:center;
+  font-family:var(--font-kr);font-size:15px;font-weight:400;
+  color:var(--color-text-primary);letter-spacing:.02em;
+}
+/* 카카오 브랜드 컬러 */
+#lp-kakao-btn{background:#FEE500;border-color:#FEE500;}
+#lp-kakao-btn .lp-social-label{color:#191919;}
+/* 네이버 브랜드 컬러 */
+#lp-naver-btn{background:#03C75A;border-color:#03C75A;}
+#lp-naver-btn .lp-social-label{color:#fff;}
+
+/* 비회원 주문 조회 */
+#lp-guest-order-wrap{margin-top:56px;padding-top:32px;border-top:.5px solid var(--color-border-tertiary);}
+#lp-guest-order-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;height:52px;padding:0;
+  background:transparent;
+  border:.5px solid var(--color-border-primary);
+  cursor:pointer;
+  font-family:var(--font-kr);font-size:15px;font-weight:400;
+  color:var(--color-text-secondary);letter-spacing:.02em;
+  transition:transform .5s var(--ease-spring), background .3s ease, color .3s ease;
+  will-change:transform;backface-visibility:hidden;
+}
+#lp-guest-order-btn:hover{background:var(--color-background-secondary);color:var(--color-text-primary);transform:scale(1.01);}
+#lp-guest-order-btn:active{transform:scale(.99);}
 
 /* 푸터 */
 #lp-footer-wrap{flex-shrink:0;}
