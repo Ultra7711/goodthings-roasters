@@ -1284,7 +1284,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 /* ══ CHECKOUT PAGE ══ */
 #checkout-page{
   position:fixed;inset:0;z-index:var(--z-page);
-  background:#fff;display:none;flex-direction:column;overflow-y:auto;
+  background:#fff;display:none;flex-direction:column;overflow-y:auto;overflow-anchor:none;
 }
 #checkout-page.open{display:flex;}
 
@@ -4531,9 +4531,8 @@ document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
   document.getElementById('chp-login-notice').style.display='none';
   const formRest=document.getElementById('chp-form-rest');
   formRest.style.display='';
-  // 페이지 최상단으로 이동
-  const page=document.getElementById('app-page')||document.documentElement;
-  page.scrollTop=0;window.scrollTo({top:0,behavior:'instant'});
+  // 페이지 최상단으로 이동 (브라우저 레이아웃 완료 후)
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{document.getElementById('checkout-page').scrollTop=0;}));
 });
 
 // 나머지주소 — 기본주소 입력 후 활성화 + 우편번호 검색/클리어 아이콘
