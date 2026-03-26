@@ -1320,6 +1320,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 #chp-left{padding-top:48px;}
 .chp-section{margin-bottom:56px;padding-top:56px;border-top:.5px solid var(--color-border-tertiary);}
 .chp-section:first-child{border-top:none;padding-top:0;}
+#chp-guest-section,#chp-payment-section,#chp-agree-section{border-top:none;padding-top:0;}
 .chp-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
 .chp-section-title{font-family:var(--font-en);font-size:var(--type-heading-m-size);font-weight:var(--type-heading-m-weight);letter-spacing:-.01em;color:var(--color-text-primary);margin-bottom:20px;}
 .chp-section-header .chp-section-title{margin-bottom:0;}
@@ -1470,6 +1471,8 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 .chp-payment-detail{padding:0 0 20px;}
 @keyframes chp-fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
 .chp-payment-detail.fade-in{animation:chp-fadein .25s ease;}
+.chp-card-notice{display:flex;align-items:center;gap:8px;font-family:var(--font-kr);font-size:var(--type-input-size);color:var(--color-text-tertiary);margin:40px 0 0;}
+.chp-card-notice-icon{flex-shrink:0;width:16px;height:16px;color:var(--color-text-secondary);}
 
 /* 약관 동의 */
 .chp-agree-all-row{
@@ -1478,7 +1481,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   margin-bottom:0;
 }
 .chp-agree-all-row input[type="checkbox"]{width:18px;height:18px;accent-color:#1a1a1a;flex-shrink:0;}
-.chp-agree-all-label{font-family:var(--font-en);font-size:var(--type-heading-s-size);font-weight:var(--type-heading-s-weight);color:var(--color-text-primary);}
+.chp-agree-all-label{font-family:var(--font-kr);font-size:var(--type-input-size);font-weight:500;color:var(--color-text-primary);}
 .chp-agree-items{border-bottom:.5px solid var(--color-border-primary);}
 .chp-agree-item{
   display:flex;align-items:center;gap:10px;
@@ -1511,9 +1514,10 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   background:var(--color-background-secondary);
   border-left:2px solid var(--color-text-primary);
 }
-.chp-legal-links{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;}
-.chp-legal-link{font-family:var(--font-en);font-size:12px;color:var(--color-text-tertiary);cursor:pointer;border-bottom:.5px solid var(--color-border-tertiary);padding-bottom:1px;transition:color 200ms linear;}
+.chp-legal-links{display:flex;flex-wrap:wrap;justify-content:space-between;row-gap:10px;margin-top:40px;}
+.chp-legal-link{flex:0 0 auto;font-family:var(--font-en);font-size:12px;color:var(--color-text-tertiary);cursor:pointer;border-bottom:.5px solid var(--color-border-tertiary);padding-bottom:1px;transition:color 200ms linear;}
 .chp-legal-link:hover{color:var(--color-text-primary);}
+.chp-legal-ghost{flex:0 0 auto;visibility:hidden;pointer-events:none;font-size:12px;}
 
 /* 우측 주문 요약 */
 #chp-right{
@@ -2565,7 +2569,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
       </div>
 
       <!-- 결제수단 -->
-      <div class="chp-section">
+      <div class="chp-section" id="chp-payment-section">
         <h2 class="chp-section-title">결제수단</h2>
         <div id="chp-payment-methods">
           <div id="chp-payment-indicator"></div>
@@ -2600,16 +2604,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
           </div>
         </div>
         <div class="chp-payment-detail" id="chp-card-detail" style="display:none">
-          <div class="chp-field" data-required="true" data-payment="card">
-            <select class="chp-input chp-select" id="chp-card-company">
-              <option value="" disabled hidden></option>
-              <option>신한카드</option><option>국민카드</option><option>현대카드</option>
-              <option>롯데카드</option><option>우리카드</option><option>하나카드</option>
-              <option>삼성카드</option><option>BC카드</option>
-            </select>
-            <label class="chp-floating-label" for="chp-card-company">카드사</label>
-            <div class="chp-error-msg">카드사를 선택해 주세요.</div>
-          </div>
+          <p class="chp-card-notice"><svg class="chp-card-notice-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.3"/><line x1="8" y1="7" x2="8" y2="11.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="4.8" r=".8" fill="currentColor"/></svg>결제하기 버튼 클릭 시 카드 정보를 입력합니다.</p>
         </div>
       </div>
 
@@ -2623,12 +2618,12 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
           <label class="chp-agree-item">
             <input type="checkbox" class="chp-agree-check">
             <span>[필수] 쇼핑몰 이용약관 동의</span>
-            <span class="chp-agree-arrow"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M4 2l4 4-4 4"/></svg></span>
+            <span class="chp-agree-arrow"><svg width="20" height="20" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M4 2l4 4-4 4"/></svg></span>
           </label>
           <label class="chp-agree-item">
             <input type="checkbox" class="chp-agree-check">
             <span>[필수] 개인정보 수집 및 이용 동의</span>
-            <span class="chp-agree-arrow"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M4 2l4 4-4 4"/></svg></span>
+            <span class="chp-agree-arrow"><svg width="20" height="20" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M4 2l4 4-4 4"/></svg></span>
           </label>
           <label class="chp-agree-item">
             <input type="checkbox" class="chp-agree-check">
@@ -2639,7 +2634,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 
       <label class="chp-checkbox-row" style="margin-bottom:16px;">
         <input type="checkbox" checked>
-        <span>주문 내역을 이메일로 받기</span>
+        <span>주문 내역을 이메일로 받습니다.</span>
       </label>
       <button id="chp-submit-btn" class="chp-submit-btn">결제하기</button>
 
@@ -2650,6 +2645,10 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
         <span class="chp-legal-link">이용약관</span>
         <span class="chp-legal-link">전자상거래 법률 고지</span>
         <span class="chp-legal-link">취소·반품 안내</span>
+        <span class="chp-legal-ghost">배송 안내</span>
+        <span class="chp-legal-ghost">개인정보처리방침</span>
+        <span class="chp-legal-ghost">이용약관</span>
+        <span class="chp-legal-ghost">전자상거래 법률 고지</span>
       </div>
       </div><!-- /chp-form-rest -->
     </div>
