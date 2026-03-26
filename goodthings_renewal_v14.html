@@ -1397,7 +1397,7 @@ select.chp-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg 
 .chp-field.error .chp-error-msg{display:block;}
 
 /* 우편번호 + 기본주소 한 줄 */
-.chp-addr-inline{display:grid;grid-template-columns:140px 1fr;gap:16px;}
+.chp-addr-inline{display:grid;grid-template-columns:180px 1fr;gap:16px;}
 /* 우편번호 검색 아이콘 (인풋 내부) */
 .chp-addr-search-btn{
   position:absolute;right:0;top:28px;transform:translateY(-50%);
@@ -4581,7 +4581,7 @@ document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
       zipHelper.classList.remove('visible','warn');
       zipField.classList.remove('input-warn');
     } else {
-      zipHelper.textContent='잘못된 형식입니다.';
+      zipHelper.textContent='잘못된 형식입니다. (예: 01234)';
       zipHelper.classList.add('visible','warn');
       zipField.classList.add('input-warn');
     }
@@ -4601,7 +4601,7 @@ document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
     const v=zipInp.value;
     const zipField=zipInp.closest('.chp-field');
     if(v&&/[^\d]/.test(v)){
-      zipHelper.textContent='잘못된 형식입니다.';
+      zipHelper.textContent='잘못된 형식입니다. (예: 01234)';
       zipHelper.classList.add('visible','warn');
       zipField.classList.add('input-warn');
     } else {
@@ -4696,8 +4696,12 @@ document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
     inp.addEventListener('input',()=>{btn.classList.toggle('visible',!!inp.value);});
   });
 
-  // 일반 필드 삭제 X 아이콘 (비밀번호·select·disabled 제외)
-  document.querySelectorAll('#chp-form-rest .chp-input').forEach(inp=>{
+  // 일반 필드 삭제 X 아이콘 (비밀번호·select·disabled 제외, 이메일 포함)
+  const clearTargets=[
+    document.getElementById('chp-email'),
+    ...document.querySelectorAll('#chp-form-rest .chp-input')
+  ].filter(Boolean);
+  clearTargets.forEach(inp=>{
     if(inp.type==='password'||inp.tagName==='SELECT'||inp.id==='chp-zipcode')return;
     const btn=document.createElement('button');
     btn.type='button';btn.className='chp-input-action chp-clear-btn';
@@ -4722,7 +4726,7 @@ document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
   const emailHelper=document.getElementById('chp-email-helper');
   function isEmailValid(v){return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(v);}
   const EMAIL_HINT='이메일 주소를 입력하세요.';
-  const EMAIL_WARN='잘못된 형식입니다.';
+  const EMAIL_WARN='잘못된 형식입니다. (예: example@email.com)';
   emailInp.addEventListener('focus',()=>{
     const field=emailInp.closest('.chp-field');
     if(!emailInp.value){
@@ -4767,7 +4771,7 @@ document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
     return d.slice(0,3)+'-'+d.slice(3,3+mid)+'-'+d.slice(3+mid);
   }
   const PHONE_HINT='전화번호를 입력해 주세요.';
-  const PHONE_WARN='잘못된 형식입니다.';
+  const PHONE_WARN='잘못된 형식입니다. (예: 010-1234-5678)';
   phoneInp.addEventListener('focus',()=>{
     const hasInvalid=/[^\d\-]/.test(phoneInp.value);
     const digits=phoneInp.value.replace(/\D/g,'');
