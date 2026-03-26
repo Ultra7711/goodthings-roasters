@@ -4531,8 +4531,9 @@ document.getElementById('chp-email-continue-btn').addEventListener('click',()=>{
   document.getElementById('chp-login-notice').style.display='none';
   const formRest=document.getElementById('chp-form-rest');
   formRest.style.display='';
-  // 배송지 섹션으로 부드럽게 스크롤
-  setTimeout(()=>formRest.scrollIntoView({behavior:'smooth',block:'start'}),50);
+  // 페이지 최상단으로 이동
+  const page=document.getElementById('app-page')||document.documentElement;
+  page.scrollTop=0;window.scrollTo({top:0,behavior:'instant'});
 });
 
 // 나머지주소 — 기본주소 입력 후 활성화 + 우편번호 검색/클리어 아이콘
