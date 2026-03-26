@@ -2578,11 +2578,12 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
             <div class="chp-payment-detail" id="chp-transfer-detail">
               <div class="chp-field" data-required="true" data-payment="transfer">
                 <select class="chp-input chp-select" id="chp-bank">
-                  <option value="">입금은행 선택</option>
+                  <option value="" disabled hidden></option>
                   <option>국민은행</option><option>신한은행</option><option>우리은행</option>
                   <option>하나은행</option><option>기업은행</option><option>농협은행</option>
                   <option>카카오뱅크</option><option>토스뱅크</option>
                 </select>
+                <label class="chp-floating-label" for="chp-bank">입금은행</label>
                 <div class="chp-error-msg">입금은행을 선택해 주세요.</div>
               </div>
               <div class="chp-field" data-required="true" data-payment="transfer">
@@ -2600,11 +2601,12 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
             <div class="chp-payment-detail" id="chp-card-detail">
               <div class="chp-field" data-required="true" data-payment="card">
                 <select class="chp-input chp-select" id="chp-card-company">
-                  <option value="">카드사 선택</option>
+                  <option value="" disabled hidden></option>
                   <option>신한카드</option><option>국민카드</option><option>현대카드</option>
                   <option>롯데카드</option><option>우리카드</option><option>하나카드</option>
                   <option>삼성카드</option><option>BC카드</option>
                 </select>
+                <label class="chp-floating-label" for="chp-card-company">카드사</label>
                 <div class="chp-error-msg">카드사를 선택해 주세요.</div>
               </div>
             </div>
@@ -4856,6 +4858,12 @@ document.getElementById('chp-delivery-msg').addEventListener('change',function()
 document.querySelectorAll('input[name="chp-payment"]').forEach(radio=>{
   radio.addEventListener('change',()=>{
     updateCheckoutPaymentMethod();
+  });
+});
+['chp-bank','chp-card-company'].forEach(id=>{
+  const sel=document.getElementById(id);
+  if(sel)sel.addEventListener('change',function(){
+    this.closest('.chp-field').classList.toggle('has-value',!!this.value);
   });
 });
 
