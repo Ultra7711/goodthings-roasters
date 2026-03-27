@@ -2056,7 +2056,6 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
           <h3 class="pd-section-title">Roasting Stage</h3>
           <div id="pd-roast-bar">
             <div id="pd-roast-track"></div>
-            <div id="pd-roast-empty"></div>
           </div>
           <div id="pd-roast-labels"></div>
         </div>
@@ -2526,9 +2525,8 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 #pd-radar-canvas{max-width:320px;width:100%;}
 
 /* 로스팅 스테이지 */
-#pd-roast-bar{position:relative;height:10px;border-radius:5px;overflow:hidden;margin-bottom:14px;}
-#pd-roast-track{height:100%;border-radius:5px;background:linear-gradient(to right,#c9a96e 0%,#8b5e3c 40%,#4a2c17 70%,#2a1a0a 100%);}
-#pd-roast-empty{position:absolute;top:0;right:0;height:100%;background:#e8e8e8;transition:width .8s var(--ease-spring);}
+#pd-roast-bar{position:relative;height:10px;border-radius:5px;background:#e8e8e8;margin-bottom:14px;}
+#pd-roast-track{height:100%;border-radius:5px;background:linear-gradient(to right,#c9a96e 0%,#8b5e3c 40%,#4a2c17 70%,#2a1a0a 100%);clip-path:inset(0 100% 0 0 round 5px);transition:clip-path .8s var(--ease-spring);}
 #pd-roast-labels{display:flex;justify-content:space-between;font-family:var(--font-kr);font-size:13px;color:var(--color-text-tertiary);}
 #pd-roast-labels span{text-align:center;flex:1;}
 #pd-roast-labels span.active{color:var(--color-text-primary);font-weight:600;}
@@ -3636,6 +3634,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 }
 .sp-card-name .product-name-sep{opacity:.35;margin:0 2px;}
 .sp-card-name .product-name-en{font-size:1em;font-weight:400;opacity:1;}
+.sp-card-name-en-wrap{display:inline-block;white-space:nowrap;}
 .sp-card-price{
   font-family:var(--font-en);
   font-size:var(--type-body-ui-size);
@@ -6048,16 +6047,16 @@ function renderPdRoastSec(p){
   labelsEl.innerHTML=stageLabels.map((l,i)=>
     i===idx?`<span class="active"><span class="pd-roast-pill">${l}</span></span>`:`<span>${l}</span>`
   ).join('');
-  // 바 — empty 영역으로 표현 (오른쪽 빈 부분)
+  // 바 — clip-path:inset()으로 트랙 자체를 잘라내는 방식
   // 에디터 슬라이더와 동일하게 구간 중앙값 기준: (idx+0.5)/5
-  const emptyEl=document.getElementById('pd-roast-empty');
+  const trackEl=document.getElementById('pd-roast-track');
   const fillPct=((idx+0.5)/stages.length)*100;
   // 항상 0(완전 비움)에서 시작
-  emptyEl.style.transition='none';
-  emptyEl.style.width='100%';
-  emptyEl.offsetWidth; // force reflow
-  emptyEl.style.transition='';
-  setTimeout(()=>{ emptyEl.style.width=(100-fillPct)+'%'; },40);
+  trackEl.style.transition='none';
+  trackEl.style.clipPath='inset(0 100% 0 0 round 5px)';
+  trackEl.offsetWidth; // force reflow
+  trackEl.style.transition='';
+  setTimeout(()=>{ trackEl.style.clipPath=`inset(0 ${100-fillPct}% 0 0 round 5px)`; },40);
 }
 
 const _recipeSVGs={
@@ -6741,7 +6740,8 @@ function _spCardHtml(p){
   if(p.volumes&&p.volumes.length){
     priceStr=p.volumes[0].price.toLocaleString('ko-KR')+'원~';
   }else{
-    priceStr=(p.price||'').replace(/원$/,'')+'원';
+    const _rawP=parseInt((p.price||'').replace(/[^0-9]/g,''),10);
+    priceStr=isNaN(_rawP)?(p.price||''):_rawP.toLocaleString('ko-KR')+'원';
   }
   let badgeHtml='';
   if(p.status){
@@ -6756,7 +6756,7 @@ function _spCardHtml(p){
     ${badgeHtml}
   </div>
   <div class="sp-card-info">
-    <p class="sp-card-name">${splitProductName(p.name,'inline')}</p>
+    <p class="sp-card-name">${(()=>{const m=p.name.match(/^(.*[\uAC00-\uD7AF](?:\s+[A-Z0-9]+)*)\s+([A-Z][a-z].*)$/);return m?`${m[1]} <span class="sp-card-name-en-wrap"><span class="product-name-sep">·</span> <span class="product-name-en">${m[2]}</span></span>`:p.name;})()}</p>
     <p class="sp-card-price">${priceStr}</p>
   </div>
 </div>`;
