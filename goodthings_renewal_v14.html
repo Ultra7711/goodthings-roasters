@@ -3934,6 +3934,25 @@ function setLoginMode(mode){
   // 비회원 주문 조회 — 로그인 모드에서만 표시
   const guestOrder=document.getElementById('lp-guest-order-wrap');
   if(guestOrder)guestOrder.style.display=isLogin?'block':'none';
+
+  // 폼 전환 시 에러/warn 상태 초기화
+  ['lp-form-login','lp-form-register','lp-form-reset'].forEach(formId=>{
+    const form=document.getElementById(formId);
+    if(!form)return;
+    form.querySelectorAll('.chp-field').forEach(field=>{
+      field.classList.remove('input-warn','error');
+    });
+    form.querySelectorAll('.chp-helper').forEach(h=>{
+      h.classList.remove('visible','warn');
+    });
+    form.querySelectorAll('.chp-input').forEach(inp=>{
+      if(!inp.disabled&&inp.type==='password'){
+        inp.type='password';
+        const btn=inp.closest('.chp-field')&&inp.closest('.chp-field').querySelector('.chp-pw-toggle');
+        if(btn)btn.classList.remove('visible');
+      }
+    });
+  });
 }
 document.getElementById('lp-switch-link').addEventListener('click', ()=>{
   const isReset=document.getElementById('lp-form-reset').style.display!=='none';
