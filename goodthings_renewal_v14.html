@@ -3587,7 +3587,14 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   grid-template-columns:repeat(4,minmax(218px,1fr));
   gap:40px;
 }
-.sp-card{cursor:pointer;display:flex;flex-direction:column;}
+@keyframes sp-card-fadein{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.sp-card{
+  cursor:pointer;display:flex;flex-direction:column;
+  animation:sp-card-fadein .35s var(--ease-default) both;
+}
 .sp-card-thumb{
   position:relative;
   width:100%;aspect-ratio:1/1;
@@ -6755,7 +6762,8 @@ function renderSpGrid(){
   const items=filtered.slice(start,start+SP_PER_PAGE);
   const grid=document.getElementById('sp-grid');
   grid.innerHTML=items.map(_spCardHtml).join('');
-  grid.querySelectorAll('.sp-card').forEach(card=>{
+  grid.querySelectorAll('.sp-card').forEach((card,i)=>{
+    card.style.animationDelay=(i*40)+'ms';
     card.addEventListener('click',()=>{
       window._pdPrevPage='shop';
       openProductPage(card.dataset.slug);
