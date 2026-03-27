@@ -1062,7 +1062,283 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   <div class="blk" id="lp-footer-wrap"></div>
 </div>
 
+<!-- ══════════════════════════════════════════
+     이메일 프리뷰 페이지
+     openEmailPreview() 로 열기
+     ══════════════════════════════════════════ -->
+<div id="email-preview-page">
+  <!-- 이메일 클라이언트 헤더 바 -->
+  <div id="ep-bar">
+    <div id="ep-bar-left">
+      <button id="ep-close-btn" title="닫기">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+      <span id="ep-bar-subject">주문이 완료되었습니다 — GT-20260327-00042</span>
+    </div>
+    <div id="ep-bar-right">
+      <span class="ep-bar-tag">받은편지함</span>
+      <span class="ep-bar-meta">2026. 3. 27. 오후 2:30</span>
+    </div>
+  </div>
+
+  <!-- 이메일 뷰어 -->
+  <div id="ep-viewer">
+    <div id="ep-email">
+
+      <!-- ── 이메일 본문 (테이블 기반, 실제 발송 구조) ── -->
+      <table class="ep-wrap" cellpadding="0" cellspacing="0">
+        <tr><td>
+
+          <!-- HEADER -->
+          <table class="ep-header" cellpadding="0" cellspacing="0">
+            <tr>
+              <td class="ep-logo-cell">
+                <span class="ep-logo-text">good things</span>
+              </td>
+              <td class="ep-header-right">
+                <a href="#" class="ep-header-link">Shop</a>
+                <a href="#" class="ep-header-link">The Story</a>
+                <a href="#" class="ep-header-link">주문 조회</a>
+              </td>
+            </tr>
+          </table>
+          <div class="ep-header-divider"></div>
+
+          <!-- HERO -->
+          <table class="ep-hero" cellpadding="0" cellspacing="0">
+            <tr><td>
+              <div class="ep-hero-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                  <circle cx="14" cy="14" r="13.5" stroke="#1a1a1a" stroke-width="1"/>
+                  <path d="M8 14.5l4 4 8-8" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <p class="ep-hero-title">주문이 완료되었습니다.</p>
+              <p class="ep-hero-sub">홍길동 님, 주문해 주셔서 감사합니다.<br>아래 주문번호로 배송 현황을 조회하실 수 있습니다.</p>
+            </td></tr>
+          </table>
+
+          <!-- ORDER NUMBER -->
+          <table class="ep-section" cellpadding="0" cellspacing="0">
+            <tr><td>
+              <p class="ep-section-label">주문번호</p>
+              <div class="ep-order-num-box">
+                <span class="ep-order-num">GT-20260327-00042</span>
+              </div>
+              <p class="ep-order-date">주문일시 &nbsp;2026년 3월 27일 오후 2:30</p>
+            </td></tr>
+          </table>
+
+          <div class="ep-divider"></div>
+
+          <!-- ORDER ITEMS -->
+          <table class="ep-section" cellpadding="0" cellspacing="0">
+            <tr><td>
+              <p class="ep-section-label">주문 상품</p>
+
+              <!-- 상품 1 -->
+              <table class="ep-item" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td class="ep-item-img-cell">
+                    <div class="ep-item-img" style="background:#ebebeb url('images/pd_img_autumn_night.webp') center/contain no-repeat;"></div>
+                  </td>
+                  <td class="ep-item-info">
+                    <p class="ep-item-cat">COFFEE BEAN</p>
+                    <p class="ep-item-name">가을의 밤 · Autumn Night</p>
+                    <p class="ep-item-opt">200g · 1개</p>
+                  </td>
+                  <td class="ep-item-price">14,000원</td>
+                </tr>
+              </table>
+              <!-- 상품 2 -->
+              <table class="ep-item" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td class="ep-item-img-cell">
+                    <div class="ep-item-img" style="background:#ebebeb url('images/pd_img_refreshing_afternoon.webp') center/contain no-repeat;"></div>
+                  </td>
+                  <td class="ep-item-info">
+                    <p class="ep-item-cat">COFFEE BEAN</p>
+                    <p class="ep-item-name">산뜻한 오후 · Refreshing Afternoon</p>
+                    <p class="ep-item-opt">200g · 1개</p>
+                  </td>
+                  <td class="ep-item-price">14,000원</td>
+                </tr>
+              </table>
+
+              <!-- 금액 합계 -->
+              <table class="ep-total" cellpadding="0" cellspacing="0">
+                <tr><td class="ep-total-label">상품 합계</td><td class="ep-total-val">28,000원</td></tr>
+                <tr><td class="ep-total-label">배송비</td><td class="ep-total-val">3,000원</td></tr>
+                <tr class="ep-total-final"><td>최종 결제금액</td><td>31,000원</td></tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <div class="ep-divider"></div>
+
+          <!-- SHIPPING INFO -->
+          <table class="ep-section" cellpadding="0" cellspacing="0">
+            <tr><td>
+              <p class="ep-section-label">배송지</p>
+              <p class="ep-ship-name">홍길동 &nbsp;<span class="ep-ship-phone">010-1234-5678</span></p>
+              <p class="ep-ship-addr">서울특별시 강남구 테헤란로 123, 101호</p>
+              <p class="ep-ship-addr ep-ship-req">문 앞에 놓아주세요.</p>
+            </td></tr>
+          </table>
+
+          <div class="ep-divider"></div>
+
+          <!-- CTA -->
+          <table class="ep-cta-wrap" cellpadding="0" cellspacing="0">
+            <tr><td>
+              <a href="#" class="ep-cta-btn">주문 조회하기</a>
+              <p class="ep-cta-sub">배송 현황은 주문 조회 페이지에서 확인하실 수 있습니다.</p>
+            </td></tr>
+          </table>
+
+          <!-- FOOTER -->
+          <div class="ep-footer-divider"></div>
+          <table class="ep-footer" cellpadding="0" cellspacing="0">
+            <tr><td>
+              <p class="ep-footer-brand">good things</p>
+              <p class="ep-footer-addr">경상북도 구미시 · Specialty Coffee for All</p>
+              <div class="ep-footer-links">
+                <a href="#" class="ep-footer-link">이용약관</a>
+                <span class="ep-footer-dot">·</span>
+                <a href="#" class="ep-footer-link">개인정보처리방침</a>
+                <span class="ep-footer-dot">·</span>
+                <a href="#" class="ep-footer-link">수신거부</a>
+              </div>
+              <p class="ep-footer-copy">© 2026 Good Things Roasters. All rights reserved.</p>
+            </td></tr>
+          </table>
+
+        </td></tr>
+      </table>
+      <!-- ── 이메일 본문 끝 ── -->
+
+    </div><!-- ep-email -->
+  </div><!-- ep-viewer -->
+</div><!-- email-preview-page -->
+
 <style>
+/* ── EMAIL PREVIEW PAGE ── */
+#email-preview-page{
+  position:fixed;inset:0;z-index:var(--z-page);
+  background:#f4f4f0;display:none;flex-direction:column;overflow:hidden;
+}
+#email-preview-page.open{display:flex;}
+
+/* 클라이언트 헤더 바 */
+#ep-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  height:52px;padding:0 24px;background:#fff;
+  border-bottom:.5px solid var(--color-border-tertiary);flex-shrink:0;
+}
+#ep-bar-left{display:flex;align-items:center;gap:16px;}
+#ep-close-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border:none;background:transparent;
+  cursor:pointer;color:var(--color-text-secondary);border-radius:4px;
+  transition:background .15s;
+}
+#ep-close-btn:hover{background:var(--color-background-secondary);}
+#ep-bar-subject{font-family:var(--font-en);font-size:14px;color:var(--color-text-primary);font-weight:500;}
+#ep-bar-right{display:flex;align-items:center;gap:12px;}
+.ep-bar-tag{
+  font-family:var(--font-en);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--color-text-tertiary);border:.5px solid var(--color-border-secondary);
+  padding:2px 8px;
+}
+.ep-bar-meta{font-family:var(--font-en);font-size:13px;color:var(--color-text-tertiary);}
+
+/* 뷰어 스크롤 영역 */
+#ep-viewer{flex:1;overflow-y:auto;padding:40px 24px 60px;display:flex;justify-content:center;}
+
+/* 이메일 컨테이너 */
+#ep-email{width:100%;max-width:600px;background:#fff;box-shadow:0 2px 24px rgba(0,0,0,.08);}
+
+/* 공통 테이블 */
+.ep-wrap{width:100%;border-collapse:collapse;}
+.ep-wrap>tr>td{padding:0;}
+
+/* HEADER */
+.ep-header{width:100%;border-collapse:collapse;padding:28px 40px;}
+.ep-header>tr>td{padding:28px 40px 24px;}
+.ep-logo-cell{vertical-align:middle;}
+.ep-logo-text{font-family:var(--font-en);font-size:18px;font-weight:600;letter-spacing:-.02em;color:#1a1a1a;}
+.ep-header-right{text-align:right;vertical-align:middle;}
+.ep-header-link{font-family:var(--font-en);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);text-decoration:none;margin-left:20px;}
+.ep-header-divider{height:.5px;background:var(--color-border-tertiary);margin:0 40px;}
+
+/* HERO */
+.ep-hero{width:100%;border-collapse:collapse;}
+.ep-hero>tr>td{padding:44px 40px 36px;text-align:center;background:#faf9f7;}
+.ep-hero-icon{margin:0 auto 20px;width:28px;}
+.ep-hero-title{font-family:var(--font-kr);font-size:22px;font-weight:500;color:#1a1a1a;margin:0 0 12px;letter-spacing:-.01em;}
+.ep-hero-sub{font-family:var(--font-kr);font-size:14px;color:var(--color-text-secondary);margin:0;line-height:1.7;}
+
+/* SECTION */
+.ep-section{width:100%;border-collapse:collapse;}
+.ep-section>tr>td{padding:36px 40px;}
+.ep-section-label{font-family:var(--font-en);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin:0 0 14px;}
+
+/* ORDER NUMBER */
+.ep-order-num-box{
+  background:#f4f4f0;padding:20px 24px;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+.ep-order-num{font-family:var(--font-en);font-size:22px;font-weight:600;color:#1a1a1a;letter-spacing:.04em;}
+.ep-order-date{font-family:var(--font-kr);font-size:13px;color:var(--color-text-tertiary);margin:0;text-align:center;}
+
+/* DIVIDER */
+.ep-divider{height:.5px;background:var(--color-border-tertiary);margin:0 40px;}
+
+/* ORDER ITEMS */
+.ep-item{width:100%;border-collapse:collapse;margin-bottom:16px;}
+.ep-item>tr>td{vertical-align:middle;padding:0 0 16px;}
+.ep-item-img-cell{width:72px;padding-right:16px!important;vertical-align:top;padding-top:2px!important;}
+.ep-item-img{width:72px;height:72px;background:#ebebeb;}
+.ep-item-info{vertical-align:top;padding-top:2px!important;}
+.ep-item-cat{font-family:var(--font-en);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--color-text-tertiary);margin:0 0 4px;}
+.ep-item-name{font-family:var(--font-kr);font-size:14px;font-weight:500;color:#1a1a1a;margin:0 0 4px;line-height:1.4;}
+.ep-item-opt{font-family:var(--font-en);font-size:13px;color:var(--color-text-tertiary);margin:0;}
+.ep-item-price{font-family:var(--font-en);font-size:14px;font-weight:500;color:#1a1a1a;text-align:right;white-space:nowrap;padding-left:16px!important;vertical-align:top;padding-top:2px!important;}
+
+/* TOTAL */
+.ep-total{width:100%;border-collapse:collapse;border-top:.5px solid var(--color-border-tertiary);margin-top:4px;}
+.ep-total>tr>td{padding:10px 0;font-family:var(--font-kr);font-size:13px;color:var(--color-text-secondary);}
+.ep-total-label{text-align:left;}
+.ep-total-val{text-align:right;font-family:var(--font-en);}
+.ep-total-final>td{font-size:15px;font-weight:500;color:#1a1a1a;padding-top:14px!important;border-top:.5px solid var(--color-border-primary);}
+
+/* SHIPPING */
+.ep-ship-name{font-family:var(--font-kr);font-size:14px;font-weight:500;color:#1a1a1a;margin:0 0 6px;}
+.ep-ship-phone{font-family:var(--font-en);font-size:13px;color:var(--color-text-secondary);font-weight:400;}
+.ep-ship-addr{font-family:var(--font-kr);font-size:13px;color:var(--color-text-secondary);margin:0 0 4px;line-height:1.6;}
+.ep-ship-req{color:var(--color-text-tertiary);}
+
+/* CTA */
+.ep-cta-wrap{width:100%;border-collapse:collapse;}
+.ep-cta-wrap>tr>td{padding:36px 40px;text-align:center;}
+.ep-cta-btn{
+  display:inline-block;padding:0 40px;height:52px;line-height:52px;
+  background:#1a1a1a;color:#fff;text-decoration:none;
+  font-family:var(--font-kr);font-size:15px;font-weight:500;letter-spacing:.02em;
+}
+.ep-cta-sub{font-family:var(--font-kr);font-size:13px;color:var(--color-text-tertiary);margin:16px 0 0;line-height:1.6;}
+
+/* FOOTER */
+.ep-footer-divider{height:.5px;background:var(--color-border-tertiary);}
+.ep-footer{width:100%;border-collapse:collapse;}
+.ep-footer>tr>td{padding:32px 40px 40px;text-align:center;}
+.ep-footer-brand{font-family:var(--font-en);font-size:14px;font-weight:600;color:#1a1a1a;margin:0 0 6px;}
+.ep-footer-addr{font-family:var(--font-kr);font-size:12px;color:var(--color-text-tertiary);margin:0 0 14px;}
+.ep-footer-links{margin-bottom:12px;}
+.ep-footer-link{font-family:var(--font-kr);font-size:12px;color:var(--color-text-tertiary);text-decoration:none;}
+.ep-footer-dot{font-size:12px;color:var(--color-text-tertiary);margin:0 8px;}
+.ep-footer-copy{font-family:var(--font-en);font-size:11px;color:var(--color-border-primary);margin:0;}
+
 /* ── LOGIN PAGE ── */
 #login-page{
   position:fixed;inset:0;z-index:var(--z-page);
@@ -4478,6 +4754,20 @@ document.querySelectorAll('.pd-accordion-hd').forEach(hd=>{
     hd.querySelector('.pd-accordion-icon').textContent=isOpen?'+':'−';
   });
 });
+
+// ── 이메일 프리뷰 페이지 ──
+const emailPreviewPage=document.getElementById('email-preview-page');
+function openEmailPreview(){
+  if(overlay.classList.contains('open'))closeOverlay();
+  bringPageToFront(emailPreviewPage);
+  emailPreviewPage.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeEmailPreview(){
+  emailPreviewPage.classList.remove('open');
+  document.body.style.overflow='';
+}
+document.getElementById('ep-close-btn').addEventListener('click',closeEmailPreview);
 
 // ── 서브 페이지 푸터 주입 (모든 서브 페이지 공통) ──
 (function(){
