@@ -440,7 +440,8 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 /* snap scroll */
 .blk-scroll{overflow:visible;}
 .beans-scroll{display:flex;gap:20px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding:0 80px;cursor:grab;}
-.beans-scroll.dragging{cursor:grabbing;}
+.beans-scroll.dragging{cursor:grabbing;user-select:none;}
+.beans-scroll.dragging .bean-card{pointer-events:none;}
 .beans-scroll::-webkit-scrollbar{display:none;}
 .beans-scroll .bean-card{flex-shrink:0;width:360px;user-select:none;}
 .beans-dots{display:flex;justify-content:center;align-items:center;gap:6px;padding:20px 0 0;}
@@ -638,6 +639,8 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   to{opacity:1;transform:translateY(0);}
 }
 .sub-page.open{animation:pageEnter .4s var(--ease-spring) both;}
+#shop-page.open,#login-page.open{animation:none;}
+#shop-page.open #sp-body,#login-page.open #lp-body{animation:pageEnter .4s var(--ease-spring) both;}
 
 /* ══ Supanova: 주문 완료 페이지 진입 연출 ══ */
 @keyframes checkBounce{
@@ -3828,7 +3831,7 @@ function renderBeansScroll(){
     const nm=p.name.match(/^(.*[\uAC00-\uD7AF](?:\s+[A-Z0-9]+)*)\s+([A-Z][a-z].*)$/);
     const nameHtml=nm?`${nm[1]}<br><span class="bean-name-en">${nm[2]}</span>`:p.name;
     return `<div class="bean-card" data-slug="${p.slug}"><div class="bean-img" style="${wrapBg}"><div class="bean-img-inner"${innerBg?` style="${innerBg}"`:''}>
-</div><div class="bean-overlay">${badge}<div class="bean-org">${p.category}</div><div class="bean-name">${nameHtml}</div>${p.noteTags?`<div class="bean-flv">${renderNoteTags(p.noteTags)}</div>`:''}${p.price?`<div class="bean-prc">${formatDisplayPrice(p.price)}</div>`:''}</div></div></div>`;
+</div>${badge}<div class="bean-overlay"><div class="bean-org">${p.category}</div><div class="bean-name">${nameHtml}</div>${p.noteTags?`<div class="bean-flv">${renderNoteTags(p.noteTags)}</div>`:''}${p.price?`<div class="bean-prc">${formatDisplayPrice(p.price)}</div>`:''}</div></div></div>`;
   }
   let html='';
   PRODUCTS.forEach(p=>{html+=cardHtml(p);});
@@ -3870,21 +3873,26 @@ function renderBeansScroll(){
   }
   // 드래그 스크롤
   let dragStart=null,dragScrollStart=0,dragged=false;
+  let _dragRaf=null;
   track.addEventListener('mousedown',(e)=>{
     dragStart=e.pageX;dragScrollStart=track.scrollLeft;dragged=false;
     track.classList.add('dragging');
+    e.preventDefault();
   });
   document.addEventListener('mousemove',(e)=>{
     if(dragStart===null)return;
     const dx=e.pageX-dragStart;
     if(Math.abs(dx)>4)dragged=true;
     if(dragged){
-      // 양 끝 50px 고무줄 저항
       const raw=dragScrollStart-dx;
       const max=maxScroll();
-      if(raw<0)track.scrollLeft=raw*0.25;
-      else if(raw>max)track.scrollLeft=max+(raw-max)*0.25;
-      else track.scrollLeft=raw;
+      if(_dragRaf)cancelAnimationFrame(_dragRaf);
+      _dragRaf=requestAnimationFrame(()=>{
+        if(raw<0)track.scrollLeft=raw*0.25;
+        else if(raw>max)track.scrollLeft=max+(raw-max)*0.25;
+        else track.scrollLeft=raw;
+        _dragRaf=null;
+      });
     }
   });
   document.addEventListener('mouseup',()=>{
@@ -6720,6 +6728,8 @@ function openShopPage(){
   const page=document.getElementById('shop-page');
   if(overlay.classList.contains('open'))closeOverlay();
   bringPageToFront(page);
+  page.classList.remove('open');
+  page.offsetHeight; // force reflow — 애니메이션 재실행 보장
   page.classList.add('open');
   document.body.style.overflow='hidden';
   page.scrollTop=0;
