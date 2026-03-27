@@ -5954,7 +5954,7 @@ function renderPdNoteSec(p){
       animateRadar(canvas,p.note,p.noteColor);
       canvas._io.disconnect();
     }
-  },{threshold:0.3,root:document.getElementById('pd-body')});
+  },{threshold:0.2,root:document.getElementById('product-detail-page')});
   canvas._io.observe(canvas);
 }
 
@@ -5970,10 +5970,13 @@ function animateRadar(canvas,note,color){
   const maxVal=5;
   const vals=keys.map(k=>note[k]||0);
   const angleOff=-Math.PI/2;
-  const dur=600;
+  const dur=750;
   const start=performance.now();
-  function ease(t){return 1-Math.pow(1-t,3);}
-  function draw(progress){
+  // 일반값: easeOutBack (살짝 넘어갔다 복귀)
+  function easeBack(t){const c1=1.55,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);}
+  // 최대값(5): easeOutCubic — 즉시 도달 느낌
+  function easeMax(t){return 1-Math.pow(1-t,3);}
+  function draw(t){
     ctx.clearRect(0,0,W,H);
     ctx.save();
     // 그리드 (5단계)
@@ -5995,11 +5998,13 @@ function animateRadar(canvas,note,color){
       ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));
       ctx.strokeStyle='rgba(0,0,0,.10)';ctx.lineWidth=.5;ctx.stroke();
     }
+    // 꼭짓점별 progress 계산 (max=5 이면 즉시 도달)
+    const progPerVertex=vals.map(v=>v===maxVal?easeMax(t):easeBack(t));
     // 데이터 폴리곤
     ctx.beginPath();
     for(let i=0;i<5;i++){
       const a=angleOff+(2*Math.PI*i/5);
-      const v=(vals[i]/maxVal)*R*progress;
+      const v=(vals[i]/maxVal)*R*progPerVertex[i];
       const x=cx+v*Math.cos(a),y=cy+v*Math.sin(a);
       i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
     }
@@ -6009,7 +6014,7 @@ function animateRadar(canvas,note,color){
     // 데이터 점
     for(let i=0;i<5;i++){
       const a=angleOff+(2*Math.PI*i/5);
-      const v=(vals[i]/maxVal)*R*progress;
+      const v=(vals[i]/maxVal)*R*progPerVertex[i];
       const x=cx+v*Math.cos(a),y=cy+v*Math.sin(a);
       ctx.beginPath();ctx.arc(x,y,3,0,2*Math.PI);ctx.fillStyle=_hexToRgba(color,.9);ctx.fill();
     }
@@ -6025,7 +6030,7 @@ function animateRadar(canvas,note,color){
   }
   function tick(now){
     const t=Math.min((now-start)/dur,1);
-    draw(ease(t));
+    draw(t);
     if(t<1)requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -6047,7 +6052,12 @@ function renderPdRoastSec(p){
   // 에디터 슬라이더와 동일하게 구간 중앙값 기준: (idx+0.5)/5
   const emptyEl=document.getElementById('pd-roast-empty');
   const fillPct=((idx+0.5)/stages.length)*100;
-  emptyEl.style.width=(100-fillPct)+'%';
+  // 항상 0(완전 비움)에서 시작
+  emptyEl.style.transition='none';
+  emptyEl.style.width='100%';
+  emptyEl.offsetWidth; // force reflow
+  emptyEl.style.transition='';
+  setTimeout(()=>{ emptyEl.style.width=(100-fillPct)+'%'; },40);
 }
 
 const _recipeSVGs={
