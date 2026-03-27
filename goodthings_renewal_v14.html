@@ -3055,6 +3055,45 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   <div class="blk" id="ocp-footer-wrap"></div>
 </div>
 
+<!-- ── SHOP PAGE ── -->
+<div id="shop-page" class="sub-page">
+  <div id="sp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
+  <div id="sp-hdr-wrap" class="blk">
+    <div class="hdr">
+      <div class="hdr-left">
+        <img id="sp-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
+      </div>
+      <div class="hdr-nav">
+        <span class="nav-link">The Story</span>
+        <span class="nav-link">Shop</span>
+        <span class="nav-link">Work with Us</span>
+        <span class="nav-link">Good Days</span>
+      </div>
+      <div class="hdr-icons">
+        <span class="hdr-icon-btn" id="sp-search-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg></span>
+        <span class="hdr-icon-btn" id="sp-user-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg></span>
+        <span class="hdr-icon-btn" id="sp-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg><span class="cart-badge" id="sp-cart-badge"></span></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="sp-body">
+    <div id="sp-head">
+      <h1 id="sp-page-title">모든 상품</h1>
+      <div id="sp-filter-tabs">
+        <div id="sp-filter-indicator"></div>
+        <button class="sp-filter-tab active" data-filter="all">모든 상품</button>
+        <button class="sp-filter-tab" data-filter="bean">원두</button>
+        <button class="sp-filter-tab" data-filter="drip">드립백</button>
+      </div>
+    </div>
+    <div id="sp-grid"></div>
+    <div id="sp-pagination"></div>
+  </div>
+
+  <div class="blk" id="sp-footer-wrap"></div>
+</div>
+
 </div>
 <style>
 /* ── SEARCH OVERLAY ── */
@@ -3476,6 +3515,152 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   padding:10px 24px;cursor:pointer;
 }
 .pde-btn-apply:hover{background:#333;}
+
+/* ── SHOP PAGE ── */
+#shop-page{
+  position:fixed;inset:0;z-index:var(--z-page);
+  background:#fff;display:none;flex-direction:column;overflow-y:auto;
+}
+#shop-page.open{display:flex;}
+#sp-hdr-wrap{
+  position:sticky;top:0;z-index:var(--z-sticky);
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:none;border-bottom:1px solid rgba(0,0,0,.04);
+  box-shadow:0 1px 0 rgba(255,255,255,.08) inset;
+  overflow:visible;
+}
+#sp-ann-wrap{}
+#sp-body{
+  flex:1;
+  width:100%;max-width:1440px;
+  margin:0 auto;
+  padding:64px 60px 80px;
+}
+#sp-head{margin-bottom:48px;}
+#sp-page-title{
+  font-family:var(--font-en);
+  font-size:var(--type-display-size);
+  font-weight:500;
+  letter-spacing:-.02em;
+  color:var(--color-text-primary);
+  margin:0 0 40px;
+  line-height:1.2;
+}
+/* 필터 탭 */
+#sp-filter-tabs{
+  display:flex;
+  position:relative;
+}
+#sp-filter-tabs::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:.5px;background:var(--color-border-primary);
+}
+#sp-filter-indicator{
+  position:absolute;bottom:0;left:0;
+  height:2px;width:0;
+  background:var(--color-text-primary);
+  transition:left .3s cubic-bezier(.4,0,.2,1),width .3s cubic-bezier(.4,0,.2,1);
+  z-index:1;
+}
+.sp-filter-tab{
+  padding:16px 28px 14px;
+  background:transparent;border:none;cursor:pointer;
+  font-family:var(--font-en);
+  font-size:var(--tab-font-size);
+  font-weight:var(--tab-font-weight);
+  letter-spacing:var(--tab-letter-spacing);
+  color:var(--tab-color);
+  transition:color .2s ease;
+  white-space:nowrap;
+}
+.sp-filter-tab:first-of-type{padding-left:0;}
+.sp-filter-tab:hover{color:var(--tab-color-active);}
+.sp-filter-tab.active{
+  font-weight:var(--tab-font-weight-active);
+  color:var(--tab-color-active);
+}
+/* 카드 그리드 */
+#sp-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:0;
+}
+.sp-card{cursor:pointer;display:flex;flex-direction:column;}
+.sp-card-thumb{
+  position:relative;
+  width:100%;aspect-ratio:1/1;
+  overflow:hidden;
+}
+.sp-card-img{
+  width:100%;height:100%;
+  background-size:contain;
+  background-position:center;
+  background-repeat:no-repeat;
+  transition:transform var(--duration-zoom) var(--ease-default);
+}
+.sp-card:hover .sp-card-img{transform:scale(1.04);}
+.sp-card-badge{
+  position:absolute;top:12px;left:12px;
+  font-family:var(--font-en);
+  font-size:11px;font-weight:600;
+  letter-spacing:.04em;
+  padding:4px 8px;
+  background:#1a1a1a;color:#fff;
+  pointer-events:none;
+  text-transform:uppercase;
+}
+.sp-card-badge.badge-sold{background:var(--color-text-tertiary);}
+.sp-card-badge.badge-limited{background:var(--color-accent-gold);}
+.sp-card-info{
+  padding:16px 4px 28px;
+  background:#fff;
+}
+.sp-card-name{
+  font-family:var(--font-kr);
+  font-size:var(--type-body-ui-size);
+  font-weight:400;
+  color:var(--color-text-primary);
+  margin:0 0 6px;
+  line-height:1.55;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.sp-card-price{
+  font-family:var(--font-en);
+  font-size:var(--type-body-ui-size);
+  font-weight:500;
+  color:var(--color-text-primary);
+  margin:0;
+}
+/* 페이지네이션 */
+#sp-pagination{
+  display:flex;align-items:center;justify-content:center;
+  gap:4px;padding:48px 0 0;
+}
+.sp-pg-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;
+  background:transparent;border:none;cursor:pointer;
+  font-family:var(--font-en);font-size:13px;
+  color:var(--color-text-tertiary);
+  transition:color .2s ease;
+}
+.sp-pg-btn.active{
+  color:var(--color-text-primary);font-weight:500;
+  border-bottom:1.5px solid var(--color-text-primary);
+}
+.sp-pg-btn:hover{color:var(--color-text-primary);}
+.sp-pg-arrow{
+  display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:transparent;border:none;
+  cursor:pointer;color:var(--color-text-tertiary);
+  transition:color .2s ease;
+}
+.sp-pg-arrow:hover{color:var(--color-text-primary);}
+.sp-pg-arrow:disabled{opacity:.3;pointer-events:none;}
+/* 푸터 */
+#sp-footer-wrap .footer{margin-top:0;}
+#sp-footer-wrap{flex-shrink:0;}
 </style>
 <script>
 const B64='PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCA2ODAgMTQyIj4KICA8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMjkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogMi4xLjAgQnVpbGQgMTg2KSAgLS0+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5zdDAgewogICAgICAgIGZpbGw6ICMwMTAxMDE7CiAgICAgIH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxwb2x5Z29uIGNsYXNzPSJzdDAiIHBvaW50cz0iMzU3LjY1IDI3LjIgMzM5LjY1IDI3LjIgMzM5LjY1IDQ0LjA4IDMyOC45MyA0NC4wOCAzMjguOTMgNTkuMTMgMzM5LjY1IDU5LjEzIDMzOS42NSAxMDEuMiAzNTcuNjUgMTAxLjIgMzU3LjY1IDU5LjEzIDM2OC4zNyA1OS4xMyAzNjguMzcgNDQuMDggMzU3LjY1IDQ0LjA4IDM1Ny42NSAyNy4yIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTI2Ny41Niw0Ny42Yy00LjU2LTMuMzgtMTAuMDktNS4zNy0xNi4wNy01LjM3LTE1LjU0LDAtMjguMTUsMTMuNDEtMjguMTUsMjkuOTVzMTIuNiwyOS45NSwyOC4xNSwyOS45NWM1Ljk4LDAsMTEuNTEtMS45OSwxNi4wNy01LjM3djQuNDZoMThWMTkuMTFoLTE4djI4LjQ5Wk0yNTQuNzYsODYuNzVjLTcuMzcsMC0xMy4zNC02LjUyLTEzLjM0LTE0LjU2czUuOTctMTQuNTYsMTMuMzQtMTQuNTZjNi4wOCwwLDExLjIsNC40NSwxMi44LDEwLjUydjguMDljLTEuNjEsNi4wNy02LjczLDEwLjUyLTEyLjgsMTAuNTJaIi8+CiAgPHJlY3QgY2xhc3M9InN0MCIgeD0iNDQxLjkyIiB5PSI0NC4wOCIgd2lkdGg9IjE4IiBoZWlnaHQ9IjU3LjEzIi8+CiAgPGNpcmNsZSBjbGFzcz0ic3QwIiBjeD0iNDUxLjA5IiBjeT0iMjcuMzQiIHI9IjExIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTU3OC4zMSw0My40M2wuMDQsNC40M2MtMy4xMy0yLjcxLTguMjItNS42NS0xNS41NS01LjY1LTExLjYyLDAtMjcuNjUsNi41NS0yNy42NSwyOC4zMSwwLDYuMzgsMS4zMSwyOS42MiwyNi44NCwyOS42Miw4LjgsMCwxMy45My0yLjc1LDE2Ljg0LTUuMzlsLjA2LDUuOXMtLjkyLDkuMzEtMTEuODIsOS4zMWMtOC4zNSwwLTEwLjk2LTUuNTYtMTAuOTYtNS41NmgtMTcuMDJzNC4wOSwyMS4yNywyOC4xNSwyMS4yNywyOS42Ni0yMC40MiwyOS42Ni0yNS4wMmwtLjU3LTU3LjIxaC0xOFpNNTY1LjY2LDg1LjljLTcuMzcsMC0xMy4zNC02LjUyLTEzLjM0LTE0LjU2czUuOTctMTQuNTYsMTMuMzQtMTQuNTYsMTMuMzQsNi41MiwxMy4zNCwxNC41Ni01Ljk3LDE0LjU2LTEzLjM0LDE0LjU2WiIvPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik02My44Miw0My4zOGwuMDQsNC40M2MtMy4xMy0yLjcxLTguMjItNS42NS0xNS41NS01LjY1LTExLjYyLDAtMjcuNjUsNi41NS0yNy42NSwyOC4zMSwwLDYuMzgsMS4zMSwyOS42MiwyNi44NCwyOS42Miw4LjgsMCwxMy45My0yLjc1LDE2Ljg0LTUuMzlsLjA2LDUuOXMtLjkyLDkuMzEtMTEuODIsOS4zMWMtOC4zNSwwLTEwLjk2LTUuNTYtMTAuOTYtNS41NmgtMTcuMDJzNC4wOSwyMS4yNywyOC4xNSwyMS4yNywyOS42Ni0yMC40MiwyOS42Ni0yNS4wMmwtLjU3LTU3LjIxaC0xOFpNNTEuMTcsODUuODVjLTcuMzcsMC0xMy4zNC02LjUyLTEzLjM0LTE0LjU2czUuOTctMTQuNTYsMTMuMzQtMTQuNTYsMTMuMzQsNi41MiwxMy4zNCwxNC41Ni01Ljk3LDE0LjU2LTEzLjM0LDE0LjU2WiIvPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik01MDUuMjEsNDIuNzdjLTcuOTcsMC0xMi43OCwzLjIzLTE1LjAxLDUuMjZ2LTMuOTVoLTE4djU3LjEzaDE4di0zMy40YzAtNC4wOSwyLjU4LTEwLjQ3LDEwLjYtMTAuNDdzOS4yLDkuMzMsOS4yLDkuMzN2MzQuNTVoMTh2LTM0LjU1YzAtMTcuNjctMTIuNjQtMjMuODktMjIuNzktMjMuODlaIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTQwOC45OSw0Mi43N2MtNy43OSwwLTEyLjU1LDMuMDgtMTQuODUsNS4xMnYtMjguNjhoLTE4djgyaDE4di0zNS4yMmMuNjctMy45MywzLjUzLTguNjUsMTAuNDMtOC42NSw4LjAyLDAsOS4yLDkuMzMsOS4yLDkuMzN2MzQuNTVoMTh2LTM0LjU1YzAtMTcuNjctMTIuNjQtMjMuODktMjIuNzktMjMuODlaIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTY1NC45OCw3Mi4xOGMtMy4zMS0zLjA0LTguNDMtNC40NS0xNS41OS02LjI1LTkuMDktMi4yOS0xNi4yLTIuNzUtMTYuMi02LjUsMC0zLjEsNC44NC00LjIzLDkuMTMtNC4yMyw5LjE3LDAsOC45OCw1LjIsOC45OCw1LjJoMTcuMThjMC05LjI1LTkuMjUtMTguNjgtMjUuMjQtMTguNjhzLTI3LjA5LDcuNzQtMjcuMDksMTkuMzVjMCw0LjM3LDEuNjIsOC4xNSw0LjM3LDExLjExLDMuMzEsMy4wNCw4LjQzLDQuNDUsMTUuNTksNi4yNSw5LjA5LDIuMjksMTYuMiwyLjc1LDE2LjIsNi41LDAsMy4xLTQuODQsNC4yMy05LjEzLDQuMjMtOS4xNywwLTEwLjIyLTUuNzEtMTAuMjItNS43MWgtMTcuMThjMCw5LjI1LDEwLjQ5LDE5LjE5LDI2LjQ3LDE5LjE5czI3LjA5LTcuNzQsMjcuMDktMTkuMzVjMC00LjM3LTEuNjItOC4xNS00LjM3LTExLjExWiIvPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xMjAuODYsNDIuMjRjLTE2LjksMC0zMC42LDEzLjQxLTMwLjYsMjkuOTVzMTMuNywyOS45NSwzMC42LDI5Ljk1LDMwLjYtMTMuNDEsMzAuNi0yOS45NS0xMy43LTI5Ljk1LTMwLjYtMjkuOTVaTTEyMC44Niw4Ni43NWMtNy4zNywwLTEzLjM0LTYuNTItMTMuMzQtMTQuNTZzNS45Ny0xNC41NiwxMy4zNC0xNC41NiwxMy4zNCw2LjUyLDEzLjM0LDE0LjU2LTUuOTcsMTQuNTYtMTMuMzQsMTQuNTZaIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTE4Ny42Miw0Mi4yNGMtMTYuOSwwLTMwLjYsMTMuNDEtMzAuNiwyOS45NXMxMy43LDI5Ljk1LDMwLjYsMjkuOTUsMzAuNi0xMy40MSwzMC42LTI5Ljk1LTEzLjctMjkuOTUtMzAuNi0yOS45NVpNMTg3LjYyLDg2Ljc1Yy03LjM3LDAtMTMuMzQtNi41Mi0xMy4zNC0xNC41NnM1Ljk3LTE0LjU2LDEzLjM0LTE0LjU2LDEzLjM0LDYuNTIsMTMuMzQsMTQuNTYtNS45NywxNC41Ni0xMy4zNCwxNC41NloiLz4KPC9zdmc+';
@@ -3483,6 +3668,8 @@ const src='data:image/svg+xml;base64,'+B64;
 document.getElementById('logo-img').src=src;
 const el=document.getElementById('ep-logo-img');
 if(el){el.src=src;}
+const spl=document.getElementById('sp-logo-img');
+if(spl){spl.src=src;}
 const fl=document.getElementById('footer-logo-img');
 if(fl){fl.src=src;fl.style.cssText='height:30px;width:auto;display:block;filter:invert(1);';}
 
@@ -4783,7 +4970,7 @@ document.getElementById('ep-close-btn').addEventListener('click',closeEmailPrevi
   const src=document.querySelector('.footer');
   if(!src)return;
   ['lp-footer-wrap','srp-footer-wrap','cp-footer-wrap',
-   'pd-footer-wrap','chp-footer-wrap','ocp-footer-wrap'].forEach(id=>{
+   'pd-footer-wrap','chp-footer-wrap','ocp-footer-wrap','sp-footer-wrap'].forEach(id=>{
     const wrap=document.getElementById(id);
     if(wrap)wrap.appendChild(src.cloneNode(true));
   });
@@ -4935,12 +5122,13 @@ function goHome(){
   document.getElementById('cart-page').classList.remove('open');
   document.getElementById('checkout-page').classList.remove('open');
   document.getElementById('order-complete-page').classList.remove('open');
+  document.getElementById('shop-page').classList.remove('open');
   overlay.classList.remove('open');
   document.body.style.overflow='';
   window.scrollTo({top:0,behavior:'instant'});
 }
 // 로고 클릭 → 홈 (메인 포함 전 페이지)
-['logo-img','srp-logo-img','pd-logo-img','lp-logo-img'].forEach(id=>{
+['logo-img','srp-logo-img','pd-logo-img','lp-logo-img','sp-logo-img'].forEach(id=>{
   const el=document.getElementById(id);
   if(el)el.addEventListener('click',goHome);
 });
@@ -6469,5 +6657,170 @@ document.getElementById('pd-editor-overlay').addEventListener('click',function(e
   </div>
 </div>
 
+
+<script>
+// ════════════════════════════════════════════════
+//  SHOP PAGE
+// ════════════════════════════════════════════════
+let _spFilter='all';
+let _spPage=1;
+const SP_PER_PAGE=20;
+
+function _spPositionIndicator(tab,animate){
+  const tabs=document.getElementById('sp-filter-tabs');
+  const ind=document.getElementById('sp-filter-indicator');
+  const tabRect=tab.getBoundingClientRect();
+  const tabsRect=tabs.getBoundingClientRect();
+  const left=tabRect.left-tabsRect.left;
+  const width=tabRect.width;
+  if(!animate){
+    ind.style.transition='none';
+    ind.style.left=left+'px';
+    ind.style.width=width+'px';
+    ind.offsetHeight;
+    ind.style.transition='';
+  }else{
+    ind.style.left=left+'px';
+    ind.style.width=width+'px';
+  }
+}
+
+function openShopPage(){
+  const page=document.getElementById('shop-page');
+  if(overlay.classList.contains('open'))closeOverlay();
+  bringPageToFront(page);
+  page.classList.add('open');
+  document.body.style.overflow='hidden';
+  page.scrollTop=0;
+  // 로고 재확인 (src 이미 주입됨)
+  // 필터 초기화
+  _spFilter='all';
+  _spPage=1;
+  document.querySelectorAll('.sp-filter-tab').forEach(t=>t.classList.remove('active'));
+  const allTab=document.querySelector('.sp-filter-tab[data-filter="all"]');
+  allTab.classList.add('active');
+  document.getElementById('sp-page-title').textContent='모든 상품';
+  renderSpGrid();
+  requestAnimationFrame(()=>_spPositionIndicator(allTab,false));
+}
+
+function closeShopPage(){
+  document.getElementById('shop-page').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function _spCardHtml(p){
+  const img=p.images&&p.images[0];
+  const bg=img?img.bg:'#f5f5f3';
+  const imgSrc=img?img.src:'';
+  const thumbStyle=`background:${bg}${imgSrc?` url('${imgSrc}') center/contain no-repeat`:''};`;
+  let priceStr;
+  if(p.volumes&&p.volumes.length){
+    priceStr=p.volumes[0].price.toLocaleString('ko-KR')+'원~';
+  }else{
+    priceStr=(p.price||'').replace(/원$/,'')+'원';
+  }
+  let badgeHtml='';
+  if(p.status){
+    let cls='sp-card-badge';
+    if(p.status==='매진')cls+=' badge-sold';
+    else if(p.status==='수량 한정')cls+=' badge-limited';
+    badgeHtml=`<span class="${cls}">${p.status}</span>`;
+  }
+  return `<div class="sp-card" data-slug="${p.slug}">
+  <div class="sp-card-thumb">
+    <div class="sp-card-img" style="${thumbStyle}"></div>
+    ${badgeHtml}
+  </div>
+  <div class="sp-card-info">
+    <p class="sp-card-name">${p.name}</p>
+    <p class="sp-card-price">${priceStr}</p>
+  </div>
+</div>`;
+}
+
+function renderSpGrid(){
+  let filtered;
+  if(_spFilter==='all')filtered=PRODUCTS;
+  else if(_spFilter==='bean')filtered=PRODUCTS.filter(p=>p.category==='Coffee Bean');
+  else if(_spFilter==='drip')filtered=PRODUCTS.filter(p=>p.category==='Drip Bag');
+  else filtered=PRODUCTS;
+  const total=filtered.length;
+  const totalPages=Math.max(1,Math.ceil(total/SP_PER_PAGE));
+  if(_spPage>totalPages)_spPage=totalPages;
+  const start=(_spPage-1)*SP_PER_PAGE;
+  const items=filtered.slice(start,start+SP_PER_PAGE);
+  const grid=document.getElementById('sp-grid');
+  grid.innerHTML=items.map(_spCardHtml).join('');
+  grid.querySelectorAll('.sp-card').forEach(card=>{
+    card.addEventListener('click',()=>{
+      window._pdPrevPage='shop';
+      openProductPage(card.dataset.slug);
+    });
+  });
+  renderSpPagination(total,totalPages);
+}
+
+function renderSpPagination(total,totalPages){
+  const el=document.getElementById('sp-pagination');
+  if(totalPages<=1){el.innerHTML='';return;}
+  const arrowL=`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>`;
+  const arrowR=`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg>`;
+  let html=`<button class="sp-pg-arrow" id="sp-pg-prev" ${_spPage===1?'disabled':''}>${arrowL}</button>`;
+  for(let i=1;i<=totalPages;i++){
+    html+=`<button class="sp-pg-btn${i===_spPage?' active':''}" data-page="${i}">${i}</button>`;
+  }
+  html+=`<button class="sp-pg-arrow" id="sp-pg-next" ${_spPage===totalPages?'disabled':''}>${arrowR}</button>`;
+  el.innerHTML=html;
+  el.querySelectorAll('.sp-pg-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      _spPage=parseInt(btn.dataset.page);
+      renderSpGrid();
+      document.getElementById('shop-page').scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+  const prev=document.getElementById('sp-pg-prev');
+  const next=document.getElementById('sp-pg-next');
+  if(prev)prev.addEventListener('click',()=>{if(_spPage>1){_spPage--;renderSpGrid();}});
+  if(next)next.addEventListener('click',()=>{if(_spPage<totalPages){_spPage++;renderSpGrid();}});
+}
+
+// 필터 탭 클릭
+document.querySelectorAll('.sp-filter-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.sp-filter-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('sp-page-title').textContent=tab.textContent.trim();
+    _spFilter=tab.dataset.filter;
+    _spPage=1;
+    _spPositionIndicator(tab,true);
+    renderSpGrid();
+  });
+});
+
+// Shop 네비 링크 연결 (모든 헤더의 "Shop" nav-link)
+document.querySelectorAll('.hdr-nav .nav-link').forEach(link=>{
+  if(link.textContent.trim()==='Shop'){
+    link.addEventListener('click',openShopPage);
+  }
+});
+
+// 상품 상세에서 shop으로 돌아가기 (Escape 핸들러 확장)
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const sp=document.getElementById('shop-page');
+  if(sp.classList.contains('open')&&!document.getElementById('product-detail-page').classList.contains('open')){
+    closeShopPage();
+  }
+},{capture:false});
+
+// 헤더 검색/유저 버튼
+const spSearchBtn=document.getElementById('sp-search-btn');
+const spUserBtn=document.getElementById('sp-user-btn');
+const spCartBtn=document.getElementById('sp-cart-icon-btn');
+if(spSearchBtn)spSearchBtn.addEventListener('click',openOverlay);
+if(spUserBtn)spUserBtn.addEventListener('click',openLoginPage);
+if(spCartBtn)spCartBtn.addEventListener('click',openCartDrawer);
+</script>
 </body>
 </html>
