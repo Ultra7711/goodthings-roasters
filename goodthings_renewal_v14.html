@@ -4018,6 +4018,21 @@ function setLoginMode(mode){
   document.getElementById('lp-form-register').style.display=(!isLogin&&!isReset&&!isGuest)?'block':'none';
   document.getElementById('lp-form-reset').style.display=isReset?'block':'none';
   document.getElementById('lp-form-guest-lookup').style.display=isGuest?'block':'none';
+  // 주문 조회 폼 진입 시 입력값 초기화
+  if(isGuest){
+    ['lp-guest-email','lp-guest-order-num'].forEach(id=>{
+      const inp=document.getElementById(id);
+      if(!inp)return;
+      inp.value='';
+      inp.classList.remove('has-value');
+      const field=inp.closest('.chp-field');
+      if(field)field.classList.remove('input-warn','error');
+      const helper=field&&field.querySelector('.chp-helper');
+      if(helper)helper.classList.remove('visible','warn');
+      const clearBtn=field&&field.querySelector('.chp-input-action');
+      if(clearBtn)clearBtn.classList.remove('visible');
+    });
+  }
 
   // 취소하기 버튼 — 사용하지 않음
   const cancelBtn=document.getElementById('lp-reset-cancel-btn');
