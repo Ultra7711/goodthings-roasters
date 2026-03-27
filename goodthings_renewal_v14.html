@@ -436,12 +436,10 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 .beans-sec{padding:120px 0 0;}
 .sec-title{font-size:var(--type-heading-m-size);font-weight:var(--type-heading-m-weight);letter-spacing:-.01em;margin-bottom:24px;}
 .bean-meta{display:none;}
-/* marquee */
-.beans-marquee{overflow:hidden;cursor:pointer;}
-.beans-marquee:hover .beans-track{animation-play-state:paused;}
-.beans-track{display:flex;gap:0;width:max-content;will-change:transform;backface-visibility:hidden;animation:beans-scroll 28s linear infinite;}
-@keyframes beans-scroll{from{transform:translateX(0);}to{transform:translateX(-1440px);}}
-.bean-card{overflow:hidden;flex-shrink:0;width:360px;margin:0;}
+/* snap scroll */
+.beans-scroll{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;padding:0 60px;}
+.beans-scroll::-webkit-scrollbar{display:none;}
+.beans-scroll .bean-card{flex-shrink:0;width:360px;scroll-snap-align:start;}
 
 /* ── ROASTERY ── */
 .roastery{position:relative;min-height:560px;background:#1a1a1a;display:flex;align-items:flex-end;overflow:hidden;margin-top:120px;}
@@ -753,9 +751,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 <!-- ONLINE STORE -->
 <section class="blk reveal" data-header-theme="light">
   <div class="beans-sec">
-    <div class="beans-marquee">
-      <div class="beans-track" id="beans-track"></div>
-    </div>
+    <div class="beans-scroll" id="beans-track"></div>
   </div>
 </section>
 
@@ -3307,17 +3303,14 @@ function splitProductName(name, mode){
   return `${m[1]}<br><span class="product-name-en">${m[2]}</span>`;
 }
 
-// ── 메인 Beans Marquee 동적 렌더링 ──
-function renderBeansMarquee(){
+// ── 메인 Beans Snap Scroll 렌더링 ──
+function renderBeansScroll(){
   const track=document.getElementById('beans-track');
   if(!track)return;
-  const CARD_W=360,COPIES=4;
-  const singleSetW=PRODUCTS.length*CARD_W;
-  const duration=Math.max(24,PRODUCTS.length*9);
   function cardHtml(p){
     const img=p.images&&p.images.length?p.images[0]:null;
-    let wrapBg='';   // .bean-img 배경색만
-    let innerBg='';  // .bean-img-inner 이미지 (scale 대상)
+    let wrapBg='';
+    let innerBg='';
     if(img){
       wrapBg=`background:${img.bg||'#ebebeb'};`;
       if(img.src)innerBg=`background:${img.bg||'#ebebeb'} url('${img.src}') center/contain no-repeat;`;
@@ -3328,23 +3321,19 @@ function renderBeansMarquee(){
     if(p.status==='new')badge='<span class="badge badge-new">NEW</span>';
     else if(p.status==='popular')badge='<span class="badge badge-pop">POPULAR</span>';
     else if(p.status==='limited')badge='<span class="badge badge-ltd">LIMITED</span>';
-    // 상품명 한글/영문 2줄 분리
     const nm=p.name.match(/^(.*[\uAC00-\uD7AF](?:\s+[A-Z0-9]+)*)\s+([A-Z][a-z].*)$/);
     const nameHtml=nm?`${nm[1]}<br><span class="bean-name-en">${nm[2]}</span>`:p.name;
     return `<div class="bean-card" data-slug="${p.slug}"><div class="bean-img" style="${wrapBg}"><div class="bean-img-inner"${innerBg?` style="${innerBg}"`:''}>
 </div><div class="bean-overlay">${badge}<div class="bean-org">${p.category}</div><div class="bean-name">${nameHtml}</div>${p.noteTags?`<div class="bean-flv">${renderNoteTags(p.noteTags)}</div>`:''}${p.price?`<div class="bean-prc">${formatDisplayPrice(p.price)}</div>`:''}</div></div></div>`;
   }
   let html='';
-  for(let i=0;i<COPIES;i++)PRODUCTS.forEach(p=>{html+=cardHtml(p);});
+  PRODUCTS.forEach(p=>{html+=cardHtml(p);});
   track.innerHTML=html;
-  let st=document.getElementById('beans-marquee-style');
-  if(!st){st=document.createElement('style');st.id='beans-marquee-style';document.head.appendChild(st);}
-  st.textContent=`@keyframes beans-scroll{from{transform:translateX(0);}to{transform:translateX(-${singleSetW}px);}}.beans-track{animation-duration:${duration}s;}`;
   track.querySelectorAll('.bean-card[data-slug]').forEach(el=>{
     el.addEventListener('click',()=>{window._pdPrevPage='main';openProductPage(el.dataset.slug);});
   });
 }
-renderBeansMarquee();
+renderBeansScroll();
 
 // 정기배송 주기별 할인율
 const SUB_DISCOUNTS={'2':0,'4':0.05,'6':0.08,'8':0.10};
