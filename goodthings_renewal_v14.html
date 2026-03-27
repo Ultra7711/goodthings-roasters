@@ -3872,16 +3872,16 @@ function renderBeansScroll(){
     track.addEventListener('scroll',updateDots,{passive:true});
   }
   // 드래그 스크롤
-  let dragStart=null,dragScrollStart=0,dragged=false;
+  let dragStart=null,dragScrollStart=0,dragged=false,_blockClick=false;
   let _dragRaf=null;
   track.addEventListener('mousedown',(e)=>{
-    dragStart=e.pageX;dragScrollStart=track.scrollLeft;dragged=false;
-    track.classList.add('dragging');
+    dragStart=e.pageX;dragScrollStart=track.scrollLeft;dragged=false;_blockClick=false;
   });
   document.addEventListener('mousemove',(e)=>{
     if(dragStart===null)return;
     const dx=e.pageX-dragStart;
-    if(Math.abs(dx)>4)dragged=true;
+    if(Math.abs(dx)>4){dragged=true;track.classList.add('dragging');}
+    if(Math.abs(dx)>10)_blockClick=true;
     if(dragged){
       const raw=dragScrollStart-dx;
       const max=maxScroll();
@@ -3905,8 +3905,8 @@ function renderBeansScroll(){
     }
     dragStart=null;
   });
-  // 드래그 중 카드 클릭 방지
-  track.addEventListener('click',(e)=>{if(dragged)e.stopImmediatePropagation();},{capture:true});
+  // 드래그 중 카드 클릭 방지 (10px 이상 이동 시만 차단)
+  track.addEventListener('click',(e)=>{if(_blockClick){_blockClick=false;e.stopImmediatePropagation();}},{capture:true});
 }
 renderBeansScroll();
 
