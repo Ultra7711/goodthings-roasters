@@ -438,13 +438,17 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 .bean-meta{display:none;}
 /* snap scroll */
 .blk-scroll{overflow:visible;}
-.beans-scroll{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;padding:0 80px;scroll-padding-left:80px;cursor:grab;}
-.beans-scroll.dragging{cursor:grabbing;scroll-snap-type:none;scroll-behavior:auto;}
+.beans-scroll{display:flex;gap:20px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding:0 80px;cursor:grab;}
+.beans-scroll.dragging{cursor:grabbing;}
 .beans-scroll::-webkit-scrollbar{display:none;}
-.beans-scroll .bean-card{flex-shrink:0;width:360px;scroll-snap-align:start;user-select:none;}
+.beans-scroll .bean-card{flex-shrink:0;width:360px;user-select:none;}
 .beans-dots{display:flex;justify-content:center;align-items:center;gap:6px;padding:20px 0 0;}
 .beans-dot{height:6px;width:6px;border-radius:3px;background:var(--color-border-primary);border:none;padding:0;cursor:pointer;transition:width .3s var(--ease-spring),background .3s ease;}
 .beans-dot.active{width:20px;background:var(--color-text-primary);}
+@keyframes beans-bounce-start{0%,100%{transform:translateX(0);}40%{transform:translateX(14px);}}
+@keyframes beans-bounce-end{0%,100%{transform:translateX(0);}40%{transform:translateX(-14px);}}
+.beans-scroll.bounce-start{animation:beans-bounce-start .4s var(--ease-spring);}
+.beans-scroll.bounce-end{animation:beans-bounce-end .4s var(--ease-spring);}
 
 /* ── ROASTERY ── */
 .roastery{position:relative;min-height:560px;background:#1a1a1a;display:flex;align-items:flex-end;overflow:hidden;margin-top:120px;}
@@ -3340,28 +3344,46 @@ function renderBeansScroll(){
     el.addEventListener('click',()=>{window._pdPrevPage='main';openProductPage(el.dataset.slug);});
   });
   // 도트 인디케이터
-  const CARD_W=360,GAP=20;
+  const N=PRODUCTS.length;
+  function maxScroll(){return track.scrollWidth-track.offsetWidth;}
+  // scrollLeft → 도트 인덱스 (maxScroll 전체를 N-1 구간으로 균등 분배)
+  function snapIdx(){
+    const max=maxScroll();
+    if(max<=0)return 0;
+    return Math.round((track.scrollLeft/max)*(N-1));
+  }
+  // 도트 인덱스 → scrollLeft (비율 기반)
+  function snapTarget(idx){return Math.round((idx/(N-1))*maxScroll());}
+  // 양 끝 바운스
+  function bounce(dir){
+    track.classList.remove('bounce-start','bounce-end');
+    void track.offsetWidth; // reflow
+    track.classList.add(dir==='start'?'bounce-start':'bounce-end');
+    setTimeout(()=>track.classList.remove('bounce-start','bounce-end'),400);
+  }
   if(dotsEl){
     dotsEl.innerHTML=PRODUCTS.map((_,i)=>`<button class="beans-dot${i===0?' active':''}" data-idx="${i}"></button>`).join('');
     const dots=dotsEl.querySelectorAll('.beans-dot');
     function updateDots(){
-      const idx=Math.round(track.scrollLeft/(CARD_W+GAP));
+      const idx=snapIdx();
       dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
     }
     dots.forEach(dot=>{
       dot.addEventListener('click',()=>{
-        track.scrollTo({left:+dot.dataset.idx*(CARD_W+GAP),behavior:'smooth'});
+        track.scrollTo({left:snapTarget(+dot.dataset.idx),behavior:'smooth'});
       });
     });
     track.addEventListener('scroll',updateDots,{passive:true});
   }
-  // 마우스 휠 → 가로 카드 단위 스크롤
+  // 마우스 휠 → 스텝 단위 스크롤
   track.addEventListener('wheel',(e)=>{
     if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
       e.preventDefault();
-      const cur=Math.round(track.scrollLeft/(CARD_W+GAP));
-      const next=e.deltaY>0?Math.min(cur+1,PRODUCTS.length-1):Math.max(cur-1,0);
-      track.scrollTo({left:next*(CARD_W+GAP),behavior:'smooth'});
+      const cur=snapIdx();
+      if(e.deltaY>0&&cur>=N-1){bounce('end');return;}
+      if(e.deltaY<0&&cur<=0){bounce('start');return;}
+      const next=e.deltaY>0?Math.min(cur+1,N-1):Math.max(cur-1,0);
+      track.scrollTo({left:snapTarget(next),behavior:'smooth'});
     }
   },{passive:false});
   // 드래그 스크롤
@@ -3374,14 +3396,23 @@ function renderBeansScroll(){
     if(dragStart===null)return;
     const dx=e.pageX-dragStart;
     if(Math.abs(dx)>4)dragged=true;
-    if(dragged)track.scrollLeft=dragScrollStart-dx;
+    if(dragged){
+      // 양 끝 50px 고무줄 저항
+      const raw=dragScrollStart-dx;
+      const max=maxScroll();
+      if(raw<0)track.scrollLeft=raw*0.25;
+      else if(raw>max)track.scrollLeft=max+(raw-max)*0.25;
+      else track.scrollLeft=raw;
+    }
   });
   document.addEventListener('mouseup',()=>{
     if(dragStart===null)return;
     track.classList.remove('dragging');
     if(dragged){
-      const idx=Math.round(track.scrollLeft/(CARD_W+GAP));
-      track.scrollTo({left:idx*(CARD_W+GAP),behavior:'smooth'});
+      const max=maxScroll();
+      if(track.scrollLeft<=0){bounce('start');track.scrollTo({left:0,behavior:'smooth'});}
+      else if(track.scrollLeft>=max){bounce('end');track.scrollTo({left:max,behavior:'smooth'});}
+      else track.scrollTo({left:snapTarget(snapIdx()),behavior:'smooth'});
     }
     dragStart=null;
   });
