@@ -3083,8 +3083,8 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
       <div id="sp-filter-tabs">
         <div id="sp-filter-indicator"></div>
         <button class="sp-filter-tab active" data-filter="all"><span class="sp-tab-label">모든 상품</span></button>
-        <button class="sp-filter-tab" data-filter="bean"><span class="sp-tab-label">원두</span></button>
-        <button class="sp-filter-tab" data-filter="drip"><span class="sp-tab-label">드립백</span></button>
+        <button class="sp-filter-tab" data-filter="bean"><span class="sp-tab-label">커피 빈</span></button>
+        <button class="sp-filter-tab" data-filter="drip"><span class="sp-tab-label">드립 백</span></button>
       </div>
     </div>
     <div id="sp-grid"></div>
@@ -3584,8 +3584,8 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 /* 카드 그리드 */
 #sp-grid{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:0;
+  grid-template-columns:repeat(4,minmax(218px,1fr));
+  gap:40px;
 }
 .sp-card{cursor:pointer;display:flex;flex-direction:column;}
 .sp-card-thumb{
@@ -6675,7 +6675,7 @@ function _spPositionIndicator(tab,animate){
   const label=tab.querySelector('.sp-tab-label');
   const labelW=label?label.getBoundingClientRect().width:tabRect.width;
   const left=tabRect.left-tabsRect.left;
-  const width=Math.round(labelW)+20;
+  const width=Math.round(labelW);
   if(!animate){
     ind.style.transition='none';
     ind.style.left=left+'px';
