@@ -3082,9 +3082,9 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
       <h1 id="sp-page-title">모든 상품</h1>
       <div id="sp-filter-tabs">
         <div id="sp-filter-indicator"></div>
-        <button class="sp-filter-tab active" data-filter="all">모든 상품</button>
-        <button class="sp-filter-tab" data-filter="bean">원두</button>
-        <button class="sp-filter-tab" data-filter="drip">드립백</button>
+        <button class="sp-filter-tab active" data-filter="all"><span class="sp-tab-label">모든 상품</span></button>
+        <button class="sp-filter-tab" data-filter="bean"><span class="sp-tab-label">원두</span></button>
+        <button class="sp-filter-tab" data-filter="drip"><span class="sp-tab-label">드립백</span></button>
       </div>
     </div>
     <div id="sp-grid"></div>
@@ -3535,7 +3535,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   flex:1;
   width:100%;max-width:1440px;
   margin:0 auto;
-  padding:64px 60px 80px;
+  padding:100px 60px 80px;
 }
 #sp-head{margin-bottom:48px;}
 #sp-page-title{
@@ -3554,7 +3554,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 }
 #sp-filter-tabs::after{
   content:'';position:absolute;bottom:0;left:0;right:0;
-  height:.5px;background:var(--color-border-primary);
+  height:2px;background:var(--color-border-primary);
 }
 #sp-filter-indicator{
   position:absolute;bottom:0;left:0;
@@ -3564,22 +3564,23 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   z-index:1;
 }
 .sp-filter-tab{
-  padding:16px 28px 14px;
+  padding:20px 48px 16px 0;
   background:transparent;border:none;cursor:pointer;
-  font-family:var(--font-en);
-  font-size:var(--tab-font-size);
-  font-weight:var(--tab-font-weight);
-  letter-spacing:var(--tab-letter-spacing);
+  font-family:var(--font-kr);
+  font-size:16px;
+  font-weight:400;
+  letter-spacing:0;
   color:var(--tab-color);
   transition:color .2s ease;
   white-space:nowrap;
 }
-.sp-filter-tab:first-of-type{padding-left:0;}
+.sp-filter-tab:last-of-type{padding-right:0;}
 .sp-filter-tab:hover{color:var(--tab-color-active);}
 .sp-filter-tab.active{
-  font-weight:var(--tab-font-weight-active);
+  font-weight:500;
   color:var(--tab-color-active);
 }
+.sp-tab-label{pointer-events:none;}
 /* 카드 그리드 */
 #sp-grid{
   display:grid;
@@ -6669,10 +6670,12 @@ const SP_PER_PAGE=20;
 function _spPositionIndicator(tab,animate){
   const tabs=document.getElementById('sp-filter-tabs');
   const ind=document.getElementById('sp-filter-indicator');
-  const tabRect=tab.getBoundingClientRect();
   const tabsRect=tabs.getBoundingClientRect();
+  const tabRect=tab.getBoundingClientRect();
+  const label=tab.querySelector('.sp-tab-label');
+  const labelW=label?label.getBoundingClientRect().width:tabRect.width;
   const left=tabRect.left-tabsRect.left;
-  const width=tabRect.width;
+  const width=Math.round(labelW)+20;
   if(!animate){
     ind.style.transition='none';
     ind.style.left=left+'px';
@@ -6790,7 +6793,8 @@ document.querySelectorAll('.sp-filter-tab').forEach(tab=>{
   tab.addEventListener('click',()=>{
     document.querySelectorAll('.sp-filter-tab').forEach(t=>t.classList.remove('active'));
     tab.classList.add('active');
-    document.getElementById('sp-page-title').textContent=tab.textContent.trim();
+    const lbl=tab.querySelector('.sp-tab-label');
+    document.getElementById('sp-page-title').textContent=lbl?lbl.textContent.trim():tab.textContent.trim();
     _spFilter=tab.dataset.filter;
     _spPage=1;
     _spPositionIndicator(tab,true);
