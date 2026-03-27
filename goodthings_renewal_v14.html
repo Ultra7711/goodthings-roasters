@@ -4926,15 +4926,19 @@ document.getElementById('lp-google-btn').addEventListener('click',()=>{
     }
   }
 
-  // 히어로 스크롤 아웃 감지
+  // 히어로 스크롤 아웃 감지 (최초 1회)
   const heroEl=document.getElementById('hero-blk');
   if(heroEl){
-    new IntersectionObserver((entries)=>{
+    const heroObs=new IntersectionObserver((entries)=>{
       entries.forEach(e=>{
-        heroGone=!e.isIntersecting;
-        syncPopup();
+        if(!e.isIntersecting){
+          heroGone=true;
+          syncPopup();
+          heroObs.disconnect();
+        }
       });
-    },{threshold:0}).observe(heroEl);
+    },{threshold:0});
+    heroObs.observe(heroEl);
   }
 
   // X 버튼 → 완전 닫기
