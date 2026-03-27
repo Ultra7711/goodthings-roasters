@@ -3389,17 +3389,6 @@ function renderBeansScroll(){
     });
     track.addEventListener('scroll',updateDots,{passive:true});
   }
-  // 마우스 휠 → 스텝 단위 스크롤
-  track.addEventListener('wheel',(e)=>{
-    if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
-      e.preventDefault();
-      const cur=snapIdx();
-      if(e.deltaY>0&&cur>=N-1){bounce('end');return;}
-      if(e.deltaY<0&&cur<=0){bounce('start');return;}
-      const next=e.deltaY>0?Math.min(cur+1,N-1):Math.max(cur-1,0);
-      track.scrollTo({left:snapTarget(next),behavior:'smooth'});
-    }
-  },{passive:false});
   // 드래그 스크롤
   let dragStart=null,dragScrollStart=0,dragged=false;
   track.addEventListener('mousedown',(e)=>{
