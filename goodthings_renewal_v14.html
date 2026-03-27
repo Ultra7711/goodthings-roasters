@@ -438,13 +438,14 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 .bean-meta{display:none;}
 /* snap scroll */
 .blk-scroll{overflow:visible;}
-.beans-scroll{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;padding:0 60px;scroll-padding-left:60px;}
+.beans-scroll{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;padding:0 80px;scroll-padding-left:80px;cursor:grab;}
+.beans-scroll.dragging{cursor:grabbing;scroll-snap-type:none;scroll-behavior:auto;}
 .beans-scroll::-webkit-scrollbar{display:none;}
-.beans-scroll .bean-card{flex-shrink:0;width:360px;scroll-snap-align:start;}
+.beans-scroll .bean-card{flex-shrink:0;width:360px;scroll-snap-align:start;user-select:none;}
 .beans-scroll::after{content:'';flex-shrink:0;width:40px;}
-.beans-dots{display:flex;justify-content:center;gap:8px;padding:20px 0 0;}
-.beans-dot{width:6px;height:6px;border-radius:50%;background:var(--color-border-primary);border:none;padding:0;cursor:pointer;transition:background .2s;}
-.beans-dot.active{background:var(--color-text-primary);}
+.beans-dots{display:flex;justify-content:center;align-items:center;gap:6px;padding:20px 0 0;}
+.beans-dot{height:6px;width:6px;border-radius:3px;background:var(--color-border-primary);border:none;padding:0;cursor:pointer;transition:width .3s var(--ease-spring),background .3s ease;}
+.beans-dot.active{width:20px;background:var(--color-text-primary);}
 
 /* ── ROASTERY ── */
 .roastery{position:relative;min-height:560px;background:#1a1a1a;display:flex;align-items:flex-end;overflow:hidden;margin-top:120px;}
@@ -3340,19 +3341,53 @@ function renderBeansScroll(){
     el.addEventListener('click',()=>{window._pdPrevPage='main';openProductPage(el.dataset.slug);});
   });
   // 도트 인디케이터
+  const CARD_W=360,GAP=20;
   if(dotsEl){
-    const CARD_W=360,GAP=20;
     dotsEl.innerHTML=PRODUCTS.map((_,i)=>`<button class="beans-dot${i===0?' active':''}" data-idx="${i}"></button>`).join('');
-    dotsEl.querySelectorAll('.beans-dot').forEach(dot=>{
+    const dots=dotsEl.querySelectorAll('.beans-dot');
+    function updateDots(){
+      const idx=Math.round(track.scrollLeft/(CARD_W+GAP));
+      dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+    }
+    dots.forEach(dot=>{
       dot.addEventListener('click',()=>{
         track.scrollTo({left:+dot.dataset.idx*(CARD_W+GAP),behavior:'smooth'});
       });
     });
-    track.addEventListener('scroll',()=>{
-      const idx=Math.round(track.scrollLeft/(CARD_W+GAP));
-      dotsEl.querySelectorAll('.beans-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
-    },{passive:true});
+    track.addEventListener('scroll',updateDots,{passive:true});
   }
+  // 마우스 휠 → 가로 카드 단위 스크롤
+  track.addEventListener('wheel',(e)=>{
+    if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
+      e.preventDefault();
+      const cur=Math.round(track.scrollLeft/(CARD_W+GAP));
+      const next=e.deltaY>0?Math.min(cur+1,PRODUCTS.length-1):Math.max(cur-1,0);
+      track.scrollTo({left:next*(CARD_W+GAP),behavior:'smooth'});
+    }
+  },{passive:false});
+  // 드래그 스크롤
+  let dragStart=null,dragScrollStart=0,dragged=false;
+  track.addEventListener('mousedown',(e)=>{
+    dragStart=e.pageX;dragScrollStart=track.scrollLeft;dragged=false;
+    track.classList.add('dragging');
+  });
+  document.addEventListener('mousemove',(e)=>{
+    if(dragStart===null)return;
+    const dx=e.pageX-dragStart;
+    if(Math.abs(dx)>4)dragged=true;
+    if(dragged)track.scrollLeft=dragScrollStart-dx;
+  });
+  document.addEventListener('mouseup',()=>{
+    if(dragStart===null)return;
+    track.classList.remove('dragging');
+    if(dragged){
+      const idx=Math.round(track.scrollLeft/(CARD_W+GAP));
+      track.scrollTo({left:idx*(CARD_W+GAP),behavior:'smooth'});
+    }
+    dragStart=null;
+  });
+  // 드래그 중 카드 클릭 방지
+  track.addEventListener('click',(e)=>{if(dragged)e.stopImmediatePropagation();},{capture:true});
 }
 renderBeansScroll();
 
