@@ -2308,7 +2308,8 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 .cd-promo{padding:11px 28px;background:var(--color-background-secondary);font-family:var(--font-en);font-size:13px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);border-bottom:.5px solid var(--color-border-tertiary);flex-shrink:0;}
 .cd-items{flex:1;}
 /* 아이템 — 176px 컴팩트 레이아웃 */
-.cd-item{min-height:176px;position:relative;display:flex;align-items:center;gap:24px;padding:0 0 0 28px;border-bottom:.5px solid var(--color-border-tertiary);cursor:default;}
+.cd-item{min-height:176px;position:relative;display:flex;align-items:center;gap:24px;padding:0 0 0 28px;cursor:default;}
+.cd-item::after{content:'';position:absolute;bottom:0;left:28px;right:28px;height:.5px;background:var(--color-border-tertiary);}
 .cd-item-img{width:100px;height:100px;flex-shrink:0;overflow:hidden;background:var(--color-background-secondary);cursor:pointer;}
 .cd-item-info{flex:1;display:flex;flex-direction:column;gap:6px;padding-right:44px;}
 /* 타이포 — SRP 아이템과 통일 */
