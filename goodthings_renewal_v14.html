@@ -1109,7 +1109,14 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
         <p class="ep-sec-label">주문 번호</p>
         <div class="ep-num-box">
           <span class="ep-num">GT-20260327-00042</span>
+          <button class="ep-copy-btn" id="ep-copy-btn" title="주문번호 복사">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5.5" y="5.5" width="8" height="8" rx=".8"/>
+              <path d="M3.5 10.5H2.5a1 1 0 01-1-1v-8a1 1 0 011-1h8a1 1 0 011 1v1"/>
+            </svg>
+          </button>
         </div>
+        <div class="ep-copy-toast" id="ep-copy-toast">주문번호가 복사되었습니다.</div>
         <p class="ep-num-date">2026년 3월 27일 오후 2:30 주문</p>
       </div>
 
@@ -1243,8 +1250,12 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 
 /* ── ORDER NUMBER ── */
 .ep-num-sec{padding-bottom:48px;}
-.ep-num-box{background:#f7f6f3;padding:24px 32px;margin-bottom:14px;text-align:center;border:.5px solid var(--color-border-tertiary);}
+.ep-num-box{background:#f7f6f3;padding:24px 32px;margin-bottom:14px;text-align:center;border:.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:center;gap:10px;}
 .ep-num{font-family:var(--font-en);font-size:24px;font-weight:500;color:#1a1a1a;letter-spacing:.06em;}
+.ep-copy-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border:none;background:transparent;cursor:pointer;color:var(--color-text-tertiary);transition:color .15s ease;flex-shrink:0;}
+.ep-copy-btn:hover{color:#1a1a1a;}
+.ep-copy-toast{font-family:var(--font-kr);font-size:13px;color:var(--color-text-tertiary);text-align:center;margin:0 0 14px;height:0;overflow:hidden;opacity:0;transition:opacity .2s ease,height .2s ease;}
+.ep-copy-toast.show{height:20px;opacity:1;}
 .ep-num-date{font-family:var(--font-kr);font-size:13px;color:var(--color-text-tertiary);margin:0;text-align:center;}
 
 /* ── ORDER ITEMS ── */
@@ -1263,7 +1274,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 .ep-tot-row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;font-family:var(--font-kr);font-size:14px;color:var(--color-text-secondary);}
 .ep-tot-row span:last-child{font-family:var(--font-en);}
 .ep-tot-final{border-top:.5px solid var(--color-border-primary);margin-top:8px;padding-top:17px!important;}
-.ep-tot-final span:first-child{font-family:var(--font-kr);font-size:14px;font-weight:500;color:#1a1a1a;}
+.ep-tot-final span:first-child{font-family:var(--font-kr);font-size:14px;font-weight:500;color:#1a1a1a;padding-bottom:var(--font-kr-align-fix);}
 .ep-tot-final span:last-child{font-family:var(--font-en);font-size:20px;font-weight:500;color:#1a1a1a;}
 
 /* ── SHIPPING ── */
@@ -4744,6 +4755,22 @@ function closeEmailPreview(){
   document.body.style.overflow='';
 }
 document.getElementById('ep-close-btn').addEventListener('click',closeEmailPreview);
+// 주문번호 복사
+(function(){
+  const btn=document.getElementById('ep-copy-btn');
+  const toast=document.getElementById('ep-copy-toast');
+  if(!btn||!toast)return;
+  let timer=null;
+  btn.addEventListener('click',()=>{
+    const num=document.querySelector('#ep-email .ep-num')?.textContent?.trim();
+    if(!num)return;
+    navigator.clipboard.writeText(num).then(()=>{
+      toast.classList.add('show');
+      clearTimeout(timer);
+      timer=setTimeout(()=>toast.classList.remove('show'),2000);
+    });
+  });
+})();
 
 // ── 서브 페이지 푸터 주입 (모든 서브 페이지 공통) ──
 (function(){
