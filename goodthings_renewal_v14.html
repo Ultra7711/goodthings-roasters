@@ -349,8 +349,9 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 .cat-card:hover .cat-img-inner{transform:scale(1.06);}
 
 .section-cta{padding:28px 20px 90px;display:flex;justify-content:center;align-items:flex-start;border-top:.5px solid var(--color-background-primary);}
-.badge{position:absolute;top:12px;left:12px;font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.05em;text-transform:uppercase;padding:4px 8px;line-height:1;z-index:4;}
-.badge-new{background:#1a1a1a;color:#fff;}.badge-pop{background:var(--color-accent-gold);color:#fff;}.badge-ltd{background:#fff;color:#1a1a1a;border:.5px solid var(--color-text-disabled);}
+.badge{position:absolute;top:12px;left:12px;font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.05em;text-transform:uppercase;padding:5px 8px 6px;line-height:1;z-index:4;}
+.badge-new{background:#9c807c;color:#fff;}.badge-pop-1{background:#c9a84b;color:#fff;}.badge-pop-2{background:#9098a0;color:#fff;}.badge-pop-3{background:#a07848;color:#fff;}.badge-ltd{background:#788fa7;color:#fff;}.badge-sold{background:#8e7ea0;color:#fff;}
+.badge-kr{font-family:var(--font-kr);letter-spacing:.02em;text-transform:none;}
 .pkg{width:50%;height:70%;border-radius:1px;}
 .bean-meta{padding:16px 20px 20px;border-top:.5px solid var(--color-border-tertiary);}
 .bean-org{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:2px;}
@@ -3612,12 +3613,10 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   font-size:11px;font-weight:600;
   letter-spacing:.04em;
   padding:4px 8px;
-  background:#1a1a1a;color:#fff;
   pointer-events:none;
   text-transform:uppercase;
 }
-.sp-card-badge.badge-sold{background:var(--color-text-tertiary);}
-.sp-card-badge.badge-limited{background:var(--color-accent-gold);}
+.sp-card-badge.badge-kr{font-family:var(--font-kr);letter-spacing:.02em;text-transform:none;min-width:60px;text-align:center;line-height:1;padding:6px 12px 5px;}
 .sp-card-info{
   padding:16px 4px 28px;
   background:#fff;
@@ -3823,9 +3822,12 @@ function renderBeansScroll(){
       wrapBg=`background:${p.color||'#ebebeb'};`;
     }
     let badge='';
-    if(p.status==='new')badge='<span class="badge badge-new">NEW</span>';
-    else if(p.status==='popular')badge='<span class="badge badge-pop">POPULAR</span>';
-    else if(p.status==='limited')badge='<span class="badge badge-ltd">LIMITED</span>';
+    if(p.status==='NEW')badge='<span class="badge badge-new">NEW</span>';
+    else if(p.status==='인기 NO.1')badge='<span class="badge badge-pop-1 badge-kr">인기 NO.1</span>';
+    else if(p.status==='인기 NO.2')badge='<span class="badge badge-pop-2 badge-kr">인기 NO.2</span>';
+    else if(p.status==='인기 NO.3')badge='<span class="badge badge-pop-3 badge-kr">인기 NO.3</span>';
+    else if(p.status==='수량 한정')badge='<span class="badge badge-ltd badge-kr">수량 한정</span>';
+    else if(p.status==='매진')badge='<span class="badge badge-sold badge-kr">매진</span>';
     const nm=p.name.match(/^(.*[\uAC00-\uD7AF](?:\s+[A-Z0-9]+)*)\s+([A-Z][a-z].*)$/);
     const nameHtml=nm?`${nm[1]}<br><span class="bean-name-en">${nm[2]}</span>`:p.name;
     return `<div class="bean-card" data-slug="${p.slug}"><div class="bean-img" style="${wrapBg}"><div class="bean-img-inner"${innerBg?` style="${innerBg}"`:''}>
@@ -6745,10 +6747,15 @@ function _spCardHtml(p){
   }
   let badgeHtml='';
   if(p.status){
-    let cls='sp-card-badge';
-    if(p.status==='매진')cls+=' badge-sold';
-    else if(p.status==='수량 한정')cls+=' badge-limited';
-    badgeHtml=`<span class="${cls}">${p.status}</span>`;
+    let badgeCls,badgeLabel;
+    if(p.status==='NEW'){badgeCls='sp-card-badge badge-new';badgeLabel='NEW';}
+    else if(p.status==='인기 NO.1'){badgeCls='sp-card-badge badge-pop-1 badge-kr';badgeLabel='인기 NO.1';}
+    else if(p.status==='인기 NO.2'){badgeCls='sp-card-badge badge-pop-2 badge-kr';badgeLabel='인기 NO.2';}
+    else if(p.status==='인기 NO.3'){badgeCls='sp-card-badge badge-pop-3 badge-kr';badgeLabel='인기 NO.3';}
+    else if(p.status==='수량 한정'){badgeCls='sp-card-badge badge-ltd badge-kr';badgeLabel='수량 한정';}
+    else if(p.status==='매진'){badgeCls='sp-card-badge badge-sold badge-kr';badgeLabel='매진';}
+    else{badgeCls='sp-card-badge';badgeLabel=p.status;}
+    badgeHtml=`<span class="${badgeCls}">${badgeLabel}</span>`;
   }
   return `<div class="sp-card" data-slug="${p.slug}">
   <div class="sp-card-thumb">
