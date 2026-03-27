@@ -4259,6 +4259,37 @@ if(lpResetCancel)lpResetCancel.addEventListener('click',()=>setLoginMode('login'
     });
   }
 
+  // ── 주문번호 형식 검증 (GT-YYYYMMDD-NNNNN) ──
+  function attachOrderNumValidation(inp,helper){
+    const HINT='주문번호를 입력해 주세요.';
+    const WARN='잘못된 형식입니다.';
+    const RE=/^GT-\d{8}-\d{5}$/;
+    inp.addEventListener('focus',()=>{
+      if(!inp.value){helper.textContent=HINT;helper.classList.add('visible');setWarn(inp.closest('.chp-field'),helper,false);}
+    });
+    inp.addEventListener('input',()=>{
+      const v=inp.value;const field=inp.closest('.chp-field');
+      if(!v){helper.textContent=HINT;helper.classList.add('visible');setWarn(field,helper,false);return;}
+      // 이미 warn 상태면 입력 중 실시간으로 재검증
+      if(field.classList.contains('input-warn')){
+        const valid=RE.test(v);
+        helper.textContent=valid?HINT:WARN;
+        setWarn(field,helper,!valid);
+        valid?helper.classList.remove('visible'):helper.classList.add('visible');
+      } else {
+        helper.classList.remove('visible');setWarn(field,helper,false);
+      }
+    });
+    inp.addEventListener('blur',()=>{
+      const v=inp.value;const field=inp.closest('.chp-field');
+      if(!v){hideHelper(helper,field);return;}
+      const valid=RE.test(v);
+      helper.textContent=valid?HINT:WARN;
+      setWarn(field,helper,!valid);
+      valid?helper.classList.remove('visible'):helper.classList.add('visible');
+    });
+  }
+
   // ── 적용 ──
   const g=id=>document.getElementById(id);
   // 로그인 폼
@@ -4271,6 +4302,9 @@ if(lpResetCancel)lpResetCancel.addEventListener('click',()=>setLoginMode('login'
   attachPw2Validation(g('lp-reg-pw2'),g('lp-reg-pw2-helper'),g('lp-reg-pw'));
   // 비밀번호 재설정 폼
   attachEmailValidation(g('lp-reset-email'),g('lp-reset-email-helper'),'가입 시 등록한 이메일 주소를 입력하세요.');
+  // 주문 조회 폼
+  attachEmailValidation(g('lp-guest-email'),g('lp-guest-email-helper'),'가입 시 등록한 이메일을 입력해 주세요.');
+  attachOrderNumValidation(g('lp-guest-order-num'),g('lp-guest-order-num-helper'));
 })();
 
 // ── 로그인 페이지 CTA 버튼 — 빈 필드 에러 표시 ──
