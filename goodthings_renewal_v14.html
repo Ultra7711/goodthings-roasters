@@ -1018,12 +1018,12 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
         <div class="chp-field">
           <input class="chp-input" id="lp-guest-email" type="email" placeholder=" " autocomplete="email">
           <label class="chp-floating-label" for="lp-guest-email">이메일 주소</label>
-          <div class="chp-helper" id="lp-guest-email-helper">주문 시 입력한 이메일 주소를 입력하세요.</div>
+          <div class="chp-helper" id="lp-guest-email-helper">가입 시 등록한 이메일을 입력해 주세요.</div>
         </div>
         <div class="chp-field">
           <input class="chp-input" id="lp-guest-order-num" type="text" placeholder=" " autocomplete="off">
           <label class="chp-floating-label" for="lp-guest-order-num">주문번호</label>
-          <div class="chp-helper" id="lp-guest-order-num-helper">주문번호를 입력하세요.</div>
+          <div class="chp-helper" id="lp-guest-order-num-helper">주문번호를 입력해 주세요.</div>
         </div>
         <button class="lp-submit-btn" id="lp-guest-lookup-submit-btn">주문 조회하기</button>
       </div>
@@ -4065,19 +4065,38 @@ if(lpGuestOrderBtn)lpGuestOrderBtn.addEventListener('click',()=>setLoginMode('gu
 const lpGuestLookupSubmit=document.getElementById('lp-guest-lookup-submit-btn');
 if(lpGuestLookupSubmit)lpGuestLookupSubmit.addEventListener('click',()=>{
   let ok=true;
-  [['lp-guest-email','이메일 주소를 입력하세요.'],['lp-guest-order-num','주문번호를 입력하세요.']].forEach(([id,msg])=>{
-    const inp=document.getElementById(id);
-    const field=inp.closest('.chp-field');
-    const helper=field.querySelector('.chp-helper');
-    if(!inp.value.trim()){
-      field.classList.add('input-warn');
-      helper.textContent=msg;helper.classList.add('visible','warn');
-      ok=false;
-    } else {
-      field.classList.remove('input-warn');
-      helper.classList.remove('visible','warn');
-    }
-  });
+  const emailInp=document.getElementById('lp-guest-email');
+  const emailField=emailInp.closest('.chp-field');
+  const emailHelper=document.getElementById('lp-guest-email-helper');
+  const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!emailInp.value.trim()){
+    emailField.classList.add('input-warn');
+    emailHelper.textContent='가입 시 등록한 이메일을 입력해 주세요.';
+    emailHelper.classList.add('visible','warn');ok=false;
+  } else if(!emailRe.test(emailInp.value.trim())){
+    emailField.classList.add('input-warn');
+    emailHelper.textContent='잘못된 형식입니다. (예: example@email.com)';
+    emailHelper.classList.add('visible','warn');ok=false;
+  } else {
+    emailField.classList.remove('input-warn');
+    emailHelper.classList.remove('visible','warn');
+  }
+  const orderInp=document.getElementById('lp-guest-order-num');
+  const orderField=orderInp.closest('.chp-field');
+  const orderHelper=document.getElementById('lp-guest-order-num-helper');
+  const orderRe=/^GT-\d{8}-\d{5}$/;
+  if(!orderInp.value.trim()){
+    orderField.classList.add('input-warn');
+    orderHelper.textContent='주문번호를 입력해 주세요.';
+    orderHelper.classList.add('visible','warn');ok=false;
+  } else if(!orderRe.test(orderInp.value.trim())){
+    orderField.classList.add('input-warn');
+    orderHelper.textContent='잘못된 형식입니다.';
+    orderHelper.classList.add('visible','warn');ok=false;
+  } else {
+    orderField.classList.remove('input-warn');
+    orderHelper.classList.remove('visible','warn');
+  }
   if(ok){/* TODO: 주문 조회 API 연동 */}
 });
 // 비밀번호 찾기 → reset 뷰
