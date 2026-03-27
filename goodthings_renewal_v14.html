@@ -537,9 +537,9 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
   position:fixed;bottom:24px;right:24px;z-index:var(--z-float);
   transition:opacity 300ms ease, transform 300ms ease;
 }
-.popup-outer.hidden{opacity:0;pointer-events:none;transform:translateY(8px);}
+.popup-outer.hidden{opacity:0;pointer-events:none;transform:translateX(20px);}
 /* 서브페이지가 열려 있으면 팝업 즉시 숨김 (타이밍 무관) */
-body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:translateY(8px);}
+body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:translateX(20px);}
 .popup{
   width:300px;background:var(--color-background-primary);
   border:1px solid rgba(0,0,0,.06);
@@ -4912,15 +4912,29 @@ document.getElementById('lp-google-btn').addEventListener('click',()=>{
   // 메인 페이지 여부 판단
   function isMainPage(){return !document.querySelector('.sub-page.open');}
 
-  // 팝업 동기화: 메인이면 보이고, 서브페이지면 숨김 (dismissed 제외)
+  // 히어로 뷰포트 상태 (처음엔 보임)
+  let heroGone=false;
+
+  // 팝업 동기화: 메인 + 히어로 사라진 후에만 표시
   function syncPopup(){
     if(popupOuter.dataset.dismissed==='true') return;
     if(!popupProduct) return;
-    if(isMainPage()){
+    if(isMainPage()&&heroGone){
       popupOuter.classList.remove('hidden');
     } else {
       popupOuter.classList.add('hidden');
     }
+  }
+
+  // 히어로 스크롤 아웃 감지
+  const heroEl=document.getElementById('hero-blk');
+  if(heroEl){
+    new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        heroGone=!e.isIntersecting;
+        syncPopup();
+      });
+    },{threshold:0}).observe(heroEl);
   }
 
   // X 버튼 → 완전 닫기
