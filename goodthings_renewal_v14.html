@@ -437,9 +437,14 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 .sec-title{font-size:var(--type-heading-m-size);font-weight:var(--type-heading-m-weight);letter-spacing:-.01em;margin-bottom:24px;}
 .bean-meta{display:none;}
 /* snap scroll */
-.beans-scroll{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;padding:0 60px;}
+.blk-scroll{overflow:visible;}
+.beans-scroll{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;padding:0 60px;scroll-padding-left:60px;}
 .beans-scroll::-webkit-scrollbar{display:none;}
 .beans-scroll .bean-card{flex-shrink:0;width:360px;scroll-snap-align:start;}
+.beans-scroll::after{content:'';flex-shrink:0;width:40px;}
+.beans-dots{display:flex;justify-content:center;gap:8px;padding:20px 0 0;}
+.beans-dot{width:6px;height:6px;border-radius:50%;background:var(--color-border-primary);border:none;padding:0;cursor:pointer;transition:background .2s;}
+.beans-dot.active{background:var(--color-text-primary);}
 
 /* ── ROASTERY ── */
 .roastery{position:relative;min-height:560px;background:#1a1a1a;display:flex;align-items:flex-end;overflow:hidden;margin-top:120px;}
@@ -749,9 +754,10 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 </section>
 
 <!-- ONLINE STORE -->
-<section class="blk reveal" data-header-theme="light">
+<section class="blk blk-scroll reveal" data-header-theme="light">
   <div class="beans-sec">
     <div class="beans-scroll" id="beans-track"></div>
+    <div class="beans-dots" id="beans-dots"></div>
   </div>
 </section>
 
@@ -3306,6 +3312,7 @@ function splitProductName(name, mode){
 // ── 메인 Beans Snap Scroll 렌더링 ──
 function renderBeansScroll(){
   const track=document.getElementById('beans-track');
+  const dotsEl=document.getElementById('beans-dots');
   if(!track)return;
   function cardHtml(p){
     const img=p.images&&p.images.length?p.images[0]:null;
@@ -3332,6 +3339,20 @@ function renderBeansScroll(){
   track.querySelectorAll('.bean-card[data-slug]').forEach(el=>{
     el.addEventListener('click',()=>{window._pdPrevPage='main';openProductPage(el.dataset.slug);});
   });
+  // 도트 인디케이터
+  if(dotsEl){
+    const CARD_W=360,GAP=20;
+    dotsEl.innerHTML=PRODUCTS.map((_,i)=>`<button class="beans-dot${i===0?' active':''}" data-idx="${i}"></button>`).join('');
+    dotsEl.querySelectorAll('.beans-dot').forEach(dot=>{
+      dot.addEventListener('click',()=>{
+        track.scrollTo({left:+dot.dataset.idx*(CARD_W+GAP),behavior:'smooth'});
+      });
+    });
+    track.addEventListener('scroll',()=>{
+      const idx=Math.round(track.scrollLeft/(CARD_W+GAP));
+      dotsEl.querySelectorAll('.beans-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+    },{passive:true});
+  }
 }
 renderBeansScroll();
 
