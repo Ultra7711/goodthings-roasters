@@ -445,10 +445,24 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 .beans-dots{display:flex;justify-content:center;align-items:center;gap:6px;padding:20px 0 0;}
 .beans-dot{height:6px;width:6px;border-radius:3px;background:var(--color-border-primary);border:none;padding:0;cursor:pointer;transition:width .3s var(--ease-spring),background .3s ease;}
 .beans-dot.active{width:20px;background:var(--color-text-primary);}
-@keyframes beans-bounce-start{0%,100%{transform:translateX(0);}40%{transform:translateX(14px);}}
-@keyframes beans-bounce-end{0%,100%{transform:translateX(0);}40%{transform:translateX(-14px);}}
-.beans-scroll.bounce-start{animation:beans-bounce-start .4s var(--ease-spring);}
-.beans-scroll.bounce-end{animation:beans-bounce-end .4s var(--ease-spring);}
+@keyframes beans-bounce-start{
+  0%{transform:translateX(0);}
+  22%{transform:translateX(18px);}
+  48%{transform:translateX(-7px);}
+  68%{transform:translateX(3px);}
+  84%{transform:translateX(-1px);}
+  100%{transform:translateX(0);}
+}
+@keyframes beans-bounce-end{
+  0%{transform:translateX(0);}
+  22%{transform:translateX(-18px);}
+  48%{transform:translateX(7px);}
+  68%{transform:translateX(-3px);}
+  84%{transform:translateX(1px);}
+  100%{transform:translateX(0);}
+}
+.beans-scroll.bounce-start{animation:beans-bounce-start .6s ease-out;}
+.beans-scroll.bounce-end{animation:beans-bounce-end .6s ease-out;}
 
 /* ── ROASTERY ── */
 .roastery{position:relative;min-height:560px;background:#1a1a1a;display:flex;align-items:flex-end;overflow:hidden;margin-top:120px;}
@@ -3359,7 +3373,7 @@ function renderBeansScroll(){
     track.classList.remove('bounce-start','bounce-end');
     void track.offsetWidth; // reflow
     track.classList.add(dir==='start'?'bounce-start':'bounce-end');
-    setTimeout(()=>track.classList.remove('bounce-start','bounce-end'),400);
+    setTimeout(()=>track.classList.remove('bounce-start','bounce-end'),600);
   }
   if(dotsEl){
     dotsEl.innerHTML=PRODUCTS.map((_,i)=>`<button class="beans-dot${i===0?' active':''}" data-idx="${i}"></button>`).join('');
