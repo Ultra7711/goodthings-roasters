@@ -3623,6 +3623,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 .sp-card-info{
   padding:16px 4px 28px;
   background:#fff;
+  text-align:center;
 }
 .sp-card-name{
   font-family:var(--font-kr);
@@ -3633,6 +3634,8 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   line-height:1.55;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
+.sp-card-name .product-name-sep{opacity:.35;margin:0 2px;}
+.sp-card-name .product-name-en{font-size:1em;font-weight:400;opacity:1;}
 .sp-card-price{
   font-family:var(--font-en);
   font-size:var(--type-body-ui-size);
@@ -6743,7 +6746,7 @@ function _spCardHtml(p){
     ${badgeHtml}
   </div>
   <div class="sp-card-info">
-    <p class="sp-card-name">${p.name}</p>
+    <p class="sp-card-name">${splitProductName(p.name,'inline')}</p>
     <p class="sp-card-price">${priceStr}</p>
   </div>
 </div>`;
