@@ -4614,7 +4614,7 @@ function openCheckoutPage(from){
   renderCheckoutSummary();
   updateCartBadge();
   if(!window.isLoggedIn){
-    setTimeout(()=>document.getElementById('chp-email').focus(),350);
+    // 자동 포커스 제거
   }
 }
 function closeCheckoutPage(){
