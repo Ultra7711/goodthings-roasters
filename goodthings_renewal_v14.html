@@ -1087,7 +1087,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 
       <!-- ── HEADER ── -->
       <div class="ep-hdr">
-        <span class="ep-logo">good things</span>
+        <img id="ep-logo-img" class="ep-logo-img" alt="GOOD THINGS">
       </div>
       <div class="ep-hdr-line"></div>
 
@@ -1099,14 +1099,14 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
             <path d="M11 18.5l5 5 9-10" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <h1 class="ep-hero-title">Order Complete.</h1>
+        <h1 class="ep-hero-title">주문 완료</h1>
         <p class="ep-hero-name">홍길동 님, 주문해 주셔서 감사합니다.</p>
         <p class="ep-hero-sub">아래 주문번호로 배송 현황을 조회하실 수 있습니다.</p>
       </div>
 
       <!-- ── ORDER NUMBER ── -->
       <div class="ep-sec ep-num-sec">
-        <p class="ep-sec-label">ORDER NUMBER</p>
+        <p class="ep-sec-label">주문 번호</p>
         <div class="ep-num-box">
           <span class="ep-num">GT-20260327-00042</span>
         </div>
@@ -1117,7 +1117,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 
       <!-- ── ORDER ITEMS ── -->
       <div class="ep-sec ep-items-sec">
-        <p class="ep-sec-label">ORDER ITEMS</p>
+        <p class="ep-sec-label">주문 상품</p>
 
         <div class="ep-item">
           <div class="ep-item-img" style="background:#f0eeeb url('images/pd_img_autumn_night.webp') center/contain no-repeat;"></div>
@@ -1144,7 +1144,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
           <div class="ep-tot-row"><span>상품 합계</span><span>28,000원</span></div>
           <div class="ep-tot-row"><span>배송비</span><span>3,000원</span></div>
           <div class="ep-tot-row ep-tot-final">
-            <span>TOTAL</span>
+            <span>결제 금액</span>
             <span>31,000원</span>
           </div>
         </div>
@@ -1154,7 +1154,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 
       <!-- ── SHIPPING ── -->
       <div class="ep-sec ep-ship-sec">
-        <p class="ep-sec-label">SHIPPING</p>
+        <p class="ep-sec-label">배송지 정보</p>
         <p class="ep-ship-name">홍길동 <span class="ep-ship-phone">010-1234-5678</span></p>
         <p class="ep-ship-addr">서울특별시 강남구 테헤란로 123, 101호</p>
         <p class="ep-ship-req">문 앞에 놓아주세요.</p>
@@ -1172,7 +1172,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
       <div class="ep-foot-line"></div>
       <div class="ep-foot">
         <p class="ep-foot-brand">good things</p>
-        <p class="ep-foot-addr">경상북도 구미시 · Specialty Coffee for All</p>
+        <p class="ep-foot-addr">Specialty Coffee for All</p>
         <div class="ep-foot-links">
           <a href="#" class="ep-foot-link">이용약관</a>
           <span class="ep-foot-dot">·</span>
@@ -1226,19 +1226,19 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 
 /* ── HEADER ── */
 .ep-hdr{padding:28px 48px;}
-.ep-logo{font-family:var(--font-en);font-size:16px;font-weight:600;letter-spacing:-.02em;color:#1a1a1a;}
+.ep-logo-img{height:24px;width:auto;display:block;}
 .ep-hdr-line{height:.5px;background:var(--color-border-tertiary);}
 
 /* ── HERO ── */
 .ep-hero{padding:60px 48px 52px;text-align:center;background:#faf9f7;}
 .ep-hero-icon{margin:0 auto 24px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;}
-.ep-hero-title{font-family:var(--font-en);font-size:28px;font-weight:500;letter-spacing:-.02em;color:#1a1a1a;margin:0 0 14px;}
+.ep-hero-title{font-family:var(--font-kr);font-size:var(--type-heading-l-size);font-weight:var(--type-heading-l-weight);letter-spacing:-.02em;color:#1a1a1a;margin:0 0 14px;}
 .ep-hero-name{font-family:var(--font-kr);font-size:15px;font-weight:400;color:var(--color-text-secondary);margin:0 0 6px;line-height:1.6;}
 .ep-hero-sub{font-family:var(--font-kr);font-size:13px;color:var(--color-text-tertiary);margin:0;line-height:1.6;}
 
 /* ── SECTION 공통 ── */
 .ep-sec{padding:48px 48px 0;}
-.ep-sec-label{font-family:var(--font-en);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin:0 0 16px;}
+.ep-sec-label{font-family:var(--font-kr);font-size:13px;font-weight:400;letter-spacing:.02em;color:var(--color-text-tertiary);margin:0 0 16px;}
 .ep-line{height:.5px;background:var(--color-border-tertiary);margin:48px 0 0;}
 
 /* ── ORDER NUMBER ── */
@@ -1263,7 +1263,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 .ep-tot-row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;font-family:var(--font-kr);font-size:14px;color:var(--color-text-secondary);}
 .ep-tot-row span:last-child{font-family:var(--font-en);}
 .ep-tot-final{border-top:.5px solid var(--color-border-primary);margin-top:8px;padding-top:17px!important;}
-.ep-tot-final span:first-child{font-family:var(--font-en);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);}
+.ep-tot-final span:first-child{font-family:var(--font-kr);font-size:14px;font-weight:500;color:#1a1a1a;}
 .ep-tot-final span:last-child{font-family:var(--font-en);font-size:20px;font-weight:500;color:#1a1a1a;}
 
 /* ── SHIPPING ── */
@@ -3464,6 +3464,8 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 const B64='PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCA2ODAgMTQyIj4KICA8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMjkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogMi4xLjAgQnVpbGQgMTg2KSAgLS0+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5zdDAgewogICAgICAgIGZpbGw6ICMwMTAxMDE7CiAgICAgIH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxwb2x5Z29uIGNsYXNzPSJzdDAiIHBvaW50cz0iMzU3LjY1IDI3LjIgMzM5LjY1IDI3LjIgMzM5LjY1IDQ0LjA4IDMyOC45MyA0NC4wOCAzMjguOTMgNTkuMTMgMzM5LjY1IDU5LjEzIDMzOS42NSAxMDEuMiAzNTcuNjUgMTAxLjIgMzU3LjY1IDU5LjEzIDM2OC4zNyA1OS4xMyAzNjguMzcgNDQuMDggMzU3LjY1IDQ0LjA4IDM1Ny42NSAyNy4yIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTI2Ny41Niw0Ny42Yy00LjU2LTMuMzgtMTAuMDktNS4zNy0xNi4wNy01LjM3LTE1LjU0LDAtMjguMTUsMTMuNDEtMjguMTUsMjkuOTVzMTIuNiwyOS45NSwyOC4xNSwyOS45NWM1Ljk4LDAsMTEuNTEtMS45OSwxNi4wNy01LjM3djQuNDZoMThWMTkuMTFoLTE4djI4LjQ5Wk0yNTQuNzYsODYuNzVjLTcuMzcsMC0xMy4zNC02LjUyLTEzLjM0LTE0LjU2czUuOTctMTQuNTYsMTMuMzQtMTQuNTZjNi4wOCwwLDExLjIsNC40NSwxMi44LDEwLjUydjguMDljLTEuNjEsNi4wNy02LjczLDEwLjUyLTEyLjgsMTAuNTJaIi8+CiAgPHJlY3QgY2xhc3M9InN0MCIgeD0iNDQxLjkyIiB5PSI0NC4wOCIgd2lkdGg9IjE4IiBoZWlnaHQ9IjU3LjEzIi8+CiAgPGNpcmNsZSBjbGFzcz0ic3QwIiBjeD0iNDUxLjA5IiBjeT0iMjcuMzQiIHI9IjExIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTU3OC4zMSw0My40M2wuMDQsNC40M2MtMy4xMy0yLjcxLTguMjItNS42NS0xNS41NS01LjY1LTExLjYyLDAtMjcuNjUsNi41NS0yNy42NSwyOC4zMSwwLDYuMzgsMS4zMSwyOS42MiwyNi44NCwyOS42Miw4LjgsMCwxMy45My0yLjc1LDE2Ljg0LTUuMzlsLjA2LDUuOXMtLjkyLDkuMzEtMTEuODIsOS4zMWMtOC4zNSwwLTEwLjk2LTUuNTYtMTAuOTYtNS41NmgtMTcuMDJzNC4wOSwyMS4yNywyOC4xNSwyMS4yNywyOS42Ni0yMC40MiwyOS42Ni0yNS4wMmwtLjU3LTU3LjIxaC0xOFpNNTY1LjY2LDg1LjljLTcuMzcsMC0xMy4zNC02LjUyLTEzLjM0LTE0LjU2czUuOTctMTQuNTYsMTMuMzQtMTQuNTYsMTMuMzQsNi41MiwxMy4zNCwxNC41Ni01Ljk3LDE0LjU2LTEzLjM0LDE0LjU2WiIvPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik02My44Miw0My4zOGwuMDQsNC40M2MtMy4xMy0yLjcxLTguMjItNS42NS0xNS41NS01LjY1LTExLjYyLDAtMjcuNjUsNi41NS0yNy42NSwyOC4zMSwwLDYuMzgsMS4zMSwyOS42MiwyNi44NCwyOS42Miw4LjgsMCwxMy45My0yLjc1LDE2Ljg0LTUuMzlsLjA2LDUuOXMtLjkyLDkuMzEtMTEuODIsOS4zMWMtOC4zNSwwLTEwLjk2LTUuNTYtMTAuOTYtNS41NmgtMTcuMDJzNC4wOSwyMS4yNywyOC4xNSwyMS4yNywyOS42Ni0yMC40MiwyOS42Ni0yNS4wMmwtLjU3LTU3LjIxaC0xOFpNNTEuMTcsODUuODVjLTcuMzcsMC0xMy4zNC02LjUyLTEzLjM0LTE0LjU2czUuOTctMTQuNTYsMTMuMzQtMTQuNTYsMTMuMzQsNi41MiwxMy4zNCwxNC41Ni01Ljk3LDE0LjU2LTEzLjM0LDE0LjU2WiIvPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik01MDUuMjEsNDIuNzdjLTcuOTcsMC0xMi43OCwzLjIzLTE1LjAxLDUuMjZ2LTMuOTVoLTE4djU3LjEzaDE4di0zMy40YzAtNC4wOSwyLjU4LTEwLjQ3LDEwLjYtMTAuNDdzOS4yLDkuMzMsOS4yLDkuMzN2MzQuNTVoMTh2LTM0LjU1YzAtMTcuNjctMTIuNjQtMjMuODktMjIuNzktMjMuODlaIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTQwOC45OSw0Mi43N2MtNy43OSwwLTEyLjU1LDMuMDgtMTQuODUsNS4xMnYtMjguNjhoLTE4djgyaDE4di0zNS4yMmMuNjctMy45MywzLjUzLTguNjUsMTAuNDMtOC42NSw4LjAyLDAsOS4yLDkuMzMsOS4yLDkuMzN2MzQuNTVoMTh2LTM0LjU1YzAtMTcuNjctMTIuNjQtMjMuODktMjIuNzktMjMuODlaIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTY1NC45OCw3Mi4xOGMtMy4zMS0zLjA0LTguNDMtNC40NS0xNS41OS02LjI1LTkuMDktMi4yOS0xNi4yLTIuNzUtMTYuMi02LjUsMC0zLjEsNC44NC00LjIzLDkuMTMtNC4yMyw5LjE3LDAsOC45OCw1LjIsOC45OCw1LjJoMTcuMThjMC05LjI1LTkuMjUtMTguNjgtMjUuMjQtMTguNjhzLTI3LjA5LDcuNzQtMjcuMDksMTkuMzVjMCw0LjM3LDEuNjIsOC4xNSw0LjM3LDExLjExLDMuMzEsMy4wNCw4LjQzLDQuNDUsMTUuNTksNi4yNSw5LjA5LDIuMjksMTYuMiwyLjc1LDE2LjIsNi41LDAsMy4xLTQuODQsNC4yMy05LjEzLDQuMjMtOS4xNywwLTEwLjIyLTUuNzEtMTAuMjItNS43MWgtMTcuMThjMCw5LjI1LDEwLjQ5LDE5LjE5LDI2LjQ3LDE5LjE5czI3LjA5LTcuNzQsMjcuMDktMTkuMzVjMC00LjM3LTEuNjItOC4xNS00LjM3LTExLjExWiIvPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xMjAuODYsNDIuMjRjLTE2LjksMC0zMC42LDEzLjQxLTMwLjYsMjkuOTVzMTMuNywyOS45NSwzMC42LDI5Ljk1LDMwLjYtMTMuNDEsMzAuNi0yOS45NS0xMy43LTI5Ljk1LTMwLjYtMjkuOTVaTTEyMC44Niw4Ni43NWMtNy4zNywwLTEzLjM0LTYuNTItMTMuMzQtMTQuNTZzNS45Ny0xNC41NiwxMy4zNC0xNC41NiwxMy4zNCw2LjUyLDEzLjM0LDE0LjU2LTUuOTcsMTQuNTYtMTMuMzQsMTQuNTZaIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTE4Ny42Miw0Mi4yNGMtMTYuOSwwLTMwLjYsMTMuNDEtMzAuNiwyOS45NXMxMy43LDI5Ljk1LDMwLjYsMjkuOTUsMzAuNi0xMy40MSwzMC42LTI5Ljk1LTEzLjctMjkuOTUtMzAuNi0yOS45NVpNMTg3LjYyLDg2Ljc1Yy03LjM3LDAtMTMuMzQtNi41Mi0xMy4zNC0xNC41NnM1Ljk3LTE0LjU2LDEzLjM0LTE0LjU2LDEzLjM0LDYuNTIsMTMuMzQsMTQuNTYtNS45NywxNC41Ni0xMy4zNCwxNC41NloiLz4KPC9zdmc+';
 const src='data:image/svg+xml;base64,'+B64;
 document.getElementById('logo-img').src=src;
+const el=document.getElementById('ep-logo-img');
+if(el){el.src=src;}
 const fl=document.getElementById('footer-logo-img');
 if(fl){fl.src=src;fl.style.cssText='height:30px;width:auto;display:block;filter:invert(1);';}
 
