@@ -540,6 +540,8 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 .popup-outer.hidden{opacity:0;pointer-events:none;transform:translateX(20px);}
 /* 서브페이지가 열려 있으면 팝업 즉시 숨김 (타이밍 무관) */
 body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:translateX(20px);}
+#popup-dismiss-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(6px);background:#1a1a1a;color:#fff;font-family:var(--font-kr);font-size:13px;font-weight:400;letter-spacing:.02em;padding:10px 20px;opacity:0;pointer-events:none;transition:opacity 220ms ease,transform 220ms ease;z-index:var(--z-top);white-space:nowrap;}
+#popup-dismiss-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .popup{
   width:300px;background:var(--color-background-primary);
   border:1px solid rgba(0,0,0,.06);
@@ -877,6 +879,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 </footer>
 
 <!-- POPUP -->
+<div id="popup-dismiss-toast">오늘 하루 표시되지 않습니다.</div>
 <div class="popup-outer hidden" id="popup-outer">
   <div class="popup">
     <div class="popup-img" id="popup-img-area" style="cursor:pointer;">
@@ -4879,6 +4882,11 @@ document.getElementById('lp-google-btn').addEventListener('click',()=>{
   const imgArea=document.getElementById('popup-img-area');
   const bodyArea=document.getElementById('popup-body-area');
 
+  // 오늘 하루 닫기 상태 확인 (localStorage 24시간)
+  const POPUP_KEY='gt-popup-dismissed';
+  const dismissed=localStorage.getItem(POPUP_KEY);
+  if(dismissed&&Date.now()-Number(dismissed)<86400000){popupOuter.dataset.dismissed='true';}
+
   // popup:true 상품 중 랜덤 1개 선택
   const popupCandidates=PRODUCTS.filter(p=>p.popup===true);
   if(popupCandidates.length===0){popupOuter.dataset.dismissed='true';}
@@ -4945,11 +4953,21 @@ document.getElementById('lp-google-btn').addEventListener('click',()=>{
   }
 
   // X 버튼 → 완전 닫기
+  const dismissToast=document.getElementById('popup-dismiss-toast');
+  let _toastTimer=null;
+  function showDismissToast(){
+    if(!dismissToast)return;
+    clearTimeout(_toastTimer);
+    dismissToast.classList.add('show');
+    _toastTimer=setTimeout(()=>dismissToast.classList.remove('show'),2800);
+  }
   if(closeBtn){
     closeBtn.addEventListener('click',e=>{
       e.stopPropagation();
       popupOuter.classList.add('hidden');
       popupOuter.dataset.dismissed='true';
+      localStorage.setItem(POPUP_KEY,String(Date.now()));
+      showDismissToast();
     });
   }
 
