@@ -254,15 +254,17 @@ body{font-family:var(--font-en);background:#ffffff;}
 
 /* srp도 동일 */
 #srp-ann-wrap{}
-#srp-hdr-wrap{
+/* 공통 서브 헤더 — .sub-hdr-wrap */
+.sub-hdr-wrap{
   position:sticky;top:0;z-index:var(--z-sticky);
   background:rgba(255,255,255,.72);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border:none;border-bottom:1px solid rgba(0,0,0,.04);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(0,0,0,.04);
   box-shadow:0 1px 0 rgba(255,255,255,.08) inset;
   overflow:visible;
 }
+#srp-hdr-wrap{border-bottom:none;}  /* SRP: 구분선은 검색창 섹션이 처리 */
+#cp-hdr-wrap{background:rgba(255,255,255,.92);flex-shrink:0;}  /* 장바구니: 더 불투명 */
 
 /* ══ 텍스트 링크 버튼 ══ */
 .text-link{
@@ -372,6 +374,7 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 .sns-icon{width:28px;height:28px;color:var(--color-text-primary);}
 .hdr-nav{display:flex;gap:36px;}
 .nav-link{font-size:15px;letter-spacing:.03em;color:var(--color-text-primary);}
+.nav-link-current{opacity:1!important;font-weight:500;}
 .hdr-icons{display:flex;gap:20px;align-items:center;}
 .hi{width:30px;height:30px;display:block;color:var(--color-text-primary);}
 
@@ -934,25 +937,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 <!-- LOGIN PAGE -->
 <div id="login-page" class="sub-page">
   <div id="lp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
-  <div id="lp-hdr-wrap" class="blk">
-    <div class="hdr">
-      <div class="hdr-left">
-        <img id="lp-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
-      </div>
-      <div class="hdr-nav">
-        <span class="nav-link">The Story</span>
-        <span class="nav-link">Shop</span>
-        <span class="nav-link">카페 메뉴</span>
-        <span class="nav-link">Work with Us</span>
-        <span class="nav-link">Good Days</span>
-      </div>
-      <div class="hdr-icons">
-        <span class="hdr-icon-btn" id="lp-search-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg></span>
-        <span class="hdr-icon-btn" id="lp-user-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg></span>
-        <span class="hdr-icon-btn" id="lp-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg><span class="cart-badge" id="lp-cart-badge"></span></span>
-      </div>
-    </div>
-  </div>
+  <div id="lp-hdr-wrap" class="sub-hdr-wrap blk"></div>
 
   <div id="lp-body">
     <!-- 좌측: 타이틀 영역 -->
@@ -1345,14 +1330,6 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   background:#fff;display:none;flex-direction:column;overflow-y:auto;
 }
 #login-page.open{display:flex;}
-#lp-hdr-wrap{
-  position:sticky;top:0;z-index:var(--z-sticky);
-  background:rgba(255,255,255,.72);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border:none;border-bottom:1px solid rgba(0,0,0,.04);
-  box-shadow:0 1px 0 rgba(255,255,255,.08) inset;
-  overflow:visible;
-}
 #lp-logo-img{transition:opacity 200ms linear;}
 #lp-logo-img:hover{opacity:.5;}
 
@@ -1525,14 +1502,6 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   background:#fff;display:none;flex-direction:column;overflow-y:auto;
 }
 #cart-page.open{display:flex;}
-#cp-hdr-wrap{
-  position:sticky;top:0;z-index:var(--z-sticky);
-  background:rgba(255,255,255,.92);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border-bottom:1px solid rgba(0,0,0,.04);
-  box-shadow:0 1px 0 rgba(255,255,255,.08) inset;
-  flex-shrink:0;overflow:visible;
-}
 #cp-logo-img{transition:opacity 200ms linear;}
 #cp-logo-img:hover{opacity:.5;}
 
@@ -2016,25 +1985,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 <!-- PRODUCT DETAIL PAGE -->
 <div id="product-detail-page" class="sub-page">
   <div id="pd-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
-  <div id="pd-hdr-wrap" class="blk">
-    <div class="hdr">
-      <div class="hdr-left">
-        <img id="pd-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
-      </div>
-      <div class="hdr-nav">
-        <span class="nav-link">The Story</span>
-        <span class="nav-link">Shop</span>
-        <span class="nav-link">카페 메뉴</span>
-        <span class="nav-link">Work with Us</span>
-        <span class="nav-link">Good Days</span>
-      </div>
-      <div class="hdr-icons">
-        <span class="hdr-icon-btn" id="pd-search-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg></span>
-        <span class="hdr-icon-btn" id="pd-login-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg></span>
-        <span class="hdr-icon-btn" id="pd-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg><span class="cart-badge" id="pd-cart-badge"></span></span>
-      </div>
-    </div>
-  </div>
+  <div id="pd-hdr-wrap" class="sub-hdr-wrap blk"></div>
 
   <div id="pd-body">
     <!-- 1440px 제한 래퍼 -->
@@ -2226,14 +2177,6 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 }
 #product-detail-page.open{display:flex;}
 #pd-ann-wrap{}
-#pd-hdr-wrap{
-  position:sticky;top:0;z-index:var(--z-sticky);
-  background:rgba(255,255,255,.72);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border:none;border-bottom:1px solid rgba(0,0,0,.04);
-  box-shadow:0 1px 0 rgba(255,255,255,.08) inset;
-  overflow:visible;
-}
 #pd-body{
   flex:1;width:100%;
   display:flex;flex-direction:column;
@@ -2690,25 +2633,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 
   <!-- 공통 어나운스 + 헤더 -->
   <div id="srp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
-  <div id="srp-hdr-wrap" class="blk">
-    <div class="hdr">
-      <div class="hdr-left">
-        <img id="srp-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
-      </div>
-      <div class="hdr-nav">
-        <span class="nav-link">The Story</span>
-        <span class="nav-link">Shop</span>
-        <span class="nav-link">카페 메뉴</span>
-        <span class="nav-link">Work with Us</span>
-        <span class="nav-link">Good Days</span>
-      </div>
-      <div class="hdr-icons">
-        <span class="hdr-icon-btn" id="srp-search-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg></span>
-        <span class="hdr-icon-btn" id="srp-login-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg></span>
-        <span class="hdr-icon-btn" id="srp-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg><span class="cart-badge" id="srp-cart-badge"></span></span>
-      </div>
-    </div>
-  </div>
+  <div id="srp-hdr-wrap" class="sub-hdr-wrap blk"></div>
 
   <!-- 본문 -->
   <div id="srp-body">
@@ -2750,25 +2675,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 ════════════════════════════════════════════════ -->
 <div id="cart-page" class="sub-page">
   <div id="cp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
-  <div id="cp-hdr-wrap" class="blk">
-    <div class="hdr">
-      <div class="hdr-left">
-        <img id="cp-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
-      </div>
-      <div class="hdr-nav">
-        <span class="nav-link">The Story</span>
-        <span class="nav-link">Shop</span>
-        <span class="nav-link">카페 메뉴</span>
-        <span class="nav-link">Work with Us</span>
-        <span class="nav-link">Good Days</span>
-      </div>
-      <div class="hdr-icons">
-        <span class="hdr-icon-btn" id="cp-search-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg></span>
-        <span class="hdr-icon-btn" id="cp-login-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg></span>
-        <span class="hdr-icon-btn" id="cp-cart-icon-btn" style="position:relative;"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg><span class="cart-badge" id="cp-cart-badge"></span></span>
-      </div>
-    </div>
-  </div>
+  <div id="cp-hdr-wrap" class="sub-hdr-wrap blk"></div>
   <div id="cp-body">
     <div id="cp-inner">
       <div id="cp-page-header">
@@ -3065,25 +2972,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 <!-- ── SHOP PAGE ── -->
 <div id="shop-page" class="sub-page">
   <div id="sp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
-  <div id="sp-hdr-wrap" class="blk">
-    <div class="hdr">
-      <div class="hdr-left">
-        <img id="sp-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
-      </div>
-      <div class="hdr-nav">
-        <span class="nav-link">The Story</span>
-        <span class="nav-link">Shop</span>
-        <span class="nav-link">카페 메뉴</span>
-        <span class="nav-link">Work with Us</span>
-        <span class="nav-link">Good Days</span>
-      </div>
-      <div class="hdr-icons">
-        <span class="hdr-icon-btn" id="sp-search-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg></span>
-        <span class="hdr-icon-btn" id="sp-user-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg></span>
-        <span class="hdr-icon-btn" id="sp-cart-icon-btn"><svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg><span class="cart-badge" id="sp-cart-badge"></span></span>
-      </div>
-    </div>
-  </div>
+  <div id="sp-hdr-wrap" class="sub-hdr-wrap blk"></div>
 
   <div id="sp-body">
     <div id="sp-head">
@@ -3105,21 +2994,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 <!-- CAFE MENU PAGE -->
 <div id="cafe-menu-page" class="sub-page">
   <div id="cm-ann-wrap"><div class="ann">굿띵스 카페 · 구미 진평동 · Open Daily 08:00 – 21:00</div></div>
-  <div id="cm-hdr-wrap" class="blk">
-    <div class="hdr">
-      <div class="hdr-left">
-        <img id="cm-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
-      </div>
-      <div class="hdr-nav">
-        <span class="nav-link">The Story</span>
-        <span class="nav-link">Shop</span>
-        <span class="nav-link" style="opacity:1;font-weight:500;">카페 메뉴</span>
-        <span class="nav-link">Work with Us</span>
-        <span class="nav-link">Good Days</span>
-      </div>
-      <div class="hdr-icons"></div>
-    </div>
-  </div>
+  <div id="cm-hdr-wrap" class="sub-hdr-wrap blk"></div>
   <div id="cm-body">
     <div id="cm-head">
       <h1 id="cm-page-title">카페 메뉴</h1>
@@ -3133,6 +3008,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
       </div>
     </div>
     <div id="cm-grid"></div>
+    <div id="cm-pagination"></div>
   </div>
   <div class="blk" id="cm-footer-wrap"></div>
 </div>
@@ -3227,7 +3103,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 #search-result-page.open{display:flex;}
 
 /* srp 어나운스 + 헤더 */
-#srp-hdr-wrap{/* border-bottom 없음 — 구분선은 #srp-input-section::before 인셋 패턴으로 처리 */}
+/* #srp-hdr-wrap border-bottom: 없음 — .sub-hdr-wrap 공통 클래스 + #srp-hdr-wrap{border-bottom:none} 로 처리 */
 
 /* srp 본문 */
 #srp-body{
@@ -3586,14 +3462,6 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   background:#fff;display:none;flex-direction:column;overflow-y:auto;
 }
 #shop-page.open{display:flex;}
-#sp-hdr-wrap{
-  position:sticky;top:0;z-index:var(--z-sticky);
-  background:rgba(255,255,255,.72);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border:none;border-bottom:1px solid rgba(0,0,0,.04);
-  box-shadow:0 1px 0 rgba(255,255,255,.08) inset;
-  overflow:visible;
-}
 #sp-ann-wrap{}
 #sp-body{
   flex:1;
@@ -3707,7 +3575,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   margin:0;
 }
 /* 페이지네이션 */
-#sp-pagination{
+#sp-pagination,#cm-pagination{
   display:flex;align-items:center;justify-content:center;
   gap:4px;padding:48px 0 0;
 }
@@ -3738,7 +3606,6 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 /* ── CAFE MENU PAGE ── */
 #cafe-menu-page{position:fixed;inset:0;z-index:var(--z-page);background:#fff;display:none;flex-direction:column;overflow-y:auto;}
 #cafe-menu-page.open{display:flex;}
-#cm-hdr-wrap{position:sticky;top:0;z-index:var(--z-sticky);background:rgba(255,255,255,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
 #cm-ann-wrap{flex-shrink:0;}
 #cm-body{flex:1;display:flex;flex-direction:column;max-width:1440px;width:100%;margin:0 auto;padding:100px 60px 80px;}
 #cm-head{margin-bottom:48px;}
@@ -3751,10 +3618,10 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 .cm-filter-tab:hover{color:var(--tab-color-active);}
 .cm-filter-tab.active{font-weight:500;color:var(--tab-color-active);}
 .cm-tab-label{pointer-events:none;}
-#cm-grid{display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:32px 24px;}
+#cm-grid{display:grid;grid-template-columns:repeat(4,minmax(218px,1fr));gap:40px;}
 @keyframes cm-card-in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-.cm-card{cursor:pointer;display:flex;flex-direction:column;animation:cm-card-in .3s var(--ease-default) both;}
-.cm-card-thumb{position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;background:var(--color-background-secondary);}
+.cm-card{cursor:pointer;display:flex;flex-direction:column;animation:cm-card-in .3s var(--ease-default) both;position:relative;}
+.cm-card-thumb{position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;background:var(--color-background-secondary);}
 .cm-card-img{width:100%;height:100%;background-size:contain;background-position:center bottom;background-repeat:no-repeat;transition:transform var(--duration-zoom) var(--ease-default);}
 .cm-card:hover .cm-card-img{transform:scale(1.05);}
 .cm-card-info{padding:12px 4px 20px;text-align:center;}
@@ -3769,6 +3636,42 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 .cm-temp-hot-only{background:rgba(240,185,165,.9);color:#7b2a1a;}
 #cm-footer-wrap{flex-shrink:0;}
 #cm-footer-wrap .footer{margin-top:0;}
+/* ── 카드 인라인 오버레이 ── */
+.cm-card-overlay{
+  position:absolute;inset:0;
+  background:rgba(20,14,10,.93);
+  color:#fff;
+  opacity:0;pointer-events:none;
+  transform:translateY(6px);
+  transition:opacity .22s ease,transform .22s ease;
+  display:flex;flex-direction:column;
+  padding:40px 14px 14px;
+  overflow-y:auto;
+  scrollbar-width:none;
+}
+.cm-card-overlay::-webkit-scrollbar{display:none;}
+.cm-card--active .cm-card-overlay{opacity:1;pointer-events:auto;transform:translateY(0);}
+.cm-card--active .cm-card-img{transform:scale(1.0)!important;}
+.cm-ov-close{
+  position:absolute;top:10px;right:10px;
+  background:none;border:none;cursor:pointer;
+  color:rgba(255,255,255,.55);
+  font-size:16px;line-height:1;padding:4px;
+  transition:color .15s ease;
+}
+.cm-ov-close:hover{color:#fff;}
+.cm-ov-vol-line{font-family:var(--font-en);font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px;flex-shrink:0;}
+.cm-ov-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-shrink:0;}
+.cm-ov-serving{font-family:var(--font-kr);font-size:11px;color:rgba(255,255,255,.55);}
+.cm-ov-kcal{font-family:var(--font-en);font-size:14px;color:rgba(255,255,255,.95);font-weight:600;}
+.cm-ov-table{border-top:.5px solid rgba(255,255,255,.15);border-bottom:.5px solid rgba(255,255,255,.15);margin-bottom:14px;flex-shrink:0;}
+.cm-ov-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;}
+.cm-ov-rlabel{font-family:var(--font-kr);font-size:11px;color:rgba(255,255,255,.55);}
+.cm-ov-rval{font-family:var(--font-en);font-size:11px;font-weight:500;color:rgba(255,255,255,.9);}
+.cm-ov-allergen{display:flex;gap:5px;flex-shrink:0;}
+.cm-ov-al-title{font-family:var(--font-kr);font-size:11px;color:rgba(255,255,255,.4);white-space:nowrap;flex-shrink:0;}
+.cm-ov-al-list{font-family:var(--font-kr);font-size:11px;color:rgba(255,255,255,.7);}
+
 /* ── NUTRITION SHEET ── */
 #cafe-nutrition-sheet{position:fixed;inset:0;z-index:calc(var(--z-top) + 10);pointer-events:none;}
 #cafe-nutrition-sheet.open{pointer-events:auto;}
@@ -3795,29 +3698,67 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 <script>
 const B64='PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCA2ODAgMTQyIj4KICA8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMjkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogMi4xLjAgQnVpbGQgMTg2KSAgLS0+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5zdDAgewogICAgICAgIGZpbGw6ICMwMTAxMDE7CiAgICAgIH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxwb2x5Z29uIGNsYXNzPSJzdDAiIHBvaW50cz0iMzU3LjY1IDI3LjIgMzM5LjY1IDI3LjIgMzM5LjY1IDQ0LjA4IDMyOC45MyA0NC4wOCAzMjguOTMgNTkuMTMgMzM5LjY1IDU5LjEzIDMzOS42NSAxMDEuMiAzNTcuNjUgMTAxLjIgMzU3LjY1IDU5LjEzIDM2OC4zNyA1OS4xMyAzNjguMzcgNDQuMDggMzU3LjY1IDQ0LjA4IDM1Ny42NSAyNy4yIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTI2Ny41Niw0Ny42Yy00LjU2LTMuMzgtMTAuMDktNS4zNy0xNi4wNy01LjM3LTE1LjU0LDAtMjguMTUsMTMuNDEtMjguMTUsMjkuOTVzMTIuNiwyOS45NSwyOC4xNSwyOS45NWM1Ljk4LDAsMTEuNTEtMS45OSwxNi4wNy01LjM3djQuNDZoMThWMTkuMTFoLTE4djI4LjQ5Wk0yNTQuNzYsODYuNzVjLTcuMzcsMC0xMy4zNC02LjUyLTEzLjM0LTE0LjU2czUuOTctMTQuNTYsMTMuMzQtMTQuNTZjNi4wOCwwLDExLjIsNC40NSwxMi44LDEwLjUydjguMDljLTEuNjEsNi4wNy02LjczLDEwLjUyLTEyLjgsMTAuNTJaIi8+CiAgPHJlY3QgY2xhc3M9InN0MCIgeD0iNDQxLjkyIiB5PSI0NC4wOCIgd2lkdGg9IjE4IiBoZWlnaHQ9IjU3LjEzIi8+CiAgPGNpcmNsZSBjbGFzcz0ic3QwIiBjeD0iNDUxLjA5IiBjeT0iMjcuMzQiIHI9IjExIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTU3OC4zMSw0My40M2wuMDQsNC40M2MtMy4xMy0yLjcxLTguMjItNS42NS0xNS41NS01LjY1LTExLjYyLDAtMjcuNjUsNi41NS0yNy42NSwyOC4zMSwwLDYuMzgsMS4zMSwyOS42MiwyNi44NCwyOS42Miw4LjgsMCwxMy45My0yLjc1LDE2Ljg0LTUuMzlsLjA2LDUuOXMtLjkyLDkuMzEtMTEuODIsOS4zMWMtOC4zNSwwLTEwLjk2LTUuNTYtMTAuOTYtNS41NmgtMTcuMDJzNC4wOSwyMS4yNywyOC4xNSwyMS4yNywyOS42Ni0yMC40MiwyOS42Ni0yNS4wMmwtLjU3LTU3LjIxaC0xOFpNNTY1LjY2LDg1LjljLTcuMzcsMC0xMy4zNC02LjUyLTEzLjM0LTE0LjU2czUuOTctMTQuNTYsMTMuMzQtMTQuNTYsMTMuMzQsNi41MiwxMy4zNCwxNC41Ni01Ljk3LDE0LjU2LTEzLjM0LDE0LjU2WiIvPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik02My44Miw0My4zOGwuMDQsNC40M2MtMy4xMy0yLjcxLTguMjItNS42NS0xNS41NS01LjY1LTExLjYyLDAtMjcuNjUsNi41NS0yNy42NSwyOC4zMSwwLDYuMzgsMS4zMSwyOS42MiwyNi44NCwyOS42Miw4LjgsMCwxMy45My0yLjc1LDE2Ljg0LTUuMzlsLjA2LDUuOXMtLjkyLDkuMzEtMTEuODIsOS4zMWMtOC4zNSwwLTEwLjk2LTUuNTYtMTAuOTYtNS41NmgtMTcuMDJzNC4wOSwyMS4yNywyOC4xNSwyMS4yNywyOS42Ni0yMC40MiwyOS42Ni0yNS4wMmwtLjU3LTU3LjIxaC0xOFpNNTEuMTcsODUuODVjLTcuMzcsMC0xMy4zNC02LjUyLTEzLjM0LTE0LjU2czUuOTctMTQuNTYsMTMuMzQtMTQuNTYsMTMuMzQsNi41MiwxMy4zNCwxNC41Ni01Ljk3LDE0LjU2LTEzLjM0LDE0LjU2WiIvPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik01MDUuMjEsNDIuNzdjLTcuOTcsMC0xMi43OCwzLjIzLTE1LjAxLDUuMjZ2LTMuOTVoLTE4djU3LjEzaDE4di0zMy40YzAtNC4wOSwyLjU4LTEwLjQ3LDEwLjYtMTAuNDdzOS4yLDkuMzMsOS4yLDkuMzN2MzQuNTVoMTh2LTM0LjU1YzAtMTcuNjctMTIuNjQtMjMuODktMjIuNzktMjMuODlaIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTQwOC45OSw0Mi43N2MtNy43OSwwLTEyLjU1LDMuMDgtMTQuODUsNS4xMnYtMjguNjhoLTE4djgyaDE4di0zNS4yMmMuNjctMy45MywzLjUzLTguNjUsMTAuNDMtOC42NSw4LjAyLDAsOS4yLDkuMzMsOS4yLDkuMzN2MzQuNTVoMTh2LTM0LjU1YzAtMTcuNjctMTIuNjQtMjMuODktMjIuNzktMjMuODlaIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTY1NC45OCw3Mi4xOGMtMy4zMS0zLjA0LTguNDMtNC40NS0xNS41OS02LjI1LTkuMDktMi4yOS0xNi4yLTIuNzUtMTYuMi02LjUsMC0zLjEsNC44NC00LjIzLDkuMTMtNC4yMyw5LjE3LDAsOC45OCw1LjIsOC45OCw1LjJoMTcuMThjMC05LjI1LTkuMjUtMTguNjgtMjUuMjQtMTguNjhzLTI3LjA5LDcuNzQtMjcuMDksMTkuMzVjMCw0LjM3LDEuNjIsOC4xNSw0LjM3LDExLjExLDMuMzEsMy4wNCw4LjQzLDQuNDUsMTUuNTksNi4yNSw5LjA5LDIuMjksMTYuMiwyLjc1LDE2LjIsNi41LDAsMy4xLTQuODQsNC4yMy05LjEzLDQuMjMtOS4xNywwLTEwLjIyLTUuNzEtMTAuMjItNS43MWgtMTcuMThjMCw5LjI1LDEwLjQ5LDE5LjE5LDI2LjQ3LDE5LjE5czI3LjA5LTcuNzQsMjcuMDktMTkuMzVjMC00LjM3LTEuNjItOC4xNS00LjM3LTExLjExWiIvPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xMjAuODYsNDIuMjRjLTE2LjksMC0zMC42LDEzLjQxLTMwLjYsMjkuOTVzMTMuNywyOS45NSwzMC42LDI5Ljk1LDMwLjYtMTMuNDEsMzAuNi0yOS45NS0xMy43LTI5Ljk1LTMwLjYtMjkuOTVaTTEyMC44Niw4Ni43NWMtNy4zNywwLTEzLjM0LTYuNTItMTMuMzQtMTQuNTZzNS45Ny0xNC41NiwxMy4zNC0xNC41NiwxMy4zNCw2LjUyLDEzLjM0LDE0LjU2LTUuOTcsMTQuNTYtMTMuMzQsMTQuNTZaIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTE4Ny42Miw0Mi4yNGMtMTYuOSwwLTMwLjYsMTMuNDEtMzAuNiwyOS45NXMxMy43LDI5Ljk1LDMwLjYsMjkuOTUsMzAuNi0xMy40MSwzMC42LTI5Ljk1LTEzLjctMjkuOTUtMzAuNi0yOS45NVpNMTg3LjYyLDg2Ljc1Yy03LjM3LDAtMTMuMzQtNi41Mi0xMy4zNC0xNC41NnM1Ljk3LTE0LjU2LDEzLjM0LTE0LjU2LDEzLjM0LDYuNTIsMTMuMzQsMTQuNTYtNS45NywxNC41Ni0xMy4zNCwxNC41NloiLz4KPC9zdmc+';
 const src='data:image/svg+xml;base64,'+B64;
+// 메인 + 기타 고정 로고
 document.getElementById('logo-img').src=src;
-const el=document.getElementById('ep-logo-img');
-if(el){el.src=src;}
-const spl=document.getElementById('sp-logo-img');
-if(spl){spl.src=src;}
-const fl=document.getElementById('footer-logo-img');
-if(fl){fl.src=src;fl.style.cssText='height:30px;width:auto;display:block;filter:invert(1);';}
+['ep-logo-img','footer-logo-img','search-logo-img','chp-logo-img','ocp-logo-img'].forEach(id=>{
+  const e=document.getElementById(id);
+  if(e){e.src=src;if(id==='footer-logo-img')e.style.cssText='height:30px;width:auto;display:block;filter:invert(1)';}
+});
 
-// 검색 오버레이 로고
-const sl=document.getElementById('search-logo-img');
-if(sl){sl.src=src;}
-// 검색 결과 페이지 로고
-const srpl=document.getElementById('srp-logo-img');
-if(srpl){srpl.src=src;}
-// 장바구니 페이지 로고
-const cpl=document.getElementById('cp-logo-img');
-if(cpl){cpl.src=src;}
-// 결제 페이지 로고
-const chpl=document.getElementById('chp-logo-img');
-if(chpl){chpl.src=src;}
-// 주문 완료 페이지 로고
-const ocpl=document.getElementById('ocp-logo-img');
-if(ocpl){ocpl.src=src;}
+// ══════════════════════════════════════════════
+// 공통 서브 헤더 렌더링
+// ══════════════════════════════════════════════
+const _HSVG_S=`<svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>`;
+const _HSVG_U=`<svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M2.5 13.5c0-2.5 2.5-4.5 5.5-4.5s5.5 2 5.5 4.5"/></svg>`;
+const _HSVG_C=`<svg class="hi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M1 1.5h2l1.8 7.5h7.4l1.3-5H4.5"/><circle cx="6.5" cy="13" r="1"/><circle cx="11.5" cy="13" r="1"/></svg>`;
+const _HDR_NAV=[
+  {label:'The Story',key:'story'},
+  {label:'Shop',     key:'shop'},
+  {label:'카페 메뉴',key:'cafe'},
+  {label:'Work with Us',key:'work'},
+  {label:'Good Days',key:'days'},
+];
+
+function _renderSubHdr(el,{prefix,activeKey,logoSrc,logoClick,userBtnId,userClick,searchClick}){
+  if(!el)return;
+  userBtnId=userBtnId||`${prefix}-user-btn`;
+  const navHtml=_HDR_NAV.map(n=>
+    `<span class="nav-link${n.key===activeKey?' nav-link-current':''}">${n.label}</span>`
+  ).join('');
+  el.innerHTML=`<div class="hdr">
+  <div class="hdr-left">
+    <img id="${prefix}-logo-img" style="height:30px;width:auto;display:block;cursor:pointer;" alt="GOOD THINGS">
+  </div>
+  <div class="hdr-nav">${navHtml}</div>
+  <div class="hdr-icons">
+    <span class="hdr-icon-btn" id="${prefix}-search-btn">${_HSVG_S}</span>
+    <span class="hdr-icon-btn" id="${userBtnId}">${_HSVG_U}</span>
+    <span class="hdr-icon-btn" id="${prefix}-cart-icon-btn" style="position:relative;">${_HSVG_C}<span class="cart-badge" id="${prefix}-cart-badge"></span></span>
+  </div>
+</div>`;
+  const logo=el.querySelector(`#${prefix}-logo-img`);
+  if(logo){if(logoSrc)logo.src=logoSrc;logo.addEventListener('click',logoClick||goHome);}
+  el.querySelector(`#${prefix}-search-btn`).addEventListener('click',searchClick||openOverlay);
+  el.querySelector(`#${userBtnId}`).addEventListener('click',userClick||openLoginPage);
+  el.querySelector(`#${prefix}-cart-icon-btn`).addEventListener('click',openCartDrawer);
+  el.querySelectorAll('.nav-link').forEach(link=>{
+    const t=link.textContent.trim();
+    if(t==='Shop')link.addEventListener('click',()=>openShopPage());
+    if(t==='카페 메뉴')link.addEventListener('click',()=>openCafeMenuPage('all'));
+  });
+}
+
+// 모든 서브 페이지 헤더 초기화
+[
+  {prefix:'lp', wrap:'lp-hdr-wrap', activeKey:null},
+  {prefix:'pd', wrap:'pd-hdr-wrap', activeKey:'shop', userBtnId:'pd-login-btn'},
+  {prefix:'srp',wrap:'srp-hdr-wrap',activeKey:null, userBtnId:'srp-login-btn',
+   searchClick:()=>document.getElementById('srp-input')?.focus()},
+  {prefix:'cp', wrap:'cp-hdr-wrap', activeKey:null, userBtnId:'cp-login-btn',
+   userClick:()=>{closeCartPage&&closeCartPage();openLoginPage();}},
+  {prefix:'sp', wrap:'sp-hdr-wrap', activeKey:'shop'},
+  {prefix:'cm', wrap:'cm-hdr-wrap', activeKey:'cafe', logoClick:()=>closeCafeMenuPage()},
+].forEach(opts=>_renderSubHdr(document.getElementById(opts.wrap),{...opts,logoSrc:src}));
 
 const PRODUCTS=[
   {category:'Coffee Bean',name:'가을의 밤 Autumn Night',price:'14,000원',volumes:[{label:'200g',price:14000},{label:'500g',price:34000},{label:'1kg',price:66000}],color:'linear-gradient(135deg,#c9a06e,#6b3a20)',status:null,slug:'autumn-night',subscription:true,
@@ -4142,7 +4083,7 @@ const PER_PAGE=5;
 let currentPage=1;
 let currentResults=[];
 
-const overlay=document.getElementById('search-overlay');
+var overlay=document.getElementById('search-overlay');
 const searchInput=document.getElementById('search-input');
 const searchBtn=document.getElementById('search-btn');
 const searchDrop=document.getElementById('search-drop');
@@ -4575,9 +4516,6 @@ srpSearchBtn.addEventListener('click',()=>srpInput.focus());
 // ── 로그인 페이지 ──
 const loginPage=document.getElementById('login-page');
 const loginBtn=document.getElementById('login-btn');
-const lpLogoImg=document.getElementById('lp-logo-img');
-const lpSearchBtn=document.getElementById('lp-search-btn');
-
 function openLoginPage(){
   if(overlay.classList.contains('open'))closeOverlay();
   bringPageToFront(loginPage);
@@ -4599,9 +4537,7 @@ function closeLoginPage(){
 
 if(loginBtn)loginBtn.addEventListener('click',openLoginPage);
 
-// 로그인 페이지 로고 → 홈 (goHome 배열에서 처리)
-// 로그인 페이지 검색 버튼
-if(lpSearchBtn)lpSearchBtn.addEventListener('click',openOverlay);
+// lp 헤더 버튼은 _renderSubHdr에서 처리됨
 
 // 로그인 페이지 초기 상태 설정
 function setLoginMode(mode){
@@ -5196,9 +5132,7 @@ function addToCart(info){
 }
 function updateCartBadge(){
   const total=cartItems.reduce((s,i)=>s+i.qty,0);
-  ['main','pd','srp','lp','cp','chp'].forEach(prefix=>{
-    const badge=document.getElementById(`${prefix}-cart-badge`);
-    if(!badge)return;
+  document.querySelectorAll('.cart-badge').forEach(badge=>{
     if(total===0){badge.classList.remove('visible');badge.textContent='';}
     else{badge.textContent=total>99?'99+':String(total);badge.classList.add('visible');}
   });
@@ -5273,21 +5207,9 @@ function renderCartDrawer(){
   }
 }
 
-// ── 서브페이지 헤더 버튼 공통 연결 ──
-// pd (상세 페이지)
-const pdLoginBtn=document.getElementById('pd-login-btn');
-if(pdLoginBtn)pdLoginBtn.addEventListener('click',openLoginPage);
-
-// srp (검색결과 페이지)
-const srpLoginBtn=document.getElementById('srp-login-btn');
-if(srpLoginBtn)srpLoginBtn.addEventListener('click',openLoginPage);
-
-// lp (로그인 페이지) — user 버튼은 이미 로그인 페이지이므로 무시
-// ── 장바구니 아이콘 버튼 연결 ──
-['main-cart-icon-btn','pd-cart-icon-btn','srp-cart-icon-btn','lp-cart-icon-btn'].forEach(id=>{
-  const el=document.getElementById(id);
-  if(el)el.addEventListener('click',openCartDrawer);
-});
+// ── 메인 헤더 장바구니 버튼 연결 ──
+const mainCartBtn=document.getElementById('main-cart-icon-btn');
+if(mainCartBtn)mainCartBtn.addEventListener('click',openCartDrawer);
 document.getElementById('cd-close-btn').addEventListener('click',closeCartDrawer);
 document.getElementById('cart-drawer-overlay').addEventListener('click',closeCartDrawer);
 
@@ -5311,12 +5233,9 @@ function goHome(){
   document.body.style.overflow='';
   window.scrollTo({top:0,behavior:'instant'});
 }
-// 로고 클릭 → 홈 (메인 포함 전 페이지)
-['logo-img','srp-logo-img','pd-logo-img','lp-logo-img','sp-logo-img'].forEach(id=>{
-  const el=document.getElementById(id);
-  if(el)el.addEventListener('click',goHome);
-});
-document.getElementById('pd-search-btn').addEventListener('click',openOverlay);
+// 메인 로고 클릭 → 홈
+const mainLogoImg=document.getElementById('logo-img');
+if(mainLogoImg)mainLogoImg.addEventListener('click',goHome);
 
 // ── 헤더 다크/라이트 테마 자동 전환 ──
 (function(){
@@ -5663,9 +5582,7 @@ document.getElementById('cp-order-btn').addEventListener('click',()=>{closeCartP
 document.getElementById('cp-continue-btn').addEventListener('click',closeCartPage);
 document.getElementById('cp-empty-shop-btn').addEventListener('click',closeCartPage);
 document.getElementById('cp-logo-img').addEventListener('click',()=>{closeCartPage();goHome();});
-document.getElementById('cp-login-btn').addEventListener('click',()=>{closeCartPage();openLoginPage();});
-document.getElementById('cp-cart-icon-btn').addEventListener('click',openCartDrawer);
-document.getElementById('cp-search-btn').addEventListener('click',openOverlay);
+// cp 헤더 버튼은 _renderSubHdr에서 처리됨
 
 // 결제 페이지
 document.getElementById('chp-logo-img').addEventListener('click',()=>{closeCheckoutPage();goHome();});
@@ -6883,7 +6800,7 @@ function _spPositionIndicator(tab,animate){
 
 function openShopPage(){
   const page=document.getElementById('shop-page');
-  if(overlay.classList.contains('open'))closeOverlay();
+  if(document.getElementById('search-overlay').classList.contains('open'))closeOverlay();
   bringPageToFront(page);
   page.classList.remove('open');
   page.offsetHeight; // force reflow — 애니메이션 재실행 보장
@@ -7021,37 +6938,32 @@ document.addEventListener('keydown',e=>{
 },{capture:false});
 
 // 헤더 검색/유저 버튼
-const spSearchBtn=document.getElementById('sp-search-btn');
-const spUserBtn=document.getElementById('sp-user-btn');
-const spCartBtn=document.getElementById('sp-cart-icon-btn');
-if(spSearchBtn)spSearchBtn.addEventListener('click',openOverlay);
-if(spUserBtn)spUserBtn.addEventListener('click',openLoginPage);
-if(spCartBtn)spCartBtn.addEventListener('click',openCartDrawer);
+// sp/cm 헤더 버튼은 _renderSubHdr에서 처리됨
 
 // ── 카페 메뉴 데이터 ──
 const _u='https://images.unsplash.com/photo-';
 const CAFE_MENU=[
   // COFFEE (20)
-  {id:'c01',name:'에스프레소',cat:'coffee',season:false,sig:false,isNew:false,temp:'hot-only',price:3500,img:_u+'1510707577719-ae7c14805e3a?w=400&h=600&fit=crop&q=80',bg:'#f0ebe4',n:{vol:30,kcal:10,fat:0,na:5,sugar:0,pro:0.5,al:[]}},
-  {id:'c02',name:'아메리카노',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:4000,img:_u+'1509042239860-f550ce710b93?w=400&h=600&fit=crop&q=80',bg:'#ede8e0',n:{vol:355,kcal:10,fat:0,na:10,sugar:0,pro:0.3,al:[]}},
-  {id:'c03',name:'카페 라떼',cat:'coffee',season:false,sig:true,isNew:false,temp:'both',price:5000,img:_u+'1541167760496-1628856ab772?w=400&h=600&fit=crop&q=80',bg:'#f5f0eb',n:{vol:355,kcal:180,fat:3.5,na:150,sugar:12,pro:9,al:['우유']}},
-  {id:'c04',name:'카푸치노',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5000,img:_u+'1572097674977-16b5d3eee5d8?w=400&h=600&fit=crop&q=80',bg:'#f5f0eb',n:{vol:240,kcal:140,fat:2.8,na:120,sugar:10,pro:8,al:['우유']}},
-  {id:'c05',name:'플랫 화이트',cat:'coffee',season:false,sig:false,isNew:false,temp:'hot-only',price:5500,img:_u+'1571091718767-18b5b1457add?w=400&h=600&fit=crop&q=80',bg:'#f5f0eb',n:{vol:180,kcal:130,fat:2.5,na:110,sugar:9,pro:7,al:['우유']}},
-  {id:'c06',name:'카페 모카',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1461023058943-07fcbe16d735?w=400&h=600&fit=crop&q=80',bg:'#ebe3d8',n:{vol:355,kcal:280,fat:5,na:180,sugar:28,pro:9,al:['우유','대두']}},
-  {id:'c07',name:'바닐라 라떼',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1495474472287-4d71bcdd2085?w=400&h=600&fit=crop&q=80',bg:'#f5efe6',n:{vol:355,kcal:220,fat:3.8,na:160,sugar:22,pro:9,al:['우유']}},
-  {id:'c08',name:'카라멜 마키아또',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1541167760496-1628856ab772?w=400&h=600&fit=crop&q=80',bg:'#f0e8dc',n:{vol:355,kcal:250,fat:4,na:170,sugar:30,pro:9,al:['우유']}},
-  {id:'c09',name:'헤이즐넛 라떼',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1571091718767-18b5b1457add?w=400&h=600&fit=crop&q=80',bg:'#ede5d8',n:{vol:355,kcal:230,fat:4,na:155,sugar:24,pro:9,al:['우유','견과류']}},
-  {id:'c10',name:'콜드 브루',cat:'coffee',season:false,sig:false,isNew:false,temp:'ice-only',price:5000,img:_u+'1461023058943-07fcbe16d735?w=400&h=600&fit=crop&q=80',bg:'#e8e0d5',n:{vol:355,kcal:15,fat:0,na:10,sugar:0,pro:0.3,al:[]}},
-  {id:'c11',name:'나이트로 콜드 브루',cat:'coffee',season:false,sig:true,isNew:false,temp:'ice-only',price:6000,img:_u+'1509042239860-f550ce710b93?w=400&h=600&fit=crop&q=80',bg:'#e0d8cc',n:{vol:355,kcal:20,fat:0,na:12,sugar:0,pro:0.4,al:[]}},
-  {id:'c12',name:'돌체 라떼',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1495474472287-4d71bcdd2085?w=400&h=600&fit=crop&q=80',bg:'#f5eedf',n:{vol:355,kcal:260,fat:4.5,na:170,sugar:32,pro:9,al:['우유']}},
-  {id:'c13',name:'코르타도',cat:'coffee',season:false,sig:false,isNew:false,temp:'hot-only',price:5000,img:_u+'1510707577719-ae7c14805e3a?w=400&h=600&fit=crop&q=80',bg:'#f0ebe2',n:{vol:120,kcal:90,fat:1.8,na:80,sugar:6,pro:5,al:['우유']}},
-  {id:'c14',name:'얼그레이 라떼',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1572097674977-16b5d3eee5d8?w=400&h=600&fit=crop&q=80',bg:'#e8e2f0',n:{vol:355,kcal:190,fat:3.5,na:150,sugar:18,pro:8,al:['우유']}},
-  {id:'c15',name:'아몬드 플랫 화이트',cat:'coffee',season:false,sig:false,isNew:false,temp:'hot-only',price:6000,img:_u+'1571091718767-18b5b1457add?w=400&h=600&fit=crop&q=80',bg:'#f0ebe0',n:{vol:180,kcal:120,fat:2,na:105,sugar:8,pro:5,al:['견과류']}},
-  {id:'c16',name:'굿띵스 시그니처',cat:'coffee',season:false,sig:true,isNew:false,temp:'both',price:6500,img:_u+'1541167760496-1628856ab772?w=400&h=600&fit=crop&q=80',bg:'#e8ddd0',n:{vol:355,kcal:200,fat:3.8,na:140,sugar:16,pro:9,al:['우유']}},
-  {id:'c17',name:'봄날의 라떼',cat:'coffee',season:true,sig:false,isNew:false,temp:'ice-only',price:6000,img:_u+'1495474472287-4d71bcdd2085?w=400&h=600&fit=crop&q=80',bg:'#f5ede8',n:{vol:355,kcal:240,fat:4,na:155,sugar:26,pro:9,al:['우유']}},
-  {id:'c18',name:'벚꽃 콜드 브루',cat:'coffee',season:true,sig:false,isNew:false,temp:'ice-only',price:6500,img:_u+'1461023058943-07fcbe16d735?w=400&h=600&fit=crop&q=80',bg:'#f5e8ee',n:{vol:355,kcal:50,fat:0,na:15,sugar:8,pro:0.5,al:[]}},
-  {id:'c19',name:'스프링 블로썸 라떼',cat:'coffee',season:true,sig:false,isNew:true,temp:'ice-only',price:6500,img:_u+'1572097674977-16b5d3eee5d8?w=400&h=600&fit=crop&q=80',bg:'#f0e8f0',n:{vol:355,kcal:220,fat:3.5,na:145,sugar:22,pro:8,al:['우유']}},
-  {id:'c20',name:'스모키 아메리카노',cat:'coffee',season:false,sig:false,isNew:true,temp:'both',price:4500,img:_u+'1509042239860-f550ce710b93?w=400&h=600&fit=crop&q=80',bg:'#e0dbd4',n:{vol:355,kcal:15,fat:0,na:10,sugar:0,pro:0.3,al:[]}},
+  {id:'c01',name:'에스프레소',cat:'coffee',season:false,sig:false,isNew:false,temp:'hot-only',price:3500,img:_u+'1510707577719-ae7c14805e3a?w=400&h=600&fit=crop&q=80',bg:'#f0ebe4',n:{vol:30,kcal:10,fat:0,na:5,sugar:0,pro:0.5,kof:64,al:[]}},
+  {id:'c02',name:'아메리카노',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:4000,img:_u+'1509042239860-f550ce710b93?w=400&h=600&fit=crop&q=80',bg:'#ede8e0',n:{vol:355,kcal:10,fat:0,na:10,sugar:0,pro:0.3,kof:64,al:[]}},
+  {id:'c03',name:'카페 라떼',cat:'coffee',season:false,sig:true,isNew:false,temp:'both',price:5000,img:_u+'1541167760496-1628856ab772?w=400&h=600&fit=crop&q=80',bg:'#f5f0eb',n:{vol:355,kcal:180,fat:3.5,na:150,sugar:12,pro:9,kof:64,al:['우유']}},
+  {id:'c04',name:'카푸치노',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5000,img:_u+'1572097674977-16b5d3eee5d8?w=400&h=600&fit=crop&q=80',bg:'#f5f0eb',n:{vol:240,kcal:140,fat:2.8,na:120,sugar:10,pro:8,kof:64,al:['우유']}},
+  {id:'c05',name:'플랫 화이트',cat:'coffee',season:false,sig:false,isNew:false,temp:'hot-only',price:5500,img:_u+'1571091718767-18b5b1457add?w=400&h=600&fit=crop&q=80',bg:'#f5f0eb',n:{vol:180,kcal:130,fat:2.5,na:110,sugar:9,pro:7,kof:64,al:['우유']}},
+  {id:'c06',name:'카페 모카',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1461023058943-07fcbe16d735?w=400&h=600&fit=crop&q=80',bg:'#ebe3d8',n:{vol:355,kcal:280,fat:5,na:180,sugar:28,pro:9,kof:64,al:['우유','대두']}},
+  {id:'c07',name:'바닐라 라떼',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1495474472287-4d71bcdd2085?w=400&h=600&fit=crop&q=80',bg:'#f5efe6',n:{vol:355,kcal:220,fat:3.8,na:160,sugar:22,pro:9,kof:64,al:['우유']}},
+  {id:'c08',name:'카라멜 마키아또',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1541167760496-1628856ab772?w=400&h=600&fit=crop&q=80',bg:'#f0e8dc',n:{vol:355,kcal:250,fat:4,na:170,sugar:30,pro:9,kof:64,al:['우유']}},
+  {id:'c09',name:'헤이즐넛 라떼',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1571091718767-18b5b1457add?w=400&h=600&fit=crop&q=80',bg:'#ede5d8',n:{vol:355,kcal:230,fat:4,na:155,sugar:24,pro:9,kof:64,al:['우유','견과류']}},
+  {id:'c10',name:'콜드 브루',cat:'coffee',season:false,sig:false,isNew:false,temp:'ice-only',price:5000,img:_u+'1461023058943-07fcbe16d735?w=400&h=600&fit=crop&q=80',bg:'#e8e0d5',n:{vol:355,kcal:15,fat:0,na:10,sugar:0,pro:0.3,kof:150,al:[]}},
+  {id:'c11',name:'나이트로 콜드 브루',cat:'coffee',season:false,sig:true,isNew:false,temp:'ice-only',price:6000,img:_u+'1509042239860-f550ce710b93?w=400&h=600&fit=crop&q=80',bg:'#e0d8cc',n:{vol:355,kcal:20,fat:0,na:12,sugar:0,pro:0.4,kof:175,al:[]}},
+  {id:'c12',name:'돌체 라떼',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1495474472287-4d71bcdd2085?w=400&h=600&fit=crop&q=80',bg:'#f5eedf',n:{vol:355,kcal:260,fat:4.5,na:170,sugar:32,pro:9,kof:64,al:['우유']}},
+  {id:'c13',name:'코르타도',cat:'coffee',season:false,sig:false,isNew:false,temp:'hot-only',price:5000,img:_u+'1510707577719-ae7c14805e3a?w=400&h=600&fit=crop&q=80',bg:'#f0ebe2',n:{vol:120,kcal:90,fat:1.8,na:80,sugar:6,pro:5,kof:64,al:['우유']}},
+  {id:'c14',name:'얼그레이 라떼',cat:'coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1572097674977-16b5d3eee5d8?w=400&h=600&fit=crop&q=80',bg:'#e8e2f0',n:{vol:355,kcal:190,fat:3.5,na:150,sugar:18,pro:8,kof:32,al:['우유']}},
+  {id:'c15',name:'아몬드 플랫 화이트',cat:'coffee',season:false,sig:false,isNew:false,temp:'hot-only',price:6000,img:_u+'1571091718767-18b5b1457add?w=400&h=600&fit=crop&q=80',bg:'#f0ebe0',n:{vol:180,kcal:120,fat:2,na:105,sugar:8,pro:5,kof:64,al:['견과류']}},
+  {id:'c16',name:'굿띵스 시그니처',cat:'coffee',season:false,sig:true,isNew:false,temp:'both',price:6500,img:_u+'1541167760496-1628856ab772?w=400&h=600&fit=crop&q=80',bg:'#e8ddd0',n:{vol:355,kcal:200,fat:3.8,na:140,sugar:16,pro:9,kof:128,al:['우유']}},
+  {id:'c17',name:'봄날의 라떼',cat:'coffee',season:true,sig:false,isNew:false,temp:'ice-only',price:6000,img:_u+'1495474472287-4d71bcdd2085?w=400&h=600&fit=crop&q=80',bg:'#f5ede8',n:{vol:355,kcal:240,fat:4,na:155,sugar:26,pro:9,kof:64,al:['우유']}},
+  {id:'c18',name:'벚꽃 콜드 브루',cat:'coffee',season:true,sig:false,isNew:false,temp:'ice-only',price:6500,img:_u+'1461023058943-07fcbe16d735?w=400&h=600&fit=crop&q=80',bg:'#f5e8ee',n:{vol:355,kcal:50,fat:0,na:15,sugar:8,pro:0.5,kof:120,al:[]}},
+  {id:'c19',name:'스프링 블로썸 라떼',cat:'coffee',season:true,sig:false,isNew:true,temp:'ice-only',price:6500,img:_u+'1572097674977-16b5d3eee5d8?w=400&h=600&fit=crop&q=80',bg:'#f0e8f0',n:{vol:355,kcal:220,fat:3.5,na:145,sugar:22,pro:8,kof:64,al:['우유']}},
+  {id:'c20',name:'스모키 아메리카노',cat:'coffee',season:false,sig:false,isNew:true,temp:'both',price:4500,img:_u+'1509042239860-f550ce710b93?w=400&h=600&fit=crop&q=80',bg:'#e0dbd4',n:{vol:355,kcal:15,fat:0,na:10,sugar:0,pro:0.3,kof:80,al:[]}},
   // NON-COFFEE (15)
   {id:'n01',name:'말차 라떼',cat:'non-coffee',season:false,sig:false,isNew:false,temp:'both',price:5500,img:_u+'1556679343-c7306c1976bc?w=400&h=600&fit=crop&q=80',bg:'#e4edd8',n:{vol:355,kcal:200,fat:3.5,na:140,sugar:20,pro:9,al:['우유']}},
   {id:'n02',name:'말차 아이스',cat:'non-coffee',season:false,sig:false,isNew:false,temp:'ice-only',price:5500,img:_u+'1556679343-c7306c1976bc?w=400&h=600&fit=crop&q=80',bg:'#dce8d0',n:{vol:355,kcal:180,fat:3,na:130,sugar:18,pro:8,al:['우유']}},
@@ -7107,10 +7019,35 @@ function _cmCardHtml(item){
     const t=map[item.temp];
     if(t) tempBadge=`<span class="cm-badge-temp ${t.cls}" style="white-space:pre-line;">${t.txt}</span>`;
   }
+  // 인라인 영양 오버레이
+  const n=item.n;
+  const catLabel=item.cat==='coffee'?'COFFEE':item.cat==='non-coffee'?'NON-COFFEE':'DESSERT';
+  const volLabel=item.temp?`${n.vol}ml · 1회 제공량 기준`:`${n.vol}g · 1회 제공량 기준`;
+  const volStr=item.temp?`${n.vol}ml`:`${n.vol}g`;
+  const nutRows=[
+    ['포화지방',`${n.fat} g`],
+    ['나트륨',`${n.na} mg`],
+    ['당류',`${n.sugar} g`],
+    ['단백질',`${n.pro} g`],
+    ['카페인',`${n.kof!=null?n.kof:'0.0'} mg`],
+  ].map(([l,v])=>`<div class="cm-ov-row"><span class="cm-ov-rlabel">${l}</span><span class="cm-ov-rval">${v}</span></div>`).join('');
+  const allergenHtml=n.al&&n.al.length
+    ?`<div class="cm-ov-allergen"><span class="cm-ov-al-title">알레르기 성분</span><span class="cm-ov-al-list">${n.al.join(', ')}</span></div>`
+    :'';
   return `<div class="cm-card" data-cm-id="${item.id}">
   <div class="cm-card-thumb">
     <div class="cm-card-img" style="${imgStyle}"></div>
     ${statusBadge}${tempBadge}
+    <div class="cm-card-overlay">
+      <button class="cm-ov-close" aria-label="닫기">✕</button>
+      <p class="cm-ov-vol-line">${volStr}</p>
+      <div class="cm-ov-top">
+        <span class="cm-ov-serving">1회 제공량</span>
+        <span class="cm-ov-kcal">${n.kcal} kcal</span>
+      </div>
+      <div class="cm-ov-table">${nutRows}</div>
+      ${allergenHtml}
+    </div>
   </div>
   <div class="cm-card-info">
     <p class="cm-card-name">${item.name}</p>
@@ -7121,32 +7058,83 @@ function _cmCardHtml(item){
 
 // ── 카페 메뉴 그리드 렌더링 ──
 let _cmFilter='all';
+let _cmPage=1;
+const CM_PER_PAGE=20;
 function renderCmGrid(){
   const grid=document.getElementById('cm-grid');
   if(!grid)return;
-  const items=_cmFilter==='all'?CAFE_MENU:
+  const all=_cmFilter==='all'?CAFE_MENU:
     _cmFilter==='season'?CAFE_MENU.filter(i=>i.season):
     CAFE_MENU.filter(i=>i.cat===_cmFilter);
+  const total=all.length;
+  const totalPages=Math.max(1,Math.ceil(total/CM_PER_PAGE));
+  if(_cmPage>totalPages)_cmPage=totalPages;
+  const start=(_cmPage-1)*CM_PER_PAGE;
+  const items=all.slice(start,start+CM_PER_PAGE);
   grid.innerHTML=items.map((item,idx)=>{
     const html=_cmCardHtml(item);
     return html.replace('class="cm-card"',`class="cm-card" style="animation-delay:${Math.min(idx,15)*0.03}s"`);
   }).join('');
   grid.querySelectorAll('.cm-card[data-cm-id]').forEach(card=>{
-    card.addEventListener('click',()=>openNutritionSheet(card.dataset.cmId));
+    card.querySelector('.cm-ov-close').addEventListener('click',e=>{
+      e.stopPropagation();
+      card.classList.remove('cm-card--active');
+    });
+    card.addEventListener('click',e=>{
+      const wasActive=card.classList.contains('cm-card--active');
+      grid.querySelectorAll('.cm-card--active').forEach(c=>c.classList.remove('cm-card--active'));
+      if(!wasActive)card.classList.add('cm-card--active');
+    });
   });
+  renderCmPagination(total,totalPages);
+}
+
+function renderCmPagination(total,totalPages){
+  const el=document.getElementById('cm-pagination');
+  if(!el)return;
+  if(totalPages<=1){el.innerHTML='';return;}
+  const arrowL=`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>`;
+  const arrowR=`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg>`;
+  let html=`<button class="sp-pg-arrow" id="cm-pg-prev" ${_cmPage===1?'disabled':''}>${arrowL}</button>`;
+  for(let i=1;i<=totalPages;i++){
+    html+=`<button class="sp-pg-btn${i===_cmPage?' active':''}" data-page="${i}">${i}</button>`;
+  }
+  html+=`<button class="sp-pg-arrow" id="cm-pg-next" ${_cmPage===totalPages?'disabled':''}>${arrowR}</button>`;
+  el.innerHTML=html;
+  el.querySelectorAll('.sp-pg-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      _cmPage=parseInt(btn.dataset.page);
+      renderCmGrid();
+      document.getElementById('cafe-menu-page').scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+  const prev=document.getElementById('cm-pg-prev');
+  const next=document.getElementById('cm-pg-next');
+  if(prev)prev.addEventListener('click',()=>{if(_cmPage>1){_cmPage--;renderCmGrid();document.getElementById('cafe-menu-page').scrollTo({top:0,behavior:'smooth'});}});
+  if(next)next.addEventListener('click',()=>{if(_cmPage<totalPages){_cmPage++;renderCmGrid();document.getElementById('cafe-menu-page').scrollTo({top:0,behavior:'smooth'});}});
 }
 
 // ── 탭 인디케이터 ──
 function _cmPositionIndicator(tab,animate){
   const ind=document.getElementById('cm-filter-indicator');
   if(!ind||!tab)return;
-  if(!animate){ind.style.transition='none';}
   const tabs=document.getElementById('cm-filter-tabs');
   const tabsRect=tabs.getBoundingClientRect();
   const tabRect=tab.getBoundingClientRect();
-  ind.style.left=(tabRect.left-tabsRect.left)+'px';
-  ind.style.width=tabRect.width+'px';
-  if(!animate) requestAnimationFrame(()=>{ind.style.transition='';});
+  const label=tab.querySelector('.cm-tab-label');
+  const labelW=label?label.getBoundingClientRect().width:tabRect.width;
+  const left=tabRect.left-tabsRect.left;
+  const width=Math.round(labelW);
+  if(!animate){
+    ind.style.transition='none';
+    ind.style.left=left+'px';
+    ind.style.width=width+'px';
+    ind.offsetHeight;
+    requestAnimationFrame(()=>{ind.style.transition='';});
+  } else {
+    ind.style.left=left+'px';
+    ind.style.width=width+'px';
+  }
 }
 
 // ── 영양 시트 ──
@@ -7187,7 +7175,7 @@ document.getElementById('cns-close').addEventListener('click',closeNutritionShee
 function openCafeMenuPage(filter){
   filter=filter||'all';
   const page=document.getElementById('cafe-menu-page');
-  if(overlay.classList.contains('open'))closeOverlay();
+  if(document.getElementById('search-overlay').classList.contains('open'))closeOverlay();
   bringPageToFront(page);
   page.classList.remove('open');
   page.offsetHeight;
@@ -7195,6 +7183,7 @@ function openCafeMenuPage(filter){
   document.body.style.overflow='hidden';
   page.scrollTop=0;
   _cmFilter=filter;
+  _cmPage=1;
   document.querySelectorAll('.cm-filter-tab').forEach(t=>t.classList.remove('active'));
   const activeTab=document.querySelector(`.cm-filter-tab[data-filter="${filter}"]`)||document.querySelector('.cm-filter-tab[data-filter="all"]');
   if(activeTab)activeTab.classList.add('active');
@@ -7216,6 +7205,7 @@ document.querySelectorAll('.cm-filter-tab').forEach(tab=>{
     document.querySelectorAll('.cm-filter-tab').forEach(t=>t.classList.remove('active'));
     tab.classList.add('active');
     _cmFilter=tab.dataset.filter;
+    _cmPage=1;
     _cmPositionIndicator(tab,true);
     renderCmGrid();
   });
