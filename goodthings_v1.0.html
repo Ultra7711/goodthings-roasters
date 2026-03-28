@@ -368,14 +368,14 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 .ann{background:var(--color-text-primary);color:var(--color-background-primary);text-align:center;padding:0;height:50px;display:flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:.06em;position:relative;z-index:100;}
 
 /* ── HEADER ── */
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:24px 60px;}
-.hdr-left{display:flex;align-items:center;gap:20px;}
+.hdr{display:flex;align-items:center;padding:24px 60px;}
+.hdr-left{flex:1;display:flex;align-items:center;gap:20px;}
 .hdr-logo img{height:30px;width:auto;display:block;}
 .sns-icon{width:28px;height:28px;color:var(--color-text-primary);}
 .hdr-nav{display:flex;gap:36px;}
 .nav-link{font-size:15px;letter-spacing:.03em;color:var(--color-text-primary);}
 .nav-link-current{opacity:1!important;font-weight:500;}
-.hdr-icons{display:flex;gap:20px;align-items:center;}
+.hdr-icons{flex:1;display:flex;gap:20px;align-items:center;justify-content:flex-end;}
 .hi{width:30px;height:30px;display:block;color:var(--color-text-primary);}
 
 /* ── HERO ── */
@@ -392,7 +392,7 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 
 /* ── CAFE MENU ── */
 #cafe-menu-blk{margin-top:120px;}
-.season-banner{position:relative;height:560px;overflow:hidden;background:url('images/img_season_banner.webp') center/cover no-repeat;display:flex;align-items:center;justify-content:center;margin:0;padding:0;}
+.season-banner{position:relative;height:560px;overflow:hidden;background:url('images/sections/img_season_banner.webp') center/cover no-repeat;display:flex;align-items:center;justify-content:center;margin:0;padding:0;}
 .season-banner-inner{width:100%;height:100%;position:absolute;inset:0;}
 .season-txt{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:58px;text-align:center;padding:0;}
 .season-copy{display:flex;flex-direction:column;align-items:center;gap:12px;}
@@ -423,9 +423,9 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 .cat-title{font-family:var(--font-en);font-size:var(--type-heading-s-size);font-weight:600;color:#fff;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
 .cat-desc{font-family:var(--font-kr);font-size:var(--type-body-ui-size);font-weight:var(--type-body-ui-weight);color:rgba(255,255,255,.75);line-height:1.75;margin-bottom:16px;}
 .cat-cta{margin-top:4px;padding-left:var(--cta-btn-padding-x);padding-right:var(--cta-btn-padding-x);}
-.img-coffee{background:url('images/img_cafemenu_coffee_main.webp') center/cover no-repeat;}
-.img-beverage{background:url('images/img_cafemenu_beverage_main.webp') center/cover no-repeat;}
-.img-dessert{background:url('images/img_cafemenu_dessert_main.webp') center/cover no-repeat;}
+.img-coffee{background:url('images/sections/img_cafemenu_coffee_main.webp') center/cover no-repeat;}
+.img-beverage{background:url('images/sections/img_cafemenu_beverage_main.webp') center/cover no-repeat;}
+.img-dessert{background:url('images/sections/img_cafemenu_dessert_main.webp') center/cover no-repeat;}
 
 /* ── PHILOSOPHY ── */
 .phil{display:grid;grid-template-columns:minmax(320px,1fr) 670px;margin-top:120px;padding-right:60px;}
@@ -434,7 +434,7 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 .phil-h{font-family:var(--font-en);font-size:var(--type-display-size);font-weight:var(--type-display-weight);letter-spacing:-.02em;color:var(--color-text-primary);margin-bottom:20px;line-height:1.2;}
 .phil-body{font-family:var(--font-kr);font-size:var(--type-body-reading-size);font-weight:var(--type-body-reading-weight);line-height:1.75;color:var(--color-text-secondary);margin-bottom:36px;}
 .phil-img{position:relative;overflow:hidden;background:#2a1e0e;height:720px;}
-.phil-img-inner{width:100%;height:100%;position:absolute;inset:0;background:url('images/img_philosophy.webp') center/cover no-repeat;}
+.phil-img-inner{width:100%;height:100%;position:absolute;inset:0;background:url('images/sections/img_philosophy.webp') center/cover no-repeat;}
 
 /* ── BEANS ── */
 .beans-sec{padding:120px 0 0;}
@@ -471,7 +471,7 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
 
 /* ── ROASTERY ── */
 .roastery{position:relative;min-height:560px;background:#1a1a1a;display:flex;align-items:flex-end;overflow:hidden;margin-top:120px;}
-.roastery-bg{position:absolute;inset:0;background:url('images/img_roastery.webp') center/cover no-repeat;}
+.roastery-bg{position:absolute;inset:0;background:url('images/sections/img_roastery.webp') center/cover no-repeat;}
 .roastery-c{position:relative;z-index:1;padding:60px 60px;width:100%;max-width:1440px;}
 .roastery-lbl{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.14em;text-transform:uppercase;color:var(--on-dark-tertiary);margin-bottom:6px;}
 .roastery-h{font-family:var(--font-kr);font-size:var(--type-display-size);font-weight:var(--type-display-weight);color:#fff;line-height:1.2;margin-bottom:20px;}
@@ -501,8 +501,8 @@ button.hdr-icon-btn{background:none;border:none;padding:0;}
   transition:transform .5s var(--ease-spring);
 }
 .tci:hover .tci-img-inner{transform:scale(1.04);}
-.img-business{background-image:url('images/img_services_business_new.webp');}
-.img-subscription{background-image:url('images/img_services_subscription_new.webp');}
+.img-business{background-image:url('images/sections/img_services_business_new.webp');}
+.img-subscription{background-image:url('images/sections/img_services_subscription_new.webp');}
 .tci-overlay{position:absolute;bottom:0;left:0;right:0;padding:28px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
 .tci-lbl{font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:2px;}
 .tci-h{font-size:var(--type-heading-s-size);font-weight:600;color:#fff;line-height:1.3;}
@@ -594,7 +594,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 .popup-img{
   position:relative;
   width:300px;height:300px;
-  background:url('images/pd_img_buku_hurufa.webp') center center/cover no-repeat,
+  background:url('images/products/pd_img_buku_hurufa.webp') center center/cover no-repeat,
              linear-gradient(160deg,#2a1e0e 0%,#7a4220 50%,#c0845a 100%);
   overflow:hidden;flex-shrink:0;
 }
@@ -643,6 +643,10 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   from{opacity:0;transform:translateY(12px);}
   to{opacity:1;transform:translateY(0);}
 }
+@keyframes lpFormEnter{
+  from{opacity:0;transform:translateY(-8px);}
+  to{opacity:1;transform:translateY(0);}
+}
 .sub-page.open{animation:pageEnter .4s var(--ease-spring) both;}
 #shop-page.open,#login-page.open,#cafe-menu-page.open{animation:none;}
 #shop-page.open #sp-body,#login-page.open #lp-body,#cafe-menu-page.open #cm-body{animation:pageEnter .4s var(--ease-spring) both;}
@@ -670,7 +674,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 <div class="noise-overlay" aria-hidden="true"></div>
 <div class="pt">Good Things Roasters — 리뉴얼 설계안 v14</div>
 
-<div id="site-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
+<div id="site-ann-wrap"><div class="ann">온라인 상품 30,000원 이상 구매 시 무료 배송 · Specialty Coffee for All</div></div>
 
 <!-- HEADER -->
 <div id="site-hdr-wrap" class="blk">
@@ -711,8 +715,8 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 <section class="blk" id="hero-blk" data-header-theme="dark">
   <div class="hero">
     <video class="hero-bg" autoplay muted loop playsinline>
-      <source src="images/hero-video.webm" type="video/webm">
-      <source src="images/hero-video.mp4" type="video/mp4">
+      <source src="images/hero/hero-video.webm" type="video/webm">
+      <source src="images/hero/hero-video.mp4" type="video/mp4">
     </video>
     <div class="hero-bg-overlay"></div>
     <div class="hero-scroll">
@@ -837,11 +841,11 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
   <div class="gooddays-sec">
 
     <div class="moments-grid">
-      <div class="moment-card"><div class="moment-img" style="background:url('images/img_gallaery_sample_01.webp') center/cover no-repeat;"></div></div>
-      <div class="moment-card"><div class="moment-img" style="background:url('images/img_gallaery_sample_02.webp') center/cover no-repeat;"></div></div>
-      <div class="moment-card"><div class="moment-img" style="background:url('images/img_gallaery_sample_03.webp') center/cover no-repeat;"></div></div>
-      <div class="moment-card"><div class="moment-img" style="background:url('images/img_gallaery_sample_04.webp') center/cover no-repeat;"></div></div>
-      <div class="moment-card"><div class="moment-img" style="background:url('images/img_gallaery_sample_05.webp') center/cover no-repeat;"></div></div>
+      <div class="moment-card"><div class="moment-img" style="background:url('images/gallery/img_gallaery_sample_01.webp') center/cover no-repeat;"></div></div>
+      <div class="moment-card"><div class="moment-img" style="background:url('images/gallery/img_gallaery_sample_02.webp') center/cover no-repeat;"></div></div>
+      <div class="moment-card"><div class="moment-img" style="background:url('images/gallery/img_gallaery_sample_03.webp') center/cover no-repeat;"></div></div>
+      <div class="moment-card"><div class="moment-img" style="background:url('images/gallery/img_gallaery_sample_04.webp') center/cover no-repeat;"></div></div>
+      <div class="moment-card"><div class="moment-img" style="background:url('images/gallery/img_gallaery_sample_05.webp') center/cover no-repeat;"></div></div>
     </div>
   </div>
 </section>
@@ -904,11 +908,11 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 <div id="cart-drawer-overlay"></div>
 <div id="cart-drawer" role="dialog" aria-label="장바구니">
   <div class="cd-header">
-    <span class="cd-title" id="cd-title">장바구니 (0)</span>
+    <span class="cd-title" id="cd-title">장바구니 <span class="cd-count">(0)</span></span>
     <span class="close-btn" id="cd-close-btn" role="button" aria-label="장바구니 닫기" tabindex="0"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l12 12M13 1L1 13"/></svg></span>
   </div>
   <div class="cd-body">
-    <div class="cd-promo" id="cd-promo">15,000원 이상 구매 시 무료 배송</div>
+    <div class="cd-promo" id="cd-promo">온라인 상품 30,000원 이상 구매 시 무료 배송</div>
     <div class="cd-items" id="cd-items">
       <div class="cd-empty">
         <p class="cd-empty-msg">장바구니가 비어 있습니다.</p>
@@ -938,7 +942,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
 
 <!-- LOGIN PAGE -->
 <div id="login-page" class="sub-page">
-  <div id="lp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
+  <div id="lp-ann-wrap"><div class="ann">온라인 상품 30,000원 이상 구매 시 무료 배송 · Specialty Coffee for All</div></div>
   <div id="lp-hdr-wrap" class="sub-hdr-wrap blk"></div>
 
   <div id="lp-body">
@@ -1128,7 +1132,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
         </div>
 
         <div class="ep-item">
-          <div class="ep-item-img" style="background:#f0eeeb url('images/pd_img_autumn_night.webp') center/contain no-repeat;"></div>
+          <div class="ep-item-img" style="background:#f0eeeb url('images/products/pd_img_autumn_night.webp') center/contain no-repeat;"></div>
           <div class="ep-item-body">
             <p class="ep-item-cat">COFFEE BEAN</p>
             <p class="ep-item-name">가을의 밤 · Autumn Night</p>
@@ -1138,7 +1142,7 @@ body:has(.sub-page.open) .popup-outer{opacity:0;pointer-events:none;transform:tr
         </div>
 
         <div class="ep-item">
-          <div class="ep-item-img" style="background:#f0eeeb url('images/pd_img_refreshing_afternoon.webp') center/contain no-repeat;"></div>
+          <div class="ep-item-img" style="background:#f0eeeb url('images/products/pd_img_refreshing_afternoon.webp') center/contain no-repeat;"></div>
           <div class="ep-item-body">
             <p class="ep-item-cat">COFFEE BEAN</p>
             <p class="ep-item-name">산뜻한 오후 · Refreshing Afternoon</p>
@@ -1986,7 +1990,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 
 <!-- PRODUCT DETAIL PAGE -->
 <div id="product-detail-page" class="sub-page">
-  <div id="pd-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
+  <div id="pd-ann-wrap"><div class="ann">온라인 상품 30,000원 이상 구매 시 무료 배송 · Specialty Coffee for All</div></div>
   <div id="pd-hdr-wrap" class="sub-hdr-wrap blk"></div>
 
   <div id="pd-body">
@@ -2553,6 +2557,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 #cd-close-btn{background:transparent;color:#1a1a1a;}
 #cd-close-btn:hover{background:transparent;opacity:.45;}
 .cd-title{font-family:var(--font-en);font-size:24px;font-weight:500;letter-spacing:-0.01em;color:var(--color-text-primary);}
+.cd-count{font-size:16px;font-weight:600;letter-spacing:0;}
 /* 스크롤 바디 */
 .cd-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
 .cd-promo{padding:11px 28px;background:var(--color-background-secondary);font-family:var(--font-en);font-size:13px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);border-bottom:.5px solid var(--color-border-tertiary);flex-shrink:0;}
@@ -2633,7 +2638,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 <div id="search-result-page" class="sub-page">
 
   <!-- 공통 어나운스 + 헤더 -->
-  <div id="srp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
+  <div id="srp-ann-wrap"><div class="ann">온라인 상품 30,000원 이상 구매 시 무료 배송 · Specialty Coffee for All</div></div>
   <div id="srp-hdr-wrap" class="sub-hdr-wrap blk"></div>
 
   <!-- 본문 -->
@@ -2675,7 +2680,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
      CART PAGE
 ════════════════════════════════════════════════ -->
 <div id="cart-page" class="sub-page">
-  <div id="cp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
+  <div id="cp-ann-wrap"><div class="ann">온라인 상품 30,000원 이상 구매 시 무료 배송 · Specialty Coffee for All</div></div>
   <div id="cp-hdr-wrap" class="sub-hdr-wrap blk"></div>
   <div id="cp-body">
     <div id="cp-inner">
@@ -2972,7 +2977,7 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 
 <!-- ── SHOP PAGE ── -->
 <div id="shop-page" class="sub-page">
-  <div id="sp-ann-wrap"><div class="ann">원두 구매 15,000원 이상 무료 배송 · Specialty Coffee for All</div></div>
+  <div id="sp-ann-wrap"><div class="ann">온라인 상품 30,000원 이상 구매 시 무료 배송 · Specialty Coffee for All</div></div>
   <div id="sp-hdr-wrap" class="sub-hdr-wrap blk"></div>
 
   <div id="sp-body">
@@ -3230,15 +3235,14 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 .srp-pg-nums{display:flex;align-items:center;gap:2px;}
 .srp-pg-num{
   min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;border-bottom:1px solid transparent;
+  position:relative;
+  cursor:pointer;
   transition:all 150ms linear;letter-spacing:.02em;
   color:var(--color-text-tertiary);
 }
 .srp-pg-num:hover{color:var(--color-text-primary);}
-.srp-pg-num.active{
-  color:var(--color-text-primary);font-weight:600;
-  border-bottom:1px solid var(--color-text-primary);
-}
+.srp-pg-num.active{color:var(--color-text-primary);font-weight:600;}
+.srp-pg-num.active::after{content:'';position:absolute;bottom:0;left:7px;right:7px;height:2px;background:var(--color-text-primary);}
 .srp-pg-ellipsis{
   min-width:28px;height:32px;display:flex;align-items:center;justify-content:center;
   color:var(--color-text-tertiary);letter-spacing:.04em;pointer-events:none;
@@ -3551,6 +3555,26 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
   transition:transform var(--duration-zoom) var(--ease-default);
 }
 .sp-card:hover .sp-card-img{transform:scale(1.04);}
+.sp-card--qa-open:hover .sp-card-img{transform:none;}
+/* ── Quick Add ── */
+.sp-qa-content{position:absolute;bottom:40px;left:0;right:0;background:rgba(255,255,255,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:.5px solid var(--color-border-tertiary);border-bottom:none;padding:14px 16px 20px;display:none;flex-direction:column;z-index:3;}
+.sp-card--qa-open .sp-qa-content{display:flex;}
+.sp-qa-label{font-family:var(--font-kr);font-size:13px;letter-spacing:.08em;color:var(--color-text-tertiary);margin-bottom:8px;padding-top:2px;text-align:center;}
+.sp-qa-vols{display:flex;gap:6px;}
+.sp-qa-vol-btn{flex:1;padding:8px 4px;border:.5px solid var(--color-border-secondary);background:#fff;font-family:var(--font-en);font-size:13px;cursor:pointer;}
+.sp-qa-vol-btn.active{border-color:#1a1a1a;font-weight:600;}
+.sp-qa-stepper{display:flex;align-items:center;width:100%;border:.5px solid var(--color-border-secondary);}
+.sp-qa-step{width:33px;height:33px;flex-shrink:0;background:none;border:none;font-size:15px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#1a1a1a;transition:background .3s ease,color .3s ease;}
+.sp-qa-step:hover{background:#1a1a1a;color:#fff;}
+.sp-qa-qty-val{flex:1;text-align:center;font-family:var(--font-en);font-size:13px;font-weight:500;border-left:.5px solid var(--color-border-secondary);border-right:.5px solid var(--color-border-secondary);height:33px;display:flex;align-items:center;justify-content:center;}
+.sp-qa-bar{position:absolute;bottom:0;left:0;right:0;height:40px;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;clip-path:inset(0 calc(50% - 62px) 0 calc(50% - 62px));transition:clip-path .2s ease,opacity .18s;z-index:4;border:none;}
+.sp-card:hover .sp-qa-bar{opacity:1;}
+.sp-card--qa-open .sp-qa-bar{clip-path:inset(0 0 0 0);opacity:1;}
+.sp-card--qa-closing .sp-qa-bar{opacity:1;}
+.sp-qa-bar[disabled]{background:rgba(26,26,26,.42);cursor:default;}
+.sp-qa-bar-text{font-family:var(--font-kr);font-size:14px;font-weight:500;letter-spacing:.02em;pointer-events:none;}
+.sp-qa-close{position:absolute;top:0;right:0;width:44px;height:40px;background:none;border:none;color:rgba(255,255,255,0);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .08s .18s;}
+.sp-card--qa-open .sp-qa-close{color:rgba(255,255,255,.7);}
 .sp-card-badge{
   position:absolute;top:12px;left:12px;
   font-family:var(--font-en);
@@ -3589,16 +3613,15 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 }
 .sp-pg-btn{
   display:flex;align-items:center;justify-content:center;
+  position:relative;
   width:32px;height:32px;
   background:transparent;border:none;cursor:pointer;
   font-family:var(--font-en);font-size:13px;
   color:var(--color-text-tertiary);
   transition:color .2s ease;
 }
-.sp-pg-btn.active{
-  color:var(--color-text-primary);font-weight:500;
-  border-bottom:1.5px solid var(--color-text-primary);
-}
+.sp-pg-btn.active{color:var(--color-text-primary);font-weight:500;}
+.sp-pg-btn.active::after{content:'';position:absolute;bottom:0;left:7px;right:7px;height:2px;background:var(--color-text-primary);}
 .sp-pg-btn:hover{color:var(--color-text-primary);}
 .sp-pg-arrow{
   display:flex;align-items:center;justify-content:center;
@@ -3772,7 +3795,7 @@ function _renderSubHdr(el,{prefix,activeKey,logoSrc,logoClick,userBtnId,userClic
 
 const PRODUCTS=[
   {category:'Coffee Bean',name:'가을의 밤 Autumn Night',price:'14,000원',volumes:[{label:'200g',price:14000},{label:'500g',price:34000},{label:'1kg',price:66000}],color:'linear-gradient(135deg,#c9a06e,#6b3a20)',status:null,slug:'autumn-night',subscription:true,
-   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/pd_img_autumn_night.webp'}],
+   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/products/pd_img_autumn_night.webp'}],
    desc:'가을의 밤 블렌드는 Good Things만의 첫 번째 시그니처 블렌드로 낮은 산미와 구수하고 묵직한 단맛으로 누구에게나 호불호 없이 모든 사람들에게 사랑받는 커피입니다.\n\n가장 대중적이지만 그 안에서 작은 차이로 맛의 퀄리티를 높인 에스프레소 블렌딩으로 라떼를 즐겨 드시는 분께 추천합니다.',
    specs:'블렌드: Espresso Blend · 원산지: Brazil, Colombia, Ethiopia, India · 로스팅 포인트: Medium Dark',
    note:{sweet:3.5,body:3.5,aftertaste:4,aroma:3.5,acidity:3},
@@ -3786,7 +3809,7 @@ const PRODUCTS=[
      {method:'브루잉',dose:'18 - 20g',temp:'88 - 92°C',time:'2분 이내(뜸 30초)',water:'270 - 360g'}
    ]},
   {category:'Coffee Bean',name:'산뜻한 오후 Refreshing Afternoon',price:'14,000원',volumes:[{label:'200g',price:14000},{label:'500g',price:34000},{label:'1kg',price:64000}],color:'linear-gradient(135deg,#ccc,#888)',status:null,slug:'refreshing-afternoon',subscription:true,
-   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/pd_img_refreshing_afternoon.webp'}],
+   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/products/pd_img_refreshing_afternoon.webp'}],
    desc:'산뜻한 오후 블렌드는 Good Things의 두 번째 시그니처 블렌드로, 밝은 산미는 가벼운 단맛과 하모니를 이루며 매우 높은 청량감을 느낄 수 있는 커피입니다.\n\n스페셜티 커피에서 경험할 수 있는 상큼한 산미와 청량감이 돋보이는 에스프레소 블렌딩입니다.',
    specs:'블렌드: Espresso Blend · 원산지: Colombia, Guatemala, Kenya · 로스팅 포인트: Medium',
    note:{sweet:3,body:2,aftertaste:2,aroma:4,acidity:4},
@@ -3800,7 +3823,7 @@ const PRODUCTS=[
      {method:'브루잉',dose:'18 - 20g',temp:'88 - 92°C',time:'2분 이내(뜸 30초)',water:'270 - 360g'}
    ]},
   {category:'Drip Bag',name:'과테말라 와이칸 Guatemala Waykan',price:'1000',color:'linear-gradient(135deg,#ccc,#888)',status:null,slug:'guatemala-waykan',subscription:false,
-   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/pd_img_quatemala_waykan.webp'},{bg:'#ebebeb',bgTheme:'light',src:'images/pd_img_quatemala_waykan_02.webp'}],
+   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/products/pd_img_quatemala_waykan.webp'},{bg:'#ebebeb',bgTheme:'light',src:'images/products/pd_img_quatemala_waykan_02.webp'}],
    desc:'과테말라 와이칸의 와이칸은 마야어로 밤하늘에 빛나는 별을 뜻합니다.\n과일과 바닐라의 향미와 촉촉한 질감이 느껴지는 부드러운 매력의 커피입니다.',
    specs:'블렌드: Espresso Blend · 원산지: Guatemala · 로스팅 포인트: Medium',
    note:{sweet:4,body:2,aftertaste:2,aroma:3,acidity:2},
@@ -3809,7 +3832,7 @@ const PRODUCTS=[
    roastStage:'medium-light',
    recipe:[]},
   {category:'Drip Bag',name:'에디오피아 부쿠 후루파 Ethiopia Buku Hurupa',price:'1000',color:'linear-gradient(135deg,#ccc,#888)',status:null,slug:'ethiopia-buku-hurupa',subscription:false,popup:true,
-   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/pd_img_buku_hurufa.webp'},{bg:'#ebebeb',bgTheme:'light',src:'images/pd_img_buku_hurufa_02.webp'}],
+   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/products/pd_img_buku_hurufa.webp'},{bg:'#ebebeb',bgTheme:'light',src:'images/products/pd_img_buku_hurufa_02.webp'}],
    desc:'에티오피아 부쿠 후루파는 커피의 시작 에티오피아 지역의 최고의 맛을 자랑합니다.\n싱그러운 살구와 풍성하게 다가오는 꽃향기를 느낄 수 있습니다.\n풍부한 향미와 바디감, 단맛이 좋은 특징이 있습니다.',
    specs:'블렌드: Espresso Blend · 원산지: Ethiopia · 로스팅 포인트: Light',
    note:{sweet:3.5,body:2.5,aftertaste:2,aroma:4.5,acidity:3.5},
@@ -3818,7 +3841,7 @@ const PRODUCTS=[
    roastStage:'light',
    recipe:[]},
   {category:'Drip Bag',name:'페루 디카프 Peru De Caffein',price:'1000',color:'linear-gradient(135deg,#ccc,#888)',status:'수량 한정',slug:'peru-de-caffein',subscription:false,
-   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/pd_img_peru_de_caffein.webp'},{bg:'#ebebeb',bgTheme:'light',src:'images/pd_img_peru_de_caffein_02.webp'}],
+   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/products/pd_img_peru_de_caffein.webp'},{bg:'#ebebeb',bgTheme:'light',src:'images/products/pd_img_peru_de_caffein_02.webp'}],
    desc:'페루 디카프는 아카시아 꿀, 몽글몽글한 질감, 달콤한 과일, 밤의 고소한 맛과 함께 입안에서 묵직함이 느껴지는 커피입니다.\n카페인이 부담스럽거나 산미있는 커피를 좋아하지 않는 분에게 추천합니다.',
    specs:'블렌드: Espresso Blend · 원산지: Peru · 로스팅 포인트: Medium',
    note:{sweet:4,body:3.5,aftertaste:3.5,aroma:3,acidity:3},
@@ -3827,7 +3850,7 @@ const PRODUCTS=[
    roastStage:'medium',
    recipe:[]},
   {category:'Drip Bag',name:'케냐 카간다 AA Kenya Kaganda',price:'1000',color:'linear-gradient(135deg,#ccc,#888)',status:'매진',slug:'kenya-kaganda-aa',subscription:false,
-   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/pd_img_keyna_kaganda.webp'},{bg:'#ebebeb',bgTheme:'light',src:'images/pd_img_keyna_kaganda_02.webp'}],
+   images:[{bg:'#ebebeb',bgTheme:'light',src:'images/products/pd_img_keyna_kaganda.webp'},{bg:'#ebebeb',bgTheme:'light',src:'images/products/pd_img_keyna_kaganda_02.webp'}],
    desc:'케냐 카간다 원두는 약간의 과일향과 진하지 않은 단맛, 적당한 바디감을 가지고 있는 매력적인 커피입니다.\n순하고 무난한 쓴맛으로 누구나 가볍게 즐길 수 있습니다.',
    specs:'블렌드: Espresso Blend · 원산지: Kenya · 로스팅 포인트: Light',
    note:{sweet:4,body:3.5,aftertaste:4,aroma:4,acidity:3.5},
@@ -4529,6 +4552,9 @@ const loginBtn=document.getElementById('login-btn');
 function openLoginPage(){
   if(overlay.classList.contains('open'))closeOverlay();
   bringPageToFront(loginPage);
+  loginPage.classList.remove('open');
+  const _lpBodyEl=document.getElementById('lp-body');
+  if(_lpBodyEl)_lpBodyEl.offsetHeight; // reflow — 애니메이션 재실행 보장
   loginPage.classList.add('open');
   document.body.style.overflow='hidden';
   setLoginMode('login');
@@ -4566,11 +4592,19 @@ function setLoginMode(mode){
     (isReset||isGuest)?'로그인':isLogin?'계정 만들기':'로그인';
   document.getElementById('lp-switch-link').style.display='flex';
 
-  // 폼 전환
-  document.getElementById('lp-form-login').style.display=isLogin?'block':'none';
-  document.getElementById('lp-form-register').style.display=(!isLogin&&!isReset&&!isGuest)?'block':'none';
-  document.getElementById('lp-form-reset').style.display=isReset?'block':'none';
-  document.getElementById('lp-form-guest-lookup').style.display=isGuest?'block':'none';
+  // 폼 전환 (애니메이션 포함)
+  const _lpFormIds=['lp-form-login','lp-form-register','lp-form-reset','lp-form-guest-lookup'];
+  const _lpActiveId=isLogin?'lp-form-login':isReset?'lp-form-reset':isGuest?'lp-form-guest-lookup':'lp-form-register';
+  _lpFormIds.forEach(fid=>{
+    const fe=document.getElementById(fid);
+    if(fe)fe.style.display=fid===_lpActiveId?'block':'none';
+  });
+  const _lpActiveEl=document.getElementById(_lpActiveId);
+  if(_lpActiveEl){
+    _lpActiveEl.style.animation='none';
+    _lpActiveEl.offsetHeight;
+    _lpActiveEl.style.animation='lpFormEnter .25s ease both';
+  }
   // 주문 조회 폼 진입 시 입력값 초기화
   if(isGuest){
     ['lp-guest-email','lp-guest-order-num'].forEach(id=>{
@@ -5160,7 +5194,7 @@ function renderCartDrawer(){
   const subtotalEl=document.getElementById('cd-subtotal');
   const titleEl=document.getElementById('cd-title');
   const totalQty=cartItems.reduce((s,i)=>s+i.qty,0);
-  titleEl.textContent=`장바구니 (${totalQty})`;
+  titleEl.innerHTML=`장바구니 <span class="cd-count">(${totalQty})</span>`;
   if(cartItems.length===0){
     list.innerHTML=`<div class="cd-empty"><p class="cd-empty-msg">장바구니가 비어 있습니다.</p><span class="cd-empty-cta" id="cd-empty-shop-btn">쇼핑 계속하기 →</span></div>`;
     document.getElementById('cd-empty-shop-btn').addEventListener('click',closeCartDrawer);
@@ -5231,6 +5265,10 @@ document.querySelectorAll('.bean-card[data-slug]').forEach(el=>{
   });
 });
 
+function resetHeroVideo(){
+  const v=document.querySelector('.hero-bg');
+  if(v){v.currentTime=0;v.play();}
+}
 function goHome(){
   document.getElementById('product-detail-page').classList.remove('open');
   document.getElementById('search-result-page').classList.remove('open');
@@ -5239,9 +5277,11 @@ function goHome(){
   document.getElementById('checkout-page').classList.remove('open');
   document.getElementById('order-complete-page').classList.remove('open');
   document.getElementById('shop-page').classList.remove('open');
+  document.getElementById('cafe-menu-page').classList.remove('open');
   overlay.classList.remove('open');
   document.body.style.overflow='';
   window.scrollTo({top:0,behavior:'instant'});
+  resetHeroVideo();
 }
 // 메인 로고 클릭 → 홈
 const mainLogoImg=document.getElementById('logo-img');
@@ -5566,19 +5606,32 @@ function renderOrderComplete(){
   document.getElementById('ocp-total').textContent=`${total.toLocaleString('ko-KR')}원`;
 }
 
-// ── 배송 안내 문구 초기화 (STORE_CONFIG 기반 동기화) ──
-(()=>{
+// ── 배송 안내 문구 동기화 (STORE_CONFIG 기반) ──
+function syncShippingUI(){
   const fmt=n=>n.toLocaleString('ko-KR');
   const thr=STORE_CONFIG.FREE_SHIPPING_THRESHOLD;
   const fee=STORE_CONFIG.SHIPPING_FEE;
   document.querySelectorAll('.ann').forEach(el=>{
-    el.textContent=`원두 구매 ${fmt(thr)}원 이상 무료 배송 · Specialty Coffee for All`;
+    el.textContent=`온라인 상품 ${fmt(thr)}원 이상 구매 시 무료 배송 · Specialty Coffee for All`;
   });
   const cdPromo=document.getElementById('cd-promo');
-  if(cdPromo)cdPromo.textContent=`${fmt(thr)}원 이상 구매 시 무료 배송`;
+  if(cdPromo)cdPromo.textContent=`온라인 상품 ${fmt(thr)}원 이상 구매 시 무료 배송`;
   const pdInfo=document.getElementById('pd-shipping-info');
   if(pdInfo)pdInfo.textContent=`· 기본 배송비 ${fmt(fee)}원 / ${fmt(thr)}원 이상 구매 시 무료 배송`;
-})();
+}
+syncShippingUI();
+
+// ── 어드민 설정 fetch (백엔드 연동) ──
+// POST /api/store-config  →  { FREE_SHIPPING_THRESHOLD: number, SHIPPING_FEE: number }
+fetch('/api/store-config')
+  .then(r=>{if(!r.ok)throw new Error();return r.json();})
+  .then(data=>{
+    if(typeof data.FREE_SHIPPING_THRESHOLD==='number')STORE_CONFIG.FREE_SHIPPING_THRESHOLD=data.FREE_SHIPPING_THRESHOLD;
+    if(typeof data.SHIPPING_FEE==='number')STORE_CONFIG.SHIPPING_FEE=data.SHIPPING_FEE;
+    syncShippingUI();
+    renderCartDrawer();  // 열려 있을 경우 배송비 재계산
+  })
+  .catch(()=>{});  // 실패 시 하드코딩 기본값 유지
 
 // ════════════════════════════════════════════════
 //  BUTTON WIRING
@@ -6868,7 +6921,7 @@ document.getElementById('pd-editor-overlay').addEventListener('click',function(e
           <div class="pde-section-title">이미지</div>
           <table class="pde-table">
             <tr><td class="pde-label">이미지 URL</td><td>
-              <input class="pde-input" id="cme-img" placeholder="images/cm_img_파일명.webp" oninput="cmeUpdateImgPreview()">
+              <input class="pde-input" id="cme-img" placeholder="images/cafe-menu/cm_img_파일명.webp" oninput="cmeUpdateImgPreview()">
               <div id="cme-img-picker" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;"></div>
             </td></tr>
             <tr><td class="pde-label">미리보기</td><td>
@@ -6965,7 +7018,8 @@ function openShopPage(){
   if(document.getElementById('search-overlay').classList.contains('open'))closeOverlay();
   bringPageToFront(page);
   page.classList.remove('open');
-  page.offsetHeight; // force reflow — 애니메이션 재실행 보장
+  const _spBodyEl=document.getElementById('sp-body');
+  if(_spBodyEl)_spBodyEl.offsetHeight; // 자식 요소 reflow — 애니메이션 재실행 보장
   page.classList.add('open');
   document.body.style.overflow='hidden';
   page.scrollTop=0;
@@ -6984,6 +7038,7 @@ function openShopPage(){
 function closeShopPage(){
   document.getElementById('shop-page').classList.remove('open');
   document.body.style.overflow='';
+  resetHeroVideo();
 }
 
 function _spCardHtml(p){
@@ -7010,10 +7065,25 @@ function _spCardHtml(p){
     else{badgeCls='sp-card-badge';badgeLabel=p.status;}
     badgeHtml=`<span class="${badgeCls}">${badgeLabel}</span>`;
   }
+  const isSoldOut=p.status==='매진';
+  const isDripBag=p.category==='Drip Bag';
+  let qaHtml='';
+  if(isSoldOut){
+    qaHtml=`<div class="sp-qa-bar" disabled><span class="sp-qa-bar-text">매진</span></div>`;
+  } else {
+    let contentInner='';
+    if(isDripBag){
+      contentInner=`<p class="sp-qa-label">수량</p><div class="sp-qa-stepper"><button class="sp-qa-step sp-qa-minus">−</button><div class="sp-qa-qty-val">1</div><button class="sp-qa-step sp-qa-plus">+</button></div>`;
+    } else {
+      const volBtns=(p.volumes||[]).map((v,i)=>`<button class="sp-qa-vol-btn${i===0?' active':''}" data-price="${v.price}" data-vol="${v.label}">${v.label}</button>`).join('');
+      contentInner=`<p class="sp-qa-label">용량</p><div class="sp-qa-vols">${volBtns}</div>`;
+    }
+    qaHtml=`<div class="sp-qa-content">${contentInner}</div><div class="sp-qa-bar"><span class="sp-qa-bar-text">빠른 추가</span><button class="sp-qa-close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l8 8M9 1l-8 8"/></svg></button></div>`;
+  }
   return `<div class="sp-card" data-slug="${p.slug}">
   <div class="sp-card-thumb">
     <div class="sp-card-img" style="${thumbStyle}"></div>
-    ${badgeHtml}
+    ${badgeHtml}${qaHtml}
   </div>
   <div class="sp-card-info">
     <p class="sp-card-name">${(()=>{const m=p.name.match(/^(.*[\uAC00-\uD7AF](?:\s+[A-Z0-9]+)*)\s+([A-Z][a-z].*)$/);return m?`${m[1]}<br><span class="product-name-en">${m[2]}</span>`:p.name;})()}</p>
@@ -7037,10 +7107,68 @@ function renderSpGrid(){
   grid.innerHTML=items.map(_spCardHtml).join('');
   grid.querySelectorAll('.sp-card').forEach((card,i)=>{
     card.style.animationDelay=(i*40)+'ms';
-    card.addEventListener('click',()=>{
+    const slug=card.dataset.slug;
+    const p=PRODUCTS.find(x=>x.slug===slug);
+    const popup=card.querySelector('.sp-qa-popup');
+    const overlay=card.querySelector('.sp-qa-overlay');
+    // 카드 클릭 → 상품 상세 (팝업 열려 있으면 차단)
+    const qaContent=card.querySelector('.sp-qa-content');
+    const qaBar=card.querySelector('.sp-qa-bar');
+    const qaBarText=qaBar?.querySelector('.sp-qa-bar-text');
+    const qaClose=qaBar?.querySelector('.sp-qa-close');
+    const isOpen=()=>card.classList.contains('sp-card--qa-open');
+    const _qaDocClose=e=>{if(!card.contains(e.target))closeQa();};
+    const openQa=()=>{
+      document.querySelectorAll('.sp-card--qa-open').forEach(c=>{
+        c.classList.remove('sp-card--qa-open');
+        const bt=c.querySelector('.sp-qa-bar-text');if(bt)bt.textContent='빠른 추가';
+        const qv=c.querySelector('.sp-qa-qty-val');if(qv)qv.textContent='1';
+      });
+      card.classList.add('sp-card--qa-open');if(qaBarText)qaBarText.textContent='장바구니에 담기';setTimeout(()=>document.addEventListener('click',_qaDocClose),0);
+    };
+    const closeQa=()=>{card.classList.remove('sp-card--qa-open');card.classList.add('sp-card--qa-closing');setTimeout(()=>card.classList.remove('sp-card--qa-closing'),250);if(qaBarText)qaBarText.textContent='빠른 추가';const qv=card.querySelector('.sp-qa-qty-val');if(qv)qv.textContent='1';document.removeEventListener('click',_qaDocClose);};
+    // 콘텐츠 패널 내 빈 영역 클릭 시 카드 이벤트로 버블링 방지
+    qaContent?.addEventListener('click',e=>e.stopPropagation());
+    // 카드 클릭 → 열려 있으면 닫기(패널/바 제외), 닫혀 있으면 상품 상세
+    card.addEventListener('click',e=>{
+      if(isOpen()){closeQa();return;}
       window._pdPrevPage='shop';
-      openProductPage(card.dataset.slug);
+      openProductPage(slug);
     });
+    if(!p||p.status==='매진')return;
+    // 바 클릭: 열기 or 장바구니 담기
+    qaBar?.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(!isOpen()){openQa();return;}
+      // 장바구니 담기
+      const img=p.images&&p.images[0];
+      let volume=null,price=0,qty=1;
+      if(p.category==='Drip Bag'){
+        const qtyEl=card.querySelector('.sp-qa-qty-val');
+        qty=parseInt(qtyEl?.textContent)||1;
+        price=parseInt((p.price||'').replace(/[^0-9]/g,''),10)||0;
+      } else {
+        const activeVol=qaContent?.querySelector('.sp-qa-vol-btn.active');
+        volume=activeVol?activeVol.dataset.vol:null;
+        price=activeVol?parseInt(activeVol.dataset.price):0;
+      }
+      addToCart({slug,name:p.name,price:price.toLocaleString('ko-KR')+'원',priceNum:price,qty,color:p.color||'#eee',image:img||null,category:p.category,volume});
+      closeQa();
+    });
+    // 닫기
+    qaClose?.addEventListener('click',e=>{e.stopPropagation();closeQa();});
+    // 용량 선택
+    qaContent?.querySelectorAll('.sp-qa-vol-btn').forEach(btn=>{
+      btn.addEventListener('click',e=>{
+        e.stopPropagation();
+        qaContent.querySelectorAll('.sp-qa-vol-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+    // 수량 스텝퍼
+    const qtyEl=card.querySelector('.sp-qa-qty-val');
+    card.querySelector('.sp-qa-minus')?.addEventListener('click',e=>{e.stopPropagation();const c=parseInt(qtyEl?.textContent)||1;if(c>1&&qtyEl)qtyEl.textContent=c-1;});
+    card.querySelector('.sp-qa-plus')?.addEventListener('click',e=>{e.stopPropagation();if(qtyEl)qtyEl.textContent=(parseInt(qtyEl.textContent)||1)+1;});
   });
   renderSpPagination(total,totalPages);
 }
@@ -7104,39 +7232,39 @@ document.addEventListener('keydown',e=>{
 // ── 카페 메뉴 데이터 ──
 const CAFE_MENU=[
   // SIGNATURE
-  {id:'s01',name:'황금오렌지커피',cat:'brewing',status:'시그니처',temp:'ice-only',badge2:'',price:7000,desc:'',img:'images/cm_img_gold_orange_coffee.webp',bg:'#f5eedc',menuDesc:'스페셜티 브루잉 커피와 직접 만드는 오렌지 시럽,\n그리고 부드러운 크림의 화려한 조화',vol:'355ml',kcal:234,satfat:'2.9g',sugar:'27.5g',sodium:'59.7mg',protein:'5.0g',caffeine:'200.0mg',allergen:'우유, 고카페인 함유'},
-  {id:'s02',name:'클래식 도-나쓰 커피',cat:'brewing',status:'시그니처',temp:'warm',badge2:'',price:6000,desc:'',img:'images/cm_img_classic_donuts_coffee.webp',bg:'#f0ebe4',menuDesc:'첫입은 차갑게, 끝은 따뜻하게..\n시그니처 크림 가득, 마시는 도-나쓰',vol:'',kcal:294.6,satfat:'8.8g',sugar:'33.9g',sodium:'113.3mg',protein:'7.1g',caffeine:'232.5mg',allergen:'우유, 대두, 고카페인 함유'},
-  {id:'s03',name:'밀크커피',cat:'brewing',status:'시그니처',temp:'both',badge2:'',price:5500,desc:'',img:'images/cm_img_milk_coffee.webp',bg:'#f5f0eb',menuDesc:'굳띵즈 \'가을의 밤\' 블렌딩 원두를 사용한\n진한 카페라떼',vol:'350ml',kcal:220,satfat:'4.2g',sugar:'18.5g',sodium:'95mg',protein:'6.8g',caffeine:'180mg',allergen:'우유, 고카페인 함유'},
-  {id:'s04',name:'딥블랙(초코)커피',cat:'brewing',status:'시그니처',temp:'both',badge2:'',price:6000,desc:'',img:'images/cm_img_deepblack_coffee.webp',bg:'#e8ddd5',menuDesc:'딥블랙 카카오 파우더를 사용한,\n진하고 고급스러운 느낌의 초콜릿 커피',vol:'380ml',kcal:265,satfat:'5.8g',sugar:'32.0g',sodium:'108mg',protein:'6.2g',caffeine:'195mg',allergen:'우유, 고카페인 함유'},
-  {id:'s05',name:'자몽허니블랙티',cat:'non-coffee',status:'시그니처',temp:'both',badge2:'',price:7000,desc:'',img:'images/cm_img_grapefruit_honey_black_tea.webp',bg:'#f5e8d8',menuDesc:'스*벅스 자.허.블 뺨 때리는 굳띵즈의 자.허.블',vol:'450ml',kcal:185,satfat:'0.0g',sugar:'38.5g',sodium:'12mg',protein:'0.5g',caffeine:'45mg',allergen:''},
-  {id:'s06',name:'말차유자',cat:'non-coffee',status:'시그니처',temp:'both',badge2:'',price:6000,desc:'',img:'images/cm_img_matcha_yuzu.webp',bg:'#e4edd8',menuDesc:'상큼한 유자와 부드러운 말차 크림, 봄처럼 산뜻한 음료',vol:'380ml',kcal:210,satfat:'2.1g',sugar:'32.0g',sodium:'45mg',protein:'3.2g',caffeine:'55mg',allergen:'우유'},
-  {id:'s07',name:'스파클링 유자',cat:'non-coffee',status:'시그니처',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cm_img_sparking_yuzu.webp',bg:'#f5f0d0',menuDesc:'과일청과 탄산수,\n그리고 사르르 녹는 소르베 한 스쿱',vol:'400ml',kcal:145,satfat:'0.0g',sugar:'30.5g',sodium:'18mg',protein:'0.2g',caffeine:'0mg',allergen:''},
-  {id:'s08',name:'스파클링 자.망.추',cat:'non-coffee',status:'시그니처',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cm_img_sparkling_jamangchu.webp',bg:'#f5dde0',menuDesc:'과일청과 탄산수,\n그리고 사르르 녹는 소르베 한 스쿱',vol:'400ml',kcal:160,satfat:'0.0g',sugar:'33.0g',sodium:'15mg',protein:'0.3g',caffeine:'0mg',allergen:''},
+  {id:'s01',name:'황금오렌지커피',cat:'brewing',status:'시그니처',temp:'ice-only',badge2:'',price:7000,desc:'',img:'images/cafe-menu/cm_img_gold_orange_coffee.webp',bg:'#f5eedc',menuDesc:'스페셜티 브루잉 커피와 직접 만드는 오렌지 시럽,\n그리고 부드러운 크림의 화려한 조화',vol:'355ml',kcal:234,satfat:'2.9g',sugar:'27.5g',sodium:'59.7mg',protein:'5.0g',caffeine:'200.0mg',allergen:'우유, 고카페인 함유'},
+  {id:'s02',name:'클래식 도-나쓰 커피',cat:'brewing',status:'시그니처',temp:'warm',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_classic_donuts_coffee.webp',bg:'#f0ebe4',menuDesc:'첫입은 차갑게, 끝은 따뜻하게..\n시그니처 크림 가득, 마시는 도-나쓰',vol:'',kcal:294.6,satfat:'8.8g',sugar:'33.9g',sodium:'113.3mg',protein:'7.1g',caffeine:'232.5mg',allergen:'우유, 대두, 고카페인 함유'},
+  {id:'s03',name:'밀크커피',cat:'brewing',status:'시그니처',temp:'both',badge2:'',price:5500,desc:'',img:'images/cafe-menu/cm_img_milk_coffee.webp',bg:'#f5f0eb',menuDesc:'굳띵즈 \'가을의 밤\' 블렌딩 원두를 사용한\n진한 카페라떼',vol:'350ml',kcal:220,satfat:'4.2g',sugar:'18.5g',sodium:'95mg',protein:'6.8g',caffeine:'180mg',allergen:'우유, 고카페인 함유'},
+  {id:'s04',name:'딥블랙(초코)커피',cat:'brewing',status:'시그니처',temp:'both',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_deepblack_coffee.webp',bg:'#e8ddd5',menuDesc:'딥블랙 카카오 파우더를 사용한,\n진하고 고급스러운 느낌의 초콜릿 커피',vol:'380ml',kcal:265,satfat:'5.8g',sugar:'32.0g',sodium:'108mg',protein:'6.2g',caffeine:'195mg',allergen:'우유, 고카페인 함유'},
+  {id:'s05',name:'자몽허니블랙티',cat:'non-coffee',status:'시그니처',temp:'both',badge2:'',price:7000,desc:'',img:'images/cafe-menu/cm_img_grapefruit_honey_black_tea.webp',bg:'#f5e8d8',menuDesc:'스*벅스 자.허.블 뺨 때리는 굳띵즈의 자.허.블',vol:'450ml',kcal:185,satfat:'0.0g',sugar:'38.5g',sodium:'12mg',protein:'0.5g',caffeine:'45mg',allergen:''},
+  {id:'s06',name:'말차유자',cat:'non-coffee',status:'시그니처',temp:'both',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_matcha_yuzu.webp',bg:'#e4edd8',menuDesc:'상큼한 유자와 부드러운 말차 크림, 봄처럼 산뜻한 음료',vol:'380ml',kcal:210,satfat:'2.1g',sugar:'32.0g',sodium:'45mg',protein:'3.2g',caffeine:'55mg',allergen:'우유'},
+  {id:'s07',name:'스파클링 유자',cat:'non-coffee',status:'시그니처',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_sparking_yuzu.webp',bg:'#f5f0d0',menuDesc:'과일청과 탄산수,\n그리고 사르르 녹는 소르베 한 스쿱',vol:'400ml',kcal:145,satfat:'0.0g',sugar:'30.5g',sodium:'18mg',protein:'0.2g',caffeine:'0mg',allergen:''},
+  {id:'s08',name:'스파클링 자.망.추',cat:'non-coffee',status:'시그니처',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_sparkling_jamangchu.webp',bg:'#f5dde0',menuDesc:'과일청과 탄산수,\n그리고 사르르 녹는 소르베 한 스쿱',vol:'400ml',kcal:160,satfat:'0.0g',sugar:'33.0g',sodium:'15mg',protein:'0.3g',caffeine:'0mg',allergen:''},
   // BREWING/COFFEE
-  {id:'b01',name:'블랜딩',cat:'brewing',status:'',temp:'both',badge2:'',price:5000,desc:'',img:'images/cm_img_americano.webp',bg:'#ede8e0',menuDesc:'',vol:'350ml',kcal:10,satfat:'0.0g',sugar:'0.5g',sodium:'8mg',protein:'0.3g',caffeine:'185mg',allergen:'고카페인 함유'},
-  {id:'b02',name:'싱글오리진',cat:'brewing',status:'',temp:'both',badge2:'',price:7000,desc:'',img:'images/cm_img_americano.webp',bg:'#e8e0d5',menuDesc:'케냐 | 과테말라 | 에티오피아 | 페루 디카페인',vol:'350ml',kcal:8,satfat:'0.0g',sugar:'0.3g',sodium:'6mg',protein:'0.2g',caffeine:'195mg',allergen:'고카페인 함유'},
-  {id:'b03',name:'인의동 커피',cat:'brewing',status:'',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cm_img_americano.webp',bg:'#e0d8cc',menuDesc:'달달, 고소, 묵직한 굳띵즈 대표 커피',vol:'350ml',kcal:12,satfat:'0.0g',sugar:'0.8g',sodium:'10mg',protein:'0.3g',caffeine:'175mg',allergen:'고카페인 함유'},
-  {id:'b04',name:'아메리카노',cat:'brewing',status:'',temp:'both',badge2:'',price:6000,desc:'',img:'images/cm_img_americano.webp',bg:'#ede8e0',menuDesc:'굳띵즈 \'산뜻한 오후\' 블렌딩 원두를 사용한\n부드러운 산미와 깔끔한 뒷맛을 가진 커피',vol:'350ml',kcal:8,satfat:'0.0g',sugar:'0.5g',sodium:'8mg',protein:'0.2g',caffeine:'200mg',allergen:'고카페인 함유'},
+  {id:'b01',name:'블랜딩',cat:'brewing',status:'',temp:'both',badge2:'',price:5000,desc:'',img:'images/cafe-menu/cm_img_americano.webp',bg:'#ede8e0',menuDesc:'',vol:'350ml',kcal:10,satfat:'0.0g',sugar:'0.5g',sodium:'8mg',protein:'0.3g',caffeine:'185mg',allergen:'고카페인 함유'},
+  {id:'b02',name:'싱글오리진',cat:'brewing',status:'',temp:'both',badge2:'',price:7000,desc:'',img:'images/cafe-menu/cm_img_americano.webp',bg:'#e8e0d5',menuDesc:'케냐 | 과테말라 | 에티오피아 | 페루 디카페인',vol:'350ml',kcal:8,satfat:'0.0g',sugar:'0.3g',sodium:'6mg',protein:'0.2g',caffeine:'195mg',allergen:'고카페인 함유'},
+  {id:'b03',name:'인의동 커피',cat:'brewing',status:'',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_americano.webp',bg:'#e0d8cc',menuDesc:'달달, 고소, 묵직한 굳띵즈 대표 커피',vol:'350ml',kcal:12,satfat:'0.0g',sugar:'0.8g',sodium:'10mg',protein:'0.3g',caffeine:'175mg',allergen:'고카페인 함유'},
+  {id:'b04',name:'아메리카노',cat:'brewing',status:'',temp:'both',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_americano.webp',bg:'#ede8e0',menuDesc:'굳띵즈 \'산뜻한 오후\' 블렌딩 원두를 사용한\n부드러운 산미와 깔끔한 뒷맛을 가진 커피',vol:'350ml',kcal:8,satfat:'0.0g',sugar:'0.5g',sodium:'8mg',protein:'0.2g',caffeine:'200mg',allergen:'고카페인 함유'},
   // TEA
-  {id:'t01',name:'로즈얼그레이',cat:'tea',status:'',temp:'both',badge2:'',price:5000,desc:'',img:'images/cm_img_mango_in_orange.webp',bg:'#f5e8e8',menuDesc:'얼그레이와 장미의 은은한 향미가 조화로운 차',vol:'400ml',kcal:120,satfat:'0.0g',sugar:'25.0g',sodium:'10mg',protein:'0.3g',caffeine:'40mg',allergen:''},
-  {id:'t02',name:'리프레쉬애플',cat:'tea',status:'',temp:'both',badge2:'',price:5000,desc:'',img:'images/cm_img_mango_in_orange.webp',bg:'#d8f0e0',menuDesc:'달콤한 사과조각과 레몬향으로 산뜻함이 가득한 차',vol:'400ml',kcal:135,satfat:'0.0g',sugar:'28.5g',sodium:'8mg',protein:'0.2g',caffeine:'30mg',allergen:''},
-  {id:'t03',name:'트로피칼민트',cat:'tea',status:'',temp:'both',badge2:'',price:5000,desc:'',img:'images/cm_img_mango_in_orange.webp',bg:'#d8e8f0',menuDesc:'민트와 열대과일의 단맛이 어우러진 차',vol:'400ml',kcal:110,satfat:'0.0g',sugar:'22.0g',sodium:'12mg',protein:'0.2g',caffeine:'35mg',allergen:''},
+  {id:'t01',name:'로즈얼그레이',cat:'tea',status:'',temp:'both',badge2:'',price:5000,desc:'',img:'images/cafe-menu/cm_img_mango_in_orange.webp',bg:'#f5e8e8',menuDesc:'얼그레이와 장미의 은은한 향미가 조화로운 차',vol:'400ml',kcal:120,satfat:'0.0g',sugar:'25.0g',sodium:'10mg',protein:'0.3g',caffeine:'40mg',allergen:''},
+  {id:'t02',name:'리프레쉬애플',cat:'tea',status:'',temp:'both',badge2:'',price:5000,desc:'',img:'images/cafe-menu/cm_img_mango_in_orange.webp',bg:'#d8f0e0',menuDesc:'달콤한 사과조각과 레몬향으로 산뜻함이 가득한 차',vol:'400ml',kcal:135,satfat:'0.0g',sugar:'28.5g',sodium:'8mg',protein:'0.2g',caffeine:'30mg',allergen:''},
+  {id:'t03',name:'트로피칼민트',cat:'tea',status:'',temp:'both',badge2:'',price:5000,desc:'',img:'images/cafe-menu/cm_img_mango_in_orange.webp',bg:'#d8e8f0',menuDesc:'민트와 열대과일의 단맛이 어우러진 차',vol:'400ml',kcal:110,satfat:'0.0g',sugar:'22.0g',sodium:'12mg',protein:'0.2g',caffeine:'35mg',allergen:''},
   // NON COFFEE
-  {id:'n01',name:'사.딸.라',cat:'non-coffee',status:'시즌 한정',temp:'ice-only',badge2:'',price:6500,desc:'',img:'images/cm_img_mango_in_orange.webp',bg:'#f5dde0',menuDesc:'사줘! 딸기 라떼!!',vol:'380ml',kcal:245,satfat:'4.5g',sugar:'35.0g',sodium:'88mg',protein:'5.5g',caffeine:'0mg',allergen:'우유, 대두'},
-  {id:'n02',name:'말차유유',cat:'non-coffee',status:'',temp:'both',badge2:'',price:6000,desc:'',img:'images/cm_img_mango_in_orange.webp',bg:'#e4edd8',menuDesc:'제주 어린잎 말차를 사용',vol:'380ml',kcal:230,satfat:'3.8g',sugar:'28.5g',sodium:'75mg',protein:'5.8g',caffeine:'40mg',allergen:'우유, 대두'},
-  {id:'n03',name:'말차딸기유유',cat:'non-coffee',status:'',temp:'both',badge2:'',price:6000,desc:'',img:'images/cm_img_mango_in_orange.webp',bg:'#f5dde0',menuDesc:'달콤한 딸기 우유에 말차의 깊이를 더한 음료',vol:'380ml',kcal:255,satfat:'4.0g',sugar:'32.0g',sodium:'78mg',protein:'5.5g',caffeine:'35mg',allergen:'우유, 대두'},
-  {id:'n04',name:'딥블랙(초코)유유',cat:'non-coffee',status:'',temp:'both',badge2:'',price:6000,desc:'',img:'images/cm_img_mango_in_orange.webp',bg:'#e8ddd5',menuDesc:'딥블랙 카카오 파우더를 사용한,\n진하고 고급스러운 느낌의 음료',vol:'380ml',kcal:280,satfat:'5.5g',sugar:'35.5g',sodium:'95mg',protein:'6.2g',caffeine:'20mg',allergen:'우유, 대두'},
-  {id:'n05',name:'리얼아이스티 자두 | 복숭아',cat:'non-coffee',status:'',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cm_img_mango_in_orange.webp',bg:'#f5e8d8',menuDesc:'차(tea)를 직접 우려 만든 진짜 아이스티',vol:'450ml',kcal:165,satfat:'0.0g',sugar:'34.0g',sodium:'15mg',protein:'0.3g',caffeine:'45mg',allergen:''},
-  {id:'n06',name:'망고먹은오렌지',cat:'non-coffee',status:'',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cm_img_mango_in_orange.webp',bg:'#f5f0d0',menuDesc:'굳띵즈 직원 PICK! 망고와 오렌지의 시원 상큼함 \n(feat. 코코넛젤리)',vol:'400ml',kcal:175,satfat:'0.0g',sugar:'36.5g',sodium:'12mg',protein:'0.5g',caffeine:'0mg',allergen:''},
-  {id:'n07',name:'밀크쉐이크',cat:'non-coffee',status:'',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cm_img_mango_in_orange.webp',bg:'#f5f0eb',menuDesc:'우유 맛이 진한 정통 밀크쉐이크',vol:'400ml',kcal:380,satfat:'8.5g',sugar:'42.0g',sodium:'140mg',protein:'8.5g',caffeine:'0mg',allergen:'우유, 대두'},
+  {id:'n01',name:'사.딸.라',cat:'non-coffee',status:'시즌 한정',temp:'ice-only',badge2:'',price:6500,desc:'',img:'images/cafe-menu/cm_img_mango_in_orange.webp',bg:'#f5dde0',menuDesc:'사줘! 딸기 라떼!!',vol:'380ml',kcal:245,satfat:'4.5g',sugar:'35.0g',sodium:'88mg',protein:'5.5g',caffeine:'0mg',allergen:'우유, 대두'},
+  {id:'n02',name:'말차유유',cat:'non-coffee',status:'',temp:'both',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_mango_in_orange.webp',bg:'#e4edd8',menuDesc:'제주 어린잎 말차를 사용',vol:'380ml',kcal:230,satfat:'3.8g',sugar:'28.5g',sodium:'75mg',protein:'5.8g',caffeine:'40mg',allergen:'우유, 대두'},
+  {id:'n03',name:'말차딸기유유',cat:'non-coffee',status:'',temp:'both',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_mango_in_orange.webp',bg:'#f5dde0',menuDesc:'달콤한 딸기 우유에 말차의 깊이를 더한 음료',vol:'380ml',kcal:255,satfat:'4.0g',sugar:'32.0g',sodium:'78mg',protein:'5.5g',caffeine:'35mg',allergen:'우유, 대두'},
+  {id:'n04',name:'딥블랙(초코)유유',cat:'non-coffee',status:'',temp:'both',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_mango_in_orange.webp',bg:'#e8ddd5',menuDesc:'딥블랙 카카오 파우더를 사용한,\n진하고 고급스러운 느낌의 음료',vol:'380ml',kcal:280,satfat:'5.5g',sugar:'35.5g',sodium:'95mg',protein:'6.2g',caffeine:'20mg',allergen:'우유, 대두'},
+  {id:'n05',name:'리얼아이스티 자두 | 복숭아',cat:'non-coffee',status:'',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_mango_in_orange.webp',bg:'#f5e8d8',menuDesc:'차(tea)를 직접 우려 만든 진짜 아이스티',vol:'450ml',kcal:165,satfat:'0.0g',sugar:'34.0g',sodium:'15mg',protein:'0.3g',caffeine:'45mg',allergen:''},
+  {id:'n06',name:'망고먹은오렌지',cat:'non-coffee',status:'',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_mango_in_orange.webp',bg:'#f5f0d0',menuDesc:'굳띵즈 직원 PICK! 망고와 오렌지의 시원 상큼함 \n(feat. 코코넛젤리)',vol:'400ml',kcal:175,satfat:'0.0g',sugar:'36.5g',sodium:'12mg',protein:'0.5g',caffeine:'0mg',allergen:''},
+  {id:'n07',name:'밀크쉐이크',cat:'non-coffee',status:'',temp:'ice-only',badge2:'',price:6000,desc:'',img:'images/cafe-menu/cm_img_mango_in_orange.webp',bg:'#f5f0eb',menuDesc:'우유 맛이 진한 정통 밀크쉐이크',vol:'400ml',kcal:380,satfat:'8.5g',sugar:'42.0g',sodium:'140mg',protein:'8.5g',caffeine:'0mg',allergen:'우유, 대두'},
   // DESSERT
-  {id:'d01',name:'마틸다',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cm_img_matilda.webp',bg:'#f5f0eb',menuDesc:'깊은 풍미의 리얼 초코 케이크',vol:'120g',kcal:420,satfat:'12.5g',sugar:'38.0g',sodium:'195mg',protein:'6.5g',caffeine:'15mg',allergen:'우유, 달걀, 밀, 대두'},
-  {id:'d02',name:'우유케이크',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cm_img_milkcake.webp',bg:'#f5eedc',menuDesc:'순한 풍미의 우유 케이크',vol:'110g',kcal:365,satfat:'10.2g',sugar:'32.0g',sodium:'165mg',protein:'5.8g',caffeine:'0mg',allergen:'우유, 달걀, 밀'},
-  {id:'d03',name:'로얄밀크티 케이크',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cm_img_royal_milk_tea_cake.webp',bg:'#ede8e0',menuDesc:'진한 홍차향 가득한 밀크티 케이크',vol:'115g',kcal:390,satfat:'11.5g',sugar:'34.5g',sodium:'175mg',protein:'6.2g',caffeine:'25mg',allergen:'우유, 달걀, 밀'},
-  {id:'d04',name:'말차초코 케이크',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cm_img_matcha_choco_cake.webp',bg:'#e4edd8',menuDesc:'진한 말차와 달콤한 초코의 조합',vol:'115g',kcal:405,satfat:'12.0g',sugar:'36.0g',sodium:'180mg',protein:'6.0g',caffeine:'30mg',allergen:'우유, 달걀, 밀, 대두'},
-  {id:'d05',name:'딸기피스타치오 케이크',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cm_img_strawberry_pistachio_cake.webp',bg:'#f5dde0',menuDesc:'고소한 피스타치오와 상큼한 딸기의 만남',vol:'120g',kcal:415,satfat:'12.8g',sugar:'35.5g',sodium:'185mg',protein:'6.8g',caffeine:'0mg',allergen:'우유, 달걀, 밀, 견과류'},
-  {id:'d06',name:'티라미수',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cm_img_tiramisu.webp',bg:'#e8e0d5',menuDesc:'부드러운 티라미수 케이크',vol:'110g',kcal:430,satfat:'13.5g',sugar:'35.0g',sodium:'190mg',protein:'7.0g',caffeine:'35mg',allergen:'우유, 달걀, 밀'},
-  {id:'d07',name:'빅토리아',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cm_img_victoria.webp',bg:'#f5e8e8',menuDesc:'부드러운 크림이 가득한 빅토리아 케이크',vol:'115g',kcal:395,satfat:'11.8g',sugar:'33.5g',sodium:'170mg',protein:'6.5g',caffeine:'0mg',allergen:'우유, 달걀, 밀'},
+  {id:'d01',name:'마틸다',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cafe-menu/cm_img_matilda.webp',bg:'#f5f0eb',menuDesc:'깊은 풍미의 리얼 초코 케이크',vol:'120g',kcal:420,satfat:'12.5g',sugar:'38.0g',sodium:'195mg',protein:'6.5g',caffeine:'15mg',allergen:'우유, 달걀, 밀, 대두'},
+  {id:'d02',name:'우유케이크',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cafe-menu/cm_img_milkcake.webp',bg:'#f5eedc',menuDesc:'순한 풍미의 우유 케이크',vol:'110g',kcal:365,satfat:'10.2g',sugar:'32.0g',sodium:'165mg',protein:'5.8g',caffeine:'0mg',allergen:'우유, 달걀, 밀'},
+  {id:'d03',name:'로얄밀크티 케이크',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cafe-menu/cm_img_royal_milk_tea_cake.webp',bg:'#ede8e0',menuDesc:'진한 홍차향 가득한 밀크티 케이크',vol:'115g',kcal:390,satfat:'11.5g',sugar:'34.5g',sodium:'175mg',protein:'6.2g',caffeine:'25mg',allergen:'우유, 달걀, 밀'},
+  {id:'d04',name:'말차초코 케이크',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cafe-menu/cm_img_matcha_choco_cake.webp',bg:'#e4edd8',menuDesc:'진한 말차와 달콤한 초코의 조합',vol:'115g',kcal:405,satfat:'12.0g',sugar:'36.0g',sodium:'180mg',protein:'6.0g',caffeine:'30mg',allergen:'우유, 달걀, 밀, 대두'},
+  {id:'d05',name:'딸기피스타치오 케이크',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cafe-menu/cm_img_strawberry_pistachio_cake.webp',bg:'#f5dde0',menuDesc:'고소한 피스타치오와 상큼한 딸기의 만남',vol:'120g',kcal:415,satfat:'12.8g',sugar:'35.5g',sodium:'185mg',protein:'6.8g',caffeine:'0mg',allergen:'우유, 달걀, 밀, 견과류'},
+  {id:'d06',name:'티라미수',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cafe-menu/cm_img_tiramisu.webp',bg:'#e8e0d5',menuDesc:'부드러운 티라미수 케이크',vol:'110g',kcal:430,satfat:'13.5g',sugar:'35.0g',sodium:'190mg',protein:'7.0g',caffeine:'35mg',allergen:'우유, 달걀, 밀'},
+  {id:'d07',name:'빅토리아',cat:'dessert',status:'',temp:null,badge2:'',price:7500,desc:'',img:'images/cafe-menu/cm_img_victoria.webp',bg:'#f5e8e8',menuDesc:'부드러운 크림이 가득한 빅토리아 케이크',vol:'115g',kcal:395,satfat:'11.8g',sugar:'33.5g',sodium:'170mg',protein:'6.5g',caffeine:'0mg',allergen:'우유, 달걀, 밀'},
 ];
 // ── CAFE_MENU localStorage 복원 ──
 (function(){try{const s=localStorage.getItem('gt_cafe_menu');if(s){const d=JSON.parse(s);CAFE_MENU.length=0;d.forEach(i=>CAFE_MENU.push(i));}}catch(e){}})();
@@ -7317,7 +7445,8 @@ function openCafeMenuPage(filter){
   if(document.getElementById('search-overlay').classList.contains('open'))closeOverlay();
   bringPageToFront(page);
   page.classList.remove('open');
-  page.offsetHeight;
+  const _cmBodyEl=document.getElementById('cm-body');
+  if(_cmBodyEl)_cmBodyEl.offsetHeight; // 자식 요소 reflow — 애니메이션 재실행 보장
   page.classList.add('open');
   document.body.style.overflow='hidden';
   page.scrollTop=0;
@@ -7339,6 +7468,7 @@ function closeCafeMenuPage(){
   const page=document.getElementById('cafe-menu-page');
   page.classList.remove('open');
   document.body.style.overflow='';
+  resetHeroVideo();
 }
 
 // ── 탭 클릭 ──
@@ -7415,7 +7545,7 @@ function cmeInitImgPicker(){
   if(!picker||picker.dataset.init) return;
   picker.dataset.init='1';
   _CME_IMAGES.forEach(name=>{
-    const src=`images/${name}.webp`;
+    const src=`images/cafe-menu/${name}.webp`;
     const el=document.createElement('div');
     el.title=name;
     el.style.cssText='width:100%;aspect-ratio:1/1;cursor:pointer;border:.5px solid #ddd;border-radius:3px;background:#ebebeb;background-size:cover;background-position:center;opacity:.7;transition:opacity .15s,border-color .15s;';
@@ -7438,7 +7568,7 @@ function cmeUpdateImgPreview(){
   // 피커 선택 상태 동기화
   const picker=document.getElementById('cme-img-picker');
   if(picker) picker.querySelectorAll('div').forEach((el,i)=>{
-    const match=src===`images/${_CME_IMAGES[i]}.webp`;
+    const match=src===`images/cafe-menu/${_CME_IMAGES[i]}.webp`;
     el.style.borderColor=match?'#333':'#ddd';
     el.dataset.sel=match?'1':'';
     el.style.opacity=match?'1':'.7';
@@ -7467,7 +7597,7 @@ function cmeShowForm(id){
     document.getElementById('cme-protein').value=item.protein||'';
     document.getElementById('cme-caffeine').value=item.caffeine||'';
     document.getElementById('cme-allergen').value=item.allergen||'';
-    document.getElementById('cme-img').value=item.img||'images/';
+    document.getElementById('cme-img').value=item.img||'images/cafe-menu/';
     document.getElementById('cme-bg').value=item.bg||'#ebebeb';
     document.getElementById('cme-bg-val').textContent=item.bg||'#ebebeb';
   } else {
@@ -7486,7 +7616,7 @@ function cmeShowForm(id){
     document.getElementById('cme-protein').value='';
     document.getElementById('cme-caffeine').value='';
     document.getElementById('cme-allergen').value='';
-    document.getElementById('cme-img').value='images/';
+    document.getElementById('cme-img').value='images/cafe-menu/';
     document.getElementById('cme-bg').value='#ebebeb';
     document.getElementById('cme-bg-val').textContent='#ebebeb';
   }

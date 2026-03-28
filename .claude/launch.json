@@ -4,7 +4,7 @@
     {
       "name": "goodthings-preview",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-l", "3333", ".claude/worktrees/clever-jemison"],
+      "runtimeArgs": ["serve", "-l", "3333", "."],
       "port": 3333
     }
   ]
