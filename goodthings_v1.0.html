@@ -3685,6 +3685,8 @@ select.chp-input:focus ~ .chp-floating-label{color:var(--color-text-primary);}
 .cm-card-overlay::-webkit-scrollbar{display:none;}
 .cm-card--active .cm-card-overlay{opacity:1;pointer-events:auto;transform:translateY(0);}
 .cm-card--active .cm-card-img{transform:scale(1.0)!important;}
+@keyframes cm-thumb-flash{0%,100%{opacity:1;}45%{opacity:.35;}}
+.cm-card--highlight .cm-card-thumb{animation:cm-thumb-flash .7s ease 2;}
 .cm-ov-close{
   position:absolute;top:10px;right:10px;
   background:none;border:none;cursor:pointer;
@@ -4146,6 +4148,14 @@ function bringPageToFront(el){
 }
 
 function openOverlay(){
+  // 현재 보이는 헤더 bottom 측정 → search-drop top 동적 설정
+  const activeSubHdr=document.querySelector('.sub-page.open .sub-hdr-wrap');
+  const refHdr=activeSubHdr||document.getElementById('site-hdr-wrap');
+  if(refHdr){
+    const hdrBottom=refHdr.getBoundingClientRect().bottom;
+    searchDrop.style.top=hdrBottom+'px';
+    searchDim.style.top=(hdrBottom+60)+'px';
+  }
   searchDrop.classList.add('open');
   searchDim.classList.add('open');
   overlay.classList.add('open'); // 팝업 노출 규칙 추적용
@@ -4179,24 +4189,43 @@ function renderResults(page){
   const start=(page-1)*PER_PAGE;
   const items=currentResults.slice(start,start+PER_PAGE);
 
-  srpResultsList.innerHTML=items.map(p=>`
-    <div class="srp-result-item" data-slug="${p.slug}">
+  const _catLabel={brewing:'Brewing/Coffee','non-coffee':'Non Coffee',beverage:'Beverage',dessert:'Dessert'};
+  srpResultsList.innerHTML=items.map(item=>{
+    if(item._type==='cafe'){
+      return `<div class="srp-result-item" data-id="${item.id}" data-type="cafe">
+        <div class="srp-result-thumb">
+          <div class="srp-result-thumb-inner" style="background:${item.bg} url('${item.img}') center/contain no-repeat;"></div>
+        </div>
+        <div class="srp-result-info">
+          <div class="srp-result-category">${_catLabel[item.cat]||'Cafe Menu'}</div>
+          <div class="srp-result-name">${item.name}</div>
+          <div class="srp-result-price">${item.price.toLocaleString('ko-KR')}원</div>
+          ${item.status?`<span class="srp-result-status">${item.status}</span>`:''}
+        </div>
+      </div>`;
+    }
+    return `<div class="srp-result-item" data-slug="${item.slug}" data-type="product">
       <div class="srp-result-thumb">
-        <div class="srp-result-thumb-inner" style="background:${p.images&&p.images.length?`${p.images[0].bg||p.color} url('${p.images[0].src}') center/contain no-repeat`:p.color};"></div>
+        <div class="srp-result-thumb-inner" style="background:${item.images&&item.images.length?`${item.images[0].bg||item.color} url('${item.images[0].src}') center/contain no-repeat`:item.color};"></div>
       </div>
       <div class="srp-result-info">
-        <div class="srp-result-category">${p.category}</div>
-        <div class="srp-result-name">${p.name}</div>
-        <div class="srp-result-price">${formatDisplayPrice(p.price)}</div>
-        ${p.status?`<span class="srp-result-status">${p.status}</span>`:''}
+        <div class="srp-result-category">${item.category}</div>
+        <div class="srp-result-name">${item.name}</div>
+        <div class="srp-result-price">${formatDisplayPrice(item.price)}</div>
+        ${item.status?`<span class="srp-result-status">${item.status}</span>`:''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   srpResultsList.querySelectorAll('.srp-result-thumb').forEach(el=>{
     el.addEventListener('click',()=>{
-      const slug=el.closest('.srp-result-item').dataset.slug;
-      window._pdPrevPage='search';
-      openProductPage(slug);
+      const row=el.closest('.srp-result-item');
+      if(row.dataset.type==='cafe'){
+        openCafeMenuPage('all',row.dataset.id);
+      } else {
+        window._pdPrevPage='search';
+        openProductPage(row.dataset.slug);
+      }
     });
   });
 
@@ -4213,13 +4242,14 @@ function renderResults(page){
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg>
     </span>`;
 
+  const _srpScrollTop=()=>resultPage.scrollTop=0;
   srpPagination.querySelectorAll('.srp-pg-num').forEach(el=>{
-    el.addEventListener('click',()=>renderResults(parseInt(el.dataset.page)));
+    el.addEventListener('click',()=>{renderResults(parseInt(el.dataset.page));_srpScrollTop();});
   });
   const prev=srpPagination.querySelector('[data-action="prev"]');
   const next=srpPagination.querySelector('[data-action="next"]');
-  if(prev)prev.addEventListener('click',()=>renderResults(currentPage-1));
-  if(next)next.addEventListener('click',()=>renderResults(currentPage+1));
+  if(prev)prev.addEventListener('click',()=>{renderResults(currentPage-1);_srpScrollTop();});
+  if(next)next.addEventListener('click',()=>{renderResults(currentPage+1);_srpScrollTop();});
 }
 
 function buildPageNums(cur,total){
@@ -4246,12 +4276,10 @@ function pageBtn(p,cur){
 function openResultPage(query){
   closeOverlay();
   const q=query.trim();
-  currentResults=q
-    ?PRODUCTS.filter(p=>
-        p.name.toLowerCase().includes(q.toLowerCase())||
-        p.category.toLowerCase().includes(q.toLowerCase())
-      )
-    :[];
+  const ql=q.toLowerCase();
+  const productResults=q?PRODUCTS.filter(p=>p.name.toLowerCase().includes(ql)||p.category.toLowerCase().includes(ql)).map(p=>({...p,_type:'product'})):[];
+  const cafeResults=q?CAFE_MENU.filter(m=>m.name.toLowerCase().includes(ql)||(m.menuDesc&&m.menuDesc.toLowerCase().includes(ql))).map(m=>({...m,_type:'cafe'})):[];
+  currentResults=[...productResults,...cafeResults];
   srpInput.value=q;
   srpInput.blur();
 
@@ -7016,6 +7044,7 @@ function _spPositionIndicator(tab,animate){
 function openShopPage(){
   const page=document.getElementById('shop-page');
   if(document.getElementById('search-overlay').classList.contains('open'))closeOverlay();
+  if(resultPage&&resultPage.classList.contains('open'))closeResultPage();
   bringPageToFront(page);
   page.classList.remove('open');
   const _spBodyEl=document.getElementById('sp-body');
@@ -7036,6 +7065,7 @@ function openShopPage(){
 }
 
 function closeShopPage(){
+  if(overlay.classList.contains('open'))closeOverlay();
   document.getElementById('shop-page').classList.remove('open');
   document.body.style.overflow='';
   resetHeroVideo();
@@ -7439,10 +7469,11 @@ document.getElementById('cns-bg').addEventListener('click',closeNutritionSheet);
 document.getElementById('cns-close').addEventListener('click',closeNutritionSheet);
 
 // ── 카페 메뉴 페이지 열기/닫기 ──
-function openCafeMenuPage(filter){
+function openCafeMenuPage(filter,targetId){
   filter=filter||'all';
   const page=document.getElementById('cafe-menu-page');
   if(document.getElementById('search-overlay').classList.contains('open'))closeOverlay();
+  if(resultPage&&resultPage.classList.contains('open'))closeResultPage();
   bringPageToFront(page);
   page.classList.remove('open');
   const _cmBodyEl=document.getElementById('cm-body');
@@ -7452,6 +7483,15 @@ function openCafeMenuPage(filter){
   page.scrollTop=0;
   _cmFilter=filter;
   _cmPage=1;
+  // targetId가 있으면 해당 아이템이 있는 페이지로 이동
+  if(targetId){
+    const filteredList=filter==='all'?CAFE_MENU:
+      filter==='season'?CAFE_MENU.filter(i=>i.status==='시즌'):
+      filter==='signature'?CAFE_MENU.filter(i=>i.status==='시그니처'):
+      CAFE_MENU.filter(i=>i.cat===filter);
+    const idx=filteredList.findIndex(i=>i.id===targetId);
+    if(idx>=0)_cmPage=Math.floor(idx/CM_PER_PAGE)+1;
+  }
   document.querySelectorAll('.cm-filter-tab').forEach(t=>t.classList.remove('active'));
   const activeTab=document.querySelector(`.cm-filter-tab[data-filter="${filter}"]`)||document.querySelector('.cm-filter-tab[data-filter="all"]');
   if(activeTab){
@@ -7459,12 +7499,23 @@ function openCafeMenuPage(filter){
     document.getElementById('cm-page-title').innerHTML=`<span class="page-title-kr">${activeTab.dataset.titleKr||''}</span><span class="page-title-en">${activeTab.dataset.titleEn||''}</span>`;
   }
   renderCmGrid();
-  requestAnimationFrame(()=>_cmPositionIndicator(activeTab,false));
+  requestAnimationFrame(()=>{
+    _cmPositionIndicator(activeTab,false);
+    if(targetId){
+      const targetCard=document.querySelector(`.cm-card[data-cm-id="${targetId}"]`);
+      if(targetCard){
+        targetCard.scrollIntoView({behavior:'smooth',block:'center'});
+        targetCard.classList.add('cm-card--highlight');
+        setTimeout(()=>targetCard.classList.remove('cm-card--highlight'),1500);
+      }
+    }
+  });
   // 로고 이미지
   const logoImg=document.getElementById('cm-logo-img');
   if(logoImg&&window._logoSrc)logoImg.src=window._logoSrc;
 }
 function closeCafeMenuPage(){
+  if(overlay.classList.contains('open'))closeOverlay();
   const page=document.getElementById('cafe-menu-page');
   page.classList.remove('open');
   document.body.style.overflow='';
