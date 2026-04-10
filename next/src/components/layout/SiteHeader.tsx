@@ -38,7 +38,9 @@ export default function SiteHeader() {
   }, []);
 
   /* 검색 열기/닫기 */
-  const SEARCH_PANEL_HEIGHT = 62;
+  /* 검색 패널 실제 렌더 높이 60px + border 0.5px ≈ 60.5px.
+     dim-top = headerBottom + 61 로 gap을 최소화 (프로토타입은 +60 사용). */
+  const SEARCH_PANEL_HEIGHT = 61;
 
   const closeSearch = useCallback(() => {
     setIsSearchOpen(false);

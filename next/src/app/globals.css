@@ -535,6 +535,11 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
 }
 
 /* ══ 푸터 ══ */
+footer.blk {
+  /* .blk의 overflow:hidden이 sr-txt translateY(20px)를 클리핑해
+     애니메이션이 보이지 않는 문제 방지 */
+  overflow: visible;
+}
 .footer {
   background: var(--color-surface-stone);
   padding: 0;
@@ -1180,6 +1185,7 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
   color: var(--color-text-tertiary);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
+  transform: translateY(4px);
 }
 .bean-info-name {
   font-family: var(--font-kr);
@@ -1187,6 +1193,7 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
   font-weight: 500;
   color: var(--color-text-primary);
   letter-spacing: var(--ls-body);
+  transform: translateY(-2px);
 }
 .pkg { width: 50%; height: 70%; border-radius: 1px; }
 
@@ -1401,3 +1408,358 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
 }
 .moment-card:hover .moment-img { transform: scale(1.03); }
 .moment-card:hover::after { background: rgba(0,0,0,.06); }
+
+/* ══ SHOP PAGE ══ */
+#sp-body {
+  flex: 1;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 100px 60px 80px;
+}
+#sp-head { padding-top: 8px; }
+#sp-title-area { margin-bottom: 48px; }
+#sp-page-title {
+  font-family: var(--font-kr);
+  font-size: var(--type-h1-size);
+  font-weight: var(--type-h1-weight);
+  letter-spacing: var(--ls-display);
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
+}
+#sp-body.sp-anim #sp-page-title {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: .15s;
+}
+#sp-page-subtitle {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-heading);
+  color: var(--color-text-tertiary);
+  margin: 12px 0 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
+}
+#sp-body.sp-anim #sp-page-subtitle {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: .3s;
+}
+
+/* 필터 탭 */
+#sp-filter-tabs {
+  display: flex;
+  position: relative;
+  margin-bottom: 48px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) ease-out;
+}
+#sp-body.sp-anim #sp-filter-tabs {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: .3s;
+}
+#sp-filter-tabs::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-border-primary);
+}
+#sp-filter-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--color-text-primary);
+  transition: left var(--duration-transition) cubic-bezier(.4,0,.2,1),
+              width var(--duration-transition) cubic-bezier(.4,0,.2,1);
+  z-index: 1;
+}
+.sp-filter-tab {
+  min-width: 72px;
+  padding: 20px 30px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-neutral);
+  color: var(--tab-color);
+  transition: color var(--duration-hover) ease;
+  white-space: nowrap;
+  text-align: center;
+}
+.sp-filter-tab:hover { color: var(--tab-color-active); }
+.sp-filter-tab.active { font-weight: 500; color: var(--tab-color-active); }
+.sp-tab-label { pointer-events: none; }
+
+/* 카드 그리드 */
+#sp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 1.4vw, 20px);
+}
+.sp-card {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity var(--duration-fade) ease-out,
+              transform var(--duration-fade) ease-out;
+}
+/* transform:none — 애니메이션 완료 후 stacking context 해제 → backdrop-filter 정상 동작
+   CSS는 none↔translateY(24px) 전환을 identity로 보간하므로 애니메이션은 동일 */
+.sp-card.sp-visible { opacity: 1; transform: none; }
+.sp-card-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  /* overflow:hidden 제거 — backdrop-filter(.sp-qa-content) 블러가 막히는 문제 방지
+     이미지 줌 클리핑은 .sp-card-img-wrap에서 처리 */
+}
+.sp-card-img-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.sp-card-img {
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
+}
+.sp-card:hover .sp-card-img { transform: scale(1.03); }
+.sp-card.sp-card--qa-open:hover .sp-card-img { transform: none; }
+
+/* Quick Add */
+.sp-qa-content {
+  position: absolute;
+  bottom: 48px;
+  left: 0;
+  right: 0;
+  background: rgba(250,250,248,.72);
+  /* backdrop-filter는 inline style로 주입 (Chrome GPU compositor layer 충돌 방지) */
+  border: .5px solid var(--color-border-tertiary);
+  border-bottom: none;
+  padding: 16px 16px 20px;
+  display: flex;           /* position:absolute라 레이아웃 영향 없음 — opacity로 show/hide */
+  flex-direction: column;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease;
+}
+.sp-card--qa-open .sp-qa-content {
+  opacity: 1;
+  pointer-events: auto;
+}
+.sp-qa-label {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-button);
+  color: var(--color-text-secondary);
+  margin-bottom: 10px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0s, transform 0s; /* 닫힐 때 즉시 리셋 */
+}
+.sp-card--qa-open .sp-qa-label {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity .2s ease .22s, transform .2s ease .22s;
+}
+.sp-qa-vols { display: flex; gap: 6px; }
+.sp-qa-vol-btn {
+  flex: 1;
+  height: 48px;
+  border: .5px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  font-family: var(--font-en);
+  font-size: var(--type-body-ui-size);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0s, transform 0s; /* 닫힐 때 즉시 리셋 */
+}
+.sp-card--qa-open .sp-qa-vol-btn {
+  opacity: 1; transform: translateY(0);
+  transition: opacity .18s ease .29s, transform .18s ease .29s;
+}
+.sp-qa-vol-btn.active { border-color: var(--color-text-primary); font-weight: 600; }
+.sp-qa-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  width: 124px;
+  margin: 0 auto;
+  background: var(--color-btn-primary-bg);
+  color: var(--color-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duration-transition), width var(--duration-hover) ease;
+  z-index: 4;
+  border: none;
+}
+/* hover는 JS 인라인 스타일(400ms 딜레이)로만 제어 — CSS hover 룰 없음 (닫힌 직후 재등장 방지) */
+.sp-card--qa-open .sp-qa-bar { width: 100%; opacity: 1; }
+.sp-card--qa-closing .sp-qa-bar { opacity: 1; transition: width var(--duration-hover) ease, opacity var(--duration-transition); }
+.sp-qa-bar--disabled {
+  background: rgba(28,27,25,.42);
+  cursor: default;
+  opacity: 1;
+  width: 100%;
+}
+.sp-qa-bar-text {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-body);
+  pointer-events: none;
+}
+.sp-qa-close {
+  /* sp-qa-bar(position:absolute) 기준 절대 배치 — 바 우측 끝에 위치, 바 확장 시 함께 이동 */
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 48px;
+  height: 48px;
+  background: none;
+  border: none;
+  color: #9C9890;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: color var(--duration-hover) linear;
+}
+.sp-card--qa-open .sp-qa-close { pointer-events: auto; }
+.sp-qa-close:hover { color: #FAFAF8; }
+.sp-qa-close svg { opacity: 0; transition: opacity .15s; }
+.sp-card--qa-open .sp-qa-close svg { opacity: 1; transition: opacity var(--duration-transition) ease; }
+
+/* 배지 */
+.sp-card-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 600;
+  letter-spacing: var(--ls-body);
+  color: var(--color-text-inverse);
+  height: 23px;
+  min-width: 60px;
+  padding: 0 10px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+.badge-new { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.badge-pop-1 { background: var(--color-warning); }
+.badge-pop-2 { background: var(--color-error); }
+.badge-pop-3 { background: var(--color-error); }
+.badge-ltd { background: var(--color-info); }
+.badge-sold { background: #8C8580; }
+
+/* 카드 정보 */
+.sp-card-info {
+  padding: 16px 4px 28px;
+  background: var(--color-background-primary);
+  text-align: center;
+}
+.sp-card-name {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-l-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0 0 6px;
+  line-height: 1.55;
+}
+.sp-card-price {
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* 페이지네이션 */
+#sp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 48px 0 0;
+}
+.sp-pg-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  color: var(--color-text-tertiary);
+  transition: color var(--duration-hover) ease;
+}
+.sp-pg-btn.active { color: var(--color-text-primary); font-weight: 500; }
+.sp-pg-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 7px;
+  right: 7px;
+  height: 2px;
+  background: var(--color-text-primary);
+}
+.sp-pg-btn:hover { color: var(--color-text-primary); }
+.sp-pg-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  transition: color var(--duration-hover) ease;
+}
+.sp-pg-arrow:hover { color: var(--color-text-primary); }
+.sp-pg-arrow:disabled { opacity: .3; pointer-events: none; }
