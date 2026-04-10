@@ -1,0 +1,265 @@
+@import "tailwindcss";
+
+/* ══════════════════════════════════════════
+   Good Things Roasters — Design Tokens
+   프로토타입 goodthings_v1.0.html :root 기준 이관
+   ══════════════════════════════════════════ */
+
+@theme {
+  /* ── 폰트 패밀리 (next/font CSS variable 연동) ── */
+  --font-en: var(--font-inter), 'Inter', sans-serif;
+  --font-kr: var(--font-pretendard), 'Pretendard Variable', 'Pretendard', sans-serif;
+
+  /* ── 컬러: Background ── */
+  --color-background-primary: #FAFAF8;
+  --color-background-secondary: #F5F3F0;
+  --color-background-tertiary: #ECEAE6;
+  --color-background-elevated: #FFFFFF;
+  --color-background-inverse: #1C1B19;
+
+  /* ── 컬러: Text ── */
+  --color-text-primary: #1C1B19;
+  --color-text-secondary: #6B6863;
+  --color-text-tertiary: #9C9890;
+  --color-text-inverse: #FAFAF8;
+  --color-text-hint: #A8A49E;
+  --color-text-caption: #8A8680;
+  --color-text-disabled: #bbbbbb;
+  --color-text-placeholder: #9C9890;
+  --color-black: #000000;
+
+  /* ── 컬러: Surface ── */
+  --color-surface-stone: #4A4845;
+  --color-surface-warm: #E8E2DA;
+
+  /* ── 컬러: Interactive (CTA) ── */
+  --color-btn-primary-bg: #1C1B19;
+  --color-btn-primary-bg-hover: #2E2D2A;
+  --color-btn-primary-bg-active: #0F0E0D;
+
+  /* ── 컬러: Accent & Feedback ── */
+  --color-accent-gold: #7A6B52;
+  --color-accent-warm: #A08B6D;
+  --color-error: #C4554E;
+  --color-success: #5C7A4B;
+  --color-info: #4A6B8A;
+  --color-warning: #B8943F;
+
+  /* ── 스페이싱 (4px 기반 스케일) ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-30: 120px;
+
+  /* ── 레이아웃 스페이싱 ── */
+  --layout-padding-x: 60px;
+  --layout-max-width: 1320px;
+  --section-gap: 120px;
+  --ann-bar-height: 36px;
+  --header-height: 64px;
+
+  /* ── 모션 ── */
+  --duration-hover: 200ms;
+  --duration-transition: 300ms;
+  --duration-drawer: 350ms;
+  --duration-zoom: 400ms;
+  --duration-fade: 600ms;
+  --duration-slide: 700ms;
+  --ease-linear: linear;
+  --ease-default: ease-out;
+  --ease-drawer: cubic-bezier(.25, .46, .45, .94);
+  --ease-spring: cubic-bezier(.16, 1, .3, 1);
+
+  /* ── z-index ── */
+  --z-sticky: 50;
+  --z-page: 100;
+  --z-float: 150;
+  --z-drawer: 200;
+  --z-modal: 300;
+  --z-lightbox: 350;
+  --z-top: 400;
+  --z-dev: 9000;
+}
+
+:root {
+  /* ── 타이포그래피 스케일 ── */
+  --type-display-size: 48px;       --type-display-weight: 400;
+  --type-h1-size: 36px;            --type-h1-weight: 300;
+  --type-h2-size: 32px;            --type-h2-weight: 300;
+  --type-h3-size: 24px;            --type-h3-weight: 400;
+  --type-heading-m-size: 18px;     --type-heading-m-weight: 500;
+  --type-heading-s-size: 16px;     --type-heading-s-weight: 500;
+  --type-body-l-size: 18px;        --type-body-l-weight: 500;
+  --type-body-m-size: 15px;        --type-body-m-weight: 400;
+  --type-body-s-size: 13px;        --type-body-s-weight: 400;
+  --type-label-size: 11px;         --type-label-weight: 600;
+  --type-caption-size: 12px;
+  --type-input-size: 16px;         --type-input-weight: 400;
+  --type-price-l-size: 32px;       --type-price-l-weight: 500;
+  --type-price-m-size: 20px;       --type-price-m-weight: 600;
+  /* 하위 호환 alias */
+  --type-heading-l-size: var(--type-h2-size);
+  --type-heading-l-weight: var(--type-h2-weight);
+  --type-body-reading-size: var(--type-body-m-size);
+  --type-body-reading-weight: var(--type-body-m-weight);
+  --type-body-ui-size: 14px;       --type-body-ui-weight: 400;
+  --font-kr-align-fix: 0px;
+
+  /* ── Lines & Borders ── */
+  --color-border-hairline: rgba(28,27,25,.06);
+  --color-border-primary: rgba(28,27,25,.12);
+  --color-border-secondary: rgba(28,27,25,.12);
+  --color-border-tertiary: rgba(28,27,25,.06);
+  --color-border-strong: rgba(28,27,25,.20);
+  --color-border-input: #D9D6D2;
+  --color-focus-ring: rgba(74,72,69,.40);
+
+  /* ── Icon ── */
+  --color-icon-default: var(--color-text-tertiary);
+
+  /* ── 다크 배경 텍스트 ── */
+  --on-dark-primary: rgba(250,250,248,.95);
+  --on-dark-secondary: rgba(250,250,248,.75);
+  --on-dark-tertiary: rgba(250,250,248,.55);
+  --on-dark-muted: rgba(255,255,255,.42);
+
+  /* ── 버튼 타이포그래피 ── */
+  --btn-font-family: var(--font-kr);
+  --btn-font-size: var(--type-body-m-size);
+  --btn-font-weight: 500;
+  --btn-letter-spacing: var(--ls-button);
+
+  /* ── CTA 버튼 ── */
+  --cta-btn-font-size: var(--type-body-m-size);
+  --cta-btn-font-weight: 500;
+  --cta-btn-padding-x: 25px;
+  --cta-btn-padding-x-primary: 50px;
+  --cta-btn-letter-spacing: var(--ls-button);
+  --cta-btn-pair-gap: 20px;
+  --btn-link-font-size: var(--type-body-s-size);
+
+  /* ── 밑줄 CTA 링크 ── */
+  --link-cta-font-size: var(--type-body-ui-size);
+  --link-cta-font-weight: 500;
+  --link-cta-color: var(--color-text-primary);
+  --link-cta-letter-spacing: var(--ls-button);
+  --link-cta-underline-offset: 6px;
+
+  /* ── line-height ── */
+  --lh-tight: 1.2;
+  --lh-snug: 1.35;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.7;
+
+  /* ── 탭 컴포넌트 ── */
+  --tab-height: 48px;
+  --tab-font-family: var(--font-en);
+  --tab-font-size: var(--type-body-s-size);
+  --tab-font-weight: 400;
+  --tab-font-weight-active: 500;
+  --tab-letter-spacing: var(--ls-button);
+  --tab-color: var(--color-text-secondary);
+  --tab-color-active: var(--color-text-primary);
+  --tab-border: .5px solid var(--color-border-secondary);
+  --tab-border-active: 1px solid var(--color-text-primary);
+  --tab-border-hover: rgba(0,0,0,.4);
+
+  /* ── 텍스트 링크 버튼 ── */
+  --text-link-font-size: var(--type-body-s-size);
+  --text-link-font-weight: 500;
+  --text-link-letter-spacing: var(--ls-button);
+  --text-link-color: var(--color-text-primary);
+  --text-link-border: .5px solid var(--color-text-primary);
+  --text-link-padding-bottom: 1px;
+  --text-link-opacity-hover: .5;
+  /* subtle variant */
+  --text-link-subtle-font-weight: 300;
+  --text-link-subtle-letter-spacing: var(--ls-button);
+  --text-link-subtle-color: var(--color-text-tertiary);
+  --text-link-subtle-border: .5px solid var(--color-border-primary);
+  --text-link-subtle-color-hover: var(--color-text-primary);
+
+  /* ── letter-spacing ── */
+  --ls-display: -.02em;
+  --ls-heading: -.01em;
+  --ls-neutral: 0;
+  --ls-body-s: .01em;
+  --ls-body: .02em;
+  --ls-nav: .03em;
+  --ls-button: .04em;
+  --ls-step: .05em;
+  --ls-uppercase: .06em;
+  --ls-label: .08em;
+  --ls-label-wide: .1em;
+
+  /* ── 닫기(X) 버튼 ── */
+  --close-btn-size: 44px;
+  --close-btn-primary-dark-bg: rgba(0,0,0,.35);
+  --close-btn-primary-dark-color: var(--color-text-inverse);
+  --close-btn-primary-dark-bg-hover: rgba(0,0,0,.85);
+  --close-btn-primary-light-bg: rgba(0,0,0,.07);
+  --close-btn-primary-light-color: var(--color-text-primary);
+  --close-btn-primary-light-bg-hover: rgba(0,0,0,.85);
+  --close-btn-primary-light-color-hover: var(--color-text-inverse);
+  --close-btn-secondary-dark-color: rgba(255,255,255,.5);
+  --close-btn-secondary-dark-color-hover: var(--color-text-inverse);
+  --close-btn-secondary-light-color: rgba(17,17,17,.25);
+  --close-btn-secondary-light-color-hover: var(--color-text-primary);
+
+  /* ── 화살표 버튼 ── */
+  --arrow-btn-primary-svg: 100px;
+  --arrow-btn-primary-padding: 14px;
+  --arrow-btn-secondary-svg: 40px;
+  --arrow-btn-secondary-padding: 6px;
+  --arrow-btn-dark-color: var(--color-text-inverse);
+  --arrow-btn-dark-color-hover: var(--color-text-inverse);
+  --arrow-btn-light-color: var(--color-text-primary);
+  --arrow-btn-light-color-hover: var(--color-text-primary);
+
+  /* ── 강조 알림 문구 ── */
+  --notice-font-size: 20px;
+  --notice-font-weight: 500;
+  --notice-letter-spacing: var(--ls-heading);
+  --notice-color: var(--color-text-primary);
+
+  /* ── 검색 패널 ── */
+  --search-panel-height: 60px;
+  --search-panel-padding-x: 40px;
+  --search-panel-icon-size: 18px;
+  --search-panel-icon-opacity: .35;
+  --search-panel-input-font-size: var(--type-body-l-size);
+  --search-panel-input-font-weight: 300;
+  --search-panel-input-letter-spacing: var(--ls-heading);
+  --search-panel-bg: rgba(255,255,255,.72);
+  --search-panel-backdrop: blur(16px);
+  --search-panel-divider-color: rgba(0,0,0,.1);
+  --search-panel-border-bottom-color: rgba(0,0,0,.08);
+
+  /* ── 인터랙션 오버레이 (ghost 버튼 등) ── */
+  --color-overlay-hover: rgba(28,27,25,.07);
+  --color-overlay-press: rgba(28,27,25,.12);
+
+  /* ── 배지: 품절 ── */
+  --color-badge-sold-out: #8C8580;
+
+  /* ── 오버레이 딤 ── */
+  --overlay-dim-bg: rgba(0,0,0,.35);
+  --overlay-dim-blur: blur(4px);
+  --overlay-lightbox-bg: rgba(0,0,0,.9);
+}
+
+body {
+  font-family: var(--font-en);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+}

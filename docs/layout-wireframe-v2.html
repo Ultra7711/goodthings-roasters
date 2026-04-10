@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTR Layout Wireframe v2 — Good Things Roasters</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --bg2: #F5F3F0;
+    --bg3: #ECEAE6;
+    --white: #FFFFFF;
+    --black: #1C1B19;
+    --dark: #2E2D2A;
+    --gray600: #6B6863;
+    --gray400: #9C9890;
+    --stone: #4A4845;
+    --stone-mid: #6B6863;
+    --stone-tint: #D9D6D2;
+    --oak-mid: #A08B6D;
+    --oak-light: #C4A882;
+    --oak-tint: #E8DFD2;
+    --espresso: #3C2F24;
+    --cream-tint: #F5EFE0;
+    --olive-tint: #D5DED0;
+    --olive-dark: #4A5E3E;
+    --line: rgba(28,27,25,.08);
+    --line-m: rgba(28,27,25,.12);
+    --line-s: rgba(28,27,25,.20);
+    --error: #C4554E;
+    --success: #5C7A4B;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #E8E5E0;
+    color: var(--black);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  .wf-nav {
+    position: fixed; top:0; left:0; right:0; z-index:100;
+    background: rgba(28,27,25,.92);
+    backdrop-filter: blur(12px);
+    padding: 0 32px; height: 48px;
+    display: flex; align-items: center; gap: 24px;
+    font-size: 12px; font-weight: 500; letter-spacing: 0.04em;
+    overflow-x: auto; white-space: nowrap;
+  }
+  .wf-nav .brand { font-weight: 600; font-size: 13px; color: #FAFAF8; margin-right: auto; letter-spacing: -0.01em; }
+  .wf-nav a { color: #9C9890; text-decoration: none; transition: color .2s; }
+  .wf-nav a:hover { color: #FAFAF8; }
+
+  /* ── CONTAINER ── */
+  .wf-container {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 80px 24px 60px;
+  }
+
+  /* ── HERO ── */
+  .wf-hero {
+    padding: 80px 0 48px;
+  }
+  .wf-hero .label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+    color: var(--gray400); text-transform: uppercase; margin-bottom: 12px;
+  }
+  .wf-hero h1 {
+    font-size: 36px; font-weight: 600; letter-spacing: -0.03em;
+    line-height: 1.15; margin-bottom: 12px; color: var(--black);
+  }
+  .wf-hero .sub {
+    font-size: 14px; color: var(--gray600); line-height: 1.6; max-width: 480px;
+  }
+
+  /* ── PAGE FRAME ── */
+  .page-frame {
+    background: var(--bg2);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 40px;
+    border: 1px solid var(--line-m);
+  }
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-header h2 {
+    font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+  }
+  .page-header .dims {
+    font-size: 11px; font-weight: 500; color: var(--gray400);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    background: var(--bg3); padding: 4px 10px; border-radius: 6px;
+  }
+  .page-desc {
+    font-size: 12px; color: var(--gray600); margin-bottom: 24px; line-height: 1.5;
+  }
+
+  /* ── WIREFRAME CANVAS ── */
+  .wf-canvas {
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--line-m);
+    position: relative;
+  }
+
+  /* ── ANNOTATION ── */
+  .ann {
+    background: var(--black);
+    color: var(--bg);
+    height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+  }
+
+  /* ── HEADER BAR ── */
+  .hdr-bar {
+    height: 44px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px; font-weight: 500;
+  }
+  .hdr-bar.dark { background: var(--black); color: var(--bg); border-bottom: none; }
+  .hdr-bar .logo { font-weight: 600; font-size: 13px; letter-spacing: -0.02em; }
+  .hdr-bar .icons { display: flex; gap: 12px; font-size: 11px; color: var(--gray400); }
+  .hdr-bar.dark .icons { color: var(--gray400); }
+
+  /* ── SECTION BLOCK ── */
+  .sec {
+    position: relative;
+  }
+  .sec + .sec { margin-top: 1px; }
+
+  .sec-label {
+    position: absolute; top: 8px; left: 12px;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+    color: var(--gray400); text-transform: uppercase;
+    z-index: 2;
+    background: rgba(255,255,255,.7); padding: 2px 6px; border-radius: 3px;
+  }
+  .sec-dim {
+    position: absolute; top: 8px; right: 12px;
+    font-size: 9px; font-weight: 500; color: var(--gray400);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    background: rgba(255,255,255,.7); padding: 2px 6px; border-radius: 3px;
+    z-index: 2;
+  }
+
+  /* ── MARGIN INDICATOR ── */
+  .margin-gap {
+    height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .margin-gap::before {
+    content: '';
+    position: absolute; left: 50%; top: 4px; bottom: 4px;
+    width: 1px; border-left: 1px dashed var(--stone-tint);
+  }
+  .margin-gap .mg-val {
+    font-size: 9px; font-weight: 600; color: var(--oak-mid);
+    background: var(--white); padding: 1px 6px; border-radius: 3px;
+    position: relative; z-index: 1;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .margin-gap.sm { height: 24px; }
+  .margin-gap.lg { height: 56px; }
+
+  /* ── HERO SECTION ── */
+  .wf-hero-sec {
+    background: var(--black);
+    height: 580px;
+    display: flex; flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 24px 28px;
+    position: relative;
+    background: linear-gradient(to bottom, rgba(28,27,25,.15), rgba(28,27,25,.50)), var(--stone);
+  }
+  .wf-hero-sec .slogan {
+    font-size: 22px; font-weight: 600; color: var(--bg);
+    letter-spacing: -0.02em;
+  }
+  .wf-hero-sec .scroll-hint {
+    position: absolute; right: 24px; bottom: 28px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .wf-hero-sec .scroll-hint .mouse {
+    width: 22px; height: 36px;
+    border: 1.5px solid rgba(250,250,248,.5);
+    border-radius: 11px;
+    position: relative;
+  }
+  .wf-hero-sec .scroll-hint .mouse .wheel {
+    width: 3px; height: 7px;
+    background: rgba(250,250,248,.7);
+    border-radius: 1.5px;
+    position: absolute; left: 50%; top: 7px;
+    transform: translateX(-50%);
+    animation: scrollWheel 1.8s ease-in-out infinite;
+  }
+  @keyframes scrollWheel {
+    0%   { opacity: 1; top: 7px; }
+    50%  { opacity: 0.3; top: 18px; }
+    100% { opacity: 1; top: 7px; }
+  }
+
+  /* ── SEASON BANNER ── */
+  .wf-season {
+    background: var(--cream-tint);
+    height: 360px;
+    padding: 24px;
+    display: flex; flex-direction: column;
+    justify-content: center;
+  }
+  .wf-season .tag { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; color: var(--oak-mid); margin-bottom: 6px; }
+  .wf-season .headline { font-size: 20px; font-weight: 600; color: var(--black); margin-bottom: 4px; }
+  .wf-season .sub { font-size: 12px; color: var(--gray600); margin-bottom: 12px; }
+  .wf-season .cta-btn {
+    display: inline-flex; padding: 8px 20px;
+    background: var(--black); color: var(--bg);
+    font-size: 11px; font-weight: 500; letter-spacing: 0.04em;
+    align-self: flex-start;
+  }
+
+  /* ── 3-COL CARD GRID ── */
+  .wf-3col {
+    padding: 24px;
+  }
+  .wf-3col .sec-title {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+    color: var(--gray400); margin-bottom: 6px;
+  }
+  .wf-3col .sec-heading {
+    font-size: 16px; font-weight: 600; color: var(--black); margin-bottom: 16px;
+  }
+  .wf-3col .grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  .wf-3col .card {
+    border-radius: 8px; overflow: hidden;
+    border: 1px solid var(--line-m);
+  }
+  .wf-3col .card .img {
+    aspect-ratio: 4/5; background: var(--bg3);
+    display: flex; align-items: flex-end;
+    padding: 10px 12px;
+    position: relative;
+  }
+  .wf-3col .card .img .card-title {
+    font-size: 14px; font-weight: 600; color: var(--black);
+  }
+  .wf-3col .card .card-body {
+    padding: 10px 12px;
+    font-size: 11px; color: var(--gray600);
+  }
+  .wf-3col .card .img .ratio-tag {
+    position: absolute; bottom: 6px; right: 6px;
+    font-size: 9px; background: rgba(0,0,0,.4); color: #fff;
+    padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* ── 2-COL STORY ── */
+  .wf-story {
+    display: grid; grid-template-columns: 1fr 1.5fr; gap: 0;
+    background: var(--bg2);
+  }
+  .wf-story .text-side {
+    padding: 32px 24px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .wf-story .text-side .label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; color: var(--gray400); margin-bottom: 8px; }
+  .wf-story .text-side h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .wf-story .text-side p { font-size: 12px; color: var(--gray600); line-height: 1.6; margin-bottom: 16px; }
+  .wf-story .text-side .cta-link { font-size: 12px; font-weight: 500; color: var(--black); text-decoration: underline; text-underline-offset: 3px; }
+  .wf-story .img-side {
+    background: var(--bg3); min-height: 460px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--gray400);
+  }
+
+  /* ── HORIZ SCROLL ── */
+  .wf-scroll {
+    padding: 24px;
+  }
+  .wf-scroll .sec-title { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; color: var(--gray400); margin-bottom: 4px; }
+  .wf-scroll .sec-heading { font-size: 16px; font-weight: 600; color: var(--black); margin-bottom: 16px; }
+  .wf-scroll .track {
+    display: flex; gap: 12px; overflow: hidden;
+  }
+  .wf-scroll .scroll-card {
+    min-width: 240px; flex-shrink: 0;
+    border-radius: 8px; overflow: hidden; border: 1px solid var(--line-m);
+  }
+  .wf-scroll .scroll-card .img {
+    aspect-ratio: 4/5; background: var(--bg3);
+    position: relative;
+  }
+  .wf-scroll .scroll-card .img .ratio-tag {
+    position: absolute; bottom: 6px; right: 6px;
+    font-size: 9px; background: rgba(0,0,0,.4); color: #fff;
+    padding: 1px 5px; border-radius: 3px;
+  }
+  .wf-scroll .scroll-card .meta {
+    padding: 8px 10px;
+    background: var(--white);
+  }
+  .wf-scroll .scroll-card .meta .name { font-size: 12px; font-weight: 500; }
+  .wf-scroll .scroll-card .meta .price { font-size: 11px; color: var(--gray600); margin-top: 2px; }
+  .wf-scroll .dots {
+    display: flex; gap: 5px; justify-content: center; margin-top: 12px;
+  }
+  .wf-scroll .dots .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--stone-tint);
+  }
+  .wf-scroll .dots .dot.active { background: var(--black); }
+
+  /* ── 2-COL SERVICE ── */
+  .wf-2col-svc {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    padding: 0 24px;
+  }
+  .wf-2col-svc .svc-card {
+    background: var(--bg3); border-radius: 8px;
+    padding: 24px; border: 1px solid var(--line-m);
+    aspect-ratio: 4/3;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    position: relative;
+  }
+  .wf-2col-svc .svc-card .badge {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
+    color: var(--gray400); margin-bottom: 8px;
+  }
+  .wf-2col-svc .svc-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .wf-2col-svc .svc-card p { font-size: 11px; color: var(--gray600); line-height: 1.5; margin-bottom: 12px; }
+  .wf-2col-svc .svc-card .cta-sm {
+    font-size: 11px; font-weight: 500; color: var(--black);
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+
+  /* ── VISIT SECTION ── */
+  .wf-visit {
+    background: linear-gradient(to bottom, rgba(28,27,25,.30), rgba(28,27,25,.60)), var(--stone);
+    padding: 32px 24px;
+    min-height: 310px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .wf-visit .label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; color: var(--gray400); margin-bottom: 8px; }
+  .wf-visit h3 { font-size: 18px; font-weight: 600; color: var(--bg); margin-bottom: 8px; }
+  .wf-visit .info { font-size: 12px; color: var(--gray400); line-height: 1.6; margin-bottom: 12px; }
+  .wf-visit .cta-btn {
+    display: inline-flex; padding: 8px 20px;
+    background: var(--bg); color: var(--black);
+    font-size: 11px; font-weight: 500; letter-spacing: 0.04em;
+    align-self: flex-start;
+  }
+
+  /* ── GALLERY GRID ── */
+  .wf-gallery {
+    padding: 24px;
+  }
+  .wf-gallery .sec-title { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; color: var(--gray400); margin-bottom: 12px; }
+  .wf-gallery .masonry {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    height: 412px;
+  }
+  .wf-gallery .masonry .g-item {
+    background: var(--bg3); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--gray400);
+  }
+  .wf-gallery .masonry .g-item.big { grid-row: span 2; }
+
+  /* ── FOOTER ── */
+  .wf-footer {
+    background: var(--stone);
+    padding: 28px 24px;
+  }
+  .wf-footer .f-logo {
+    font-size: 13px; font-weight: 600; color: var(--bg);
+    margin-bottom: 16px;
+  }
+  .wf-footer .f-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 16px;
+  }
+  .wf-footer .f-col-title {
+    font-size: 10px; font-weight: 600; color: var(--gray400);
+    letter-spacing: 0.04em; margin-bottom: 6px;
+  }
+  .wf-footer .f-col-item {
+    font-size: 10px; color: var(--stone-tint); line-height: 1.8;
+  }
+  .wf-footer .f-copy {
+    border-top: 1px solid rgba(250,250,248,.08);
+    padding-top: 12px;
+    font-size: 9px; color: var(--stone-mid);
+  }
+  .wf-footer .f-tagline {
+    font-size: 11px; color: var(--gray400); font-style: italic;
+    margin-bottom: 12px;
+  }
+
+  /* ── SUB PAGE WIREFRAMES ── */
+  .sub-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    padding: 0 24px;
+  }
+
+  /* ── CAFE MENU GRID ── */
+  .wf-menu-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    padding: 20px 24px;
+  }
+  .wf-menu-item {
+    border-radius: 6px; overflow: hidden; border: 1px solid var(--line-m);
+  }
+  .wf-menu-item .img {
+    aspect-ratio: 1; background: var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--gray400);
+  }
+  .wf-menu-item .meta { padding: 8px 10px; }
+  .wf-menu-item .meta .name { font-size: 11px; font-weight: 500; }
+  .wf-menu-item .meta .price { font-size: 10px; color: var(--gray600); }
+
+  /* ── FILTER TABS ── */
+  .wf-tabs {
+    display: flex; gap: 0; padding: 0 24px;
+    border-bottom: 1px solid var(--line-m);
+  }
+  .wf-tabs .tab {
+    padding: 10px 16px;
+    font-size: 11px; font-weight: 500; color: var(--gray400);
+    border-bottom: 2px solid transparent;
+  }
+  .wf-tabs .tab.active {
+    color: var(--black);
+    border-bottom-color: var(--black);
+  }
+
+  /* ── PRODUCT DETAIL ── */
+  .wf-pdp {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  }
+  .wf-pdp .img-col {
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .wf-pdp .img-col .main-img {
+    aspect-ratio: 1; background: var(--bg3); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--gray400);
+  }
+  .wf-pdp .img-col .thumbs {
+    display: flex; gap: 6px;
+  }
+  .wf-pdp .img-col .thumbs .thumb {
+    width: 40px; height: 40px; background: var(--bg3);
+    border-radius: 4px; border: 1px solid var(--line-m);
+  }
+  .wf-pdp .img-col .flavor-chart {
+    background: var(--espresso); border-radius: 8px;
+    padding: 16px; color: var(--oak-tint);
+  }
+  .wf-pdp .img-col .flavor-chart .fc-title {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.08em; color: var(--stone-tint); margin-bottom: 12px;
+  }
+  .wf-pdp .img-col .flavor-chart .fc-bar-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  }
+  .wf-pdp .img-col .flavor-chart .fc-bar-label {
+    font-size: 10px; width: 32px; flex-shrink: 0; color: var(--stone-tint);
+  }
+  .wf-pdp .img-col .flavor-chart .fc-bar {
+    flex: 1; height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden;
+  }
+  .wf-pdp .img-col .flavor-chart .fc-bar .fill {
+    height: 100%; background: var(--oak-light); border-radius: 2px;
+  }
+
+  .wf-pdp .info-col {
+    padding: 20px; border-left: 1px solid var(--line);
+  }
+  .wf-pdp .info-col .cat { font-size: 10px; color: var(--gray400); margin-bottom: 4px; }
+  .wf-pdp .info-col .pname { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+  .wf-pdp .info-col .order-tabs {
+    display: flex; border: 1px solid var(--line-m); border-radius: 6px; overflow: hidden; margin-bottom: 16px;
+  }
+  .wf-pdp .info-col .order-tabs .ot {
+    flex: 1; text-align: center; padding: 10px;
+    font-size: 11px; font-weight: 500; color: var(--gray600);
+    background: var(--bg2);
+  }
+  .wf-pdp .info-col .order-tabs .ot.active {
+    background: var(--black); color: var(--bg);
+  }
+  .wf-pdp .info-col .field-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--line);
+    font-size: 12px;
+  }
+  .wf-pdp .info-col .field-row .fl { color: var(--gray600); }
+  .wf-pdp .info-col .field-row .fv { font-weight: 500; }
+  .wf-pdp .info-col .qty-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0;
+  }
+  .wf-pdp .info-col .qty-btn {
+    width: 28px; height: 28px; border: 1px solid var(--line-m);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--gray600); border-radius: 4px; background: var(--white);
+  }
+  .wf-pdp .info-col .qty-val { font-size: 14px; font-weight: 500; }
+  .wf-pdp .info-col .total-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; margin-bottom: 12px;
+    font-size: 14px; font-weight: 600;
+    border-top: 1px solid var(--line-s);
+  }
+  .wf-pdp .info-col .cta-primary {
+    width: 100%; padding: 14px; text-align: center;
+    background: var(--black); color: var(--bg);
+    font-size: 13px; font-weight: 500; letter-spacing: 0.04em;
+    border-radius: 0;
+  }
+  .wf-pdp .info-col .accordion {
+    margin-top: 12px;
+  }
+  .wf-pdp .info-col .accordion .acc-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px; font-weight: 500;
+    display: flex; justify-content: space-between;
+    color: var(--gray600);
+  }
+
+  /* ── STORY PAGE ── */
+  .wf-story-page .story-hero {
+    background: linear-gradient(to bottom, rgba(28,27,25,.10), rgba(28,27,25,.40)), var(--stone);
+    height: 200px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 6px;
+    color: var(--bg);
+  }
+  .wf-story-page .story-hero .sh-main { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+  .wf-story-page .story-hero .sh-sub { font-size: 12px; color: rgba(250,250,248,.6); }
+
+  .wf-story-page .story-section {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .wf-story-page .story-section.reverse { direction: rtl; }
+  .wf-story-page .story-section.reverse > * { direction: ltr; }
+  .wf-story-page .story-text {
+    padding: 28px 24px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .wf-story-page .story-text .st-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; color: var(--gray400); margin-bottom: 8px; }
+  .wf-story-page .story-text h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .wf-story-page .story-text p { font-size: 11px; color: var(--gray600); line-height: 1.6; }
+  .wf-story-page .story-img {
+    background: var(--bg3); min-height: 180px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--gray400);
+  }
+
+  /* ── CHECKOUT ── */
+  .wf-checkout {
+    display: grid; grid-template-columns: 1fr 180px; gap: 0;
+  }
+  .wf-checkout .form-col { padding: 20px; }
+  .wf-checkout .summary-col {
+    padding: 20px;
+    background: var(--bg2);
+    border-left: 1px solid var(--line);
+  }
+  .wf-checkout .form-section {
+    margin-bottom: 16px;
+  }
+  .wf-checkout .form-section .fs-title {
+    font-size: 12px; font-weight: 600; margin-bottom: 8px;
+  }
+  .wf-input {
+    width: 100%; height: 36px;
+    background: var(--bg3); border: 1px solid var(--line-m);
+    border-radius: 4px; margin-bottom: 6px;
+    padding: 0 10px;
+    font-size: 10px; color: var(--gray400);
+    display: flex; align-items: center;
+  }
+  .wf-input-row { display: flex; gap: 6px; }
+  .wf-input-row .wf-input { flex: 1; }
+  .wf-checkbox {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; color: var(--gray600);
+    margin-bottom: 4px;
+  }
+  .wf-checkbox .box {
+    width: 14px; height: 14px;
+    border: 1px solid var(--line-m); border-radius: 3px; flex-shrink: 0;
+  }
+  .summary-col .sum-title { font-size: 12px; font-weight: 600; margin-bottom: 12px; }
+  .summary-col .sum-item {
+    display: flex; gap: 8px; margin-bottom: 8px;
+    font-size: 10px;
+  }
+  .summary-col .sum-item .sum-img {
+    width: 36px; height: 36px; background: var(--bg3); border-radius: 4px; flex-shrink: 0;
+  }
+  .summary-col .sum-row {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: var(--gray600); padding: 4px 0;
+  }
+  .summary-col .sum-total {
+    display: flex; justify-content: space-between;
+    font-size: 12px; font-weight: 600; padding: 8px 0;
+    border-top: 1px solid var(--line-s); margin-top: 8px;
+  }
+  .summary-col .cta-primary {
+    width: 100%; padding: 10px; text-align: center;
+    background: var(--black); color: var(--bg);
+    font-size: 11px; font-weight: 500; margin-top: 12px;
+  }
+
+  /* ── LOGIN ── */
+  .wf-login {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  }
+  .wf-login .login-left {
+    padding: 28px 24px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .wf-login .login-left h3 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+  .wf-login .login-tabs {
+    display: flex; gap: 0; margin-bottom: 20px;
+  }
+  .wf-login .login-tabs .lt {
+    padding: 8px 16px; font-size: 12px; font-weight: 500;
+    border-bottom: 2px solid transparent; color: var(--gray400);
+  }
+  .wf-login .login-tabs .lt.active { color: var(--black); border-bottom-color: var(--black); }
+  .wf-login .login-left .divider {
+    text-align: center; font-size: 10px; color: var(--gray400);
+    padding: 12px 0; position: relative;
+  }
+  .wf-login .login-left .divider::before,
+  .wf-login .login-left .divider::after {
+    content: ''; position: absolute; top: 50%;
+    width: 35%; height: 1px; background: var(--line-m);
+  }
+  .wf-login .login-left .divider::before { left: 0; }
+  .wf-login .login-left .divider::after { right: 0; }
+  .wf-login .login-left .social-btns {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .wf-login .login-left .social-btn {
+    padding: 10px; text-align: center; border: 1px solid var(--line-m);
+    border-radius: 4px; font-size: 11px; font-weight: 500; color: var(--gray600);
+  }
+  .wf-login .login-right {
+    background: var(--bg2);
+    display: flex; align-items: center; justify-content: center;
+    padding: 28px;
+    flex-direction: column; gap: 8px;
+    font-size: 12px; color: var(--gray600);
+    border-left: 1px solid var(--line);
+  }
+
+  /* ── MY PAGE ── */
+  .wf-mypage {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  }
+  .wf-mypage .mp-left {
+    padding: 20px; border-right: 1px solid var(--line);
+  }
+  .wf-mypage .mp-right { padding: 20px; }
+  .wf-mypage .mp-section {
+    margin-bottom: 16px;
+  }
+  .wf-mypage .mp-section .mps-title {
+    font-size: 12px; font-weight: 600; margin-bottom: 8px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--line);
+  }
+  .wf-mypage .mp-row {
+    display: flex; justify-content: space-between;
+    font-size: 11px; padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .wf-mypage .mp-row .mp-label { color: var(--gray600); }
+  .wf-mypage .mp-row .mp-val { font-weight: 500; }
+
+  .wf-mypage .order-card {
+    background: var(--bg2); border-radius: 6px;
+    padding: 12px; margin-bottom: 8px; border: 1px solid var(--line-m);
+  }
+  .wf-mypage .order-card .oc-top {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: var(--gray400); margin-bottom: 6px;
+  }
+  .wf-mypage .order-card .oc-name { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+  .wf-mypage .order-card .oc-bottom {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px;
+  }
+  .wf-mypage .order-card .oc-status {
+    font-size: 10px; font-weight: 500; color: var(--olive-dark);
+    background: var(--olive-tint); padding: 2px 8px; border-radius: 4px;
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .sec-divider {
+    margin: 32px 0;
+    border: none; height: 1px;
+    background: var(--line-s);
+  }
+
+  /* ── MOBILE COMPARISON ── */
+  .mobile-compare {
+    display: grid; grid-template-columns: 2fr 1fr; gap: 20px;
+    margin-top: 20px;
+  }
+  .mobile-frame {
+    background: var(--white);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--line-m);
+    max-width: 200px;
+  }
+  .mobile-frame .m-status {
+    height: 20px; background: var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; color: var(--gray400);
+  }
+
+  /* ── BOTTOM SHEET ── */
+  .wf-bottom-sheet {
+    background: rgba(28,27,25,.15);
+    padding: 60px 24px 0;
+    border-radius: 0 0 12px 12px;
+  }
+  .wf-bottom-sheet .sheet {
+    background: var(--white);
+    border-radius: 12px 12px 0 0;
+    padding: 16px 20px 20px;
+  }
+  .wf-bottom-sheet .sheet .handle {
+    width: 32px; height: 4px; background: var(--stone-tint);
+    border-radius: 2px; margin: 0 auto 12px;
+  }
+  .wf-bottom-sheet .sheet .sheet-title {
+    font-size: 14px; font-weight: 600; margin-bottom: 12px;
+  }
+  .wf-bottom-sheet .sheet .nut-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .wf-bottom-sheet .sheet .nut-item {
+    text-align: center; padding: 8px;
+    background: var(--bg2); border-radius: 6px;
+  }
+  .wf-bottom-sheet .sheet .nut-item .nv { font-size: 14px; font-weight: 600; }
+  .wf-bottom-sheet .sheet .nut-item .nl { font-size: 9px; color: var(--gray400); margin-top: 2px; }
+
+  @media (max-width: 768px) {
+    .wf-nav { padding: 0 12px; gap: 12px; }
+    .wf-container { padding: 60px 12px 40px; }
+    .page-frame { padding: 16px; border-radius: 12px; }
+    .wf-3col .grid { grid-template-columns: 1fr; }
+    .wf-story { grid-template-columns: 1fr; }
+    .wf-pdp { grid-template-columns: 1fr; }
+    .wf-menu-grid { grid-template-columns: repeat(2, 1fr); }
+    .wf-checkout { grid-template-columns: 1fr; }
+    .wf-login { grid-template-columns: 1fr; }
+    .wf-mypage { grid-template-columns: 1fr; }
+    .sub-grid { grid-template-columns: 1fr; }
+    .wf-2col-svc { grid-template-columns: 1fr; }
+    .mobile-compare { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="wf-nav">
+  <span class="brand">GTR Wireframe v2</span>
+  <a href="#main">Main</a>
+  <a href="#cafe">Cafe Menu</a>
+  <a href="#pdp">Product</a>
+  <a href="#story">Story</a>
+  <a href="#checkout">Checkout</a>
+  <a href="#login">Login</a>
+  <a href="#mypage">My</a>
+  <a href="#mobile">Mobile</a>
+</nav>
+
+<div class="wf-container">
+
+<!-- HERO -->
+<div class="wf-hero">
+  <div class="label">Layout Wireframe v2</div>
+  <h1>Good Things Roasters</h1>
+  <p class="sub">
+    GTR 디자인 가이드 기반 시각 와이어프레임.<br>
+    모든 컬러칩·타이포·여백이 실제 시스템 값으로 적용되어 있습니다.
+  </p>
+</div>
+
+<!-- ════════════════════════════ MAIN PAGE ════════════════════════════ -->
+<div class="page-frame" id="main">
+  <div class="page-header">
+    <h2>Main Page</h2>
+    <span class="dims">1440 × ~5800px</span>
+  </div>
+  <p class="page-desc">9개 섹션 — 히어로 → 시즌 → 메뉴 → 스토리 → 상품 → 서비스 → 방문 → 갤러리 → 푸터</p>
+
+  <div class="wf-canvas">
+    <!-- Ann + Header -->
+    <div class="sec">
+      <div class="ann">30,000원 이상 구매 시 무료 배송</div>
+      <div class="hdr-bar">
+        <span class="logo">good things</span>
+        <span class="icons">The Story &nbsp; Menu &nbsp; Shop &nbsp; Good Days &nbsp;&nbsp; 🔍 👤 🛒</span>
+      </div>
+    </div>
+
+    <!-- 1. Hero -->
+    <div class="sec">
+      <span class="sec-label">1. Hero</span>
+      <span class="sec-dim">100dvh (~900px)</span>
+      <div class="wf-hero-sec">
+        <div class="slogan">good things, take time</div>
+        <div class="scroll-hint"><div class="mouse"><div class="wheel"></div></div></div>
+      </div>
+    </div>
+
+    <!-- 2. Season Banner -->
+    <div class="sec">
+      <span class="sec-label">2. Season</span>
+      <span class="sec-dim">h: 560px</span>
+      <div class="wf-season">
+        <div class="tag">Spring 2026</div>
+        <div class="headline">봄, 한 잔의 여유.</div>
+        <div class="sub">벚꽃이 지기 전에 만나는 시즌 한정 메뉴.</div>
+        <div class="cta-btn">시즌 메뉴 보기</div>
+      </div>
+    </div>
+
+    <!-- Margin -->
+    <div class="margin-gap"><span class="mg-val">80px</span></div>
+
+    <!-- 3. Cafe Menu Cards -->
+    <div class="sec">
+      <span class="sec-label">3. Cafe Menu</span>
+      <span class="sec-dim">repeat(3, 1fr) gap:20px · 4:5</span>
+      <div class="wf-3col">
+        <div class="sec-title">MENU</div>
+        <div class="sec-heading">오늘, 매장에서.</div>
+        <div class="grid">
+          <div class="card">
+            <div class="img" style="background:linear-gradient(135deg, var(--bg3), var(--stone-tint))">
+              <span class="card-title">Coffee</span>
+              <span class="ratio-tag">4:5</span>
+            </div>
+            <div class="card-body">직접 로스팅한 원두로 내리는 한 잔</div>
+          </div>
+          <div class="card">
+            <div class="img" style="background:linear-gradient(135deg, var(--cream-tint), var(--oak-tint))">
+              <span class="card-title">Beverage</span>
+              <span class="ratio-tag">4:5</span>
+            </div>
+            <div class="card-body">티, 에이드, 그리고 계절 음료</div>
+          </div>
+          <div class="card">
+            <div class="img" style="background:linear-gradient(135deg, var(--oak-tint), var(--cream-tint))">
+              <span class="card-title">Dessert</span>
+              <span class="ratio-tag">4:5</span>
+            </div>
+            <div class="card-body">매장에서 직접 굽는 빵과 디저트</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Margin -->
+    <div class="margin-gap lg"><span class="mg-val">120px</span></div>
+
+    <!-- 4. Brand Story -->
+    <div class="sec">
+      <span class="sec-label">4. Story</span>
+      <span class="sec-dim">minmax(320,1fr) 670px · img h:720px</span>
+      <div class="wf-story">
+        <div class="text-side">
+          <div class="label">OUR STORY</div>
+          <h3>좋은 것에는<br>시간이 필요합니다.</h3>
+          <p>빠름보다 바름을 선택합니다.<br>정직한 로스팅, 일관된 품질, 그리고 진심.<br>그것이 굳띵즈가 지켜온 단 하나의 기준입니다.</p>
+          <span class="cta-link">The Story</span>
+        </div>
+        <div class="img-side">670 × 720px 이미지</div>
+      </div>
+    </div>
+
+    <!-- Margin -->
+    <div class="margin-gap lg"><span class="mg-val">120px</span></div>
+
+    <!-- 5. Beans Scroll -->
+    <div class="sec">
+      <span class="sec-label">5. Beans</span>
+      <span class="sec-dim">카드 360px 고정 · 4:5 · gap:20px</span>
+      <div class="wf-scroll">
+        <div class="sec-title">BEANS</div>
+        <div class="sec-heading">집에서도, 같은 맛을.</div>
+        <div class="track">
+          <div class="scroll-card">
+            <div class="img"><span class="ratio-tag">4:5</span></div>
+            <div class="meta"><div class="name">이르가체페 코체레</div><div class="price">₩18,000</div></div>
+          </div>
+          <div class="scroll-card">
+            <div class="img"><span class="ratio-tag">4:5</span></div>
+            <div class="meta"><div class="name">라 팔마 내추럴</div><div class="price">₩19,000</div></div>
+          </div>
+          <div class="scroll-card">
+            <div class="img"><span class="ratio-tag">4:5</span></div>
+            <div class="meta"><div class="name">과테말라 안티구아</div><div class="price">₩17,000</div></div>
+          </div>
+          <div class="scroll-card">
+            <div class="img"><span class="ratio-tag">4:5</span></div>
+            <div class="meta"><div class="name">콜롬비아 수프리모</div><div class="price">₩16,000</div></div>
+          </div>
+          <div class="scroll-card" style="opacity:.4">
+            <div class="img"><span class="ratio-tag">4:5</span></div>
+            <div class="meta"><div class="name">...</div><div class="price">&nbsp;</div></div>
+          </div>
+        </div>
+        <div class="dots">
+          <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Margin -->
+    <div class="margin-gap lg"><span class="mg-val">120px</span></div>
+
+    <!-- 6. Service Cards -->
+    <div class="sec">
+      <span class="sec-label">6. Service</span>
+      <span class="sec-dim">1fr 1fr · gap:20px · 4:3</span>
+      <div class="wf-2col-svc">
+        <div class="svc-card">
+          <div class="badge">SUBSCRIPTION</div>
+          <h4>매달, 문 앞까지.</h4>
+          <p>엄선된 원두를 원하는 주기에 맞춰 배송합니다. 구독 회원은 배송비 무료.</p>
+          <span class="cta-sm">구독 알아보기</span>
+        </div>
+        <div class="svc-card">
+          <div class="badge">BUSINESS</div>
+          <h4>좋은 원두를, 좋은 공간에.</h4>
+          <p>카페, 레스토랑, 오피스를 위한 맞춤 납품.</p>
+          <span class="cta-sm">문의하기</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Margin -->
+    <div class="margin-gap lg"><span class="mg-val">120px</span></div>
+
+    <!-- 7. Come Visit Us -->
+    <div class="sec">
+      <span class="sec-label" style="color:#9C9890;background:rgba(0,0,0,.3)">7. Visit</span>
+      <span class="sec-dim" style="color:#9C9890;background:rgba(0,0,0,.3)">min-h: 560px</span>
+      <div class="wf-visit">
+        <div class="label">VISIT</div>
+        <h3>직접 만나보세요.</h3>
+        <div class="info">
+          Good Things Roasters<br>
+          경북 구미시 인동21길 22-11<br>
+          매일 10:00 – 21:00
+        </div>
+        <div class="cta-btn">길찾기</div>
+      </div>
+    </div>
+
+    <!-- Margin -->
+    <div class="margin-gap lg"><span class="mg-val">120px</span></div>
+
+    <!-- 8. Gallery -->
+    <div class="sec">
+      <span class="sec-label">8. Gallery</span>
+      <span class="sec-dim">2fr 1fr 1fr / 2 rows · h:640px</span>
+      <div class="wf-gallery">
+        <div class="sec-title">GOOD DAYS</div>
+        <div class="masonry">
+          <div class="g-item big">Large Image</div>
+          <div class="g-item">Image</div>
+          <div class="g-item">Image</div>
+          <div class="g-item">Image</div>
+          <div class="g-item">Image</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9. Footer -->
+    <div class="sec">
+      <span class="sec-label" style="color:#9C9890;background:rgba(0,0,0,.3)">9. Footer</span>
+      <span class="sec-dim" style="color:#9C9890;background:rgba(0,0,0,.3)">~400px · repeat(4,1fr)</span>
+      <div class="wf-footer">
+        <div class="f-logo">good things</div>
+        <div class="f-tagline">good things, simply roasted.</div>
+        <div class="f-grid">
+          <div>
+            <div class="f-col-title">The Story</div>
+            <div class="f-col-item">Philosophy<br>Roastery<br>Location</div>
+          </div>
+          <div>
+            <div class="f-col-title">Shop</div>
+            <div class="f-col-item">Coffee Beans<br>Drip Bags<br>Cafe Menu</div>
+          </div>
+          <div>
+            <div class="f-col-title">Support</div>
+            <div class="f-col-item">자주 묻는 질문<br>배송 안내<br>교환 · 반품</div>
+          </div>
+          <div>
+            <div class="f-col-title">Connect</div>
+            <div class="f-col-item">Instagram</div>
+          </div>
+        </div>
+        <div class="f-copy">© 2026 Good Things Roasters &nbsp;·&nbsp; 이용약관 &nbsp;·&nbsp; 개인정보처리방침</div>
+      </div>
+    </div>
+  </div><!-- /wf-canvas -->
+</div><!-- /main page-frame -->
+
+
+<!-- ════════════════════════════ CAFE MENU PAGE ════════════════════════════ -->
+<div class="page-frame" id="cafe">
+  <div class="page-header">
+    <h2>Cafe Menu</h2>
+    <span class="dims">1440 × ~3000–4000px</span>
+  </div>
+  <p class="page-desc">경쟁사 전무 — GTR 독자 영역. 4컬럼 1:1 메뉴 그리드 + 영양 정보 바텀 시트.</p>
+
+  <div class="wf-canvas">
+    <div class="ann">30,000원 이상 구매 시 무료 배송</div>
+    <div class="hdr-bar dark">
+      <span>← &nbsp; CAFE MENU</span>
+      <span class="icons">🔍 🛒</span>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="wf-tabs">
+      <div class="tab active">전체</div>
+      <div class="tab">시그니처</div>
+      <div class="tab">커피</div>
+      <div class="tab">티</div>
+      <div class="tab">음료</div>
+      <div class="tab">디저트</div>
+    </div>
+
+    <!-- Menu Grid -->
+    <div style="padding-top:8px">
+      <span class="sec-dim" style="position:relative;float:right;margin:8px 12px 0 0">repeat(4, minmax(218px,1fr)) gap:40px · 1:1</span>
+    </div>
+    <div class="wf-menu-grid">
+      <div class="wf-menu-item"><div class="img">1:1</div><div class="meta"><div class="name">바닐라 라떼</div><div class="price">₩6,500</div></div></div>
+      <div class="wf-menu-item"><div class="img">1:1</div><div class="meta"><div class="name">에스프레소 토닉</div><div class="price">₩7,000</div></div></div>
+      <div class="wf-menu-item"><div class="img">1:1</div><div class="meta"><div class="name">아메리카노</div><div class="price">₩5,000</div></div></div>
+      <div class="wf-menu-item"><div class="img">1:1</div><div class="meta"><div class="name">카페 라떼</div><div class="price">₩6,000</div></div></div>
+      <div class="wf-menu-item"><div class="img">1:1</div><div class="meta"><div class="name">콜드브루</div><div class="price">₩6,000</div></div></div>
+      <div class="wf-menu-item"><div class="img">1:1</div><div class="meta"><div class="name">캐모마일</div><div class="price">₩6,000</div></div></div>
+      <div class="wf-menu-item"><div class="img">1:1</div><div class="meta"><div class="name">레몬에이드</div><div class="price">₩6,500</div></div></div>
+      <div class="wf-menu-item"><div class="img" style="background:var(--cream-tint)">★</div><div class="meta"><div class="name">버터떡</div><div class="price">₩4,500</div></div></div>
+    </div>
+
+    <!-- Bottom CTA -->
+    <div style="padding: 24px; text-align: center; border-top: 1px solid var(--line)">
+      <div style="font-size:13px;color:var(--gray600);margin-bottom:8px">매장에서 직접 만나보세요.</div>
+      <div style="display:inline-flex;padding:10px 24px;background:var(--black);color:var(--bg);font-size:12px;font-weight:500">매장 정보 보기</div>
+    </div>
+
+    <!-- Bottom Sheet Preview -->
+    <div class="wf-bottom-sheet">
+      <div class="sheet">
+        <div class="handle"></div>
+        <div class="sheet-title">영양 정보</div>
+        <div style="font-size:10px;color:var(--gray400);margin-bottom:12px">1회 제공량 355ml 기준</div>
+        <div class="nut-grid">
+          <div class="nut-item"><div class="nv">120</div><div class="nl">칼로리 (kcal)</div></div>
+          <div class="nut-item"><div class="nv">3.5g</div><div class="nl">포화지방</div></div>
+          <div class="nut-item"><div class="nv">18g</div><div class="nl">당류</div></div>
+          <div class="nut-item"><div class="nv">120mg</div><div class="nl">나트륨</div></div>
+          <div class="nut-item"><div class="nv">6g</div><div class="nl">단백질</div></div>
+          <div class="nut-item"><div class="nv">150mg</div><div class="nl">카페인</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════ PRODUCT DETAIL ════════════════════════════ -->
+<div class="page-frame" id="pdp">
+  <div class="page-header">
+    <h2>Product Detail</h2>
+    <span class="dims">1440 × ~2400–3200px</span>
+  </div>
+  <p class="page-desc">풍미 노트 시각화 (업계 최초) + 구독 vs 일반 즉시 비교.</p>
+
+  <div class="wf-canvas">
+    <div class="ann">30,000원 이상 구매 시 무료 배송</div>
+    <div class="hdr-bar dark">
+      <span>← &nbsp; SHOP</span>
+      <span class="icons">🔍 🛒</span>
+    </div>
+
+    <div class="wf-pdp">
+      <!-- Image Column -->
+      <div class="img-col">
+        <div class="main-img">1:1 메인 이미지</div>
+        <div class="thumbs">
+          <div class="thumb" style="border-color:var(--black)"></div>
+          <div class="thumb"></div>
+          <div class="thumb"></div>
+          <div class="thumb"></div>
+        </div>
+
+        <!-- Roasting Level -->
+        <div style="padding:12px 0">
+          <div style="font-size:10px;font-weight:500;letter-spacing:0.06em;color:var(--gray400);margin-bottom:6px">ROASTING</div>
+          <div style="display:flex;gap:3px;align-items:center;margin-bottom:4px">
+            <div style="flex:1;height:6px;background:var(--oak-light);border-radius:3px 0 0 3px"></div>
+            <div style="flex:1;height:6px;background:var(--oak-light)"></div>
+            <div style="flex:1;height:6px;background:var(--oak-light)"></div>
+            <div style="flex:1;height:6px;background:var(--bg3)"></div>
+            <div style="flex:1;height:6px;background:var(--bg3);border-radius:0 3px 3px 0"></div>
+          </div>
+          <div style="font-size:11px;font-weight:500;color:var(--gray600)">Medium</div>
+        </div>
+
+        <!-- Flavor Chart -->
+        <div class="flavor-chart">
+          <div class="fc-title">TASTING NOTE</div>
+          <div class="fc-bar-row"><span class="fc-bar-label">산미</span><div class="fc-bar"><div class="fill" style="width:70%"></div></div></div>
+          <div class="fc-bar-row"><span class="fc-bar-label">단맛</span><div class="fc-bar"><div class="fill" style="width:85%"></div></div></div>
+          <div class="fc-bar-row"><span class="fc-bar-label">바디</span><div class="fc-bar"><div class="fill" style="width:50%"></div></div></div>
+          <div class="fc-bar-row"><span class="fc-bar-label">여운</span><div class="fc-bar"><div class="fill" style="width:65%"></div></div></div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <span style="font-size:10px;padding:3px 8px;background:rgba(255,255,255,.08);border-radius:4px;color:var(--oak-light)">Floral</span>
+            <span style="font-size:10px;padding:3px 8px;background:rgba(255,255,255,.08);border-radius:4px;color:var(--oak-light)">Citrus</span>
+            <span style="font-size:10px;padding:3px 8px;background:rgba(255,255,255,.08);border-radius:4px;color:var(--oak-light)">Honey</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Column -->
+      <div class="info-col">
+        <div class="cat">Coffee Bean</div>
+        <div class="pname">이르가체페 코체레</div>
+
+        <div class="order-tabs">
+          <div class="ot active">일반 주문</div>
+          <div class="ot">정기 배송</div>
+        </div>
+
+        <div class="field-row"><span class="fl">용량</span><span class="fv">200g</span></div>
+        <div class="field-row"><span class="fl">가격</span><span class="fv">₩18,000</span></div>
+
+        <div class="qty-row">
+          <span style="font-size:12px;color:var(--gray600)">수량</span>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+            <div class="qty-btn">−</div>
+            <span class="qty-val">1</span>
+            <div class="qty-btn">+</div>
+          </div>
+        </div>
+
+        <div class="total-row">
+          <span>합계</span>
+          <span>₩18,000</span>
+        </div>
+
+        <div class="cta-primary">장바구니에 담기</div>
+
+        <div class="accordion">
+          <div class="acc-item"><span>상품 정보</span><span>▾</span></div>
+          <div class="acc-item"><span>배송 안내</span><span>▾</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════ THE STORY ════════════════════════════ -->
+<div class="page-frame" id="story">
+  <div class="page-header">
+    <h2>The Story</h2>
+    <span class="dims">1440 × ~4000–5000px</span>
+  </div>
+  <p class="page-desc">감성 중심, 텍스트 최소화. 4개 Two-column 섹션 + Location.</p>
+
+  <div class="wf-canvas wf-story-page">
+    <div class="ann">30,000원 이상 구매 시 무료 배송</div>
+    <div class="hdr-bar dark">
+      <span>← &nbsp; THE STORY</span>
+      <span class="icons">🔍 🛒</span>
+    </div>
+
+    <div class="story-hero">
+      <div class="sh-main">good things, take time.</div>
+      <div class="sh-sub">좋은 것에는 시간이 필요합니다.</div>
+    </div>
+
+    <div class="story-section">
+      <div class="story-text">
+        <div class="st-label">COFFEE</div>
+        <h4>좋은 원두를 씁니다.</h4>
+        <p>계절마다 산지를 찾아 원두를 고릅니다.<br>스페셜티 등급, 직접 확인한 품질.<br>이름값이 아닌 맛으로 선택합니다.</p>
+      </div>
+      <div class="story-img">원두 / 로스팅 이미지</div>
+    </div>
+
+    <div class="story-section reverse">
+      <div class="story-text">
+        <div class="st-label">MANO</div>
+        <h4>추출이 다릅니다.</h4>
+        <p>원두의 풍미를 온전히 끌어내는 추출 장비.<br>일반 머신과는 다른 구조, 다른 맛.<br>한 잔에 담기는 차이를 느껴보세요.</p>
+      </div>
+      <div class="story-img">MANO 머신 이미지</div>
+    </div>
+
+    <div class="story-section">
+      <div class="story-text">
+        <div class="st-label">BAKERY</div>
+        <h4>매장에서 직접 굽습니다.</h4>
+        <p>매일 아침 반죽하고, 매일 아침 굽습니다.<br>갓 구운 냄새가 공간에 머무는 시간.</p>
+      </div>
+      <div class="story-img">빵 / 디저트 이미지</div>
+    </div>
+
+    <div style="padding:32px 24px;text-align:center;background:var(--bg2)">
+      <div style="font-size:10px;font-weight:500;letter-spacing:0.08em;color:var(--gray400);margin-bottom:8px">PROMISE</div>
+      <div style="font-size:18px;font-weight:600;margin-bottom:8px">시간을 들여 만듭니다.</div>
+      <div style="font-size:12px;color:var(--gray600);line-height:1.6">빠르게 만들 수 있어도, 그렇게 하지 않습니다.<br>좋은 것을 만드는 데 필요한 시간을 지킵니다.</div>
+    </div>
+
+    <!-- Location -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;background:var(--bg3)">
+      <div style="min-height:180px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gray400)">매장 이미지 (2fr)</div>
+      <div style="padding:24px;display:flex;flex-direction:column;justify-content:center;border-left:1px solid var(--line)">
+        <div style="font-size:10px;font-weight:500;letter-spacing:0.08em;color:var(--gray400);margin-bottom:8px">LOCATION</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:8px">직접 와보세요.</div>
+        <div style="font-size:11px;color:var(--gray600);line-height:1.6;margin-bottom:12px">Good Things Roasters<br>경북 구미시 인동21길 22-11<br>매일 10:00 – 21:00</div>
+        <div style="display:inline-flex;padding:8px 16px;background:var(--black);color:var(--bg);font-size:11px;font-weight:500;align-self:flex-start">길찾기</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════ CHECKOUT ════════════════════════════ -->
+<div class="page-frame" id="checkout">
+  <div class="page-header">
+    <h2>Checkout</h2>
+    <span class="dims">1440 × ~2000–2400px · grid: 1fr 420px</span>
+  </div>
+
+  <div class="wf-canvas">
+    <div class="ann">30,000원 이상 구매 시 무료 배송</div>
+    <div class="hdr-bar dark">
+      <span>← &nbsp; 결제</span>
+      <span class="icons">🛒</span>
+    </div>
+
+    <div class="wf-checkout">
+      <div class="form-col">
+        <div class="form-section">
+          <div class="fs-title">연락처</div>
+          <div class="wf-input">이메일 주소</div>
+        </div>
+        <div class="form-section">
+          <div class="fs-title">배송지</div>
+          <div class="wf-input">이름</div>
+          <div class="wf-input">휴대전화 (자동 하이픈)</div>
+          <div class="wf-input-row">
+            <div class="wf-input" style="flex:2">우편번호</div>
+            <div class="wf-input" style="flex:3;background:var(--black);color:var(--bg);justify-content:center;font-weight:500">검색</div>
+          </div>
+          <div class="wf-input">주소</div>
+          <div class="wf-input">상세주소 (선택)</div>
+          <div class="wf-input">배송 요청사항 (선택)</div>
+        </div>
+        <div class="form-section">
+          <div class="fs-title">결제 수단</div>
+          <div class="wf-input-row">
+            <div class="wf-input" style="border:2px solid var(--black);font-weight:500;color:var(--black);justify-content:center">● 카드 결제</div>
+            <div class="wf-input" style="justify-content:center">○ 계좌 이체</div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="fs-title">약관 동의</div>
+          <div class="wf-checkbox"><div class="box" style="background:var(--black)"></div><span style="font-weight:500;color:var(--black)">구매 조건을 확인하고 결제에 동의합니다.</span></div>
+          <div class="wf-checkbox"><div class="box"></div>이용약관 동의 (필수)</div>
+          <div class="wf-checkbox"><div class="box"></div>개인정보 수집 · 이용 동의 (필수)</div>
+        </div>
+        <div style="padding:12px 0;background:var(--black);color:var(--bg);text-align:center;font-size:13px;font-weight:500;letter-spacing:0.04em">결제하기</div>
+      </div>
+
+      <div class="summary-col">
+        <div class="sum-title">주문 요약</div>
+        <div class="sum-item">
+          <div class="sum-img"></div>
+          <div><div style="font-size:11px;font-weight:500">이르가체페 코체레</div><div style="font-size:10px;color:var(--gray400)">200g × 1</div></div>
+        </div>
+        <div class="sum-item">
+          <div class="sum-img"></div>
+          <div><div style="font-size:11px;font-weight:500">라 팔마 내추럴</div><div style="font-size:10px;color:var(--gray400)">200g × 1</div></div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="sum-row"><span>상품 합계</span><span>₩37,000</span></div>
+          <div class="sum-row"><span>배송비</span><span>무료</span></div>
+          <div class="sum-total"><span>결제 금액</span><span>₩37,000</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════ LOGIN ════════════════════════════ -->
+<div class="page-frame" id="login">
+  <div class="page-header">
+    <h2>Login / Sign Up</h2>
+    <span class="dims">1440 × ~1200px · 1fr 1fr · max-w: 1280px</span>
+  </div>
+
+  <div class="wf-canvas">
+    <div class="ann">30,000원 이상 구매 시 무료 배송</div>
+    <div class="hdr-bar dark">
+      <span>← &nbsp; 로그인</span>
+      <span class="icons">🛒</span>
+    </div>
+
+    <div class="wf-login">
+      <div class="login-left">
+        <h3>로그인</h3>
+        <div class="login-tabs">
+          <div class="lt active">로그인</div>
+          <div class="lt">회원가입</div>
+        </div>
+        <div class="wf-input" style="height:42px">이메일 주소</div>
+        <div class="wf-input" style="height:42px;margin-top:6px">비밀번호</div>
+        <div style="text-align:right;margin:8px 0">
+          <span style="font-size:11px;color:var(--gray600);text-decoration:underline;text-underline-offset:3px">비밀번호를 잊으셨나요?</span>
+        </div>
+        <div style="padding:12px;background:var(--black);color:var(--bg);text-align:center;font-size:13px;font-weight:500;margin:8px 0">로그인</div>
+        <div class="divider">또는</div>
+        <div class="social-btns">
+          <div class="social-btn">카카오로 계속하기</div>
+          <div class="social-btn">네이버로 계속하기</div>
+          <div class="social-btn">Google로 계속하기</div>
+        </div>
+      </div>
+      <div class="login-right">
+        <div style="font-size:14px;font-weight:500;margin-bottom:8px">비회원 주문</div>
+        <div style="font-size:12px;color:var(--gray600);text-align:center;margin-bottom:12px">회원이 아니어도 주문할 수 있습니다.</div>
+        <div style="padding:10px 24px;border:1px solid var(--line-m);font-size:12px;font-weight:500">비회원 주문</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════ MY PAGE ════════════════════════════ -->
+<div class="page-frame" id="mypage">
+  <div class="page-header">
+    <h2>My Page</h2>
+    <span class="dims">1440 × ~1800–2400px · 1fr 1fr · max-w: 1280px</span>
+  </div>
+
+  <div class="wf-canvas">
+    <div class="ann">30,000원 이상 구매 시 무료 배송</div>
+    <div class="hdr-bar dark">
+      <span>← &nbsp; 마이페이지</span>
+      <span class="icons">🛒</span>
+    </div>
+
+    <div class="wf-mypage">
+      <div class="mp-left">
+        <div style="font-size:16px;font-weight:600;margin-bottom:4px">홍길동님, 반갑습니다.</div>
+        <div style="font-size:11px;color:var(--gray600);margin-bottom:16px;text-decoration:underline;text-underline-offset:3px">로그아웃</div>
+
+        <div class="mp-section">
+          <div class="mps-title">계정 정보</div>
+          <div class="mp-row"><span class="mp-label">이름</span><span class="mp-val">홍길동</span></div>
+          <div class="mp-row"><span class="mp-label">이메일</span><span class="mp-val">hong@email.com</span></div>
+          <div class="mp-row"><span class="mp-label">배송지</span><span class="mp-val" style="font-size:10px;color:var(--gray400)">등록된 배송지가 없습니다.</span></div>
+        </div>
+
+        <div class="mp-section">
+          <div class="mps-title">정기배송</div>
+          <div style="padding:12px;background:var(--bg2);border-radius:6px;border:1px solid var(--line-m);margin-top:8px">
+            <div style="font-size:12px;font-weight:500;margin-bottom:4px">이르가체페 코체레 · 200g</div>
+            <div style="font-size:10px;color:var(--gray600)">다음 배송 2026.04.15 · 4주마다</div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <span style="font-size:10px;font-weight:500;color:var(--black);text-decoration:underline;text-underline-offset:2px">편집</span>
+              <span style="font-size:10px;color:var(--error)">구독 해지</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mp-section">
+          <div class="mps-title">계정 관리</div>
+          <div class="mp-row"><span class="mp-label">비밀번호 변경</span><span class="mp-val" style="font-size:10px;text-decoration:underline">편집</span></div>
+          <div class="mp-row"><span class="mp-label" style="color:var(--error);font-size:10px">회원 탈퇴</span><span></span></div>
+        </div>
+      </div>
+
+      <div class="mp-right">
+        <div class="mp-section">
+          <div class="mps-title">주문 내역</div>
+          <div class="order-card">
+            <div class="oc-top"><span>GT-20260405-00042</span><span>2026.04.05</span></div>
+            <div class="oc-name">이르가체페 코체레 외 1건</div>
+            <div class="oc-bottom">
+              <span style="font-weight:500">₩38,000</span>
+              <span class="oc-status">배송 완료</span>
+            </div>
+          </div>
+          <div class="order-card">
+            <div class="oc-top"><span>GT-20260328-00039</span><span>2026.03.28</span></div>
+            <div class="oc-name">라 팔마 내추럴</div>
+            <div class="oc-bottom">
+              <span style="font-weight:500">₩19,000</span>
+              <span class="oc-status">배송 완료</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════ MOBILE ════════════════════════════ -->
+<div class="page-frame" id="mobile">
+  <div class="page-header">
+    <h2>Mobile Adaptation</h2>
+    <span class="dims">360px · 패딩 16px · 섹션간 80px</span>
+  </div>
+  <p class="page-desc">Desktop → Mobile 핵심 변환 규칙 요약. 헤더 네비게이션은 햄버거 메뉴(☰)로 전환 — 탭 시 풀스크린 오버레이 드로어.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
+    <!-- Mobile Main -->
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px">메인 페이지</div>
+      <div class="wf-canvas" style="max-width:200px">
+        <div class="ann" style="font-size:8px;height:20px">무료 배송</div>
+        <div class="hdr-bar" style="height:32px;font-size:10px"><span style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;line-height:1">☰</span><span class="logo" style="font-size:10px">good things</span></span><span style="font-size:9px;color:var(--gray400)">🔍 🛒</span></div>
+        <div style="background:var(--stone);height:160px;display:flex;align-items:flex-end;padding:12px"><span style="color:var(--bg);font-size:14px;font-weight:600">good things,<br>take time</span></div>
+        <div style="background:var(--cream-tint);padding:12px"><div style="font-size:8px;color:var(--oak-mid)">Spring 2026</div><div style="font-size:12px;font-weight:600">봄, 한 잔의 여유.</div></div>
+        <div style="padding:12px">
+          <div style="font-size:8px;color:var(--gray400);letter-spacing:0.06em;margin-bottom:4px">MENU</div>
+          <div style="height:60px;background:var(--bg3);border-radius:4px;margin-bottom:6px;display:flex;align-items:flex-end;padding:6px"><span style="font-size:10px;font-weight:500">Coffee</span></div>
+          <div style="height:60px;background:var(--bg3);border-radius:4px;margin-bottom:6px;display:flex;align-items:flex-end;padding:6px"><span style="font-size:10px;font-weight:500">Beverage</span></div>
+          <div style="height:60px;background:var(--bg3);border-radius:4px;display:flex;align-items:flex-end;padding:6px"><span style="font-size:10px;font-weight:500">Dessert</span></div>
+        </div>
+        <div style="font-size:8px;text-align:center;color:var(--gray400);padding:8px">1컬럼 스택</div>
+      </div>
+    </div>
+
+    <!-- Mobile Cafe Menu -->
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px">카페 메뉴</div>
+      <div class="wf-canvas" style="max-width:200px">
+        <div class="hdr-bar dark" style="height:32px;font-size:9px"><span>← CAFE MENU</span><span style="display:flex;gap:6px;font-size:8px"><span>🔍</span><span>☰</span></span></div>
+        <div style="display:flex;gap:0;border-bottom:1px solid var(--line-m);overflow-x:auto">
+          <div style="padding:6px 10px;font-size:9px;font-weight:500;border-bottom:2px solid var(--black)">전체</div>
+          <div style="padding:6px 10px;font-size:9px;color:var(--gray400)">커피</div>
+          <div style="padding:6px 10px;font-size:9px;color:var(--gray400)">음료</div>
+          <div style="padding:6px 10px;font-size:9px;color:var(--gray400)">디저트</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px">
+          <div style="background:var(--bg3);aspect-ratio:1;border-radius:4px"></div>
+          <div style="background:var(--bg3);aspect-ratio:1;border-radius:4px"></div>
+          <div style="background:var(--bg3);aspect-ratio:1;border-radius:4px"></div>
+          <div style="background:var(--bg3);aspect-ratio:1;border-radius:4px"></div>
+        </div>
+        <div style="font-size:8px;text-align:center;color:var(--gray400);padding:8px">2컬럼 그리드</div>
+      </div>
+    </div>
+
+    <!-- Mobile PDP -->
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px">상품 상세</div>
+      <div class="wf-canvas" style="max-width:200px">
+        <div class="hdr-bar dark" style="height:32px;font-size:9px"><span>← SHOP</span><span style="display:flex;gap:6px;font-size:8px"><span>🛒</span><span>☰</span></span></div>
+        <div style="background:var(--bg3);aspect-ratio:1"></div>
+        <div style="padding:12px">
+          <div style="font-size:9px;color:var(--gray400)">Coffee Bean</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:8px">이르가체페 코체레</div>
+          <div style="display:flex;border:1px solid var(--line-m);border-radius:4px;overflow:hidden;margin-bottom:8px">
+            <div style="flex:1;padding:6px;text-align:center;background:var(--black);color:var(--bg);font-size:9px">일반 주문</div>
+            <div style="flex:1;padding:6px;text-align:center;font-size:9px;color:var(--gray400)">정기 배송</div>
+          </div>
+          <div style="padding:8px 0;background:var(--black);color:var(--bg);text-align:center;font-size:11px;font-weight:500">장바구니에 담기</div>
+        </div>
+        <div style="font-size:8px;text-align:center;color:var(--gray400);padding:8px">이미지↑ 구매↓ 1컬럼</div>
+      </div>
+    </div>
+
+    <!-- Mobile Checkout -->
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px">결제</div>
+      <div class="wf-canvas" style="max-width:200px">
+        <div class="hdr-bar dark" style="height:32px;font-size:9px"><span>← 결제</span><span style="font-size:8px">☰</span></div>
+        <div style="padding:12px">
+          <div style="font-size:10px;font-weight:600;margin-bottom:6px">배송지</div>
+          <div style="height:28px;background:var(--bg3);border-radius:3px;margin-bottom:4px"></div>
+          <div style="height:28px;background:var(--bg3);border-radius:3px;margin-bottom:4px"></div>
+          <div style="height:28px;background:var(--bg3);border-radius:3px;margin-bottom:8px"></div>
+          <div style="font-size:10px;font-weight:600;margin-bottom:6px">주문 요약</div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;padding:4px 0;border-bottom:1px solid var(--line)"><span style="color:var(--gray600)">합계</span><span style="font-weight:600">₩37,000</span></div>
+          <div style="margin-top:8px;padding:8px;background:var(--black);color:var(--bg);text-align:center;font-size:10px;font-weight:500">결제하기</div>
+        </div>
+        <div style="font-size:8px;text-align:center;color:var(--gray400);padding:8px">요약이 폼 아래로</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer Menu Open State -->
+  <div style="margin-top:32px;border-top:1px solid var(--line-m);padding-top:24px">
+    <div style="font-size:14px;font-weight:600;margin-bottom:4px">Drawer Menu — 펼친 상태</div>
+    <p style="font-size:12px;color:var(--gray600);margin-bottom:16px;line-height:1.5">
+      ☰ 탭 시 우측에서 슬라이드 인. 배경 dim 처리(rgba(0,0,0,.5)).<br>
+      닫기: ✕ 버튼 또는 dim 영역 탭. 메뉴 항목 탭 시 해당 페이지 이동 + 드로어 자동 닫힘.
+    </p>
+    <div style="display:flex;gap:20px;flex-wrap:wrap">
+
+      <!-- Drawer: Full view -->
+      <div>
+        <div style="font-size:11px;font-weight:500;margin-bottom:8px;color:var(--gray600)">전체 화면 (360px)</div>
+        <div style="width:200px;height:380px;border-radius:12px;overflow:hidden;border:1px solid var(--line-m);display:flex;position:relative">
+          <!-- Dim background -->
+          <div style="flex:1;background:rgba(28,27,25,.4)"></div>
+          <!-- Drawer panel -->
+          <div style="width:140px;background:var(--bg);display:flex;flex-direction:column;border-left:1px solid var(--line-m)">
+            <!-- Close button -->
+            <div style="display:flex;justify-content:flex-end;padding:12px 14px 8px">
+              <span style="font-size:14px;color:var(--gray600);cursor:pointer">✕</span>
+            </div>
+            <!-- Navigation links -->
+            <nav style="padding:0 20px;flex:1">
+              <div style="padding:12px 0;font-size:12px;font-weight:600;border-bottom:1px solid var(--line)">The Story</div>
+              <div style="padding:12px 0;font-size:12px;font-weight:600;border-bottom:1px solid var(--line)">Menu</div>
+              <div style="padding:12px 0;font-size:12px;font-weight:600;border-bottom:1px solid var(--line)">Shop</div>
+              <div style="padding:12px 0;font-size:12px;font-weight:600;border-bottom:1px solid var(--line)">Good Days</div>
+            </nav>
+            <!-- Bottom section -->
+            <div style="padding:16px 20px;border-top:1px solid var(--line-m)">
+              <div style="display:flex;gap:8px;margin-bottom:12px">
+                <div style="flex:1;padding:6px;text-align:center;font-size:9px;background:var(--black);color:var(--bg);border-radius:4px">로그인</div>
+                <div style="flex:1;padding:6px;text-align:center;font-size:9px;border:1px solid var(--line-m);border-radius:4px">회원가입</div>
+              </div>
+              <div style="display:flex;gap:12px;justify-content:center">
+                <span style="font-size:10px;color:var(--gray400)">🔍</span>
+                <span style="font-size:10px;color:var(--gray400)">🛒</span>
+                <span style="font-size:10px;color:var(--gray400)">👤</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drawer: Logged-in state -->
+      <div>
+        <div style="font-size:11px;font-weight:500;margin-bottom:8px;color:var(--gray600)">로그인 상태</div>
+        <div style="width:200px;height:380px;border-radius:12px;overflow:hidden;border:1px solid var(--line-m);display:flex;position:relative">
+          <!-- Dim background -->
+          <div style="flex:1;background:rgba(28,27,25,.4)"></div>
+          <!-- Drawer panel -->
+          <div style="width:140px;background:var(--bg);display:flex;flex-direction:column;border-left:1px solid var(--line-m)">
+            <!-- User greeting -->
+            <div style="padding:14px 20px 10px">
+              <div style="font-size:10px;color:var(--gray400)">안녕하세요</div>
+              <div style="font-size:12px;font-weight:600">홍길동<span style="font-size:10px;font-weight:400;color:var(--gray400)"> 님</span></div>
+              <span style="font-size:14px;color:var(--gray600);cursor:pointer;position:absolute;top:12px;right:14px">✕</span>
+            </div>
+            <!-- Navigation links -->
+            <nav style="padding:0 20px;flex:1">
+              <div style="padding:12px 0;font-size:12px;font-weight:600;border-bottom:1px solid var(--line)">The Story</div>
+              <div style="padding:12px 0;font-size:12px;font-weight:600;border-bottom:1px solid var(--line)">Menu</div>
+              <div style="padding:12px 0;font-size:12px;font-weight:600;border-bottom:1px solid var(--line)">Shop</div>
+              <div style="padding:12px 0;font-size:12px;font-weight:600;border-bottom:1px solid var(--line)">Good Days</div>
+            </nav>
+            <!-- Bottom section -->
+            <div style="padding:16px 20px;border-top:1px solid var(--line-m)">
+              <div style="padding:8px 0;font-size:10px;color:var(--gray600);border-bottom:1px solid var(--line)">마이페이지</div>
+              <div style="padding:8px 0;font-size:10px;color:var(--gray600);border-bottom:1px solid var(--line)">주문 내역</div>
+              <div style="padding:8px 0;font-size:10px;color:var(--gray400)">로그아웃</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drawer: Spec annotations -->
+      <div>
+        <div style="font-size:11px;font-weight:500;margin-bottom:8px;color:var(--gray600)">스펙 정리</div>
+        <div style="background:var(--bg2);border-radius:8px;padding:16px;font-size:11px;line-height:1.8;max-width:220px">
+          <div><strong>드로어 너비:</strong> 280px (≈78%)</div>
+          <div><strong>슬라이드 방향:</strong> 우 → 좌</div>
+          <div><strong>애니메이션:</strong> 300ms ease-out</div>
+          <div><strong>배경 dim:</strong> rgba(0,0,0,.5)</div>
+          <div><strong>닫기 트리거:</strong> ✕ / dim 탭 / 스와이프 →</div>
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line-m)"><strong>메뉴 항목 간격:</strong> 48px (터치 타겟)</div>
+          <div><strong>하단 영역:</strong> 비로그인=로그인/회원가입 CTA, 로그인=마이페이지/주문/로그아웃</div>
+          <div><strong>아이콘:</strong> 검색·장바구니·프로필</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</div><!-- /wf-container -->
+
+<!-- FOOTER -->
+<div style="background:var(--stone);padding:40px 32px;margin-top:40px">
+  <div style="max-width:1040px;margin:0 auto">
+    <div style="font-size:14px;font-weight:600;color:var(--bg);margin-bottom:6px">Good Things Roasters</div>
+    <div style="font-size:11px;color:#9C9890;line-height:1.6">
+      Layout Wireframe v2 — 2026.04.05<br>
+      GTR Design Guide 기반 시각 와이어프레임<br>
+      컬러 시스템 + 타이포 + 여백 실제 값 적용
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

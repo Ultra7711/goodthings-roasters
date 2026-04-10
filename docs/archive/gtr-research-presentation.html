@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Good Things Roasters — Research &amp; Design Direction</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/theme/white.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   GTR Custom Theme Override
+   ═══════════════════════════════════════ */
+:root {
+  --gtr-black: #1A1A1A;
+  --gtr-dark: #333333;
+  --gtr-mid: #666666;
+  --gtr-light: #999999;
+  --gtr-pale: #E5E5E5;
+  --gtr-bg: #FAFAFA;
+  --gtr-white: #FFFFFF;
+  --gtr-accent: #C8A97E;
+  --gtr-warm: #F5F0EB;
+}
+
+.reveal-viewport { background: var(--gtr-bg); }
+
+.reveal {
+  font-family: 'Inter', 'Pretendard Variable', -apple-system, sans-serif;
+  font-weight: 400;
+  color: var(--gtr-black);
+}
+
+.reveal .slides { text-align: left; }
+
+.reveal .slides section {
+  padding: 40px 60px;
+  box-sizing: border-box;
+}
+
+/* Headings */
+.reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  color: var(--gtr-black);
+  text-transform: none;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.6em;
+}
+.reveal h1 { font-size: 2.4em; font-weight: 700; }
+.reveal h2 { font-size: 1.6em; letter-spacing: -0.01em; }
+.reveal h3 { font-size: 1.15em; font-weight: 500; letter-spacing: 0; }
+.reveal h4 {
+  font-size: 0.7em; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gtr-light);
+  margin-bottom: 1.2em;
+}
+.reveal p, .reveal li {
+  font-size: 0.72em;
+  line-height: 1.7;
+  color: var(--gtr-mid);
+}
+.reveal li { margin-bottom: 0.35em; }
+.reveal strong { color: var(--gtr-black); font-weight: 600; }
+.reveal em { color: var(--gtr-light); font-style: normal; font-size: 0.88em; }
+
+/* ─── Slide types ─── */
+
+/* Title slide */
+.slide-title {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: var(--gtr-black) !important;
+}
+.slide-title h1, .slide-title h4, .slide-title p {
+  color: var(--gtr-white) !important;
+}
+.slide-title h4 { color: var(--gtr-light) !important; }
+.slide-title .tagline {
+  font-size: 0.8em; font-weight: 300;
+  color: rgba(255,255,255,.5) !important;
+  letter-spacing: 0.06em;
+  margin-top: 1.6em;
+}
+
+/* Section divider */
+.slide-divider {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--gtr-black) !important;
+}
+.slide-divider h2, .slide-divider h4, .slide-divider p {
+  color: var(--gtr-white) !important;
+}
+.slide-divider h4 { color: var(--gtr-light) !important; }
+.slide-divider p { color: rgba(255,255,255,.55) !important; }
+
+/* Insight slide */
+.slide-insight {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+}
+.slide-insight .insight-num {
+  font-size: 0.6em; font-weight: 600;
+  color: var(--gtr-accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.5em;
+}
+.slide-insight h2 { font-size: 1.4em; margin-bottom: 0.4em; }
+
+/* ─── Components ─── */
+
+/* Positioning map */
+.pos-map {
+  position: relative;
+  width: 580px; height: 440px;
+  margin: 20px auto 0;
+}
+.pos-map .axis-x, .pos-map .axis-y {
+  position: absolute; background: var(--gtr-pale);
+}
+.pos-map .axis-x {
+  width: 100%; height: 1px;
+  top: 50%; left: 0;
+}
+.pos-map .axis-y {
+  width: 1px; height: 100%;
+  left: 50%; top: 0;
+}
+.pos-map .label {
+  position: absolute; font-size: 10px; font-weight: 500;
+  color: var(--gtr-light); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.pos-map .label.top    { top: -4px; left: 50%; transform: translateX(-50%); }
+.pos-map .label.bottom { bottom: -4px; left: 50%; transform: translateX(-50%); }
+.pos-map .label.left   { left: -4px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: left center; }
+.pos-map .label.right  { right: -4px; top: 50%; transform: translateY(-50%) rotate(90deg); transform-origin: right center; }
+.pos-map .dot {
+  position: absolute; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.pos-map .dot::before {
+  content: ''; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--gtr-light); display: block;
+}
+.pos-map .dot span {
+  font-size: 10px; font-weight: 500; color: var(--gtr-mid);
+  white-space: nowrap;
+}
+.pos-map .dot.gtr::before {
+  width: 16px; height: 16px;
+  background: var(--gtr-accent);
+  box-shadow: 0 0 0 4px rgba(200,169,126,.25);
+}
+.pos-map .dot.gtr span {
+  font-weight: 700; color: var(--gtr-black); font-size: 11px;
+}
+
+/* Data table */
+.data-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.62em; margin-top: 16px;
+}
+.data-table th {
+  text-align: left; font-weight: 600;
+  color: var(--gtr-black);
+  padding: 10px 12px; border-bottom: 2px solid var(--gtr-black);
+  font-size: 0.95em;
+}
+.data-table td {
+  padding: 9px 12px; border-bottom: 1px solid rgba(0,0,0,.06);
+  color: var(--gtr-mid); vertical-align: top;
+  line-height: 1.5;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table td:first-child { font-weight: 500; color: var(--gtr-black); }
+.data-table .highlight { background: var(--gtr-warm); }
+
+/* Metric cards */
+.metric-row {
+  display: flex; gap: 20px; margin-top: 24px;
+}
+.metric-card {
+  flex: 1; background: var(--gtr-white);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 8px; padding: 24px;
+  text-align: center;
+}
+.metric-card .num {
+  font-size: 2em; font-weight: 700;
+  color: var(--gtr-black);
+  line-height: 1;
+}
+.metric-card .unit {
+  font-size: 0.65em; color: var(--gtr-light);
+  margin-top: 6px; letter-spacing: 0.04em;
+}
+
+/* Persona */
+.persona-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin-top: 16px;
+}
+.persona-card {
+  background: var(--gtr-white);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 8px; padding: 20px;
+}
+.persona-card .name {
+  font-size: 0.85em; font-weight: 600;
+  color: var(--gtr-black); margin-bottom: 2px;
+}
+.persona-card .role {
+  font-size: 0.65em; color: var(--gtr-light);
+  margin-bottom: 10px;
+}
+.persona-card .need {
+  font-size: 0.65em; color: var(--gtr-mid);
+  line-height: 1.6;
+}
+
+/* Spectrum bar */
+.spectrum {
+  display: flex; align-items: center; gap: 8px;
+  margin: 6px 0; font-size: 0.62em;
+}
+.spectrum .label-l, .spectrum .label-r {
+  width: 60px; font-weight: 500; color: var(--gtr-light);
+}
+.spectrum .label-r { text-align: right; }
+.spectrum .bar {
+  flex: 1; height: 4px; background: var(--gtr-pale);
+  border-radius: 2px; position: relative;
+}
+.spectrum .bar .marker {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--gtr-black);
+}
+
+/* Color swatch */
+.swatch-row {
+  display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;
+}
+.swatch {
+  display: flex; align-items: center; gap: 8px;
+}
+.swatch .chip {
+  width: 32px; height: 32px; border-radius: 6px;
+  border: 1px solid rgba(0,0,0,.08);
+}
+.swatch .info { font-size: 0.6em; line-height: 1.3; }
+.swatch .info .hex { font-weight: 600; color: var(--gtr-black); }
+.swatch .info .use { color: var(--gtr-light); }
+
+/* Two column */
+.two-col {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 40px; margin-top: 16px;
+}
+.two-col.narrow { grid-template-columns: 2fr 3fr; }
+
+/* Tag */
+.tag {
+  display: inline-block; padding: 3px 10px;
+  background: var(--gtr-warm); border-radius: 4px;
+  font-size: 0.6em; font-weight: 500; color: var(--gtr-accent);
+  letter-spacing: 0.04em; margin-right: 4px;
+}
+.tag.dark {
+  background: var(--gtr-black); color: var(--gtr-white);
+}
+
+/* Stars */
+.stars { color: var(--gtr-accent); letter-spacing: 2px; }
+
+/* Opportunity card */
+.opp-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin-top: 16px;
+}
+.opp-card {
+  background: var(--gtr-white);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 8px; padding: 20px;
+  border-left: 3px solid var(--gtr-accent);
+}
+.opp-card .opp-title {
+  font-size: 0.78em; font-weight: 600;
+  color: var(--gtr-black); margin-bottom: 6px;
+}
+.opp-card .opp-desc {
+  font-size: 0.6em; color: var(--gtr-mid);
+  line-height: 1.6;
+}
+.opp-card .opp-status {
+  font-size: 0.55em; color: var(--gtr-light);
+  margin-top: 8px;
+}
+
+/* Flow diagram */
+.flow {
+  display: flex; align-items: center; gap: 0;
+  margin: 16px 0; flex-wrap: wrap;
+}
+.flow .step {
+  background: var(--gtr-white); border: 1px solid rgba(0,0,0,.08);
+  border-radius: 6px; padding: 8px 14px;
+  font-size: 0.6em; font-weight: 500; color: var(--gtr-black);
+  white-space: nowrap;
+}
+.flow .step.primary {
+  background: var(--gtr-black); color: var(--gtr-white);
+  border-color: var(--gtr-black);
+}
+.flow .arrow {
+  font-size: 0.7em; color: var(--gtr-pale);
+  padding: 0 6px;
+}
+
+/* Progress dots for slide numbering */
+.reveal .slide-number {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; font-weight: 500;
+  color: var(--gtr-light);
+  background: transparent;
+  right: 24px; bottom: 16px;
+}
+
+/* UX principle card */
+.ux-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-top: 12px;
+}
+.ux-card {
+  background: var(--gtr-white);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 8px; padding: 16px;
+}
+.ux-card .ux-num {
+  font-size: 0.55em; font-weight: 600;
+  color: var(--gtr-accent); margin-bottom: 4px;
+}
+.ux-card .ux-title {
+  font-size: 0.72em; font-weight: 600;
+  color: var(--gtr-black); margin-bottom: 4px;
+}
+.ux-card .ux-desc {
+  font-size: 0.58em; color: var(--gtr-mid);
+  line-height: 1.5;
+}
+
+/* Quote block */
+.quote-block {
+  border-left: 3px solid var(--gtr-accent);
+  padding: 16px 24px;
+  margin: 20px 0;
+  background: var(--gtr-warm);
+  border-radius: 0 8px 8px 0;
+}
+.quote-block p {
+  font-size: 0.9em !important;
+  font-weight: 500;
+  color: var(--gtr-black) !important;
+  line-height: 1.6;
+  margin: 0;
+}
+.quote-block .attr {
+  font-size: 0.65em; color: var(--gtr-light);
+  margin-top: 8px; font-weight: 400;
+}
+
+/* Section page numbers */
+.section-label {
+  font-size: 0.55em; font-weight: 500;
+  color: var(--gtr-light);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 0.3em;
+}
+
+/* Comparison block */
+.compare-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  gap: 10px; margin-top: 16px;
+}
+.compare-item {
+  background: var(--gtr-white);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 6px; padding: 12px;
+  text-align: center;
+}
+.compare-item .brand {
+  font-size: 0.6em; font-weight: 600;
+  color: var(--gtr-black); margin-bottom: 8px;
+}
+.compare-item .detail {
+  font-size: 0.52em; color: var(--gtr-mid);
+  line-height: 1.5;
+}
+
+/* Interaction roadmap */
+.phase-row {
+  display: flex; gap: 12px; margin: 8px 0;
+  align-items: stretch;
+}
+.phase-badge {
+  width: 80px; min-height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; font-size: 0.6em; font-weight: 600;
+  color: var(--gtr-white); flex-shrink: 0;
+}
+.phase-badge.p1 { background: var(--gtr-black); }
+.phase-badge.p2 { background: var(--gtr-mid); }
+.phase-badge.p3 { background: var(--gtr-light); }
+.phase-content {
+  flex: 1; font-size: 0.62em;
+  color: var(--gtr-mid); line-height: 1.5;
+  display: flex; align-items: center;
+  padding: 4px 0;
+}
+.phase-content strong { color: var(--gtr-black); }
+
+/* Prevent code from showing */
+.reveal pre { display: none; }
+
+/* fix fragment visibility */
+.reveal .fragment { visibility: visible; }
+.reveal .fragment.fade-in { opacity: 0; }
+.reveal .fragment.fade-in.visible { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ═══════════════════════════════════════
+     TITLE
+     ═══════════════════════════════════════ -->
+<section class="slide-title">
+  <h4>Research &amp; Design Direction</h4>
+  <h1 style="font-size:2.2em;letter-spacing:-0.03em;">Good Things<br>Roasters</h1>
+  <p class="tagline">good things, take time</p>
+  <p style="font-size:0.5em;color:rgba(255,255,255,.3);margin-top:3em;">2026.04.05</p>
+</section>
+
+<!-- ═══════════════════════════════════════
+     AGENDA
+     ═══════════════════════════════════════ -->
+<section>
+  <h4>Overview</h4>
+  <h2>리서치 구조</h2>
+  <p>4개 트랙의 리서치를 종합하여 디자인 방향성을 도출합니다.</p>
+  <div class="metric-row" style="margin-top:32px;">
+    <div class="metric-card">
+      <div class="num">A</div>
+      <div class="unit">경쟁사 벤치마킹</div>
+    </div>
+    <div class="metric-card">
+      <div class="num">B</div>
+      <div class="unit">UX 벤치마킹</div>
+    </div>
+    <div class="metric-card">
+      <div class="num">C</div>
+      <div class="unit">브랜드 포지셔닝</div>
+    </div>
+    <div class="metric-card">
+      <div class="num">D</div>
+      <div class="unit">타겟 유저</div>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:center;gap:6px;margin-top:24px;">
+    <div class="flow">
+      <span class="step">리서치 4트랙</span>
+      <span class="arrow">→</span>
+      <span class="step">인사이트 도출</span>
+      <span class="arrow">→</span>
+      <span class="step primary">디자인 방향성 확정</span>
+      <span class="arrow">→</span>
+      <span class="step">포토샵 디자인</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     TRACK A — COMPETITOR
+     ═══════════════════════════════════════ -->
+<section class="slide-divider">
+  <h4>Track A</h4>
+  <h2>경쟁사 벤치마킹</h2>
+  <p>해외 스페셜티 커피 브랜드 5곳의 웹사이트를 8개 축으로 분석</p>
+</section>
+
+<section>
+  <div class="section-label">Track A — 경쟁사 벤치마킹</div>
+  <h2>분석 대상</h2>
+  <p>GTR 목표에 가장 근접한 해외 상위 브랜드 5곳을 선정했습니다.<br>
+  <em>국내 브랜드는 플랫폼 템플릿 한계로 벤치마크 대상에서 제외</em></p>
+  <div class="compare-grid" style="margin-top:24px;">
+    <div class="compare-item">
+      <div class="brand">Onyx Coffee Lab</div>
+      <div class="detail">럭셔리 에디토리얼<br>커스텀 애니메이션<br>최상위 프리미엄</div>
+    </div>
+    <div class="compare-item">
+      <div class="brand">Blue Bottle</div>
+      <div class="detail">셀링 미니멀<br>쇼핑 전환 극최적화<br>대중적 프리미엄</div>
+    </div>
+    <div class="compare-item">
+      <div class="brand">% Arabica</div>
+      <div class="detail">극단적 미니멀<br>B&amp;W 그레이스케일<br>영화적 몰입</div>
+    </div>
+    <div class="compare-item">
+      <div class="brand">Onibus Coffee</div>
+      <div class="detail">일본식 정갈함<br>클린 산세리프<br>따뜻한 커넥팅</div>
+    </div>
+    <div class="compare-item">
+      <div class="brand">Verve Coffee</div>
+      <div class="detail">아티자날 크래프트<br>어스 톤 팔레트<br>라이프스타일</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Track A — 비주얼 디자인</div>
+  <h2>비주얼 비교</h2>
+  <table class="data-table">
+    <tr>
+      <th style="width:18%;">항목</th>
+      <th>Onyx</th>
+      <th>Blue Bottle</th>
+      <th>% Arabica</th>
+      <th>Onibus</th>
+      <th>Verve</th>
+    </tr>
+    <tr>
+      <td>색상</td>
+      <td>크림 + 버건디</td>
+      <td>화이트 + 시그니처 블루</td>
+      <td>B&amp;W 그레이스케일</td>
+      <td>화이트 + 뮤트</td>
+      <td>세이지 그린 + 크림</td>
+    </tr>
+    <tr>
+      <td>이미지 톤</td>
+      <td>에디토리얼급</td>
+      <td>밝고 깔끔, 자연광</td>
+      <td>필름적 질감</td>
+      <td>클린, 프로덕트</td>
+      <td>따뜻하고 촉각적</td>
+    </tr>
+    <tr>
+      <td>여백</td>
+      <td>넉넉 (고급 호흡)</td>
+      <td>매우 넉넉</td>
+      <td>극단적 (공간=디자인)</td>
+      <td>적절 (정갈)</td>
+      <td>균형</td>
+    </tr>
+    <tr class="highlight">
+      <td><strong>전체 인상</strong></td>
+      <td>럭셔리 에디토리얼</td>
+      <td>셀링 미니멀</td>
+      <td>극미니멀, 교토</td>
+      <td>모던, 일본 정갈</td>
+      <td>아티자날 크래프트</td>
+    </tr>
+  </table>
+  <div class="quote-block" style="margin-top:20px;">
+    <p>% Arabica의 B&amp;W 클린함 + Onibus의 정갈한 따뜻함 = GTR의 방향</p>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Track A — 히어로 섹션</div>
+  <h2>히어로 전략 비교</h2>
+  <table class="data-table">
+    <tr>
+      <th style="width:18%;">브랜드</th>
+      <th>유형</th>
+      <th>메시지</th>
+      <th>인상</th>
+    </tr>
+    <tr>
+      <td>Onyx</td>
+      <td>SVG 로고 → 비디오</td>
+      <td>상품명</td>
+      <td>프리미엄 에디토리얼</td>
+    </tr>
+    <tr>
+      <td>Blue Bottle</td>
+      <td>프로모 슬라이더</td>
+      <td>세일/프로모</td>
+      <td>쇼핑 극최적화</td>
+    </tr>
+    <tr class="highlight">
+      <td><strong>% Arabica</strong></td>
+      <td><strong>풀스크린 비디오</strong></td>
+      <td><strong>없음 (영상 = 메시지)</strong></td>
+      <td><strong>영화적 몰입</strong></td>
+    </tr>
+    <tr>
+      <td>Onibus</td>
+      <td>이미지 배너</td>
+      <td>커넥팅 카피</td>
+      <td>조용한 정갈함</td>
+    </tr>
+    <tr>
+      <td>Verve</td>
+      <td>이미지 슬라이더</td>
+      <td>상품 CTA</td>
+      <td>실용적</td>
+    </tr>
+  </table>
+  <div class="quote-block" style="margin-top:20px;">
+    <p>GTR의 히어로 영상(MANO + 로스팅 + 공간)은 % Arabica 접근과 동일 철학.<br>차이: GTR은 3가지 차별점을 한 영상에 압축 — <strong>편집 퀄리티가 전부.</strong></p>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Track A — 핵심 인사이트</div>
+  <h2>5가지 핵심 배움</h2>
+  <div class="opp-grid">
+    <div class="opp-card">
+      <div class="opp-title">1. B&amp;W 클린 + 따뜻함의 균형</div>
+      <div class="opp-desc">이미지 톤에서 따뜻함, 레이아웃/타이포는 차갑게 유지</div>
+    </div>
+    <div class="opp-card">
+      <div class="opp-title">2. 히어로 영상 = 최강 무기</div>
+      <div class="opp-desc">씬 전환 호흡, 색보정 일관성이 전체 인상을 결정</div>
+    </div>
+    <div class="opp-card">
+      <div class="opp-title">3. 풍미 노트 그래픽 = 미개척 영역</div>
+      <div class="opp-desc">모든 경쟁사가 텍스트 나열. 인터랙티브 시각화로 업계 최초 차별화</div>
+    </div>
+    <div class="opp-card">
+      <div class="opp-title">4. 카페 메뉴 → 상품 순서는 합리적</div>
+      <div class="opp-desc">매장 방문 유도 1차 목표에 부합하는 현재 섹션 순서</div>
+    </div>
+  </div>
+  <div class="opp-grid" style="grid-template-columns:1fr;margin-top:12px;">
+    <div class="opp-card">
+      <div class="opp-title">5. 인터랙션 수준은 이미 경쟁력 있음</div>
+      <div class="opp-desc">blur→sharp, fade-in stagger 등 Onyx에 근접. 과하지 않게 통제만 잘 하면 목표 달성 가능.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     TRACK B — UX
+     ═══════════════════════════════════════ -->
+<section class="slide-divider">
+  <h4>Track B</h4>
+  <h2>UX 벤치마킹</h2>
+  <p>상품 구매 · 구독 · 카페 메뉴 · 브랜드 스토리 — 4개 플로우 분석</p>
+</section>
+
+<section>
+  <div class="section-label">Track B — 상품 구매 플로우</div>
+  <h2>상품 탐색 → 구매</h2>
+  <table class="data-table">
+    <tr>
+      <th style="width:20%;">항목</th>
+      <th>Onyx</th>
+      <th>Blue Bottle</th>
+      <th>Onibus</th>
+      <th>Verve</th>
+    </tr>
+    <tr>
+      <td>풍미 노트</td>
+      <td>상세페이지 텍스트</td>
+      <td>미표시</td>
+      <td>미표시</td>
+      <td>미표시</td>
+    </tr>
+    <tr>
+      <td>분쇄 옵션</td>
+      <td>있음</td>
+      <td>있음</td>
+      <td>4종</td>
+      <td>4종</td>
+    </tr>
+    <tr>
+      <td>필터/정렬</td>
+      <td>검색</td>
+      <td>컬렉션</td>
+      <td>없음 (정적)</td>
+      <td>컬렉션</td>
+    </tr>
+    <tr>
+      <td>빠른 구매</td>
+      <td>Add to Cart</td>
+      <td>카드→상세</td>
+      <td>JS 동적</td>
+      <td>Quick Add</td>
+    </tr>
+  </table>
+  <div class="quote-block" style="margin-top:16px;">
+    <p><strong>풍미 노트를 시각적으로 잘 보여주는 브랜드가 단 하나도 없음.</strong><br>
+    GTR이 인터랙티브 풍미 그래픽을 구현하면 업계 최초 수준의 차별화.</p>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Track B — 카페 메뉴</div>
+  <h2>온라인 카페 메뉴</h2>
+  <div style="text-align:center;margin:40px 0 20px;">
+    <div style="display:inline-flex;gap:20px;">
+      <div class="metric-card" style="min-width:100px;">
+        <div class="num">0</div>
+        <div class="unit">경쟁사 중<br>카페 메뉴 구현</div>
+      </div>
+      <div class="metric-card" style="min-width:100px;">
+        <div class="num">5/5</div>
+        <div class="unit">Locations만<br>제공</div>
+      </div>
+    </div>
+  </div>
+  <div class="quote-block">
+    <p><strong>어떤 브랜드도 온라인 카페 메뉴를 구현하지 않음.</strong><br>
+    GTR의 1차 목표가 매장 방문 유도인 만큼, 이미지 중심 카페 메뉴는<br>경쟁사 누구도 하지 않는 <strong>GTR만의 독자 영역.</strong></p>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Track B — 구독/정기배송</div>
+  <h2>구독 모델 비교</h2>
+  <table class="data-table">
+    <tr>
+      <th style="width:18%;">항목</th>
+      <th>Onyx</th>
+      <th>Blue Bottle</th>
+      <th>Onibus</th>
+      <th>Verve</th>
+    </tr>
+    <tr>
+      <td>플랜 수</td>
+      <td>3종</td>
+      <td>구독+멤버십</td>
+      <td>1종 (단순)</td>
+      <td>다수 (지역별)</td>
+    </tr>
+    <tr>
+      <td>무료 배송</td>
+      <td>$40+</td>
+      <td>프로모</td>
+      <td>구독 무료</td>
+      <td>구독 무조건 무료</td>
+    </tr>
+    <tr class="highlight">
+      <td><strong>일반 vs 구독 비교</strong></td>
+      <td><strong>미구현</strong></td>
+      <td><strong>미구현</strong></td>
+      <td><strong>미구현</strong></td>
+      <td><strong>가격만 별도</strong></td>
+    </tr>
+  </table>
+  <div class="quote-block" style="margin-top:16px;">
+    <p>상품 상세에서 <strong>일반 vs 정기배송 가격·혜택 즉시 비교</strong>는 아무도 제대로 구현하지 않음.<br>GTR이 이걸 잘 만들면 전환율 차별화 가능.</p>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Track B — 종합</div>
+  <h2>경쟁사 미개척 → GTR 차별화 기회</h2>
+  <div class="opp-grid">
+    <div class="opp-card">
+      <div class="opp-title">온라인 카페 메뉴 <span class="stars">★★★</span></div>
+      <div class="opp-desc">경쟁사 전무. 이미지 중심 카테고리별 메뉴 + 버터떡 킬러 메뉴 강조</div>
+      <div class="opp-status">경쟁사 0/5 구현</div>
+    </div>
+    <div class="opp-card">
+      <div class="opp-title">풍미 노트 시각화 <span class="stars">★★★</span></div>
+      <div class="opp-desc">레이더 차트, 로스팅 게이지, 플레이버 아이콘으로 업계 최초 수준</div>
+      <div class="opp-status">경쟁사 최상위: 텍스트 나열 (Onyx)</div>
+    </div>
+    <div class="opp-card">
+      <div class="opp-title">구독 vs 일반 즉시 비교 <span class="stars">★★☆</span></div>
+      <div class="opp-desc">상품 상세 탭 전환으로 가격·혜택 시각화</div>
+      <div class="opp-status">경쟁사 0/5 제대로 구현</div>
+    </div>
+    <div class="opp-card">
+      <div class="opp-title">베이커리 콘텐츠 <span class="stars">★★★</span></div>
+      <div class="opp-desc">갓 구운 빵 비주얼, 버터떡 = 매장 방문 트리거</div>
+      <div class="opp-status">GTR만의 독자 콘텐츠</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     TRACK C — BRAND
+     ═══════════════════════════════════════ -->
+<section class="slide-divider">
+  <h4>Track C</h4>
+  <h2>브랜드 포지셔닝</h2>
+  <p>경쟁사 대비 GTR의 위치를 정의하고 핵심 메시지를 도출</p>
+</section>
+
+<section>
+  <div class="section-label">Track C — 포지셔닝 맵</div>
+  <h2>포지셔닝 맵</h2>
+  <div class="pos-map">
+    <div class="axis-x"></div>
+    <div class="axis-y"></div>
+    <div class="label top">프리미엄 / 고급</div>
+    <div class="label bottom">대중적 / 접근성</div>
+    <div class="label left">전통 / 클래식</div>
+    <div class="label right">모던 / 트렌디</div>
+    <!-- Onyx: modern-left, very premium -->
+    <div class="dot" style="left:40%;top:18%;"><span>Onyx</span></div>
+    <!-- % Arabica: very modern, premium -->
+    <div class="dot" style="left:82%;top:18%;"><span>% Arabica</span></div>
+    <!-- Onibus: modern, mid-premium -->
+    <div class="dot" style="left:68%;top:35%;"><span>Onibus</span></div>
+    <!-- GTR: between Onibus and % Arabica -->
+    <div class="dot gtr" style="left:66%;top:28%;"><span>GTR</span></div>
+    <!-- Verve: classic-center, mid -->
+    <div class="dot" style="left:35%;top:60%;"><span>Verve</span></div>
+    <!-- Blue Bottle: center-modern, accessible -->
+    <div class="dot" style="left:55%;top:68%;"><span>Blue Bottle</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Track C — 브랜드 성격</div>
+  <h2>브랜드 성격 스펙트럼</h2>
+  <p>각 축에서 GTR이 위치하는 지점</p>
+  <div style="margin-top:20px;">
+    <div class="spectrum">
+      <span class="label-l">차가운</span>
+      <div class="bar"><div class="marker" style="left:62%;"></div></div>
+      <span class="label-r">따뜻한</span>
+    </div>
+    <div class="spectrum">
+      <span class="label-l">미니멀</span>
+      <div class="bar"><div class="marker" style="left:75%;"></div></div>
+      <span class="label-r">풍부한</span>
+    </div>
+    <div class="spectrum">
+      <span class="label-l">빠른</span>
+      <div class="bar"><div class="marker" style="left:75%;"></div></div>
+      <span class="label-r">느린</span>
+    </div>
+    <div class="spectrum">
+      <span class="label-l">공격적</span>
+      <div class="bar"><div class="marker" style="left:80%;"></div></div>
+      <span class="label-r">절제된</span>
+    </div>
+    <div class="spectrum">
+      <span class="label-l">젊은</span>
+      <div class="bar"><div class="marker" style="left:58%;"></div></div>
+      <span class="label-r">성숙한</span>
+    </div>
+    <div class="spectrum">
+      <span class="label-l">대중적</span>
+      <div class="bar"><div class="marker" style="left:55%;"></div></div>
+      <span class="label-r">전문적</span>
+    </div>
+  </div>
+  <div class="quote-block" style="margin-top:20px;">
+    <p>"모던한 정갈함 속의 따뜻함"<br>
+    <span class="attr">차갑지도, 과하지도 않은 <strong>단정한 따뜻함</strong></span></p>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Track C — 보이스 &amp; 톤</div>
+  <h2>브랜드 보이스</h2>
+  <div class="two-col">
+    <div>
+      <h3 style="color:var(--gtr-black);">이렇게</h3>
+      <table class="data-table">
+        <tr><td>어조</td><td>차분하고 자신감 있는, 과시하지 않는</td></tr>
+        <tr><td>문장</td><td>짧고 여운이 있는 · "천천히 내린 한 잔."</td></tr>
+        <tr><td>영문</td><td>소문자 선호, 간결 · "good things, take time"</td></tr>
+        <tr><td>한글</td><td>존댓말 기반, 부드러운 · "만나보세요"</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3 style="color:#cc4444;">이건 아님</h3>
+      <table class="data-table">
+        <tr><td>급박</td><td>"지금 바로!", "한정 수량!"</td></tr>
+        <tr><td>과장</td><td>"최고급 프리미엄 원두!"</td></tr>
+        <tr><td>힙스터</td><td>"갓생", 과도한 이모지</td></tr>
+        <tr><td>올캡</td><td>"THE BEST COFFEE EVER"</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Track C — 메시지 프레임워크</div>
+  <h2>메시지 계층</h2>
+  <div style="margin-top:20px;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="width:70px;height:70px;border-radius:50%;background:var(--gtr-black);display:flex;align-items:center;justify-content:center;color:white;font-size:0.65em;font-weight:600;flex-shrink:0;">L0</div>
+        <div>
+          <div style="font-size:0.75em;font-weight:600;color:var(--gtr-black);">철학 — 웹사이트 전체에 스며드는 결</div>
+          <div style="font-size:0.62em;color:var(--gtr-mid);">"good things, take time" → 직접 말하지 않고, 페이싱·여백·인터랙션으로 체감</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="width:70px;height:70px;border-radius:50%;background:var(--gtr-dark);display:flex;align-items:center;justify-content:center;color:white;font-size:0.65em;font-weight:600;flex-shrink:0;">L1</div>
+        <div>
+          <div style="font-size:0.75em;font-weight:600;color:var(--gtr-black);">핵심 메시지 — 히어로 + 스토리</div>
+          <div style="font-size:0.62em;color:var(--gtr-mid);">"좋은 원두, 좋은 추출, 좋은 시간" → 히어로 영상으로 압축 전달</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="width:70px;height:70px;border-radius:50%;background:var(--gtr-mid);display:flex;align-items:center;justify-content:center;color:white;font-size:0.65em;font-weight:600;flex-shrink:0;">L2</div>
+        <div>
+          <div style="font-size:0.75em;font-weight:600;color:var(--gtr-black);">섹션별 메시지</div>
+          <div style="font-size:0.62em;color:var(--gtr-mid);">카페 메뉴 → "오늘, 매장에서" &nbsp;|&nbsp; 상품 → "집에서도 같은 맛을" &nbsp;|&nbsp; 구독 → "매달, 문 앞까지"</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="width:70px;height:70px;border-radius:50%;background:var(--gtr-light);display:flex;align-items:center;justify-content:center;color:white;font-size:0.65em;font-weight:600;flex-shrink:0;">L3</div>
+        <div>
+          <div style="font-size:0.75em;font-weight:600;color:var(--gtr-black);">상세 메시지 — 서브 페이지, 상품 상세</div>
+          <div style="font-size:0.62em;color:var(--gtr-mid);">원두별 원산지·프로세스·풍미 스토리, MANO 머신, 베이커리 철학</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     TRACK D — TARGET USER
+     ═══════════════════════════════════════ -->
+<section class="slide-divider">
+  <h4>Track D</h4>
+  <h2>타겟 유저 리서치</h2>
+  <p>5개 고객 세그먼트 정의와 페르소나별 웹사이트 이용 시나리오</p>
+</section>
+
+<section>
+  <div class="section-label">Track D — 세그먼트</div>
+  <h2>고객 세그먼트</h2>
+  <p>1차 전환 목표가 매장 방문 유도이므로, 매장 연결 세그먼트 우선</p>
+  <table class="data-table" style="margin-top:16px;">
+    <tr>
+      <th>우선순위</th>
+      <th>세그먼트</th>
+      <th>매장 연결</th>
+      <th>온라인 구매</th>
+      <th>비중</th>
+    </tr>
+    <tr class="highlight">
+      <td><span class="stars">★★★</span></td>
+      <td><strong>카페 단골 / 잠재 방문객</strong></td>
+      <td>직접</td>
+      <td>중간</td>
+      <td>40%</td>
+    </tr>
+    <tr class="highlight">
+      <td><span class="stars">★★★</span></td>
+      <td><strong>디저트·베이커리 팬</strong></td>
+      <td>직접</td>
+      <td>낮음</td>
+      <td>20%</td>
+    </tr>
+    <tr>
+      <td><span class="stars">★★☆</span></td>
+      <td>홈브루어</td>
+      <td>간접</td>
+      <td>높음</td>
+      <td>20%</td>
+    </tr>
+    <tr>
+      <td><span class="stars">★★☆</span></td>
+      <td>선물 구매자</td>
+      <td>간접</td>
+      <td>높음</td>
+      <td>10%</td>
+    </tr>
+    <tr>
+      <td><span class="stars">★☆☆</span></td>
+      <td>커피 입문자</td>
+      <td>간접</td>
+      <td>중간</td>
+      <td>10%</td>
+    </tr>
+  </table>
+</section>
+
+<section>
+  <div class="section-label">Track D — 페르소나</div>
+  <h2>핵심 페르소나</h2>
+  <div class="persona-grid">
+    <div class="persona-card">
+      <div class="name">지은 (29, 마케터) <span class="tag">단골</span></div>
+      <div class="role">주 2~3회 매장 방문 · 인스타 팔로우</div>
+      <div class="need">
+        <strong>핵심:</strong> 신메뉴 확인, 영업시간, "역시 여기 좋다" 재확인<br>
+        <strong>경로:</strong> 인스타 → 웹사이트 → 메뉴 확인 → 매장 방문<br>
+        <strong>페이지:</strong> 카페 메뉴, 매장 정보, 상품(원두)
+      </div>
+    </div>
+    <div class="persona-card">
+      <div class="name">수빈 (33, 디자이너) <span class="tag">디저트</span></div>
+      <div class="role">카페 작업 · 빵 냄새에 재방문</div>
+      <div class="need">
+        <strong>핵심:</strong> 오늘 어떤 빵? 매장 분위기 · <strong>버터떡</strong>(킬러 메뉴)<br>
+        <strong>경로:</strong> 인스타 릴스 → 웹사이트 → 디저트 메뉴 → 방문<br>
+        <strong>페이지:</strong> 카페 메뉴(디저트), 갤러리, 매장 정보
+      </div>
+    </div>
+    <div class="persona-card">
+      <div class="name">민수 (36, 개발자) <span class="tag dark">홈브루어</span></div>
+      <div class="role">재택근무 · 한 번 방문 후 원두 재구매</div>
+      <div class="need">
+        <strong>핵심:</strong> 원두 상세(원산지, 풍미), 분쇄 옵션, 정기배송<br>
+        <strong>경로:</strong> 매장 → 웹사이트 → 원두 탐색 → 구매 → 구독<br>
+        <strong>페이지:</strong> 상품 목록, 상품 상세, 구독
+      </div>
+    </div>
+    <div class="persona-card">
+      <div class="name">정원 (31, 금융) <span class="tag">선물</span></div>
+      <div class="role">지인 추천으로 발견 · 1회성 구매</div>
+      <div class="need">
+        <strong>핵심:</strong> "센스 있어 보이는" 선물, 브랜드 신뢰 판단 (3초)<br>
+        <strong>경로:</strong> 검색 → 웹사이트 → 선물 세트 → 구매<br>
+        <strong>페이지:</strong> 상품(선물 세트), 브랜드 스토리
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Track D — 핵심 인사이트</div>
+  <h2>세그먼트별 니즈 매트릭스</h2>
+  <div class="opp-grid" style="margin-top:16px;">
+    <div class="opp-card" style="border-left-color:var(--gtr-black);">
+      <div class="opp-title">카페 메뉴가 가장 많은 세그먼트에 영향</div>
+      <div class="opp-desc">단골 + 디저트팬 + 입문자 = 전체의 <strong>~70%</strong><br>
+      카페 메뉴 퀄리티가 웹사이트 전체 만족도를 좌우<br>
+      <strong>버터떡</strong> = 현재 가장 강력한 매장 방문 트리거</div>
+    </div>
+    <div class="opp-card" style="border-left-color:var(--gtr-black);">
+      <div class="opp-title">풍미 시각화는 ~20%지만 차별화 극대</div>
+      <div class="opp-desc">홈브루어 세그먼트가 <strong>재구매 + 구독 전환의 핵심</strong><br>
+      "이 브랜드 진짜 신경 쓴다"는 인상을 모든 세그먼트에 전달</div>
+    </div>
+    <div class="opp-card" style="border-left-color:var(--gtr-black);">
+      <div class="opp-title">브랜드 스토리는 첫 방문자에게 집중</div>
+      <div class="opp-desc">선물 구매자 + 입문자에게 <strong>신뢰 형성의 핵심</strong><br>
+      메인에서 가볍게 노출 + 서브 페이지에서 깊이</div>
+    </div>
+    <div class="opp-card" style="border-left-color:var(--gtr-black);">
+      <div class="opp-title">SNS ↔ 웹사이트 = 진입의 핵심 축</div>
+      <div class="opp-desc">인스타그램이 가장 활발한 채널<br>
+      인스타 → 웹사이트 → 매장의 흐름이 주요 여정</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     DESIGN DIRECTION
+     ═══════════════════════════════════════ -->
+<section class="slide-divider">
+  <h4>Design Direction</h4>
+  <h2>디자인 방향성</h2>
+  <p>4개 트랙 리서치의 종합 → 비주얼 시스템 · UX 원칙 · 페이지 구조</p>
+</section>
+
+<section>
+  <div class="section-label">Design Direction — 에센스</div>
+  <h2>브랜드 에센스</h2>
+  <div style="text-align:center;margin:40px 0;">
+    <div style="font-size:1.6em;font-weight:700;color:var(--gtr-black);letter-spacing:-0.02em;">"모던한 정갈함 속의 따뜻함"</div>
+    <div style="font-size:0.75em;color:var(--gtr-light);margin-top:12px;letter-spacing:0.06em;">good things, take time</div>
+  </div>
+  <div class="metric-row">
+    <div class="metric-card">
+      <div class="num" style="font-size:1.2em;">MANO</div>
+      <div class="unit">미래적 추출 장비</div>
+    </div>
+    <div class="metric-card">
+      <div class="num" style="font-size:1.2em;">버터떡</div>
+      <div class="unit">킬러 베이커리 메뉴</div>
+    </div>
+    <div class="metric-card">
+      <div class="num" style="font-size:1.2em;">공간</div>
+      <div class="unit">화이트·메탈·우드</div>
+    </div>
+    <div class="metric-card">
+      <div class="num" style="font-size:1.2em;">카페 메뉴</div>
+      <div class="unit">경쟁사 전무</div>
+    </div>
+    <div class="metric-card">
+      <div class="num" style="font-size:1.2em;">풍미</div>
+      <div class="unit">업계 최초 시각화</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Design Direction — 전환 목표</div>
+  <h2>전환 우선순위</h2>
+  <div style="margin-top:24px;display:flex;flex-direction:column;gap:16px;">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="width:48px;height:48px;border-radius:50%;background:var(--gtr-black);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2em;flex-shrink:0;">1</div>
+      <div style="flex:1;">
+        <div style="font-size:0.82em;font-weight:600;color:var(--gtr-black);">매장 방문 유도</div>
+        <div style="font-size:0.62em;color:var(--gtr-mid);">카페 메뉴, 갤러리, Come visit us, 히어로 영상</div>
+      </div>
+      <div style="background:var(--gtr-black);height:8px;border-radius:4px;width:300px;"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="width:48px;height:48px;border-radius:50%;background:var(--gtr-dark);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2em;flex-shrink:0;">2</div>
+      <div style="flex:1;">
+        <div style="font-size:0.82em;font-weight:600;color:var(--gtr-black);">브랜드 인지 · 충성도</div>
+        <div style="font-size:0.62em;color:var(--gtr-mid);">히어로 영상, 스토리, 웹사이트 퀄리티</div>
+      </div>
+      <div style="background:var(--gtr-dark);height:8px;border-radius:4px;width:220px;"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="width:48px;height:48px;border-radius:50%;background:var(--gtr-mid);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2em;flex-shrink:0;">3</div>
+      <div style="flex:1;">
+        <div style="font-size:0.82em;font-weight:600;color:var(--gtr-black);">원두 온라인 구매</div>
+        <div style="font-size:0.62em;color:var(--gtr-mid);">상품 상세, 풍미 그래픽, 분쇄 옵션</div>
+      </div>
+      <div style="background:var(--gtr-mid);height:8px;border-radius:4px;width:150px;"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="width:48px;height:48px;border-radius:50%;background:var(--gtr-light);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2em;flex-shrink:0;">4</div>
+      <div style="flex:1;">
+        <div style="font-size:0.82em;font-weight:600;color:var(--gtr-black);">구독 전환</div>
+        <div style="font-size:0.62em;color:var(--gtr-mid);">일반 vs 구독 비교 UI, 어나운스 프로모</div>
+      </div>
+      <div style="background:var(--gtr-light);height:8px;border-radius:4px;width:100px;"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Design Direction — 컬러 &amp; 타이포</div>
+  <h2>비주얼 시스템</h2>
+  <div class="two-col">
+    <div>
+      <h3>컬러</h3>
+      <div class="swatch-row" style="flex-direction:column;gap:8px;">
+        <div class="swatch">
+          <div class="chip" style="background:#FFFFFF;"></div>
+          <div class="info"><div class="hex">#FFFFFF</div><div class="use">배경 (주)</div></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:#F5F5F5;"></div>
+          <div class="info"><div class="hex">#F5F5F5</div><div class="use">배경 (보조)</div></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:#1A1A1A;"></div>
+          <div class="info"><div class="hex">#1A1A1A</div><div class="use">텍스트 · CTA</div></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:#666666;"></div>
+          <div class="info"><div class="hex">#666666</div><div class="use">보조 텍스트</div></div>
+        </div>
+        <div class="swatch">
+          <div class="chip" style="background:#999999;"></div>
+          <div class="info"><div class="hex">#999999</div><div class="use">힌트 · 비활성</div></div>
+        </div>
+      </div>
+      <p style="font-size:0.6em;margin-top:12px;"><strong>액센트 컬러 없음</strong> — 이미지의 따뜻한 색감이 유일한 컬러</p>
+    </div>
+    <div>
+      <h3>타이포그래피</h3>
+      <table class="data-table">
+        <tr><th>요소</th><th>크기</th><th>Weight</th></tr>
+        <tr><td>H1</td><td>48px</td><td>600</td></tr>
+        <tr><td>H2</td><td>32px</td><td>600</td></tr>
+        <tr><td>H3</td><td>24px</td><td>500</td></tr>
+        <tr><td>본문</td><td>16px</td><td>400</td></tr>
+        <tr><td>라벨</td><td>13px</td><td>500</td></tr>
+        <tr><td>CTA</td><td>14px</td><td>500</td></tr>
+      </table>
+      <p style="font-size:0.6em;margin-top:12px;">
+        <strong>EN:</strong> Inter 300–600<br>
+        <strong>KR:</strong> Pretendard Variable 300–600
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Design Direction — 인터랙션</div>
+  <h2>인터랙션 로드맵</h2>
+  <p>단계적·점진적 적용. 기본 효과 먼저, 느낌을 보면서 고급 효과 추가.</p>
+  <div style="margin-top:20px;">
+    <div class="phase-row">
+      <div class="phase-badge p1">Phase 1</div>
+      <div class="phase-content"><strong>스크롤 리빌</strong> (fade-in + translateY, 0.6s) · <strong>Stagger</strong> (100ms 간격 순차 등장) · <strong>Blur→Sharp</strong> (1회성 이미지 리빌)</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-badge p2">Phase 2</div>
+      <div class="phase-content"><strong>스크롤 연동 동적 블러</strong> — Onyx 참고. 뷰포트 진입/이탈 시 블러↔선명 반복. 1회성이 아닌 스크롤 위치에 따라 계속 반응</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-badge p3">Phase 3</div>
+      <div class="phase-content">고급 스크롤 기반 효과 — Phase 2 적용 후 체감 확인하고 결정</div>
+    </div>
+  </div>
+  <div style="margin-top:20px;">
+    <h3 style="font-size:0.7em;color:#cc4444;">안티패턴 (사용 금지)</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+      <span class="tag" style="background:#fff0f0;color:#cc4444;">과도한 패럴랙스</span>
+      <span class="tag" style="background:#fff0f0;color:#cc4444;">3D tilt / 회전</span>
+      <span class="tag" style="background:#fff0f0;color:#cc4444;">네온 / 글로우</span>
+      <span class="tag" style="background:#fff0f0;color:#cc4444;">바운스 이징</span>
+      <span class="tag" style="background:#fff0f0;color:#cc4444;">빠른 자동 캐러셀</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Design Direction — 페이지 구조</div>
+  <h2>메인 페이지 섹션 순서 (확정)</h2>
+  <p>리서치 결과, 현재 프로토타입의 섹션 순서가 최적임을 검증</p>
+  <table class="data-table" style="margin-top:12px;">
+    <tr>
+      <th style="width:5%;">#</th>
+      <th style="width:22%;">섹션</th>
+      <th style="width:33%;">전환 역할</th>
+      <th>타겟 세그먼트</th>
+    </tr>
+    <tr><td>1</td><td><strong>히어로 영상</strong></td><td>첫 인상 — MANO+로스팅+공간</td><td>전체</td></tr>
+    <tr><td>2</td><td><strong>시즌 배너</strong></td><td>새 소식, 시즌 메뉴</td><td>단골, 디저트팬</td></tr>
+    <tr class="highlight"><td>3</td><td><strong>카페 메뉴 카드</strong></td><td>매장 방문 유도 (1차 전환)</td><td>단골, 디저트팬, 입문자</td></tr>
+    <tr><td>4</td><td><strong>브랜드 스토리</strong></td><td>신뢰 형성</td><td>입문자, 선물</td></tr>
+    <tr><td>5</td><td><strong>상품 스크롤</strong></td><td>원두 구매 (2차 전환)</td><td>홈브루어, 선물</td></tr>
+    <tr><td>6</td><td><strong>서비스 카드</strong></td><td>구독 전환 (3차 전환)</td><td>홈브루어</td></tr>
+    <tr class="highlight"><td>7</td><td><strong>Come visit us</strong></td><td>매장 방문 최종 CTA</td><td>전체</td></tr>
+    <tr><td>8</td><td><strong>갤러리</strong></td><td>공간 매력</td><td>디저트팬, 입문자</td></tr>
+    <tr><td>9</td><td><strong>푸터 (SNS)</strong></td><td>인스타 연결</td><td>전체</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════
+     UX PRINCIPLES
+     ═══════════════════════════════════════ -->
+<section>
+  <div class="section-label">Design Direction — UX 원칙</div>
+  <h2>7가지 UX 설계 원칙</h2>
+  <div class="ux-grid" style="grid-template-columns:1fr 1fr 1fr;">
+    <div class="ux-card">
+      <div class="ux-num">01</div>
+      <div class="ux-title">보여주되, 설명하지 않는다</div>
+      <div class="ux-desc">이미지·영상이 텍스트보다 먼저. 갓 구운 빵 클로즈업 한 장 > "매일 빵을 굽습니다"</div>
+    </div>
+    <div class="ux-card">
+      <div class="ux-num">02</div>
+      <div class="ux-title">여유로운 페이싱</div>
+      <div class="ux-desc">"take time" 체현. 120px+ 여백, 0.6s+ 리빌, 팝업 남발 금지</div>
+    </div>
+    <div class="ux-card">
+      <div class="ux-num">03</div>
+      <div class="ux-title">감각의 트리거</div>
+      <div class="ux-desc">냄새·촉감을 시각으로 환기. 소재감 클로즈업, MANO 추출, 공간</div>
+    </div>
+    <div class="ux-card">
+      <div class="ux-num">04</div>
+      <div class="ux-title">정보의 계층화</div>
+      <div class="ux-desc">첫 눈에 핵심만, 관심 있는 사람만 더 깊이. 카드 → 상세 → 추가</div>
+    </div>
+    <div class="ux-card">
+      <div class="ux-num">05</div>
+      <div class="ux-title">구매 허들 최소화</div>
+      <div class="ux-desc">분쇄 옵션 4종, 구독 토글, 사이드 드로어 장바구니</div>
+    </div>
+    <div class="ux-card">
+      <div class="ux-num">06</div>
+      <div class="ux-title">매장 방문 = 궁극의 CTA</div>
+      <div class="ux-desc">모든 경로가 "가보고 싶다"로 수렴. 메뉴(상단) → Visit(하단)</div>
+    </div>
+  </div>
+  <div class="ux-grid" style="grid-template-columns:1fr;margin-top:12px;">
+    <div class="ux-card">
+      <div class="ux-num">07</div>
+      <div class="ux-title">디테일이 신뢰를 만든다</div>
+      <div class="ux-desc">호버 섬세함, 자간 조정, 풍미 시각화 — 작은 정성 = "여기 진짜 신경 쓴다" = 웹사이트 퀄리티 = 브랜드 퀄리티</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     CLOSING
+     ═══════════════════════════════════════ -->
+<section class="slide-divider">
+  <h4>Next Steps</h4>
+  <h2>다음 단계</h2>
+  <p style="line-height:2.2;">
+    포토샵 디자인 작업 — 비주얼 시스템 적용<br>
+    카페 메뉴 페이지 (킬러 콘텐츠 — 최우선)<br>
+    풍미 노트 시각화 그래픽 방향 확정<br>
+    히어로 영상 편집 방향 확정<br>
+    상품 상세 페이지 (구독 비교 UI 포함)
+  </p>
+</section>
+
+<section class="slide-title">
+  <h4 style="margin-bottom:0.5em;">Good Things Roasters</h4>
+  <h1 style="font-size:1.8em;">good things,<br>take time</h1>
+  <p class="tagline" style="margin-top:2em;">Research &amp; Design Direction v1 — 2026.04.05</p>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  transition: 'fade',
+  transitionSpeed: 'slow',
+  backgroundTransition: 'fade',
+  slideNumber: 'c/t',
+  width: 1200,
+  height: 700,
+  margin: 0,
+  center: false,
+  controls: true,
+  controlsLayout: 'bottom-right',
+  progress: true,
+  history: true
+});
+</script>
+</body>
+</html>
