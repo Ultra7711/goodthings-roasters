@@ -8,6 +8,8 @@
 
 import { useState } from 'react';
 
+const BIZ_DETAIL_SCROLL_DELAY_MS = 80; // React DOM 업데이트 완료 대기
+
 export default function BizToggle() {
   const [open, setOpen] = useState(false);
 
@@ -15,7 +17,9 @@ export default function BizToggle() {
     const next = !open;
     setOpen(next);
     if (next) {
-      document.getElementById('f-biz-detail')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      setTimeout(() => {
+        document.getElementById('f-biz-detail')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, BIZ_DETAIL_SCROLL_DELAY_MS);
     }
   }
 
