@@ -14,19 +14,26 @@ import type { Product } from '@/types/product';
 
 const FEATURED = PRODUCTS.filter((p) => p.status !== '매진').slice(0, 8);
 
+/* 프로토타입 라인 5292: 한글 이름만 추출 (영문 이후 제거) */
+function krName(name: string) {
+  return name.replace(/\s+[A-Z][a-z].*$/, '');
+}
+
 function BeanCard({ product }: { product: Product }) {
   const img = product.images[0];
+  /* 프로토타입 라인 5281: bean-img-inner에 배경 이미지 직접 적용 (center/contain) */
+  const innerBg = img?.src
+    ? `${img.bg ?? '#ECEAE6'} url('${img.src}') center/contain no-repeat`
+    : (img?.bg ?? 'var(--color-background-secondary)');
+
   return (
     <Link href={`/shop/${product.slug}`} className="bean-card" data-sr>
       <div className="bean-img sr-img" style={{ background: img?.bg ?? 'var(--color-background-secondary)' }}>
-        <div className="bean-img-inner">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          {img && <img src={img.src} alt={product.name} className="pkg" />}
-        </div>
+        <div className="bean-img-inner" style={{ background: innerBg }} />
       </div>
       <div className="bean-info">
         <span className="bean-info-cat">{product.category}</span>
-        <span className="bean-info-name">{product.name.split(' ')[0]}</span>
+        <span className="bean-info-name">{krName(product.name)}</span>
       </div>
     </Link>
   );
@@ -39,8 +46,8 @@ export default function BeansScrollSection() {
   const startX = useRef(0);
   const scrollLeft = useRef(0);
 
-  /* 도트 개수: 카드 수 기반 (카드 폭 25vw 기준) */
-  const dotCount = Math.max(1, Math.ceil(FEATURED.length / 3));
+  /* 도트 개수: 카드 1장 = 도트 1개 (프로토타입 라인 5324) */
+  const dotCount = FEATURED.length;
 
   /* 스크롤 → 활성 도트 업데이트 */
   useEffect(() => {

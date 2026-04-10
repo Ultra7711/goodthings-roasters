@@ -813,6 +813,8 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
   flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.9s ease-out;
+  position: relative;
+  top: -3px;
 }
 .hero-scroll-mouse.hero--visible { opacity: 1; }
 .hero-scroll-mouse .mouse-wheel {
@@ -991,21 +993,23 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
   gap: 0;
 }
 .cat-arrow {
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   color: var(--color-text-inverse);
   opacity: 0;
-  transform: translateX(-16px);
-  margin-bottom: 10px;
+  transform: translateX(0);
+  transition: opacity var(--duration-transition) ease-out;
+  margin-bottom: 32px;
 }
 .cat-card:hover .cat-arrow {
   opacity: 1;
   transform: translateX(0);
+  transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) ease-out;
   animation: cat-arrow-in var(--duration-fade) ease-out both;
 }
 .cat-title {
   font-family: var(--font-en);
-  font-size: var(--type-price-m-size, 20px);
+  font-size: var(--type-price-m-size);
   font-weight: 600;
   color: var(--color-text-inverse);
   letter-spacing: var(--ls-label);
@@ -1014,10 +1018,10 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
 }
 .cat-desc {
   font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
+  font-size: var(--type-heading-s-size);
   font-weight: 400;
-  color: rgba(250,250,248,.75);
-  line-height: 1.5;
+  color: var(--color-background-tertiary);
+  line-height: 1.6;
 }
 /* 배경 이미지 */
 .img-coffee    { background: url('/images/cafe-menu/cm_img_milk_coffee.webp') center/cover no-repeat; }
