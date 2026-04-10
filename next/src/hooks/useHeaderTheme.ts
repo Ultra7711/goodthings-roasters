@@ -19,10 +19,18 @@ function isValidTheme(value: string | undefined): value is HeaderTheme {
  * 헤더 중심선(midY)에 걸리는 섹션의 테마를 반환한다.
  *
  * @param headerRef - 헤더 DOM 요소 ref (높이 계산용)
+ * @param initialTheme - SSR/hydration 시점의 초기 테마
+ *                      (페이지별 설정은 `@/lib/headerThemeConfig` 참조)
  * @returns isDark: boolean — 다크 테마 여부
  */
-export function useHeaderTheme(headerRef: React.RefObject<HTMLElement | null>) {
-  const [isDark, setIsDark] = useState(false);
+export function useHeaderTheme(
+  headerRef: React.RefObject<HTMLElement | null>,
+  initialTheme: HeaderTheme = 'dark',
+) {
+  /* SSR/hydration 초기값은 페이지별 설정을 따른다.
+     틀린 값으로 시작하면 페이지 로드 직후 light ↔ dark 플래시가 발생함.
+     useEffect 실행 후 실제 DOM 섹션 기반으로 자동 보정된다. */
+  const [isDark, setIsDark] = useState(initialTheme === 'dark');
   const rafPending = useRef(false);
 
   useEffect(() => {
