@@ -287,12 +287,27 @@ body {
   margin-bottom: 0;
 }
 
-/* ══ 콘텐츠 최대폭 1440px 중앙 제한 ══ */
+/* ══ 콘텐츠 최대폭 1440px 중앙 제한 ══
+   프로토타입 라인 248–261 이식 */
 .hdr,
+.hero-c,
+.season-txt,
+.cat-grid,
+.section-cta,
+.phil,
+.roastery-c,
+.gooddays-sec,
 .f-inner {
   max-width: 1440px;
   margin-left: auto;
   margin-right: auto;
+  width: 100%;
+}
+/* 풀블리드 섹션: 배경만 풀폭 */
+.hero,
+.season-banner,
+.roastery,
+.footer {
   width: 100%;
 }
 
@@ -743,6 +758,8 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
 }
 
 /* ══ #hero-blk ══ */
+/* 어나운스(36px) + 헤더(60px) 뒤로 히어로가 확장됨 — 프로토타입 라인 468 */
+#hero-blk { margin-top: -96px; }
 .hero {
   position: relative;
   min-height: 100dvh;
@@ -802,6 +819,9 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
   transform-origin: center;
   animation: scrollWheel 1.8s ease-in-out infinite;
 }
+
+/* 카페 메뉴 섹션 — 히어로 바로 아래 마진 없음 (프로토타입 라인 482) */
+#cafe-menu-blk { margin-top: 0; }
 
 /* ══ 공통 블록 헤더 ══ */
 .blk-header {
@@ -1067,6 +1087,8 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
 }
 
 /* ══ .blk-scroll (Featured Beans) ══ */
+/* overflow:visible — 카드가 섹션 경계에서 잘리지 않도록 (프로토타입 라인 536) */
+.blk-scroll { overflow: visible; }
 .beans-sec { padding: 0; }
 .beans-scroll {
   display: flex;

@@ -20,11 +20,8 @@ export default function HomePage() {
 
   return (
     <>
-      {/* 프로토타입 #hero-blk margin-top:-96px
-          → 어나운스(36px) + 헤더(60px) 뒤로 섹션 확장 */}
-      <div style={{ marginTop: '-96px' }}>
-        <HeroSection />
-      </div>
+      {/* #hero-blk margin-top:-96px는 globals.css에서 적용 */}
+      <HeroSection />
       <CafeMenuSection />
       <PhilSection />
       <BeansScrollSection />
