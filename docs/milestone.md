@@ -196,8 +196,8 @@ UI 생성, 반응형 변환, 인터랙션 설계.
 
 | 순서 | 대상 | 리뷰어 | 보안 리뷰 | 상태 |
 |------|------|--------|----------|------|
-| RP-1 | 공통 레이아웃 (AnnouncementBar·SiteHeader·SiteFooter·BizToggle·SRInitializer·useHeaderTheme·headerThemeConfig·layout.tsx) | ts-reviewer + code-reviewer + security-reviewer | — | 🔄 리뷰 중 |
-| RP-2 | 홈 섹션 7개 (HeroSection·CafeMenuSection·PhilSection·BeansScrollSection·TwoColSection·RoasterySection·GoodDaysSection·useSR·page.tsx·globals.css) | ts-reviewer + code-reviewer + security-reviewer | — | 🔄 리뷰 중 |
+| RP-1 | 공통 레이아웃 (AnnouncementBar·SiteHeader·SiteFooter·BizToggle·SRInitializer·useHeaderTheme·headerThemeConfig·layout.tsx) | ts-reviewer + code-reviewer + security-reviewer | — | ✅ |
+| RP-2 | 홈 섹션 7개 (HeroSection·CafeMenuSection·PhilSection·BeansScrollSection·TwoColSection·RoasterySection·GoodDaysSection·useSR·page.tsx·globals.css) | ts-reviewer + code-reviewer + security-reviewer | — | ✅ |
 | RP-3 | AnnouncementBar 완성 (페이지별 공지 텍스트 분기) | ts-reviewer + code-reviewer | — | ⬜ |
 | RP-4 | Shop 페이지 재이식 | ts-reviewer + code-reviewer | — | ⬜ |
 | RP-5 | 상품 상세 재이식 (ImageGallery·PurchaseOptions·RoastStage·RadarChart·RecipeGuide·ProductAccordion) | ts-reviewer + code-reviewer | — | ⬜ |
@@ -213,6 +213,7 @@ UI 생성, 반응형 변환, 인터랙션 설계.
 **R-1**: 완료 (2026-04-10). ts-reviewer + code-reviewer 병렬 실행, HIGH 3건 + MEDIUM 5건 + LOW 3건 수정 반영. 포커스 관리·접근성 대비·토큰 수정·타입 안전성 개선.
 **R-2**: 완료 (2026-04-10). ts-reviewer + code-reviewer 병렬 실행, HIGH 5건 + MEDIUM 3건 수정 반영. setTimeout cleanup·ARIA role 충돌·useEffect 의존성·aria-controls·alt 텍스트·use client 경계 명시.
 **R-3**: 완료 (2026-04-10). ts-reviewer + security-reviewer 병렬 실행, HIGH 5건 + MEDIUM 2건 수정. OrderCompleteClient `useRef`→`useState` (ESLint react-hooks/refs 블록), 이메일 형식 정규식, 전화번호 형식 정규식, 비회원 비밀번호 최소 길이(4자), `FREE_SHIPPING_THRESHOLD`/`SHIPPING_FEE` 상수 `lib/store`에서 단일 export, `extractKrName` 유틸 `lib/utils`로 추출. 백엔드 연동 전 필수 처리(평문 비밀번호·서버 재검증·주문번호 서버 생성·CSP 헤더)는 Phase 2-F로 이관.
+**RP-1, RP-2**: 완료 (2026-04-11). ts-reviewer + code-reviewer + security-reviewer 3총사 병렬 실행, HIGH 7건 수정 (useCallback 안정화·DOM 직접 조작 제거·cleanup·BizToggle React state 전환·중복 id 제거·rel 수정·env var) + MEDIUM 2건 수정 (scrollIntoView·fallback '—'). useSR.ts dead code 삭제, SRInitializer 신규 생성, page.tsx 서버 컴포넌트 전환.
 **R-4**: 완료 (2026-04-10). typescript-reviewer + code-reviewer + security-reviewer 병렬 실행, HIGH 9건 수정. (1) ConfirmModal 비동기 `onConfirm` 지원 + `isPending` 상태로 ESC/overlay 닫기 차단, (2) Level 2 PII 최소화 — localStorage에 `{isLoggedIn, displayName}`만 저장, user 객체는 메모리 only, (3) 크로스 스토어 `purgeSession()` 헬퍼로 로그아웃 시 authStorage + cartStorage 동시 클리어, (4-5) 데모 크리덴셜/유저 명백한 placeholder화 (`demo@goodthings.test` / `010-0000-0000`), (6) 아코디언 3종 `aria-hidden`+`tabIndex` → React 19 `inert` 속성 전환, (7) OrderCard 중첩 interactive HTML 위반 수정 (meta 행을 토글 버튼 바깥으로 분리), (8) `useAuthGuard` zustand persist unsubscribe 타입 가드 (NOOP fallback), (9) `/mypage` Static prerender (`useSyncExternalStore` 기반 SSR 안전). TypeScript pass · ESLint 0 errors · next build 성공 · 런타임 검증 (Claude Preview MCP) 완료.
 
 ---
