@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-10 (Phase 2 재정리: 갭 분석 기반 3 번들 재편 — 2-E 플로우 복구 / 2-F 검색+콘텐츠 / 2-G 반응형+프로덕션)
+> **최종 업데이트:** 2026-04-10 (pixel-port 재이식 시작: P-0 자산 이식 완료 — next/public/images/ 140파일 이관)
 
 ---
 
@@ -138,7 +138,7 @@ UI 생성, 반응형 변환, 인터랙션 설계.
 | 상품 상세 페이지 (2-B) | ✅ | `next/src/components/product/`, `next/src/app/shop/[slug]/` | ImageGallery·PurchaseOptions·RadarChart·RoastStage·RecipeGuide·ProductAccordion 11컴포넌트, SSG 6상품, R-2 리뷰 7건 수정 |
 | 장바구니·체크아웃 (2-C) | ✅ | `next/src/components/cart/`, `next/src/components/checkout/`, `next/src/components/order/`, `next/src/app/(checkout)/` | CartDrawer(4)·CheckoutForm(5)·OrderComplete 13컴포넌트 + Route Group `(main)`/`(checkout)` 분리 + H6 Header `openDrawer` 직접 연동, R-3 리뷰 HIGH 5건 + MEDIUM 2건 수정 |
 | 로그인·마이페이지 (2-D) | ✅ | `next/src/app/(main)/login/`, `next/src/app/(main)/mypage/`, `next/src/components/login/`, `next/src/components/mypage/`, `next/src/components/ui/ConfirmModal.tsx`, `next/src/hooks/{useLoginForm,useRegisterForm,useAuthGuard,useAddressForm,usePasswordChangeForm}.ts`, `next/src/lib/formHelpers.ts` | LoginForm·RegisterForm·PasswordResetForm·GuestLookupForm + MyPageView(Account·Subscription·Manage·OrderList) + ConfirmModal + `useAuthGuard`(`useSyncExternalStore` 기반 SSR 안전, `/mypage` static prerender 복구). R-4 리뷰 HIGH 9건 수정 완료 (PII 최소화·inert·중첩 interactive·비동기 모달). **묶음 보강 (2026-04-10):** (1) `formHelpers.focusNextOnEnter` 유틸 신규, IME 조합 가드 포함 → LoginForm·RegisterForm·ManageSection 비밀번호 변경 폼에 Enter 키 다음 필드 이동 적용, (2) `useAuthGuard.bypassRedirect()` 추가 → MyPageView 로그아웃 시 `/login` 튐 레이스 수정(호출 순서 `bypassRedirect → logout → router.replace('/')`). 동적 helper text·실시간 validation 리팩토링은 이월. |
-| 플로우 복구 (2-E) | 🔄 | `next/src/app/(main)/cart/`, `next/src/components/cart/{CartPageView,CartPageRow}.*`, `next/src/lib/cartCalc.ts` | **2-E-1 ✅** `/cart` 풀페이지: CartPageView·CartPageRow 신규, `lib/cartCalc.ts` 공용 계산기로 DRY(드로어/풀페이지 공유), CartEmpty `variant='page'` 확장. **2-E-2 ✅** CartDrawer 푸터 `[장바구니 보기][주문하기]` 2버튼, `useProductPurchase` 상품 담기 시 `openDrawer()` 자동 호출 흡수. **2-E-3 ⬜** 정적 에셋 이관 `public/images/{gallery,cafe-menu,icons,...}`. **2-E-4 ⬜** `/biz-inquiry` B2B 폼. 런타임 검증은 2-E 전체 완료 후 일괄 수행. |
+| 플로우 복구 (2-E) | 🔄 | `next/src/app/(main)/cart/`, `next/src/components/cart/{CartPageView,CartPageRow}.*`, `next/src/lib/cartCalc.ts` | **2-E-1 ✅** `/cart` 풀페이지: CartPageView·CartPageRow 신규, `lib/cartCalc.ts` 공용 계산기로 DRY(드로어/풀페이지 공유), CartEmpty `variant='page'` 확장. **2-E-2 ✅** CartDrawer 푸터 `[장바구니 보기][주문하기]` 2버튼, `useProductPurchase` 상품 담기 시 `openDrawer()` 자동 호출 흡수. **2-E-3 ✅** 정적 에셋 이관 `public/images/{gallery,cafe-menu,icons,...}` (pixel-port P-0, 2026-04-10). **2-E-4 ⬜** `/biz-inquiry` B2B 폼. 런타임 검증은 2-E 전체 완료 후 일괄 수행. |
 | 검색 시스템 + 콘텐츠 (2-F) | ⬜ | — | **검색 엔진 코어** `lib/search/{constants,normalize,chosung,matcher,engine}` (4-layer + `SEARCH_SYNONYMS` + `CAT_LABEL` + 단음절 규칙 + NFC 재조합) + Vitest TDD 80%↑, **검색 오버레이 + `/search` SRP** (`.has-panel` 토글, Radix early return 금지), **콘텐츠 채우기**: GoodDays 갤러리 22장 연결 / Story 섹션 / MyPage ManageSection 실콘텐츠 |
 | 반응형 + 프로덕션 (2-G) | ⬜ | — | **반응형 일괄**: 카페 메뉴 카드 터치(`project_cat_card_hover_responsive`) / 영양정보 모바일 인라인 아코디언(`project_nutrition_panel_responsive`) / 구매 옵션 행(`project_purchase_row_responsive`) + 4 브레이크포인트(360/768/1024/1440) 회귀 점검. **프로덕션 전 필수 처리** 5건(H3·H4·H5·H6·M7) 잔여 마감. **`useFormValidation` 훅 통일** (`project_nextjs_form_validation`) — 로그인/회원가입/체크아웃/주소/비번/비즈문의 6개 폼 마이그레이션 |
 
