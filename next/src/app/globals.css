@@ -656,6 +656,8 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
 }
 .f-legal-link:hover { color: var(--color-text-inverse); }
 .f-biz-inline {
+  order: 999;       /* DOM 중간에 있어도 시각적으로 맨 마지막 줄 배치 */
+  flex-basis: 100%; /* 한 줄 전체 차지 → 다음 행으로 내려감 */
   font-size: var(--type-caption-size);
   color: rgba(250,250,248,.4);
   line-height: 1.6;

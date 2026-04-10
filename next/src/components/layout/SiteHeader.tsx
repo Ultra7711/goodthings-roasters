@@ -8,14 +8,13 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useHeaderTheme } from '@/hooks/useHeaderTheme';
 import { getInitialHeaderTheme } from '@/lib/headerThemeConfig';
-import { useCartStore } from '@/lib/store';
-import { useAuthStore } from '@/lib/store';
+import { useAuthStore, useCartStore } from '@/lib/store';
 
 export default function SiteHeader() {
   const headerRef = useRef<HTMLDivElement>(null);
@@ -39,19 +38,26 @@ export default function SiteHeader() {
   }, []);
 
   /* 검색 열기/닫기 */
+  const SEARCH_PANEL_HEIGHT = 62;
+
+  const closeSearch = useCallback(() => {
+    setIsSearchOpen(false);
+    document.body.style.overflow = '';
+  }, []);
+
   function openSearch() {
     const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? 60;
-    const searchPanelHeight = 62;
     document.documentElement.style.setProperty('--search-drop-top', `${headerBottom}px`);
-    document.documentElement.style.setProperty('--dim-top', `${headerBottom + searchPanelHeight}px`);
+    document.documentElement.style.setProperty('--dim-top', `${headerBottom + SEARCH_PANEL_HEIGHT}px`);
     document.body.style.overflow = 'hidden';
     setIsSearchOpen(true);
     setTimeout(() => searchInputRef.current?.focus(), 20);
   }
-  function closeSearch() {
-    setIsSearchOpen(false);
-    document.body.style.overflow = '';
-  }
+
+  /* 언마운트 시 body.overflow 강제 해제 */
+  useEffect(() => {
+    return () => { document.body.style.overflow = ''; };
+  }, []);
 
   /* ESC 키로 검색 닫기 */
   useEffect(() => {
@@ -61,7 +67,7 @@ export default function SiteHeader() {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isSearchOpen]);
+  }, [isSearchOpen, closeSearch]);
 
   return (
     <>

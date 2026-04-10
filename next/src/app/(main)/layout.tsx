@@ -8,6 +8,7 @@ import type { ReactNode } from 'react';
 import AnnouncementBar from '@/components/layout/AnnouncementBar';
 import SiteHeader from '@/components/layout/SiteHeader';
 import SiteFooter from '@/components/layout/SiteFooter';
+import SRInitializer from '@/components/layout/SRInitializer';
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   return (
@@ -45,6 +46,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
       {/* 푸터 */}
       <SiteFooter />
+
+      {/* Scroll Reveal 초기화 (페이지 이동마다 재관찰) */}
+      <SRInitializer />
     </div>
   );
 }

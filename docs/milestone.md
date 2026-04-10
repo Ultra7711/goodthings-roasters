@@ -189,6 +189,26 @@ UI 생성, 반응형 변환, 인터랙션 설계.
 | R-6 | 검색 시스템 + 콘텐츠 (2-F: 검색 엔진·오버레이·SRP·Story/GoodDays/MyPage) | ts-reviewer + code-reviewer | ✅ security (검색 입력 XSS) | ⬜ |
 | R-7 | 반응형 + 프로덕션 (2-G: 반응형·체크리스트 5건·useFormValidation) | ts-reviewer + code-reviewer | ✅ security (CSP) | ⬜ |
 
+#### pixel-port 재이식 리뷰 (claude/pixel-port 브랜치)
+
+> 각 Phase 구현 완료 + 사용자 시각 확인 직후 3총사(ts-reviewer + code-reviewer + security-reviewer) 병렬 실행.
+> 지적 사항 반영 후 커밋한다.
+
+| 순서 | 대상 | 리뷰어 | 보안 리뷰 | 상태 |
+|------|------|--------|----------|------|
+| RP-1 | 공통 레이아웃 (AnnouncementBar·SiteHeader·SiteFooter·BizToggle·SRInitializer·useHeaderTheme·headerThemeConfig·layout.tsx) | ts-reviewer + code-reviewer + security-reviewer | — | 🔄 리뷰 중 |
+| RP-2 | 홈 섹션 7개 (HeroSection·CafeMenuSection·PhilSection·BeansScrollSection·TwoColSection·RoasterySection·GoodDaysSection·useSR·page.tsx·globals.css) | ts-reviewer + code-reviewer + security-reviewer | — | 🔄 리뷰 중 |
+| RP-3 | AnnouncementBar 완성 (페이지별 공지 텍스트 분기) | ts-reviewer + code-reviewer | — | ⬜ |
+| RP-4 | Shop 페이지 재이식 | ts-reviewer + code-reviewer | — | ⬜ |
+| RP-5 | 상품 상세 재이식 (ImageGallery·PurchaseOptions·RoastStage·RadarChart·RecipeGuide·ProductAccordion) | ts-reviewer + code-reviewer | — | ⬜ |
+| RP-6 | 카페 메뉴 페이지 재이식 | ts-reviewer + code-reviewer | — | ⬜ |
+| RP-7 | Story + 보조 페이지 재이식 (/biz-inquiry·/gooddays·/story) | ts-reviewer + code-reviewer | — | ⬜ |
+| RP-8 | 체크아웃 + OrderComplete 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
+| RP-9 | 로그인 + MyPage 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
+| RP-10 | CartDrawer + /cart 풀페이지 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
+| RP-11 | 검색 시스템 4-layer 재이식 (TDD 80%↑) | ts-reviewer + code-reviewer | ✅ security (XSS) | ⬜ |
+| RP-12 | 반응형(4 breakpoints) + 프로덕션 (CSP·환경변수·빌드) | ts-reviewer + code-reviewer | ✅ security (CSP) | ⬜ |
+
 **R-0a~c**: 완료 (2026-04-10). ts-reviewer ×3 + code-reviewer 병렬 실행, HIGH 13건 + MEDIUM 5건 수정 반영.
 **R-1**: 완료 (2026-04-10). ts-reviewer + code-reviewer 병렬 실행, HIGH 3건 + MEDIUM 5건 + LOW 3건 수정 반영. 포커스 관리·접근성 대비·토큰 수정·타입 안전성 개선.
 **R-2**: 완료 (2026-04-10). ts-reviewer + code-reviewer 병렬 실행, HIGH 5건 + MEDIUM 3건 수정 반영. setTimeout cleanup·ARIA role 충돌·useEffect 의존성·aria-controls·alt 텍스트·use client 경계 명시.

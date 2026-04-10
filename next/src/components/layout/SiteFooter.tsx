@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════
    SiteFooter
    프로토타입 <footer> / .footer / .f-* 그대로 이식
-   BizToggle만 client component로 분리
+   BizToggle: f-biz-detail 포함 client component
    ══════════════════════════════════════════ */
 
 import Link from 'next/link';
@@ -13,16 +13,16 @@ export default function SiteFooter() {
       <div className="footer">
         <div className="f-inner">
           {/* 브랜드 + SNS */}
-          <div className="f-brand">
+          <div className="f-brand sr-txt sr-txt--d1" data-sr>
             <div className="f-logo">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/icons/logo.svg" alt="GOOD THINGS" />
+              <img id="footer-logo-img" src="/images/icons/logo.svg" alt="GOOD THINGS" />
             </div>
             <a
               className="footer-sns-link"
               href="https://www.instagram.com/goodthings_roasters/"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
             >
               <svg className="f-sns-icon" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17,4c1.7,0,3,1.3,3,3v10c0,1.7-1.3,3-3,3H7c-1.7,0-3-1.3-3-3V7c0-1.7,1.3-3,3-3h10M17,2H7c-2.8,0-5,2.2-5,5v10c0,2.8,2.2,5,5,5h10c2.8,0,5-2.2,5-5V7c0-2.8-2.2-5-5-5h0Z" />
@@ -33,10 +33,10 @@ export default function SiteFooter() {
           </div>
 
           {/* 태그라인 */}
-          <div className="f-tagline">good things, simply roasted.</div>
+          <div className="f-tagline sr-txt sr-txt--d2" data-sr>good things, simply roasted.</div>
 
           {/* 3열 네비 */}
-          <div className="f-cols">
+          <div className="f-cols sr-txt sr-txt--d3" data-sr>
             <div>
               <div className="f-col-title">The Story</div>
               <Link href="/story" className="footer-col-link">The Story</Link>
@@ -64,16 +64,7 @@ export default function SiteFooter() {
               <span className="f-bottom-sep">·</span>
               <span className="f-legal-link">개인정보처리방침</span>
             </div>
-            {/* 사업자 정보 인라인 (BizToggle이 open 클래스 토글) */}
-            <div className="f-biz-inline" id="f-biz-detail">
-              주식회사 브이티이코프<span className="f-biz-sep">·</span>
-              대표 김주호<span className="f-biz-sep">·</span>
-              사업자 등록번호 510-81-30238<span className="f-biz-sep">·</span>
-              통신판매업 신고번호 2023-경북구미-0508<span className="f-biz-sep">·</span>
-              주소 경북 구미시 인동21길 22-11<span className="f-biz-sep">·</span>
-              전화번호 010-9062-9910<span className="f-biz-sep">·</span>
-              이메일 jung6419@naver.com
-            </div>
+
           </div>
         </div>
       </div>

@@ -22,7 +22,7 @@ export default function HeroSection() {
 
   return (
     <section className="blk" id="hero-blk" data-header-theme="dark">
-      <div className="hero" id="main-content">
+      <div className="hero">
         <video className="hero-bg" autoPlay muted loop playsInline>
           <source src="/images/hero/hero-video.webm" type="video/webm" />
           <source src="/images/hero/hero-video.mp4" type="video/mp4" />
