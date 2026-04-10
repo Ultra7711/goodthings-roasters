@@ -198,16 +198,15 @@ UI 생성, 반응형 변환, 인터랙션 설계.
 |------|------|--------|----------|------|
 | RP-1 | 공통 레이아웃 (AnnouncementBar·SiteHeader·SiteFooter·BizToggle·SRInitializer·useHeaderTheme·headerThemeConfig·layout.tsx) | ts-reviewer + code-reviewer + security-reviewer | — | ✅ |
 | RP-2 | 홈 섹션 7개 (HeroSection·CafeMenuSection·PhilSection·BeansScrollSection·TwoColSection·RoasterySection·GoodDaysSection·useSR·page.tsx·globals.css) | ts-reviewer + code-reviewer + security-reviewer | — | ✅ |
-| RP-3 | AnnouncementBar 완성 (페이지별 공지 텍스트 분기) | ts-reviewer + code-reviewer | — | ⬜ |
-| RP-4 | Shop 페이지 재이식 | ts-reviewer + code-reviewer | — | ⬜ |
-| RP-5 | 상품 상세 재이식 (ImageGallery·PurchaseOptions·RoastStage·RadarChart·RecipeGuide·ProductAccordion) | ts-reviewer + code-reviewer | — | ⬜ |
-| RP-6 | 카페 메뉴 페이지 재이식 | ts-reviewer + code-reviewer | — | ⬜ |
-| RP-7 | Story + 보조 페이지 재이식 (/biz-inquiry·/gooddays·/story) | ts-reviewer + code-reviewer | — | ⬜ |
-| RP-8 | 체크아웃 + OrderComplete 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
-| RP-9 | 로그인 + MyPage 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
-| RP-10 | CartDrawer + /cart 풀페이지 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
-| RP-11 | 검색 시스템 4-layer 재이식 (TDD 80%↑) | ts-reviewer + code-reviewer | ✅ security (XSS) | ⬜ |
-| RP-12 | 반응형(4 breakpoints) + 프로덕션 (CSP·환경변수·빌드) | ts-reviewer + code-reviewer | ✅ security (CSP) | ⬜ |
+| RP-3 | Shop 페이지 재이식 | ts-reviewer + code-reviewer | — | ⬜ |
+| RP-4 | 상품 상세 재이식 (ImageGallery·PurchaseOptions·RoastStage·RadarChart·RecipeGuide·ProductAccordion) | ts-reviewer + code-reviewer | — | ⬜ |
+| RP-5 | 카페 메뉴 페이지 재이식 | ts-reviewer + code-reviewer | — | ⬜ |
+| RP-6 | Story + 보조 페이지 재이식 (/biz-inquiry·/gooddays·/story) | ts-reviewer + code-reviewer | — | ⬜ |
+| RP-7 | 체크아웃 + OrderComplete 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
+| RP-8 | 로그인 + MyPage 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
+| RP-9 | CartDrawer + /cart 풀페이지 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
+| RP-10 | 검색 시스템 4-layer 재이식 (TDD 80%↑) | ts-reviewer + code-reviewer | ✅ security (XSS) | ⬜ |
+| RP-11 | 반응형(4 breakpoints) + 프로덕션 (CSP·환경변수·빌드) | ts-reviewer + code-reviewer | ✅ security (CSP) | ⬜ |
 
 **R-0a~c**: 완료 (2026-04-10). ts-reviewer ×3 + code-reviewer 병렬 실행, HIGH 13건 + MEDIUM 5건 수정 반영.
 **R-1**: 완료 (2026-04-10). ts-reviewer + code-reviewer 병렬 실행, HIGH 3건 + MEDIUM 5건 + LOW 3건 수정 반영. 포커스 관리·접근성 대비·토큰 수정·타입 안전성 개선.
