@@ -2994,48 +2994,43 @@ footer.blk {
   color: var(--color-text-secondary);
   line-height: 1.7;
   margin: 0;
-  /* 아이콘 워터마크와 겹치지 않도록 우측 여백 확보 */
-  padding-right: 60px;
+  align-self: stretch;
 }
 .pd-recipe-card {
-  /* 아이콘은 카드 우하단에 워터마크처럼 배치 — overflow:hidden 으로 안전하게 */
-  position: relative;
+  /* 옵션 B: 카드 헤더 = 196×196 컬러 일러스트 → 메서드 라벨 → 표/본문 */
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 14px;
-  padding: 22px 24px 24px;
+  padding: 24px 24px 26px;
   background: var(--color-background-secondary);
   border: 1px solid var(--color-border-tertiary);
   border-radius: 10px;
-  overflow: hidden;
 }
-.pd-recipe-head {
-  /* 메서드 라벨만 (아이콘은 카드 레벨에서 absolute) */
-  display: block;
-}
-.pd-recipe-icon {
-  /* 카드 우하단 워터마크 — 상세 비주얼은 추후 재작업 */
-  position: absolute;
-  right: 20px;
-  bottom: 18px;
-  width: 56px;
-  height: 56px;
+.pd-recipe-illust {
+  width: 196px;
+  height: 196px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-tertiary);
-  pointer-events: none;
+  flex-shrink: 0;
 }
-.pd-recipe-icon svg {
-  width: 56px;
-  height: 56px;
+.pd-recipe-illust img {
+  width: 196px;
+  height: 196px;
+  display: block;
 }
 .pd-recipe-method {
   font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
+  font-size: var(--type-body-l-size);
   font-weight: 500;
   color: var(--color-text-primary);
   line-height: 1.2;
+  text-align: center;
+  /* 일러스트와 본문 사이 구분선 */
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--color-border-tertiary);
+  align-self: stretch;
 }
 .pd-recipe-table {
   display: grid;
@@ -3045,6 +3040,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   align-items: center;
+  align-self: stretch;
 }
 .pd-recipe-dt {
   font-weight: 500;
@@ -3266,21 +3262,8 @@ footer.blk {
     grid-template-columns: 1fr;
     gap: 12px;
   }
-  .pd-drip-step-body {
-    padding-right: 56px;
-  }
   .pd-recipe-card {
     padding: 20px 20px 22px;
-  }
-  .pd-recipe-icon {
-    right: 16px;
-    bottom: 16px;
-    width: 48px;
-    height: 48px;
-  }
-  .pd-recipe-icon svg {
-    width: 48px;
-    height: 48px;
   }
   /* Flavor Note: 캔버스 크기 유지(자동 축소), 태그 gap 만 살짝 조정
      (사이즈는 데스크탑과 동일 — Roasting pill 과 동일 스펙) */

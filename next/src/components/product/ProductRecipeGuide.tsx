@@ -1,13 +1,14 @@
 /* ══════════════════════════════════════════
-   ProductRecipeGuide — RP-4d
+   ProductRecipeGuide — RP-4d / 옵션 B (2026-04-12)
    ──────────────────────────────────────────
    - Coffee Bean: product.recipe[] 로 에어로프레스/에스프레소/모카포트/브루잉 카드
-   - Drip Bag   : DRIP_BAG_RECIPE (공통 3단계 + tip)
+                  (카드 헤더 = 196×196 컬러 일러스트, 본문 = 메서드명 + 추출 데이터 표)
+   - Drip Bag   : DRIP_BAG_RECIPE 3단계 (각 step 카드 헤더 = 196×196 컬러 일러스트)
+   - 라인아트 RECIPE_ICONS / DripIcon* 는 더 이상 사용하지 않음
+     (recipeIcons.tsx 자체는 보존 — 추후 결정)
    ══════════════════════════════════════════ */
 
-import type { ReactElement } from 'react';
 import { DRIP_BAG_RECIPE, type Product } from '@/lib/products';
-import { RECIPE_ICONS, DripIcon1, DripIcon2, DripIcon3 } from './recipeIcons';
 
 type Props = {
   product: Product;
@@ -16,15 +17,25 @@ type Props = {
 const COFFEE_INTRO =
   '굳띵즈 커피를 더욱 맛있게 즐길 수 있는 레시피입니다.\n굳띵즈의 커피를 맛있게 즐겨보세요.';
 
+const ILLUST_SIZE = 196;
+
+/** Coffee Bean 메서드 → 일러스트 파일 슬러그 */
+const COFFEE_METHOD_SLUG: Record<string, string> = {
+  '에어로프레스': 'aeropress',
+  '에스프레소': 'espresso',
+  '모카포트': 'mokapot',
+  '브루잉': 'brewing',
+};
+
 export default function ProductRecipeGuide({ product }: Props) {
   const isDripBag = product.category === 'Drip Bag';
 
   if (isDripBag) {
     const dr = DRIP_BAG_RECIPE;
-    const steps: { label: string; text: string; Icon: () => ReactElement }[] = [
-      { label: 'STEP 01', text: dr.step1, Icon: DripIcon1 },
-      { label: 'STEP 02', text: dr.step2, Icon: DripIcon2 },
-      { label: 'STEP 03', text: dr.step3, Icon: DripIcon3 },
+    const steps: { num: '01' | '02' | '03'; text: string; src: string }[] = [
+      { num: '01', text: dr.step1, src: '/images/icons/recipe_dripbag_01.svg' },
+      { num: '02', text: dr.step2, src: '/images/icons/recipe_dripbag_02.svg' },
+      { num: '03', text: dr.step3, src: '/images/icons/recipe_dripbag_03.svg' },
     ];
     return (
       <div id="pd-recipe-section" className="pd-info-section">
@@ -32,12 +43,19 @@ export default function ProductRecipeGuide({ product }: Props) {
         <p id="pd-recipe-intro">드립백을 가장 맛있게 즐길 수 있는 방법입니다.</p>
         <div id="pd-recipe-cards" className="is-drip">
           {steps.map((s) => (
-            <div key={s.label} className="pd-recipe-card">
-              <div className="pd-recipe-head">
-                <div className="pd-recipe-method">{s.label}</div>
+            <div key={s.num} className="pd-recipe-card">
+              <div className="pd-recipe-illust">
+                <img
+                  src={s.src}
+                  alt={`드립백 STEP ${s.num} 일러스트`}
+                  width={ILLUST_SIZE}
+                  height={ILLUST_SIZE}
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
+              <div className="pd-recipe-method">STEP {s.num}</div>
               <p className="pd-drip-step-body">{s.text}</p>
-              <div className="pd-recipe-icon"><s.Icon /></div>
             </div>
           ))}
           {dr.tip && (
@@ -59,13 +77,22 @@ export default function ProductRecipeGuide({ product }: Props) {
       <p id="pd-recipe-intro">{COFFEE_INTRO}</p>
       <div id="pd-recipe-cards">
         {product.recipe.map((r) => {
-          const Icon = RECIPE_ICONS[r.method];
+          const slug = COFFEE_METHOD_SLUG[r.method];
           return (
             <div key={r.method} className="pd-recipe-card">
-              <div className="pd-recipe-head">
-                <div className="pd-recipe-icon">{Icon && <Icon />}</div>
-                <div className="pd-recipe-method">{r.method}</div>
-              </div>
+              {slug && (
+                <div className="pd-recipe-illust">
+                  <img
+                    src={`/images/icons/recipe_${slug}_large.svg`}
+                    alt={`${r.method} 추출 기구 일러스트`}
+                    width={ILLUST_SIZE}
+                    height={ILLUST_SIZE}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              )}
+              <div className="pd-recipe-method">{r.method}</div>
               <div className="pd-recipe-table">
                 <span className="pd-recipe-dt"><span>원두량</span></span>
                 <span className="pd-recipe-dd">{r.dose}</span>
