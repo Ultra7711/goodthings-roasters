@@ -622,7 +622,7 @@ footer.blk {
   border-top: .5px solid rgba(255,255,255,.06);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
   margin-top: 48px;
 }
 .f-bottom-row {
@@ -661,8 +661,7 @@ footer.blk {
 }
 .f-legal-link:hover { color: var(--color-text-inverse); }
 .f-biz-inline {
-  order: 999;       /* DOM 중간에 있어도 시각적으로 맨 마지막 줄 배치 */
-  flex-basis: 100%; /* 한 줄 전체 차지 → 다음 행으로 내려감 */
+  /* .f-bottom-wrap(flex column)의 직접 자식이며 .f-bottom-row 의 형제 */
   font-size: var(--type-caption-size);
   color: rgba(250,250,248,.4);
   line-height: 1.6;
@@ -675,7 +674,7 @@ footer.blk {
     margin var(--duration-drawer) ease;
   margin-top: 0;
 }
-.f-biz-inline.open { max-height: 120px; opacity: 1; margin-top: 8px; }
+.f-biz-inline.open { max-height: 240px; opacity: 1; margin-top: 8px; }
 .f-biz-sep { padding: 0 .3em; }
 
 /* ══ CTA 버튼 ══ */

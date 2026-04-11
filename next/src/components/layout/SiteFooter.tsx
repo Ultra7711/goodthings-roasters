@@ -1,11 +1,11 @@
 /* ══════════════════════════════════════════
    SiteFooter
    프로토타입 <footer> / .footer / .f-* 그대로 이식
-   BizToggle: f-biz-detail 포함 client component
+   FooterBottom: .f-bottom-wrap 전체를 담당하는 client component
    ══════════════════════════════════════════ */
 
 import Link from 'next/link';
-import BizToggle from './BizToggle';
+import FooterBottom from './FooterBottom';
 
 export default function SiteFooter() {
   return (
@@ -54,18 +54,7 @@ export default function SiteFooter() {
           </div>
 
           {/* 하단 법적 정보 */}
-          <div className="f-bottom-wrap">
-            <div className="f-bottom-row">
-              <span className="f-copyright">© 2026 Good Things Roasters</span>
-              <span className="f-bottom-sep">·</span>
-              <BizToggle />
-              <span className="f-bottom-sep">·</span>
-              <span className="f-legal-link">이용약관</span>
-              <span className="f-bottom-sep">·</span>
-              <span className="f-legal-link">개인정보처리방침</span>
-            </div>
-
-          </div>
+          <FooterBottom />
         </div>
       </div>
     </footer>
