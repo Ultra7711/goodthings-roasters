@@ -32,6 +32,20 @@ export default function ShopPage() {
     isInitRef.current = false;
   }, []);
 
+  /* SiteHeader 의 Shop 링크를 /shop 내에서 클릭했을 때 발송되는
+     'gtr:shop-reset' 이벤트 수신 → 필터/페이지 초기화 + 스크롤 top.
+     SiteHeader 는 컴포넌트 트리 외부(레이아웃)에 있어 props 로 직접
+     연결할 수 없으므로 window 커스텀 이벤트 기반 브리지를 사용. */
+  useEffect(() => {
+    function onReset() {
+      setFilter('all');
+      setPage(1);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    window.addEventListener('gtr:shop-reset', onReset);
+    return () => window.removeEventListener('gtr:shop-reset', onReset);
+  }, []);
+
   const filtered = filterProducts(PRODUCTS, filter);
   const totalPages = Math.max(1, Math.ceil(filtered.length / SP_PER_PAGE));
   const currentPage = Math.min(page, totalPages);

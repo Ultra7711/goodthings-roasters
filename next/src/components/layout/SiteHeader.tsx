@@ -61,6 +61,21 @@ export default function SiteHeader() {
     }
   }
 
+  /* Shop 링크 클릭 → 샵 페이지 초기 상태로 복귀
+     - /shop 내에서 클릭 시: Next.js Link same-path 스킵 회피를 위해
+       preventDefault 후 'gtr:shop-reset' 커스텀 이벤트 발송.
+       ShopPage 가 이 이벤트를 수신해 filter='all' / page=1 로 리셋하고
+       window 를 top 으로 스크롤한다. 로컬 state 는 컴포넌트 외부에서 직접
+       조작할 수 없으므로 이벤트 기반 연결을 사용.
+     - 다른 라우트에서 클릭 시: Link 기본 동작 그대로 /shop 네비게이션. */
+  function handleShopClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    closeSearch();
+    if (pathname === '/shop') {
+      e.preventDefault();
+      window.dispatchEvent(new Event('gtr:shop-reset'));
+    }
+  }
+
   function openSearch() {
     const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? 60;
     document.documentElement.style.setProperty('--search-drop-top', `${headerBottom}px`);
@@ -119,7 +134,7 @@ export default function SiteHeader() {
           <nav className="hdr-nav" aria-label="메인 내비게이션">
             <Link href="/story" className="nav-link">The Story</Link>
             <Link href="/menu" className="nav-link">Menu</Link>
-            <Link href="/shop" className="nav-link">Shop</Link>
+            <Link href="/shop" className="nav-link" onClick={handleShopClick}>Shop</Link>
             <Link href="/gooddays" className="nav-link">Good Days</Link>
           </nav>
 
