@@ -33,6 +33,10 @@ export function useHeaderTheme(
   const [isDark, setIsDark] = useState(initialTheme === 'dark');
   const rafPending = useRef(false);
 
+  /* 페이지 이동마다 initialTheme이 바뀌므로 ref로 최신값을 update() 클로저에 전달 */
+  const fallbackThemeRef = useRef<HeaderTheme>(initialTheme);
+  useEffect(() => { fallbackThemeRef.current = initialTheme; }, [initialTheme]);
+
   useEffect(() => {
     const header = headerRef.current;
     if (!header) return;
@@ -72,7 +76,9 @@ export function useHeaderTheme(
               theme = raw;
             }
           });
-          if (!theme) theme = 'dark';
+          /* 3) [data-header-theme] 섹션이 없는 페이지(Shop 등)는
+                headerThemeConfig의 페이지별 초기 테마를 그대로 유지 */
+          if (!theme) theme = fallbackThemeRef.current;
         }
 
         setIsDark(theme === 'dark');
