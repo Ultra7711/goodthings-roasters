@@ -47,6 +47,20 @@ export default function SiteHeader() {
     document.body.style.overflow = '';
   }, []);
 
+  /* 로고 클릭 → 홈으로 복귀
+     - 홈(`/`)에서: Next.js Link 는 same-path 클릭을 스킵하므로 preventDefault
+       후 직접 초기화 수행 (프로토타입의 goHome() 대응).
+     - 다른 라우트에서: Link 기본 동작으로 `/` 로 네비게이션 → Next.js 가
+       scroll restoration 을 자동 처리. closeSearch 만 선제 호출해 검색 패널이
+       열린 채 이동하는 상태를 방지. */
+  function handleLogoClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    closeSearch();
+    if (pathname === '/') {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }
+
   function openSearch() {
     const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? 60;
     document.documentElement.style.setProperty('--search-drop-top', `${headerBottom}px`);
@@ -88,7 +102,7 @@ export default function SiteHeader() {
         <div className="hdr">
           {/* 로고 */}
           <div className="hdr-left">
-            <Link href="/" aria-label="Good Things Roasters 홈">
+            <Link href="/" aria-label="Good Things Roasters 홈" onClick={handleLogoClick}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 id="logo-img"

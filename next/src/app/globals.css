@@ -313,7 +313,7 @@ body {
 /* ══ 공지 바 ══ */
 .ann {
   background: var(--color-background-inverse);
-  color: var(--color-text-hint);
+  color: var(--color-text-inverse);
   text-align: center;
   height: 36px;
   line-height: 36px;
