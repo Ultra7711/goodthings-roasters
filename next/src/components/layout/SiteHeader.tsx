@@ -23,7 +23,7 @@ export default function SiteHeader() {
   /* 페이지별 초기 테마 — 플래시 방지 */
   const pathname = usePathname();
   const initialTheme = getInitialHeaderTheme(pathname);
-  const { isDark } = useHeaderTheme(headerRef, initialTheme);
+  const { isDark, skipTransition } = useHeaderTheme(headerRef, initialTheme);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -93,7 +93,9 @@ export default function SiteHeader() {
       <div
         ref={headerRef}
         id="site-hdr-wrap"
-        className={isDark ? 'blk hdr-dark' : 'blk'}
+        className={
+          (isDark ? 'blk hdr-dark' : 'blk') + (skipTransition ? ' hdr-instant' : '')
+        }
         style={{
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',

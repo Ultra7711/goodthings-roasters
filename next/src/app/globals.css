@@ -356,6 +356,14 @@ body {
   border-bottom-color: rgba(255,255,255,.06);
   box-shadow: 0 1px 0 rgba(255,255,255,.06) inset;
 }
+/* 라우트 변경 직후 한 프레임 동안만 부여되는 클래스 — 네비게이션 애니메이션과
+   겹쳐 보이는 테마 페이드를 제거하기 위해 transition 을 일시 비활성화.
+   스크롤 기반 light/dark 전환의 fade 는 그대로 유지됨. */
+#site-hdr-wrap.hdr-instant,
+#site-hdr-wrap.hdr-instant .nav-link,
+#site-hdr-wrap.hdr-instant .hi {
+  transition: none;
+}
 #site-hdr-wrap .nav-link {
   transition: color var(--duration-slide) ease, opacity var(--duration-hover) linear;
 }

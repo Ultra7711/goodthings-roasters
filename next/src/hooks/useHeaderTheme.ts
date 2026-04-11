@@ -22,6 +22,10 @@ function isValidTheme(value: string | undefined): value is HeaderTheme {
  * @param initialTheme - SSR/hydration 시점의 초기 테마
  *                      (페이지별 설정은 `@/lib/headerThemeConfig` 참조)
  * @returns isDark: boolean — 다크 테마 여부
+ *          skipTransition: boolean — 라우트 변경 직후 한 프레임 동안만 true.
+ *                          이 값이 true 인 동안 헤더에 `hdr-instant` 클래스를
+ *                          걸어 CSS transition 을 일시 비활성화하면 네비게이션
+ *                          애니메이션과 겹치는 테마 페이드가 사라진다.
  */
 export function useHeaderTheme(
   headerRef: React.RefObject<HTMLElement | null>,
@@ -31,11 +35,37 @@ export function useHeaderTheme(
      틀린 값으로 시작하면 페이지 로드 직후 light ↔ dark 플래시가 발생함.
      useEffect 실행 후 실제 DOM 섹션 기반으로 자동 보정된다. */
   const [isDark, setIsDark] = useState(initialTheme === 'dark');
+  /* 라우트 변경 직후 한 프레임 동안만 true — CSS transition 을 즉시 끄는 플래그 */
+  const [skipTransition, setSkipTransition] = useState(false);
   const rafPending = useRef(false);
 
-  /* 페이지 이동마다 initialTheme이 바뀌므로 ref로 최신값을 update() 클로저에 전달 */
+  /* 페이지 이동마다 initialTheme이 바뀌므로 ref로 최신값을 update() 클로저에 전달.
+     동시에 isDark 상태도 새 페이지의 초기 테마로 리셋한다 — 그렇지 않으면:
+     - 홈(dark)에서 /shop(light)으로 이동할 때 이전 페이지의 isDark=true 가 유지됨
+     - 메인 effect 의 deps 는 [headerRef] 뿐이라 라우트 변경 시 재실행되지 않음
+     - 사용자가 스크롤을 하지 않으면 update() 가 트리거되지 않아 stale 값 고착
+     → headerThemeConfig 의 페이지별 초기 테마를 라우트 변경 직후 즉시 반영한다.
+       이후 스크롤 시 update() 가 실제 [data-header-theme] 섹션 기반으로 재보정.
+
+     추가: 테마 전환과 동시에 skipTransition=true 를 세팅해 CSS transition 을
+     한 프레임 동안 끈다. 그렇지 않으면 route 네비게이션 애니메이션과 겹쳐
+     헤더 배경이 slow fade 로 보이는 이슈가 발생. 더블 rAF 로 새 className 이
+     실제 paint 된 다음 프레임에 플래그를 해제 → 그 이후의 스크롤 기반 전환은
+     원래 transition duration 으로 복원된다. */
   const fallbackThemeRef = useRef<HeaderTheme>(initialTheme);
-  useEffect(() => { fallbackThemeRef.current = initialTheme; }, [initialTheme]);
+  useEffect(() => {
+    fallbackThemeRef.current = initialTheme;
+    setIsDark(initialTheme === 'dark');
+    setSkipTransition(true);
+    let id2 = 0;
+    const id1 = requestAnimationFrame(() => {
+      id2 = requestAnimationFrame(() => setSkipTransition(false));
+    });
+    return () => {
+      cancelAnimationFrame(id1);
+      cancelAnimationFrame(id2);
+    };
+  }, [initialTheme]);
 
   useEffect(() => {
     const header = headerRef.current;
@@ -95,5 +125,5 @@ export function useHeaderTheme(
     };
   }, [headerRef]);
 
-  return { isDark };
+  return { isDark, skipTransition };
 }
