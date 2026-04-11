@@ -1838,6 +1838,336 @@ footer.blk {
 .sp-pg-arrow:hover { color: var(--color-text-primary); }
 .sp-pg-arrow:disabled { opacity: .3; pointer-events: none; }
 
+/* ══════════════════════════════════════════
+   CAFE MENU PAGE — RP-5
+   프로토타입 goodthings_v1.0.html L4804~4905 (#cafe-menu-page / .cm-*) 이식.
+   - position:fixed/display:none 은 Next.js 일반 플로우 라우트로 제거.
+   - ShopPage 의 sp-anim 패턴과 동일하게 진입 연출은 `cm-anim` 클래스로 토글.
+   ══════════════════════════════════════════ */
+#cm-body {
+  flex: 1;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 100px 60px 80px;
+}
+#cm-head { padding-top: 8px; }
+#cm-title-area {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 48px;
+}
+#cm-page-title {
+  font-family: var(--font-kr);
+  font-size: var(--type-h1-size);
+  font-weight: var(--type-h1-weight);
+  letter-spacing: var(--ls-display);
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
+}
+#cm-body.cm-anim #cm-page-title {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: .15s;
+}
+#cm-body .page-subtitle {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-heading);
+  color: var(--color-text-tertiary);
+  margin: 16px 0 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
+}
+#cm-body.cm-anim .page-subtitle {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: .3s;
+}
+
+/* 필터 탭 — 프로토타입 동일, 전용 클래스(.cm-filter-tab) */
+#cm-filter-tabs {
+  display: flex;
+  position: relative;
+  margin-bottom: 48px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) ease-out;
+}
+#cm-body.cm-anim #cm-filter-tabs {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: .45s;
+}
+#cm-filter-tabs::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-border-primary);
+}
+#cm-filter-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--color-text-primary);
+  transition: left var(--duration-transition) cubic-bezier(.4,0,.2,1),
+              width var(--duration-transition) cubic-bezier(.4,0,.2,1);
+  z-index: 1;
+}
+.cm-filter-tab {
+  min-width: 72px;
+  padding: 20px 30px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-neutral);
+  color: var(--color-text-tertiary);
+  transition: color var(--duration-hover) ease;
+  white-space: nowrap;
+  text-align: center;
+}
+.cm-filter-tab:hover { color: var(--color-text-primary); }
+.cm-filter-tab.active { font-weight: 500; color: var(--color-text-primary); }
+.cm-tab-label { pointer-events: none; }
+
+/* 그리드 + 카드 */
+#cm-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 1.4vw, 20px);
+}
+.cm-card {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) ease-out;
+  position: relative;
+}
+.cm-card.cm-visible { opacity: 1; transform: none; }
+.cm-card-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: var(--color-background-secondary);
+}
+.cm-card-img {
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
+}
+.cm-card:hover .cm-card-img { transform: scale(1.03); }
+.cm-card--active .cm-card-img { transform: scale(1) !important; }
+
+.cm-card-info {
+  padding: 12px 4px 20px;
+  text-align: center;
+  background: var(--color-background-primary);
+}
+.cm-card-name {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-l-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+.cm-card-menu-desc {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  color: var(--color-text-tertiary);
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+.cm-card-price {
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* 온도 뱃지 (우하단 원형) */
+.cm-temp-badges {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+  pointer-events: none;
+}
+.cm-badge-temp {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-en);
+  font-size: var(--type-caption-size);
+  font-weight: 600;
+  letter-spacing: var(--ls-body);
+  text-transform: uppercase;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--color-text-inverse);
+  white-space: pre-line;
+}
+.cm-temp-ice-only { background: var(--color-info); }
+.cm-temp-hot-only { background: var(--color-error); }
+.cm-temp-warm     { background: var(--color-warning); }
+
+/* ── 카드 인라인 오버레이 (RP-5c) ── */
+.cm-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20,14,10,.93);
+  color: var(--color-text-inverse);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity .22s ease, transform .22s ease;
+  display: flex;
+  flex-direction: column;
+  padding: 56px 14px 14px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  z-index: 3;
+}
+.cm-card-overlay::-webkit-scrollbar { display: none; }
+.cm-card--active .cm-card-overlay {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+@keyframes cm-thumb-flash {
+  0%, 100% { opacity: 1; }
+  45%      { opacity: .35; }
+}
+.cm-card--highlight .cm-card-thumb {
+  animation: cm-thumb-flash .7s ease 2;
+}
+.cm-ov-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255,255,255,.55);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color .15s ease;
+  z-index: 2;
+}
+.cm-ov-close:hover { color: var(--color-text-inverse); }
+.cm-ov-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+.cm-ov-category {
+  display: block;
+  font-family: var(--font-en);
+  font-size: var(--type-caption-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--color-accent-warm);
+  margin-bottom: 4px;
+}
+.cm-ov-serving {
+  font-family: var(--font-kr);
+  font-size: var(--type-caption-size);
+  color: rgba(255,255,255,.55);
+}
+.cm-ov-vol {
+  font-family: var(--font-en);
+  font-size: var(--type-body-ui-size);
+  color: rgba(255,255,255,.55);
+  margin-left: 4px;
+}
+.cm-ov-kcal {
+  font-family: var(--font-en);
+  font-size: var(--type-body-ui-size);
+  color: rgba(255,255,255,.95);
+  font-weight: 600;
+}
+.cm-ov-table {
+  border-top: .5px solid rgba(255,255,255,.15);
+  border-bottom: .5px solid rgba(255,255,255,.15);
+  padding: 4px 0 5px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+.cm-ov-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+.cm-ov-rlabel {
+  font-family: var(--font-kr);
+  font-size: var(--type-caption-size);
+  color: rgba(255,255,255,.55);
+}
+.cm-ov-rval {
+  font-family: var(--font-en);
+  font-size: var(--type-caption-size);
+  font-weight: 500;
+  color: rgba(255,255,255,.9);
+}
+.cm-ov-allergen {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.cm-ov-al-title {
+  font-family: var(--font-kr);
+  font-size: var(--type-caption-size);
+  color: rgba(255,255,255,.55);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.cm-ov-al-list {
+  font-family: var(--font-kr);
+  font-size: var(--type-caption-size);
+  color: rgba(255,255,255,.7);
+}
+
+/* 페이지네이션 — shop 의 .sp-pg-* 재사용 (프로토타입 동일 패턴) */
+#cm-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 48px 0 0;
+}
+
 /* ══ PRODUCT DETAIL PAGE — RP-4a 뼈대 ══
    프로토타입 #product-detail-page 블록에서 position:fixed / display:none 은
    Next.js 라우팅 컨테이너에 불필요하므로 제거.

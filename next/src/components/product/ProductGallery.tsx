@@ -34,8 +34,10 @@ export default function ProductGallery({ images }: Props) {
   const multi = images.length > 1;
   const current = images[idx];
 
-  /* 이미지 배열이 바뀌면 인덱스 리셋 (다른 상품으로 라우트 이동 시) */
+  /* 이미지 배열이 바뀌면 인덱스 리셋 (다른 상품으로 라우트 이동 시)
+     prop 기반 내부 state 초기화 의도의 setState-in-effect. */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIdx(0);
   }, [images]);
 

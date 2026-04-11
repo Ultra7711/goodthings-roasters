@@ -45,7 +45,9 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
   const tabNormalRef = useRef<HTMLButtonElement>(null);
   const tabSubRef = useRef<HTMLButtonElement>(null);
 
-  /* 상품 변경 시 내부 상태 초기화 (volIdx 는 상위에서 리셋) */
+  /* 상품 변경 시 내부 상태 초기화 (volIdx 는 상위에서 리셋)
+     product.slug 변경에 따른 내부 폼 state 일괄 리셋 의도의 setState-in-effect. */
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setQty(1);
     setOrderType('normal');
@@ -53,6 +55,7 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
     setVolOpen(false);
     setCycleOpen(false);
   }, [product.slug]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   /* 외부 클릭 시 드롭다운 닫기 */
   useEffect(() => {

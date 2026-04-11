@@ -21,24 +21,25 @@ export default function ShopPage() {
   // - sp-anim 클래스 재토글 useEffect 의 dep
   // - ShopCard key 에 포함되어 동일 filter 에서도 카드 remount → 등장 연출 재생
   const [resetTick, setResetTick] = useState(0);
-  const bodyRef = useRef<HTMLDivElement>(null);
+  // body element — callback ref 로 받아 scrollRoot 전달 시 리렌더 트리거 보장
+  const [bodyEl, setBodyEl] = useState<HTMLDivElement | null>(null);
   // 초기 진입 플래그 — 최초 마운트에만 true 여서 첫 카드 stagger 에 0.42s 의
   // baseDelay 가 붙는다 (탭 등장 0.4s 직후 카드가 따라오도록). 이후 필터 전환·
   // 헤더 Shop 재클릭(리셋) 에서는 false 로 유지되어 baseDelay 0 + col stagger 만 동작.
+  // useRef 사용: render 중 읽히지만 setState-in-effect 룰과의 충돌을 피하기 위한 의도.
   const isInitRef = useRef(true);
 
   // 페이지 진입 연출 — 프로토타입 sp-anim 클래스 트리거 (최초 마운트에만).
   // 헤더 Shop 재클릭 시엔 래퍼 연출을 재생하지 않고 카드만 remount 되도록 해
   // "탭 전환과 동일한 속도감"을 유지한다.
   useEffect(() => {
-    const el = bodyRef.current;
-    if (!el) return;
-    el.classList.remove('sp-anim');
-    void el.offsetHeight;
-    el.classList.add('sp-anim');
+    if (!bodyEl) return;
+    bodyEl.classList.remove('sp-anim');
+    void bodyEl.offsetHeight;
+    bodyEl.classList.add('sp-anim');
     // 진입 연출 완료 → 이후 필터 전환·리셋은 baseDelay 0
     isInitRef.current = false;
-  }, []);
+  }, [bodyEl]);
 
   /* SiteHeader 의 Shop 링크를 /shop 내에서 클릭했을 때 발송되는
      'gtr:shop-reset' 이벤트 수신 → 필터/페이지 초기화 + 스크롤 top + 카드 remount.
@@ -73,11 +74,11 @@ export default function ShopPage() {
 
   function handlePageChange(next: number) {
     setPage(next);
-    bodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    bodyEl?.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   return (
-    <div id="sp-body" ref={bodyRef}>
+    <div id="sp-body" ref={setBodyEl}>
       <div id="sp-head">
         <div id="sp-title-area">
           <h1 id="sp-page-title">{activeTab.titleKr}</h1>
@@ -88,6 +89,9 @@ export default function ShopPage() {
       </div>
 
       {/* 상품 그리드 */}
+      {/* 카드 마운트 시점의 transitionDelay 를 고정하기 위해 isInitRef 를 렌더 중 read-only 로 사용 —
+          state 로 전환하면 첫 렌더 420ms → 후속 렌더 0 으로 덮여 의도가 무너짐. */}
+      {/* eslint-disable react-hooks/refs */}
       <div id="sp-grid">
         {items.map((product, i) => (
           <ShopCard
@@ -95,11 +99,12 @@ export default function ShopPage() {
             product={product}
             colIndex={i % COLS}
             isSubFilter={filter === 'sub'}
-            scrollRoot={bodyRef.current}
+            scrollRoot={bodyEl}
             baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
           />
         ))}
       </div>
+      {/* eslint-enable react-hooks/refs */}
 
       {/* 페이지네이션 */}
       {totalPages > 1 && (

@@ -34,8 +34,9 @@ function AccordionIcon() {
 export default function ProductAccordions({ category, slug }: Props) {
   const [openSet, setOpenSet] = useState<Set<AccordionKey>>(new Set());
 
-  /* 상품 변경 시 전체 닫기 */
+  /* 상품 변경 시 전체 닫기 — prop(slug) 기반 동기화 의도의 setState-in-effect. */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenSet(new Set());
   }, [slug]);
 

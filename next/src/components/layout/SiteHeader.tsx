@@ -35,6 +35,8 @@ export default function SiteHeader() {
   const openDrawer = useCartStore((s) => s.openDrawer);
 
   useEffect(() => {
+    // SSR hydration 이후 mount flag 세팅 — 의도적 1회성 setState-in-effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

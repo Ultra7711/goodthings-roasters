@@ -56,9 +56,11 @@ export default function ProductDetailPage({ product }: Props) {
   }, [product.slug]);
 
   /* 상품 변경 시 용량 선택 초기화 — 첫 번째 가용(매진 아닌) 볼륨을 선택.
-     전체 매진이면 0 으로 고정 (상품 전체 disabled 상태). */
+     전체 매진이면 0 으로 고정 (상품 전체 disabled 상태).
+     product prop 변경 시 내부 파생 state 동기화 의도의 setState-in-effect. */
   useEffect(() => {
     const firstAvail = product.volumes.findIndex((v) => !v.soldOut);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVolIdx(firstAvail >= 0 ? firstAvail : 0);
   }, [product.slug, product.volumes]);
 
