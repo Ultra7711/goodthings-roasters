@@ -12,6 +12,8 @@ export type ProductImage = {
 export type ProductVolume = {
   label: string;
   price: number;
+  /** 품목(용량)별 매진 플래그 — 상품 전체 매진이 아닌 특정 옵션만 품절일 때 사용 */
+  soldOut?: boolean;
 };
 
 export type RecipeItem = {
@@ -163,7 +165,7 @@ export const PRODUCTS: Product[] = [
     volumes: [
       { label: '1개', price: 2000 },
       { label: '5개', price: 10000 },
-      { label: '10개', price: 20000 },
+      { label: '10개', price: 20000, soldOut: true },
     ],
     color: 'linear-gradient(135deg,#C4C0BA,#8A8680)',
     status: '수량 한정',

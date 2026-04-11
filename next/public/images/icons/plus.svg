@@ -12,5 +12,6 @@
       }
     </style>
   </defs>
-  <path class="st0" d="M6,10l6,6,6-6"/>
+  <path class="st0" d="M12,6.3v11.3"/>
+  <path class="st0" d="M6.3,12h11.3"/>
 </svg>

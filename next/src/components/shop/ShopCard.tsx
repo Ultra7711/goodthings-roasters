@@ -21,6 +21,12 @@ function getBadgeClass(status: string): string {
   }
 }
 
+/** 첫 번째 가용(매진 아닌) 볼륨 인덱스 — 전부 매진이면 0 */
+function findFirstAvailVolIdx(p: Product): number {
+  const idx = p.volumes.findIndex((v) => !v.soldOut);
+  return idx >= 0 ? idx : 0;
+}
+
 type Props = {
   product: Product;
   colIndex: number;   // 0~2, 스크롤 reveal stagger용
@@ -36,7 +42,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   const [qaOpen, setQaOpen] = useState(false);
   const [qaClosing, setQaClosing] = useState(false);
   const [qaBarText, setQaBarText] = useState('빠른 추가');
-  const [activeVolIdx, setActiveVolIdx] = useState(0);
+  const [activeVolIdx, setActiveVolIdx] = useState(() => findFirstAvailVolIdx(p));
   const [visible, setVisible] = useState(false);
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -50,12 +56,13 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
   }
 
-  // useCallback: useEffect(outside-click) 의존성 배열 안정화
+  // useCallback: useEffect(outside-click) 의존성 배열 안정화.
+  // p 는 key 로 인한 remount 로 인스턴스당 안정적이므로 [] deps 유지.
   const closeQa = useCallback(() => {
     setQaOpen(false);
     setQaClosing(true);
     setQaBarText('빠른 추가');
-    setActiveVolIdx(0);
+    setActiveVolIdx(findFirstAvailVolIdx(p));
     clearTimers();
     // 250ms: bar 수축 완료 → closing 클래스 제거 → CSS base opacity:0으로 페이드 아웃
     closeTimerRef.current = setTimeout(() => setQaClosing(false), 250);
@@ -146,6 +153,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     if (!qaOpen) { openQa(); return; }
 
     const vol = p.volumes[activeVolIdx];
+    if (vol?.soldOut) { closeQa(); return; }
     addItem({
       slug: p.slug,
       name: p.name,
@@ -202,8 +210,18 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
                 {p.volumes.map((vol, i) => (
                   <button
                     key={vol.label}
-                    className={`sp-qa-vol-btn${i === activeVolIdx ? ' active' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); setActiveVolIdx(i); }}
+                    className={
+                      'sp-qa-vol-btn' +
+                      (i === activeVolIdx ? ' active' : '') +
+                      (vol.soldOut ? ' sold-out' : '')
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (vol.soldOut) return;
+                      setActiveVolIdx(i);
+                    }}
+                    disabled={vol.soldOut}
+                    aria-disabled={vol.soldOut || undefined}
                     type="button"
                   >
                     {vol.label}

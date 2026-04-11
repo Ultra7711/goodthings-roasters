@@ -124,6 +124,11 @@
   --color-border-input: #D9D6D2;
   --color-focus-ring: rgba(74,72,69,.40);
 
+  /* ── Input Box (상품 상세 구매 옵션 박스) ── */
+  --color-input-box-bg: #FFFFFF;
+  --color-input-box-border: #DEDEDD;
+  --color-input-box-border-hover: #B5B4B1;
+
   /* ── Icon ── */
   --color-icon-default: var(--color-text-tertiary);
 
@@ -1656,6 +1661,17 @@ footer.blk {
   transition: opacity .18s ease .29s, transform .18s ease .29s;
 }
 .sp-qa-vol-btn.active { border-color: var(--color-text-primary); font-weight: 600; }
+/* 품목별 매진 — 선택 불가, 텍스트 취소선 + 흐리게 */
+.sp-qa-vol-btn.sold-out {
+  color: var(--color-text-tertiary);
+  text-decoration: line-through;
+  cursor: not-allowed;
+  opacity: .55;
+}
+.sp-qa-vol-btn.sold-out.active {
+  border-color: var(--color-border-secondary);
+  font-weight: 400;
+}
 .sp-qa-bar {
   position: absolute;
   bottom: 0;
@@ -1818,3 +1834,964 @@ footer.blk {
 }
 .sp-pg-arrow:hover { color: var(--color-text-primary); }
 .sp-pg-arrow:disabled { opacity: .3; pointer-events: none; }
+
+/* ══ PRODUCT DETAIL PAGE — RP-4a 뼈대 ══
+   프로토타입 #product-detail-page 블록에서 position:fixed / display:none 은
+   Next.js 라우팅 컨테이너에 불필요하므로 제거.
+   나머지 레이아웃·진입 애니메이션은 프로토타입과 1:1 이식. */
+#pd-body {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+#pd-inner {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 100px 0 0;
+  flex: 1;
+}
+
+/* 메인 2단 그리드 */
+#pd-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: flex-start;
+}
+
+/* 진입 애니메이션 — ShopPage sp-anim 과 동일 패턴.
+   pageRef 에 pd-anim 클래스가 붙으면 opacity 0 → 1, translateY(32px) → 0 */
+/* RP-4d: 좌측 이미지 스티키로 전환 —
+   프로토타입은 우측 #pd-info 스티키였으나, Next 이식 단계에서 좌측 이미지 스티키로 변경.
+   이미지가 화면에 고정된 채 우측 정보(#pd-info)가 스크롤되는 형태. */
+#pd-img-wrap {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity var(--duration-slide) ease-out,
+              transform var(--duration-slide) ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 20px 80px 60px;
+  position: sticky;
+  top: 80px;
+  align-self: start;
+  grid-column: 1;
+}
+#pd-info {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity var(--duration-slide) ease-out,
+              transform var(--duration-slide) ease-out;
+  transition-delay: .15s;
+  display: flex;
+  flex-direction: column;
+  padding: 0 60px 80px 20px;
+  grid-column: 2;
+}
+#pd-body.pd-anim #pd-img-wrap {
+  opacity: 1;
+  transform: translateY(0);
+}
+#pd-body.pd-anim #pd-info {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 좌: 이미지 */
+#pd-img-main-wrap {
+  position: relative;
+  width: 100%;
+}
+#pd-img {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--color-background-secondary);
+  overflow: hidden;
+}
+
+/* 우: 정보 상단 */
+#pd-category {
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin-bottom: 12px;
+}
+#pd-name {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-family: var(--font-kr);
+  font-size: var(--type-h1-size);
+  font-weight: var(--type-h1-weight);
+  color: var(--color-text-primary);
+  letter-spacing: var(--ls-display);
+  line-height: 1.3;
+  margin-bottom: 16px;
+}
+.pd-name-en {
+  font-family: var(--font-en);
+  font-size: var(--type-h3-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-heading);
+  color: var(--color-text-secondary);
+}
+#pd-price {
+  font-family: var(--font-en);
+  font-size: var(--type-h3-size);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  letter-spacing: var(--ls-display);
+  margin-bottom: 16px;
+}
+#pd-status { margin-bottom: 12px; }
+/* 상세 페이지 뱃지: Shop 카드의 .sp-card-badge(position:absolute) 를
+   재사용하되 인라인 배치로 오버라이드 */
+#pd-status .sp-card-badge {
+  position: relative;
+  top: auto;
+  left: auto;
+  display: inline-flex;
+}
+#pd-divider {
+  margin: 28px 0;
+  border: none;
+}
+
+/* ══ 화살표 버튼 공통 (arrow-btn) ══
+   프로토타입 675-693 라인에서 이식.
+   primary = 메인 이미지 네비 (큰 사이즈), secondary = 썸네일 스크롤 (작은 사이즈).
+   light/dark 는 배경 테마에 따른 색상 전환. */
+.arrow-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color var(--duration-hover) linear;
+}
+.arrow-btn svg { display: block; flex-shrink: 0; }
+.arrow-btn:disabled { cursor: default; }
+.arrow-btn-primary { padding: var(--arrow-btn-primary-padding); }
+.arrow-btn-primary svg {
+  width: var(--arrow-btn-primary-svg);
+  height: var(--arrow-btn-primary-svg);
+  stroke-width: .6;
+}
+.arrow-btn-secondary { padding: var(--arrow-btn-secondary-padding); }
+.arrow-btn-secondary svg {
+  width: var(--arrow-btn-secondary-svg);
+  height: var(--arrow-btn-secondary-svg);
+}
+.arrow-btn-dark { color: var(--arrow-btn-dark-color); }
+.arrow-btn-dark:not(:disabled):hover { color: var(--arrow-btn-dark-color-hover); }
+.arrow-btn-light { color: var(--arrow-btn-light-color); }
+.arrow-btn-light:not(:disabled):hover { color: var(--arrow-btn-light-color-hover); }
+
+/* ══ PD 메인 이미지 네비 (RP-4b) ══ */
+#pd-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  transition: background var(--duration-drawer) ease;
+  pointer-events: none;
+  z-index: 1;
+}
+#pd-img-main-wrap:not(.no-nav):hover #pd-img::after { background: rgba(0,0,0,.06); }
+
+.pd-img-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  z-index: 2;
+  transition: opacity var(--duration-hover) linear, color var(--duration-hover) linear;
+}
+#pd-img-main-wrap:not(.no-nav):hover .pd-img-arrow:not(:disabled) { opacity: .5; }
+#pd-img-main-wrap:not(.no-nav):hover .pd-img-arrow:disabled { opacity: .15; }
+.pd-img-arrow:not(:disabled):hover { opacity: 1 !important; }
+#pd-img-prev { left: -26px; }
+#pd-img-next { right: -26px; }
+.pd-img-arrow.hidden,
+.pd-thumb-arrow.hidden { display: none; }
+
+/* 터치 환경: 메인 이미지 화살표 숨김 */
+@media (pointer: coarse) {
+  .pd-img-arrow { display: none; }
+}
+
+/* ══ PD 썸네일 스트립 (RP-4b) ══ */
+#pd-img-bottom {
+  display: flex;
+  align-items: center;
+}
+#pd-thumbs-wrap {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+#pd-thumbs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1;
+}
+#pd-thumbs::-webkit-scrollbar { display: none; }
+
+.pd-thumb-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity var(--duration-hover) linear, color var(--duration-hover) linear;
+}
+#pd-thumb-prev { left: 0; }
+#pd-thumb-next { right: 0; }
+@media (pointer: fine) {
+  #pd-thumbs-wrap:hover .pd-thumb-arrow:not(:disabled) { opacity: 1; pointer-events: all; }
+  #pd-thumbs-wrap:hover .pd-thumb-arrow:disabled { opacity: .2; }
+  #pd-img-main-wrap.no-nav:hover .pd-img-arrow { opacity: 0 !important; pointer-events: none; }
+  #pd-thumbs-wrap.no-nav { pointer-events: none; }
+}
+
+.pd-thumb {
+  width: 72px;
+  height: 72px;
+  background: var(--color-background-secondary);
+  cursor: pointer;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: border-color var(--duration-hover) linear;
+  flex-shrink: 0;
+}
+.pd-thumb:hover { border-color: rgba(0,0,0,.3); }
+.pd-thumb.active,
+.pd-thumb.active:hover { border-color: var(--color-text-primary); }
+
+/* ══════════════════════════════════════════
+   RP-4c — Purchase Options (2026-04-11 개편)
+   ──────────────────────────────────────────
+   박스 카드 레이아웃:
+     - 3필드 그리드 (품목 · 수량 · 배송주기), 1:1:2 비율, 간격 20px
+     - 각 필드는 라벨(위) + 입력 박스(아래)
+     - 입력 박스 = 48px 높이, #FFF bg, 1px #DEDEDD 보더
+   상위 상단 가격은 ProductDetailPage 의 #pd-price 가 담당.
+   라이브 토탈은 제거됨 (볼륨 선택 시에만 상단 가격 갱신).
+   ══════════════════════════════════════════ */
+
+/* 일반/정기 배송 탭 */
+#pd-order-type-wrap {
+  display: none;
+  margin-bottom: 24px;
+}
+#pd-order-type-wrap.visible { display: block; }
+#pd-order-tabs {
+  display: flex;
+  position: relative;
+  margin-bottom: 24px;
+}
+#pd-order-tabs::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-border-primary);
+}
+#pd-order-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--color-text-primary);
+  transition:
+    left var(--duration-transition) cubic-bezier(.4, 0, .2, 1),
+    width var(--duration-transition) cubic-bezier(.4, 0, .2, 1);
+  z-index: 1;
+}
+.pd-order-tab {
+  flex: 1;
+  padding: 16px 0 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-neutral);
+  color: var(--tab-color);
+  transition: color var(--duration-hover) ease;
+  text-align: center;
+}
+.pd-order-tab.active {
+  font-weight: 500;
+  color: var(--tab-color-active);
+}
+.pd-order-tab:hover:not(.active) { color: var(--tab-color-active); }
+
+/* 구매 옵션 그리드 — data-layout 으로 컬럼 구성 결정 */
+#pd-purchase-row {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+/* vqc: 1:1:2 을 1:1 기준에 맞춘 보정 레이아웃.
+   vq(1:1) 의 중앙 gap 라인(W/2±10) 과 vqc 의 qty/cycle 경계를 정확히 일치시키려면
+   1-ratio(용량·수량) 각 -5px, 2-ratio(주기) +10px. 총합은 변하지 않음.
+   계산: vol/qty = 25% - 15px (= (W-40)/4 - 5) / cycle = 50% - 10px (= (W-40)/2 + 10)
+   vq : 1:1 / qc: 1:2 / q: 1 */
+#pd-purchase-row[data-layout="vqc"] {
+  grid-template-columns: calc(25% - 15px) calc(25% - 15px) calc(50% - 10px);
+}
+#pd-purchase-row[data-layout="vq"]  { grid-template-columns: 1fr 1fr; }
+#pd-purchase-row[data-layout="qc"]  { grid-template-columns: 1fr 2fr; }
+#pd-purchase-row[data-layout="q"]   { grid-template-columns: 1fr; }
+
+.pd-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.pd-field-label {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+  margin-bottom: 10px;
+}
+
+/* 입력 박스 (드롭다운 트리거 + 수량 스테퍼 공용) */
+.pd-input-box {
+  position: relative;
+  height: 48px;
+  background: var(--color-input-box-bg);
+  border: 1px solid var(--color-input-box-border);
+  display: flex;
+  align-items: center;
+  transition: border-color var(--duration-hover) ease;
+}
+.pd-input-box:hover,
+.pd-input-box:focus-within {
+  border-color: var(--color-input-box-border-hover);
+}
+
+/* 드롭다운 트리거 버튼 (용량 / 주기) */
+.pd-input-box-trigger {
+  width: 100%;
+  height: 100%;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: left;
+}
+#pd-cycle-btn.pd-input-box-trigger {
+  font-family: var(--font-kr);
+}
+.pd-input-box-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.pd-input-box-chevron {
+  width: 24px;
+  height: 24px;
+  color: var(--color-icon-default);
+  transition:
+    color var(--duration-hover) ease,
+    transform var(--duration-hover) ease;
+  flex-shrink: 0;
+}
+.pd-input-box:hover .pd-input-box-chevron { color: var(--color-text-primary); }
+.pd-input-box[data-open="true"] .pd-input-box-chevron {
+  transform: rotate(180deg);
+  color: var(--color-text-primary);
+}
+
+/* 드롭다운 패널 — 버튼 바로 아래, 동일 폭 (보더 겹침 처리) */
+.pd-dropdown-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% - 1px);
+  left: -1px;
+  right: -1px;
+  background: var(--color-input-box-bg);
+  border: 1px solid var(--color-input-box-border-hover);
+  box-shadow: 0 4px 16px rgba(0,0,0,.06);
+  z-index: 10;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.pd-dropdown-panel.open { display: block; }
+.pd-dropdown-hint {
+  padding: 10px 16px;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+  border-bottom: 1px solid var(--color-input-box-border);
+}
+.pd-dropdown-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  transition: background .15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#pd-cycle-dropdown .pd-dropdown-option {
+  font-family: var(--font-kr);
+}
+.pd-dropdown-option:hover { background: var(--color-background-secondary); }
+.pd-dropdown-option.active { font-weight: 500; }
+
+/* 품목별 매진 옵션 — 선택 불가, 본문 흐리게 */
+.pd-dropdown-option.sold-out {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+.pd-dropdown-option.sold-out:hover { background: transparent; }
+
+/* 매진 뱃지 — 드롭다운 옵션 우측 중앙정렬 */
+.pd-dropdown-option-soldout {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  letter-spacing: .02em;
+  flex-shrink: 0;
+}
+
+/* 수량 스테퍼 박스 */
+#pd-qty-wrap .pd-input-box {
+  padding: 0 12px;
+}
+.pd-qty-stepper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pd-qty-icon {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  color: var(--color-icon-default);
+  transition: color var(--duration-hover) ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+.pd-qty-icon:hover { color: var(--color-text-primary); }
+#pd-qty-num {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-en);
+  font-size: var(--type-heading-s-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+/* 장바구니 버튼 */
+#pd-cart-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-btn-primary-bg);
+  color: var(--color-text-inverse);
+  font-family: var(--font-kr);
+  font-size: var(--cta-btn-font-size);
+  font-weight: var(--cta-btn-font-weight);
+  letter-spacing: var(--cta-btn-letter-spacing);
+  height: 48px;
+  cursor: pointer;
+  width: 100%;
+  transition:
+    transform .5s var(--ease-spring),
+    opacity var(--duration-transition) ease;
+  will-change: transform;
+  backface-visibility: hidden;
+  margin-bottom: 0;
+}
+#pd-cart-btn:hover { opacity: .85; }
+#pd-cart-btn:active { opacity: .7; }
+#pd-cart-btn.disabled { opacity: .3; pointer-events: none; }
+
+/* 반응형 — 1440 한줄 1:1:2 / 1024↓ 2줄 / 768↓ 1열 */
+@media (max-width: 1024px) {
+  #pd-purchase-row[data-layout="vqc"],
+  #pd-purchase-row[data-layout="vq"] {
+    grid-template-columns: 1fr 1fr;
+  }
+  #pd-purchase-row[data-layout="vqc"] #pd-cycle-wrap {
+    grid-column: 1 / -1;
+  }
+  #pd-purchase-row[data-layout="qc"] {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 768px) {
+  #pd-purchase-row[data-layout="vqc"],
+  #pd-purchase-row[data-layout="vq"] {
+    grid-template-columns: 1fr;
+  }
+  #pd-purchase-row[data-layout="vqc"] #pd-cycle-wrap {
+    grid-column: auto;
+  }
+}
+
+/* ══════════════════════════════════════════
+   RP-4d: 상세 본문 / 로스팅 / 노트 / 레시피 / 아코디언
+   ══════════════════════════════════════════ */
+
+/* ── 상세 설명 / 스펙 ── */
+#pd-detail-body {
+  margin-top: 48px;
+  margin-bottom: 48px;
+  padding-top: 48px;
+  border-top: .5px solid var(--color-border-tertiary);
+}
+#pd-detail-text {
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+#pd-detail-text p { margin: 0; }
+#pd-detail-text p + p { margin-top: 1em; }
+#pd-detail-specs {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+  line-height: 2;
+}
+#pd-detail-specs p { margin: 0; }
+
+/* ── 공통: 우측 섹션 구분선 (로스팅/노트/레시피 상단) ── */
+.pd-info-section {
+  margin-bottom: 48px;
+  padding-top: 48px;
+  border-top: .5px solid var(--color-border-tertiary);
+}
+/* 상세 본문 바로 다음(#pd-roast-section)은 detail-body 하단 마진과 중복되므로
+   상단 border 는 유지하되 padding-top 만 동일하게 맞춤 */
+.pd-section-title {
+  font-family: var(--font-en);
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-heading);
+  color: var(--color-text-secondary);
+  margin-bottom: 18px;
+}
+
+/* ── 로스팅 스테이지 ── */
+#pd-roast-bar {
+  position: relative;
+  height: 18px;
+  border-radius: 9px;
+  overflow: visible;
+  margin-bottom: 20px;
+}
+#pd-roast-segments {
+  display: flex;
+  height: 100%;
+  gap: 2px;
+  border-radius: 9px;
+  overflow: hidden;
+}
+.pd-roast-seg {
+  flex: 1;
+  transition: opacity .8s ease, filter .8s ease;
+  opacity: .3;
+  filter: grayscale(1);
+}
+.pd-roast-seg.filled {
+  opacity: 1;
+  filter: grayscale(0);
+}
+#pd-roast-marker {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  transition:
+    left .8s var(--ease-spring),
+    width .25s ease-out,
+    height .25s ease-out,
+    background .25s ease-out,
+    border-color .15s ease;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-background-primary);
+  border: 2.5px solid currentColor;
+  cursor: pointer;
+}
+.pd-roast-marker-num {
+  font-family: var(--font-en);
+  font-size: var(--type-label-size);
+  font-weight: 600;
+  color: var(--color-text-inverse);
+  line-height: 1;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(.5);
+  transition: opacity .25s ease-out, transform .25s ease-out;
+}
+#pd-roast-marker.hover {
+  width: 28px;
+  height: 28px;
+}
+#pd-roast-marker.hover .pd-roast-marker-num {
+  opacity: 1;
+  transform: scale(1);
+}
+#pd-roast-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  color: var(--color-text-secondary);
+}
+#pd-roast-labels span {
+  text-align: center;
+  flex: 1;
+  transition: color var(--duration-transition) ease, font-weight var(--duration-transition) ease;
+}
+#pd-roast-labels span.active {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+.pd-roast-pill {
+  display: inline-block;
+  background: #8b5e3c;
+  color: var(--color-text-inverse);
+  border-radius: 20px;
+  padding: 2px 12px;
+  font-size: var(--type-caption-size);
+  font-weight: 500;
+}
+
+/* ── Note: 레이더 차트 + 태그 ── */
+#pd-note-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+#pd-note-info {
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+#pd-note-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left: 2px solid currentColor;
+  padding-left: 12px;
+}
+.pd-note-tag {
+  font-family: var(--font-en);
+  font-size: var(--type-caption-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-uppercase);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+#pd-radar-wrap {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+  margin-top: -10px;
+}
+#pd-radar-canvas {
+  max-width: 400px;
+  width: 100%;
+  height: auto;
+}
+
+/* ── 레시피 가이드 (Coffee Bean) ── */
+#pd-recipe-intro {
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  margin-bottom: 32px;
+  white-space: pre-line;
+}
+.pd-recipe-card {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 28px 0;
+  border-top: .5px solid var(--color-border-tertiary);
+}
+.pd-recipe-card:first-child { border-top: none; }
+.pd-recipe-card:last-child { border-bottom: .5px solid var(--color-border-tertiary); }
+.pd-recipe-icon {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+.pd-recipe-icon svg {
+  width: 48px;
+  height: 48px;
+}
+.pd-recipe-body { flex: 1; }
+.pd-recipe-method {
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+}
+.pd-recipe-table {
+  display: grid;
+  grid-template-columns: 56px 1fr 56px 1fr;
+  gap: 4px 16px;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  align-items: center;
+}
+.pd-recipe-dt {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pd-recipe-dd {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+/* ── 레시피 가이드 (Drip Bag) ── */
+.pd-drip-icons {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin-bottom: 44px;
+}
+.pd-drip-icon-item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.pd-drip-icon-item svg {
+  width: 80px;
+  height: 80px;
+  color: var(--color-text-secondary);
+}
+.pd-drip-sep {
+  color: #C4C0BA;
+  font-size: var(--type-body-l-size);
+  font-weight: 300;
+  align-self: center;
+  margin-bottom: 4px;
+  padding: 0 2px;
+}
+.pd-drip-step {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 8px;
+  align-items: baseline;
+}
+.pd-drip-step-num {
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-step);
+  white-space: nowrap;
+  color: var(--color-text-primary);
+  width: 5em;
+  flex-shrink: 0;
+}
+.pd-drip-step-text {
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  font-weight: 400;
+}
+.pd-drip-tip {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: 32px;
+  padding: 20px 0;
+  border-top: .5px solid var(--color-border-tertiary);
+  border-bottom: .5px solid var(--color-border-tertiary);
+}
+.pd-drip-tip-label {
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-step);
+  white-space: nowrap;
+  color: var(--color-text-primary);
+  width: 5em;
+  flex-shrink: 0;
+}
+.pd-drip-tip-text {
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  font-weight: 400;
+}
+
+/* ── 아코디언 ── */
+#pd-accordions {
+  width: 100%;
+  border-bottom: .5px solid var(--color-border-tertiary);
+  margin-top: 48px;
+}
+.pd-accordion { border-top: .5px solid var(--color-border-tertiary); }
+.pd-accordion-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  cursor: pointer;
+  transition: opacity var(--duration-hover) linear;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+.pd-accordion-hd:hover { opacity: .6; }
+.pd-accordion-label {
+  font-family: var(--font-en);
+  font-size: var(--type-heading-s-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  letter-spacing: var(--ls-body-s);
+}
+.pd-accordion-icon {
+  color: var(--color-icon-default);
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pd-accordion-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+.pd-icon-v {
+  transform-origin: center;
+  transition: transform var(--duration-transition) ease;
+}
+.pd-accordion.open .pd-icon-v { transform: rotate(90deg); }
+.pd-accordion-body {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  line-height: 1.9;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height var(--duration-drawer) ease,
+    opacity var(--duration-transition) ease,
+    padding var(--duration-drawer) ease;
+  padding: 0;
+}
+.pd-accordion-body p { margin-bottom: 4px; }
+.pd-accordion-body strong {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+.pd-accordion.open .pd-accordion-body {
+  max-height: 600px;
+  opacity: 1;
+  padding: 0 0 24px;
+}
+.pd-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--type-body-s-size);
+  line-height: 1.7;
+}
+.pd-info-table td {
+  padding: 6px 8px;
+  border: .5px solid var(--color-border-tertiary);
+  color: var(--color-text-secondary);
+  vertical-align: top;
+}
+.pd-info-table .pd-info-label {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  width: auto;
+}
+
+/* ── 반응형: 1024↓ 좌 스티키 해제 · 1열 스택 ── */
+@media (max-width: 1024px) {
+  #pd-content {
+    grid-template-columns: 1fr;
+  }
+  #pd-img-wrap {
+    position: static;
+    padding: 0 40px 40px;
+    grid-column: 1;
+  }
+  #pd-info {
+    padding: 0 40px 80px;
+    grid-column: 1;
+  }
+}
+@media (max-width: 768px) {
+  #pd-img-wrap {
+    padding: 0 20px 32px;
+  }
+  #pd-info {
+    padding: 0 20px 64px;
+  }
+}
