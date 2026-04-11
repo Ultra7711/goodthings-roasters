@@ -511,7 +511,9 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
   letter-spacing: var(--search-panel-input-letter-spacing);
   caret-color: var(--color-text-primary);
 }
-#search-input::placeholder { color: var(--color-text-placeholder); }
+/* 플레이스홀더: 전역 --color-text-placeholder 는 더 옅은 톤이라
+   검색 패널에서는 가독성을 위해 한 단계 진한 secondary 로 오버라이드. */
+#search-input::placeholder { color: var(--color-text-secondary); }
 #search-icon {
   opacity: var(--search-panel-icon-opacity);
   display: flex;
@@ -520,6 +522,23 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
   flex-shrink: 0;
   pointer-events: none;
 }
+/* 검색 인풋 클리어 버튼 — 입력값이 있을 때만 렌더(React 조건부).
+   좌측 #search-icon 과 SVG 크기(24×24) 동일, 색상은 디자인 시스템의
+   아이콘 전용 토큰 --color-icon-default 사용 (인터랙티브 요소라
+   search-icon 의 .35 투명도보다 또렷하게 노출). */
+#search-clear {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-icon-default);
+  transition: color var(--duration-hover) var(--ease-default);
+}
+#search-clear:hover { color: var(--color-text-primary); }
 
 /* ══ 검색 딤 ══ */
 #search-dim {

@@ -26,6 +26,7 @@ export default function SiteHeader() {
   const { isDark, skipTransition } = useHeaderTheme(headerRef, initialTheme);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
   const [mounted, setMounted] = useState(false);
 
   /* SSR 안전: 클라이언트에서만 store 값 사용 */
@@ -44,8 +45,17 @@ export default function SiteHeader() {
 
   const closeSearch = useCallback(() => {
     setIsSearchOpen(false);
+    setSearchValue('');
     document.body.style.overflow = '';
   }, []);
+
+  /* 클리어 버튼: 입력값 초기화 + 포커스 유지.
+     onMouseDown 에서 preventDefault 를 호출해 버튼 mousedown 으로 인한
+     인풋 blur 를 방지 → 클릭 후에도 포커스 + 캐럿 유지. */
+  function handleSearchClear() {
+    setSearchValue('');
+    searchInputRef.current?.focus();
+  }
 
   /* 로고 클릭 → 홈으로 복귀
      - 홈(`/`)에서: Next.js Link 는 same-path 클릭을 스킵하므로 preventDefault
@@ -234,7 +244,22 @@ export default function SiteHeader() {
                 autoComplete="off"
                 spellCheck={false}
                 aria-label="상품 검색"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
               />
+              {searchValue && (
+                <button
+                  id="search-clear"
+                  type="button"
+                  aria-label="검색어 지우기"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={handleSearchClear}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12,3C7.1,3,3,7,3,12s4.1,9,9,9,9-4,9-9S17,3,12,3ZM15.7,14.3c.4.4.4,1,0,1.4-.4.4-.5.3-.7.3s-.5,0-.7-.3l-2.3-2.3-2.3,2.3c-.2.2-.5.3-.7.3s-.5,0-.7-.3c-.4-.4-.4-1,0-1.4l2.3-2.3-2.3-2.3c-.4-.4-.4-1,0-1.4.4-.4,1-.4,1.4,0l2.3,2.3,2.3-2.3c.4-.4,1-.4,1.4,0,.4.4.4,1,0,1.4l-2.3,2.3,2.3,2.3Z" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>,
           document.body,
