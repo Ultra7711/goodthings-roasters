@@ -13,6 +13,12 @@ export default function SRInitializer() {
   const pathname = usePathname();
 
   useEffect(() => {
+    /* 페이지 이동 시 sr--visible 초기화 — 이전 페이지에서 남은 클래스로
+       다음 페이지 애니메이션이 스킵되는 현상 방지 */
+    document.querySelectorAll<HTMLElement>('[data-sr]').forEach((el) => {
+      el.classList.remove('sr--visible');
+    });
+
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -22,7 +28,7 @@ export default function SRInitializer() {
           }
         });
       },
-      { threshold: 0.3, rootMargin: '0px 0px -40px 0px' },
+      { threshold: 0.15, rootMargin: '0px 0px -20px 0px' },
     );
 
     document.querySelectorAll<HTMLElement>('[data-sr]').forEach((el) => io.observe(el));
