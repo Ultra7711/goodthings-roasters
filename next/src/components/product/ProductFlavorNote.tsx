@@ -289,19 +289,21 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
 
   return (
     <div id="pd-note-section" className="pd-info-section">
-      <h3 className="pd-section-title">Note</h3>
+      <h3 className="pd-section-title">Flavor Note</h3>
       <div id="pd-note-layout">
-        <div id="pd-note-info">
-          <div id="pd-note-tags" style={{ borderColor: color }}>
-            {tags.map((t, i) => (
-              <span key={i} className="pd-note-tag">
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
         <div id="pd-radar-wrap">
-          <canvas id="pd-radar-canvas" width={400} height={400} ref={canvasRef} />
+          <canvas id="pd-radar-canvas" width={500} height={500} ref={canvasRef} />
+        </div>
+        <div id="pd-note-tags">
+          {tags.map((t, i) => (
+            <span
+              key={i}
+              className="pd-note-tag"
+              style={{ borderColor: color }}
+            >
+              {t}
+            </span>
+          ))}
         </div>
       </div>
     </div>

@@ -2396,10 +2396,15 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   font-weight: 400;
-  color: var(--color-text-tertiary);
-  line-height: 2;
+  color: var(--color-text-secondary);
+  line-height: 1.9;
+  background: var(--color-background-secondary);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-top: 28px;
 }
 #pd-detail-specs p { margin: 0; }
+#pd-detail-specs p + p { margin-top: 2px; }
 
 /* ── 공통: 우측 섹션 구분선 (로스팅/노트/레시피 상단) ── */
 .pd-info-section {
@@ -2509,42 +2514,53 @@ footer.blk {
   font-weight: 500;
 }
 
-/* ── Note: 레이더 차트 + 태그 ── */
+/* ── Flavor Note: 레이더 차트(센터) + 태그 pill(하단) ── */
 #pd-note-layout {
   display: flex;
-  align-items: flex-start;
-  gap: 20px;
-}
-#pd-note-info {
-  flex-shrink: 0;
-  padding-top: 4px;
-}
-#pd-note-tags {
-  display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8px;
-  border-left: 2px solid currentColor;
-  padding-left: 12px;
-}
-.pd-note-tag {
-  font-family: var(--font-en);
-  font-size: var(--type-caption-size);
-  font-weight: 500;
-  letter-spacing: var(--ls-uppercase);
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
 }
 #pd-radar-wrap {
-  flex: 1;
+  width: 100%;
   display: flex;
   justify-content: center;
   padding: 0;
-  margin-top: -10px;
 }
 #pd-radar-canvas {
-  max-width: 400px;
+  max-width: 500px;
   width: 100%;
   height: auto;
+}
+#pd-note-tags {
+  /* 레이더 캔버스 하단 여백을 보정 — 태그와 이하 섹션을
+     40px 위로 끌어올려 Flavor Note 덩어리를 타이트하게 */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: -40px;
+}
+.pd-note-tag {
+  /* Roasting Stage "미디엄" pill 과 사이즈 매칭
+     font-size/padding/line-height 동일, 외곽선 스타일만 유지 */
+  font-family: var(--font-en);
+  font-size: var(--type-caption-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-body-s);
+  color: var(--color-text-secondary);
+  padding: 2px 12px;
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: 20px;
+  line-height: 18px;
+  white-space: nowrap;
+  transition: color var(--duration-hover) ease,
+              border-color var(--duration-hover) ease,
+              background var(--duration-hover) ease;
+}
+.pd-note-tag:hover {
+  color: var(--color-text-primary);
+  background: var(--color-background-secondary);
 }
 
 /* ── 레시피 가이드 (Coffee Bean) ── */
@@ -2554,43 +2570,51 @@ footer.blk {
   font-weight: 400;
   color: var(--color-text-secondary);
   line-height: 1.8;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   white-space: pre-line;
+}
+#pd-recipe-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 .pd-recipe-card {
   display: flex;
-  gap: 24px;
-  align-items: center;
-  padding: 28px 0;
-  border-top: .5px solid var(--color-border-tertiary);
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 24px 24px;
+  background: var(--color-background-secondary);
+  border-radius: 10px;
 }
-.pd-recipe-card:first-child { border-top: none; }
-.pd-recipe-card:last-child { border-bottom: .5px solid var(--color-border-tertiary); }
+.pd-recipe-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .pd-recipe-icon {
-  width: 56px;
-  height: 56px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
 }
 .pd-recipe-icon svg {
-  width: 48px;
-  height: 48px;
+  width: 32px;
+  height: 32px;
 }
-.pd-recipe-body { flex: 1; }
 .pd-recipe-method {
   font-family: var(--font-kr);
-  font-size: var(--type-heading-s-size);
+  font-size: var(--type-body-l-size);
   font-weight: 500;
   color: var(--color-text-primary);
-  margin-bottom: 12px;
 }
 .pd-recipe-table {
   display: grid;
-  grid-template-columns: 56px 1fr 56px 1fr;
-  gap: 4px 16px;
+  grid-template-columns: max-content 1fr;
+  row-gap: 6px;
+  column-gap: 20px;
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   align-items: center;
@@ -2601,6 +2625,16 @@ footer.blk {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  min-width: 3.5em;
+}
+.pd-recipe-dt > span {
+  display: inline-flex;
+  justify-content: space-between;
+  width: 100%;
+  /* '원 두 량' 처럼 자간 균등 정렬 */
+  text-align: justify;
+  text-align-last: justify;
 }
 .pd-recipe-dd {
   color: var(--color-text-secondary);
@@ -2703,11 +2737,12 @@ footer.blk {
 }
 .pd-accordion-hd:hover { opacity: .6; }
 .pd-accordion-label {
-  font-family: var(--font-en);
-  font-size: var(--type-heading-s-size);
-  font-weight: 500;
-  color: var(--color-text-primary);
-  letter-spacing: var(--ls-body-s);
+  /* 본문 리딩 컬럼과 동일 톤 — 시각적으로 조용한 헤더
+     사이즈는 본문(15px)보다 한 단계 위인 16px 로 헤더 역할 강화 */
+  font-family: var(--font-kr);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
 }
 .pd-accordion-icon {
   color: var(--color-icon-default);
@@ -2729,10 +2764,11 @@ footer.blk {
 }
 .pd-accordion.open .pd-icon-v { transform: rotate(90deg); }
 .pd-accordion-body {
+  /* 본문 사이즈(15px) 유지, 위계는 컬러(tertiary)로만 형성 */
   font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
+  font-size: 15px;
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
   line-height: 1.9;
   max-height: 0;
   overflow: hidden;
@@ -2745,8 +2781,9 @@ footer.blk {
 }
 .pd-accordion-body p { margin-bottom: 4px; }
 .pd-accordion-body strong {
+  /* 본문이 tertiary 톤이므로 강조는 secondary 로 한 단계 위 */
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
 }
 .pd-accordion.open .pd-accordion-body {
   max-height: 600px;
@@ -2793,5 +2830,18 @@ footer.blk {
   }
   #pd-info {
     padding: 0 20px 64px;
+  }
+  /* Recipe Guide 모바일: 2열 → 1열 스택 */
+  #pd-recipe-cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .pd-recipe-card {
+    padding: 20px 20px 22px;
+  }
+  /* Flavor Note: 캔버스 크기 유지(자동 축소), 태그 gap 만 살짝 조정
+     (사이즈는 데스크탑과 동일 — Roasting pill 과 동일 스펙) */
+  #pd-note-tags {
+    gap: 8px;
   }
 }
