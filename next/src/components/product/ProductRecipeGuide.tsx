@@ -5,6 +5,7 @@
    - Drip Bag   : DRIP_BAG_RECIPE (공통 3단계 + tip)
    ══════════════════════════════════════════ */
 
+import type { ReactElement } from 'react';
 import { DRIP_BAG_RECIPE, type Product } from '@/lib/products';
 import { RECIPE_ICONS, DripIcon1, DripIcon2, DripIcon3 } from './recipeIcons';
 
@@ -20,30 +21,25 @@ export default function ProductRecipeGuide({ product }: Props) {
 
   if (isDripBag) {
     const dr = DRIP_BAG_RECIPE;
+    const steps: { label: string; text: string; Icon: () => ReactElement }[] = [
+      { label: 'STEP 01', text: dr.step1, Icon: DripIcon1 },
+      { label: 'STEP 02', text: dr.step2, Icon: DripIcon2 },
+      { label: 'STEP 03', text: dr.step3, Icon: DripIcon3 },
+    ];
     return (
       <div id="pd-recipe-section" className="pd-info-section">
         <h3 className="pd-section-title">Recipe Guide</h3>
         <p id="pd-recipe-intro">드립백을 가장 맛있게 즐길 수 있는 방법입니다.</p>
-        <div id="pd-recipe-cards">
-          <div className="pd-drip-icons">
-            <div className="pd-drip-icon-item"><DripIcon1 /></div>
-            <span className="pd-drip-sep">|</span>
-            <div className="pd-drip-icon-item"><DripIcon2 /></div>
-            <span className="pd-drip-sep">|</span>
-            <div className="pd-drip-icon-item"><DripIcon3 /></div>
-          </div>
-          <div className="pd-drip-step">
-            <span className="pd-drip-step-num">STEP 01</span>
-            <span className="pd-drip-step-text">{dr.step1}</span>
-          </div>
-          <div className="pd-drip-step">
-            <span className="pd-drip-step-num">STEP 02</span>
-            <span className="pd-drip-step-text">{dr.step2}</span>
-          </div>
-          <div className="pd-drip-step">
-            <span className="pd-drip-step-num">STEP 03</span>
-            <span className="pd-drip-step-text">{dr.step3}</span>
-          </div>
+        <div id="pd-recipe-cards" className="is-drip">
+          {steps.map((s) => (
+            <div key={s.label} className="pd-recipe-card">
+              <div className="pd-recipe-head">
+                <div className="pd-recipe-method">{s.label}</div>
+              </div>
+              <p className="pd-drip-step-body">{s.text}</p>
+              <div className="pd-recipe-icon"><s.Icon /></div>
+            </div>
+          ))}
           {dr.tip && (
             <div className="pd-drip-tip">
               <span className="pd-drip-tip-label">TIP</span>

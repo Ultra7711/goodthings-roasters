@@ -38,7 +38,7 @@
   --color-btn-primary-bg-active: #0F0E0D;
 
   /* ── 컬러: Accent & Feedback ── */
-  --color-accent-gold: #7A6B52;
+  --color-accent-gold: #A47146;
   --color-accent-warm: #A08B6D;
   --color-error: #C4554E;
   --color-success: #5C7A4B;
@@ -1515,9 +1515,10 @@ footer.blk {
   transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) ease-out;
 }
 #sp-body.sp-anim #sp-filter-tabs {
+  /* 서브타이틀(0.3s) 보다 0.1s 뒤에 등장 — 살짝 시간차 리듬 */
   opacity: 1;
   transform: translateY(0);
-  transition-delay: .3s;
+  transition-delay: .4s;
 }
 #sp-filter-tabs::after {
   content: '';
@@ -2578,37 +2579,59 @@ footer.blk {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
+/* Drip Bag 레시피: 3단계 → 3열 그리드 (임시 적용) */
+#pd-recipe-cards.is-drip {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.pd-drip-step-body {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin: 0;
+  /* 아이콘 워터마크와 겹치지 않도록 우측 여백 확보 */
+  padding-right: 60px;
+}
 .pd-recipe-card {
+  /* 아이콘은 카드 우하단에 워터마크처럼 배치 — overflow:hidden 으로 안전하게 */
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 14px;
   padding: 22px 24px 24px;
   background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
   border-radius: 10px;
+  overflow: hidden;
 }
 .pd-recipe-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  /* 메서드 라벨만 (아이콘은 카드 레벨에서 absolute) */
+  display: block;
 }
 .pd-recipe-icon {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
+  /* 카드 우하단 워터마크 — 상세 비주얼은 추후 재작업 */
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-primary);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
 }
 .pd-recipe-icon svg {
-  width: 32px;
-  height: 32px;
+  width: 56px;
+  height: 56px;
 }
 .pd-recipe-method {
   font-family: var(--font-kr);
-  font-size: var(--type-body-l-size);
+  font-size: var(--type-body-m-size);
   font-weight: 500;
   color: var(--color-text-primary);
+  line-height: 1.2;
 }
 .pd-recipe-table {
   display: grid;
@@ -2690,10 +2713,12 @@ footer.blk {
   font-weight: 400;
 }
 .pd-drip-tip {
+  /* 드립 카드 그리드의 4번째 셀 — 전체 폭 사용 */
+  grid-column: 1 / -1;
   display: flex;
   gap: 20px;
   align-items: center;
-  margin-top: 32px;
+  margin-top: 16px;
   padding: 20px 0;
   border-top: .5px solid var(--color-border-tertiary);
   border-bottom: .5px solid var(--color-border-tertiary);
@@ -2831,13 +2856,27 @@ footer.blk {
   #pd-info {
     padding: 0 20px 64px;
   }
-  /* Recipe Guide 모바일: 2열 → 1열 스택 */
-  #pd-recipe-cards {
+  /* Recipe Guide 모바일: 2열/3열 → 1열 스택 */
+  #pd-recipe-cards,
+  #pd-recipe-cards.is-drip {
     grid-template-columns: 1fr;
     gap: 12px;
   }
+  .pd-drip-step-body {
+    padding-right: 56px;
+  }
   .pd-recipe-card {
     padding: 20px 20px 22px;
+  }
+  .pd-recipe-icon {
+    right: 16px;
+    bottom: 16px;
+    width: 48px;
+    height: 48px;
+  }
+  .pd-recipe-icon svg {
+    width: 48px;
+    height: 48px;
   }
   /* Flavor Note: 캔버스 크기 유지(자동 축소), 태그 gap 만 살짝 조정
      (사이즈는 데스크탑과 동일 — Roasting pill 과 동일 스펙) */

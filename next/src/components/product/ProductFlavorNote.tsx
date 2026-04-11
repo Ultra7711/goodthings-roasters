@@ -35,7 +35,7 @@ type Props = {
 
 export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const color = noteColor || '#d2aa78';
+  const color = noteColor || '#A47146';
 
   useEffect(() => {
     const canvas = canvasRef.current;
