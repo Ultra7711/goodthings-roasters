@@ -1705,8 +1705,10 @@ footer.blk {
 .sp-qa-bar--disabled {
   background: rgba(28,27,25,.42);
   cursor: default;
-  opacity: 1;
-  /* width 는 base .sp-qa-bar 의 124px 유지 — 매진 상태도 기본 크기 표시 */
+  /* opacity 는 base .sp-qa-bar 의 0 을 상속 — 빠른 추가 바와 동일하게
+     hover 시에만 JS 에서 opacity:1 을 세팅해 등장한다. 매진 카드에서도
+     hover 동작 자체는 동일하고, 다만 빠른 추가 기능(클릭 → QA 오픈)만
+     비활성화된다. width 는 base 의 124px 유지. */
 }
 .sp-qa-bar-text {
   font-family: var(--font-kr);

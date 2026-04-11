@@ -96,6 +96,18 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     return () => document.removeEventListener('click', onDoc);
   }, [qaOpen, closeQa]);
 
+  // Unmount cleanup — resetTick 증가 또는 필터 전환 시 ShopCard 가 remount 되는데,
+  // 이때 진행 중이던 hover/close 타이머가 unmounted 인스턴스에서 setState 를 호출하면
+  // 메모리 leak + React warning 발생. 또한 momentum scroll 로 mouseleave 가 누락된
+  // 케이스에서 bar inline style 이 다음 생애에 전파되지 않도록 명시적으로 초기화한다.
+  useEffect(() => {
+    return () => {
+      if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
+      if (qaTextTimerRef.current) { clearTimeout(qaTextTimerRef.current); qaTextTimerRef.current = null; }
+      if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
+    };
+  }, []);
+
   const img = p.images[0];
   const isSoldOut = p.status === '매진';
   const isDripBag = p.category === 'Drip Bag';
@@ -120,7 +132,10 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   }
 
   function handleMouseEnter() {
-    if (qaOpen || isSoldOut || !showQaBar) return;
+    // 매진 카드도 hover 시 바가 등장하도록 isSoldOut 분기 제거.
+    // 매진 상태에서는 빠른 추가 기능(openQa) 만 동작하지 않으며,
+    // 바 자체의 등장/퇴장 모션은 일반 카드와 동일하게 유지한다.
+    if (qaOpen || !showQaBar) return;
     hoverTimerRef.current = setTimeout(() => {
       const bar = getBar();
       if (bar) {
@@ -185,9 +200,9 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
           <div className="sp-card-img" style={{ background: thumbStyle }} />
         </div>
 
-        {/* 매진 뱃지는 하단 .sp-qa-bar--disabled("매진") 과 중복이라 Shop 카드에선
-            생략. 뱃지 자체는 검색 결과 등 다른 컨텍스트에서 계속 사용. */}
-        {p.status && !isSoldOut && (
+        {/* 매진 카드도 뱃지를 표시한다. 매진 바는 hover 시에만 등장하므로
+            상시 표시되는 뱃지가 필요함 (매진 상태를 즉시 인지 가능하도록). */}
+        {p.status && (
           <span className={getBadgeClass(p.status)}>
             {p.status === 'NEW' ? 'NEW' : p.status}
           </span>
@@ -254,7 +269,11 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
         )}
 
         {isSoldOut && showQaBar && (
-          <div className="sp-qa-bar sp-qa-bar--disabled" aria-disabled="true">
+          <div
+            className="sp-qa-bar sp-qa-bar--disabled"
+            role="status"
+            aria-label="매진"
+          >
             <span className="sp-qa-bar-text">매진</span>
           </div>
         )}

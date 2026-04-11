@@ -17,30 +17,42 @@ const CARD_BASE_DELAY_INIT = 420; // 초기 로드: 탭(0.3s) 등장 후 카드 
 export default function ShopPage() {
   const [filter, setFilter] = useState<FilterKey>('all');
   const [page, setPage] = useState(1);
+  // 헤더 Shop 메뉴 재클릭 시 진입 연출 재트리거용 카운터.
+  // - sp-anim 클래스 재토글 useEffect 의 dep
+  // - ShopCard key 에 포함되어 동일 filter 에서도 카드 remount → 등장 연출 재생
+  const [resetTick, setResetTick] = useState(0);
   const bodyRef = useRef<HTMLDivElement>(null);
-  // 초기 마운트 여부 — 필터 전환 시 카드 딜레이 제거
+  // 초기 진입 플래그 — 최초 마운트에만 true 여서 첫 카드 stagger 에 0.42s 의
+  // baseDelay 가 붙는다 (탭 등장 0.4s 직후 카드가 따라오도록). 이후 필터 전환·
+  // 헤더 Shop 재클릭(리셋) 에서는 false 로 유지되어 baseDelay 0 + col stagger 만 동작.
   const isInitRef = useRef(true);
 
-  // 페이지 진입 연출 — 프로토타입 sp-anim 클래스 트리거
+  // 페이지 진입 연출 — 프로토타입 sp-anim 클래스 트리거 (최초 마운트에만).
+  // 헤더 Shop 재클릭 시엔 래퍼 연출을 재생하지 않고 카드만 remount 되도록 해
+  // "탭 전환과 동일한 속도감"을 유지한다.
   useEffect(() => {
     const el = bodyRef.current;
     if (!el) return;
     el.classList.remove('sp-anim');
     void el.offsetHeight;
     el.classList.add('sp-anim');
-    // 마운트 완료 → 이후 필터 전환은 baseDelay 0
+    // 진입 연출 완료 → 이후 필터 전환·리셋은 baseDelay 0
     isInitRef.current = false;
   }, []);
 
   /* SiteHeader 의 Shop 링크를 /shop 내에서 클릭했을 때 발송되는
-     'gtr:shop-reset' 이벤트 수신 → 필터/페이지 초기화 + 스크롤 top.
+     'gtr:shop-reset' 이벤트 수신 → 필터/페이지 초기화 + 스크롤 top + 카드 remount.
      SiteHeader 는 컴포넌트 트리 외부(레이아웃)에 있어 props 로 직접
-     연결할 수 없으므로 window 커스텀 이벤트 기반 브리지를 사용. */
+     연결할 수 없으므로 window 커스텀 이벤트 기반 브리지를 사용.
+     resetTick 은 ShopCard key 에 포함되어 동일 filter 상태에서도 remount 를 강제.
+     sp-anim 래퍼는 재생하지 않고 isInitRef 도 그대로 두어 탭 전환과 동일한 타이밍
+     (baseDelay 0, col stagger +70ms)으로 카드가 올라오게 한다. */
   useEffect(() => {
     function onReset() {
       setFilter('all');
       setPage(1);
       window.scrollTo({ top: 0, behavior: 'instant' });
+      setResetTick((n) => n + 1);
     }
     window.addEventListener('gtr:shop-reset', onReset);
     return () => window.removeEventListener('gtr:shop-reset', onReset);
@@ -79,7 +91,7 @@ export default function ShopPage() {
       <div id="sp-grid">
         {items.map((product, i) => (
           <ShopCard
-            key={`${filter}-${product.slug}`}
+            key={`${resetTick}-${filter}-${product.slug}`}
             product={product}
             colIndex={i % COLS}
             isSubFilter={filter === 'sub'}
