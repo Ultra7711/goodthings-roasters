@@ -102,9 +102,13 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   function openQa() {
     clearTimers();
     setQaOpen(true);
-    // closeQa 중 남아 있을 수 있는 inline style 초기화
+    // closeQa 중 남아 있을 수 있는 inline style 초기화 (opacity/pointer-events 모두)
     const bar = getBar();
-    if (bar) { bar.style.transition = ''; bar.style.opacity = ''; }
+    if (bar) {
+      bar.style.transition = '';
+      bar.style.opacity = '';
+      bar.style.pointerEvents = '';
+    }
     qaTextTimerRef.current = setTimeout(() => setQaBarText('장바구니에 담기'), QA_TEXT_DELAY_MS);
   }
 
@@ -112,7 +116,11 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     if (qaOpen || isSoldOut || !showQaBar) return;
     hoverTimerRef.current = setTimeout(() => {
       const bar = getBar();
-      if (bar) bar.style.opacity = '1';
+      if (bar) {
+        bar.style.opacity = '1';
+        // 투명 상태의 pointer-events:none 해제 — hover 로 실제 보이는 동안만 클릭 가능
+        bar.style.pointerEvents = 'auto';
+      }
     }, HOVER_DELAY_MS);
   }
 
@@ -120,7 +128,10 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     clearTimers();
     if (!qaOpen) {
       const bar = getBar();
-      if (bar) bar.style.opacity = '';
+      if (bar) {
+        bar.style.opacity = '';
+        bar.style.pointerEvents = '';
+      }
     }
   }
 
@@ -166,7 +177,9 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
           <div className="sp-card-img" style={{ background: thumbStyle }} />
         </div>
 
-        {p.status && (
+        {/* 매진 뱃지는 하단 .sp-qa-bar--disabled("매진") 과 중복이라 Shop 카드에선
+            생략. 뱃지 자체는 검색 결과 등 다른 컨텍스트에서 계속 사용. */}
+        {p.status && !isSoldOut && (
           <span className={getBadgeClass(p.status)}>
             {p.status === 'NEW' ? 'NEW' : p.status}
           </span>
