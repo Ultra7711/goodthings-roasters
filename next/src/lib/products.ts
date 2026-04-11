@@ -32,13 +32,26 @@ export type FlavorNote = {
   acidity: number;
 };
 
+/** 상품 상태 배지 — null 은 뱃지 미표시 */
+export type ProductStatus =
+  | 'NEW'
+  | '인기 NO.1'
+  | '인기 NO.2'
+  | '인기 NO.3'
+  | '수량 한정'
+  | '매진'
+  | null;
+
+/** 로스팅 단계 */
+export type RoastStage = 'light' | 'medium-light' | 'medium' | 'medium-dark' | 'dark';
+
 export type Product = {
   category: 'Coffee Bean' | 'Drip Bag';
   name: string;
   price: string;
   volumes: ProductVolume[];
   color: string;
-  status: string | null;
+  status: ProductStatus;
   slug: string;
   subscription: boolean;
   popup?: boolean;
@@ -48,8 +61,16 @@ export type Product = {
   note: FlavorNote;
   noteTags: string;
   noteColor: string;
-  roastStage: 'light' | 'medium-light' | 'medium' | 'medium-dark' | 'dark';
+  roastStage: RoastStage;
   recipe: RecipeItem[];
+};
+
+/** Drip Bag 공통 레시피 구조 */
+export type DripBagRecipe = {
+  step1: string;
+  step2: string;
+  step3: string;
+  tip: string;
 };
 
 export const PRODUCTS: Product[] = [
@@ -210,17 +231,36 @@ export const PRODUCTS: Product[] = [
   },
 ];
 
-export const DRIP_BAG_RECIPE = {
+export const DRIP_BAG_RECIPE: DripBagRecipe = {
   step1: '절취선을 따라 드립백을 열어 컵에 걸어주세요.',
   step2: '커피가 가진 다양한 향을 충분히 즐겨주세요.',
   step3: '작은 원을 두 번 그리고 10초 정도 기다린 후, 천천히 나선형 방향으로 물이 넘치지 않게 부어주세요.',
   tip: '물의 양은 180~200ml 부어주시고 물의 온도는 90~92°C가 가장 적절합니다.',
 };
 
-/** 상품명에서 한글 부분만 추출 (카드 표시용) */
-export function extractKrName(name: string): string {
+/** 상품명에서 한글/영문 부분을 분리. 영문 토큰이 없으면 en 은 빈 문자열. */
+export function splitName(name: string): { kr: string; en: string } {
   const m = name.match(/^(.*[\uAC00-\uD7AF](?:\s+[A-Z0-9]+)*)\s+([A-Z][a-z].*)$/);
-  return m ? m[1] : name;
+  if (!m) return { kr: name, en: '' };
+  return { kr: m[1], en: m[2] };
+}
+
+/** 상품명에서 한글 부분만 추출 (카드 표시용) — splitName 래퍼 */
+export function extractKrName(name: string): string {
+  return splitName(name).kr;
+}
+
+/** 상품 상태 뱃지 클래스 — ShopCard · ProductDetailPage 공유 */
+export function getStatusBadgeClass(status: ProductStatus): string {
+  switch (status) {
+    case 'NEW':       return 'sp-card-badge badge-new';
+    case '인기 NO.1': return 'sp-card-badge badge-pop-1 badge-kr';
+    case '인기 NO.2': return 'sp-card-badge badge-pop-2 badge-kr';
+    case '인기 NO.3': return 'sp-card-badge badge-pop-3 badge-kr';
+    case '수량 한정':  return 'sp-card-badge badge-ltd badge-kr';
+    case '매진':      return 'sp-card-badge badge-sold badge-kr';
+    default:          return 'sp-card-badge';
+  }
 }
 
 /** 상품 시작 가격 포맷 (볼륨 첫 번째 기준) */

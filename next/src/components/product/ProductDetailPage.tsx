@@ -17,7 +17,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { Product } from '@/lib/products';
+import { type Product, splitName, getStatusBadgeClass } from '@/lib/products';
 import ProductGallery from './ProductGallery';
 import PurchaseRow from './PurchaseRow';
 import ProductDetailBody from './ProductDetailBody';
@@ -26,28 +26,8 @@ import ProductFlavorNote from './ProductFlavorNote';
 import ProductRecipeGuide from './ProductRecipeGuide';
 import ProductAccordions from './ProductAccordions';
 
-/** 상품명 분리: "가을의 밤 Autumn Night" → { kr, en } */
-function splitProductName(name: string): { kr: string; en: string } {
-  const m = name.match(/^(.*[\uAC00-\uD7AF](?:\s+[A-Z0-9]+)*)\s+([A-Z][a-z].*)$/);
-  if (m) return { kr: m[1], en: m[2] };
-  return { kr: name, en: '' };
-}
-
 function formatPrice(n: number): string {
   return n.toLocaleString('ko-KR') + '원';
-}
-
-/** 상태 뱃지 클래스 매핑 (ShopCard 동일 규칙) */
-function getBadgeClass(status: string): string {
-  switch (status) {
-    case 'NEW':       return 'sp-card-badge badge-new';
-    case '인기 NO.1': return 'sp-card-badge badge-pop-1';
-    case '인기 NO.2': return 'sp-card-badge badge-pop-2';
-    case '인기 NO.3': return 'sp-card-badge badge-pop-3';
-    case '수량 한정':  return 'sp-card-badge badge-ltd';
-    case '매진':      return 'sp-card-badge badge-sold';
-    default:          return 'sp-card-badge';
-  }
 }
 
 type Props = { product: Product };
@@ -59,6 +39,10 @@ export default function ProductDetailPage({ product }: Props) {
      수량에는 반응하지 않고 선택된 용량의 단가만 표시한다. */
   const [volIdx, setVolIdx] = useState(0);
   const hasVolumes = product.volumes.length > 0;
+  /* 상품 전체 매진 판정 — status === '매진' 이거나 모든 볼륨이 soldOut.
+     매진 상품에서는 가격 노출을 차단해 "구매 가능" 처럼 보이지 않게 한다. */
+  const allSoldOut = hasVolumes && product.volumes.every((v) => v.soldOut);
+  const isSoldOut = product.status === '매진' || allSoldOut;
 
   /* 진입 애니메이션 — ShopPage sp-anim 과 동일한 reflow 패턴.
      className remove → 강제 reflow(offsetHeight read) → add 순으로
@@ -78,8 +62,10 @@ export default function ProductDetailPage({ product }: Props) {
     setVolIdx(firstAvail >= 0 ? firstAvail : 0);
   }, [product.slug, product.volumes]);
 
-  const { kr, en } = splitProductName(product.name);
+  const { kr, en } = splitName(product.name);
   const unitPrice = hasVolumes ? product.volumes[volIdx].price : 0;
+  /* 매진 상품은 가격 숨김 — 뱃지와 CTA 로만 상태 전달. */
+  const showPrice = hasVolumes && !isSoldOut;
 
   return (
     <div id="pd-body" ref={pageRef}>
@@ -98,10 +84,10 @@ export default function ProductDetailPage({ product }: Props) {
               <span className="pd-name-kr">{kr}</span>
               {en && <span className="pd-name-en">{en}</span>}
             </div>
-            {hasVolumes && <div id="pd-price">{formatPrice(unitPrice)}</div>}
+            {showPrice && <div id="pd-price">{formatPrice(unitPrice)}</div>}
             {product.status && (
               <span id="pd-status">
-                <span className={getBadgeClass(product.status)}>{product.status}</span>
+                <span className={getStatusBadgeClass(product.status)}>{product.status}</span>
               </span>
             )}
             <div id="pd-divider" />

@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import type { Product } from '@/types/product';
+import type { Product } from '@/lib/products';
 import type { CartItemType } from '@/types/cart';
 import { useCartStore } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';

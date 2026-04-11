@@ -61,6 +61,15 @@ export default function ProductRoastStage({ roastStage }: Props) {
     resetState();
 
     const timers: ReturnType<typeof setTimeout>[] = [];
+    /* colorRaf 는 재진입/언마운트 시 취소되어야 하므로 closure 상위로 끌어올림.
+       이전 구현은 setTimeout 콜백 내부 let 으로 선언되어 cleanup 에서 도달 불가 → leak. */
+    let colorRaf = 0;
+    const cancelColorRaf = () => {
+      if (colorRaf) {
+        cancelAnimationFrame(colorRaf);
+        colorRaf = 0;
+      }
+    };
 
     const io = new IntersectionObserver(
       (entries) => {
@@ -85,10 +94,9 @@ export default function ProductRoastStage({ roastStage }: Props) {
               marker.style.left = `${markerPct}%`;
 
               /* 지나가는 단계 색상 실시간 반영 */
-              let colorRaf = 0;
               const trackColor = () => {
                 const barEl = sec.querySelector<HTMLElement>('#pd-roast-bar');
-                if (!barEl) return;
+                if (!barEl) { colorRaf = 0; return; }
                 const barW = barEl.offsetWidth;
                 const curLeft = parseFloat(getComputedStyle(marker).left);
                 const segIdx = Math.min(
@@ -97,7 +105,9 @@ export default function ProductRoastStage({ roastStage }: Props) {
                 );
                 marker.style.color = SEG_COLORS[Math.max(0, segIdx)];
                 if (segIdx < idx) colorRaf = requestAnimationFrame(trackColor);
+                else colorRaf = 0;
               };
+              cancelColorRaf();
               colorRaf = requestAnimationFrame(trackColor);
             }, entryDelay + 60);
             timers.push(t);
@@ -105,6 +115,7 @@ export default function ProductRoastStage({ roastStage }: Props) {
             /* 뷰 이탈 시 리셋 — 재진입 시 애니메이션 재생 가능 */
             timers.forEach(clearTimeout);
             timers.length = 0;
+            cancelColorRaf();
             resetState();
           }
         });
@@ -128,6 +139,7 @@ export default function ProductRoastStage({ roastStage }: Props) {
     return () => {
       io.disconnect();
       timers.forEach(clearTimeout);
+      cancelColorRaf();
       sec.removeEventListener('mouseenter', onEnter);
       sec.removeEventListener('mouseleave', onLeave);
     };

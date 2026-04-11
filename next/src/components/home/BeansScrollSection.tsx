@@ -9,8 +9,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { PRODUCTS } from '@/lib/productData';
-import type { Product } from '@/types/product';
+import { PRODUCTS, type Product } from '@/lib/products';
 
 const FEATURED = PRODUCTS.filter((p) => p.status !== '매진').slice(0, 8);
 const FRICTION = 160;       // 관성 착지 마찰 계수 (프로토타입 동일)

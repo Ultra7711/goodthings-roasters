@@ -89,8 +89,12 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
     return () => cancelAnimationFrame(id);
   }, [product.slug, product.subscription]);
 
-  const disabled = product.status === '매진' || product.status === '재고 없음';
-  const cartLabel = disabled ? (product.status as string) : '장바구니에 담기';
+  /* 전체 매진 판정 — status 가 '매진' 이거나, 모든 볼륨이 soldOut 인 경우.
+     ProductDetailPage 의 isSoldOut 과 동일한 규칙을 PurchaseRow 에도 적용하여
+     "모든 옵션 매진이지만 status 는 null" 인 엣지 케이스에서도 CTA 를 차단한다. */
+  const allSoldOut = hasVolumes && product.volumes.every((v) => v.soldOut);
+  const disabled = product.status === '매진' || allSoldOut;
+  const cartLabel = disabled ? (product.status ?? '매진') : '장바구니에 담기';
 
   /* 드립백은 라벨이 "품목" */
   const volLabelText = product.category === 'Drip Bag' ? '품목' : '용량';

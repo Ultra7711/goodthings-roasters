@@ -2,24 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { type Product, extractKrName, formatStartPrice } from '@/lib/products';
+import { type Product, extractKrName, formatStartPrice, getStatusBadgeClass } from '@/lib/products';
 import { useCartStore } from '@/lib/store';
 
 const HOVER_DELAY_MS = 400;
 const QA_TEXT_DELAY_MS = 150;
 const SCROLL_REVEAL_THRESHOLD = 0.15;
-
-function getBadgeClass(status: string): string {
-  switch (status) {
-    case 'NEW':       return 'sp-card-badge badge-new';
-    case '인기 NO.1': return 'sp-card-badge badge-pop-1 badge-kr';
-    case '인기 NO.2': return 'sp-card-badge badge-pop-2 badge-kr';
-    case '인기 NO.3': return 'sp-card-badge badge-pop-3 badge-kr';
-    case '수량 한정':  return 'sp-card-badge badge-ltd badge-kr';
-    case '매진':      return 'sp-card-badge badge-sold badge-kr';
-    default:          return 'sp-card-badge';
-  }
-}
 
 /** 첫 번째 가용(매진 아닌) 볼륨 인덱스 — 전부 매진이면 0 */
 function findFirstAvailVolIdx(p: Product): number {
@@ -203,7 +191,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
         {/* 매진 카드도 뱃지를 표시한다. 매진 바는 hover 시에만 등장하므로
             상시 표시되는 뱃지가 필요함 (매진 상태를 즉시 인지 가능하도록). */}
         {p.status && (
-          <span className={getBadgeClass(p.status)}>
+          <span className={getStatusBadgeClass(p.status)}>
             {p.status === 'NEW' ? 'NEW' : p.status}
           </span>
         )}
