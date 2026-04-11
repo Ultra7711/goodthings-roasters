@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-10 (pixel-port 재이식 시작: P-0 자산 이식 완료 — next/public/images/ 140파일 이관)
+> **최종 업데이트:** 2026-04-11 (RP-4 상품 상세 에디토리얼 튜닝 패스 완료 — 스펙 카드·Flavor Note·Recipe Guide·아코디언 위계 재설정, 코드 리뷰 대기)
 
 ---
 
@@ -199,7 +199,7 @@ UI 생성, 반응형 변환, 인터랙션 설계.
 | RP-1 | 공통 레이아웃 (AnnouncementBar·SiteHeader·SiteFooter·BizToggle·SRInitializer·useHeaderTheme·headerThemeConfig·layout.tsx) | ts-reviewer + code-reviewer + security-reviewer | — | ✅ |
 | RP-2 | 홈 섹션 7개 (HeroSection·CafeMenuSection·PhilSection·BeansScrollSection·TwoColSection·RoasterySection·GoodDaysSection·useSR·page.tsx·globals.css) | ts-reviewer + code-reviewer + security-reviewer | — | ✅ |
 | RP-3 | Shop 페이지 재이식 | ts-reviewer + code-reviewer | — | ✅ |
-| RP-4 | 상품 상세 재이식 (ImageGallery·PurchaseOptions·RoastStage·RadarChart·RecipeGuide·ProductAccordion) | ts-reviewer + code-reviewer | — | ⬜ |
+| RP-4 | 상품 상세 재이식 (ImageGallery·PurchaseOptions·RoastStage·RadarChart·RecipeGuide·ProductAccordion) | ts-reviewer + code-reviewer | — | 🔄 |
 | RP-5 | 카페 메뉴 페이지 재이식 | ts-reviewer + code-reviewer | — | ⬜ |
 | RP-6 | Story + 보조 페이지 재이식 (/biz-inquiry·/gooddays·/story) | ts-reviewer + code-reviewer | — | ⬜ |
 | RP-7 | 체크아웃 + OrderComplete 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
@@ -215,6 +215,7 @@ UI 생성, 반응형 변환, 인터랙션 설계.
 **RP-3**: 완료 (2026-04-11). ShopCard(Quick Add 패널·빠른 추가·스크롤 reveal)·ShopFilterTabs(isMounted 스냅·isInitRef baseDelay)·ShopPage·products.ts 신규 이식. backdrop-filter GPU 충돌→inline style 우회, button-in-button→div[role=button] 전환, CSS hover 룰 제거→JS inline opacity, 볼륨 버튼 290ms 통일. 코드 리뷰 H-1~H-3 + M-4~M-5 수정, Deferred(M-1~M-3·H-4) docs/code-review-deferred.md 기록.
 **RP-1, RP-2**: 완료 (2026-04-11). ts-reviewer + code-reviewer + security-reviewer 3총사 병렬 실행, HIGH 7건 수정 (useCallback 안정화·DOM 직접 조작 제거·cleanup·BizToggle React state 전환·중복 id 제거·rel 수정·env var) + MEDIUM 2건 수정 (scrollIntoView·fallback '—'). useSR.ts dead code 삭제, SRInitializer 신규 생성, page.tsx 서버 컴포넌트 전환.
 **R-4**: 완료 (2026-04-10). typescript-reviewer + code-reviewer + security-reviewer 병렬 실행, HIGH 9건 수정. (1) ConfirmModal 비동기 `onConfirm` 지원 + `isPending` 상태로 ESC/overlay 닫기 차단, (2) Level 2 PII 최소화 — localStorage에 `{isLoggedIn, displayName}`만 저장, user 객체는 메모리 only, (3) 크로스 스토어 `purgeSession()` 헬퍼로 로그아웃 시 authStorage + cartStorage 동시 클리어, (4-5) 데모 크리덴셜/유저 명백한 placeholder화 (`demo@goodthings.test` / `010-0000-0000`), (6) 아코디언 3종 `aria-hidden`+`tabIndex` → React 19 `inert` 속성 전환, (7) OrderCard 중첩 interactive HTML 위반 수정 (meta 행을 토글 버튼 바깥으로 분리), (8) `useAuthGuard` zustand persist unsubscribe 타입 가드 (NOOP fallback), (9) `/mypage` Static prerender (`useSyncExternalStore` 기반 SSR 안전). TypeScript pass · ESLint 0 errors · next build 성공 · 런타임 검증 (Claude Preview MCP) 완료.
+**RP-4**: 진행 중 (2026-04-11). 메인 이식 (`bcf1ffc7`) + 에디토리얼 튜닝 패스 (`07149fd3`) 커밋. ProductGallery·PurchaseRow·ProductDetailBody·ProductRoastStage·ProductFlavorNote·ProductRecipeGuide·ProductAccordions 구성. 튜닝 내용: 스펙 카드 warm-beige 프레임화 + 로스팅 포인트 텍스트 제거(게이지와 중복), Flavor Note 레이더 500×500 확대 + pill 태그 레이더 하단 재배치(margin-top:-40px 로 이하 섹션 동반 상승), Recipe Guide 2×2 카드 그리드(모바일 1열), 아코디언 헤더 Inter→Pretendard·16px/400/secondary + 본문 위계 재설정. 코드 리뷰 3총사 대기.
 
 ---
 
