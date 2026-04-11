@@ -749,8 +749,10 @@ footer.blk {
   50%  { opacity: 1;  transform: translateY(4px); }
   100% { opacity: .3; transform: translateY(0); }
 }
-/* cat-arrow-in keyframe 제거 — 순수 transition으로 전환
-   (animation + fill-mode:both / transition 공존 시 hover-out 즉시 스냅 버그 방지) */
+@keyframes cat-arrow-in {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 @keyframes beans-bounce-start {
   0%   { transform: translateX(-8px); }
   50%  { transform: translateX(4px); }
@@ -1002,16 +1004,15 @@ footer.blk {
   height: 48px;
   color: var(--color-text-inverse);
   opacity: 0;
-  transform: translateX(-16px);
-  /* hover-out: 짧지만 눈에 보이는 퇴장 (fade + slide left) */
-  transition: opacity 200ms ease-out, transform 200ms ease-out;
+  transform: translateX(0);
+  /* hover-out: opacity만 서서히 fade — 위치 이동 없음 (리와인드 방지) */
+  transition: opacity 350ms ease;
   margin-bottom: 32px;
 }
 .cat-card:hover .cat-arrow {
   opacity: 1;
-  transform: translateX(0);
-  /* hover-in: spring 슬라이드 인 (600ms) */
-  transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) var(--ease-spring);
+  /* hover-in: -16px → 0 spring 슬라이드 등장 */
+  animation: cat-arrow-in var(--duration-fade) var(--ease-spring) both;
 }
 .cat-title {
   font-family: var(--font-en);
@@ -1252,16 +1253,15 @@ footer.blk {
   height: 48px;
   color: var(--color-text-inverse);
   opacity: 0;
-  transform: translateX(-16px);
-  /* hover-out: 짧지만 눈에 보이는 퇴장 (fade + slide left) */
-  transition: opacity 200ms ease-out, transform 200ms ease-out;
+  transform: translateX(0);
+  /* hover-out: opacity만 서서히 fade — 위치 이동 없음 (리와인드 방지) */
+  transition: opacity 350ms ease;
   margin-bottom: 16px;
 }
 .tci:hover .tci-arrow {
   opacity: 1;
-  transform: translateX(0);
-  /* hover-in: spring 슬라이드 인 (600ms) */
-  transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) var(--ease-spring);
+  /* hover-in: -16px → 0 spring 슬라이드 등장 */
+  animation: cat-arrow-in var(--duration-fade) var(--ease-spring) both;
 }
 .tci-lbl {
   font-family: var(--font-en);
