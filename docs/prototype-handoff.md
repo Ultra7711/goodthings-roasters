@@ -480,3 +480,191 @@ total = subtotal + shipping
 
 현재 179개 CSS Custom Properties → Tailwind config 또는 CSS Modules로 이관.
 디자인 토큰 시스템 유지 (MUI/Mantine 미사용 원칙).
+
+---
+
+## 15. 픽셀 이식 패턴 및 주의사항 (RP-3 Shop 경험 기록)
+
+> Shop 페이지(RP-3) 이식 과정에서 발견된 패턴. 동일 구조인 카페 메뉴 페이지(RP-5) 및 이후 페이지 작업 시 참고.
+
+---
+
+### 15.1 `backdrop-filter` — inline style 주입 필수
+
+CSS 클래스로 `backdrop-filter`를 설정하면 **부모에 `transition` 속성이 있을 경우 Chrome GPU compositor layer가 선점**되어 블러가 동작하지 않는다.
+
+```tsx
+// ❌ CSS 클래스 방식 → 블러 불발
+// ✅ React inline style로 직접 주입
+<div
+  className="sp-qa-content"
+  style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+>
+```
+
+부모(카드 썸네일)에서 `overflow: hidden` 제거도 필수 — backdrop-filter가 부모 overflow에 막히지 않도록 이미지 줌 클리핑은 별도 래퍼(`.sp-card-img-wrap`)에서 처리.
+
+---
+
+### 15.2 button-in-button 구조 — `<div role="button">`
+
+확장 바(`.sp-qa-bar`) 안에 닫기 버튼(`.sp-qa-close`)이 함께 있어야 **바 확장 시 X 버튼이 자연스럽게 딸려 이동**하는 연출이 가능하다.
+
+- `<button>` 안에 `<button>` → HTML 스펙 위반 (interactive content 중첩 금지)
+- **해결:** 확장 바를 `<div role="button" tabIndex={0}>` 으로 변경 → 닫기 `<button>`을 내부에 배치
+
+```tsx
+<div className="sp-qa-bar" role="button" tabIndex={0} onClick={handleBarClick}
+  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleBarClick(...); }}>
+  <span className="sp-qa-bar-text">{text}</span>
+  <button className="sp-qa-close" onClick={(e) => { e.stopPropagation(); close(); }}>
+    <svg>...</svg>
+  </button>
+</div>
+```
+
+닫기 버튼 CSS는 `position: absolute; top:0; right:0` (바 기준) — 바가 `width: 124px → 100%`로 확장될 때 X 버튼이 우측 끝으로 슬라이드.
+
+---
+
+### 15.3 Quick Add 패널 열림/닫힘 연출
+
+#### 열림 시퀀스
+```
+0ms    : 바 확장(124px→100%, duration-hover=200ms) + 블러 패널 페이드 인 + X 아이콘 등장
+220ms  : 라벨 슬라이드 업 (translateY 6px→0)
+290ms  : 볼륨 버튼 동시 등장 (translateY 4px→0)
+```
+
+#### 닫힘 클래스 패턴
+프로토타입과 동일하게 `sp-card--qa-closing` React 상태로 구현:
+
+```tsx
+// closeQa()
+setQaOpen(false);
+setQaClosing(true);           // sp-card--qa-closing 클래스 추가
+clearTimers();
+closeTimerRef.current = setTimeout(() => setQaClosing(false), 250); // 바 수축 완료 후 제거
+```
+
+```css
+.sp-card--qa-closing .sp-qa-bar {
+  opacity: 1;
+  transition: width var(--duration-hover) ease, opacity var(--duration-transition);
+}
+```
+
+#### `display: none` → `opacity + pointer-events` 전환 필수
+QA 콘텐츠 내부 요소(라벨, 버튼)에 개별 transition을 걸려면 부모가 `display: none`이면 안 된다. `position: absolute`이므로 레이아웃 영향 없이 전환 가능:
+
+```css
+/* ❌ display:none → 내부 요소 transition 불가 */
+/* ✅ opacity + pointer-events */
+.sp-qa-content { display: flex; opacity: 0; pointer-events: none; }
+.sp-card--qa-open .sp-qa-content { opacity: 1; pointer-events: auto; }
+```
+
+---
+
+### 15.4 hover bar 표시 — CSS hover 룰 금지
+
+CSS `.sp-card:hover .sp-qa-bar { opacity: 1 }` 를 사용하면 **닫힌 직후 마우스가 카드 위에 있을 때 바가 즉시 재등장**하는 문제가 발생한다.
+
+**프로토타입과 동일하게 JS 인라인 스타일(400ms 딜레이)만 사용:**
+
+```tsx
+// mouseenter → 400ms 딜레이 후 bar.style.opacity = '1'
+// mouseleave → bar.style.opacity = ''  (CSS base opacity:0으로 페이드)
+// openQa()  → bar.style.opacity = ''  (inline 초기화)
+```
+
+CSS에 `.sp-card:hover .sp-qa-bar` 룰을 두지 않는 것이 핵심.
+
+---
+
+### 15.5 필터 탭 인디케이터 — `isMounted` ref 패턴
+
+초기 마운트 시 인디케이터가 슬라이드 없이 즉시 배치되어야 한다. `useEffect`가 최초 실행인지 탭 변경인지 구분하는 ref 필요:
+
+```tsx
+const isMounted = useRef(false);
+useEffect(() => {
+  if (!isMounted.current) {
+    isMounted.current = true;
+    positionIndicator(false); // 즉시 배치 (애니메이션 없음)
+  } else {
+    positionIndicator(true);  // 탭 변경 → 슬라이드
+  }
+}, [active]);
+```
+
+---
+
+### 15.6 카드 재애니메이션 — React `key` 전략 + `isInitRef`
+
+필터 전환 시 카드 목록이 재애니메이션되려면 React가 컴포넌트를 언마운트 후 재마운트해야 한다:
+
+```tsx
+// key에 필터값 포함 → 필터 변경 시 강제 언마운트
+<ShopCard key={`${filter}-${product.slug}`} ... />
+```
+
+초기 로드와 필터 전환의 딜레이를 구분하기 위한 `isInitRef`:
+
+```tsx
+const isInitRef = useRef(true);
+useEffect(() => { isInitRef.current = false; }, []);
+
+// 초기 로드: baseDelay=420ms (탭/타이틀 등장 후 카드 진입)
+// 필터 전환: baseDelay=0ms (즉시)
+<ShopCard baseDelay={isInitRef.current ? 420 : 0} colIndex={i % 3} />
+```
+
+---
+
+### 15.7 헤더 테마 fallback — `fallbackThemeRef`
+
+페이지 진입 직후 스크롤 위치가 0이면 테마를 감지 못할 수 있다. `useHeaderTheme`의 fallback에 단순 `'dark'` 하드코딩 대신 ref 패턴 사용:
+
+```ts
+const fallbackThemeRef = useRef<HeaderTheme>(initialTheme);
+useEffect(() => { fallbackThemeRef.current = initialTheme; }, [initialTheme]);
+if (!theme) theme = fallbackThemeRef.current;
+```
+
+`headerThemeConfig.ts`에 라우트별 `initialTheme` 등록 필수.
+
+---
+
+### 15.8 스크롤 리빌 초기화 — `SRInitializer` pathname 의존
+
+페이지 이동 시 `sr--visible` 클래스가 남아 있으면 푸터 등 새 페이지 요소가 이미 보인 것으로 간주되어 등장 애니메이션이 스킵된다.
+
+`SRInitializer.tsx`의 `useEffect`를 `pathname` 의존성으로 걸어 매 라우트 이동마다 초기화:
+
+```ts
+useEffect(() => {
+  document.querySelectorAll<HTMLElement>('[data-sr]').forEach((el) => {
+    el.classList.remove('sr--visible');
+  });
+  // ... IntersectionObserver 재등록
+}, [pathname]);
+```
+
+`footer.blk`에 `overflow: hidden`이 있으면 translateY 초기 상태가 클리핑되어 애니메이션 불발 → `overflow: visible` 필수.
+
+---
+
+### 15.9 카페 메뉴 페이지(RP-5) 적용 시 체크리스트
+
+| 항목 | 상태 | 비고 |
+|------|------|------|
+| `backdrop-filter` inline style 주입 | — | 카드 내 블러 패널이 있을 경우 |
+| `<div role="button">` 구조 | — | 내부에 인터랙티브 요소 포함 시 |
+| CSS hover 룰 없이 JS inline만 사용 | — | bar/CTA 표시 제어 |
+| 필터 탭 `isMounted` ref | — | `cm-filter-tab` 인디케이터 |
+| 카드 key에 필터값 포함 | — | 필터 전환 시 재애니메이션 |
+| `headerThemeConfig.ts` `/menu` 등록 | — | 라이트/다크 초기 테마 |
+| `sp-card--qa-closing` 패턴 적용 | — | 메뉴 카드 CTA가 있을 경우 |
+| `footer.blk { overflow: visible }` | ✅ | globals.css 이미 적용됨 |
+| `SRInitializer` pathname 의존 | ✅ | 이미 적용됨 |
