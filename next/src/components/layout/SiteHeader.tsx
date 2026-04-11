@@ -88,6 +88,19 @@ export default function SiteHeader() {
     }
   }
 
+  /* Menu 링크 클릭 → 카페 메뉴 페이지 초기 상태로 복귀
+     - /menu 내에서 클릭 시: preventDefault 후 'gtr:menu-reset' 발송.
+       CafeMenuPage 가 수신해 filter='all' / page=1 리셋 + 스크롤 top + 카드
+       remount (resetTick 증가) 로 등장 연출 재생.
+     - Shop 과 동일한 패턴 (feedback_samepage_reentry_animation.md 참조). */
+  function handleMenuClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    closeSearch();
+    if (pathname === '/menu') {
+      e.preventDefault();
+      window.dispatchEvent(new Event('gtr:menu-reset'));
+    }
+  }
+
   function openSearch() {
     const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? 60;
     document.documentElement.style.setProperty('--search-drop-top', `${headerBottom}px`);
@@ -145,7 +158,7 @@ export default function SiteHeader() {
           {/* 네비게이션 */}
           <nav className="hdr-nav" aria-label="메인 내비게이션">
             <Link href="/story" className="nav-link">The Story</Link>
-            <Link href="/menu" className="nav-link">Menu</Link>
+            <Link href="/menu" className="nav-link" onClick={handleMenuClick}>Menu</Link>
             <Link href="/shop" className="nav-link" onClick={handleShopClick}>Shop</Link>
             <Link href="/gooddays" className="nav-link">Good Days</Link>
           </nav>

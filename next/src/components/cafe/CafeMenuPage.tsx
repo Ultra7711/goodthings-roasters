@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import CafeFilterTabs from './CafeFilterTabs';
 import CafeMenuGrid from './CafeMenuGrid';
+import CafeNutritionSheet from './CafeNutritionSheet';
 import {
   CAFE_MENU,
   CAFE_FILTER_TABS,
@@ -38,8 +39,16 @@ export default function CafeMenuPage() {
 
   const [filter, setFilter] = useState<CafeFilterKey>(urlFilter);
   const [page, setPage] = useState(1);
-  const [activeCardId, setActiveCardId] = useState<string | null>(null);
+  const [nutriId, setNutriId] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
+
+  // 헤더 Menu 재클릭 시 진입 연출 재트리거용 카운터.
+  // - CafeMenuCard key 에 포함되어 동일 filter 에서도 카드 remount → IntersectionObserver
+  //   상태 초기화 + 등장 연출 재생
+  // - 래퍼(cm-anim) 자체는 재생하지 않음 → 탭 전환과 동일한 속도감 유지
+  // - SiteHeader 는 레이아웃 트리 외부에 있어 props 로 직접 연결 불가 → window 커스텀
+  //   이벤트(`gtr:menu-reset`) 기반 브리지 사용 (ShopPage 와 동일한 패턴)
+  const [resetTick, setResetTick] = useState(0);
 
   // body element — callback ref 로 받아서 scrollRoot 전달 시 리렌더 트리거 보장
   const [bodyEl, setBodyEl] = useState<HTMLDivElement | null>(null);
@@ -60,7 +69,7 @@ export default function CafeMenuPage() {
     setPrevUrlFilter(urlFilter);
     setFilter(urlFilter);
     setPage(1);
-    setActiveCardId(null);
+    setNutriId(null);
   }
 
   if (prevSearchKey !== searchKey) {
@@ -89,13 +98,34 @@ export default function CafeMenuPage() {
     }
   }
 
-  // 페이지 진입 연출 — bodyEl 이 붙는 순간 cm-anim 토글
+  // 페이지 진입 연출 — bodyEl 이 붙는 순간 cm-anim 토글 (최초 마운트에만).
+  // 헤더 Menu 재클릭 시엔 래퍼 연출을 재생하지 않고 카드만 remount 되도록 해
+  // "탭 전환과 동일한 속도감"을 유지한다. (ShopPage 와 동일 패턴)
   useEffect(() => {
     if (!bodyEl) return;
     bodyEl.classList.remove('cm-anim');
     void bodyEl.offsetHeight;
     bodyEl.classList.add('cm-anim');
   }, [bodyEl]);
+
+  /* SiteHeader 의 Menu 링크를 /menu 내에서 클릭했을 때 발송되는
+     'gtr:menu-reset' 이벤트 수신 → 필터/페이지 초기화 + 스크롤 top + 카드 remount.
+     SiteHeader 는 컴포넌트 트리 외부(레이아웃)에 있어 props 로 직접
+     연결할 수 없으므로 window 커스텀 이벤트 기반 브리지를 사용.
+     resetTick 은 CafeMenuCard key 에 포함되어 동일 filter 상태에서도 remount 강제.
+     cm-anim 래퍼는 재생하지 않아 탭 전환과 동일한 타이밍으로 카드가 올라오게 한다. */
+  useEffect(() => {
+    function onReset() {
+      setFilter('all');
+      setPage(1);
+      setNutriId(null);
+      setHighlightId(null);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      setResetTick((n) => n + 1);
+    }
+    window.addEventListener('gtr:menu-reset', onReset);
+    return () => window.removeEventListener('gtr:menu-reset', onReset);
+  }, []);
 
   // highlight 자동 소거 — highlightId 가 새로 세팅될 때마다 이전 timer 초기화 후 재등록
   useEffect(() => {
@@ -134,21 +164,30 @@ export default function CafeMenuPage() {
       if (key === filter) return;
       setFilter(key);
       setPage(1);
-      setActiveCardId(null);
+      setNutriId(null);
     },
     [filter],
   );
 
   const handlePageChange = useCallback((next: number) => {
     setPage(next);
-    setActiveCardId(null);
+    setNutriId(null);
     // /menu 는 일반 라우트 — window 스크롤만 사용
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const handleCardToggle = useCallback((id: string) => {
-    setActiveCardId((prev) => (prev === id ? null : id));
+  const handleOpenNutrition = useCallback((id: string) => {
+    setNutriId(id);
   }, []);
+
+  const handleCloseNutrition = useCallback(() => {
+    setNutriId(null);
+  }, []);
+
+  const nutriItem: CafeMenuItem | null = useMemo(
+    () => (nutriId ? CAFE_MENU.find((i) => i.id === nutriId) ?? null : null),
+    [nutriId],
+  );
 
   return (
     <div id="cm-body" ref={setBodyEl}>
@@ -165,11 +204,13 @@ export default function CafeMenuPage() {
         items={items}
         filterKey={filter}
         pageKey={currentPage}
-        activeCardId={activeCardId}
+        resetTick={resetTick}
         highlightId={highlightId}
         scrollRoot={bodyEl}
-        onCardToggle={handleCardToggle}
+        onOpenNutrition={handleOpenNutrition}
       />
+
+      <CafeNutritionSheet item={nutriItem} onClose={handleCloseNutrition} />
 
       {totalPages > 1 && (
         <div id="cm-pagination">

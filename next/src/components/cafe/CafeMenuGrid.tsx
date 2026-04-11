@@ -4,6 +4,8 @@
    - IntersectionObserver 는 CafeMenuCard 내부에서 처리 (RP-5d).
    - 필터/페이지 변경 시 카드 key 에 `filterKey`+`pageKey` 를 포함해 remount →
      `.cm-visible` 클래스가 초기화되어 등장 연출을 재생한다.
+   - `resetTick` 은 헤더 Menu 재클릭 시 증가하여 동일 filter 상태에서도 카드를
+     remount → 등장 연출 재생 (ShopPage 와 동일 패턴).
    ══════════════════════════════════════════ */
 
 'use client';
@@ -15,32 +17,31 @@ type Props = {
   items: CafeMenuItem[];
   filterKey: CafeFilterKey;
   pageKey: number;
-  activeCardId: string | null;
+  resetTick: number;
   highlightId: string | null;
   scrollRoot: HTMLElement | null;
-  onCardToggle: (id: string) => void;
+  onOpenNutrition: (id: string) => void;
 };
 
 export default function CafeMenuGrid({
   items,
   filterKey,
   pageKey,
-  activeCardId,
+  resetTick,
   highlightId,
   scrollRoot,
-  onCardToggle,
+  onOpenNutrition,
 }: Props) {
   return (
     <div id="cm-grid">
       {items.map((item, i) => (
         <CafeMenuCard
-          key={`${filterKey}-${pageKey}-${item.id}`}
+          key={`${resetTick}-${filterKey}-${pageKey}-${item.id}`}
           item={item}
           colIndex={i % 3}
           scrollRoot={scrollRoot}
-          isActive={activeCardId === item.id}
           isHighlight={highlightId === item.id}
-          onToggle={() => onCardToggle(item.id)}
+          onOpenNutrition={onOpenNutrition}
         />
       ))}
     </div>

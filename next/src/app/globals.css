@@ -89,6 +89,23 @@
   --z-lightbox: 350;
   --z-top: 400;
   --z-dev: 9000;
+
+  /* ── Drawer pattern tokens ──
+     우측 슬라이드인 드로어(영양정보, 장바구니 등)가 공통으로 소비하는 값.
+     새 드로어 추가 시 이 토큰만 사용해 가로폭·배경·트랜지션 일관성을 유지한다.
+     상세: memory/feedback_drawer_pattern.md */
+  --drawer-width: 540px;
+  --drawer-bg: var(--color-background-primary);
+  /* 프로토타입은 드로어에 shadow 없음 — 토큰만 예약, 개별 드로어에서 override 가능 */
+  --drawer-shadow: none;
+  --drawer-transition-duration: var(--duration-drawer);
+  --drawer-transition-easing: var(--ease-spring);
+  /* dim fade: 패널 슬라이드보다 약간 늦게 페이드인 시작(80ms) → 250ms 페이드.
+     검색 패널(#search-dim) 과 동일한 패턴으로, 부모 wrapper 에 opacity 트랜지션을
+     두면 Chrome GPU compositor 가 backdrop-filter 합성 레이어 승격을 지연시키며
+     "틱틱" 끊기는 현상이 발생 → 반드시 dim 요소 자체에만 opacity 트랜지션. */
+  --drawer-dim-fade-duration: 250ms;
+  --drawer-dim-fade-delay: 80ms;
 }
 
 :root {
@@ -1854,8 +1871,8 @@ footer.blk {
 #cm-head { padding-top: 8px; }
 #cm-title-area {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
   margin-bottom: 48px;
 }
 #cm-page-title {
@@ -1977,7 +1994,6 @@ footer.blk {
   transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
 }
 .cm-card:hover .cm-card-img { transform: scale(1.03); }
-.cm-card--active .cm-card-img { transform: scale(1) !important; }
 
 .cm-card-info {
   padding: 12px 4px 20px;
@@ -1989,13 +2005,6 @@ footer.blk {
   font-size: var(--type-body-l-size);
   font-weight: 500;
   color: var(--color-text-primary);
-  margin: 0 0 6px;
-  line-height: 1.5;
-}
-.cm-card-menu-desc {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  color: var(--color-text-tertiary);
   margin: 0 0 6px;
   line-height: 1.5;
 }
@@ -2037,29 +2046,7 @@ footer.blk {
 .cm-temp-hot-only { background: var(--color-error); }
 .cm-temp-warm     { background: var(--color-warning); }
 
-/* ── 카드 인라인 오버레이 (RP-5c) ── */
-.cm-card-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(20,14,10,.93);
-  color: var(--color-text-inverse);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(6px);
-  transition: opacity .22s ease, transform .22s ease;
-  display: flex;
-  flex-direction: column;
-  padding: 56px 14px 14px;
-  overflow-y: auto;
-  scrollbar-width: none;
-  z-index: 3;
-}
-.cm-card-overlay::-webkit-scrollbar { display: none; }
-.cm-card--active .cm-card-overlay {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
+/* ── highlight 플래시 (URL ?item= 진입 시) ── */
 @keyframes cm-thumb-flash {
   0%, 100% { opacity: 1; }
   45%      { opacity: .35; }
@@ -2067,96 +2054,181 @@ footer.blk {
 .cm-card--highlight .cm-card-thumb {
   animation: cm-thumb-flash .7s ease 2;
 }
-.cm-ov-close {
+
+/* ── NUTRITION SHEET (우측 슬라이드인 드로어) ── */
+#cafe-nutrition-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawer);
+  pointer-events: none;
+  /* 부모 wrapper 에는 opacity transition 을 두지 않는다.
+     - 부모 opacity 가 0→1 로 보간되는 동안 자식 #cns-bg 의 backdrop-filter
+       합성 레이어가 GPU compositor 에서 뒤늦게 승격되며 "틱틱" 끊기는 현상
+       (Chrome backdrop-filter + parent opacity 합성 이슈) 회피.
+     - 검색 패널(#search-dim) 과 동일한 패턴: dim 요소 자체에 opacity transition. */
+}
+#cafe-nutrition-sheet.open {
+  pointer-events: auto;
+}
+#cns-bg {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
+  inset: 0;
+  background: var(--overlay-dim-bg);
+  opacity: 0;
+  transition: opacity var(--drawer-dim-fade-duration) ease var(--drawer-dim-fade-delay);
+  pointer-events: none;
+  /* backdrop-filter 는 CafeNutritionSheet.tsx 의 inline style 로 주입
+     (Tailwind v4 + Lightning CSS 가 globals.css 의 backdrop-filter 를 드롭하는 이슈 회피) */
+}
+#cafe-nutrition-sheet.open #cns-bg {
+  opacity: 1;
+  pointer-events: auto;
+}
+#cns-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: var(--drawer-width);
+  max-width: 100vw;
+  background: var(--drawer-bg);
+  box-shadow: var(--drawer-shadow);
+  z-index: calc(var(--z-drawer) + 1);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform var(--drawer-transition-duration) var(--drawer-transition-easing);
+  overflow-y: auto;
+}
+#cafe-nutrition-sheet.open #cns-panel { transform: translateX(0); }
+#cns-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  background: transparent;
   border: none;
   cursor: pointer;
-  color: rgba(255,255,255,.55);
-  padding: 4px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color .15s ease;
-  z-index: 2;
+  color: rgba(255,255,255,.85);
+  transition: color var(--duration-hover) ease;
 }
-.cm-ov-close:hover { color: var(--color-text-inverse); }
-.cm-ov-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 14px;
+#cns-close:hover { color: var(--color-text-inverse); }
+.cns-image-wrap {
+  position: relative;
   flex-shrink: 0;
 }
-.cm-ov-category {
-  display: block;
+.cns-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-size: contain;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+.cns-temp-badge {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: none;
+}
+.cns-temp-badge .cm-badge-temp {
+  width: 48px;
+  height: 48px;
+}
+.cns-content {
+  padding: 48px 60px 40px;
+  flex: 1;
+  background: #F5EFE0;
+}
+.cns-head { margin-bottom: 14px; }
+.cns-category-label {
   font-family: var(--font-en);
-  font-size: var(--type-caption-size);
+  font-size: var(--type-body-s-size);
   font-weight: 500;
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--color-accent-warm);
-  margin-bottom: 4px;
+  margin: 0 0 8px;
 }
-.cm-ov-serving {
+.cns-item-name {
   font-family: var(--font-kr);
-  font-size: var(--type-caption-size);
-  color: rgba(255,255,255,.55);
+  font-size: var(--type-h3-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0 0 10px;
 }
-.cm-ov-vol {
+.cns-item-desc {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-line;
+}
+.cns-item-volume {
   font-family: var(--font-en);
   font-size: var(--type-body-ui-size);
-  color: rgba(255,255,255,.55);
-  margin-left: 4px;
+  color: var(--color-text-secondary);
+  margin: 22px 0 0;
 }
-.cm-ov-kcal {
-  font-family: var(--font-en);
-  font-size: var(--type-body-ui-size);
-  color: rgba(255,255,255,.95);
-  font-weight: 600;
+.cns-table {
+  border-top: .5px solid #c1a985;
+  margin-bottom: 0;
 }
-.cm-ov-table {
-  border-top: .5px solid rgba(255,255,255,.15);
-  border-bottom: .5px solid rgba(255,255,255,.15);
-  padding: 4px 0 5px;
-  margin-bottom: 14px;
-  flex-shrink: 0;
-}
-.cm-ov-row {
+.cns-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
+  padding: 11px 0;
+  border-bottom: .5px solid rgba(193,169,133,.35);
 }
-.cm-ov-rlabel {
+.cns-row:last-child { border-bottom-color: #c1a985; }
+.cns-row-label {
   font-family: var(--font-kr);
-  font-size: var(--type-caption-size);
-  color: rgba(255,255,255,.55);
+  font-size: var(--type-body-ui-size);
+  color: var(--color-text-secondary);
 }
-.cm-ov-rval {
+.cns-row-value {
   font-family: var(--font-en);
-  font-size: var(--type-caption-size);
+  font-size: var(--type-body-ui-size);
   font-weight: 500;
-  color: rgba(255,255,255,.9);
+  color: var(--color-text-primary);
 }
-.cm-ov-allergen {
+.cns-allergen {
+  padding: 16px 0 0;
+  background: transparent;
+}
+.cns-allergen-title {
+  font-family: var(--font-kr);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0 0 10px;
+  letter-spacing: -0.005em;
+}
+.cns-allergen-chips {
   display: flex;
-  gap: 5px;
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 6px;
 }
-.cm-ov-al-title {
+.cns-allergen-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: rgba(28, 27, 25, 0.06);
+  border: 1px solid rgba(28, 27, 25, 0.10);
   font-family: var(--font-kr);
-  font-size: var(--type-caption-size);
-  color: rgba(255,255,255,.55);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
   white-space: nowrap;
-  flex-shrink: 0;
-}
-.cm-ov-al-list {
-  font-family: var(--font-kr);
-  font-size: var(--type-caption-size);
-  color: rgba(255,255,255,.7);
 }
 
 /* 페이지네이션 — shop 의 .sp-pg-* 재사용 (프로토타입 동일 패턴) */
