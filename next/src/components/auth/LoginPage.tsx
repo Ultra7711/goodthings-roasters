@@ -20,7 +20,8 @@ import { useLoginForm } from '@/hooks/useLoginForm';
 import { useRegisterForm } from '@/hooks/useRegisterForm';
 import { useInputNav } from '@/hooks/useInputNav';
 import { useAuthStore } from '@/lib/store';
-import { isValidEmail } from '@/lib/validation';
+import { isValidEmail, isValidOrderNumber } from '@/lib/validation';
+import { useOrderNumberFormat } from '@/hooks/useOrderNumberFormat';
 import { shakeFields } from '@/lib/shakeFields';
 import { useToast } from '@/hooks/useToast';
 import { ClearIcon, EyeOpenIcon, EyeClosedIcon } from '@/components/ui/InputIcons';
@@ -94,6 +95,14 @@ export default function LoginPage() {
   const [guestEmail, setGuestEmail] = useState('');
   const [guestOrderNum, setGuestOrderNum] = useState('');
   const [guestErrors, setGuestErrors] = useState<{ email?: string; orderNum?: string }>({});
+
+  /* ── 주문번호 자동 포맷 ── */
+  const orderNumFormat = useOrderNumberFormat(
+    useCallback((v: string) => {
+      setGuestOrderNum(v);
+      setGuestErrors((p) => { if (!p.orderNum) return p; const n = { ...p }; delete n.orderNum; return n; });
+    }, []),
+  );
 
   /* ── 검증 실패 시 shake 트리거 ── */
   useEffect(() => {
@@ -204,8 +213,11 @@ export default function LoginPage() {
       } else if (!isValidEmail(emailTrimmed)) {
         errs.email = '올바른 이메일 형식을 입력해 주세요.';
       }
-      if (!guestOrderNum.trim()) {
+      const orderTrimmed = guestOrderNum.trim();
+      if (!orderTrimmed || orderTrimmed === 'GT-') {
         errs.orderNum = '주문번호를 입력해 주세요.';
+      } else if (!isValidOrderNumber(orderTrimmed)) {
+        errs.orderNum = '올바른 주문번호 형식을 입력해 주세요.';
       }
       if (Object.keys(errs).length > 0) {
         setGuestErrors(errs);
@@ -457,6 +469,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={resetEmail}
                   onChange={(e) => { setResetEmail(e.target.value); setResetError(''); }}
+                  onBlur={() => { const t = resetEmail.trim(); if (t && !isValidEmail(t)) setResetError('올바른 이메일 형식을 입력해 주세요.'); }}
                   onKeyDown={resetNav}
                 />
                 <label className="chp-floating-label">이메일 주소</label>
@@ -482,6 +495,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={guestEmail}
                   onChange={(e) => { setGuestEmail(e.target.value); setGuestErrors((p) => { const n = { ...p }; delete n.email; return n; }); }}
+                  onBlur={() => { const t = guestEmail.trim(); if (t && !isValidEmail(t)) setGuestErrors((p) => ({ ...p, email: '올바른 이메일 형식을 입력해 주세요.' })); }}
                   onKeyDown={guestNav}
                 />
                 <label className="chp-floating-label">이메일 주소</label>
@@ -499,15 +513,18 @@ export default function LoginPage() {
                   placeholder=" "
                   autoComplete="off"
                   value={guestOrderNum}
-                  onChange={(e) => { setGuestOrderNum(e.target.value); setGuestErrors((p) => { const n = { ...p }; delete n.orderNum; return n; }); }}
+                  onChange={orderNumFormat.handleChange}
+                  onFocus={orderNumFormat.handleFocus}
+                  onPaste={orderNumFormat.handlePaste}
+                  onBlur={() => { const t = guestOrderNum.trim(); if (t && t !== 'GT-' && !isValidOrderNumber(t)) setGuestErrors((p) => ({ ...p, orderNum: '올바른 주문번호 형식을 입력해 주세요.' })); }}
                   onKeyDown={guestNav}
                 />
                 <label className="chp-floating-label">주문번호</label>
-                {guestOrderNum && (
+                {guestOrderNum && guestOrderNum !== 'GT-' && (
                   <span className="chp-input-action visible" onClick={() => { setGuestOrderNum(''); setGuestErrors((p) => { const n = { ...p }; delete n.orderNum; return n; }); }}><ClearIcon /></span>
                 )}
                 <div className="chp-helper">
-                  {guestErrors.orderNum || '예: GT-20260413-00001'}
+                  {guestErrors.orderNum || 'GT- 뒤에 숫자를 입력하세요. 예: GT-20260413-00001'}
                 </div>
               </div>
               <button className="lp-submit-btn" type="submit">주문 조회하기</button>
