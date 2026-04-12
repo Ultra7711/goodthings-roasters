@@ -516,7 +516,7 @@ export default function LoginPage() {
                   onChange={orderNumFormat.handleChange}
                   onFocus={orderNumFormat.handleFocus}
                   onPaste={orderNumFormat.handlePaste}
-                  onBlur={() => { const t = guestOrderNum.trim(); if (t && t !== 'GT-' && !isValidOrderNumber(t)) setGuestErrors((p) => ({ ...p, orderNum: '올바른 주문번호 형식을 입력해 주세요.' })); }}
+                  onBlur={() => { const t = guestOrderNum.trim(); if (t === 'GT-') { setGuestOrderNum(''); return; } if (t && !isValidOrderNumber(t)) setGuestErrors((p) => ({ ...p, orderNum: '올바른 주문번호 형식을 입력해 주세요.' })); }}
                   onKeyDown={guestNav}
                 />
                 <label className="chp-floating-label">주문번호</label>
