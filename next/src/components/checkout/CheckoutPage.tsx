@@ -19,9 +19,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
+import { useInputNav } from '@/hooks/useInputNav';
 import { useCartStore, useAuthStore, FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/lib/store';
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
+import { shakeFields } from '@/lib/shakeFields';
 import type { PaymentMethod } from '@/types/checkout';
 
 /* ── 배송 메시지 옵션 ── */
@@ -50,6 +52,35 @@ function ChevronRight({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9,18l6-6-6-6" />
+    </svg>
+  );
+}
+
+/* ── 클리어 버튼 SVG (circle-x_fill) ── */
+function ClearIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12,3C7.1,3,3,7,3,12s4.1,9,9,9,9-4,9-9S17,3,12,3ZM15.7,14.3c.4.4.4,1,0,1.4-.4.4-.5.3-.7.3s-.5,0-.7-.3l-2.3-2.3-2.3,2.3c-.2.2-.5.3-.7.3s-.5,0-.7-.3c-.4-.4-.4-1,0-1.4l2.3-2.3-2.3-2.3c-.4-.4-.4-1,0-1.4.4-.4,1-.4,1.4,0l2.3,2.3,2.3-2.3c.4-.4,1-.4,1.4,0,.4.4.4,1,0,1.4l-2.3,2.3,2.3,2.3Z" />
+    </svg>
+  );
+}
+
+/* ── 비밀번호 보기/숨기기 아이콘 ── */
+function EyeOpenIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.1,12.3c0-.2,0-.5,0-.7,2.3-5.5,8.5-8.1,14-5.8,2.6,1.1,4.7,3.2,5.8,5.8,0,.2,0,.5,0,.7-2.3,5.5-8.5,8.1-14,5.8-2.6-1.1-4.7-3.2-5.8-5.8" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+function EyeClosedIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.7,5.1c4.8-.6,9.4,2.1,11.2,6.6,0,.2,0,.5,0,.7-.4.9-.9,1.7-1.4,2.5" />
+      <path d="M14.1,14.2c-1.2,1.2-3.1,1.1-4.2,0-1.1-1.2-1.1-3,0-4.2" />
+      <path d="M17.5,17.5c-5.1,3-11.7,1.3-14.7-3.8-.3-.4-.5-.9-.7-1.4,0-.2,0-.5,0-.7.9-2.2,2.4-4,4.4-5.1" />
+      <path d="M2,2l20,20" />
     </svg>
   );
 }
@@ -127,6 +158,8 @@ export default function CheckoutPage() {
   /* ── 배송 메시지 드롭다운 ── */
   const [deliveryOpen, setDeliveryOpen] = useState(false);
   const deliveryRef = useRef<HTMLDivElement>(null);
+  const chpFormRef = useRef<HTMLDivElement>(null);
+  const chpNav = useInputNav(chpFormRef);
   const deliveryLabel = useMemo(() => {
     if (form.deliveryMessage === 'direct') return '직접 입력';
     const opt = DELIVERY_OPTIONS.find((o) => o.value === form.deliveryMessage);
@@ -148,6 +181,8 @@ export default function CheckoutPage() {
 
   /* ── 결제수단 전환 fade ── */
   const [payFade, setPayFade] = useState(false);
+  const [showGuestPw, setShowGuestPw] = useState(false);
+  const [showGuestPw2, setShowGuestPw2] = useState(false);
   const handlePaymentSwitch = useCallback((method: PaymentMethod) => {
     if (method === form.paymentMethod) return;
     setPaymentMethod(method);
@@ -184,7 +219,8 @@ export default function CheckoutPage() {
     clearErrors();
     const ok = validate(isLoggedIn);
     if (!ok) {
-      /* 첫 에러 필드로 스크롤 */
+      /* shake + 첫 에러 필드로 스크롤 */
+      shakeFields(chpFormRef.current);
       const firstErr = document.querySelector('.chp-field.error');
       if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
@@ -257,7 +293,7 @@ export default function CheckoutPage() {
       {/* ── 2열 바디 ── */}
       <div className="chp-body">
         {/* ── 좌측 폼 ── */}
-        <div className="chp-left">
+        <div className="chp-left" ref={chpFormRef}>
           {/* 연락처 */}
           <div className="chp-section">
             <div className="chp-section-header">
@@ -268,9 +304,13 @@ export default function CheckoutPage() {
                 className="chp-input" type="email" placeholder=" "
                 value={form.email}
                 onChange={(e) => setField('email', e.target.value)}
+                onKeyDown={chpNav}
               />
               <label className="chp-floating-label">이메일 주소</label>
-              <div className="chp-error-msg">{errors.email}</div>
+              {form.email && (
+                <span className="chp-input-action visible" onClick={() => setField('email', '')}><ClearIcon /></span>
+              )}
+              <div className="chp-helper">{errors.email || '이메일 주소를 입력하세요.'}</div>
             </div>
             {!isFormRevealed && (
               <>
@@ -299,9 +339,13 @@ export default function CheckoutPage() {
                     className="chp-input" type="text" placeholder=" "
                     value={form.firstname}
                     onChange={(e) => setField('firstname', e.target.value)}
+                    onKeyDown={chpNav}
                   />
                   <label className="chp-floating-label">받는 분</label>
-                  <div className="chp-error-msg">{errors.firstname}</div>
+                  {form.firstname && (
+                    <span className="chp-input-action visible" onClick={() => setField('firstname', '')}><ClearIcon /></span>
+                  )}
+                  <div className="chp-helper">{errors.firstname || '받는 분의 이름을 입력하세요.'}</div>
                 </div>
                 {/* 전화번호 */}
                 <div className={`chp-field${errors.phone ? ' error' : ''}`}>
@@ -309,9 +353,13 @@ export default function CheckoutPage() {
                     className="chp-input" type="tel" placeholder=" "
                     value={form.phone}
                     onChange={handlePhoneChange}
+                    onKeyDown={chpNav}
                   />
                   <label className="chp-floating-label">전화번호</label>
-                  <div className="chp-error-msg">{errors.phone}</div>
+                  {form.phone && (
+                    <span className="chp-input-action visible" onClick={() => setField('phone', '')}><ClearIcon /></span>
+                  )}
+                  <div className="chp-helper">{errors.phone || '하이픈(-) 없이 입력하세요.'}</div>
                 </div>
                 {/* 주소 */}
                 <div className="chp-addr-inline">
@@ -344,8 +392,13 @@ export default function CheckoutPage() {
                       className="chp-input" type="text" placeholder=" "
                       value={form.addr2}
                       onChange={(e) => setField('addr2', e.target.value)}
+                      onKeyDown={chpNav}
                     />
                     <label className="chp-floating-label">상세주소</label>
+                    {form.addr2 && (
+                      <span className="chp-input-action visible" onClick={() => setField('addr2', '')}><ClearIcon /></span>
+                    )}
+                    <div className="chp-helper">동·호수 등 상세주소를 입력하세요.</div>
                   </div>
                 )}
                 {/* 배송 메시지 드롭다운 */}
@@ -384,8 +437,12 @@ export default function CheckoutPage() {
                       className="chp-input" type="text" placeholder=" "
                       value={form.deliveryCustom}
                       onChange={(e) => setField('deliveryCustom', e.target.value)}
+                      onKeyDown={chpNav}
                     />
                     <label className="chp-floating-label">배송 메시지를 입력해 주세요.</label>
+                    {form.deliveryCustom && (
+                      <span className="chp-input-action visible" onClick={() => setField('deliveryCustom', '')}><ClearIcon /></span>
+                    )}
                   </div>
                 )}
               </div>
@@ -397,23 +454,36 @@ export default function CheckoutPage() {
                   <p className="chp-section-desc">비회원 주문 조회 시 주문번호와 입력하신 비밀번호가 필요합니다.</p>
                   <div className={`chp-field${errors.guestPw ? ' error' : ''}`}>
                     <input
-                      className="chp-input" type="password" placeholder=" "
+                      className="chp-input" type={showGuestPw ? 'text' : 'password'} placeholder=" "
                       value={form.guestPw}
                       onChange={(e) => setField('guestPw', e.target.value)}
+                      onKeyDown={chpNav}
                     />
                     <label className="chp-floating-label">비밀번호</label>
+                    {form.guestPw && (
+                      <span className="chp-input-actions">
+                        <span className="chp-input-action visible" onClick={() => setShowGuestPw((v) => !v)} title={showGuestPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showGuestPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
+                        <span className="chp-input-action visible" onClick={() => setField('guestPw', '')} title="지우기"><ClearIcon /></span>
+                      </span>
+                    )}
                     <div className="chp-helper visible">4자 이상 입력해 주세요.</div>
-                    <div className="chp-error-msg">{errors.guestPw}</div>
                   </div>
                   <div className={`chp-field pw2-field${showPw2 ? ' pw2-visible' : ''}${errors.guestPw2 ? ' error' : ''}`}>
                     <input
-                      className="chp-input" type="password" placeholder=" "
+                      className="chp-input" type={showGuestPw2 ? 'text' : 'password'} placeholder=" "
                       disabled={!showPw2}
                       value={form.guestPw2}
                       onChange={(e) => setField('guestPw2', e.target.value)}
+                      onKeyDown={chpNav}
                     />
                     <label className="chp-floating-label">비밀번호 확인</label>
-                    <div className="chp-error-msg">{errors.guestPw2}</div>
+                    {form.guestPw2 && (
+                      <span className="chp-input-actions">
+                        <span className="chp-input-action visible" onClick={() => setShowGuestPw2((v) => !v)} title={showGuestPw2 ? '비밀번호 숨기기' : '비밀번호 보기'}>{showGuestPw2 ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
+                        <span className="chp-input-action visible" onClick={() => setField('guestPw2', '')} title="지우기"><ClearIcon /></span>
+                      </span>
+                    )}
+                    <div className="chp-helper">{errors.guestPw2 || '비밀번호를 한 번 더 입력하세요.'}</div>
                   </div>
                 </div>
               )}
@@ -467,9 +537,13 @@ export default function CheckoutPage() {
                         className="chp-input" type="text" placeholder=" "
                         value={form.depositorName}
                         onChange={(e) => setField('depositorName', e.target.value)}
+                        onKeyDown={chpNav}
                       />
                       <label className="chp-floating-label">입금자명</label>
-                      <div className="chp-error-msg">{errors.depositorName}</div>
+                      {form.depositorName && (
+                        <span className="chp-input-action visible" onClick={() => setField('depositorName', '')}><ClearIcon /></span>
+                      )}
+                      <div className="chp-helper">{errors.depositorName || '입금자명을 입력하세요.'}</div>
                     </div>
                   </div>
                 )}

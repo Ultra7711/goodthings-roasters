@@ -4364,8 +4364,14 @@ footer.blk {
   transition: border-color var(--duration-hover) linear;
   appearance: none;
 }
-.chp-input:focus { border-bottom-color: var(--color-text-primary); }
-.chp-input:disabled { opacity: 1; cursor: not-allowed; background: var(--color-background-secondary); color: var(--color-text-disabled); }
+.chp-input:focus {
+  border-bottom: 2px solid var(--color-text-primary);
+}
+.chp-input:disabled {
+  opacity: 1; cursor: not-allowed;
+  background: var(--color-background-secondary);
+  color: var(--color-text-disabled);
+}
 .chp-input::placeholder { color: transparent; }
 /* Floating Label */
 .chp-floating-label {
@@ -4390,12 +4396,14 @@ footer.blk {
   display: none; line-height: 1.5;
 }
 .chp-helper.visible { display: block; }
+/* 포커스 시 헬퍼 표시 */
+.chp-input:focus ~ .chp-helper { display: block; }
 .chp-helper.warn { color: var(--color-error); }
 .chp-helper.success { color: var(--color-success); }
-/* 경고 시 보더·라벨·아이콘 컬러 강조 + shake */
+/* 경고 시 보더·라벨·아이콘 컬러 강조 + 헬퍼 항상 표시 + shake */
 .chp-field.input-warn .chp-input { border-bottom-color: var(--color-error); }
 .chp-field.input-warn .chp-floating-label { color: var(--color-error); }
-.chp-field.input-warn .chp-helper { color: var(--color-error); }
+.chp-field.input-warn .chp-helper { display: block; color: var(--color-error); }
 .chp-field.input-warn .chp-input-action { color: var(--color-error); }
 .chp-field.input-success .chp-input { border-bottom-color: var(--color-success); }
 @keyframes chp-shake { 0%,100% { margin-left: 0; } 20% { margin-left: -6px; } 40% { margin-left: 5px; } 60% { margin-left: -3px; } 80% { margin-left: 2px; } }
@@ -4482,11 +4490,21 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .chp-input-action:hover { color: var(--color-icon-default); }
 .chp-input-action.visible { display: flex; }
+/* 복수 액션 래퍼 (눈 아이콘 + 클리어 등) */
+.chp-input-actions {
+  position: absolute; right: 0; top: 35px; transform: translateY(-50%);
+  display: flex; align-items: center; gap: 4px;
+}
+.chp-input-actions .chp-input-action {
+  position: static; transform: none;
+}
+.chp-field:has(.chp-input-actions) .chp-input { padding-right: 64px; }
 .chp-field .chp-input { padding-right: 36px; }
 
 /* 에러 상태 */
 .chp-field.error .chp-input { border-bottom-color: var(--color-error); }
 .chp-field.error .chp-floating-label { color: var(--color-error); }
+.chp-field.error .chp-helper { display: block; color: var(--color-error); }
 .chp-field.error .chp-input-action { color: var(--color-error); }
 .chp-error-msg { display: none; font-family: var(--font-kr); font-size: var(--type-caption-size); color: var(--color-error); margin-top: 6px; }
 .chp-field.error .chp-error-msg { display: block; }
@@ -5132,7 +5150,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .mp-accordion.open { max-height: 600px; opacity: 1; display: block !important; overflow: visible; }
 .mp-accordion-inner { padding: 24px 0 8px; }
-.mp-accordion-inner .chp-helper { display: block; }
 .mp-accordion-actions { display: flex; gap: 12px; margin-top: 12px; }
 .mp-sub-accordion .mp-info-row { border-bottom: none; }
 /* 정기배송 커스텀 드롭다운 — chp-field 인풋 + pd-dropdown-panel 메뉴 */

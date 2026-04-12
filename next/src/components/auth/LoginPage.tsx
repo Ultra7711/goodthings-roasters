@@ -12,15 +12,46 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLoginForm } from '@/hooks/useLoginForm';
 import { useRegisterForm } from '@/hooks/useRegisterForm';
+import { useInputNav } from '@/hooks/useInputNav';
 import { useAuthStore } from '@/lib/store';
 import { isValidEmail } from '@/lib/validation';
+import { shakeFields } from '@/lib/shakeFields';
 import { useToast } from '@/hooks/useToast';
+
+/* ── 클리어 버튼 SVG (circle-x_fill) ── */
+function ClearIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12,3C7.1,3,3,7,3,12s4.1,9,9,9,9-4,9-9S17,3,12,3ZM15.7,14.3c.4.4.4,1,0,1.4-.4.4-.5.3-.7.3s-.5,0-.7-.3l-2.3-2.3-2.3,2.3c-.2.2-.5.3-.7.3s-.5,0-.7-.3c-.4-.4-.4-1,0-1.4l2.3-2.3-2.3-2.3c-.4-.4-.4-1,0-1.4.4-.4,1-.4,1.4,0l2.3,2.3,2.3-2.3c.4-.4,1-.4,1.4,0,.4.4.4,1,0,1.4l-2.3,2.3,2.3,2.3Z" />
+    </svg>
+  );
+}
+
+/* ── 비밀번호 보기/숨기기 아이콘 ── */
+function EyeOpenIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.1,12.3c0-.2,0-.5,0-.7,2.3-5.5,8.5-8.1,14-5.8,2.6,1.1,4.7,3.2,5.8,5.8,0,.2,0,.5,0,.7-2.3,5.5-8.5,8.1-14,5.8-2.6-1.1-4.7-3.2-5.8-5.8" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+function EyeClosedIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.7,5.1c4.8-.6,9.4,2.1,11.2,6.6,0,.2,0,.5,0,.7-.4.9-.9,1.7-1.4,2.5" />
+      <path d="M14.1,14.2c-1.2,1.2-3.1,1.1-4.2,0-1.1-1.2-1.1-3,0-4.2" />
+      <path d="M17.5,17.5c-5.1,3-11.7,1.3-14.7-3.8-.3-.4-.5-.9-.7-1.4,0-.2,0-.5,0-.7.9-2.2,2.4-4,4.4-5.1" />
+      <path d="M2,2l20,20" />
+    </svg>
+  );
+}
 
 /* ── 폼 모드 ── */
 type LoginMode = 'login' | 'register' | 'reset' | 'guest-lookup';
@@ -64,9 +95,24 @@ export default function LoginPage() {
 
   const [mode, setMode] = useState<LoginMode>('login');
 
+  /* ── 폼 refs + Enter 네비게이션 ── */
+  const loginRef = useRef<HTMLFormElement>(null);
+  const registerRef = useRef<HTMLFormElement>(null);
+  const resetRef = useRef<HTMLFormElement>(null);
+  const guestRef = useRef<HTMLFormElement>(null);
+  const loginNav = useInputNav(loginRef);
+  const registerNav = useInputNav(registerRef);
+  const resetNav = useInputNav(resetRef);
+  const guestNav = useInputNav(guestRef);
+
   /* ── 폼 훅 ── */
   const loginForm = useLoginForm({ fromCheckout });
   const registerForm = useRegisterForm();
+
+  /* ── 비밀번호 표시/숨기기 ── */
+  const [showLoginPw, setShowLoginPw] = useState(false);
+  const [showRegPw, setShowRegPw] = useState(false);
+  const [showRegPw2, setShowRegPw2] = useState(false);
 
   /* ── 비밀번호 재설정 (간이) ── */
   const [resetEmail, setResetEmail] = useState('');
@@ -76,6 +122,20 @@ export default function LoginPage() {
   const [guestEmail, setGuestEmail] = useState('');
   const [guestOrderNum, setGuestOrderNum] = useState('');
   const [guestErrors, setGuestErrors] = useState<{ email?: string; orderNum?: string }>({});
+
+  /* ── 검증 실패 시 shake 트리거 ── */
+  useEffect(() => {
+    if (Object.keys(loginForm.errors).length > 0) shakeFields(loginRef.current);
+  }, [loginForm.errors]);
+  useEffect(() => {
+    if (Object.keys(registerForm.errors).length > 0) shakeFields(registerRef.current);
+  }, [registerForm.errors]);
+  useEffect(() => {
+    if (resetError) shakeFields(resetRef.current);
+  }, [resetError]);
+  useEffect(() => {
+    if (Object.keys(guestErrors).length > 0) shakeFields(guestRef.current);
+  }, [guestErrors]);
 
   /* ── 이미 로그인 상태이면 리다이렉트 ── */
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
@@ -252,7 +312,7 @@ export default function LoginPage() {
         <div className="lp-right">
           {/* ── 로그인 폼 ── */}
           {mode === 'login' && (
-            <form onSubmit={loginForm.handleSubmit} noValidate>
+            <form ref={loginRef} onSubmit={loginForm.handleSubmit} noValidate>
               <div className={`chp-field${loginForm.errors.email ? ' input-warn' : ''}`}>
                 <input
                   className="chp-input"
@@ -261,8 +321,12 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={loginForm.email}
                   onChange={(e) => loginForm.setEmail(e.target.value)}
+                  onKeyDown={loginNav}
                 />
                 <label className="chp-floating-label">이메일 주소</label>
+                {loginForm.email && (
+                  <span className="chp-input-action visible" onClick={() => loginForm.setEmail('')}><ClearIcon /></span>
+                )}
                 <div className="chp-helper">
                   {loginForm.errors.email || '이메일 주소를 입력하세요.'}
                 </div>
@@ -270,13 +334,20 @@ export default function LoginPage() {
               <div className={`chp-field${loginForm.errors.password ? ' input-warn' : ''}`}>
                 <input
                   className="chp-input"
-                  type="password"
+                  type={showLoginPw ? 'text' : 'password'}
                   placeholder=" "
                   autoComplete="current-password"
                   value={loginForm.password}
                   onChange={(e) => loginForm.setPassword(e.target.value)}
+                  onKeyDown={loginNav}
                 />
                 <label className="chp-floating-label">비밀번호</label>
+                {loginForm.password && (
+                  <span className="chp-input-actions">
+                    <span className="chp-input-action visible" onClick={() => setShowLoginPw((v) => !v)} title={showLoginPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showLoginPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
+                    <span className="chp-input-action visible" onClick={() => loginForm.setPassword('')} title="지우기"><ClearIcon /></span>
+                  </span>
+                )}
                 <div className="chp-helper">
                   {loginForm.errors.password || '비밀번호를 입력하세요.'}
                 </div>
@@ -310,7 +381,7 @@ export default function LoginPage() {
 
           {/* ── 회원가입 폼 ── */}
           {mode === 'register' && (
-            <form onSubmit={registerForm.handleSubmit} noValidate>
+            <form ref={registerRef} onSubmit={registerForm.handleSubmit} noValidate>
               <div className={`chp-field${registerForm.errors.name ? ' input-warn' : ''}`}>
                 <input
                   className="chp-input"
@@ -319,8 +390,12 @@ export default function LoginPage() {
                   autoComplete="name"
                   value={registerForm.name}
                   onChange={(e) => registerForm.setName(e.target.value)}
+                  onKeyDown={registerNav}
                 />
                 <label className="chp-floating-label">이름</label>
+                {registerForm.name && (
+                  <span className="chp-input-action visible" onClick={() => registerForm.setName('')}><ClearIcon /></span>
+                )}
                 <div className="chp-helper">
                   {registerForm.errors.name || '이름을 입력하세요.'}
                 </div>
@@ -333,8 +408,12 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={registerForm.email}
                   onChange={(e) => registerForm.setEmail(e.target.value)}
+                  onKeyDown={registerNav}
                 />
                 <label className="chp-floating-label">이메일 주소</label>
+                {registerForm.email && (
+                  <span className="chp-input-action visible" onClick={() => registerForm.setEmail('')}><ClearIcon /></span>
+                )}
                 <div className="chp-helper">
                   {registerForm.errors.email || '이메일 주소를 입력하세요.'}
                 </div>
@@ -342,13 +421,20 @@ export default function LoginPage() {
               <div className={`chp-field${registerForm.errors.password ? ' input-warn' : ''}`}>
                 <input
                   className="chp-input"
-                  type="password"
+                  type={showRegPw ? 'text' : 'password'}
                   placeholder=" "
                   autoComplete="new-password"
                   value={registerForm.password}
                   onChange={(e) => registerForm.setPassword(e.target.value)}
+                  onKeyDown={registerNav}
                 />
                 <label className="chp-floating-label">비밀번호</label>
+                {registerForm.password && (
+                  <span className="chp-input-actions">
+                    <span className="chp-input-action visible" onClick={() => setShowRegPw((v) => !v)} title={showRegPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showRegPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
+                    <span className="chp-input-action visible" onClick={() => registerForm.setPassword('')} title="지우기"><ClearIcon /></span>
+                  </span>
+                )}
                 <div className="chp-helper">
                   {registerForm.errors.password || '영문 대소문자/숫자/특수문자 중 2가지 이상 조합, 6~16자'}
                 </div>
@@ -356,14 +442,21 @@ export default function LoginPage() {
               <div className={`chp-field pw2-field${registerForm.errors.password2 ? ' input-warn' : ''}`}>
                 <input
                   className="chp-input"
-                  type="password"
+                  type={showRegPw2 ? 'text' : 'password'}
                   placeholder=" "
                   autoComplete="new-password"
                   disabled={registerForm.pw2Disabled}
                   value={registerForm.password2}
                   onChange={(e) => registerForm.setPassword2(e.target.value)}
+                  onKeyDown={registerNav}
                 />
                 <label className="chp-floating-label">비밀번호 확인</label>
+                {registerForm.password2 && (
+                  <span className="chp-input-actions">
+                    <span className="chp-input-action visible" onClick={() => setShowRegPw2((v) => !v)} title={showRegPw2 ? '비밀번호 숨기기' : '비밀번호 보기'}>{showRegPw2 ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
+                    <span className="chp-input-action visible" onClick={() => registerForm.setPassword2('')} title="지우기"><ClearIcon /></span>
+                  </span>
+                )}
                 <div className="chp-helper">
                   {registerForm.errors.password2 || '비밀번호를 한 번 더 입력하세요.'}
                 </div>
@@ -379,7 +472,7 @@ export default function LoginPage() {
 
           {/* ── 비밀번호 재설정 폼 ── */}
           {mode === 'reset' && (
-            <form onSubmit={handleResetSubmit} noValidate>
+            <form ref={resetRef} onSubmit={handleResetSubmit} noValidate>
               <div className={`chp-field${resetError ? ' input-warn' : ''}`}>
                 <input
                   className="chp-input"
@@ -388,8 +481,12 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={resetEmail}
                   onChange={(e) => { setResetEmail(e.target.value); setResetError(''); }}
+                  onKeyDown={resetNav}
                 />
                 <label className="chp-floating-label">이메일 주소</label>
+                {resetEmail && (
+                  <span className="chp-input-action visible" onClick={() => { setResetEmail(''); setResetError(''); }}><ClearIcon /></span>
+                )}
                 <div className="chp-helper">
                   {resetError || '가입 시 등록한 이메일 주소를 입력하세요.'}
                 </div>
@@ -400,7 +497,7 @@ export default function LoginPage() {
 
           {/* ── 비회원 주문 조회 폼 ── */}
           {mode === 'guest-lookup' && (
-            <form onSubmit={handleGuestLookupSubmit} noValidate>
+            <form ref={guestRef} onSubmit={handleGuestLookupSubmit} noValidate>
               <div className={`chp-field${guestErrors.email ? ' input-warn' : ''}`}>
                 <input
                   className="chp-input"
@@ -409,8 +506,12 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={guestEmail}
                   onChange={(e) => { setGuestEmail(e.target.value); setGuestErrors((p) => { const n = { ...p }; delete n.email; return n; }); }}
+                  onKeyDown={guestNav}
                 />
                 <label className="chp-floating-label">이메일 주소</label>
+                {guestEmail && (
+                  <span className="chp-input-action visible" onClick={() => { setGuestEmail(''); setGuestErrors((p) => { const n = { ...p }; delete n.email; return n; }); }}><ClearIcon /></span>
+                )}
                 <div className="chp-helper">
                   {guestErrors.email || '주문 시 입력한 이메일 주소를 입력하세요.'}
                 </div>
@@ -423,8 +524,12 @@ export default function LoginPage() {
                   autoComplete="off"
                   value={guestOrderNum}
                   onChange={(e) => { setGuestOrderNum(e.target.value); setGuestErrors((p) => { const n = { ...p }; delete n.orderNum; return n; }); }}
+                  onKeyDown={guestNav}
                 />
                 <label className="chp-floating-label">주문번호</label>
+                {guestOrderNum && (
+                  <span className="chp-input-action visible" onClick={() => { setGuestOrderNum(''); setGuestErrors((p) => { const n = { ...p }; delete n.orderNum; return n; }); }}><ClearIcon /></span>
+                )}
                 <div className="chp-helper">
                   {guestErrors.orderNum || '주문번호를 입력하세요.'}
                 </div>

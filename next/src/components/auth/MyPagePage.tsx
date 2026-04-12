@@ -22,7 +22,37 @@ import { useAuthStore } from '@/lib/store';
 import { useAddressForm } from '@/hooks/useAddressForm';
 import { usePasswordChangeForm } from '@/hooks/usePasswordChangeForm';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
+import { useInputNav } from '@/hooks/useInputNav';
+import { shakeFields } from '@/lib/shakeFields';
 import { useToast } from '@/hooks/useToast';
+
+/* ── 클리어 버튼 SVG (circle-x_fill) ── */
+function ClearIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12,3C7.1,3,3,7,3,12s4.1,9,9,9,9-4,9-9S17,3,12,3ZM15.7,14.3c.4.4.4,1,0,1.4-.4.4-.5.3-.7.3s-.5,0-.7-.3l-2.3-2.3-2.3,2.3c-.2.2-.5.3-.7.3s-.5,0-.7-.3c-.4-.4-.4-1,0-1.4l2.3-2.3-2.3-2.3c-.4-.4-.4-1,0-1.4.4-.4,1-.4,1.4,0l2.3,2.3,2.3-2.3c.4-.4,1-.4,1.4,0,.4.4.4,1,0,1.4l-2.3,2.3,2.3,2.3Z" />
+    </svg>
+  );
+}
+/* ── 비밀번호 보기/숨기기 아이콘 ── */
+function EyeOpenIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.1,12.3c0-.2,0-.5,0-.7,2.3-5.5,8.5-8.1,14-5.8,2.6,1.1,4.7,3.2,5.8,5.8,0,.2,0,.5,0,.7-2.3,5.5-8.5,8.1-14,5.8-2.6-1.1-4.7-3.2-5.8-5.8" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+function EyeClosedIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.7,5.1c4.8-.6,9.4,2.1,11.2,6.6,0,.2,0,.5,0,.7-.4.9-.9,1.7-1.4,2.5" />
+      <path d="M14.1,14.2c-1.2,1.2-3.1,1.1-4.2,0-1.1-1.2-1.1-3,0-4.2" />
+      <path d="M17.5,17.5c-5.1,3-11.7,1.3-14.7-3.8-.3-.4-.5-.9-.7-1.4,0-.2,0-.5,0-.7.9-2.2,2.4-4,4.4-5.1" />
+      <path d="M2,2l20,20" />
+    </svg>
+  );
+}
 import { MOCK_ORDERS, MOCK_SUBSCRIPTIONS } from '@/lib/mockMyPageData';
 import { extractKrName, formatPrice } from '@/lib/utils';
 import type { Order } from '@/types/order';
@@ -120,6 +150,9 @@ export default function MyPagePage() {
   /* ── 아코디언 상태 ── */
   const [addrOpen, setAddrOpen] = useState(false);
   const [pwOpen, setPwOpen] = useState(false);
+  const [showCurPw, setShowCurPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfPw, setShowConfPw] = useState(false);
   const [subEditId, setSubEditId] = useState<string | null>(null);
 
   /* ── 회원 탈퇴 모달 ── */
@@ -174,6 +207,10 @@ export default function MyPagePage() {
   const [subCycleEdit, setSubCycleEdit] = useState<SubscriptionCycle | null>(null);
   const [cycleDropdownOpen, setCycleDropdownOpen] = useState(false);
   const cycleDropdownRef = useRef<HTMLDivElement>(null);
+  const addrFormRef = useRef<HTMLDivElement>(null);
+  const pwFormRef = useRef<HTMLDivElement>(null);
+  const addrNav = useInputNav(addrFormRef);
+  const pwNav = useInputNav(pwFormRef);
 
   /* 모달 오픈 시 스크롤 잠금 */
   useEffect(() => {
@@ -316,7 +353,7 @@ export default function MyPagePage() {
               </div>
               {/* 주소 아코디언 */}
               <div className={`mp-accordion${addrOpen ? ' open' : ''}`}>
-                <div className="mp-accordion-inner">
+                <div className="mp-accordion-inner" ref={addrFormRef}>
                   <div className={`chp-field${addressForm.errors.name ? ' input-warn' : ''}`}>
                     <input
                       className="chp-input"
@@ -324,8 +361,12 @@ export default function MyPagePage() {
                       placeholder=" "
                       value={addressForm.form.name}
                       onChange={(e) => addressForm.setField('name', e.target.value)}
+                      onKeyDown={addrNav}
                     />
                     <label className="chp-floating-label">이름</label>
+                    {addressForm.form.name && (
+                      <span className="chp-input-action visible" onClick={() => addressForm.setField('name', '')}><ClearIcon /></span>
+                    )}
                     <div className="chp-helper">{addressForm.errors.name || '이름을 입력하세요.'}</div>
                   </div>
                   <div className={`chp-field${addressForm.errors.phone ? ' input-warn' : ''}`}>
@@ -335,9 +376,13 @@ export default function MyPagePage() {
                       placeholder=" "
                       value={addressForm.form.phone}
                       onChange={handleAddrPhoneChange}
+                      onKeyDown={addrNav}
                     />
                     <label className="chp-floating-label">전화번호</label>
-                    <div className="chp-helper">{addressForm.errors.phone || '전화번호를 입력하세요.'}</div>
+                    {addressForm.form.phone && (
+                      <span className="chp-input-action visible" onClick={() => addressForm.setField('phone', '')}><ClearIcon /></span>
+                    )}
+                    <div className="chp-helper">{addressForm.errors.phone || '하이픈(-) 없이 입력하세요.'}</div>
                   </div>
                   <div className="chp-addr-inline">
                     <div className={`chp-field${addressForm.errors.addr1 ? ' input-warn' : ''}`}>
@@ -382,12 +427,17 @@ export default function MyPagePage() {
                         placeholder=" "
                         value={addressForm.form.addr2}
                         onChange={(e) => addressForm.setField('addr2', e.target.value)}
+                        onKeyDown={addrNav}
                       />
                       <label className="chp-floating-label">상세주소</label>
+                      {addressForm.form.addr2 && (
+                        <span className="chp-input-action visible" onClick={() => addressForm.setField('addr2', '')}><ClearIcon /></span>
+                      )}
+                      <div className="chp-helper">동·호수 등 상세주소를 입력하세요.</div>
                     </div>
                   )}
                   <div className="mp-accordion-actions">
-                    <button className="mp-save-btn" type="button" onClick={() => addressForm.submit()}>저장</button>
+                    <button className="mp-save-btn" type="button" onClick={() => { addressForm.submit(); setTimeout(() => shakeFields(addrFormRef.current), 0); }}>저장</button>
                     <button className="mp-cancel-btn" type="button" onClick={() => setAddrOpen(false)}>취소</button>
                   </div>
                 </div>
@@ -482,43 +532,64 @@ export default function MyPagePage() {
             </div>
             {/* 비밀번호 변경 아코디언 */}
             <div className={`mp-accordion${pwOpen ? ' open' : ''}`}>
-              <div className="mp-accordion-inner">
+              <div className="mp-accordion-inner" ref={pwFormRef}>
                 <div className={`chp-field${pwForm.errors.current ? ' input-warn' : ''}`}>
                   <input
                     className="chp-input"
-                    type="password"
+                    type={showCurPw ? 'text' : 'password'}
                     placeholder=" "
                     value={pwForm.current}
                     onChange={(e) => pwForm.setCurrent(e.target.value)}
+                    onKeyDown={pwNav}
                   />
                   <label className="chp-floating-label">현재 비밀번호</label>
+                  {pwForm.current && (
+                    <span className="chp-input-actions">
+                      <span className="chp-input-action visible" onClick={() => setShowCurPw((v) => !v)} title={showCurPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showCurPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
+                      <span className="chp-input-action visible" onClick={() => pwForm.setCurrent('')} title="지우기"><ClearIcon /></span>
+                    </span>
+                  )}
                   <div className="chp-helper">{pwForm.errors.current || '현재 비밀번호를 입력하세요.'}</div>
                 </div>
                 <div className={`chp-field${pwForm.errors.next ? ' input-warn' : ''}`}>
                   <input
                     className="chp-input"
-                    type="password"
+                    type={showNewPw ? 'text' : 'password'}
                     placeholder=" "
                     value={pwForm.next}
                     onChange={(e) => pwForm.setNext(e.target.value)}
+                    onKeyDown={pwNav}
                   />
                   <label className="chp-floating-label">새 비밀번호</label>
+                  {pwForm.next && (
+                    <span className="chp-input-actions">
+                      <span className="chp-input-action visible" onClick={() => setShowNewPw((v) => !v)} title={showNewPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showNewPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
+                      <span className="chp-input-action visible" onClick={() => pwForm.setNext('')} title="지우기"><ClearIcon /></span>
+                    </span>
+                  )}
                   <div className="chp-helper">{pwForm.errors.next || '영문 대소문자/숫자/특수문자 중 2가지 이상 조합, 6~16자'}</div>
                 </div>
                 <div className={`chp-field pw2-field${pwForm.errors.confirm ? ' input-warn' : ''}`}>
                   <input
                     className="chp-input"
-                    type="password"
+                    type={showConfPw ? 'text' : 'password'}
                     placeholder=" "
                     disabled={pwForm.pw2Disabled}
                     value={pwForm.confirm}
                     onChange={(e) => pwForm.setConfirm(e.target.value)}
+                    onKeyDown={pwNav}
                   />
                   <label className="chp-floating-label">새 비밀번호 확인</label>
+                  {pwForm.confirm && (
+                    <span className="chp-input-actions">
+                      <span className="chp-input-action visible" onClick={() => setShowConfPw((v) => !v)} title={showConfPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showConfPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
+                      <span className="chp-input-action visible" onClick={() => pwForm.setConfirm('')} title="지우기"><ClearIcon /></span>
+                    </span>
+                  )}
                   <div className="chp-helper">{pwForm.errors.confirm || '비밀번호를 한 번 더 입력하세요.'}</div>
                 </div>
                 <div className="mp-accordion-actions">
-                  <button className="mp-save-btn" type="button" onClick={() => void pwForm.submit()}>변경</button>
+                  <button className="mp-save-btn" type="button" onClick={() => { void pwForm.submit(); setTimeout(() => shakeFields(pwFormRef.current), 0); }}>변경</button>
                   <button className="mp-cancel-btn" type="button" onClick={() => { pwForm.reset(); setPwOpen(false); }}>취소</button>
                 </div>
               </div>
