@@ -274,13 +274,13 @@ export default function CheckoutPage() {
             </div>
             {!isFormRevealed && (
               <>
-                <button className="chp-email-continue-btn" type="button" onClick={handleEmailContinue}>
-                  로그인 없이 계속하기
+                <Link href="/login" className="chp-login-primary-btn">
+                  로그인하고 주문하기
+                </Link>
+                <p className="chp-login-benefit">로그인하면 배송지 정보가 자동으로 채워집니다.</p>
+                <button className="chp-guest-btn" type="button" onClick={handleEmailContinue}>
+                  비회원으로 주문하기
                 </button>
-                <div className="chp-login-notice">
-                  <p className="chp-login-msg">이미 회원이신가요? 로그인하면 배송지 정보가 자동으로 채워집니다.</p>
-                  <Link href="/login" className="chp-login-btn">로그인</Link>
-                </div>
               </>
             )}
           </div>
@@ -536,8 +536,11 @@ export default function CheckoutPage() {
                 </div>
                 <div className="chp-sum-item-info">
                   <div className="chp-sum-item-name">{item.name}</div>
-                  <div className="chp-sum-item-sub">
-                    {[item.volume, item.type === 'subscription' && item.period ? `정기배송 ${item.period}` : null].filter(Boolean).join(' · ')}
+                  <div className="chp-sum-item-badges">
+                    {item.volume && <span className="chp-sum-item-badge">{item.volume}</span>}
+                    {item.type === 'subscription' && item.period && (
+                      <span className="chp-sum-item-badge">정기 {item.period}</span>
+                    )}
                   </div>
                 </div>
                 <div className="chp-sum-item-price">{formatPrice(item.priceNum * item.qty)}</div>
