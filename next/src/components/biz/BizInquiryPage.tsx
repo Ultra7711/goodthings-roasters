@@ -116,7 +116,7 @@ export default function BizInquiryPage() {
   });
 
   /* 드롭다운 open 상태 — 한 번에 하나만 */
-  const [openDropdown, setOpenDropdown] = useState<'type' | 'volume' | 'cycle' | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<'type' | 'volume' | 'cycle' | 'products' | null>(null);
 
   /* 외부 클릭 시 드롭다운 닫기 */
   useEffect(() => {
@@ -261,22 +261,7 @@ export default function BizInquiryPage() {
           맞춤 원두 납품을 상담해 드립니다.
         </p>
         <p id="bi-page-note">
-          <svg
-            className="bi-note-icon"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M3,11h3c1.1,0,2,.9,2,2v3c0,1.1-.9,2-2,2h-1c-1.1,0-2-.9-2-2v-5ZM3,11C3,6,7,2,12,2s9,4,9,9M21,11v5c0,1.1-.9,2-2,2h-1c-1.1,0-2-.9-2-2v-3c0-1.1.9-2,2-2h3Z" />
-            <path d="M21,16v2c0,2.2-1.8,4-4,4h-5" />
-          </svg>
-          확인 후 영업일 1–2일 내 연락드리겠습니다.
+          확인 후 영업일 1~2일 내 연락드리겠습니다.
         </p>
       </div>
 
@@ -394,27 +379,16 @@ export default function BizInquiryPage() {
 
         {/* 납품 요건 */}
         <FormSection label="납품 요건">
-          <div className="bi-check-group">
-            <p className="bi-check-label">관심 제품 (복수 선택 가능)</p>
-            <div className="bi-check-row">
-              {BIZ_PRODUCT_OPTIONS.map((opt) => {
-                const checked = form.products.includes(opt.value);
-                return (
-                  <label
-                    key={opt.value}
-                    className={`bi-check-item${checked ? ' checked' : ''}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleProduct(opt.value)}
-                    />
-                    <span>{opt.label}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
+          <BiMultiDropdown
+            id="bi-products"
+            label="관심 제품"
+            options={BIZ_PRODUCT_OPTIONS}
+            values={form.products}
+            open={openDropdown === 'products'}
+            onToggle={() => setOpenDropdown((o) => (o === 'products' ? null : 'products'))}
+            onSelect={toggleProduct}
+            placeholderTitle="복수 선택 가능"
+          />
           <BiDropdown
             id="bi-volume"
             label="예상 월 사용량"
@@ -629,6 +603,92 @@ function BiDropdown({
             {opt.label}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── 복수 선택 드롭다운 ── */
+type BiMultiDropdownProps = {
+  id: string;
+  label: string;
+  options: BizDropdownOption[];
+  values: string[];
+  open: boolean;
+  placeholderTitle: string;
+  onToggle: () => void;
+  onSelect: (value: string) => void;
+};
+
+function BiMultiDropdown({
+  id,
+  label,
+  options,
+  values,
+  open,
+  placeholderTitle,
+  onToggle,
+  onSelect,
+}: BiMultiDropdownProps) {
+  const selectedLabels = options
+    .filter((o) => values.includes(o.value))
+    .map((o) => o.label)
+    .join(', ');
+  const hasValue = values.length > 0;
+  return (
+    <div
+      id={`${id}-field`}
+      className={`bi-field bi-dropdown-field bi-multi-dropdown${open ? ' open' : ''}${
+        hasValue ? ' has-value' : ''
+      }`}
+    >
+      <button className="bi-dropdown-trigger" type="button" onClick={onToggle}>
+        <span className="bi-dropdown-value">{selectedLabels}</span>
+        <svg
+          className="bi-dropdown-arrow"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M6,9l6,6,6-6" />
+        </svg>
+      </button>
+      <label className="bi-floating-label">{label}</label>
+      <div className="bi-dropdown-list">
+        <div className="bi-dropdown-title">{placeholderTitle}</div>
+        {options.map((opt) => {
+          const checked = values.includes(opt.value);
+          return (
+            <div
+              key={opt.value}
+              className={`bi-dropdown-option${checked ? ' active' : ''}`}
+              onClick={() => onSelect(opt.value)}
+            >
+              <span className="bi-check-box">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#fff"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5,12l5,5,9-9" />
+                </svg>
+              </span>
+              {opt.label}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

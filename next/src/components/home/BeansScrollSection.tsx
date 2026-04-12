@@ -28,7 +28,7 @@ function BeanCard({ product }: { product: Product }) {
     : (img?.bg ?? 'var(--color-background-secondary)');
 
   return (
-    <Link href={`/shop/${product.slug}`} className="bean-card" data-sr>
+    <Link href={`/shop/${product.slug}`} className="bean-card" data-sr-toggle>
       <div className="bean-img sr-img" style={{ background: img?.bg ?? 'var(--color-background-secondary)' }}>
         <div className="bean-img-inner" style={{ background: innerBg }} />
       </div>
@@ -180,7 +180,7 @@ export default function BeansScrollSection() {
 
   return (
     <section className="blk blk-scroll" data-header-theme="light" style={{ marginTop: '117px' }}>
-      <div className="blk-header" data-sr style={{ padding: '0 60px 0' }}>
+      <div className="blk-header" data-sr-toggle style={{ padding: '0 60px 0' }}>
         <span className="blk-label sr-txt sr-txt--d1">FEATURED BEANS</span>
         <span className="blk-heading sr-txt sr-txt--d2">집에서도, 같은 맛을.</span>
       </div>

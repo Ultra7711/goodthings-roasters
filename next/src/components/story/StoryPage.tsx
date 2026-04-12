@@ -11,8 +11,8 @@
 
    2. SR 시스템
       - 레이아웃 SRInitializer 는 one-shot 이라 토글 동작과 충돌함 → Story 페이지는
-        [data-sr-toggle] 마커로 분리. SRInitializer 는 [data-sr]:not([data-sr-toggle])
-        만 잡고, Story 페이지 전용 IO 는 [data-sr-toggle] 만 잡는다(2026-04-12 충돌 수정).
+        [data-sr-story] 마커로 분리. SRInitializer 는 [data-sr]:not([data-sr-story])
+        만 잡고, Story 페이지 전용 IO 는 [data-sr-story] 만 잡는다(2026-04-12 충돌 수정).
         프리뷰 검증 결과 두 IO 가 동일 요소를 동시에 보면 i=1 케이스에서 one-shot 의
         add 가 토글의 remove 를 이기는 race 발생 — attribute 분리로 해소.
 
@@ -82,7 +82,7 @@ export default function StoryPage() {
     const body = bodyRef.current;
     if (!body) return;
 
-    const targets = body.querySelectorAll<HTMLElement>('[data-sr-toggle]');
+    const targets = body.querySelectorAll<HTMLElement>('[data-sr-story]');
     /* reset: 이전 진입에서 남은 visibility 제거 */
     targets.forEach((el) => el.classList.remove('sr--visible'));
 
@@ -123,7 +123,7 @@ export default function StoryPage() {
       ))}
 
       {/* ── PROMISE ── */}
-      <section className="st-promise" data-header-theme="light" data-sr-toggle>
+      <section className="st-promise" data-header-theme="light" data-sr-story>
         <div className="st-promise-inner">
           <span className="st-label sr-txt sr-txt--d1">{STORY_PROMISE.label}</span>
           <h2 className="st-promise-heading sr-txt sr-txt--d2">{STORY_PROMISE.heading}</h2>
@@ -145,7 +145,7 @@ export default function StoryPage() {
         data-header-theme="light"
       >
         <div className="st-location-inner">
-          <div className="st-location-map" data-sr-toggle>
+          <div className="st-location-map" data-sr-story>
             <iframe
               src={STORY_LOCATION.mapSrc}
               width="100%"
@@ -157,7 +157,7 @@ export default function StoryPage() {
               title="Good Things Roasters 위치"
             />
           </div>
-          <div className="st-location-info" data-sr-toggle>
+          <div className="st-location-info" data-sr-story>
             <div>
               <span className="st-label sr-txt sr-txt--d1">{STORY_LOCATION.label}</span>
               <p className="st-location-name sr-txt sr-txt--d2">{STORY_LOCATION.name}</p>
@@ -182,7 +182,7 @@ export default function StoryPage() {
 function StoryTwoColSection({ item }: { item: StoryTwoColItem }) {
   const cls = `st-two-col${item.reverse ? ' st-two-col--reverse' : ''}`;
   return (
-    <section className={cls} data-header-theme="light" data-sr-toggle>
+    <section className={cls} data-header-theme="light" data-sr-story>
       <div className="st-two-col-inner">
         <div className="st-col-txt">
           <span className="st-label sr-txt sr-txt--d1">{item.label}</span>

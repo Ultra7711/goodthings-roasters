@@ -64,7 +64,8 @@
 
   /* ── 컬러: Accent & Feedback ── */
   --color-accent-gold: #A47146;
-  --color-accent-warm: #A08B6D;
+  --color-label-on-white: #A08B6D;
+  --color-label-on-warm: #857052;
   --color-error: #C4554E;
   --color-success: #5C7A4B;
   --color-info: #4A6B8A;
@@ -955,7 +956,7 @@ footer.blk {
   font-family: var(--font-en);
   font-size: var(--type-body-s-size);
   font-weight: 500;
-  color: var(--color-accent-warm);
+  color: var(--color-label-on-white);
   letter-spacing: var(--ls-label);
 }
 .blk-heading {
@@ -1008,8 +1009,7 @@ footer.blk {
   font-size: var(--type-body-s-size);
   font-weight: 400;
   letter-spacing: var(--ls-uppercase);
-  /* 시즌 배너 배경(#E8E2DA) 대비용 진한 액센트 */
-  color: var(--color-accent-gold);
+  color: var(--color-label-on-warm);
   line-height: 1.2;
   margin-bottom: 14px;
 }
@@ -1185,8 +1185,7 @@ footer.blk {
   font-weight: 500;
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  /* phil-section 배경(#E8E2DA) 대비용 진한 액센트 */
-  color: var(--color-accent-gold);
+  color: var(--color-label-on-warm);
   margin-bottom: 14px;
 }
 .phil-h {
@@ -1460,7 +1459,7 @@ footer.blk {
   font-weight: 500;
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  color: var(--color-accent-warm);
+  color: var(--color-label-on-white);
   margin-bottom: 8px;
 }
 .roastery-h {
@@ -2213,7 +2212,7 @@ footer.blk {
   font-weight: 500;
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  color: var(--color-accent-warm);
+  color: var(--color-label-on-warm);
   margin: 0 0 8px;
 }
 .cns-item-name {
@@ -3474,7 +3473,7 @@ footer.blk {
   font-weight: 500;
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  color: var(--color-accent-warm);
+  color: var(--color-label-on-white);
   margin-bottom: 16px;
 }
 
@@ -3630,7 +3629,7 @@ footer.blk {
   line-height: 1.8;
   margin: 0;
   padding-left: 12px;
-  border-left: 2px solid var(--color-text-tertiary);
+  border-left: 2px solid var(--color-label-on-white);
 }
 
 /* ════════════════════════════════════════════════
@@ -3977,6 +3976,44 @@ footer.blk {
   background: var(--color-btn-primary-bg);
   border-color: var(--color-btn-primary-bg);
   color: var(--color-text-inverse);
+}
+
+/* ── 복수 선택 드롭다운 ── */
+.bi-multi-dropdown .bi-dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.bi-multi-dropdown .bi-check-box {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border-width: 1.5px;
+  border-style: solid;
+  border-color: var(--color-text-tertiary);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration-transition) ease,
+              border-color var(--duration-transition) ease;
+}
+.bi-multi-dropdown .bi-check-box svg {
+  opacity: 0;
+  transition: opacity var(--duration-transition) ease;
+}
+.bi-multi-dropdown .bi-dropdown-option.active .bi-check-box {
+  background: var(--color-btn-primary-bg);
+  border-color: var(--color-btn-primary-bg);
+}
+.bi-multi-dropdown .bi-dropdown-option.active .bi-check-box svg {
+  opacity: 1;
+}
+.bi-multi-dropdown .bi-dropdown-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── 제출 버튼 ── */

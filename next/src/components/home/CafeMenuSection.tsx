@@ -32,7 +32,7 @@ export default function CafeMenuSection() {
   return (
     <section className="blk" id="cafe-menu-blk" data-header-theme="light">
       {/* 시즌 배너 */}
-      <div className="season-banner-section" data-sr>
+      <div className="season-banner-section" data-sr-toggle>
         <div className="season-banner">
           <div className="season-banner-img sr-img">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -52,7 +52,7 @@ export default function CafeMenuSection() {
       </div>
 
       {/* 블록 헤더 */}
-      <div className="blk-header" data-sr style={{ padding: '80px 60px 0' }}>
+      <div className="blk-header" data-sr-toggle style={{ padding: '80px 60px 0' }}>
         <span className="blk-label sr-txt sr-txt--d1">CAFE MENU</span>
         <span className="blk-heading sr-txt sr-txt--d2">오늘, 매장에서.</span>
       </div>
@@ -64,7 +64,7 @@ export default function CafeMenuSection() {
             key={cat}
             href={`/menu?cat=${cat}`}
             className="cat-card"
-            data-sr
+            data-sr-toggle
             data-cat={cat}
           >
             <div className="cat-card-clip">

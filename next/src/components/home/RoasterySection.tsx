@@ -19,7 +19,7 @@ function HoursLabel() {
 
 export default function RoasterySection() {
   return (
-    <section className="blk" data-header-theme="dark" data-sr>
+    <section className="blk" data-header-theme="dark" data-sr-toggle>
       <div className="roastery">
         <div className="roastery-bg sr-img" />
         <div className="roastery-c">

@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 export default function PhilSection() {
   return (
-    <section className="blk phil-section" data-header-theme="light" data-sr>
+    <section className="blk phil-section" data-header-theme="light" data-sr-toggle>
       <div className="phil">
         <div className="phil-img sr-img">
           <div className="phil-img-inner" />

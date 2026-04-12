@@ -125,10 +125,10 @@ function findNextOpen(fromKst: KSTParts): NextOpen | null {
 function formatNextOpenLabel(next: NextOpen): string {
   const time = formatTime(next.schedule.open[0], next.schedule.open[1]);
   let dayPrefix: string;
-  if (next.dayDiff === 1) dayPrefix = '내일';
-  else if (next.dayDiff === 2) dayPrefix = '모레';
+  if (next.dayDiff === 1) dayPrefix = '내일은';
+  else if (next.dayDiff === 2) dayPrefix = '모레는';
   else dayPrefix = `${WEEKDAY_KR[next.weekday]}요일`;
-  return `${dayPrefix} ${time} 오픈합니다`;
+  return `${dayPrefix} ${time}에 오픈합니다`;
 }
 
 export type ShopStatus =
@@ -141,12 +141,12 @@ export type ShopStatus =
  * 매장의 현재 상태를 계산한다.
  *
  * 상태 분기 (문장형 `-합니다` 완결형, 타이틀 "직접 만나보세요."와 톤 일치):
- * - 영업 전:                      `11:00 오픈합니다`
- * - 영업 중:                      `21:00까지 영업합니다`
- * - 영업 종료 후 (내일 영업일):     `내일 12:00 오픈합니다`
- * - 영업 종료 후 (내일 휴무):       `내일은 휴무 · 화요일 12:00 오픈합니다`
- * - 휴무일 (내일 영업):             `금일 휴무 · 내일 12:00 오픈합니다`
- * - 휴무일 (내일도 휴무):           `금일 휴무 · 수요일 12:00 오픈합니다`
+ * - 영업 전:                      `오늘은 12:00에 오픈합니다`
+ * - 영업 중:                      `오늘은 21:00까지 영업합니다`
+ * - 영업 종료 후 (내일 영업일):     `내일은 12:00에 오픈합니다`
+ * - 영업 종료 후 (내일 휴무):       `내일은 휴무 · 화요일 12:00에 오픈합니다`
+ * - 휴무일 (내일 영업):             `금일 휴무 · 내일은 12:00에 오픈합니다`
+ * - 휴무일 (내일도 휴무):           `금일 휴무 · 수요일 12:00에 오픈합니다`
  */
 export function getShopStatus(now: Date): ShopStatus {
   const kst = getKSTParts(now);
@@ -171,7 +171,7 @@ export function getShopStatus(now: Date): ShopStatus {
   if (nowMin < openMin) {
     return {
       kind: 'before-open',
-      label: `${formatTime(todaySchedule.open[0], todaySchedule.open[1])} 오픈합니다`,
+      label: `오늘은 ${formatTime(todaySchedule.open[0], todaySchedule.open[1])}에 오픈합니다`,
     };
   }
 
@@ -191,6 +191,6 @@ export function getShopStatus(now: Date): ShopStatus {
   // 영업 중
   return {
     kind: 'open',
-    label: `${formatTime(todaySchedule.close[0], todaySchedule.close[1])}까지 영업합니다`,
+    label: `오늘은 ${formatTime(todaySchedule.close[0], todaySchedule.close[1])}까지 영업합니다`,
   };
 }
