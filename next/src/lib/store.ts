@@ -46,7 +46,9 @@ type CartStore = {
   totalPrice: () => number;
 };
 
-export const useCartStore = create<CartStore>((set, get) => ({
+export const useCartStore = create<CartStore>()(
+  persist(
+    (set, get) => ({
   items: [],
   isDrawerOpen: false,
   openDrawer: () => set({ isDrawerOpen: true }),
@@ -118,7 +120,14 @@ export const useCartStore = create<CartStore>((set, get) => ({
   },
 
   totalPrice: () => get().subtotal() + get().shippingFee(),
-}));
+    }),
+    {
+      name: 'gtr-cart-store',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ items: state.items }),
+    },
+  ),
+);
 
 /* ════════════════════════════════════════
    Auth Store

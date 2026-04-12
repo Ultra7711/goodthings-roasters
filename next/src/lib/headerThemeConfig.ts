@@ -42,6 +42,7 @@ const HEADER_INITIAL_THEME_RULES: HeaderThemeRule[] = [
   { path: '/login', theme: 'light' },               // 로그인: 밝은 배경
   { path: '/cart', theme: 'light' },                // 장바구니: 밝은 배경
   { path: '/checkout', theme: 'light' },            // 체크아웃: 밝은 배경
+  { path: '/order-complete', theme: 'light' },      // 주문완료: 밝은 배경
   { path: '/biz-inquiry', theme: 'light' },         // 비즈니스 문의: 밝은 배경
 ];
 
