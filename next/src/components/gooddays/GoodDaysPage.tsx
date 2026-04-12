@@ -27,6 +27,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { buildGoodDaysGrid } from '@/lib/gooddays';
 
 export default function GoodDaysPage() {
@@ -38,6 +39,13 @@ export default function GoodDaysPage() {
   const gridRef = useRef<HTMLDivElement>(null);
   const [anim, setAnim] = useState(false);
   const [resetTick, setResetTick] = useState(0);
+  /* 라이트박스 portal 은 document.body 가 존재해야 렌더 가능 — SSR/hydration 회피.
+     mount 직후 1회성 true 전환 — SiteHeader.tsx L40 setMounted 컨벤션 동일. */
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   /* 라이트박스 상태 — null = 닫힘 */
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
@@ -169,6 +177,93 @@ export default function GoodDaysPage() {
 
   const currentImg = lightboxIdx !== null ? ordered[lightboxIdx] : null;
 
+  /* 라이트박스 — 프로토타입 L4193 처럼 body 직계로 렌더해야
+     #gd-page 의 pageEnter transform 이 만드는 stacking context 에 갇히지 않음
+     (헤더/어나운스 바 위로 정상 노출). architect M2 권고. */
+  const lightbox = (
+    <div
+      id="gd-lightbox"
+      className={`gd-lightbox${lightboxIdx !== null ? ' open' : ''}${
+        lbSettled ? ' gd-lb-settled' : ''
+      }`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) closeLightbox();
+      }}
+    >
+      <button
+        type="button"
+        className="gd-lb-close close-btn close-btn-primary-dark"
+        id="gd-lb-close"
+        aria-label="닫기"
+        onClick={closeLightbox}
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M18,6l-12,12" />
+          <path d="M6,6l12,12" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        className="gd-lb-arrow gd-lb-prev arrow-btn arrow-btn-primary arrow-btn-dark"
+        id="gd-lb-prev"
+        aria-label="이전 이미지"
+        onClick={(e) => {
+          e.stopPropagation();
+          navLightbox(-1);
+        }}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      {currentImg && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          id="gd-lb-img"
+          src={currentImg}
+          alt={`갤러리 이미지 ${(lightboxIdx ?? 0) + 1}`}
+        />
+      )}
+      <button
+        type="button"
+        className="gd-lb-arrow gd-lb-next arrow-btn arrow-btn-primary arrow-btn-dark"
+        id="gd-lb-next"
+        aria-label="다음 이미지"
+        onClick={(e) => {
+          e.stopPropagation();
+          navLightbox(1);
+        }}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
+  );
+
   return (
     <div
       id="gd-page"
@@ -178,6 +273,7 @@ export default function GoodDaysPage() {
     >
       <div id="gd-inner">
         <h1 id="gd-title">좋은 순간들</h1>
+        <p className="page-subtitle">매장에서 보내는 하루하루를 기록합니다</p>
         <div className="gd-grid" id="gd-grid" ref={gridRef}>
           {rows.map((row, rIdx) => (
             <div key={`${row.pattern.cls}-${rIdx}`} className={`gd-row ${row.pattern.cls}`}>
@@ -214,88 +310,8 @@ export default function GoodDaysPage() {
         </div>
       </div>
 
-      {/* ── 라이트박스 ── */}
-      <div
-        id="gd-lightbox"
-        className={`gd-lightbox${lightboxIdx !== null ? ' open' : ''}${
-          lbSettled ? ' gd-lb-settled' : ''
-        }`}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) closeLightbox();
-        }}
-      >
-        <button
-          type="button"
-          className="gd-lb-close close-btn close-btn-secondary-dark"
-          id="gd-lb-close"
-          aria-label="닫기"
-          onClick={closeLightbox}
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M18,6l-12,12" />
-            <path d="M6,6l12,12" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="gd-lb-arrow gd-lb-prev arrow-btn arrow-btn-primary arrow-btn-dark"
-          id="gd-lb-prev"
-          aria-label="이전 이미지"
-          onClick={(e) => {
-            e.stopPropagation();
-            navLightbox(-1);
-          }}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-        {currentImg && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            id="gd-lb-img"
-            src={currentImg}
-            alt={`갤러리 이미지 ${(lightboxIdx ?? 0) + 1}`}
-          />
-        )}
-        <button
-          type="button"
-          className="gd-lb-arrow gd-lb-next arrow-btn arrow-btn-primary arrow-btn-dark"
-          id="gd-lb-next"
-          aria-label="다음 이미지"
-          onClick={(e) => {
-            e.stopPropagation();
-            navLightbox(1);
-          }}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-      </div>
+      {/* 라이트박스는 portal 로 body 직계 렌더 — 아래 return 끝에서 호출 */}
+      {mounted && createPortal(lightbox, document.body)}
     </div>
   );
 }

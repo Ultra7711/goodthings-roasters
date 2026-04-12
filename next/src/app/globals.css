@@ -17,10 +17,35 @@
   --color-background-elevated: #FFFFFF;
   --color-background-inverse: #1C1B19;
 
-  /* ── 컬러: Text ── */
-  --color-text-primary: #1C1B19;
-  --color-text-secondary: #6B6863;
-  --color-text-tertiary: #9C9890;
+  /* ══ 컬러: Text — 5단계 semantic + legacy alias ══
+     신규 체계는 의도 기반 이름(display / heading / body / support / caption)을 쓰고
+     light / dark 접미사로 배경 대비를 명시.
+     foreground 알파 금지 정책 (icon color tokens 와 동일).
+     단계 의미:
+       display → 히어로/메인 초강조 (준비 단계, 현재 미사용 가능)
+       heading → 섹션·페이지 타이틀, h2/h3
+       body    → 본문 기본 ★ 가독성 우선 선택
+       support → 보조 설명, 메타, 라벨
+       caption → 캡션, 힌트 */
+
+  /* Light 배경 — 불투명 단색 */
+  --color-text-display-light: #0F0E0D;
+  --color-text-heading-light: #1C1B19;
+  --color-text-body-light:    #4A4843;  /* Warm Gray 800 */
+  --color-text-support-light: #6B6863;
+  --color-text-caption-light: #9C9890;
+
+  /* Dark 배경 — #1C1B19 기준 불투명 환산 (기존 rgba 값 단색화) */
+  --color-text-display-dark:  #FDFCFA;
+  --color-text-heading-dark:  #EFEEED;  /* .95 환산 */
+  --color-text-body-dark:     #D6D5D3;
+  --color-text-support-dark:  #C2C2C0;  /* .75 환산 */
+  --color-text-caption-dark:  #969593;  /* .55 환산 */
+
+  /* ── Legacy alias — 기존 사용처 호환 (값 그대로). 점진 마이그레이션 대상. ── */
+  --color-text-primary:   var(--color-text-heading-light);
+  --color-text-secondary: var(--color-text-support-light);
+  --color-text-tertiary:  var(--color-text-caption-light);
   --color-text-inverse: #FAFAF8;
   --color-text-hint: #A8A49E;
   --color-text-caption: #8A8680;
@@ -149,11 +174,12 @@
   /* ── Icon ── */
   --color-icon-default: var(--color-text-tertiary);
 
-  /* ── 다크 배경 텍스트 ── */
-  --on-dark-primary: rgba(250,250,248,.95);
-  --on-dark-secondary: rgba(250,250,248,.75);
-  --on-dark-tertiary: rgba(250,250,248,.55);
-  --on-dark-muted: rgba(255,255,255,.42);
+  /* ── 다크 배경 텍스트 (legacy) ── 신규 color-text-*-dark 5단계의 alias.
+     기존 반투명 값들을 불투명 단색으로 전환 (foreground 알파 금지 정책). */
+  --on-dark-primary:   var(--color-text-heading-dark);
+  --on-dark-secondary: var(--color-text-support-dark);
+  --on-dark-tertiary:  var(--color-text-caption-dark);
+  --on-dark-muted:     var(--icon-on-dark-subtle);  /* subtle 단계 유지 */
 
   /* ── 버튼 타이포그래피 ── */
   --btn-font-family: var(--font-kr);
@@ -190,7 +216,7 @@
   --tab-font-weight: 400;
   --tab-font-weight-active: 500;
   --tab-letter-spacing: var(--ls-button);
-  --tab-color: var(--color-text-secondary);
+  --tab-color: var(--color-text-body-light);
   --tab-color-active: var(--color-text-primary);
   --tab-border: .5px solid var(--color-border-secondary);
   --tab-border-active: 1px solid var(--color-text-primary);
@@ -224,6 +250,23 @@
   --ls-label: .08em;
   --ls-label-wide: .1em;
 
+  /* ══ Icon color tokens — Foreground Opacity Policy ══
+     원칙: foreground (icon stroke/fill, text) 는 불투명 단색 only.
+           반투명은 배경/보더/그림자/오버레이 에만 허용 (알파 누적 → 교차점 진함 회피).
+     토큰 규칙:
+       *-color, *-color-hover         → 항상 불투명
+       *-bg, *-overlay, *-shadow      → 알파 허용
+     단계:
+       subtle = 가장 약함 (캡션/힌트 레벨, deco)
+       muted  = 중간 (비활성 버튼, 보조 아이콘)
+       strong = 완전 (활성/호버, 기본 텍스트) */
+  --icon-on-dark-subtle:  #6D6D6C;  /* rgba(255,255,255,.42) 불투명 환산 */
+  --icon-on-dark-muted:   #7F7F7E;  /* rgba(255,255,255,.5)  불투명 환산 */
+  --icon-on-dark-strong:  var(--color-text-inverse);   /* #FAFAF8 */
+  --icon-on-light-subtle: #C0C0BE;  /* rgba(17,17,17,.25) 불투명 환산 */
+  --icon-on-light-muted:  #8A8A86;
+  --icon-on-light-strong: var(--color-text-primary);   /* #1C1B19 */
+
   /* ── 닫기(X) 버튼 ── */
   --close-btn-size: 44px;
   --close-btn-primary-dark-bg: rgba(0,0,0,.35);
@@ -233,10 +276,12 @@
   --close-btn-primary-light-color: var(--color-text-primary);
   --close-btn-primary-light-bg-hover: rgba(0,0,0,.85);
   --close-btn-primary-light-color-hover: var(--color-text-inverse);
-  --close-btn-secondary-dark-color: rgba(255,255,255,.5);
-  --close-btn-secondary-dark-color-hover: var(--color-text-inverse);
-  --close-btn-secondary-light-color: rgba(17,17,17,.25);
-  --close-btn-secondary-light-color-hover: var(--color-text-primary);
+  /* secondary variant 는 icon color 토큰 참조 — 알파 누적 없는 불투명 단색.
+     값만 재매핑, 이름은 유지해서 non-breaking. */
+  --close-btn-secondary-dark-color:        var(--icon-on-dark-muted);
+  --close-btn-secondary-dark-color-hover:  var(--icon-on-dark-strong);
+  --close-btn-secondary-light-color:       var(--icon-on-light-subtle);
+  --close-btn-secondary-light-color-hover: var(--icon-on-light-strong);
 
   /* ── 화살표 버튼 ── */
   --arrow-btn-primary-svg: 100px;
@@ -882,7 +927,7 @@ footer.blk {
 .hero-scroll-mouse {
   width: 40px;
   height: 40px;
-  color: rgba(255,255,255,.5);
+  color: var(--icon-on-dark-muted);
   flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.9s ease-out;
@@ -981,7 +1026,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   line-height: 1.5;
   margin-bottom: 32px;
 }
@@ -1158,7 +1203,7 @@ footer.blk {
   font-size: var(--type-heading-s-size);
   font-weight: 400;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   margin-bottom: 36px;
 }
 .phil-img {
@@ -1431,14 +1476,14 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   line-height: 1.6;
   margin-bottom: 36px;
 }
 .roastery-hours {
   display: block;
   font-size: var(--type-heading-s-size);
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   margin-top: 10px;
   line-height: 1.6;
 }
@@ -1525,7 +1570,7 @@ footer.blk {
   font-size: var(--type-body-l-size);
   font-weight: 400;
   letter-spacing: var(--ls-heading);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-body-light);
   margin: 12px 0 0;
   opacity: 0;
   transform: translateY(20px);
@@ -1912,7 +1957,7 @@ footer.blk {
   font-size: var(--type-body-l-size);
   font-weight: 400;
   letter-spacing: var(--ls-heading);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-body-light);
   margin: 16px 0 0;
   opacity: 0;
   transform: translateY(20px);
@@ -2129,10 +2174,10 @@ footer.blk {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255,255,255,.85);
+  color: var(--icon-on-dark-strong);
   transition: color var(--duration-hover) ease;
 }
-#cns-close:hover { color: var(--color-text-inverse); }
+#cns-close:hover { color: var(--icon-on-dark-strong); }
 .cns-image-wrap {
   position: relative;
   flex-shrink: 0;
@@ -2179,7 +2224,7 @@ footer.blk {
 .cns-item-desc {
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   line-height: 1.6;
   margin: 0;
   white-space: pre-line;
@@ -2382,6 +2427,55 @@ footer.blk {
 #pd-divider {
   margin: 28px 0;
   border: none;
+}
+
+/* ══ 닫기 X 버튼 공통 (close-btn) ══
+   프로토타입 653-672 라인에서 이식.
+   primary = 고정 배경 버튼, secondary = 투명 배경 (아이콘만).
+   light/dark 는 배경 테마에 따른 색상 전환.
+   Next.js 에서는 <button> 엘리먼트 reset(background/border/padding)도 포함. */
+.close-btn {
+  width: var(--close-btn-size);
+  height: var(--close-btn-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: background var(--duration-hover) linear, color var(--duration-hover) linear;
+}
+.close-btn svg { flex-shrink: 0; }
+.close-btn-primary-dark {
+  background: var(--close-btn-primary-dark-bg);
+  color: var(--close-btn-primary-dark-color);
+}
+.close-btn-primary-dark:hover {
+  background: var(--close-btn-primary-dark-bg-hover);
+}
+.close-btn-primary-light {
+  background: var(--close-btn-primary-light-bg);
+  color: var(--close-btn-primary-light-color);
+}
+.close-btn-primary-light:hover {
+  background: var(--close-btn-primary-light-bg-hover);
+  color: var(--close-btn-primary-light-color-hover);
+}
+.close-btn-secondary-dark {
+  background: transparent;
+  color: var(--close-btn-secondary-dark-color);
+}
+.close-btn-secondary-dark:hover {
+  color: var(--close-btn-secondary-dark-color-hover);
+}
+.close-btn-secondary-light {
+  background: transparent;
+  color: var(--close-btn-secondary-light-color);
+}
+.close-btn-secondary-light:hover {
+  color: var(--close-btn-secondary-light-color-hover);
 }
 
 /* ══ 화살표 버튼 공통 (arrow-btn) ══
@@ -2806,7 +2900,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   line-height: 1.8;
   margin-bottom: 20px;
 }
@@ -2816,7 +2910,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   line-height: 1.9;
   background: var(--color-background-secondary);
   border-radius: 8px;
@@ -2988,7 +3082,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   line-height: 1.8;
   margin-bottom: 28px;
   white-space: pre-line;
@@ -3006,7 +3100,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   line-height: 1.7;
   margin: 0;
   align-self: stretch;
@@ -3123,7 +3217,7 @@ footer.blk {
 .pd-drip-step-text {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   line-height: 1.8;
   font-weight: 400;
 }
@@ -3151,7 +3245,7 @@ footer.blk {
 .pd-drip-tip-text {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   line-height: 1.8;
   font-weight: 400;
 }
@@ -3182,7 +3276,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: 16px;
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
 }
 .pd-accordion-icon {
   color: var(--color-icon-default);
@@ -3441,7 +3535,7 @@ footer.blk {
   font-size: var(--type-heading-s-size);
   font-weight: 400;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   margin: 0;
   word-break: keep-all;
 }
@@ -3471,7 +3565,7 @@ footer.blk {
   font-size: var(--type-heading-s-size);
   font-weight: 400;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   margin: 0 auto;
   max-width: 560px;
   word-break: keep-all;
@@ -3523,7 +3617,7 @@ footer.blk {
   font-size: var(--type-heading-s-size);
   font-weight: 400;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   margin: 0;
 }
 .st-location-hours {
@@ -3573,7 +3667,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   font-weight: var(--type-body-m-weight);
-  color: var(--color-text-secondary);
+  color: var(--color-text-body-light);
   line-height: var(--lh-relaxed);
   margin: 0;
 }
@@ -3969,7 +4063,7 @@ footer.blk {
    GOOD DAYS PAGE  ── /gooddays
    프로토타입 #gd-page / .gd-* (L2430~2471) 이식.
    - Next.js 는 natural flow 이므로 position:fixed 제거, background 만 유지.
-   - 타이틀 애니메이션은 .gd-anim 클래스로 부여 (page-subtitle 은 미사용).
+   - 타이틀·서브타이틀 애니메이션은 .gd-anim 클래스로 부여 (프로토타입 L2436~2438 동일).
    - Turbopack HMR 캐시 회피 주석 (feedback_turbopack_css_stale.md).
    ══════════════════════════════════════════ */
 #gd-page {
@@ -3987,7 +4081,7 @@ footer.blk {
   font-weight: var(--type-h1-weight);
   letter-spacing: var(--ls-display);
   line-height: var(--lh-tight);
-  margin: 0 0 48px 0;
+  margin: 0;
   opacity: 0;
   transform: translateY(20px);
   transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
@@ -3996,6 +4090,24 @@ footer.blk {
   opacity: 1;
   transform: translateY(0);
   transition-delay: 0.15s;
+}
+/* 서브타이틀 — 프로토타입 L4186 inline style (margin-top:16px;margin-bottom:48px) +
+   .page-subtitle 공통 타입 (L4694) + #gd-page 전용 애니메이션 (L2436/2438) 이식. */
+#gd-page .page-subtitle {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-heading);
+  color: var(--color-text-body-light);
+  margin: 16px 0 48px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
+}
+#gd-page.gd-anim .page-subtitle {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.3s;
 }
 
 /* 매거진 그리드 */
@@ -4106,38 +4218,26 @@ footer.blk {
   object-fit: contain;
   cursor: default;
 }
+/* 라이트박스 버튼 — 크기·스타일은 공통 클래스(close-btn-secondary-dark / arrow-btn-primary) 담당,
+   여기서는 위치만 지정. 프로토타입 L2466~2470 동일. */
 .gd-lb-close {
   position: absolute;
   top: 24px;
   right: 24px;
   z-index: 1;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
 }
 .gd-lb-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.5);
+  /* !important — .arrow-btn-dark 의 strong(#FAFAF8) 기본값을 라이트박스용 muted 로 override.
+     프로토타입은 rgba(255,255,255,.5) 를 썼으나 foreground 알파 정책에 맞게
+     icon-on-dark-muted(불투명 #7F7F7E) 로 교체. 시각적으로 거의 동일. */
+  color: var(--icon-on-dark-muted) !important;
   transition: color var(--duration-hover) ease;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.gd-lb-arrow svg {
-  width: 32px;
-  height: 32px;
 }
 .gd-lb-arrow:hover {
-  color: #ffffff;
+  color: var(--icon-on-dark-strong) !important;
 }
 .gd-lb-prev {
   left: 24px;
