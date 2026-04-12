@@ -815,6 +815,21 @@ footer.blk {
   100% { transform: translateX(0); }
 }
 
+/* ══ Sub-page enter motion (prototype L733 pageEnter)
+     Prototype applies to `.sub-page.open #st-body / #biz-body / #gd-body`.
+     Next.js route mount attaches animation to each page root
+     (#st-body / #bi-body / #gd-page) to reproduce the same effect.
+     duration = --duration-drawer (350ms), easing = --ease-spring. ══ */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#st-body,
+#bi-body,
+#gd-page {
+  animation: pageEnter var(--duration-drawer) var(--ease-spring) both;
+}
+
 /* ══ #hero-blk ══ */
 /* 어나운스(36px) + 헤더(60px) 뒤로 히어로가 확장됨 — 프로토타입 라인 468 */
 #hero-blk { margin-top: -96px; }
@@ -3270,4 +3285,863 @@ footer.blk {
   #pd-note-tags {
     gap: 8px;
   }
+}
+
+/* ══════════════════════════════════════════
+   STORY PAGE  (RP-6a)
+   프로토타입 goodthings_v1.0.html L4907~5078 (#story-page / .st-*) 이식.
+   - 풀페이지 흐름 (Next.js 라우트) — 프로토타입의 sub-page fixed 컨테이너 제거.
+   - 히어로 -96px(ann 36 + hdr 60) 리프트로 sticky 헤더 글래스 뒤로 확장.
+   - sr-txt/sr-img 시스템은 globals.css 상단(L773~) 베이스를 그대로 사용.
+   ══════════════════════════════════════════ */
+
+#st-body {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Hero (100vh, 센터 정렬, 헤더 뒤로 확장) ── */
+.st-hero {
+  position: relative;
+  margin-top: -96px;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+}
+.st-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.st-hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.25) 50%,
+    rgba(0, 0, 0, 0.12) 100%
+  );
+  pointer-events: none;
+}
+.st-hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.st-hero-en {
+  font-family: var(--font-en);
+  font-size: var(--type-display-size);
+  font-weight: var(--type-display-weight);
+  color: rgba(250, 250, 248, 0.7);
+  letter-spacing: var(--ls-display);
+  line-height: 1.1;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.9s ease-out, transform 0.9s ease-out;
+}
+.st-hero-kr {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: var(--ls-heading);
+  line-height: 1.6;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(20px);
+  /* 프로토타입 L4961~4966 parity: 0.9s 트랜지션 + 0.25s 딜레이 → EN 200ms, KR 450ms+250ms=700ms 총 gap 500ms */
+  transition: opacity 0.9s ease-out 0.25s, transform 0.9s ease-out 0.25s;
+}
+.st-hero-en.st--visible,
+.st-hero-kr.st--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── 공통 라벨 ── */
+.st-label {
+  display: block;
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--color-accent-warm);
+  margin-bottom: 16px;
+}
+
+/* ── Two-column 섹션 (COFFEE / BREWING / BAKERY) ── */
+.st-two-col {
+  padding: 0;
+  overflow: hidden;
+  margin-top: 120px;
+}
+.st-two-col:last-of-type {
+  margin-bottom: 0;
+}
+.st-two-col-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 560px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+/* RTL 트릭으로 좌우 교차 — 자식 요소만 다시 LTR 로 복원 */
+.st-two-col--reverse .st-two-col-inner {
+  direction: rtl;
+}
+.st-two-col--reverse .st-col-txt,
+.st-two-col--reverse .st-col-img {
+  direction: ltr;
+}
+.st-col-img {
+  position: relative;
+  overflow: hidden;
+}
+.st-img-placeholder {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-background-secondary);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.st-col-txt {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 80px;
+}
+.st-col-heading {
+  font-family: var(--font-kr);
+  font-size: var(--type-h2-size);
+  font-weight: var(--type-h2-weight);
+  color: var(--color-text-primary);
+  letter-spacing: var(--ls-heading);
+  line-height: 1.3;
+  margin: 0 0 20px;
+}
+.st-col-body {
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0;
+  word-break: keep-all;
+}
+
+/* ── Promise 섹션 (센터 정렬, bg2 배경) ── */
+.st-promise {
+  margin-top: 120px;
+  background: #e8e2da;
+  padding: 120px 60px;
+  text-align: center;
+}
+.st-promise-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.st-promise-heading {
+  font-family: var(--font-kr);
+  font-size: var(--type-h2-size);
+  font-weight: var(--type-h2-weight);
+  color: var(--color-text-primary);
+  letter-spacing: var(--ls-heading);
+  line-height: 1.3;
+  margin: 0 0 20px;
+}
+.st-promise-body {
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0 auto;
+  max-width: 560px;
+  word-break: keep-all;
+}
+
+/* ── Location 섹션 (2fr:1fr 그리드, 560px) ── */
+.st-location {
+  margin-top: 120px;
+  margin-bottom: 80px;
+  overflow: hidden;
+  /* sticky 헤더(96px) 보정 — 푸터 `/story#location` 링크에서 자동 스크롤 시 */
+  scroll-margin-top: 96px;
+}
+.st-location-inner {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  height: 560px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.st-location-map {
+  position: relative;
+  overflow: hidden;
+}
+.st-location-map iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.st-location-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 60px;
+  gap: 20px;
+}
+.st-location-name {
+  font-family: var(--font-en);
+  font-size: var(--type-price-m-size);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: var(--ls-body);
+  margin: 4px 0 0;
+}
+.st-location-addr {
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.st-location-hours {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  line-height: 1.8;
+  margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--color-text-tertiary);
+}
+
+/* ════════════════════════════════════════════════
+   BIZ INQUIRY PAGE  ── /biz-inquiry
+   프로토타입 #biz-inquiry-page (L1844~1932) 이식.
+   chp-* 격리 원칙: 결제 페이지 시스템 재사용 금지 → bi-* 전용 클래스.
+   ════════════════════════════════════════════════ */
+#bi-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 48px 60px 80px;
+  gap: 40px;
+  align-items: start;
+}
+#bi-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 0;
+  position: sticky;
+  top: 116px; /* announce 36 + header 60 + 20 */
+}
+#bi-page-title {
+  font-family: var(--font-kr);
+  font-size: var(--type-h1-size);
+  font-weight: var(--type-h1-weight);
+  color: var(--color-text-primary);
+  letter-spacing: var(--ls-heading);
+  line-height: 1.3;
+}
+#bi-page-desc {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: var(--type-body-m-weight);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-relaxed);
+  margin: 0;
+}
+#bi-page-note {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  color: var(--color-text-tertiary);
+  line-height: var(--lh-normal);
+  margin: 4px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bi-note-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+}
+#bi-right {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0;
+  gap: 48px;
+}
+.bi-form-section {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0 32px;
+}
+.bi-section-label {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  letter-spacing: var(--ls-button);
+  padding-top: 22px;
+  align-self: start;
+}
+.bi-section-fields {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── bi-field 기본 ── */
+.bi-field {
+  position: relative;
+  margin-bottom: 24px;
+}
+.bi-input {
+  width: 100%;
+  height: 56px;
+  padding: 20px 36px 4px 0;
+  border: none;
+  border-bottom: 0.5px solid var(--color-border-secondary);
+  background: transparent;
+  outline: none;
+  font-family: var(--font-kr);
+  font-size: var(--type-input-size);
+  font-weight: var(--type-input-weight);
+  color: var(--color-text-primary);
+  transition: border-color var(--duration-hover) linear;
+  appearance: none;
+}
+.bi-input:focus {
+  border-bottom-color: var(--color-text-primary);
+}
+.bi-input::placeholder {
+  color: transparent;
+}
+.bi-floating-label {
+  position: absolute;
+  left: 0;
+  top: 28px;
+  transform: translateY(-50%);
+  font-family: var(--font-kr);
+  font-size: var(--type-input-size);
+  font-weight: var(--type-input-weight);
+  color: var(--color-text-placeholder);
+  pointer-events: none;
+  transition: all var(--duration-hover) cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: left top;
+}
+.bi-input:focus ~ .bi-floating-label,
+.bi-input:not(:placeholder-shown) ~ .bi-floating-label {
+  top: 4px;
+  transform: translateY(0) scale(0.75);
+  color: var(--color-text-tertiary);
+}
+.bi-input:focus ~ .bi-floating-label {
+  color: var(--color-text-primary);
+}
+.bi-helper {
+  font-family: var(--font-kr);
+  font-size: var(--type-caption-size);
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+  margin-top: 6px;
+  display: none;
+  line-height: 1.5;
+}
+.bi-helper.visible {
+  display: block;
+}
+.bi-helper.warn {
+  color: var(--color-error);
+}
+.bi-field.bi-input-warn .bi-input {
+  border-bottom-color: var(--color-error);
+}
+.bi-field.bi-input-warn .bi-floating-label {
+  color: var(--color-error);
+}
+.bi-field.bi-input-warn .bi-input-action {
+  color: var(--color-error);
+}
+
+/* ── 텍스트 영역 ── */
+.bi-textarea {
+  height: auto;
+  min-height: 120px;
+  padding-top: 24px;
+  resize: vertical;
+  line-height: var(--lh-normal);
+}
+.bi-textarea:not(:placeholder-shown) ~ .bi-floating-label,
+.bi-textarea:focus ~ .bi-floating-label {
+  top: 4px;
+  transform: translateY(0) scale(0.75);
+}
+
+/* ── 클리어 버튼 ── */
+.bi-input-action {
+  position: absolute;
+  right: 0;
+  top: 35px;
+  transform: translateY(-50%);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  color: rgba(156, 152, 144, 0.7);
+  background: transparent;
+  border: none;
+  padding: 0;
+  transition: color var(--duration-hover) ease;
+}
+.bi-input-action:hover {
+  color: var(--color-icon-default);
+}
+.bi-input-action.visible {
+  display: flex;
+}
+
+/* ── 커스텀 드롭다운 ── */
+.bi-dropdown-field {
+  position: relative;
+}
+.bi-dropdown-field.open {
+  z-index: 100;
+}
+.bi-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 56px;
+  padding: 20px 0 4px;
+  border: none;
+  border-bottom: 0.5px solid var(--color-border-secondary);
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-input-size);
+  font-weight: var(--type-input-weight);
+  color: var(--color-text-primary);
+  transition: border-color var(--duration-hover) linear;
+}
+.bi-dropdown-trigger:focus,
+.bi-dropdown-field.open .bi-dropdown-trigger {
+  border-bottom-color: var(--color-text-primary);
+}
+.bi-dropdown-value {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bi-dropdown-arrow {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  color: var(--color-text-tertiary);
+  transition: transform var(--duration-hover) ease;
+}
+.bi-dropdown-field.open .bi-dropdown-arrow {
+  transform: rotate(180deg);
+}
+.bi-dropdown-field .bi-floating-label {
+  top: 28px;
+  transform: translateY(-50%) scale(1);
+  color: var(--color-text-placeholder);
+  pointer-events: none;
+  transition: all var(--duration-hover) cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bi-dropdown-field.has-value .bi-floating-label,
+.bi-dropdown-field.open .bi-floating-label {
+  top: 4px;
+  transform: translateY(0) scale(0.75);
+  color: var(--color-text-tertiary);
+}
+.bi-dropdown-field.open .bi-floating-label {
+  color: var(--color-text-primary);
+}
+.bi-dropdown-list {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+.bi-dropdown-field.open .bi-dropdown-list {
+  display: block;
+}
+.bi-dropdown-title {
+  padding: 12px 16px 8px;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-primary);
+  margin-bottom: 4px;
+}
+.bi-dropdown-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  transition: background var(--duration-hover) ease;
+}
+.bi-dropdown-option:hover {
+  background: var(--color-background-secondary);
+}
+.bi-dropdown-option.active {
+  font-weight: 500;
+}
+
+/* ── 체크박스 그룹 ── */
+.bi-check-group {
+  margin-bottom: 24px;
+  margin-top: 19px;
+}
+.bi-check-label {
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  margin-bottom: 17px;
+  display: block;
+}
+.bi-check-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.bi-check-row::-webkit-scrollbar {
+  display: none;
+}
+.bi-check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  border: 0.5px solid var(--color-border-secondary);
+  cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-ui-size);
+  color: var(--color-text-primary);
+  transition: border-color var(--duration-hover) ease;
+  user-select: none;
+}
+.bi-check-item:hover {
+  border-color: var(--color-text-tertiary);
+}
+.bi-check-item input[type='checkbox'] {
+  display: none;
+}
+.bi-check-item.checked {
+  background: var(--color-btn-primary-bg);
+  border-color: var(--color-btn-primary-bg);
+  color: var(--color-text-inverse);
+}
+
+/* ── 제출 버튼 ── */
+.bi-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  padding: 0;
+  background: var(--color-btn-primary-bg);
+  color: var(--color-text-inverse);
+  border: none;
+  cursor: pointer;
+  font-family: var(--btn-font-family);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+  letter-spacing: var(--btn-letter-spacing);
+  transition: opacity var(--duration-transition) ease;
+  margin-bottom: 36px;
+}
+.bi-submit-btn:hover {
+  opacity: 0.85;
+}
+.bi-submit-btn:active {
+  opacity: 0.7;
+}
+
+/* ── 개인정보 안내 ── */
+#bi-privacy-note {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-ui-size);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  margin-top: 0;
+  line-height: var(--lh-normal);
+}
+#bi-privacy-link-wrap {
+  text-align: center;
+  margin-top: 8px;
+}
+.bi-privacy-link {
+  font-family: var(--font-kr);
+  font-size: var(--text-link-font-size);
+  font-weight: var(--text-link-font-weight);
+  letter-spacing: var(--text-link-letter-spacing);
+  color: var(--text-link-color);
+  cursor: pointer;
+  border-bottom: var(--text-link-border);
+  padding-bottom: var(--text-link-padding-bottom);
+  transition: opacity var(--duration-hover) linear;
+}
+.bi-privacy-link:hover {
+  opacity: var(--text-link-opacity-hover);
+}
+
+/* ══════════════════════════════════════════
+   GLOBAL TOAST  ── #global-toast
+   프로토타입 #global-toast 이식 (L2937~2948).
+   fade + slide up 애니메이션, 단일 엘리먼트 교체 패턴.
+   ══════════════════════════════════════════ */
+#global-toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--color-text-primary);
+  color: var(--color-background-primary);
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size, 15px);
+  font-weight: var(--type-body-m-weight, 400);
+  letter-spacing: var(--ls-heading);
+  padding: 12px 28px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: calc(var(--z-top) + 10);
+  white-space: nowrap;
+}
+#global-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ══════════════════════════════════════════
+   GOOD DAYS PAGE  ── /gooddays
+   프로토타입 #gd-page / .gd-* (L2430~2471) 이식.
+   - Next.js 는 natural flow 이므로 position:fixed 제거, background 만 유지.
+   - 타이틀 애니메이션은 .gd-anim 클래스로 부여 (page-subtitle 은 미사용).
+   - Turbopack HMR 캐시 회피 주석 (feedback_turbopack_css_stale.md).
+   ══════════════════════════════════════════ */
+#gd-page {
+  background: var(--color-background-primary);
+  min-height: calc(100vh - 60px);
+}
+#gd-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 100px 60px 80px;
+}
+#gd-title {
+  font-family: var(--font-kr);
+  font-size: var(--type-h1-size);
+  font-weight: var(--type-h1-weight);
+  letter-spacing: var(--ls-display);
+  line-height: var(--lh-tight);
+  margin: 0 0 48px 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
+}
+#gd-page.gd-anim #gd-title {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.15s;
+}
+
+/* 매거진 그리드 */
+.gd-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.gd-row {
+  display: grid;
+  gap: 4px;
+  overflow: hidden;
+}
+.gd-row--a {
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: repeat(2, 320px);
+}
+.gd-row--b {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 420px;
+}
+.gd-row--c {
+  grid-template-columns: 1fr 1fr 2fr;
+  grid-template-rows: repeat(2, 320px);
+}
+.gd-row--d {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 480px;
+}
+.gd-row--e {
+  grid-template-columns: 1fr;
+  grid-template-rows: 560px;
+}
+
+/* 셀 + 스크롤 리빌 */
+.gd-cell {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) ease-out;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+.gd-cell.gd-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.gd-cell--placeholder {
+  opacity: 1;
+  transform: none;
+  cursor: default;
+}
+.gd-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.gd-cell:hover img {
+  transform: scale(1.03);
+}
+.gd-cell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background var(--duration-transition) ease;
+  pointer-events: none;
+}
+.gd-cell:hover::after {
+  background: rgba(0, 0, 0, 0.06);
+}
+.gd-cell--span {
+  grid-row: 1 / 3;
+}
+.gd-cell--placeholder::after {
+  display: none;
+}
+.gd-cell--placeholder:hover img {
+  transform: none;
+}
+
+/* 라이트박스 */
+.gd-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-lightbox);
+  background: rgba(0, 0, 0, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fade) ease, background var(--duration-fade) ease;
+}
+.gd-lightbox.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.gd-lightbox.gd-lb-settled {
+  background: var(--overlay-lightbox-bg);
+}
+.gd-lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  cursor: default;
+}
+.gd-lb-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 1;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.gd-lb-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.5);
+  transition: color var(--duration-hover) ease;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gd-lb-arrow svg {
+  width: 32px;
+  height: 32px;
+}
+.gd-lb-arrow:hover {
+  color: #ffffff;
+}
+.gd-lb-prev {
+  left: 24px;
+}
+.gd-lb-next {
+  right: 24px;
 }

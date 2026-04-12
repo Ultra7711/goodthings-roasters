@@ -35,13 +35,14 @@ type HeaderThemeRule = {
 const HEADER_INITIAL_THEME_RULES: HeaderThemeRule[] = [
   { path: '/', exact: true, theme: 'dark' },        // 홈: 다크 히어로 비디오
   { path: '/story', theme: 'dark' },                // 브랜드 스토리: 다크 히어로
-  { path: '/gooddays', theme: 'dark' },             // Good Days 갤러리: 다크 히어로
+  { path: '/gooddays', theme: 'light' },            // Good Days 갤러리: 밝은 배경 + 좋은 순간들 타이틀
   { path: '/shop', theme: 'light' },                // 쇼핑: 밝은 상품 그리드
   { path: '/menu', theme: 'light' },                // 카페 메뉴: 밝은 배경
   { path: '/mypage', theme: 'light' },              // 마이페이지: 밝은 배경
   { path: '/login', theme: 'light' },               // 로그인: 밝은 배경
   { path: '/cart', theme: 'light' },                // 장바구니: 밝은 배경
   { path: '/checkout', theme: 'light' },            // 체크아웃: 밝은 배경
+  { path: '/biz-inquiry', theme: 'light' },         // 비즈니스 문의: 밝은 배경
 ];
 
 const DEFAULT_INITIAL_THEME: HeaderTheme = 'dark';

@@ -6,6 +6,7 @@
 
 import Link from 'next/link';
 import FooterBottom from './FooterBottom';
+import FooterWholesaleLink from './FooterWholesaleLink';
 
 export default function SiteFooter() {
   return (
@@ -49,7 +50,7 @@ export default function SiteFooter() {
             </div>
             <div>
               <div className="f-col-title">Contact</div>
-              <Link href="/biz-inquiry" className="footer-col-link">Wholesale</Link>
+              <FooterWholesaleLink />
             </div>
           </div>
 

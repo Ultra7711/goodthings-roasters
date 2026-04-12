@@ -9,6 +9,7 @@ import AnnouncementBar from '@/components/layout/AnnouncementBar';
 import SiteHeader from '@/components/layout/SiteHeader';
 import SiteFooter from '@/components/layout/SiteFooter';
 import SRInitializer from '@/components/layout/SRInitializer';
+import ToastContainer from '@/components/layout/ToastContainer';
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   return (
@@ -49,6 +50,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
       {/* Scroll Reveal 초기화 (페이지 이동마다 재관찰) */}
       <SRInitializer />
+
+      {/* 글로벌 토스트 (BizInquiry/로그인/체크아웃 공용) */}
+      <ToastContainer />
     </div>
   );
 }

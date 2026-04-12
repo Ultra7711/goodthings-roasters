@@ -101,6 +101,32 @@ export default function SiteHeader() {
     }
   }
 
+  /* Story 링크 클릭 → /story 진입 연출 재트리거
+     - /story 내에서 클릭 시: preventDefault 후 'gtr:story-reset' 발송.
+       StoryPage 가 수신해 스크롤 top + resetTick 증가 → 히어로 페이드 +
+       sr-txt 리빌이 처음부터 재생.
+     - Shop/Menu 와 동일한 same-page reentry 패턴
+       (feedback_samepage_reentry_animation.md 참조). */
+  function handleStoryClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    closeSearch();
+    if (pathname === '/story') {
+      e.preventDefault();
+      window.dispatchEvent(new Event('gtr:story-reset'));
+    }
+  }
+
+  /* Good Days 링크 클릭 → /gooddays 진입 연출 재트리거
+     - /gooddays 내에서 클릭 시: preventDefault 후 'gtr:gooddays-reset' 발송.
+       GoodDaysPage 가 수신해 스크롤 top + resetTick 증가 → 타이틀 페이드 +
+       그리드 IO 리빌이 처음부터 재생. */
+  function handleGoodDaysClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    closeSearch();
+    if (pathname === '/gooddays') {
+      e.preventDefault();
+      window.dispatchEvent(new Event('gtr:gooddays-reset'));
+    }
+  }
+
   function openSearch() {
     const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? 60;
     document.documentElement.style.setProperty('--search-drop-top', `${headerBottom}px`);
@@ -157,10 +183,10 @@ export default function SiteHeader() {
 
           {/* 네비게이션 */}
           <nav className="hdr-nav" aria-label="메인 내비게이션">
-            <Link href="/story" className="nav-link">The Story</Link>
+            <Link href="/story" className="nav-link" onClick={handleStoryClick}>The Story</Link>
             <Link href="/menu" className="nav-link" onClick={handleMenuClick}>Menu</Link>
             <Link href="/shop" className="nav-link" onClick={handleShopClick}>Shop</Link>
-            <Link href="/gooddays" className="nav-link">Good Days</Link>
+            <Link href="/gooddays" className="nav-link" onClick={handleGoodDaysClick}>Good Days</Link>
           </nav>
 
           {/* 아이콘 버튼 그룹 */}
