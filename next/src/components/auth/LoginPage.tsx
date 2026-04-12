@@ -293,6 +293,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={loginForm.email}
                   onChange={(e) => loginForm.setEmail(e.target.value)}
+                  onBlur={loginForm.blurEmail}
                   onKeyDown={loginNav}
                 />
                 <label className="chp-floating-label">이메일 주소</label>
@@ -380,6 +381,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={registerForm.email}
                   onChange={(e) => registerForm.setEmail(e.target.value)}
+                  onBlur={registerForm.blurEmail}
                   onKeyDown={registerNav}
                 />
                 <label className="chp-floating-label">이메일 주소</label>
@@ -398,6 +400,7 @@ export default function LoginPage() {
                   autoComplete="new-password"
                   value={registerForm.password}
                   onChange={(e) => registerForm.setPassword(e.target.value)}
+                  onBlur={registerForm.blurPassword}
                   onKeyDown={registerNav}
                 />
                 <label className="chp-floating-label">비밀번호</label>
@@ -420,6 +423,7 @@ export default function LoginPage() {
                   disabled={registerForm.pw2Disabled}
                   value={registerForm.password2}
                   onChange={(e) => registerForm.setPassword2(e.target.value)}
+                  onBlur={registerForm.blurPassword2}
                   onKeyDown={registerNav}
                 />
                 <label className="chp-floating-label">비밀번호 확인</label>

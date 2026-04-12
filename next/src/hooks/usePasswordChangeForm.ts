@@ -82,6 +82,26 @@ export function usePasswordChangeForm({
     [clearFieldError],
   );
 
+  /** blur 시 새 비밀번호 강도 검증 */
+  const blurNext = useCallback(() => {
+    if (next) {
+      const strength = checkPasswordStrength(next);
+      if (!strength.valid) {
+        setErrors((prev) => ({
+          ...prev,
+          next: passwordStrengthMessage(strength) ?? '비밀번호 강도가 부족합니다.',
+        }));
+      }
+    }
+  }, [next]);
+
+  /** blur 시 비밀번호 확인 일치 검증 */
+  const blurConfirm = useCallback(() => {
+    if (confirm && next && next !== confirm) {
+      setErrors((prev) => ({ ...prev, confirm: '비밀번호가 일치하지 않습니다.' }));
+    }
+  }, [next, confirm]);
+
   const submit = useCallback(async (): Promise<boolean> => {
     const newErrors: PasswordChangeErrors = {};
 
@@ -135,6 +155,8 @@ export function usePasswordChangeForm({
     setCurrent: handleCurrentChange,
     setNext: handleNextChange,
     setConfirm: handleConfirmChange,
+    blurNext,
+    blurConfirm,
     reset,
     submit,
   };

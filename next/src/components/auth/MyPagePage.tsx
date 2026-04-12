@@ -349,6 +349,7 @@ export default function MyPagePage() {
                       placeholder=" "
                       value={addressForm.form.phone}
                       onChange={handleAddrPhoneChange}
+                      onBlur={addressForm.blurPhone}
                       onKeyDown={addrNav}
                     />
                     <label className="chp-floating-label">전화번호</label>
@@ -533,6 +534,7 @@ export default function MyPagePage() {
                     placeholder=" "
                     value={pwForm.next}
                     onChange={(e) => pwForm.setNext(e.target.value)}
+                    onBlur={pwForm.blurNext}
                     onKeyDown={pwNav}
                   />
                   <label className="chp-floating-label">새 비밀번호</label>
@@ -552,6 +554,7 @@ export default function MyPagePage() {
                     disabled={pwForm.pw2Disabled}
                     value={pwForm.confirm}
                     onChange={(e) => pwForm.setConfirm(e.target.value)}
+                    onBlur={pwForm.blurConfirm}
                     onKeyDown={pwNav}
                   />
                   <label className="chp-floating-label">새 비밀번호 확인</label>

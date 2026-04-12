@@ -119,7 +119,7 @@ export default function CheckoutPage() {
   const {
     form, errors, agreements, allAgreed, isFormRevealed,
     setField, setPaymentMethod, toggleAgreement, toggleAllAgreements,
-    revealForm, validate, clearErrors,
+    revealForm, validate, clearErrors, blurEmail, blurPhone,
   } = useCheckoutForm();
 
   /* ── 전화번호 ── */
@@ -276,6 +276,7 @@ export default function CheckoutPage() {
                 className="chp-input" type="email" placeholder=" "
                 value={form.email}
                 onChange={(e) => setField('email', e.target.value)}
+                onBlur={blurEmail}
                 onKeyDown={chpNav}
               />
               <label className="chp-floating-label">이메일 주소</label>
@@ -325,6 +326,7 @@ export default function CheckoutPage() {
                     className="chp-input" type="tel" placeholder=" "
                     value={form.phone}
                     onChange={handlePhoneChange}
+                    onBlur={blurPhone}
                     onKeyDown={chpNav}
                   />
                   <label className="chp-floating-label">전화번호</label>

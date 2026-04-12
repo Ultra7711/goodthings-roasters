@@ -68,6 +68,14 @@ export function useAddressForm({ initial, onSave }: UseAddressFormOptions) {
     });
   }, []);
 
+  /** blur 시 전화번호 형식 검증 */
+  const blurPhone = useCallback(() => {
+    const trimmed = form.phone.trim();
+    if (trimmed && !isValidPhone(trimmed)) {
+      setErrors((prev) => ({ ...prev, phone: '올바른 전화번호 형식을 입력해 주세요.' }));
+    }
+  }, [form.phone]);
+
   /** 검증 + 저장 */
   const submit = useCallback((): boolean => {
     const newErrors: AddressFormErrors = {};
@@ -114,6 +122,7 @@ export function useAddressForm({ initial, onSave }: UseAddressFormOptions) {
     setField,
     reset,
     lookupAddress,
+    blurPhone,
     submit,
   };
 }

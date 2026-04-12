@@ -37,6 +37,9 @@ type UseRegisterFormReturn = {
   setEmail: (value: string) => void;
   setPassword: (value: string) => void;
   setPassword2: (value: string) => void;
+  blurEmail: () => void;
+  blurPassword: () => void;
+  blurPassword2: () => void;
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 };
 
@@ -97,6 +100,34 @@ export function useRegisterForm(): UseRegisterFormReturn {
     },
     [clearFieldError],
   );
+
+  /** blur 시 이메일 형식 검증 */
+  const blurEmail = useCallback(() => {
+    const trimmed = email.trim();
+    if (trimmed && !isValidEmail(trimmed)) {
+      setErrors((prev) => ({ ...prev, email: '올바른 이메일 형식을 입력해 주세요.' }));
+    }
+  }, [email]);
+
+  /** blur 시 비밀번호 강도 검증 */
+  const blurPassword = useCallback(() => {
+    if (password) {
+      const strength = checkPasswordStrength(password);
+      if (!strength.valid) {
+        setErrors((prev) => ({
+          ...prev,
+          password: passwordStrengthMessage(strength) ?? '',
+        }));
+      }
+    }
+  }, [password]);
+
+  /** blur 시 비밀번호 확인 일치 검증 */
+  const blurPassword2 = useCallback(() => {
+    if (password2 && password && password !== password2) {
+      setErrors((prev) => ({ ...prev, password2: '비밀번호가 일치하지 않습니다.' }));
+    }
+  }, [password, password2]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
@@ -162,6 +193,9 @@ export function useRegisterForm(): UseRegisterFormReturn {
     setEmail,
     setPassword,
     setPassword2,
+    blurEmail,
+    blurPassword,
+    blurPassword2,
     handleSubmit,
   };
 }

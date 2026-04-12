@@ -29,6 +29,8 @@ type UseCheckoutFormReturn = {
   revealForm: () => void;
   validate: (isLoggedIn: boolean) => boolean;
   clearErrors: () => void;
+  blurEmail: () => void;
+  blurPhone: () => void;
 };
 
 const AGREEMENT_COUNT = 2;
@@ -96,6 +98,22 @@ export function useCheckoutForm(): UseCheckoutFormReturn {
     setErrors({});
   }, []);
 
+  /** blur 시 이메일 형식 검증 */
+  const blurEmail = useCallback(() => {
+    const trimmed = form.email.trim();
+    if (trimmed && !EMAIL_RE.test(trimmed)) {
+      setErrors((prev) => ({ ...prev, email: '올바른 이메일 형식을 입력해 주세요.' }));
+    }
+  }, [form.email]);
+
+  /** blur 시 전화번호 형식 검증 */
+  const blurPhone = useCallback(() => {
+    const trimmed = form.phone.trim();
+    if (trimmed && !PHONE_RE.test(trimmed)) {
+      setErrors((prev) => ({ ...prev, phone: '올바른 전화번호 형식을 입력해 주세요.' }));
+    }
+  }, [form.phone]);
+
   const validate = useCallback(
     (isLoggedIn: boolean): boolean => {
       const newErrors: CheckoutErrors = {};
@@ -161,5 +179,7 @@ export function useCheckoutForm(): UseCheckoutFormReturn {
     revealForm,
     validate,
     clearErrors,
+    blurEmail,
+    blurPhone,
   };
 }

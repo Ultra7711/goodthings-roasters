@@ -30,6 +30,7 @@ type UseLoginFormReturn = {
   isLoading: boolean;
   setEmail: (value: string) => void;
   setPassword: (value: string) => void;
+  blurEmail: () => void;
   /** 폼 submit 핸들러 */
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   /** 데모 계정으로 즉시 로그인 */
@@ -71,6 +72,14 @@ export function useLoginForm(
       return next;
     });
   }, []);
+
+  /** blur 시 이메일 형식 검증 */
+  const blurEmail = useCallback(() => {
+    const trimmed = email.trim();
+    if (trimmed && !isValidEmail(trimmed)) {
+      setErrors((prev) => ({ ...prev, email: '올바른 이메일 형식을 입력해 주세요.' }));
+    }
+  }, [email]);
 
   /** 로그인 성공 후 리다이렉트 */
   const redirectOnSuccess = useCallback(() => {
@@ -132,6 +141,7 @@ export function useLoginForm(
     isLoading,
     setEmail,
     setPassword,
+    blurEmail,
     handleSubmit,
     loginAsDemo,
   };
