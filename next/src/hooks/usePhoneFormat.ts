@@ -6,12 +6,19 @@
 
 import { useCallback, type ChangeEvent } from 'react';
 
-/** 숫자만 추출 후 하이픈 삽입 (010-1234-5678) */
+/** 숫자만 추출 후 하이픈 삽입 — 02(서울 2-4-4) / 그 외(3-4-4) 분기 */
 function formatPhoneNumber(raw: string): string {
-  const digits = raw.replace(/\D/g, '').slice(0, 11);
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+  const d = raw.replace(/\D/g, '');
+  if (d.startsWith('02')) {
+    const n = d.slice(0, 10);
+    if (n.length <= 2) return n;
+    if (n.length <= 6) return `${n.slice(0, 2)}-${n.slice(2)}`;
+    return `${n.slice(0, 2)}-${n.slice(2, n.length - 4)}-${n.slice(n.length - 4)}`;
+  }
+  const n = d.slice(0, 11);
+  if (n.length <= 3) return n;
+  if (n.length <= 7) return `${n.slice(0, 3)}-${n.slice(3)}`;
+  return `${n.slice(0, 3)}-${n.slice(3, 7)}-${n.slice(7)}`;
 }
 
 /**

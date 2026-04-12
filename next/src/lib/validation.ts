@@ -7,8 +7,8 @@
 /** 이메일 (간단 검증 — RFC 완전 준수 아님) */
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** 전화번호 (01X-XXXX-XXXX 하이픈 포함) */
-export const PHONE_RE = /^01[016789]-\d{3,4}-\d{4}$/;
+/** 전화번호 — 02-XXXX-XXXX / 0XX-XXX(X)-XXXX / 01X-XXXX-XXXX */
+export const PHONE_RE = /^(02-\d{3,4}-\d{4}|0[1-9]\d-\d{3,4}-\d{4})$/;
 
 /** 우편번호 (5자리 숫자) */
 export const ZIPCODE_RE = /^\d{5}$/;

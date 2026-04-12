@@ -24,6 +24,7 @@ import { useCartStore, useAuthStore, FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } fro
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
 import { shakeFields } from '@/lib/shakeFields';
+import { ClearIcon, EyeOpenIcon, EyeClosedIcon } from '@/components/ui/InputIcons';
 import type { PaymentMethod } from '@/types/checkout';
 
 /* ── 배송 메시지 옵션 ── */
@@ -52,35 +53,6 @@ function ChevronRight({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9,18l6-6-6-6" />
-    </svg>
-  );
-}
-
-/* ── 클리어 버튼 SVG (circle-x_fill) ── */
-function ClearIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12,3C7.1,3,3,7,3,12s4.1,9,9,9,9-4,9-9S17,3,12,3ZM15.7,14.3c.4.4.4,1,0,1.4-.4.4-.5.3-.7.3s-.5,0-.7-.3l-2.3-2.3-2.3,2.3c-.2.2-.5.3-.7.3s-.5,0-.7-.3c-.4-.4-.4-1,0-1.4l2.3-2.3-2.3-2.3c-.4-.4-.4-1,0-1.4.4-.4,1-.4,1.4,0l2.3,2.3,2.3-2.3c.4-.4,1-.4,1.4,0,.4.4.4,1,0,1.4l-2.3,2.3,2.3,2.3Z" />
-    </svg>
-  );
-}
-
-/* ── 비밀번호 보기/숨기기 아이콘 ── */
-function EyeOpenIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2.1,12.3c0-.2,0-.5,0-.7,2.3-5.5,8.5-8.1,14-5.8,2.6,1.1,4.7,3.2,5.8,5.8,0,.2,0,.5,0,.7-2.3,5.5-8.5,8.1-14,5.8-2.6-1.1-4.7-3.2-5.8-5.8" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-function EyeClosedIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10.7,5.1c4.8-.6,9.4,2.1,11.2,6.6,0,.2,0,.5,0,.7-.4.9-.9,1.7-1.4,2.5" />
-      <path d="M14.1,14.2c-1.2,1.2-3.1,1.1-4.2,0-1.1-1.2-1.1-3,0-4.2" />
-      <path d="M17.5,17.5c-5.1,3-11.7,1.3-14.7-3.8-.3-.4-.5-.9-.7-1.4,0-.2,0-.5,0-.7.9-2.2,2.4-4,4.4-5.1" />
-      <path d="M2,2l20,20" />
     </svg>
   );
 }
@@ -299,7 +271,7 @@ export default function CheckoutPage() {
             <div className="chp-section-header">
               <h2 className="chp-section-title">연락처</h2>
             </div>
-            <div className={`chp-field${errors.email ? ' error' : ''}`}>
+            <div className={`chp-field${errors.email ? ' input-warn' : ''}`}>
               <input
                 className="chp-input" type="email" placeholder=" "
                 value={form.email}
@@ -334,7 +306,7 @@ export default function CheckoutPage() {
               <div className="chp-section">
                 <h2 className="chp-section-title">배송지</h2>
                 {/* 받는 분 */}
-                <div className={`chp-field${errors.firstname ? ' error' : ''}`}>
+                <div className={`chp-field${errors.firstname ? ' input-warn' : ''}`}>
                   <input
                     className="chp-input" type="text" placeholder=" "
                     value={form.firstname}
@@ -348,7 +320,7 @@ export default function CheckoutPage() {
                   <div className="chp-helper">{errors.firstname || '받는 분의 이름을 입력하세요.'}</div>
                 </div>
                 {/* 전화번호 */}
-                <div className={`chp-field${errors.phone ? ' error' : ''}`}>
+                <div className={`chp-field${errors.phone ? ' input-warn' : ''}`}>
                   <input
                     className="chp-input" type="tel" placeholder=" "
                     value={form.phone}
@@ -359,30 +331,33 @@ export default function CheckoutPage() {
                   {form.phone && (
                     <span className="chp-input-action visible" onClick={() => setField('phone', '')}><ClearIcon /></span>
                   )}
-                  <div className="chp-helper">{errors.phone || '하이픈(-) 없이 입력하세요.'}</div>
+                  <div className="chp-helper">{errors.phone || '하이픈이 자동으로 입력됩니다.'}</div>
                 </div>
                 {/* 주소 */}
                 <div className="chp-addr-inline">
-                  <div className={`chp-field${errors.addr1 ? ' error' : ''}${form.addr1 ? ' has-value' : ''}`}>
+                  <div className={`chp-field${errors.addr1 ? ' input-warn' : ''}${form.addr1 ? ' has-value' : ''}`}>
                     <input
                       className="chp-input" type="text" placeholder=" " readOnly
                       value={form.addr1}
                       style={{ cursor: 'pointer', paddingRight: 36 }}
                       onClick={handleAddressSearch}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddressSearch(); } }}
                     />
                     <label className="chp-floating-label">주소 검색</label>
                     <button className="chp-addr-search-btn" type="button" title="주소 검색" onClick={handleAddressSearch}>
                       <SearchIcon />
                     </button>
-                    <div className="chp-error-msg">{errors.addr1}</div>
+                    <div className="chp-helper">{errors.addr1 || '주소를 검색해 주세요.'}</div>
                   </div>
                   <div className="chp-field">
                     <input
                       className="chp-input" type="text" placeholder=" " maxLength={5} inputMode="numeric"
                       value={form.zipcode}
                       onChange={(e) => setField('zipcode', e.target.value.replace(/\D/g, ''))}
+                      onKeyDown={chpNav}
                     />
                     <label className="chp-floating-label">우편번호</label>
+                    <div className="chp-helper">주소 검색 시 자동 입력됩니다.</div>
                   </div>
                 </div>
                 {/* 상세주소 — 주소 입력 후 표시 */}
@@ -452,7 +427,7 @@ export default function CheckoutPage() {
                 <div className="chp-section chp-section--no-border chp-section--guest">
                   <h2 className="chp-section-title">비회원 주문조회 비밀번호</h2>
                   <p className="chp-section-desc">비회원 주문 조회 시 주문번호와 입력하신 비밀번호가 필요합니다.</p>
-                  <div className={`chp-field${errors.guestPw ? ' error' : ''}`}>
+                  <div className={`chp-field${errors.guestPw ? ' input-warn' : ''}`}>
                     <input
                       className="chp-input" type={showGuestPw ? 'text' : 'password'} placeholder=" "
                       value={form.guestPw}
@@ -468,7 +443,7 @@ export default function CheckoutPage() {
                     )}
                     <div className="chp-helper visible">4자 이상 입력해 주세요.</div>
                   </div>
-                  <div className={`chp-field pw2-field${showPw2 ? ' pw2-visible' : ''}${errors.guestPw2 ? ' error' : ''}`}>
+                  <div className={`chp-field pw2-field${showPw2 ? ' pw2-visible' : ''}${errors.guestPw2 ? ' input-warn' : ''}`}>
                     <input
                       className="chp-input" type={showGuestPw2 ? 'text' : 'password'} placeholder=" "
                       disabled={!showPw2}
@@ -520,7 +495,7 @@ export default function CheckoutPage() {
                 {/* 계좌이체 */}
                 {form.paymentMethod === 'transfer' && (
                   <div className={`chp-payment-detail${payFade ? ' fade-in' : ''}`}>
-                    <div className={`chp-field${form.bankName ? ' has-value' : ''}${errors.bankName ? ' error' : ''}`}>
+                    <div className={`chp-field${form.bankName ? ' has-value' : ''}${errors.bankName ? ' input-warn' : ''}`}>
                       <select
                         className="chp-input chp-select"
                         value={form.bankName}
@@ -532,7 +507,7 @@ export default function CheckoutPage() {
                       <label className="chp-floating-label">입금은행</label>
                       <div className="chp-error-msg">{errors.bankName}</div>
                     </div>
-                    <div className={`chp-field${errors.depositorName ? ' error' : ''}`}>
+                    <div className={`chp-field${errors.depositorName ? ' input-warn' : ''}`}>
                       <input
                         className="chp-input" type="text" placeholder=" "
                         value={form.depositorName}

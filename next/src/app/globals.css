@@ -3734,6 +3734,8 @@ footer.blk {
   appearance: none;
 }
 .bi-input:focus {
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
   border-bottom-color: var(--color-text-primary);
 }
 .bi-input::placeholder {
@@ -4404,10 +4406,12 @@ footer.blk {
 .chp-field.input-warn .chp-input { border-bottom-color: var(--color-error); }
 .chp-field.input-warn .chp-floating-label { color: var(--color-error); }
 .chp-field.input-warn .chp-helper { display: block; color: var(--color-error); }
+.chp-field.input-warn .chp-helper::before,
+.bi-field.bi-input-warn .bi-helper::before { content: '\26A0\0020'; }
 .chp-field.input-warn .chp-input-action { color: var(--color-error); }
 .chp-field.input-success .chp-input { border-bottom-color: var(--color-success); }
 @keyframes chp-shake { 0%,100% { margin-left: 0; } 20% { margin-left: -6px; } 40% { margin-left: 5px; } 60% { margin-left: -3px; } 80% { margin-left: 2px; } }
-.chp-field.input-shake { animation: chp-shake .35s ease; }
+.chp-field.input-shake, .bi-field.input-shake { animation: chp-shake .35s ease; }
 
 /* select floating label */
 select.chp-input {
@@ -4501,13 +4505,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-field:has(.chp-input-actions) .chp-input { padding-right: 64px; }
 .chp-field .chp-input { padding-right: 36px; }
 
-/* 에러 상태 */
-.chp-field.error .chp-input { border-bottom-color: var(--color-error); }
-.chp-field.error .chp-floating-label { color: var(--color-error); }
-.chp-field.error .chp-helper { display: block; color: var(--color-error); }
-.chp-field.error .chp-input-action { color: var(--color-error); }
 .chp-error-msg { display: none; font-family: var(--font-kr); font-size: var(--type-caption-size); color: var(--color-error); margin-top: 6px; }
-.chp-field.error .chp-error-msg { display: block; }
+.chp-field.input-warn .chp-error-msg { display: block; }
 
 /* 우편번호 + 기본주소 한 줄 */
 .chp-addr-inline { display: grid; grid-template-columns: 3fr 1fr; gap: 16px; }

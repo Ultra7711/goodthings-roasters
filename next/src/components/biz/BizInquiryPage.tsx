@@ -26,6 +26,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/useToast';
+import { shakeFields } from '@/lib/shakeFields';
 import {
   BIZ_TYPE_OPTIONS,
   BIZ_VOLUME_OPTIONS,
@@ -226,8 +227,9 @@ export default function BizInquiryPage() {
     setWarns(next);
 
     if (next.size > 0) {
-      /* 첫 에러로 스크롤 — DOM 쿼리 후 비동기 (setState 반영 대기) */
+      /* shake + 첫 에러로 스크롤 — DOM 쿼리 후 비동기 (setState 반영 대기) */
       requestAnimationFrame(() => {
+        shakeFields(bodyRef.current);
         const first = bodyRef.current?.querySelector('.bi-input-warn');
         if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
@@ -371,6 +373,7 @@ export default function BizInquiryPage() {
           <BiTextField
             id="bi-current-bean"
             label="사용 중인 원두"
+            helper="현재 사용 중인 원두가 있으면 입력해 주세요."
             value={form.currentBean}
             onChange={(v) => handleTextChange('currentBean', v)}
             onKeyDown={handleEnterNext}

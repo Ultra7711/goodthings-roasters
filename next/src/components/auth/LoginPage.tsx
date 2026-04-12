@@ -23,35 +23,7 @@ import { useAuthStore } from '@/lib/store';
 import { isValidEmail } from '@/lib/validation';
 import { shakeFields } from '@/lib/shakeFields';
 import { useToast } from '@/hooks/useToast';
-
-/* ── 클리어 버튼 SVG (circle-x_fill) ── */
-function ClearIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12,3C7.1,3,3,7,3,12s4.1,9,9,9,9-4,9-9S17,3,12,3ZM15.7,14.3c.4.4.4,1,0,1.4-.4.4-.5.3-.7.3s-.5,0-.7-.3l-2.3-2.3-2.3,2.3c-.2.2-.5.3-.7.3s-.5,0-.7-.3c-.4-.4-.4-1,0-1.4l2.3-2.3-2.3-2.3c-.4-.4-.4-1,0-1.4.4-.4,1-.4,1.4,0l2.3,2.3,2.3-2.3c.4-.4,1-.4,1.4,0,.4.4.4,1,0,1.4l-2.3,2.3,2.3,2.3Z" />
-    </svg>
-  );
-}
-
-/* ── 비밀번호 보기/숨기기 아이콘 ── */
-function EyeOpenIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2.1,12.3c0-.2,0-.5,0-.7,2.3-5.5,8.5-8.1,14-5.8,2.6,1.1,4.7,3.2,5.8,5.8,0,.2,0,.5,0,.7-2.3,5.5-8.5,8.1-14,5.8-2.6-1.1-4.7-3.2-5.8-5.8" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-function EyeClosedIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10.7,5.1c4.8-.6,9.4,2.1,11.2,6.6,0,.2,0,.5,0,.7-.4.9-.9,1.7-1.4,2.5" />
-      <path d="M14.1,14.2c-1.2,1.2-3.1,1.1-4.2,0-1.1-1.2-1.1-3,0-4.2" />
-      <path d="M17.5,17.5c-5.1,3-11.7,1.3-14.7-3.8-.3-.4-.5-.9-.7-1.4,0-.2,0-.5,0-.7.9-2.2,2.4-4,4.4-5.1" />
-      <path d="M2,2l20,20" />
-    </svg>
-  );
-}
+import { ClearIcon, EyeOpenIcon, EyeClosedIcon } from '@/components/ui/InputIcons';
 
 /* ── 폼 모드 ── */
 type LoginMode = 'login' | 'register' | 'reset' | 'guest-lookup';
@@ -439,7 +411,7 @@ export default function LoginPage() {
                   {registerForm.errors.password || '영문 대소문자/숫자/특수문자 중 2가지 이상 조합, 6~16자'}
                 </div>
               </div>
-              <div className={`chp-field pw2-field${registerForm.errors.password2 ? ' input-warn' : ''}`}>
+              <div className={`chp-field pw2-field${registerForm.password ? ' pw2-visible' : ''}${registerForm.errors.password2 ? ' input-warn' : ''}`}>
                 <input
                   className="chp-input"
                   type={showRegPw2 ? 'text' : 'password'}
@@ -531,7 +503,7 @@ export default function LoginPage() {
                   <span className="chp-input-action visible" onClick={() => { setGuestOrderNum(''); setGuestErrors((p) => { const n = { ...p }; delete n.orderNum; return n; }); }}><ClearIcon /></span>
                 )}
                 <div className="chp-helper">
-                  {guestErrors.orderNum || '주문번호를 입력하세요.'}
+                  {guestErrors.orderNum || '예: GT-20260413-00001'}
                 </div>
               </div>
               <button className="lp-submit-btn" type="submit">주문 조회하기</button>

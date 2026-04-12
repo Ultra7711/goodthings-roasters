@@ -86,7 +86,7 @@ export function useAddressForm({ initial, onSave }: UseAddressFormOptions) {
     if (!trimmed.phone) {
       newErrors.phone = '전화번호를 입력해 주세요.';
     } else if (!isValidPhone(trimmed.phone)) {
-      newErrors.phone = '01X-XXXX-XXXX 형식으로 입력해 주세요.';
+      newErrors.phone = '올바른 전화번호 형식을 입력해 주세요.';
     }
 
     if (!trimmed.addr1) {
