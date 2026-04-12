@@ -274,13 +274,15 @@ export default function CheckoutPage() {
             </div>
             {!isFormRevealed && (
               <>
-                <Link href="/login" className="chp-login-primary-btn">
+                <Link href="/login?from=checkout" className="chp-login-primary-btn">
                   로그인하고 주문하기
                 </Link>
                 <p className="chp-login-benefit">로그인하면 배송지 정보가 자동으로 채워집니다.</p>
-                <button className="chp-guest-btn" type="button" onClick={handleEmailContinue}>
-                  비회원으로 주문하기
-                </button>
+                <div className="chp-guest-link-wrap">
+                  <button className="chp-guest-link" type="button" onClick={handleEmailContinue}>
+                    비회원으로 주문하기
+                  </button>
+                </div>
               </>
             )}
           </div>
