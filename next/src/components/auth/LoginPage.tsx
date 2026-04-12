@@ -310,7 +310,7 @@ export default function LoginPage() {
                 />
                 <label className="chp-floating-label">이메일 주소</label>
                 {loginForm.email && (
-                  <span className="chp-input-action visible" onClick={() => loginForm.setEmail('')}><ClearIcon /></span>
+                  <span className="chp-input-action visible" onClick={() => loginForm.setEmail('')} title="지우기"><ClearIcon /></span>
                 )}
                 <div className="chp-helper">
                   {loginForm.errors.email || '이메일 주소를 입력하세요.'}
@@ -379,7 +379,7 @@ export default function LoginPage() {
                 />
                 <label className="chp-floating-label">이름</label>
                 {registerForm.name && (
-                  <span className="chp-input-action visible" onClick={() => registerForm.setName('')}><ClearIcon /></span>
+                  <span className="chp-input-action visible" onClick={() => registerForm.setName('')} title="지우기"><ClearIcon /></span>
                 )}
                 <div className="chp-helper">
                   {registerForm.errors.name || '이름을 입력하세요.'}
@@ -398,7 +398,7 @@ export default function LoginPage() {
                 />
                 <label className="chp-floating-label">이메일 주소</label>
                 {registerForm.email && (
-                  <span className="chp-input-action visible" onClick={() => registerForm.setEmail('')}><ClearIcon /></span>
+                  <span className="chp-input-action visible" onClick={() => registerForm.setEmail('')} title="지우기"><ClearIcon /></span>
                 )}
                 <div className="chp-helper">
                   {registerForm.errors.email || '이메일 주소를 입력하세요.'}
@@ -474,7 +474,7 @@ export default function LoginPage() {
                 />
                 <label className="chp-floating-label">이메일 주소</label>
                 {resetEmail && (
-                  <span className="chp-input-action visible" onClick={() => { setResetEmail(''); setResetError(''); }}><ClearIcon /></span>
+                  <span className="chp-input-action visible" onClick={() => { setResetEmail(''); setResetError(''); }} title="지우기"><ClearIcon /></span>
                 )}
                 <div className="chp-helper">
                   {resetError || '가입 시 등록한 이메일 주소를 입력하세요.'}
@@ -500,7 +500,7 @@ export default function LoginPage() {
                 />
                 <label className="chp-floating-label">이메일 주소</label>
                 {guestEmail && (
-                  <span className="chp-input-action visible" onClick={() => { setGuestEmail(''); setGuestErrors((p) => { const n = { ...p }; delete n.email; return n; }); }}><ClearIcon /></span>
+                  <span className="chp-input-action visible" onClick={() => { setGuestEmail(''); setGuestErrors((p) => { const n = { ...p }; delete n.email; return n; }); }} title="지우기"><ClearIcon /></span>
                 )}
                 <div className="chp-helper">
                   {guestErrors.email || '주문 시 입력한 이메일 주소를 입력하세요.'}
@@ -521,7 +521,7 @@ export default function LoginPage() {
                 />
                 <label className="chp-floating-label">주문번호</label>
                 {guestOrderNum && guestOrderNum !== 'GT-' && (
-                  <span className="chp-input-action visible" onClick={() => { setGuestOrderNum(''); setGuestErrors((p) => { const n = { ...p }; delete n.orderNum; return n; }); }}><ClearIcon /></span>
+                  <span className="chp-input-action visible" onClick={() => { setGuestOrderNum(''); setGuestErrors((p) => { const n = { ...p }; delete n.orderNum; return n; }); }} title="지우기"><ClearIcon /></span>
                 )}
                 <div className="chp-helper">
                   {guestErrors.orderNum || 'GT- 뒤에 숫자를 입력하세요. 예: GT-20260413-00001'}

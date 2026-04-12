@@ -255,7 +255,7 @@ export default function CheckoutPage() {
           <Link href="/">
             <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />
           </Link>
-          <span className="hdr-icon-btn" style={{ position: 'relative' }}>
+          <span className="hdr-icon-btn" style={{ position: 'relative' }} aria-label="장바구니">
             <CartIcon />
             {totalQty() > 0 && <span className="cart-badge">{totalQty()}</span>}
           </span>
@@ -281,7 +281,7 @@ export default function CheckoutPage() {
               />
               <label className="chp-floating-label">이메일 주소</label>
               {form.email && (
-                <span className="chp-input-action visible" onClick={() => setField('email', '')}><ClearIcon /></span>
+                <span className="chp-input-action visible" onClick={() => setField('email', '')} title="지우기"><ClearIcon /></span>
               )}
               <div className="chp-helper">{errors.email || '이메일 주소를 입력하세요.'}</div>
             </div>
@@ -316,7 +316,7 @@ export default function CheckoutPage() {
                   />
                   <label className="chp-floating-label">받는 분</label>
                   {form.firstname && (
-                    <span className="chp-input-action visible" onClick={() => setField('firstname', '')}><ClearIcon /></span>
+                    <span className="chp-input-action visible" onClick={() => setField('firstname', '')} title="지우기"><ClearIcon /></span>
                   )}
                   <div className="chp-helper">{errors.firstname || '받는 분의 이름을 입력하세요.'}</div>
                 </div>
@@ -331,7 +331,7 @@ export default function CheckoutPage() {
                   />
                   <label className="chp-floating-label">전화번호</label>
                   {form.phone && (
-                    <span className="chp-input-action visible" onClick={() => setField('phone', '')}><ClearIcon /></span>
+                    <span className="chp-input-action visible" onClick={() => setField('phone', '')} title="지우기"><ClearIcon /></span>
                   )}
                   <div className="chp-helper">{errors.phone || '하이픈이 자동으로 입력됩니다.'}</div>
                 </div>
@@ -373,7 +373,7 @@ export default function CheckoutPage() {
                     />
                     <label className="chp-floating-label">상세주소</label>
                     {form.addr2 && (
-                      <span className="chp-input-action visible" onClick={() => setField('addr2', '')}><ClearIcon /></span>
+                      <span className="chp-input-action visible" onClick={() => setField('addr2', '')} title="지우기"><ClearIcon /></span>
                     )}
                     <div className="chp-helper">동·호수 등 상세주소를 입력하세요.</div>
                   </div>
@@ -388,7 +388,7 @@ export default function CheckoutPage() {
                     onClick={() => setDeliveryOpen((p) => !p)}
                   >
                     <span className="chp-dropdown-value">{deliveryLabel}</span>
-                    <span className="chp-dropdown-arrow"><ChevronDown /></span>
+                    <span className="chp-dropdown-arrow" aria-hidden="true"><ChevronDown /></span>
                   </button>
                   <label className="chp-floating-label">배송 메시지 (선택사항)</label>
                   <div className="chp-dropdown-list">
@@ -418,7 +418,7 @@ export default function CheckoutPage() {
                     />
                     <label className="chp-floating-label">배송 메시지를 입력해 주세요.</label>
                     {form.deliveryCustom && (
-                      <span className="chp-input-action visible" onClick={() => setField('deliveryCustom', '')}><ClearIcon /></span>
+                      <span className="chp-input-action visible" onClick={() => setField('deliveryCustom', '')} title="지우기"><ClearIcon /></span>
                     )}
                   </div>
                 )}
@@ -518,7 +518,7 @@ export default function CheckoutPage() {
                       />
                       <label className="chp-floating-label">입금자명</label>
                       {form.depositorName && (
-                        <span className="chp-input-action visible" onClick={() => setField('depositorName', '')}><ClearIcon /></span>
+                        <span className="chp-input-action visible" onClick={() => setField('depositorName', '')} title="지우기"><ClearIcon /></span>
                       )}
                       <div className="chp-helper">{errors.depositorName || '입금자명을 입력하세요.'}</div>
                     </div>
@@ -543,7 +543,7 @@ export default function CheckoutPage() {
                         <CheckboxIcon checked={agreements[idx]} />
                       </span>
                       <span className="chp-agree-item-label">{label}</span>
-                      <span className="chp-agree-arrow"><ChevronRight /></span>
+                      <span className="chp-agree-arrow" aria-hidden="true"><ChevronRight /></span>
                     </label>
                   ))}
                 </div>

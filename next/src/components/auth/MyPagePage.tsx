@@ -338,7 +338,7 @@ export default function MyPagePage() {
                     />
                     <label className="chp-floating-label">이름</label>
                     {addressForm.form.name && (
-                      <span className="chp-input-action visible" onClick={() => addressForm.setField('name', '')}><ClearIcon /></span>
+                      <span className="chp-input-action visible" onClick={() => addressForm.setField('name', '')} title="지우기"><ClearIcon /></span>
                     )}
                     <div className="chp-helper">{addressForm.errors.name || '이름을 입력하세요.'}</div>
                   </div>
@@ -354,7 +354,7 @@ export default function MyPagePage() {
                     />
                     <label className="chp-floating-label">전화번호</label>
                     {addressForm.form.phone && (
-                      <span className="chp-input-action visible" onClick={() => addressForm.setField('phone', '')}><ClearIcon /></span>
+                      <span className="chp-input-action visible" onClick={() => addressForm.setField('phone', '')} title="지우기"><ClearIcon /></span>
                     )}
                     <div className="chp-helper">{addressForm.errors.phone || '하이픈이 자동으로 입력됩니다.'}</div>
                   </div>
@@ -407,7 +407,7 @@ export default function MyPagePage() {
                       />
                       <label className="chp-floating-label">상세주소</label>
                       {addressForm.form.addr2 && (
-                        <span className="chp-input-action visible" onClick={() => addressForm.setField('addr2', '')}><ClearIcon /></span>
+                        <span className="chp-input-action visible" onClick={() => addressForm.setField('addr2', '')} title="지우기"><ClearIcon /></span>
                       )}
                       <div className="chp-helper">동·호수 등 상세주소를 입력하세요.</div>
                     </div>
