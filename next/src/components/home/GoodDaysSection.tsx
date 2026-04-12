@@ -35,7 +35,7 @@ export default function GoodDaysSection() {
           {PICKS.map((img, i) => (
             <Link
               key={img.src}
-              href="/gooddays"
+              href={`/gooddays?img=${encodeURIComponent(img.src)}`}
               className="moment-card sr-img"
               style={{ transitionDelay: `${i * 150}ms` }}
             >

@@ -28,9 +28,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useSearchParams } from 'next/navigation';
 import { buildGoodDaysGrid } from '@/lib/gooddays';
 
 export default function GoodDaysPage() {
+  const searchParams = useSearchParams();
+
   /* 그리드 데이터는 렌더링 순수 함수 — useMemo 로 한 번만 계산 */
   const grid = useMemo(() => buildGoodDaysGrid(), []);
   const { rows, ordered } = grid;
@@ -50,8 +53,37 @@ export default function GoodDaysPage() {
   /* 라이트박스 상태 — null = 닫힘 */
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const [lbSettled, setLbSettled] = useState(false);
+  /* instant 모드 — 메인 페이지 갤러리에서 진입 시 transition 없이 즉시 표시.
+     프로토타입 L2463 gd-lb-instant 클래스 동일. 화이트 flash 차단. */
+  const [lbInstant, setLbInstant] = useState(false);
   /* 라이트박스 settled 타이머 ref — 빠른 열기/닫기 시 stale state update 방지 */
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* ?img= query 처리 완료 플래그 — 중복 실행 방지 */
+  const imgQueryHandledRef = useRef(false);
+
+  /* 메인 페이지 갤러리 클릭 → ?img=<src> query 로 진입 시
+     라이트박스를 instant(transition 없이) 즉시 표시.
+     프로토타입 openGoodDaysPage(lightboxSrc) L10845~10858 동일.
+     flow: gd-lb-instant(즉시 표시) → 2 rAF 후 instant 해제 + settled 부여. */
+  useEffect(() => {
+    if (imgQueryHandledRef.current) return;
+    const imgSrc = searchParams.get('img');
+    if (!imgSrc || ordered.length === 0) return;
+    const idx = ordered.indexOf(imgSrc);
+    if (idx < 0) return;
+    imgQueryHandledRef.current = true;
+    // instant: transition 없이 즉시 검정 배경 표시 (화이트 flash 차단)
+    setLbInstant(true);
+    setLightboxIdx(idx);
+    setLbSettled(false);
+    // 2 rAF 후 instant 해제 → 이후 일반 transition 복원 + settled
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setLbInstant(false);
+        setLbSettled(true);
+      });
+    });
+  }, [searchParams, ordered]);
 
   /* 타이틀 등장 연출 — mount 직후 anim 부여.
      동기 setState 는 resetTick 변경 시 1회성 리셋 — SiteHeader.tsx L40 컨벤션. */
@@ -128,6 +160,7 @@ export default function GoodDaysPage() {
     }
     setLightboxIdx(null);
     setLbSettled(false);
+    setLbInstant(false);
   }, []);
 
   /* 언마운트 시 settled 타이머 정리 */
@@ -184,15 +217,15 @@ export default function GoodDaysPage() {
     <div
       id="gd-lightbox"
       className={`gd-lightbox${lightboxIdx !== null ? ' open' : ''}${
-        lbSettled ? ' gd-lb-settled' : ''
-      }`}
+        lbInstant ? ' gd-lb-instant' : ''
+      }${lbSettled ? ' gd-lb-settled' : ''}`}
       onClick={(e) => {
         if (e.target === e.currentTarget) closeLightbox();
       }}
     >
       <button
         type="button"
-        className="gd-lb-close close-btn close-btn-primary-dark"
+        className="gd-lb-close close-btn close-btn-secondary-dark"
         id="gd-lb-close"
         aria-label="닫기"
         onClick={closeLightbox}

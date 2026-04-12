@@ -162,7 +162,7 @@ export default function StoryPage() {
               <span className="st-label sr-txt sr-txt--d1">{STORY_LOCATION.label}</span>
               <p className="st-location-name sr-txt sr-txt--d2">{STORY_LOCATION.name}</p>
             </div>
-            <p className="st-location-addr sr-txt sr-txt--d2">{STORY_LOCATION.address}</p>
+            <p className="st-location-notice sr-txt sr-txt--d2">{STORY_LOCATION.notice}</p>
             <p className="st-location-hours sr-txt sr-txt--d3">
               {STORY_LOCATION.hours.split('\n').map((line, i, arr) => (
                 <span key={i}>

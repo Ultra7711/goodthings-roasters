@@ -1927,6 +1927,8 @@ footer.blk {
   max-width: 1440px;
   margin: 0 auto;
   padding: 100px 60px 80px;
+  /* Suspense fallback 시 빈 div 높이 0 → 푸터 flash 방지 */
+  min-height: 100dvh;
 }
 #cm-head { padding-top: 8px; }
 #cm-title-area {
@@ -3612,9 +3614,9 @@ footer.blk {
   letter-spacing: var(--ls-body);
   margin: 4px 0 0;
 }
-.st-location-addr {
+.st-location-notice {
   font-family: var(--font-kr);
-  font-size: var(--type-heading-s-size);
+  font-size: var(--type-body-m-size);
   font-weight: 400;
   line-height: 1.6;
   color: var(--color-text-body-light);
@@ -4206,6 +4208,13 @@ footer.blk {
   transition: opacity var(--duration-fade) ease, background var(--duration-fade) ease;
 }
 .gd-lightbox.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* 메인 페이지 갤러리에서 진입 시: transition 없이 즉시 검정 배경 표시.
+   화이트 배경 flash 차단 — 프로토타입 L2463 동일. */
+.gd-lightbox.gd-lb-instant {
+  transition: none;
   opacity: 1;
   pointer-events: auto;
 }

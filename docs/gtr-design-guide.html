@@ -100,6 +100,7 @@
   .color-chip .swatch {
     height: 100px;
     position: relative;
+    cursor: pointer;
   }
   .color-chip .swatch.tall { height: 140px; }
   .color-chip .swatch .hex-overlay {
@@ -107,6 +108,7 @@
     font-size: 11px; font-weight: 500; letter-spacing: 0.04em;
     padding: 2px 6px; border-radius: 4px;
     background: rgba(0,0,0,.25); color: #fff;
+    cursor: pointer;
   }
   .color-chip .swatch.light-swatch .hex-overlay {
     background: rgba(0,0,0,.08); color: var(--text-primary);
@@ -139,6 +141,7 @@
     padding-bottom: 8px;
     font-size: 10px; font-weight: 500; letter-spacing: 0.04em;
     color: #fff;
+    cursor: pointer;
   }
   .palette-row .p-cell.light-text { color: var(--text-primary); }
   .palette-label {
@@ -462,6 +465,138 @@
   .checklist .priority.p2 { background: var(--bg-tertiary); color: var(--text-secondary); }
   .checklist .priority.p3 { background: var(--bg-secondary); color: var(--text-tertiary); }
 
+  /* ── 5-STAGE TEXT GRID ── */
+  .text-5stage-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .text-5stage-chip {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--line-default);
+    background: var(--bg-elevated);
+  }
+  .text-5stage-chip .swatch {
+    height: 72px;
+    position: relative;
+    cursor: pointer;
+  }
+  .text-5stage-chip .swatch .hex-overlay {
+    position: absolute; bottom: 6px; right: 8px;
+    font-size: 10px; font-weight: 500; letter-spacing: 0.04em;
+    padding: 2px 5px; border-radius: 3px;
+    background: rgba(0,0,0,.25); color: #fff;
+    cursor: pointer;
+  }
+  .text-5stage-chip .swatch.light-swatch .hex-overlay {
+    background: rgba(0,0,0,.08); color: var(--text-primary);
+  }
+  .text-5stage-chip .info {
+    padding: 10px 12px;
+  }
+  .text-5stage-chip .info .name {
+    font-size: 12px; font-weight: 600; margin-bottom: 2px;
+  }
+  .text-5stage-chip .info .token {
+    font-size: 10px; color: var(--text-tertiary);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    word-break: break-all;
+  }
+  .text-5stage-chip .info .usage {
+    font-size: 11px; color: var(--text-secondary);
+    margin-top: 4px; line-height: 1.3;
+  }
+
+  /* ── ICON COLOR GRID ── */
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .icon-chip {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--line-default);
+    background: var(--bg-elevated);
+  }
+  .icon-chip .swatch {
+    height: 64px;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .icon-chip .swatch svg {
+    width: 24px; height: 24px;
+  }
+  .icon-chip .swatch .hex-overlay {
+    position: absolute; bottom: 6px; right: 8px;
+    font-size: 10px; font-weight: 500; letter-spacing: 0.04em;
+    padding: 2px 5px; border-radius: 3px;
+    background: rgba(0,0,0,.25); color: #fff;
+    cursor: pointer;
+  }
+  .icon-chip .swatch.light-bg .hex-overlay {
+    background: rgba(0,0,0,.08); color: var(--text-primary);
+  }
+  .icon-chip .info {
+    padding: 10px 12px;
+  }
+  .icon-chip .info .name {
+    font-size: 12px; font-weight: 600; margin-bottom: 2px;
+  }
+  .icon-chip .info .token {
+    font-size: 10px; color: var(--text-tertiary);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    word-break: break-all;
+  }
+
+  /* ── POLICY NOTE ── */
+  .policy-note {
+    padding: 16px 20px;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    border-left: 3px solid var(--surface-stone);
+    margin-bottom: 32px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .policy-note strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .policy-note code {
+    font-size: 11px; background: var(--bg-tertiary);
+    padding: 1px 5px; border-radius: 3px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  /* ── COPY TOAST ── */
+  .copy-toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1C1B19;
+    color: #FAFAF8;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    z-index: 999;
+  }
+  .copy-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
   @media (max-width: 768px) {
     .guide-nav { padding: 0 16px; gap: 16px; font-size: 12px; overflow-x: auto; }
     .guide-section { padding: 80px 16px 40px; }
@@ -470,6 +605,8 @@
     .color-grid { grid-template-columns: repeat(2, 1fr); }
     .combo-grid { grid-template-columns: 1fr; }
     .wireframe-grid { grid-template-columns: 1fr; }
+    .text-5stage-grid { grid-template-columns: repeat(2, 1fr); }
+    .icon-grid { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
@@ -479,6 +616,7 @@
 <nav class="guide-nav">
   <span class="brand">GTR Design Guide</span>
   <a href="#color">Color</a>
+  <a href="#icons">Icons</a>
   <a href="#typography">Typography</a>
   <a href="#spacing">Spacing</a>
   <a href="#layout">Layout</a>
@@ -493,11 +631,11 @@
   <h1>Good Things Roasters</h1>
   <p class="hero-sub">
     모던한 정갈함 속의 따뜻함.<br>
-    매장 사진 44장 분석 + 리서치 4트랙 결과를 기반으로 만든<br>
-    포토샵 디자인 작업 가이드.
+    5단계 시맨틱 텍스트 토큰 + 아이콘 컬러 토큰 + Foreground Opacity Policy 반영.<br>
+    프로토타입 기반 디자인 시스템 V2.
   </p>
   <div class="hero-meta">
-    <span>v1.0 — 2026.04.05</span>
+    <span>v2.0 — 2026.04.12</span>
     <span>Desktop 1440px 기준</span>
     <span>Inter + Pretendard</span>
   </div>
@@ -512,13 +650,14 @@
   <p class="section-desc">
     매장 오프라인 공간에서 추출한 웜 뉴트럴 톤을 디지털로 번역합니다.
     순백·순흑이 아닌 따뜻한 뉘앙스가 핵심입니다.
+    <br><em style="font-size:13px;color:var(--text-tertiary)">컬러 칩을 클릭하면 HEX 값이 클립보드에 복사됩니다.</em>
   </p>
 
   <!-- ── Core: Background ── -->
   <h3>Background</h3>
   <div class="color-grid">
     <div class="color-chip">
-      <div class="swatch light-swatch" style="background:#FAFAF8"><span class="hex-overlay">#FAFAF8</span></div>
+      <div class="swatch light-swatch" style="background:#FAFAF8" data-hex="#FAFAF8"><span class="hex-overlay">#FAFAF8</span></div>
       <div class="info">
         <div class="name">Warm White</div>
         <div class="token">--color-bg-primary</div>
@@ -526,7 +665,7 @@
       </div>
     </div>
     <div class="color-chip">
-      <div class="swatch light-swatch" style="background:#F5F3F0"><span class="hex-overlay">#F5F3F0</span></div>
+      <div class="swatch light-swatch" style="background:#F5F3F0" data-hex="#F5F3F0"><span class="hex-overlay">#F5F3F0</span></div>
       <div class="info">
         <div class="name">Warm Gray 50</div>
         <div class="token">--color-bg-secondary</div>
@@ -534,7 +673,7 @@
       </div>
     </div>
     <div class="color-chip">
-      <div class="swatch light-swatch" style="background:#ECEAE6"><span class="hex-overlay">#ECEAE6</span></div>
+      <div class="swatch light-swatch" style="background:#ECEAE6" data-hex="#ECEAE6"><span class="hex-overlay">#ECEAE6</span></div>
       <div class="info">
         <div class="name">Warm Gray 100</div>
         <div class="token">--color-bg-tertiary</div>
@@ -542,7 +681,7 @@
       </div>
     </div>
     <div class="color-chip">
-      <div class="swatch light-swatch" style="background:#FFFFFF; border-bottom: 1px solid rgba(0,0,0,.06)"><span class="hex-overlay">#FFFFFF</span></div>
+      <div class="swatch light-swatch" style="background:#FFFFFF; border-bottom: 1px solid rgba(0,0,0,.06)" data-hex="#FFFFFF"><span class="hex-overlay">#FFFFFF</span></div>
       <div class="info">
         <div class="name">Pure White</div>
         <div class="token">--color-bg-elevated</div>
@@ -551,48 +690,129 @@
     </div>
   </div>
 
-  <!-- ── Core: Text ── -->
-  <h3>Text</h3>
-  <div class="color-grid">
-    <div class="color-chip">
-      <div class="swatch" style="background:#1C1B19"><span class="hex-overlay">#1C1B19</span></div>
+  <!-- ── Core: Text — 5-Stage Semantic ── -->
+  <h3>Text — 5단계 시맨틱 시스템</h3>
+  <p style="font-size:13px; color:var(--text-secondary); margin-bottom:20px;">
+    의도 기반 이름(display / heading / body / support / caption)에 light / dark 접미사로 배경 대비를 명시합니다.<br>
+    기존 3단계(primary / secondary / tertiary)는 하위 호환 alias로 유지됩니다.
+  </p>
+
+  <h4>Light 배경 (#FAFAF8 위)</h4>
+  <div class="text-5stage-grid">
+    <div class="text-5stage-chip">
+      <div class="swatch" style="background:#0F0E0D" data-hex="#0F0E0D"><span class="hex-overlay">#0F0E0D</span></div>
       <div class="info">
-        <div class="name">Warm Black</div>
-        <div class="token">--color-text-primary</div>
-        <div class="usage">헤드라인, 본문. 대비 16.8:1 ✅</div>
+        <div class="name">Display</div>
+        <div class="token">--color-text-display-light</div>
+        <div class="usage">히어로/메인 초강조</div>
       </div>
     </div>
-    <div class="color-chip">
-      <div class="swatch" style="background:#6B6863"><span class="hex-overlay">#6B6863</span></div>
+    <div class="text-5stage-chip">
+      <div class="swatch" style="background:#1C1B19" data-hex="#1C1B19"><span class="hex-overlay">#1C1B19</span></div>
       <div class="info">
-        <div class="name">Warm Gray 600</div>
-        <div class="token">--color-text-secondary</div>
-        <div class="usage">설명문, 캡션. 대비 5.2:1 ✅</div>
+        <div class="name">Heading</div>
+        <div class="token">--color-text-heading-light</div>
+        <div class="usage">섹션·페이지 타이틀</div>
       </div>
     </div>
-    <div class="color-chip">
-      <div class="swatch" style="background:#9C9890"><span class="hex-overlay">#9C9890</span></div>
+    <div class="text-5stage-chip">
+      <div class="swatch" style="background:#4A4843" data-hex="#4A4843"><span class="hex-overlay">#4A4843</span></div>
       <div class="info">
-        <div class="name">Warm Gray 400</div>
-        <div class="token">--color-text-tertiary</div>
-        <div class="usage">힌트, placeholder. 대비 3.1:1 ⚠️</div>
+        <div class="name">Body</div>
+        <div class="token">--color-text-body-light</div>
+        <div class="usage">본문 기본 (가독성 우선)</div>
       </div>
     </div>
-    <div class="color-chip">
-      <div class="swatch light-swatch" style="background:#FAFAF8; border: 2px solid #1C1B19"><span class="hex-overlay">#FAFAF8</span></div>
+    <div class="text-5stage-chip">
+      <div class="swatch" style="background:#6B6863" data-hex="#6B6863"><span class="hex-overlay">#6B6863</span></div>
       <div class="info">
-        <div class="name">Warm White (Inverse)</div>
-        <div class="token">--color-text-inverse</div>
-        <div class="usage">다크 배경 위 텍스트</div>
+        <div class="name">Support</div>
+        <div class="token">--color-text-support-light</div>
+        <div class="usage">보조 설명, 메타, 라벨</div>
       </div>
     </div>
+    <div class="text-5stage-chip">
+      <div class="swatch" style="background:#9C9890" data-hex="#9C9890"><span class="hex-overlay">#9C9890</span></div>
+      <div class="info">
+        <div class="name">Caption</div>
+        <div class="token">--color-text-caption-light</div>
+        <div class="usage">캡션, 힌트</div>
+      </div>
+    </div>
+  </div>
+
+  <h4>Dark 배경 (#1C1B19 위)</h4>
+  <div class="text-5stage-grid">
+    <div class="text-5stage-chip">
+      <div class="swatch" style="background:#1C1B19" data-hex="#FDFCFA">
+        <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#FDFCFA;font-size:16px;font-weight:500">Aa</span>
+        <span class="hex-overlay">#FDFCFA</span>
+      </div>
+      <div class="info">
+        <div class="name">Display</div>
+        <div class="token">--color-text-display-dark</div>
+        <div class="usage">히어로/메인 초강조</div>
+      </div>
+    </div>
+    <div class="text-5stage-chip">
+      <div class="swatch" style="background:#1C1B19" data-hex="#EFEEED">
+        <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#EFEEED;font-size:16px;font-weight:500">Aa</span>
+        <span class="hex-overlay">#EFEEED</span>
+      </div>
+      <div class="info">
+        <div class="name">Heading</div>
+        <div class="token">--color-text-heading-dark</div>
+        <div class="usage">섹션·페이지 타이틀</div>
+      </div>
+    </div>
+    <div class="text-5stage-chip">
+      <div class="swatch" style="background:#1C1B19" data-hex="#D6D5D3">
+        <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#D6D5D3;font-size:16px;font-weight:500">Aa</span>
+        <span class="hex-overlay">#D6D5D3</span>
+      </div>
+      <div class="info">
+        <div class="name">Body</div>
+        <div class="token">--color-text-body-dark</div>
+        <div class="usage">본문 기본</div>
+      </div>
+    </div>
+    <div class="text-5stage-chip">
+      <div class="swatch" style="background:#1C1B19" data-hex="#C2C2C0">
+        <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#C2C2C0;font-size:16px;font-weight:500">Aa</span>
+        <span class="hex-overlay">#C2C2C0</span>
+      </div>
+      <div class="info">
+        <div class="name">Support</div>
+        <div class="token">--color-text-support-dark</div>
+        <div class="usage">보조 설명, 메타</div>
+      </div>
+    </div>
+    <div class="text-5stage-chip">
+      <div class="swatch" style="background:#1C1B19" data-hex="#969593">
+        <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#969593;font-size:16px;font-weight:500">Aa</span>
+        <span class="hex-overlay">#969593</span>
+      </div>
+      <div class="info">
+        <div class="name">Caption</div>
+        <div class="token">--color-text-caption-dark</div>
+        <div class="usage">캡션, 힌트</div>
+      </div>
+    </div>
+  </div>
+
+  <h4>Legacy Alias (하위 호환)</h4>
+  <div class="spec-grid" style="margin-bottom:32px">
+    <dt>--color-text-primary</dt><dd>var(--color-text-heading-light) → #1C1B19</dd>
+    <dt>--color-text-secondary</dt><dd>var(--color-text-support-light) → #6B6863</dd>
+    <dt>--color-text-tertiary</dt><dd>var(--color-text-caption-light) → #9C9890</dd>
+    <dt>--color-text-inverse</dt><dd>#FAFAF8</dd>
   </div>
 
   <!-- ── Core: Surface & Line ── -->
   <h3>Surface</h3>
   <div class="color-grid">
     <div class="color-chip">
-      <div class="swatch" style="background:#4A4845"><span class="hex-overlay">#4A4845</span></div>
+      <div class="swatch" style="background:#4A4845" data-hex="#4A4845"><span class="hex-overlay">#4A4845</span></div>
       <div class="info">
         <div class="name">Stone Gray</div>
         <div class="token">--color-surface-stone</div>
@@ -600,7 +820,7 @@
       </div>
     </div>
     <div class="color-chip">
-      <div class="swatch light-swatch" style="background:#E8E2DA"><span class="hex-overlay">#E8E2DA</span></div>
+      <div class="swatch light-swatch" style="background:#E8E2DA" data-hex="#E8E2DA"><span class="hex-overlay">#E8E2DA</span></div>
       <div class="info">
         <div class="name">Warm Sand</div>
         <div class="token">--color-surface-warm</div>
@@ -633,28 +853,28 @@
   <h3>Interactive</h3>
   <div class="color-grid">
     <div class="color-chip">
-      <div class="swatch" style="background:#1C1B19"><span class="hex-overlay">#1C1B19</span></div>
+      <div class="swatch" style="background:#1C1B19" data-hex="#1C1B19"><span class="hex-overlay">#1C1B19</span></div>
       <div class="info">
         <div class="name">CTA Default</div>
         <div class="token">--color-btn-primary-bg</div>
       </div>
     </div>
     <div class="color-chip">
-      <div class="swatch" style="background:#2E2D2A"><span class="hex-overlay">#2E2D2A</span></div>
+      <div class="swatch" style="background:#2E2D2A" data-hex="#2E2D2A"><span class="hex-overlay">#2E2D2A</span></div>
       <div class="info">
         <div class="name">CTA Hover</div>
         <div class="token">--color-btn-primary-bg-hover</div>
       </div>
     </div>
     <div class="color-chip">
-      <div class="swatch" style="background:#0F0E0D"><span class="hex-overlay">#0F0E0D</span></div>
+      <div class="swatch" style="background:#0F0E0D" data-hex="#0F0E0D"><span class="hex-overlay">#0F0E0D</span></div>
       <div class="info">
         <div class="name">CTA Active</div>
         <div class="token">--color-btn-primary-bg-active</div>
       </div>
     </div>
     <div class="color-chip">
-      <div class="swatch light-swatch" style="background:#FAFAF8; border: 2px solid rgba(74,72,69,.40)"><span class="hex-overlay">rgba(74,72,69,.40)</span></div>
+      <div class="swatch light-swatch" style="background:#FAFAF8; border: 2px solid rgba(74,72,69,.40)" data-hex="rgba(74,72,69,.40)"><span class="hex-overlay">rgba(74,72,69,.40)</span></div>
       <div class="info">
         <div class="name">Focus Ring</div>
         <div class="token">--color-focus-ring</div>
@@ -673,7 +893,7 @@
   <h3>System Feedback</h3>
   <div class="color-grid">
     <div class="color-chip">
-      <div class="swatch" style="background:#5C7A4B"><span class="hex-overlay">#5C7A4B</span></div>
+      <div class="swatch" style="background:#5C7A4B" data-hex="#5C7A4B"><span class="hex-overlay">#5C7A4B</span></div>
       <div class="info">
         <div class="name">Success / Olive</div>
         <div class="token">--color-success</div>
@@ -681,7 +901,7 @@
       </div>
     </div>
     <div class="color-chip">
-      <div class="swatch" style="background:#C4554E"><span class="hex-overlay">#C4554E</span></div>
+      <div class="swatch" style="background:#C4554E" data-hex="#C4554E"><span class="hex-overlay">#C4554E</span></div>
       <div class="info">
         <div class="name">Error / Warm Red</div>
         <div class="token">--color-error</div>
@@ -689,7 +909,7 @@
       </div>
     </div>
     <div class="color-chip">
-      <div class="swatch" style="background:#4A6B8A"><span class="hex-overlay">#4A6B8A</span></div>
+      <div class="swatch" style="background:#4A6B8A" data-hex="#4A6B8A"><span class="hex-overlay">#4A6B8A</span></div>
       <div class="info">
         <div class="name">Info / Warm Blue</div>
         <div class="token">--color-info</div>
@@ -697,7 +917,7 @@
       </div>
     </div>
     <div class="color-chip">
-      <div class="swatch" style="background:#B8943F"><span class="hex-overlay">#B8943F</span></div>
+      <div class="swatch" style="background:#B8943F" data-hex="#B8943F"><span class="hex-overlay">#B8943F</span></div>
       <div class="info">
         <div class="name">Warning / Amber</div>
         <div class="token">--color-warning</div>
@@ -715,46 +935,46 @@
   <!-- Stone -->
   <div class="palette-label">Stone <span class="tag">카운터 &amp; 미니멀</span></div>
   <div class="palette-row">
-    <div class="p-cell" style="background:#4A4845">#4A4845</div>
-    <div class="p-cell" style="background:#6B6863">#6B6863</div>
-    <div class="p-cell" style="background:#9C9890">#9C9890</div>
-    <div class="p-cell light-text" style="background:#D9D6D2">#D9D6D2</div>
+    <div class="p-cell" style="background:#4A4845" data-hex="#4A4845">#4A4845</div>
+    <div class="p-cell" style="background:#6B6863" data-hex="#6B6863">#6B6863</div>
+    <div class="p-cell" style="background:#9C9890" data-hex="#9C9890">#9C9890</div>
+    <div class="p-cell light-text" style="background:#D9D6D2" data-hex="#D9D6D2">#D9D6D2</div>
   </div>
 
   <!-- Oak -->
   <div class="palette-label">Oak <span class="tag">우드 &amp; 따뜻함</span></div>
   <div class="palette-row">
-    <div class="p-cell" style="background:#7A6B52">#7A6B52</div>
-    <div class="p-cell" style="background:#A08B6D">#A08B6D</div>
-    <div class="p-cell" style="background:#C4A882">#C4A882</div>
-    <div class="p-cell light-text" style="background:#E8DFD2">#E8DFD2</div>
+    <div class="p-cell" style="background:#7A6B52" data-hex="#7A6B52">#7A6B52</div>
+    <div class="p-cell" style="background:#A08B6D" data-hex="#A08B6D">#A08B6D</div>
+    <div class="p-cell" style="background:#C4A882" data-hex="#C4A882">#C4A882</div>
+    <div class="p-cell light-text" style="background:#E8DFD2" data-hex="#E8DFD2">#E8DFD2</div>
   </div>
 
   <!-- Espresso -->
   <div class="palette-label">Espresso <span class="tag">커피 &amp; 깊이</span></div>
   <div class="palette-row">
-    <div class="p-cell" style="background:#3C2F24">#3C2F24</div>
-    <div class="p-cell" style="background:#5E4B3A">#5E4B3A</div>
-    <div class="p-cell" style="background:#8B7355">#8B7355</div>
-    <div class="p-cell light-text" style="background:#D4C8B8">#D4C8B8</div>
+    <div class="p-cell" style="background:#3C2F24" data-hex="#3C2F24">#3C2F24</div>
+    <div class="p-cell" style="background:#5E4B3A" data-hex="#5E4B3A">#5E4B3A</div>
+    <div class="p-cell" style="background:#8B7355" data-hex="#8B7355">#8B7355</div>
+    <div class="p-cell light-text" style="background:#D4C8B8" data-hex="#D4C8B8">#D4C8B8</div>
   </div>
 
   <!-- Olive -->
   <div class="palette-label">Olive <span class="tag">그린 &amp; 생동감 — 포인트 전용</span></div>
   <div class="palette-row">
-    <div class="p-cell" style="background:#4A5E3E">#4A5E3E</div>
-    <div class="p-cell" style="background:#6B7D5E">#6B7D5E</div>
-    <div class="p-cell" style="background:#8FA07E">#8FA07E</div>
-    <div class="p-cell light-text" style="background:#D5DED0">#D5DED0</div>
+    <div class="p-cell" style="background:#4A5E3E" data-hex="#4A5E3E">#4A5E3E</div>
+    <div class="p-cell" style="background:#6B7D5E" data-hex="#6B7D5E">#6B7D5E</div>
+    <div class="p-cell" style="background:#8FA07E" data-hex="#8FA07E">#8FA07E</div>
+    <div class="p-cell light-text" style="background:#D5DED0" data-hex="#D5DED0">#D5DED0</div>
   </div>
 
   <!-- Cream -->
   <div class="palette-label">Cream <span class="tag">라떼 &amp; 부드러움</span></div>
   <div class="palette-row">
-    <div class="p-cell" style="background:#B8943F">#B8943F</div>
-    <div class="p-cell" style="background:#D4B86A">#D4B86A</div>
-    <div class="p-cell light-text" style="background:#E8D49C">#E8D49C</div>
-    <div class="p-cell light-text" style="background:#F5EFE0">#F5EFE0</div>
+    <div class="p-cell" style="background:#B8943F" data-hex="#B8943F">#B8943F</div>
+    <div class="p-cell" style="background:#D4B86A" data-hex="#D4B86A">#D4B86A</div>
+    <div class="p-cell light-text" style="background:#E8D49C" data-hex="#E8D49C">#E8D49C</div>
+    <div class="p-cell light-text" style="background:#F5EFE0" data-hex="#F5EFE0">#F5EFE0</div>
   </div>
 
   <!-- ── Color Combos ── -->
@@ -867,6 +1087,102 @@
     <div class="grad-sample" style="background: rgba(28,27,25,.30); color:#FAFAF8;">
       <span>Gallery Hover — rgba(28,27,25, .30)</span>
     </div>
+  </div>
+</section>
+
+<div class="guide-divider"><hr></div>
+
+<!-- ═══════════════════════════════════════════ 1.5 ICON COLORS ═══════════════════════════════════════════ -->
+<section class="guide-section" id="icons">
+  <div class="section-label">Part 1.5</div>
+  <h2 class="section-title">Icon Colors</h2>
+  <p class="section-desc">
+    아이콘 전용 3단계(subtle / muted / strong) 토큰. 다크·라이트 배경별 6개.<br>
+    Foreground Opacity Policy에 따라 모든 값은 불투명 단색입니다.
+  </p>
+
+  <div class="policy-note">
+    <strong>Foreground Opacity Policy</strong><br>
+    Foreground(아이콘 stroke/fill, 텍스트)는 <strong>불투명 단색만</strong> 사용합니다.<br>
+    반투명(<code>rgba</code>/<code>opacity</code>)은 배경 · 보더 · 그림자 · 오버레이에만 허용됩니다.<br>
+    이유: 알파 누적 시 교차점이 진해지는 문제를 원천 차단합니다.
+  </p>
+  </div>
+
+  <h3>Dark 배경 위 아이콘</h3>
+  <div class="icon-grid">
+    <div class="icon-chip">
+      <div class="swatch" style="background:#1C1B19" data-hex="#6D6D6C">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#6D6D6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        <span class="hex-overlay">#6D6D6C</span>
+      </div>
+      <div class="info">
+        <div class="name">Subtle</div>
+        <div class="token">--icon-on-dark-subtle</div>
+      </div>
+    </div>
+    <div class="icon-chip">
+      <div class="swatch" style="background:#1C1B19" data-hex="#7F7F7E">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#7F7F7E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        <span class="hex-overlay">#7F7F7E</span>
+      </div>
+      <div class="info">
+        <div class="name">Muted</div>
+        <div class="token">--icon-on-dark-muted</div>
+      </div>
+    </div>
+    <div class="icon-chip">
+      <div class="swatch" style="background:#1C1B19" data-hex="#FAFAF8">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#FAFAF8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        <span class="hex-overlay">#FAFAF8</span>
+      </div>
+      <div class="info">
+        <div class="name">Strong</div>
+        <div class="token">--icon-on-dark-strong</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Light 배경 위 아이콘</h3>
+  <div class="icon-grid">
+    <div class="icon-chip">
+      <div class="swatch light-bg" style="background:#FAFAF8; border-bottom: 1px solid rgba(0,0,0,.06)" data-hex="#C0C0BE">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#C0C0BE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        <span class="hex-overlay">#C0C0BE</span>
+      </div>
+      <div class="info">
+        <div class="name">Subtle</div>
+        <div class="token">--icon-on-light-subtle</div>
+      </div>
+    </div>
+    <div class="icon-chip">
+      <div class="swatch light-bg" style="background:#FAFAF8; border-bottom: 1px solid rgba(0,0,0,.06)" data-hex="#8A8A86">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#8A8A86" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        <span class="hex-overlay">#8A8A86</span>
+      </div>
+      <div class="info">
+        <div class="name">Muted</div>
+        <div class="token">--icon-on-light-muted</div>
+      </div>
+    </div>
+    <div class="icon-chip">
+      <div class="swatch light-bg" style="background:#FAFAF8; border-bottom: 1px solid rgba(0,0,0,.06)" data-hex="#1C1B19">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1C1B19" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        <span class="hex-overlay">#1C1B19</span>
+      </div>
+      <div class="info">
+        <div class="name">Strong</div>
+        <div class="token">--icon-on-light-strong</div>
+      </div>
+    </div>
+  </div>
+
+  <h4>Close Button 토큰 매핑</h4>
+  <div class="spec-grid" style="margin-bottom:32px">
+    <dt>secondary-dark-color</dt><dd>var(--icon-on-dark-muted) → #7F7F7E</dd>
+    <dt>secondary-dark-hover</dt><dd>var(--icon-on-dark-strong) → #FAFAF8</dd>
+    <dt>secondary-light-color</dt><dd>var(--icon-on-light-subtle) → #C0C0BE</dd>
+    <dt>secondary-light-hover</dt><dd>var(--icon-on-light-strong) → #1C1B19</dd>
   </div>
 </section>
 
@@ -1361,12 +1677,81 @@
   <div class="inner">
     <div class="f-brand">Good Things Roasters</div>
     <div class="f-sub">
-      Design Guide v1.0 — 2026.04.05<br>
-      Layout Wireframe + Color System + UX Writing 통합 문서<br>
+      Design Guide v2.0 — 2026.04.12<br>
+      5-Stage Text Tokens + Icon Color Tokens + Foreground Opacity Policy<br>
       good things, take time.
     </div>
   </div>
 </footer>
+
+<!-- ═══════════════════════════════════════════ TOAST ═══════════════════════════════════════════ -->
+<div class="copy-toast" id="copyToast">Copied!</div>
+
+<!-- ═══════════════════════════════════════════ JS ═══════════════════════════════════════════ -->
+<script>
+(function() {
+  var toast = document.getElementById('copyToast');
+  var hideTimer = null;
+
+  function showToast(hex) {
+    toast.textContent = 'Copied! ' + hex;
+    toast.classList.add('show');
+    if (hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(function() {
+      toast.classList.remove('show');
+    }, 1500);
+  }
+
+  function fallbackCopy(hex) {
+    var ta = document.createElement('textarea');
+    ta.value = hex;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch(e) { /* ignore */ }
+    document.body.removeChild(ta);
+    showToast(hex);
+  }
+
+  function copyHex(hex) {
+    if (!hex) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(hex).then(function() {
+        showToast(hex);
+      }).catch(function() {
+        fallbackCopy(hex);
+      });
+    } else {
+      fallbackCopy(hex);
+    }
+  }
+
+  // Click on swatch (color-chip, text-5stage-chip, icon-chip)
+  document.addEventListener('click', function(e) {
+    var swatch = e.target.closest('[data-hex]');
+    if (swatch) {
+      copyHex(swatch.getAttribute('data-hex'));
+      return;
+    }
+    // Click on hex-overlay text
+    var overlay = e.target.closest('.hex-overlay');
+    if (overlay) {
+      var parentSwatch = overlay.closest('[data-hex]');
+      if (parentSwatch) {
+        copyHex(parentSwatch.getAttribute('data-hex'));
+      }
+      return;
+    }
+    // Click on palette cell
+    var cell = e.target.closest('.p-cell[data-hex]');
+    if (cell) {
+      copyHex(cell.getAttribute('data-hex'));
+      return;
+    }
+  });
+})();
+</script>
 
 </body>
 </html>

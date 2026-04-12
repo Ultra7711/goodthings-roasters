@@ -51,8 +51,8 @@ export const STORY_PROMISE = {
 export const STORY_LOCATION = {
   label: 'Location',
   name: 'Good Things Roasters',
-  address: '경북 구미시 인동21길 22-11',
-  hours: '화–금  AM 12:00 – PM 09:00\n토–일  AM 11:00 – PM 09:00',
+  notice: '매장 이용 20:50까지  ·  라스트오더 20:30',
+  hours: '화~금  12:00~21:00\n토~일  11:00~21:00\n월요일 휴무',
   /* 프로토타입 라인 4160 의 임베드 URL — 외부 API 키 불필요한 무료 임베드 */
   mapSrc:
     'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3231.8!2d128.4306089!3d36.0981256!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3565c50004149c59%3A0x773edd85861bb816!2z6rWz65ar7KaI!5e0!3m2!1sko!2skr!4v1',
