@@ -7,7 +7,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useAuthStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import {
   checkPasswordStrength,
   passwordStrengthMessage,
@@ -28,8 +28,6 @@ type UsePasswordChangeFormOptions = {
 export function usePasswordChangeForm({
   onSuccess,
 }: UsePasswordChangeFormOptions = {}) {
-  const updatePassword = useAuthStore((s) => s.updatePassword);
-
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -102,6 +100,15 @@ export function usePasswordChangeForm({
     }
   }, [next, confirm]);
 
+  /* Supabase 에러 메시지 → 한국어 변환 맵.
+     ⚠️ current 비밀번호는 클라이언트 UI 용도로만 수집되며 서버에서 검증하지 않음.
+        TODO(Phase 3): Server Action + supabase.auth.reauthenticate()로 강화. */
+  const KR_PW_ERRORS: Record<string, string> = {
+    'New password should be different from the old password.': '기존 비밀번호와 동일한 비밀번호는 사용할 수 없습니다.',
+    'Password should be at least 6 characters.': '비밀번호는 6자 이상이어야 합니다.',
+    'Auth session missing!': '세션이 만료되었습니다. 다시 로그인해 주세요.',
+  };
+
   const submit = useCallback(async (): Promise<boolean> => {
     const newErrors: PasswordChangeErrors = {};
 
@@ -131,19 +138,23 @@ export function usePasswordChangeForm({
       return false;
     }
 
+    /* Supabase auth.updateUser로 비밀번호 변경.
+       ⚠️ current 비밀번호 서버사이드 검증 불가 (Supabase JS v2 한계).
+          OAuth 전용 사용자는 비밀번호가 없어 에러 반환됨.
+          TODO(Phase 3): Server Action + reauthenticate API로 강화. */
     setLoading(true);
-    const result = await updatePassword(current, next);
+    const { error } = await supabase.auth.updateUser({ password: next });
     setLoading(false);
 
-    if (!result.ok) {
-      setErrors({ current: result.error });
+    if (error) {
+      setErrors({ submit: KR_PW_ERRORS[error.message] ?? '비밀번호 변경에 실패했습니다. 다시 시도해 주세요.' });
       return false;
     }
 
     reset();
     onSuccess?.();
     return true;
-  }, [current, next, confirm, updatePassword, reset, onSuccess]);
+  }, [current, next, confirm, reset, onSuccess]);
 
   return {
     current,

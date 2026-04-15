@@ -19,6 +19,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useAuthStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import { useAddressForm } from '@/hooks/useAddressForm';
 import { usePasswordChangeForm } from '@/hooks/usePasswordChangeForm';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
@@ -106,12 +107,10 @@ export default function MyPagePage() {
   const { show: toast } = useToast();
   const { ready, authorized, bypassRedirect } = useAuthGuard();
 
-  /* ── Auth Store ── */
+  /* ── Auth Store (UI 힌트 전용) ── */
   const user = useAuthStore((s) => s.user);
   const displayName = useAuthStore((s) => s.displayName);
-  const logout = useAuthStore((s) => s.logout);
   const updateAddress = useAuthStore((s) => s.updateAddress);
-  const withdraw = useAuthStore((s) => s.withdraw);
 
   /* ── 아코디언 상태 ── */
   const [addrOpen, setAddrOpen] = useState(false);
@@ -217,21 +216,35 @@ export default function MyPagePage() {
     toast('구독이 해지되었습니다.');
   }, [toast]);
 
-  /* ── 로그아웃 ── */
-  const handleLogout = useCallback(() => {
+  /* ── 로그아웃 ──
+     supabase.auth.signOut() 호출 → SIGNED_OUT 이벤트 →
+     AuthSyncProvider가 clearUser() 자동 처리 (P0-2).
+     signOut 실패 시 리다이렉트 강행하지 않고 토스트 안내. */
+  const handleLogout = useCallback(async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast('로그아웃 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      return;
+    }
     bypassRedirect();
-    logout();
     router.replace('/');
-  }, [bypassRedirect, logout, router]);
+  }, [bypassRedirect, router, toast]);
 
-  /* ── 회원 탈퇴 ── */
+  /* ── 회원 탈퇴 ──
+     TODO(Phase 3): Server Action으로 실제 auth.users 레코드 삭제 추가.
+     현재는 세션 종료만 수행 (계정 데이터는 Supabase에 남음).
+     토스트는 router.replace 전에 호출해 언마운트 이후 state 업데이트 방지. */
   const confirmWithdraw = useCallback(async () => {
     setWithdrawOpen(false);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast('오류가 발생했습니다. 다시 시도해 주세요.');
+      return;
+    }
+    toast('탈퇴 처리가 완료되었습니다.');
     bypassRedirect();
-    await withdraw();
     router.replace('/');
-    toast('회원 탈퇴가 완료되었습니다.');
-  }, [bypassRedirect, withdraw, router, toast]);
+  }, [bypassRedirect, router, toast]);
 
   /* ── 주문번호 복사 ── */
   const copyOrderNumber = useCallback(async (num: string) => {
@@ -277,8 +290,8 @@ export default function MyPagePage() {
               className="mp-logout-link"
               role="button"
               tabIndex={0}
-              onClick={handleLogout}
-              onKeyDown={(e) => e.key === 'Enter' && handleLogout()}
+              onClick={() => void handleLogout()}
+              onKeyDown={(e) => e.key === 'Enter' && void handleLogout()}
             >
               로그아웃
             </span>
@@ -620,8 +633,8 @@ export default function MyPagePage() {
           <div className="mp-modal" onClick={(e) => e.stopPropagation()}>
             <p className="mp-modal-title">떠나시는 건가요?</p>
             <p className="mp-modal-desc">
-              탈퇴하시면 주문 내역, 정기배송, 계정 정보가<br />
-              모두 삭제되며 복구할 수 없습니다.
+              탈퇴 시 로그아웃 처리되며, 이후 동일 계정으로<br />
+              재가입하시더라도 기존 주문 내역은 복구되지 않습니다.
             </p>
             <div className="mp-modal-actions">
               <button className="mp-modal-confirm" type="button" onClick={() => void confirmWithdraw()}>탈퇴</button>

@@ -130,9 +130,15 @@ export const useCartStore = create<CartStore>()(
 );
 
 /* ════════════════════════════════════════
-   Auth Store
-   Supabase Auth 연동 전 더미 구조
-   Phase 2-F에서 supabase.auth 호출로 교체
+   Auth Store (UI 힌트 레이어)
+   ADR-001 3-tier separation:
+   - Zustand: UI 힌트 (헤더 라벨, 가드 UX) ← 이 스토어
+   - Supabase Session: 세션 원천 (AuthSyncProvider가 동기화)
+   - Server + RLS: 보안 경계 (P1-2 getUser(), P2-2 RLS)
+
+   ⚠️  더미 login/register: 개발 데모 전용, 프로덕션 OAuth 플로우 미사용.
+       비밀번호 변경: usePasswordChangeForm → supabase.auth.updateUser() 직접 처리 (P2-1B).
+       로그아웃/탈퇴: MyPagePage → supabase.auth.signOut() 직접 호출 (P2-1A).
    ════════════════════════════════════════ */
 
 type AuthStore = {
@@ -142,32 +148,23 @@ type AuthStore = {
   isLoggedIn: boolean;
   isLoading: boolean;
 
-  /** 직접 user 세팅 (내부/테스트용) */
+  /** Supabase User로부터 매핑 — AuthSyncProvider(P0-2) 전용 */
   setUser: (user: User) => void;
-  /** 세션 종료 */
+  /** 세션 종료 시 Zustand 상태 초기화 — AuthSyncProvider SIGNED_OUT 핸들러 전용 */
   clearUser: () => void;
   /** 로딩 상태 */
   setLoading: (loading: boolean) => void;
 
-  /** 로그인 (더미: 데모 계정만 성공) */
+  /** 로그인 (개발 데모 전용 — OAuth 서비스는 LoginPage 소셜 버튼 사용) */
   login: (email: string, password: string) => Promise<AuthResult>;
-  /** 회원가입 (더미: 항상 성공) */
+  /** 회원가입 (개발 데모 전용 — OAuth 서비스는 소셜 로그인만 지원) */
   register: (
     name: string,
     email: string,
     password: string,
   ) => Promise<AuthResult>;
-  /** 로그아웃 */
-  logout: () => void;
-  /** 기본 배송지 변경 */
+  /** 기본 배송지 변경 — TODO(Phase 3): Supabase profiles 테이블 연동으로 교체 */
   updateAddress: (address: UserAddress | null) => void;
-  /** 비밀번호 변경 (더미: 현재 비번이 DEMO_CREDENTIALS.password와 일치해야 성공) */
-  updatePassword: (
-    currentPw: string,
-    nextPw: string,
-  ) => Promise<AuthResult>;
-  /** 회원 탈퇴 (더미: 세션 종료) */
-  withdraw: () => Promise<AuthResult>;
 };
 
 /** 더미 지연 (네트워크 체감) */
@@ -256,47 +253,10 @@ export const useAuthStore = create<AuthStore>()(
         return { ok: true };
       },
 
-      logout: () => {
-        set({
-          user: null,
-          displayName: null,
-          isLoggedIn: false,
-          isLoading: false,
-        });
-        purgeSession();
-      },
-
       updateAddress: (address) => {
         const currentUser = get().user;
         if (!currentUser) return;
         set({ user: { ...currentUser, address } });
-      },
-
-      updatePassword: async (currentPw) => {
-        set({ isLoading: true });
-        await delay(MOCK_LATENCY_MS);
-
-        /* 데모 사용자 기준: 현재 비번이 데모 비번과 일치해야 성공 */
-        if (currentPw !== DEMO_CREDENTIALS.password) {
-          set({ isLoading: false });
-          return { ok: false, error: '현재 비밀번호가 일치하지 않습니다.' };
-        }
-
-        set({ isLoading: false });
-        return { ok: true };
-      },
-
-      withdraw: async () => {
-        set({ isLoading: true });
-        await delay(MOCK_LATENCY_MS);
-        set({
-          user: null,
-          displayName: null,
-          isLoggedIn: false,
-          isLoading: false,
-        });
-        purgeSession();
-        return { ok: true };
       },
     }),
     {

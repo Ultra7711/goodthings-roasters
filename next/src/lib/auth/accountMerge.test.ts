@@ -30,7 +30,7 @@ function makeUser(overrides: Partial<MockUser> = {}): MockUser {
     id: overrides.id ?? `user-${Math.random().toString(36).slice(2, 10)}`,
     email: overrides.email ?? 'user@example.com',
     user_metadata: overrides.user_metadata ?? {},
-    email_confirmed_at: overrides.email_confirmed_at ?? null,
+    email_confirmed_at: overrides.email_confirmed_at ?? undefined,
   };
 }
 

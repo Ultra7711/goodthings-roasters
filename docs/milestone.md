@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-16 (P1-1 ADR-001 계정 병합 정책 완료 — E2E 시나리오 1~3 통과(Naver/Google 재로그인·Kakao synthetic) + `accountMerge.test.ts` Vitest 21 케이스 통과 + Issue 1 Google `iss` fallback 탐지 수정 + 자기참조 가드. 다음: P2-1 Zustand 인증 제거·P2-2 RLS)
+> **최종 업데이트:** 2026-04-16 (P2-1 완료 — Zustand 더미 auth action 제거 + logout/updatePassword Supabase 직접 연동 + 코드리뷰 반영(signOut 에러처리·에러메시지 한국화·모달 문구 수정). 다음: P2-2 RLS — Phase 3 스키마 설계 시 처리)
 
 ---
 
@@ -29,7 +29,7 @@
 | Phase 5 — Quality Assurance | 3 | 0 | 0 | 3 | 0% |
 | User AI | 1 | 0 | 0 | 1 | 0% |
 
-**현재 위치: Phase 2-F OAuth 보안 P0~P1 완료 — ADR-001 계정 병합 정책 + E2E 1~3 통과 + Vitest 21 케이스 통과. 다음: P2-1 Zustand 제거·P2-2 RLS 정책**
+**현재 위치: Phase 2-F P2-1 완료 — Zustand 더미 auth action 제거 + logout/updatePassword Supabase 직접 연동. 다음: P2-2 RLS (Phase 3 스키마 설계 후)**
 
 ---
 
@@ -243,7 +243,7 @@
 | **P0-4** useAuthGuard getSession 폴백 | ✅ | Zustand 미로그인 시 `supabase.auth.getSession()` 이중 확인 안전망 (2026-04-16) |
 | **P1-2** 보호 라우트 Server Component 가드 | ✅ | `/mypage`·`/checkout` Server Component + `supabase.auth.getUser()` 서버 사이드 검증 완료 (2026-04-16) |
 | **P1-1** 이메일 검증 + 계정 병합 (ADR-001 코드 이행) | ✅ | `lib/auth/{providers,syntheticEmail,accountMerge}.ts` 구현. Naver/Kakao/Google 3종 callback 연동 + LoginPage `account_conflict_*` 메시지. ADR §6.4 Google PKCE 제약 리뷰어 기록. **E2E 시나리오 1~3 통과** + `accountMerge.test.ts` Vitest 21 케이스 통과. Issue 1 Google `iss` fallback 탐지 + 자기참조 가드 수정 (2026-04-16) |
-| **P2-1** Zustand 인증 상태 제거 (리팩터링) | ⬜ | 장기: `useAuthGuard` → `useSupabaseSession` 훅으로 전환, `store.isLoggedIn` 단계적 폐기 |
+| **P2-1** Zustand 인증 상태 제거 (리팩터링) | ✅ | `logout`/`withdraw` → `supabase.auth.signOut()` 직접 연동. `updatePassword` → `supabase.auth.updateUser()` 연동. store.ts 더미 action(`logout`/`withdraw`/`updatePassword`) 제거. 코드리뷰 HIGH 2건·MEDIUM 4건 반영. (2026-04-16) |
 | **P2-2** Supabase RLS 정책 | ⬜ | `orders`·`profiles`·`cart_items` 테이블에 `auth.uid()` 기반 정책 |
 | ~~**P2-3**~~ generateLink 서버 세션 발급 | ✅ | P0-3에 흡수 완료 (verifyOtp 방식으로 달성) |
 | **P3-1** OAuth 이벤트 로깅 | ⬜ | 로그인 성공/실패·CSRF 실패 이벤트 구조화 로깅 |
