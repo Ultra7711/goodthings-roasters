@@ -25,7 +25,7 @@ import { usePhoneFormat } from '@/hooks/usePhoneFormat';
 import { useInputNav } from '@/hooks/useInputNav';
 import { shakeFields } from '@/lib/shakeFields';
 import { useToast } from '@/hooks/useToast';
-import { ClearIcon, EyeOpenIcon, EyeClosedIcon } from '@/components/ui/InputIcons';
+import { TextField } from '@/components/ui/TextField';
 import { MOCK_ORDERS, MOCK_SUBSCRIPTIONS } from '@/lib/mockMyPageData';
 import { extractKrName, formatPrice } from '@/lib/utils';
 import type { Order } from '@/types/order';
@@ -123,9 +123,6 @@ export default function MyPagePage() {
   /* ── 아코디언 상태 ── */
   const [addrOpen, setAddrOpen] = useState(false);
   const [pwOpen, setPwOpen] = useState(false);
-  const [showCurPw, setShowCurPw] = useState(false);
-  const [showNewPw, setShowNewPw] = useState(false);
-  const [showConfPw, setShowConfPw] = useState(false);
   const [subEditId, setSubEditId] = useState<string | null>(null);
 
   /* ── 회원 탈퇴 모달 ── */
@@ -152,7 +149,7 @@ export default function MyPagePage() {
     },
   });
 
-  const { handleChange: handleAddrPhoneChange } = usePhoneFormat(
+  const { handleChangeValue: handleAddrPhoneChange } = usePhoneFormat(
     useCallback((v: string) => addressForm.setField('phone', v), [addressForm]),
   );
 
@@ -327,90 +324,69 @@ export default function MyPagePage() {
               {/* 주소 아코디언 */}
               <div className={`mp-accordion${addrOpen ? ' open' : ''}`}>
                 <div className="mp-accordion-inner" ref={addrFormRef}>
-                  <div className={`chp-field${addressForm.errors.name ? ' input-warn' : ''}`}>
-                    <input
-                      className="chp-input"
-                      type="text"
-                      placeholder=" "
-                      value={addressForm.form.name}
-                      onChange={(e) => addressForm.setField('name', e.target.value)}
-                      onKeyDown={addrNav}
-                    />
-                    <label className="chp-floating-label">이름</label>
-                    {addressForm.form.name && (
-                      <span className="chp-input-action visible" onClick={() => addressForm.setField('name', '')} title="지우기"><ClearIcon /></span>
-                    )}
-                    <div className="chp-helper">{addressForm.errors.name || '이름을 입력하세요.'}</div>
-                  </div>
-                  <div className={`chp-field${addressForm.errors.phone ? ' input-warn' : ''}`}>
-                    <input
-                      className="chp-input"
-                      type="tel"
-                      placeholder=" "
-                      value={addressForm.form.phone}
-                      onChange={handleAddrPhoneChange}
-                      onBlur={addressForm.blurPhone}
-                      onKeyDown={addrNav}
-                    />
-                    <label className="chp-floating-label">전화번호</label>
-                    {addressForm.form.phone && (
-                      <span className="chp-input-action visible" onClick={() => addressForm.setField('phone', '')} title="지우기"><ClearIcon /></span>
-                    )}
-                    <div className="chp-helper">{addressForm.errors.phone || '하이픈이 자동으로 입력됩니다.'}</div>
-                  </div>
+                  <TextField
+                    label="이름"
+                    value={addressForm.form.name}
+                    onChange={(v) => addressForm.setField('name', v)}
+                    onClear={() => addressForm.setField('name', '')}
+                    onKeyDown={addrNav}
+                    error={addressForm.errors.name}
+                    helper="이름을 입력하세요."
+                  />
+                  <TextField
+                    type="tel"
+                    label="전화번호"
+                    value={addressForm.form.phone}
+                    onChange={handleAddrPhoneChange}
+                    onClear={() => addressForm.setField('phone', '')}
+                    onBlur={addressForm.blurPhone}
+                    onKeyDown={addrNav}
+                    error={addressForm.errors.phone}
+                    helper="하이픈이 자동으로 입력됩니다."
+                  />
                   <div className="chp-addr-inline">
-                    <div className={`chp-field${addressForm.errors.addr1 ? ' input-warn' : ''}`}>
-                      <input
-                        className="chp-input"
-                        type="text"
-                        placeholder=" "
-                        readOnly
-                        style={{ cursor: 'pointer', paddingRight: 36 }}
-                        value={addressForm.form.addr1}
-                        onClick={addressForm.lookupAddress}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addressForm.lookupAddress(); } }}
-                      />
-                      <label className="chp-floating-label">주소 검색</label>
-                      <button
-                        className="chp-addr-search-btn"
-                        type="button"
-                        title="주소 검색"
-                        onClick={addressForm.lookupAddress}
-                      >
-                        <SearchIcon />
-                      </button>
-                      <div className="chp-helper">{addressForm.errors.addr1 || '주소를 검색해 주세요.'}</div>
-                    </div>
-                    <div className={`chp-field${addressForm.errors.zipcode ? ' input-warn' : ''}`}>
-                      <input
-                        className="chp-input"
-                        type="text"
-                        placeholder=" "
-                        maxLength={5}
-                        inputMode="numeric"
-                        value={addressForm.form.zipcode}
-                        onChange={(e) => addressForm.setField('zipcode', e.target.value)}
-                      />
-                      <label className="chp-floating-label">우편번호</label>
-                      <div className="chp-helper">주소 검색 시 자동 입력됩니다.</div>
-                    </div>
+                    <TextField
+                      label="주소 검색"
+                      readOnly
+                      style={{ cursor: 'pointer', paddingRight: 36 }}
+                      value={addressForm.form.addr1}
+                      onChange={() => { /* readOnly */ }}
+                      onClick={addressForm.lookupAddress}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addressForm.lookupAddress(); } }}
+                      wrapperClass={addressForm.form.addr1 ? 'has-value' : ''}
+                      customAction={
+                        <button
+                          className="chp-addr-search-btn"
+                          type="button"
+                          title="주소 검색"
+                          onClick={addressForm.lookupAddress}
+                        >
+                          <SearchIcon />
+                        </button>
+                      }
+                      error={addressForm.errors.addr1}
+                      helper="주소를 검색해 주세요."
+                    />
+                    <TextField
+                      label="우편번호"
+                      maxLength={5}
+                      inputMode="numeric"
+                      value={addressForm.form.zipcode}
+                      onChange={(v) => addressForm.setField('zipcode', v)}
+                      hideClear
+                      error={addressForm.errors.zipcode}
+                      helper="주소 검색 시 자동 입력됩니다."
+                    />
                   </div>
                   {addressForm.form.addr1 && (
-                    <div className="chp-field">
-                      <input
-                        className="chp-input"
-                        type="text"
-                        placeholder=" "
-                        value={addressForm.form.addr2}
-                        onChange={(e) => addressForm.setField('addr2', e.target.value)}
-                        onKeyDown={addrNav}
-                      />
-                      <label className="chp-floating-label">상세주소</label>
-                      {addressForm.form.addr2 && (
-                        <span className="chp-input-action visible" onClick={() => addressForm.setField('addr2', '')} title="지우기"><ClearIcon /></span>
-                      )}
-                      <div className="chp-helper">동·호수 등 상세주소를 입력하세요.</div>
-                    </div>
+                    <TextField
+                      label="상세주소"
+                      value={addressForm.form.addr2}
+                      onChange={(v) => addressForm.setField('addr2', v)}
+                      onClear={() => addressForm.setField('addr2', '')}
+                      onKeyDown={addrNav}
+                      helper="동·호수 등 상세주소를 입력하세요."
+                    />
                   )}
                   <div className="mp-accordion-actions">
                     <button className="mp-save-btn" type="button" onClick={() => { addressForm.submit(); setTimeout(() => shakeFields(addrFormRef.current), 0); }}>저장</button>
@@ -509,63 +485,40 @@ export default function MyPagePage() {
             {/* 비밀번호 변경 아코디언 */}
             <div className={`mp-accordion${pwOpen ? ' open' : ''}`}>
               <div className="mp-accordion-inner" ref={pwFormRef}>
-                <div className={`chp-field${pwForm.errors.current ? ' input-warn' : ''}`}>
-                  <input
-                    className="chp-input"
-                    type={showCurPw ? 'text' : 'password'}
-                    placeholder=" "
-                    value={pwForm.current}
-                    onChange={(e) => pwForm.setCurrent(e.target.value)}
-                    onKeyDown={pwNav}
-                  />
-                  <label className="chp-floating-label">현재 비밀번호</label>
-                  {pwForm.current && (
-                    <span className="chp-input-actions">
-                      <span className="chp-input-action visible" onClick={() => setShowCurPw((v) => !v)} title={showCurPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showCurPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
-                      <span className="chp-input-action visible" onClick={() => pwForm.setCurrent('')} title="지우기"><ClearIcon /></span>
-                    </span>
-                  )}
-                  <div className="chp-helper">{pwForm.errors.current || '현재 비밀번호를 입력하세요.'}</div>
-                </div>
-                <div className={`chp-field${pwForm.errors.next ? ' input-warn' : ''}`}>
-                  <input
-                    className="chp-input"
-                    type={showNewPw ? 'text' : 'password'}
-                    placeholder=" "
-                    value={pwForm.next}
-                    onChange={(e) => pwForm.setNext(e.target.value)}
-                    onBlur={pwForm.blurNext}
-                    onKeyDown={pwNav}
-                  />
-                  <label className="chp-floating-label">새 비밀번호</label>
-                  {pwForm.next && (
-                    <span className="chp-input-actions">
-                      <span className="chp-input-action visible" onClick={() => setShowNewPw((v) => !v)} title={showNewPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showNewPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
-                      <span className="chp-input-action visible" onClick={() => pwForm.setNext('')} title="지우기"><ClearIcon /></span>
-                    </span>
-                  )}
-                  <div className="chp-helper">{pwForm.errors.next || '영문 대소문자/숫자/특수문자 중 2가지 이상 조합, 6~16자'}</div>
-                </div>
-                <div className={`chp-field pw2-field${pwForm.next ? ' pw2-visible' : ''}${pwForm.errors.confirm ? ' input-warn' : ''}`}>
-                  <input
-                    className="chp-input"
-                    type={showConfPw ? 'text' : 'password'}
-                    placeholder=" "
-                    disabled={pwForm.pw2Disabled}
-                    value={pwForm.confirm}
-                    onChange={(e) => pwForm.setConfirm(e.target.value)}
-                    onBlur={pwForm.blurConfirm}
-                    onKeyDown={pwNav}
-                  />
-                  <label className="chp-floating-label">새 비밀번호 확인</label>
-                  {pwForm.confirm && (
-                    <span className="chp-input-actions">
-                      <span className="chp-input-action visible" onClick={() => setShowConfPw((v) => !v)} title={showConfPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showConfPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
-                      <span className="chp-input-action visible" onClick={() => pwForm.setConfirm('')} title="지우기"><ClearIcon /></span>
-                    </span>
-                  )}
-                  <div className="chp-helper">{pwForm.errors.confirm || '비밀번호를 한 번 더 입력하세요.'}</div>
-                </div>
+                <TextField
+                  type="password"
+                  label="현재 비밀번호"
+                  value={pwForm.current}
+                  onChange={pwForm.setCurrent}
+                  onKeyDown={pwNav}
+                  showPasswordToggle
+                  error={pwForm.errors.current}
+                  helper="현재 비밀번호를 입력하세요."
+                />
+                <TextField
+                  type="password"
+                  label="새 비밀번호"
+                  value={pwForm.next}
+                  onChange={pwForm.setNext}
+                  onBlur={pwForm.blurNext}
+                  onKeyDown={pwNav}
+                  showPasswordToggle
+                  error={pwForm.errors.next}
+                  helper="영문 대소문자/숫자/특수문자 중 2가지 이상 조합, 6~16자"
+                />
+                <TextField
+                  type="password"
+                  label="새 비밀번호 확인"
+                  disabled={pwForm.pw2Disabled}
+                  value={pwForm.confirm}
+                  onChange={pwForm.setConfirm}
+                  onBlur={pwForm.blurConfirm}
+                  onKeyDown={pwNav}
+                  showPasswordToggle
+                  error={pwForm.errors.confirm}
+                  helper="비밀번호를 한 번 더 입력하세요."
+                  wrapperClass={`pw2-field${pwForm.next ? ' pw2-visible' : ''}`}
+                />
                 <div className="mp-accordion-actions">
                   <button className="mp-save-btn" type="button" onClick={() => { void pwForm.submit(); setTimeout(() => shakeFields(pwFormRef.current), 0); }}>변경</button>
                   <button className="mp-cancel-btn" type="button" onClick={() => { pwForm.reset(); setPwOpen(false); }}>취소</button>

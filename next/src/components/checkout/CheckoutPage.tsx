@@ -24,7 +24,7 @@ import { useCartStore, useAuthStore, FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } fro
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
 import { shakeFields } from '@/lib/shakeFields';
-import { ClearIcon, EyeOpenIcon, EyeClosedIcon } from '@/components/ui/InputIcons';
+import { TextField } from '@/components/ui/TextField';
 import type { PaymentMethod } from '@/types/checkout';
 
 /* ── 배송 메시지 옵션 ── */
@@ -123,7 +123,7 @@ export default function CheckoutPage() {
   } = useCheckoutForm();
 
   /* ── 전화번호 ── */
-  const { handleChange: handlePhoneChange } = usePhoneFormat(
+  const { handleChangeValue: handlePhoneChange } = usePhoneFormat(
     useCallback((v: string) => setField('phone', v), [setField]),
   );
 
@@ -153,8 +153,6 @@ export default function CheckoutPage() {
 
   /* ── 결제수단 전환 fade ── */
   const [payFade, setPayFade] = useState(false);
-  const [showGuestPw, setShowGuestPw] = useState(false);
-  const [showGuestPw2, setShowGuestPw2] = useState(false);
   const handlePaymentSwitch = useCallback((method: PaymentMethod) => {
     if (method === form.paymentMethod) return;
     setPaymentMethod(method);
@@ -271,20 +269,17 @@ export default function CheckoutPage() {
             <div className="chp-section-header">
               <h2 className="chp-section-title">연락처</h2>
             </div>
-            <div className={`chp-field${errors.email ? ' input-warn' : ''}`}>
-              <input
-                className="chp-input" type="email" placeholder=" "
-                value={form.email}
-                onChange={(e) => setField('email', e.target.value)}
-                onBlur={blurEmail}
-                onKeyDown={chpNav}
-              />
-              <label className="chp-floating-label">이메일 주소</label>
-              {form.email && (
-                <span className="chp-input-action visible" onClick={() => setField('email', '')} title="지우기"><ClearIcon /></span>
-              )}
-              <div className="chp-helper">{errors.email || '이메일 주소를 입력하세요.'}</div>
-            </div>
+            <TextField
+              type="email"
+              label="이메일 주소"
+              value={form.email}
+              onChange={(v) => setField('email', v)}
+              onClear={() => setField('email', '')}
+              onBlur={blurEmail}
+              onKeyDown={chpNav}
+              error={errors.email}
+              helper="이메일 주소를 입력하세요."
+            />
             {!isFormRevealed && (
               <>
                 <Link href="/login?from=checkout" className="chp-login-primary-btn">
@@ -307,76 +302,67 @@ export default function CheckoutPage() {
               <div className="chp-section">
                 <h2 className="chp-section-title">배송지</h2>
                 {/* 받는 분 */}
-                <div className={`chp-field${errors.firstname ? ' input-warn' : ''}`}>
-                  <input
-                    className="chp-input" type="text" placeholder=" "
-                    value={form.firstname}
-                    onChange={(e) => setField('firstname', e.target.value)}
-                    onKeyDown={chpNav}
-                  />
-                  <label className="chp-floating-label">받는 분</label>
-                  {form.firstname && (
-                    <span className="chp-input-action visible" onClick={() => setField('firstname', '')} title="지우기"><ClearIcon /></span>
-                  )}
-                  <div className="chp-helper">{errors.firstname || '받는 분의 이름을 입력하세요.'}</div>
-                </div>
+                <TextField
+                  label="받는 분"
+                  value={form.firstname}
+                  onChange={(v) => setField('firstname', v)}
+                  onClear={() => setField('firstname', '')}
+                  onKeyDown={chpNav}
+                  error={errors.firstname}
+                  helper="받는 분의 이름을 입력하세요."
+                />
                 {/* 전화번호 */}
-                <div className={`chp-field${errors.phone ? ' input-warn' : ''}`}>
-                  <input
-                    className="chp-input" type="tel" placeholder=" "
-                    value={form.phone}
-                    onChange={handlePhoneChange}
-                    onBlur={blurPhone}
-                    onKeyDown={chpNav}
-                  />
-                  <label className="chp-floating-label">전화번호</label>
-                  {form.phone && (
-                    <span className="chp-input-action visible" onClick={() => setField('phone', '')} title="지우기"><ClearIcon /></span>
-                  )}
-                  <div className="chp-helper">{errors.phone || '하이픈이 자동으로 입력됩니다.'}</div>
-                </div>
+                <TextField
+                  type="tel"
+                  label="전화번호"
+                  value={form.phone}
+                  onChange={handlePhoneChange}
+                  onClear={() => setField('phone', '')}
+                  onBlur={blurPhone}
+                  onKeyDown={chpNav}
+                  error={errors.phone}
+                  helper="하이픈이 자동으로 입력됩니다."
+                />
                 {/* 주소 */}
                 <div className="chp-addr-inline">
-                  <div className={`chp-field${errors.addr1 ? ' input-warn' : ''}${form.addr1 ? ' has-value' : ''}`}>
-                    <input
-                      className="chp-input" type="text" placeholder=" " readOnly
-                      value={form.addr1}
-                      style={{ cursor: 'pointer', paddingRight: 36 }}
-                      onClick={handleAddressSearch}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddressSearch(); } }}
-                    />
-                    <label className="chp-floating-label">주소 검색</label>
-                    <button className="chp-addr-search-btn" type="button" title="주소 검색" onClick={handleAddressSearch}>
-                      <SearchIcon />
-                    </button>
-                    <div className="chp-helper">{errors.addr1 || '주소를 검색해 주세요.'}</div>
-                  </div>
-                  <div className="chp-field">
-                    <input
-                      className="chp-input" type="text" placeholder=" " maxLength={5} inputMode="numeric"
-                      value={form.zipcode}
-                      onChange={(e) => setField('zipcode', e.target.value.replace(/\D/g, ''))}
-                      onKeyDown={chpNav}
-                    />
-                    <label className="chp-floating-label">우편번호</label>
-                    <div className="chp-helper">주소 검색 시 자동 입력됩니다.</div>
-                  </div>
+                  <TextField
+                    label="주소 검색"
+                    readOnly
+                    style={{ cursor: 'pointer', paddingRight: 36 }}
+                    value={form.addr1}
+                    onChange={() => { /* readOnly */ }}
+                    onClick={handleAddressSearch}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddressSearch(); } }}
+                    wrapperClass={form.addr1 ? 'has-value' : ''}
+                    customAction={
+                      <button className="chp-addr-search-btn" type="button" title="주소 검색" onClick={handleAddressSearch}>
+                        <SearchIcon />
+                      </button>
+                    }
+                    error={errors.addr1}
+                    helper="주소를 검색해 주세요."
+                  />
+                  <TextField
+                    label="우편번호"
+                    maxLength={5}
+                    inputMode="numeric"
+                    value={form.zipcode}
+                    onChange={(v) => setField('zipcode', v.replace(/\D/g, ''))}
+                    onKeyDown={chpNav}
+                    hideClear
+                    helper="주소 검색 시 자동 입력됩니다."
+                  />
                 </div>
                 {/* 상세주소 — 주소 입력 후 표시 */}
                 {form.addr1 && (
-                  <div className="chp-field">
-                    <input
-                      className="chp-input" type="text" placeholder=" "
-                      value={form.addr2}
-                      onChange={(e) => setField('addr2', e.target.value)}
-                      onKeyDown={chpNav}
-                    />
-                    <label className="chp-floating-label">상세주소</label>
-                    {form.addr2 && (
-                      <span className="chp-input-action visible" onClick={() => setField('addr2', '')} title="지우기"><ClearIcon /></span>
-                    )}
-                    <div className="chp-helper">동·호수 등 상세주소를 입력하세요.</div>
-                  </div>
+                  <TextField
+                    label="상세주소"
+                    value={form.addr2}
+                    onChange={(v) => setField('addr2', v)}
+                    onClear={() => setField('addr2', '')}
+                    onKeyDown={chpNav}
+                    helper="동·호수 등 상세주소를 입력하세요."
+                  />
                 )}
                 {/* 배송 메시지 드롭다운 */}
                 <div
@@ -409,18 +395,13 @@ export default function CheckoutPage() {
                 </div>
                 {/* 직접 입력 */}
                 {form.deliveryMessage === 'direct' && (
-                  <div className="chp-field">
-                    <input
-                      className="chp-input" type="text" placeholder=" "
-                      value={form.deliveryCustom}
-                      onChange={(e) => setField('deliveryCustom', e.target.value)}
-                      onKeyDown={chpNav}
-                    />
-                    <label className="chp-floating-label">배송 메시지를 입력해 주세요.</label>
-                    {form.deliveryCustom && (
-                      <span className="chp-input-action visible" onClick={() => setField('deliveryCustom', '')} title="지우기"><ClearIcon /></span>
-                    )}
-                  </div>
+                  <TextField
+                    label="배송 메시지를 입력해 주세요."
+                    value={form.deliveryCustom}
+                    onChange={(v) => setField('deliveryCustom', v)}
+                    onClear={() => setField('deliveryCustom', '')}
+                    onKeyDown={chpNav}
+                  />
                 )}
               </div>
 
@@ -429,39 +410,30 @@ export default function CheckoutPage() {
                 <div className="chp-section chp-section--no-border chp-section--guest">
                   <h2 className="chp-section-title">비회원 주문조회 비밀번호</h2>
                   <p className="chp-section-desc">비회원 주문 조회 시 주문번호와 입력하신 비밀번호가 필요합니다.</p>
-                  <div className={`chp-field${errors.guestPw ? ' input-warn' : ''}`}>
-                    <input
-                      className="chp-input" type={showGuestPw ? 'text' : 'password'} placeholder=" "
-                      value={form.guestPw}
-                      onChange={(e) => setField('guestPw', e.target.value)}
-                      onKeyDown={chpNav}
-                    />
-                    <label className="chp-floating-label">비밀번호</label>
-                    {form.guestPw && (
-                      <span className="chp-input-actions">
-                        <span className="chp-input-action visible" onClick={() => setShowGuestPw((v) => !v)} title={showGuestPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showGuestPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
-                        <span className="chp-input-action visible" onClick={() => setField('guestPw', '')} title="지우기"><ClearIcon /></span>
-                      </span>
-                    )}
-                    <div className="chp-helper visible">4자 이상 입력해 주세요.</div>
-                  </div>
-                  <div className={`chp-field pw2-field${showPw2 ? ' pw2-visible' : ''}${errors.guestPw2 ? ' input-warn' : ''}`}>
-                    <input
-                      className="chp-input" type={showGuestPw2 ? 'text' : 'password'} placeholder=" "
-                      disabled={!showPw2}
-                      value={form.guestPw2}
-                      onChange={(e) => setField('guestPw2', e.target.value)}
-                      onKeyDown={chpNav}
-                    />
-                    <label className="chp-floating-label">비밀번호 확인</label>
-                    {form.guestPw2 && (
-                      <span className="chp-input-actions">
-                        <span className="chp-input-action visible" onClick={() => setShowGuestPw2((v) => !v)} title={showGuestPw2 ? '비밀번호 숨기기' : '비밀번호 보기'}>{showGuestPw2 ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
-                        <span className="chp-input-action visible" onClick={() => setField('guestPw2', '')} title="지우기"><ClearIcon /></span>
-                      </span>
-                    )}
-                    <div className="chp-helper">{errors.guestPw2 || '비밀번호를 한 번 더 입력하세요.'}</div>
-                  </div>
+                  <TextField
+                    type="password"
+                    label="비밀번호"
+                    value={form.guestPw}
+                    onChange={(v) => setField('guestPw', v)}
+                    onClear={() => setField('guestPw', '')}
+                    onKeyDown={chpNav}
+                    showPasswordToggle
+                    error={errors.guestPw}
+                    helper="4자 이상 입력해 주세요."
+                  />
+                  <TextField
+                    type="password"
+                    label="비밀번호 확인"
+                    disabled={!showPw2}
+                    value={form.guestPw2}
+                    onChange={(v) => setField('guestPw2', v)}
+                    onClear={() => setField('guestPw2', '')}
+                    onKeyDown={chpNav}
+                    showPasswordToggle
+                    error={errors.guestPw2}
+                    helper="비밀번호를 한 번 더 입력하세요."
+                    wrapperClass={`pw2-field${showPw2 ? ' pw2-visible' : ''}`}
+                  />
                 </div>
               )}
 
@@ -509,19 +481,15 @@ export default function CheckoutPage() {
                       <label className="chp-floating-label">입금은행</label>
                       <div className="chp-error-msg">{errors.bankName}</div>
                     </div>
-                    <div className={`chp-field${errors.depositorName ? ' input-warn' : ''}`}>
-                      <input
-                        className="chp-input" type="text" placeholder=" "
-                        value={form.depositorName}
-                        onChange={(e) => setField('depositorName', e.target.value)}
-                        onKeyDown={chpNav}
-                      />
-                      <label className="chp-floating-label">입금자명</label>
-                      {form.depositorName && (
-                        <span className="chp-input-action visible" onClick={() => setField('depositorName', '')} title="지우기"><ClearIcon /></span>
-                      )}
-                      <div className="chp-helper">{errors.depositorName || '입금자명을 입력하세요.'}</div>
-                    </div>
+                    <TextField
+                      label="입금자명"
+                      value={form.depositorName}
+                      onChange={(v) => setField('depositorName', v)}
+                      onClear={() => setField('depositorName', '')}
+                      onKeyDown={chpNav}
+                      error={errors.depositorName}
+                      helper="입금자명을 입력하세요."
+                    />
                   </div>
                 )}
               </div>

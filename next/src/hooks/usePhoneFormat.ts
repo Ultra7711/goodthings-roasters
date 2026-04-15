@@ -36,5 +36,13 @@ export function usePhoneFormat(
     [onChange],
   );
 
-  return { handleChange, formatPhoneNumber };
+  /** TextField처럼 string을 전달받는 경우 */
+  const handleChangeValue = useCallback(
+    (val: string) => {
+      onChange(formatPhoneNumber(val));
+    },
+    [onChange],
+  );
+
+  return { handleChange, handleChangeValue, formatPhoneNumber };
 }

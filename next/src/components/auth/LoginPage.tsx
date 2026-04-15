@@ -24,7 +24,7 @@ import { isValidEmail, isValidOrderNumber } from '@/lib/validation';
 import { useOrderNumberFormat } from '@/hooks/useOrderNumberFormat';
 import { shakeFields } from '@/lib/shakeFields';
 import { useToast } from '@/hooks/useToast';
-import { ClearIcon, EyeOpenIcon, EyeClosedIcon } from '@/components/ui/InputIcons';
+import { TextField } from '@/components/ui/TextField';
 
 /* ── 폼 모드 ── */
 type LoginMode = 'login' | 'register' | 'reset' | 'guest-lookup';
@@ -81,11 +81,6 @@ export default function LoginPage() {
   /* ── 폼 훅 ── */
   const loginForm = useLoginForm({ fromCheckout });
   const registerForm = useRegisterForm();
-
-  /* ── 비밀번호 표시/숨기기 ── */
-  const [showLoginPw, setShowLoginPw] = useState(false);
-  const [showRegPw, setShowRegPw] = useState(false);
-  const [showRegPw2, setShowRegPw2] = useState(false);
 
   /* ── 비밀번호 재설정 (간이) ── */
   const [resetEmail, setResetEmail] = useState('');
@@ -297,46 +292,28 @@ export default function LoginPage() {
           {/* ── 로그인 폼 ── */}
           {mode === 'login' && (
             <form ref={loginRef} onSubmit={loginForm.handleSubmit} noValidate>
-              <div className={`chp-field${loginForm.errors.email ? ' input-warn' : ''}`}>
-                <input
-                  className="chp-input"
-                  type="email"
-                  placeholder=" "
-                  autoComplete="email"
-                  value={loginForm.email}
-                  onChange={(e) => loginForm.setEmail(e.target.value)}
-                  onBlur={loginForm.blurEmail}
-                  onKeyDown={loginNav}
-                />
-                <label className="chp-floating-label">이메일 주소</label>
-                {loginForm.email && (
-                  <span className="chp-input-action visible" onClick={() => loginForm.setEmail('')} title="지우기"><ClearIcon /></span>
-                )}
-                <div className="chp-helper">
-                  {loginForm.errors.email || '이메일 주소를 입력하세요.'}
-                </div>
-              </div>
-              <div className={`chp-field${loginForm.errors.password ? ' input-warn' : ''}`}>
-                <input
-                  className="chp-input"
-                  type={showLoginPw ? 'text' : 'password'}
-                  placeholder=" "
-                  autoComplete="current-password"
-                  value={loginForm.password}
-                  onChange={(e) => loginForm.setPassword(e.target.value)}
-                  onKeyDown={loginNav}
-                />
-                <label className="chp-floating-label">비밀번호</label>
-                {loginForm.password && (
-                  <span className="chp-input-actions">
-                    <span className="chp-input-action visible" onClick={() => setShowLoginPw((v) => !v)} title={showLoginPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showLoginPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
-                    <span className="chp-input-action visible" onClick={() => loginForm.setPassword('')} title="지우기"><ClearIcon /></span>
-                  </span>
-                )}
-                <div className="chp-helper">
-                  {loginForm.errors.password || '비밀번호를 입력하세요.'}
-                </div>
-              </div>
+              <TextField
+                type="email"
+                label="이메일 주소"
+                autoComplete="email"
+                value={loginForm.email}
+                onChange={loginForm.setEmail}
+                onBlur={loginForm.blurEmail}
+                onKeyDown={loginNav}
+                error={loginForm.errors.email}
+                helper="이메일 주소를 입력하세요."
+              />
+              <TextField
+                type="password"
+                label="비밀번호"
+                autoComplete="current-password"
+                value={loginForm.password}
+                onChange={loginForm.setPassword}
+                onKeyDown={loginNav}
+                showPasswordToggle
+                error={loginForm.errors.password}
+                helper="비밀번호를 입력하세요."
+              />
               {loginForm.errors.submit && (
                 <div className="lp-submit-error">{loginForm.errors.submit}</div>
               )}
@@ -367,88 +344,52 @@ export default function LoginPage() {
           {/* ── 회원가입 폼 ── */}
           {mode === 'register' && (
             <form ref={registerRef} onSubmit={registerForm.handleSubmit} noValidate>
-              <div className={`chp-field${registerForm.errors.name ? ' input-warn' : ''}`}>
-                <input
-                  className="chp-input"
-                  type="text"
-                  placeholder=" "
-                  autoComplete="name"
-                  value={registerForm.name}
-                  onChange={(e) => registerForm.setName(e.target.value)}
-                  onKeyDown={registerNav}
-                />
-                <label className="chp-floating-label">이름</label>
-                {registerForm.name && (
-                  <span className="chp-input-action visible" onClick={() => registerForm.setName('')} title="지우기"><ClearIcon /></span>
-                )}
-                <div className="chp-helper">
-                  {registerForm.errors.name || '이름을 입력하세요.'}
-                </div>
-              </div>
-              <div className={`chp-field${registerForm.errors.email ? ' input-warn' : ''}`}>
-                <input
-                  className="chp-input"
-                  type="email"
-                  placeholder=" "
-                  autoComplete="email"
-                  value={registerForm.email}
-                  onChange={(e) => registerForm.setEmail(e.target.value)}
-                  onBlur={registerForm.blurEmail}
-                  onKeyDown={registerNav}
-                />
-                <label className="chp-floating-label">이메일 주소</label>
-                {registerForm.email && (
-                  <span className="chp-input-action visible" onClick={() => registerForm.setEmail('')} title="지우기"><ClearIcon /></span>
-                )}
-                <div className="chp-helper">
-                  {registerForm.errors.email || '이메일 주소를 입력하세요.'}
-                </div>
-              </div>
-              <div className={`chp-field${registerForm.errors.password ? ' input-warn' : ''}`}>
-                <input
-                  className="chp-input"
-                  type={showRegPw ? 'text' : 'password'}
-                  placeholder=" "
-                  autoComplete="new-password"
-                  value={registerForm.password}
-                  onChange={(e) => registerForm.setPassword(e.target.value)}
-                  onBlur={registerForm.blurPassword}
-                  onKeyDown={registerNav}
-                />
-                <label className="chp-floating-label">비밀번호</label>
-                {registerForm.password && (
-                  <span className="chp-input-actions">
-                    <span className="chp-input-action visible" onClick={() => setShowRegPw((v) => !v)} title={showRegPw ? '비밀번호 숨기기' : '비밀번호 보기'}>{showRegPw ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
-                    <span className="chp-input-action visible" onClick={() => registerForm.setPassword('')} title="지우기"><ClearIcon /></span>
-                  </span>
-                )}
-                <div className="chp-helper">
-                  {registerForm.errors.password || '영문 대소문자/숫자/특수문자 중 2가지 이상 조합, 6~16자'}
-                </div>
-              </div>
-              <div className={`chp-field pw2-field${registerForm.password ? ' pw2-visible' : ''}${registerForm.errors.password2 ? ' input-warn' : ''}`}>
-                <input
-                  className="chp-input"
-                  type={showRegPw2 ? 'text' : 'password'}
-                  placeholder=" "
-                  autoComplete="new-password"
-                  disabled={registerForm.pw2Disabled}
-                  value={registerForm.password2}
-                  onChange={(e) => registerForm.setPassword2(e.target.value)}
-                  onBlur={registerForm.blurPassword2}
-                  onKeyDown={registerNav}
-                />
-                <label className="chp-floating-label">비밀번호 확인</label>
-                {registerForm.password2 && (
-                  <span className="chp-input-actions">
-                    <span className="chp-input-action visible" onClick={() => setShowRegPw2((v) => !v)} title={showRegPw2 ? '비밀번호 숨기기' : '비밀번호 보기'}>{showRegPw2 ? <EyeOpenIcon /> : <EyeClosedIcon />}</span>
-                    <span className="chp-input-action visible" onClick={() => registerForm.setPassword2('')} title="지우기"><ClearIcon /></span>
-                  </span>
-                )}
-                <div className="chp-helper">
-                  {registerForm.errors.password2 || '비밀번호를 한 번 더 입력하세요.'}
-                </div>
-              </div>
+              <TextField
+                label="이름"
+                autoComplete="name"
+                value={registerForm.name}
+                onChange={registerForm.setName}
+                onKeyDown={registerNav}
+                error={registerForm.errors.name}
+                helper="이름을 입력하세요."
+              />
+              <TextField
+                type="email"
+                label="이메일 주소"
+                autoComplete="email"
+                value={registerForm.email}
+                onChange={registerForm.setEmail}
+                onBlur={registerForm.blurEmail}
+                onKeyDown={registerNav}
+                error={registerForm.errors.email}
+                helper="이메일 주소를 입력하세요."
+              />
+              <TextField
+                type="password"
+                label="비밀번호"
+                autoComplete="new-password"
+                value={registerForm.password}
+                onChange={registerForm.setPassword}
+                onBlur={registerForm.blurPassword}
+                onKeyDown={registerNav}
+                showPasswordToggle
+                error={registerForm.errors.password}
+                helper="영문 대소문자/숫자/특수문자 중 2가지 이상 조합, 6~16자"
+              />
+              <TextField
+                type="password"
+                label="비밀번호 확인"
+                autoComplete="new-password"
+                disabled={registerForm.pw2Disabled}
+                value={registerForm.password2}
+                onChange={registerForm.setPassword2}
+                onBlur={registerForm.blurPassword2}
+                onKeyDown={registerNav}
+                showPasswordToggle
+                error={registerForm.errors.password2}
+                helper="비밀번호를 한 번 더 입력하세요."
+                wrapperClass={`pw2-field${registerForm.password ? ' pw2-visible' : ''}`}
+              />
               {registerForm.errors.submit && (
                 <div className="lp-submit-error">{registerForm.errors.submit}</div>
               )}
@@ -461,25 +402,18 @@ export default function LoginPage() {
           {/* ── 비밀번호 재설정 폼 ── */}
           {mode === 'reset' && (
             <form ref={resetRef} onSubmit={handleResetSubmit} noValidate>
-              <div className={`chp-field${resetError ? ' input-warn' : ''}`}>
-                <input
-                  className="chp-input"
-                  type="email"
-                  placeholder=" "
-                  autoComplete="email"
-                  value={resetEmail}
-                  onChange={(e) => { setResetEmail(e.target.value); setResetError(''); }}
-                  onBlur={() => { const t = resetEmail.trim(); if (t && !isValidEmail(t)) setResetError('올바른 이메일 형식을 입력해 주세요.'); }}
-                  onKeyDown={resetNav}
-                />
-                <label className="chp-floating-label">이메일 주소</label>
-                {resetEmail && (
-                  <span className="chp-input-action visible" onClick={() => { setResetEmail(''); setResetError(''); }} title="지우기"><ClearIcon /></span>
-                )}
-                <div className="chp-helper">
-                  {resetError || '가입 시 등록한 이메일 주소를 입력하세요.'}
-                </div>
-              </div>
+              <TextField
+                type="email"
+                label="이메일 주소"
+                autoComplete="email"
+                value={resetEmail}
+                onChange={(v) => { setResetEmail(v); setResetError(''); }}
+                onBlur={() => { const t = resetEmail.trim(); if (t && !isValidEmail(t)) setResetError('올바른 이메일 형식을 입력해 주세요.'); }}
+                onKeyDown={resetNav}
+                onClear={() => { setResetEmail(''); setResetError(''); }}
+                error={resetError}
+                helper="가입 시 등록한 이메일 주소를 입력하세요."
+              />
               <button className="lp-submit-btn" type="submit">전송</button>
             </form>
           )}
@@ -487,46 +421,32 @@ export default function LoginPage() {
           {/* ── 비회원 주문 조회 폼 ── */}
           {mode === 'guest-lookup' && (
             <form ref={guestRef} onSubmit={handleGuestLookupSubmit} noValidate>
-              <div className={`chp-field${guestErrors.email ? ' input-warn' : ''}`}>
-                <input
-                  className="chp-input"
-                  type="email"
-                  placeholder=" "
-                  autoComplete="email"
-                  value={guestEmail}
-                  onChange={(e) => { setGuestEmail(e.target.value); setGuestErrors((p) => { const n = { ...p }; delete n.email; return n; }); }}
-                  onBlur={() => { const t = guestEmail.trim(); if (t && !isValidEmail(t)) setGuestErrors((p) => ({ ...p, email: '올바른 이메일 형식을 입력해 주세요.' })); }}
-                  onKeyDown={guestNav}
-                />
-                <label className="chp-floating-label">이메일 주소</label>
-                {guestEmail && (
-                  <span className="chp-input-action visible" onClick={() => { setGuestEmail(''); setGuestErrors((p) => { const n = { ...p }; delete n.email; return n; }); }} title="지우기"><ClearIcon /></span>
-                )}
-                <div className="chp-helper">
-                  {guestErrors.email || '주문 시 입력한 이메일 주소를 입력하세요.'}
-                </div>
-              </div>
-              <div className={`chp-field${guestErrors.orderNum ? ' input-warn' : ''}`}>
-                <input
-                  className="chp-input"
-                  type="text"
-                  placeholder=" "
-                  autoComplete="off"
-                  value={guestOrderNum}
-                  onChange={orderNumFormat.handleChange}
-                  onFocus={orderNumFormat.handleFocus}
-                  onPaste={orderNumFormat.handlePaste}
-                  onBlur={() => { const t = guestOrderNum.trim(); if (t === 'GT-') { setGuestOrderNum(''); return; } if (t && !isValidOrderNumber(t)) setGuestErrors((p) => ({ ...p, orderNum: '올바른 주문번호 형식을 입력해 주세요.' })); }}
-                  onKeyDown={guestNav}
-                />
-                <label className="chp-floating-label">주문번호</label>
-                {guestOrderNum && guestOrderNum !== 'GT-' && (
-                  <span className="chp-input-action visible" onClick={() => { setGuestOrderNum(''); setGuestErrors((p) => { const n = { ...p }; delete n.orderNum; return n; }); }} title="지우기"><ClearIcon /></span>
-                )}
-                <div className="chp-helper">
-                  {guestErrors.orderNum || 'GT- 뒤에 숫자를 입력하세요. 예: GT-20260413-00001'}
-                </div>
-              </div>
+              <TextField
+                type="email"
+                label="이메일 주소"
+                autoComplete="email"
+                value={guestEmail}
+                onChange={(v) => { setGuestEmail(v); setGuestErrors((p) => { const n = { ...p }; delete n.email; return n; }); }}
+                onBlur={() => { const t = guestEmail.trim(); if (t && !isValidEmail(t)) setGuestErrors((p) => ({ ...p, email: '올바른 이메일 형식을 입력해 주세요.' })); }}
+                onKeyDown={guestNav}
+                onClear={() => { setGuestEmail(''); setGuestErrors((p) => { const n = { ...p }; delete n.email; return n; }); }}
+                error={guestErrors.email}
+                helper="주문 시 입력한 이메일 주소를 입력하세요."
+              />
+              <TextField
+                label="주문번호"
+                autoComplete="off"
+                value={guestOrderNum}
+                onChange={orderNumFormat.handleChangeValue}
+                onFocus={orderNumFormat.handleFocus}
+                onPaste={orderNumFormat.handlePaste}
+                onBlur={() => { const t = guestOrderNum.trim(); if (t === 'GT-') { setGuestOrderNum(''); return; } if (t && !isValidOrderNumber(t)) setGuestErrors((p) => ({ ...p, orderNum: '올바른 주문번호 형식을 입력해 주세요.' })); }}
+                onKeyDown={guestNav}
+                onClear={() => { setGuestOrderNum(''); setGuestErrors((p) => { const n = { ...p }; delete n.orderNum; return n; }); }}
+                hideClear={guestOrderNum === 'GT-'}
+                error={guestErrors.orderNum}
+                helper="GT- 뒤에 숫자를 입력하세요. 예: GT-20260413-00001"
+              />
               <button className="lp-submit-btn" type="submit">주문 조회하기</button>
             </form>
           )}

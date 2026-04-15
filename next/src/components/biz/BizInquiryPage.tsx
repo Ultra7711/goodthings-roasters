@@ -27,6 +27,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { shakeFields } from '@/lib/shakeFields';
+import { TextField } from '@/components/ui/TextField';
+import { useInputNav } from '@/hooks/useInputNav';
 import {
   BIZ_TYPE_OPTIONS,
   BIZ_VOLUME_OPTIONS,
@@ -169,8 +171,8 @@ export default function BizInquiryPage() {
     }
   }
 
-  function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const formatted = formatPhone(e.target.value);
+  function handlePhoneChange(v: string) {
+    const formatted = formatPhone(v);
     setForm((f) => ({ ...f, phone: formatted }));
     clearWarn('phone');
     setPhoneHelper((h) => ({ ...h, warn: false }));
@@ -188,8 +190,8 @@ export default function BizInquiryPage() {
     }
   }
 
-  function handleRegChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const formatted = formatBizReg(e.target.value);
+  function handleRegChange(v: string) {
+    const formatted = formatBizReg(v);
     setForm((f) => ({ ...f, regNum: formatted }));
     setRegHelper({ text: '예: 123-45-67890', warn: false });
   }
@@ -230,7 +232,10 @@ export default function BizInquiryPage() {
       /* shake + 첫 에러로 스크롤 — DOM 쿼리 후 비동기 (setState 반영 대기) */
       requestAnimationFrame(() => {
         shakeFields(bodyRef.current);
-        const first = bodyRef.current?.querySelector('.bi-input-warn');
+        /* TextField → .chp-field.input-warn / BiDropdown → .bi-input-warn */
+        const first = bodyRef.current?.querySelector(
+          '.chp-field.input-warn, .bi-input-warn',
+        );
         if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
       return;
@@ -241,17 +246,8 @@ export default function BizInquiryPage() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
-  /* Enter 키 다음 필드 이동 — textarea 제외 */
-  function handleEnterNext(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== 'Enter') return;
-    e.preventDefault();
-    const inputs = Array.from(
-      bodyRef.current?.querySelectorAll<HTMLInputElement>('.bi-input:not(.bi-textarea)') ?? [],
-    );
-    const idx = inputs.indexOf(e.currentTarget);
-    const next = inputs[idx + 1];
-    if (next) next.focus();
-  }
+  /* Enter 키 다음 필드 이동 — useInputNav 훅 사용 (chp-input / select 순회) */
+  const handleEnterNext = useInputNav(bodyRef);
 
   return (
     <div id="bi-body" ref={bodyRef} data-header-theme="light">
@@ -271,42 +267,42 @@ export default function BizInquiryPage() {
       <div id="bi-right">
         {/* 연락처 */}
         <FormSection label="연락처">
-          <BiTextField
+          <TextField
             id="bi-name"
             label="고객명 *"
             helper="고객명을 입력하세요."
             value={form.name}
-            warn={warns.has('name')}
+            error={warns.has('name') ? '고객명을 입력하세요.' : undefined}
             autoComplete="name"
             onChange={(v) => handleTextChange('name', v)}
             onKeyDown={handleEnterNext}
           />
-          <BiTextField
+          <TextField
             id="bi-email"
+            type="email"
             label="이메일 *"
             helper="이메일 주소를 입력하세요."
-            type="email"
             value={form.email}
-            warn={warns.has('email')}
+            error={warns.has('email') ? '이메일을 입력하세요.' : undefined}
             autoComplete="email"
             onChange={(v) => handleTextChange('email', v)}
             onKeyDown={handleEnterNext}
           />
-          <BiTextField
+          <TextField
             id="bi-phone"
-            label="전화번호 *"
-            helper={phoneHelper.text}
-            helperWarn={phoneHelper.warn}
             type="tel"
+            label="전화번호 *"
+            helper="전화번호를 입력하세요."
             value={form.phone}
-            warn={warns.has('phone')}
+            error={
+              phoneHelper.warn
+                ? phoneHelper.text
+                : warns.has('phone')
+                  ? '전화번호를 입력하세요.'
+                  : undefined
+            }
             autoComplete="tel"
-            onChange={(v) => {
-              /* 자동 하이픈은 별도 핸들러를 써야 cursor preservation 가능하지만,
-                 React controlled input 환경에서는 단순화. */
-              const fakeEvent = { target: { value: v } } as React.ChangeEvent<HTMLInputElement>;
-              handlePhoneChange(fakeEvent);
-            }}
+            onChange={handlePhoneChange}
             onBlur={handlePhoneBlur}
             onKeyDown={handleEnterNext}
           />
@@ -314,12 +310,12 @@ export default function BizInquiryPage() {
 
         {/* 사업체 정보 */}
         <FormSection label="사업체 정보">
-          <BiTextField
+          <TextField
             id="bi-company"
             label="상호명 *"
             helper="상호명을 입력하세요."
             value={form.company}
-            warn={warns.has('company')}
+            error={warns.has('company') ? '상호명을 입력하세요.' : undefined}
             onChange={(v) => handleTextChange('company', v)}
             onKeyDown={handleEnterNext}
           />
@@ -334,27 +330,24 @@ export default function BizInquiryPage() {
             onSelect={(v) => selectDropdown('type', v)}
             placeholderTitle="업종 선택"
           />
-          <BiTextField
+          <TextField
             id="bi-address"
             label="사업장 주소 *"
             helper="시/구/동 수준으로 입력하세요."
             value={form.address}
-            warn={warns.has('address')}
+            error={warns.has('address') ? '사업장 주소를 입력하세요.' : undefined}
             onChange={(v) => handleTextChange('address', v)}
             onKeyDown={handleEnterNext}
           />
-          <BiTextField
+          <TextField
             id="bi-reg-num"
-            label="사업자등록번호"
-            helper={regHelper.text}
-            helperWarn={regHelper.warn}
             type="tel"
+            label="사업자등록번호"
+            helper="예: 123-45-67890"
             value={form.regNum}
+            error={regHelper.warn ? regHelper.text : undefined}
             maxLength={12}
-            onChange={(v) => {
-              const fakeEvent = { target: { value: v } } as React.ChangeEvent<HTMLInputElement>;
-              handleRegChange(fakeEvent);
-            }}
+            onChange={handleRegChange}
             onBlur={handleRegBlur}
             onKeyDown={handleEnterNext}
           />
@@ -362,7 +355,7 @@ export default function BizInquiryPage() {
 
         {/* 현재 환경 */}
         <FormSection label="현재 환경">
-          <BiTextField
+          <TextField
             id="bi-equipment"
             label="보유 장비"
             helper="에스프레소 머신, 그라인더 등"
@@ -370,7 +363,7 @@ export default function BizInquiryPage() {
             onChange={(v) => handleTextChange('equipment', v)}
             onKeyDown={handleEnterNext}
           />
-          <BiTextField
+          <TextField
             id="bi-current-bean"
             label="사용 중인 원두"
             helper="현재 사용 중인 원두가 있으면 입력해 주세요."
@@ -460,87 +453,6 @@ function FormSection({ label, children }: { label: string; children: React.React
     <div className="bi-form-section">
       <div className="bi-section-label">{label}</div>
       <div className="bi-section-fields">{children}</div>
-    </div>
-  );
-}
-
-type BiTextFieldProps = {
-  id: string;
-  label: string;
-  helper?: string;
-  helperWarn?: boolean;
-  type?: string;
-  value: string;
-  warn?: boolean;
-  autoComplete?: string;
-  maxLength?: number;
-  onChange: (v: string) => void;
-  onBlur?: () => void;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-};
-
-function BiTextField({
-  id,
-  label,
-  helper,
-  helperWarn,
-  type = 'text',
-  value,
-  warn,
-  autoComplete,
-  maxLength,
-  onChange,
-  onBlur,
-  onKeyDown,
-}: BiTextFieldProps) {
-  const [focused, setFocused] = useState(false);
-  /* helper 표시 규칙 (프로토타입 동일):
-     - warn 상태면 항상 보임
-     - 비-warn 상태면 focus 시에만 보임 */
-  const helperVisible = (helperWarn || warn) || focused;
-  return (
-    <div className={`bi-field${warn ? ' bi-input-warn' : ''}`}>
-      <input
-        id={id}
-        className="bi-input"
-        type={type}
-        placeholder=" "
-        value={value}
-        autoComplete={autoComplete}
-        maxLength={maxLength}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => {
-          setFocused(false);
-          onBlur?.();
-        }}
-        onKeyDown={onKeyDown}
-      />
-      <label className="bi-floating-label" htmlFor={id}>
-        {label}
-      </label>
-      {helper && (
-        <div
-          className={`bi-helper${helperVisible ? ' visible' : ''}${
-            helperWarn || warn ? ' warn' : ''
-          }`}
-        >
-          {helper}
-        </div>
-      )}
-      {value && (
-        <button
-          type="button"
-          className="bi-input-action bi-clear-btn visible"
-          aria-label="삭제"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => onChange('')}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12,3C7.1,3,3,7,3,12s4.1,9,9,9,9-4,9-9S17,3,12,3ZM15.7,14.3c.4.4.4,1,0,1.4-.4.4-.5.3-.7.3s-.5,0-.7-.3l-2.3-2.3-2.3,2.3c-.2.2-.5.3-.7.3s-.5,0-.7-.3c-.4-.4-.4-1,0-1.4l2.3-2.3-2.3-2.3c-.4-.4-.4-1,0-1.4.4-.4,1-.4,1.4,0l2.3,2.3,2.3-2.3c.4-.4,1-.4,1.4,0,.4.4.4,1,0,1.4l-2.3,2.3,2.3,2.3Z" />
-          </svg>
-        </button>
-      )}
     </div>
   );
 }

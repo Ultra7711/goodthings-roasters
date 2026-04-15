@@ -40,6 +40,17 @@ export function useOrderNumberFormat(
     [onChange],
   );
 
+  /** TextField 컴포넌트처럼 string을 전달받는 경우 */
+  const handleChangeValue = useCallback(
+    (val: string) => {
+      const withoutPrefix = val.startsWith(PREFIX)
+        ? val.slice(PREFIX.length)
+        : val;
+      onChange(formatOrderNumber(withoutPrefix));
+    },
+    [onChange],
+  );
+
   const handleFocus = useCallback(
     (e: FocusEvent<HTMLInputElement>) => {
       if (!e.target.value) {
@@ -60,5 +71,5 @@ export function useOrderNumberFormat(
     [onChange],
   );
 
-  return { handleChange, handleFocus, handlePaste };
+  return { handleChange, handleChangeValue, handleFocus, handlePaste };
 }
