@@ -20,6 +20,12 @@ import {
   resolveAccountMerge,
   buildMergeMetadata,
 } from '@/lib/auth/accountMerge';
+import {
+  logAuthEvent,
+  maskEmail,
+  extractIp,
+  extractUserAgent,
+} from '@/lib/auth/logger';
 
 /* ── 네이버 API 응답 타입 ── */
 type NaverTokenResponse = {
@@ -62,6 +68,9 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const urlState = searchParams.get('state');
+
+  const ip = extractIp(request);
+  const userAgent = extractUserAgent(request);
 
   /* ── 0. CSRF state 검증 ── */
   const cookieStore = await cookies();
@@ -135,6 +144,15 @@ export async function GET(request: Request) {
   // block — 정책 위반 (예: 기존 Google·email 계정에 Naver 미검증 병합 시도, 시나리오 A)
   // 세션 미수립 상태라 signOut 없이 단순 리다이렉트 (ADR-001 §6.4 대칭성 참조)
   if (decision.action === 'block') {
+    logAuthEvent({
+      event: 'oauth.merge_blocked',
+      provider: 'naver',
+      emailMasked: maskEmail(email),
+      outcome: 'blocked',
+      errorCode: decision.code,
+      ip,
+      userAgent,
+    });
     return errRedirect(origin, decision.code);
   }
 
@@ -178,6 +196,15 @@ export async function GET(request: Request) {
   });
 
   if (linkError || !linkData?.properties?.hashed_token) {
+    logAuthEvent({
+      event: 'oauth.login.failed',
+      provider: 'naver',
+      emailMasked: maskEmail(email),
+      outcome: 'failed',
+      errorCode: 'naver_signin_failed',
+      ip,
+      userAgent,
+    });
     return errRedirect(origin, 'naver_signin_failed');
   }
 
@@ -188,9 +215,27 @@ export async function GET(request: Request) {
   });
 
   if (verifyError) {
+    logAuthEvent({
+      event: 'oauth.login.failed',
+      provider: 'naver',
+      emailMasked: maskEmail(email),
+      outcome: 'failed',
+      errorCode: 'naver_signin_failed',
+      ip,
+      userAgent,
+    });
     return errRedirect(origin, 'naver_signin_failed');
   }
 
+  logAuthEvent({
+    event: 'oauth.login.success',
+    provider: 'naver',
+    emailMasked: maskEmail(email),
+    outcome: 'success',
+    mergeAction: decision.action,
+    ip,
+    userAgent,
+  });
   // 세션 쿠키는 verifyOtp에서 이미 발급됨 — state 쿠키 소비 후 /mypage로 직접 리다이렉트
   const res = NextResponse.redirect(`${origin}/mypage`);
   res.cookies.delete(CSRF_COOKIE);

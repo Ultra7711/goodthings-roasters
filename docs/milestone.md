@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-16 (P2-1 완료 — Zustand 더미 auth action 제거 + logout/updatePassword Supabase 직접 연동 + 코드리뷰 반영(signOut 에러처리·에러메시지 한국화·모달 문구 수정). 다음: P2-2 RLS — Phase 3 스키마 설계 시 처리)
+> **최종 업데이트:** 2026-04-16 (P3-1a 완료 — OAuth 이벤트 구조화 로거 도입. logAuthEvent/maskEmail/extractIp/extractUserAgent 신규. Google·Naver·Kakao 콜백 3개 계측(success/failed/merge_blocked). 한국 개인정보보호법 §30 PII 최소화(이메일 마스킹). Vitest 43/43 통과. 다음: P3-2 Rate Limiting)
 
 ---
 
@@ -24,12 +24,12 @@
 |-------|---------|------|---------|--------|--------|
 | Phase 1 — Design | 5 | 5 | 0 | 0 | 100% |
 | Phase 2 — Frontend | 2 | 0 | 2 | 0 | ~80% |
-| Phase 3 — Backend | 3 | 0 | 1 | 2 | ~5% |
+| Phase 3 — Backend | 3 | 1 | 1 | 1 | ~15% |
 | Phase 4 — Infrastructure | 1 | 0 | 1 | 0 | ~20% |
 | Phase 5 — Quality Assurance | 3 | 0 | 0 | 3 | 0% |
 | User AI | 1 | 0 | 0 | 1 | 0% |
 
-**현재 위치: Phase 2-F P2-1 완료 — Zustand 더미 auth action 제거 + logout/updatePassword Supabase 직접 연동. 다음: P2-2 RLS (Phase 3 스키마 설계 후)**
+**현재 위치: P3-1a 완료 — OAuth 이벤트 로거 도입 + 이메일 마스킹 (개인정보보호법 §30 대응). 다음: P3-2 Rate Limiting (Upstash Redis)**
 
 ---
 
@@ -246,7 +246,7 @@
 | **P2-1** Zustand 인증 상태 제거 (리팩터링) | ✅ | `logout`/`withdraw` → `supabase.auth.signOut()` 직접 연동. `updatePassword` → `supabase.auth.updateUser()` 연동. store.ts 더미 action(`logout`/`withdraw`/`updatePassword`) 제거. 코드리뷰 HIGH 2건·MEDIUM 4건 반영. (2026-04-16) |
 | **P2-2** Supabase RLS 정책 | ⬜ | `orders`·`profiles`·`cart_items` 테이블에 `auth.uid()` 기반 정책 |
 | ~~**P2-3**~~ generateLink 서버 세션 발급 | ✅ | P0-3에 흡수 완료 (verifyOtp 방식으로 달성) |
-| **P3-1** OAuth 이벤트 로깅 | ⬜ | 로그인 성공/실패·CSRF 실패 이벤트 구조화 로깅 |
+| **P3-1** OAuth 이벤트 로깅 | ✅ | **P3-1a** logger.ts 신규 (`logAuthEvent`/`maskEmail`/`extractIp`/`extractUserAgent`). Google·Naver·Kakao 콜백 3개 계측(`oauth.login.success`/`oauth.login.failed`/`oauth.merge_blocked`). 이메일 마스킹 PII 최소화(개인정보보호법 §30). Vitest 43/43. Phase 3-B에서 `auth_logs` 테이블로 교체 예정. (2026-04-16) |
 | **P3-2** 로그인/콜백 Rate Limiting | ⬜ | Upstash Redis + `@upstash/ratelimit` IP 단위 제한 |
 | RBAC / 인가 정책 | ⬜ | admin/customer 역할 분리 — Phase 3-10 이후 |
 | 최종 보안 감사 | ⬜ | P0~P2 완료 후 security-reviewer 전면 감사 |

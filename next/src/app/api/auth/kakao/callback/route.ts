@@ -18,6 +18,12 @@ import {
   resolveAccountMerge,
   buildMergeMetadata,
 } from '@/lib/auth/accountMerge';
+import {
+  logAuthEvent,
+  maskEmail,
+  extractIp,
+  extractUserAgent,
+} from '@/lib/auth/logger';
 
 /* ── 카카오 API 응답 타입 ── */
 type KakaoTokenResponse = {
@@ -61,6 +67,9 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const urlState = searchParams.get('state');
+
+  const ip = extractIp(request);
+  const userAgent = extractUserAgent(request);
 
   /* ── 0. CSRF state 검증 ── */
   const cookieStore = await cookies();
@@ -140,6 +149,15 @@ export async function GET(request: Request) {
 
   // block — 세션 미수립 상태라 signOut 없이 단순 리다이렉트 (ADR §6.4 대칭성)
   if (decision.action === 'block') {
+    logAuthEvent({
+      event: 'oauth.merge_blocked',
+      provider: 'kakao',
+      emailMasked: maskEmail(email),
+      outcome: 'blocked',
+      errorCode: decision.code,
+      ip,
+      userAgent,
+    });
     return errRedirect(origin, decision.code);
   }
 
@@ -180,6 +198,15 @@ export async function GET(request: Request) {
   });
 
   if (linkError || !linkData?.properties?.hashed_token) {
+    logAuthEvent({
+      event: 'oauth.login.failed',
+      provider: 'kakao',
+      emailMasked: maskEmail(email),
+      outcome: 'failed',
+      errorCode: 'kakao_signin_failed',
+      ip,
+      userAgent,
+    });
     return errRedirect(origin, 'kakao_signin_failed');
   }
 
@@ -190,9 +217,27 @@ export async function GET(request: Request) {
   });
 
   if (verifyError) {
+    logAuthEvent({
+      event: 'oauth.login.failed',
+      provider: 'kakao',
+      emailMasked: maskEmail(email),
+      outcome: 'failed',
+      errorCode: 'kakao_signin_failed',
+      ip,
+      userAgent,
+    });
     return errRedirect(origin, 'kakao_signin_failed');
   }
 
+  logAuthEvent({
+    event: 'oauth.login.success',
+    provider: 'kakao',
+    emailMasked: maskEmail(email),
+    outcome: 'success',
+    mergeAction: decision.action,
+    ip,
+    userAgent,
+  });
   // 세션 쿠키는 verifyOtp에서 이미 발급됨 — state 쿠키 소비 후 /mypage로 직접 리다이렉트
   const res = NextResponse.redirect(`${origin}/mypage`);
   res.cookies.delete(CSRF_COOKIE);

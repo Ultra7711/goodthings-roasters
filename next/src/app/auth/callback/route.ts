@@ -22,6 +22,12 @@ import {
   resolveAccountMerge,
   buildMergeMetadata,
 } from '@/lib/auth/accountMerge';
+import {
+  logAuthEvent,
+  maskEmail,
+  extractIp,
+  extractUserAgent,
+} from '@/lib/auth/logger';
 
 /* ── Supabase 어드민 클라이언트 (서버 전용, 세션 비유지) ── */
 const supabaseAdmin = createClient(
@@ -35,6 +41,9 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   /** 로그인 후 이동할 경로 (기본: /mypage) */
   const next = searchParams.get('next') ?? '/mypage';
+
+  const ip = extractIp(request);
+  const userAgent = extractUserAgent(request);
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=auth_no_code`);
@@ -64,6 +73,15 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
 
   if (exchangeError || !sessionData?.user?.email) {
+    logAuthEvent({
+      event: 'oauth.login.failed',
+      provider: 'google',
+      emailMasked: '***',
+      outcome: 'failed',
+      errorCode: 'auth_exchange_failed',
+      ip,
+      userAgent,
+    });
     return NextResponse.redirect(`${origin}/login?error=auth_exchange_failed`);
   }
 
@@ -93,6 +111,15 @@ export async function GET(request: Request) {
 
   /* ── 3. block: signOut + sb-* 쿠키 수동 삭제 + 에러 리다이렉트 ── */
   if (decision.action === 'block') {
+    logAuthEvent({
+      event: 'oauth.merge_blocked',
+      provider: 'google',
+      emailMasked: maskEmail(userEmail),
+      outcome: 'blocked',
+      errorCode: decision.code,
+      ip,
+      userAgent,
+    });
     // signOut은 정상 경로에서 쿠키를 자동 삭제. 실패 대비 응답에서 수동 삭제.
     try {
       await supabase.auth.signOut();
@@ -167,5 +194,15 @@ export async function GET(request: Request) {
   }
   // allow_same: 기존 Google 재로그인 — 정규화 불필요
 
+  logAuthEvent({
+    event: 'oauth.login.success',
+    provider: 'google',
+    emailMasked: maskEmail(userEmail),
+    outcome: 'success',
+    userId: user.id,
+    mergeAction: decision.action,
+    ip,
+    userAgent,
+  });
   return NextResponse.redirect(`${origin}${next}`);
 }
