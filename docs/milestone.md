@@ -33,74 +33,17 @@
 
 ---
 
-## Phase 1 — Design
+## Phase 1 — Design ✅ (완료 · 상세는 산출물 참조)
 
-### 1. Research ✅
+| 그룹 | 산출물 | 핵심 |
+|------|--------|------|
+| 1. Research | `docs/archive/research-plan-v1.md`, `research/track-a~d-*.md`, `gtr-research-presentation.*` | 4트랙 프레임워크 + 23슬라이드 리포트 |
+| 2. UX Writing | `docs/ux-writing-v1.md`, `docs/gtr-design-guide.md` Part 7 | "차분한 자신감" 톤 + 페이지별 카피 시트 |
+| 3. Critique | `docs/design-qa-report.md` | ~250건 하드코딩→토큰 치환, 10페이지 비주얼 검증 |
+| 4. UI Design | `docs/gtr-design-guide.md` Part 0~6, `docs/layout-wireframe-v2.md`/`.html` | Warm-shifted B&W 토큰, 모션·Z-index·컴포넌트 토큰 |
+| 5. Handoff | `docs/prototype-handoff.md`, `goodthings_v1.0.html` :root | 179개 토큰, 12 서브 페이지·7 드로어·40+ 상태 함수 명세 |
 
-| 항목 | 상태 | 산출물 | 비고 |
-|------|------|--------|------|
-| 리서치 설계 | ✅ | `docs/archive/research-plan-v1.md` | 4트랙 리서치 프레임워크 수립 |
-| 경쟁사 벤치마킹 | ✅ | `docs/archive/research/track-a-*.md` | 동종 커피 브랜드 웹사이트 비교 분석 |
-| UX 벤치마킹 | ✅ | `docs/archive/research/track-b-*.md` | UX 패턴 비교 분석 |
-| 브랜드 포지셔닝 | ✅ | `docs/archive/research/track-c-*.md` | 브랜드 스펙트럼·차별화 포인트 |
-| 타겟 유저 분석 | ✅ | `docs/archive/research/track-d-*.md` | 페르소나·유저 시나리오 |
-| 리서치 프레젠테이션 | ✅ | `docs/archive/gtr-research-presentation.*` | 23슬라이드 통합 리포트 |
-| 설문/인터뷰 분석 | ➖ | — | 실제 유저 데이터 없음 (1인 프로젝트) |
-
----
-
-### 2. UX Writing ✅
-
-| 항목 | 상태 | 산출물 | 비고 |
-|------|------|--------|------|
-| 보이스 & 톤 가이드 | ✅ | `docs/gtr-design-guide.md` Part 7 | "차분한 자신감" 톤 정의 |
-| 섹션별 카피 시트 | ✅ | `docs/ux-writing-v1.md` | 페이지별 헤드라인·본문·CTA 카피 (상세) |
-| CTA 가이드 | ✅ | `docs/gtr-design-guide.md` Part 7 | 버튼 레이블·마이크로카피 패턴 |
-| 에러 메시지 가이드 | ✅ | `docs/ux-writing-v1.md` | 입력 검증·시스템 에러 메시지 톤 |
-| 용어 / 맞춤법 검수 | ✅ | — | 영문: sentence case, 한글 브랜드명: 굳띵즈 |
-
----
-
-### 3. Critique ✅
-
-| 항목 | 상태 | 산출물 | 비고 |
-|------|------|--------|------|
-| 디자인 크리틱 | ✅ | — | 5관점 디자인 비평 기반 전면 교정 완료 |
-| UX 크리틱 | ✅ | — | 프로토타입 구현 과정에서 사용자 흐름 검증 완료 |
-| UI 크리틱 | ✅ | `docs/design-qa-report.md` | 코드 레벨 토큰 일관성 감사 + 비주얼 검증 완료 |
-| 브랜드 일관성 검증 | ✅ | — | 브랜드명 통일(굳띵즈), 컬러·폰트·모션 토큰 전면 교정 |
-| 디자인 QA | ✅ | `docs/design-qa-report.md` | ~250건 하드코딩→토큰 치환, 10페이지 비주얼 검증 완료 |
-
----
-
-### 4. UI Design ✅
-
-| 항목 | 상태 | 산출물 | 비고 |
-|------|------|--------|------|
-| 컬러 시스템 | ✅ | `docs/gtr-design-guide.md` Part 1 | Warm-shifted B&W 토큰 체계, 구현 완전 일치 |
-| 타이포그래피 스케일 | ✅ | `docs/gtr-design-guide.md` Part 2 | Display~Label 15단계 + Caption 토큰 신규 |
-| 스페이싱 & 그리드 | ✅ | `docs/gtr-design-guide.md` Part 3 | 4px 기반, 4 브레이크포인트 |
-| 모션 토큰 | ✅ | `docs/gtr-design-guide.md` Part 4 | 6 duration + 4 easing 토큰 |
-| Z-index 체계 | ✅ | `docs/gtr-design-guide.md` Part 5 | 8단계 레이어 토큰 |
-| 컴포넌트 토큰 | ✅ | `docs/gtr-design-guide.md` Part 6 | CTA·Tab·TextLink·CloseBtn·Arrow·Icon |
-| 브랜드 에센스 | ✅ | `docs/gtr-design-guide.md` Part 0 | 차별점·전환 목표·UX 원칙 통합 |
-| 아이콘 시스템 | ✅ | `goodthings_v1.0.html` + `images/icons/` | inline SVG 전환 완료, 상태별 아이콘 분기 |
-| 레이아웃 와이어프레임 | ✅ | `docs/layout-wireframe-v2.md`, `.html` | 데스크탑 + 모바일, 실제 구현값 반영 v2.1 |
-| 인터랙션 스펙 | ✅ | `docs/gtr-design-guide.md` Part 4 | 모션 토큰 + 안티패턴 정의 |
-| ~~Photoshop 시안 제작~~ | ➖ | — | HTML 프로토타입으로 대체 완료 |
-| ~~모바일 시안 제작~~ | ➖ | — | Next.js 전환 시 반응형 구현으로 대체 |
-
----
-
-### 5. Handoff ✅
-
-| 항목 | 상태 | 산출물 | 비고 |
-|------|------|--------|------|
-| 디자인 토큰 파일 (CSS) | ✅ | `goodthings_v1.0.html` :root | 179개 토큰, ~320건 하드코딩 치환 완료 |
-| 컴포넌트 명세서 | ✅ | `docs/prototype-handoff.md` | 12 서브 페이지, 7 드로어/패널, 9 데이터 구조, 40+ 상태 함수 |
-| 상태별 동작 스펙 | ✅ | `docs/prototype-handoff.md` | 페이지 열기/닫기 패턴, 카트, 검색 4계층, 폼 5종, 애니메이션 |
-| 핸드오프 스펙 문서 | ✅ | `docs/prototype-handoff.md` | 14개 섹션, Next.js 전환 결정 사항 포함 |
-| 접근성 기초 적용 | ✅ | `goodthings_v1.0.html` | aria-label 7개, skip-nav, 갤러리 alt, 검색 label |
+> Photoshop/모바일 별도 시안 ➖ — HTML 프로토타입 + Next.js 반응형으로 대체
 
 ---
 
@@ -142,78 +85,46 @@
 
 ---
 
-### 🔒 프로덕션 전 필수 처리
+### 🔒 프로덕션 전 필수 처리 (잔여)
 
-> 코드 리뷰에서 도출된 항목. 해당 작업 단계에서 반드시 함께 처리한다.
+> 완료 항목은 git log 참조. 미완만 잔존.
 
 | ID | 이슈 | 처리 시점 | 상태 |
 |----|------|-----------|------|
 | H3 | 사업자 정보 소스코드 하드코딩 → 환경변수/DB 이관 | Phase 2-G | ⬜ |
-| H4 | Pretendard CDN SRI 미적용 → 로컬 폰트 전환 | Phase 2-A | ✅ |
-| H5 | Footer 전체 `'use client'` → Server/Client 분리 | Phase 2-B | ✅ |
-| H6 | Header 정적 부분 클라이언트 번들 포함 → `useCartStore` 직접 구독 | Phase 2-C | ✅ |
 | M7 | CSP 등 보안 응답 헤더 미설정 → `next.config.ts` headers() | Phase 2-G | ⬜ |
-| **P0-1** | OAuth `state` 쿠키 미설정 → CSRF 방어 (Naver/Kakao 커스텀 라우트) | Phase 2-F (즉시) | ✅ |
-| **P0-2** | Zustand `isLoggedIn` ↔ Supabase 세션 괴리 → `AuthSyncProvider` 브리지 | Phase 2-F (즉시) | ✅ |
-| **P0-3** | magic link implicit flow race condition → `verifyOtp` 서버사이드 세션 발급 | Phase 2-F (즉시) | ✅ |
-| **P0-4** | `useAuthGuard` Zustand 판정 → `getSession()` 폴백 안전망 | Phase 2-F (즉시) | ✅ |
-| **P1-2** | 보호 라우트 클라이언트 가드 의존 → Server Component `supabase.auth.getUser()` 가드 도입 | Phase 2-F | ✅ |
-| **P1-1** | IdP 이메일 검증(`email_verified`) 미확인 + 계정 병합 정책 부재 → ADR-001 코드 이행 | Phase 2-F | ✅ |
 
 ---
 
 ### 🔍 코드 리뷰 계획
 
-> 각 단계 구현 완료 직후 리뷰 실행, 지적 사항 반영 후 커밋. 결제·인증 단계는 security-reviewer 추가 투입.
+> 각 Phase 완료 직후 리뷰어 병렬 실행, 지적 사항 반영 후 커밋. 결제·인증 단계는 security-reviewer 추가 투입. 상세 기록은 각 커밋 메시지·handover 메모리 참조.
 
-#### 원개발 단계 (R-x)
+#### 원개발 (R-x)
 
-| 순서 | 대상 | 리뷰어 | 상태 |
-|------|------|--------|------|
-| R-0a~c | 상품·메뉴·갤러리 컴포넌트 | ts-reviewer + code-reviewer | ✅ HIGH 13 + MEDIUM 5 |
-| R-1 | 복합 UI (2-A: Drawer·Modal·Toast) | ts-reviewer + code-reviewer | ✅ HIGH 3 + MEDIUM 5 |
-| R-2 | 상품 상세 (2-B) | ts-reviewer + code-reviewer | ✅ HIGH 5 + MEDIUM 3 |
-| R-3 | 장바구니·체크아웃 (2-C) | ts-reviewer + security-reviewer | ✅ HIGH 5 + MEDIUM 2 |
-| R-4 | 로그인·마이페이지 (2-D) | ts-reviewer + code-reviewer + security-reviewer | ✅ HIGH 9 |
-| R-5 | 플로우 복구 (2-E) + `/biz-inquiry` | ts-reviewer + code-reviewer | ⬜ |
-| R-6 | 검색 시스템 + 콘텐츠 (2-F) | ts-reviewer + code-reviewer + security-reviewer | ⬜ |
-| R-7 | 반응형 + 프로덕션 (2-G) | ts-reviewer + code-reviewer + security-reviewer | ⬜ |
+| 순서 | 대상 | 결과 |
+|------|------|------|
+| R-0a~c · R-1~R-4 | 상품·메뉴·갤러리·2-A~2-D 전체 | ✅ HIGH 35 + MEDIUM 15 수정 |
+| R-5 | 2-E 플로우 복구 + `/biz-inquiry` | ⬜ (RP 재이식 이후 필요 시) |
+| R-6 | 2-F 검색 + 콘텐츠 | ⬜ |
+| R-7 | 2-G 반응형 + 프로덕션 | ⬜ |
 
 #### pixel-port 재이식 (RP-x)
 
-> `claude/pixel-port` 브랜치 — 각 Phase 완료 + 시각 확인 직후 3총사(ts-reviewer + code-reviewer + security-reviewer) 병렬 실행.
+> `claude/pixel-port` 브랜치 — 각 RP 완료 + 시각 확인 직후 3총사(ts-reviewer + code-reviewer + security-reviewer) 병렬.
 
-| 순서 | 대상 | 상태 |
-|------|------|------|
-| RP-1 | 공통 레이아웃 (Header·Footer·AnnouncementBar) | ✅ |
-| RP-2 | 홈 섹션 7개 | ✅ |
-| RP-3 | Shop 페이지 재이식 | ✅ |
-| RP-4 | 상품 상세 재이식 | ✅ |
-| RP-5 | 카페 메뉴 페이지 재이식 | ✅ |
-| RP-6 | Story · BizInquiry · GoodDays 재이식 | ✅ |
-| RP-7 | 체크아웃 + OrderComplete 재이식 | ✅ |
-| RP-8 | 로그인 + MyPage 재이식 + 인풋필드 UX 전면 적용 | ✅ |
-| RP-9 | TextField/Textarea 공통화 + 3총사 리뷰 Pass 1 | ✅ |
-| RP-10 | 검색 시스템 4-layer 재이식 (TDD 80%↑) | ⬜ |
-| RP-11 | 반응형(4 breakpoints) + 프로덕션 (CSP·환경변수·빌드) | ⬜ |
-
-#### RP 완료 기록
-
-**RP-1, RP-2** 완료 (2026-04-11): 3총사 병렬. HIGH 7건 + MEDIUM 2건 수정. useCallback 안정화·DOM 직접 조작 제거·BizToggle React state 전환·env var.
-
-**RP-3** 완료 (2026-04-11~12, `18af1435`→`09365e43`): ts-reviewer + code-reviewer. HIGH 3건 + MEDIUM 2건 수정. Shop 재클릭 `resetTick` 패턴, backdrop-filter GPU 충돌 → inline style 우회. Deferred 4건(`docs/code-review-deferred.md`).
-
-**RP-4** 완료 (2026-04-12, `a7b19102`): 3총사 병렬. HIGH 5건 수정. 데이터 소스 삼중화 제거(`lib/products.ts` canonical), RecipeGuide 컬러 일러스트 7종 이식, 전체 매진 엣지 케이스 처리.
-
-**RP-5** 완료 (2026-04-12): 3총사 병렬. URL 쿼리 복구(`?cat=&item=`), React 19 `set-state-in-effect` 대응, ShopPage `bodyRef` → callback ref. Deferred 3건.
-
-**RP-6** 완료 (2026-04-12, `d3aec51e`): Story·BizInquiry·GoodDays 재이식. 3총사 병렬. HIGH 3건 수정(setTimeout cleanup·body overflow 소유권·set-state-in-effect). same-page reentry 패턴(`gtr:*-reset` + `resetTick`). Deferred 6건.
-
-**RP-7** 완료 (2026-04-12, `037946e7`): CheckoutPage + OrderCompletePage 재이식. PurchaseRow 장바구니 완전 연결. Cart persist(Zustand). 3총사 리뷰는 RP-9에서 일괄 처리.
-
-**RP-8** 완료 (2026-04-13, `c87a9ea2`): LoginPage + MyPagePage 재이식. 인풋필드 UX 전면 적용 — blur 검증·자동 포맷(`usePhoneFormat`·`useOrderNumberFormat`)·아이콘 접근성. 전용 훅 7종 신규.
-
-**RP-9** 완료 (2026-04-15, `8752d3b9`→`50e6820e`): (A-1) bi-field↔chp-field 통합·`TextField` 공통 컴포넌트 추출. (A-2) `SearchIcon`·`ClearIcon` 공통화. (A-3) `Textarea` 공통화·잔여 `.bi-*` CSS 정리. **3총사 리뷰 Pass 1** (RP-7~RP-9 전체 대상) — CRITICAL 2건(DEMO_CREDENTIALS dev-only 격리)·HIGH 7건(span→button 교체·스크롤 셀렉터 버그·타이머 ref·totalQty 구독 통일·formatPhone 중복·비밀번호 최소 길이·StoredOrderSummary 타입)·MEDIUM 12건(EMAIL_RE 강화·zipcode 검증·WARN_CLEARABLE_KEYS·매직 넘버 상수화·`as never` 제거 등) 수정. Deferred 5건(인증 구조·OAuth whitelist·비번 재설정 UX·파일 분리는 Phase 2-F 처리, PASSWORD_MAX_LENGTH 16 현행 유지).
+| 순서 | 대상 | 커밋 | 결과 |
+|------|------|------|------|
+| RP-1~2 | 공통 레이아웃 + 홈 섹션 7개 | 2026-04-11 | ✅ HIGH 7 + MEDIUM 2 |
+| RP-3 | Shop 재이식 | `18af1435`→`09365e43` | ✅ HIGH 3 + MEDIUM 2 · Deferred 4 |
+| RP-4 | 상품 상세 재이식 | `a7b19102` | ✅ HIGH 5 · `lib/products.ts` canonical |
+| RP-5 | 카페 메뉴 재이식 | 2026-04-12 | ✅ URL 쿼리 복구 · Deferred 3 |
+| RP-6 | Story · BizInquiry · GoodDays | `d3aec51e` | ✅ HIGH 3 · same-page reentry · Deferred 6 |
+| RP-7 | Checkout + OrderComplete | `037946e7` | ✅ PurchaseRow 카트 연결 · Cart persist |
+| RP-8 | Login + MyPage + 인풋 UX | `c87a9ea2` | ✅ blur 검증·자동 포맷·전용 훅 7종 |
+| RP-9 | TextField/Textarea 공통화 + 3총사 Pass 1 | `8752d3b9`→`50e6820e` | ✅ CRITICAL 2 · HIGH 7 · MEDIUM 12 · Deferred 5 |
+| RP-10 | 검색 시스템 4-layer (TDD 80%↑) | — | ⬜ |
+| RP-11 | 반응형(4 BP) + 프로덕션(CSP·env·빌드) | — | ⬜ |
 
 ---
 
@@ -237,22 +148,24 @@
 >
 > **원칙:** 3-tier separation — Zustand(UI) / Supabase(Session) / Server+RLS(Security boundary). Zustand 는 UX 힌트일 뿐 보안 경계가 아니다.
 
+**완료 (2026-04-15~16):**
+
+| 항목 | 결과 |
+|------|------|
+| 인증 플로우 설계 | `docs/oauth-security-plan.md` + ADR-001 |
+| P0-1~4 · P1-1~2 | CSRF state 쿠키 + AuthSyncProvider + verifyOtp 서버세션 + useAuthGuard 폴백 + Server Component 가드 + ADR-001 계정 병합(E2E 시나리오 1~3 통과, `accountMerge.test.ts` 21케이스) |
+| P2-1 Zustand 인증 상태 제거 | `signOut`/`updateUser` 직접 연동. 더미 action 제거. 코드리뷰 HIGH 2·MEDIUM 4 반영 |
+| ~~P2-3~~ | P0-3에 흡수 완료 |
+| P3-1 OAuth 이벤트 로깅 | `logger.ts` + 이메일 마스킹(개인정보보호법 §30). Vitest 43/43. Phase 3-B에서 `auth_logs` 테이블 교체 예정 |
+| P3-2 Rate Limiting | `@upstash/ratelimit` Sliding Window. initiate 10/60s · callback 20/60s. 5개 라우트. Vitest 56/56 |
+
+**잔여:**
+
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| 인증 플로우 설계 | ✅ | `docs/oauth-security-plan.md` + ADR-001 작성 완료 (2026-04-15) |
-| **P0-1** OAuth state 쿠키 (CSRF) | ✅ | Naver/Kakao 콜백에 HttpOnly+SameSite=Lax CSRF 쿠키 검증·소비 구현 (2026-04-16) |
-| **P0-2** AuthSyncProvider (Zustand↔Supabase 브리지) | ✅ | `onAuthStateChange` → Zustand 동기화. `app/layout.tsx` 최상위 마운트 (2026-04-16) |
-| **P0-3** magic link race condition → verifyOtp 서버세션 | ✅ | `hashed_token` → `verifyOtp` 서버사이드 소비. `lib/supabaseServer.ts` 신규. Kakao·Naver·Google 3종 정상화 (2026-04-16) |
-| **P0-4** useAuthGuard getSession 폴백 | ✅ | Zustand 미로그인 시 `supabase.auth.getSession()` 이중 확인 안전망 (2026-04-16) |
-| **P1-2** 보호 라우트 Server Component 가드 | ✅ | `/mypage`·`/checkout` Server Component + `supabase.auth.getUser()` 서버 사이드 검증 완료 (2026-04-16) |
-| **P1-1** 이메일 검증 + 계정 병합 (ADR-001 코드 이행) | ✅ | `lib/auth/{providers,syntheticEmail,accountMerge}.ts` 구현. Naver/Kakao/Google 3종 callback 연동 + LoginPage `account_conflict_*` 메시지. ADR §6.4 Google PKCE 제약 리뷰어 기록. **E2E 시나리오 1~3 통과** + `accountMerge.test.ts` Vitest 21 케이스 통과. Issue 1 Google `iss` fallback 탐지 + 자기참조 가드 수정 (2026-04-16) |
-| **P2-1** Zustand 인증 상태 제거 (리팩터링) | ✅ | `logout`/`withdraw` → `supabase.auth.signOut()` 직접 연동. `updatePassword` → `supabase.auth.updateUser()` 연동. store.ts 더미 action(`logout`/`withdraw`/`updatePassword`) 제거. 코드리뷰 HIGH 2건·MEDIUM 4건 반영. (2026-04-16) |
-| **P2-2** Supabase RLS 정책 | ⬜ | `orders`·`profiles`·`cart_items` 테이블에 `auth.uid()` 기반 정책 |
-| ~~**P2-3**~~ generateLink 서버 세션 발급 | ✅ | P0-3에 흡수 완료 (verifyOtp 방식으로 달성) |
-| **P3-1** OAuth 이벤트 로깅 | ✅ | **P3-1a** logger.ts 신규 (`logAuthEvent`/`maskEmail`/`extractIp`/`extractUserAgent`). Google·Naver·Kakao 콜백 3개 계측(`oauth.login.success`/`oauth.login.failed`/`oauth.merge_blocked`). 이메일 마스킹 PII 최소화(개인정보보호법 §30). Vitest 43/43. Phase 3-B에서 `auth_logs` 테이블로 교체 예정. (2026-04-16) |
-| **P3-2** 로그인/콜백 Rate Limiting | ✅ | `@upstash/ratelimit` Sliding Window. `auth_initiate` 10req/60s, `auth_callback` 20req/60s. 5개 라우트 적용(Naver/Kakao 시작·콜백, Google 콜백). 환경변수 미설정 시 패스스루. Vitest 56/56. (2026-04-16) |
+| P2-2 Supabase RLS 정책 | ⬜ | Backend P0 에서 `relforcerowsecurity=true` 6개 테이블 + 정책 11개 선적용. 앱 레벨 `cart_items` 설계는 Phase 3 스키마 확장 시 |
 | RBAC / 인가 정책 | ⬜ | admin/customer 역할 분리 — Phase 3-10 이후 |
-| 최종 보안 감사 | ⬜ | P0~P2 완료 후 security-reviewer 전면 감사 |
+| 최종 보안 감사 | ⬜ | P2-2 완료 후 security-reviewer 전면 감사 |
 
 ### 10. Payment & Order ⬜
 
@@ -280,99 +193,21 @@
 
 ---
 
-## Phase 5 — Quality Assurance
+## Phase 5 — Quality Assurance ⬜
 
-### 12. Accessibility ⬜
+> 개발 완료 후 일괄 실시. 현재 착수 항목 없음.
 
-| 항목 | 상태 | 비고 |
+| 그룹 | 항목 | 비고 |
 |------|------|------|
-| WCAG 2.1 AA 자동 검수 | ⬜ | 개발 완료 후 실시 |
-| 접근성 수정 적용 | ⬜ | — |
-
-### 13. Performance & SEO ⬜
-
-| 항목 | 상태 | 비고 |
-|------|------|------|
-| Core Web Vitals 분석 | ⬜ | 배포 후 측정 |
-| 번들 최적화 | ⬜ | Next.js 빌드 최적화 |
-| SEO (메타·구조화데이터) | ⬜ | — |
-
-### 14. Testing & QA ⬜
-
-| 항목 | 상태 | 비고 |
-|------|------|------|
-| 크로스 브라우저 QA | ⬜ | Chrome·Safari·Firefox·Edge |
-| 시각적 회귀 테스트 | ⬜ | — |
-| E2E 시나리오 테스트 | ⬜ | Playwright 기반 예정 |
+| 12. Accessibility | WCAG 2.1 AA 자동 검수 + 수정 | — |
+| 13. Performance & SEO | Core Web Vitals · 번들 최적화 · 메타·구조화데이터 | 배포 후 측정 |
+| 14. Testing & QA | 크로스 브라우저(Chrome·Safari·Firefox·Edge) · 시각 회귀 · E2E(Playwright) | — |
 
 ---
 
-## User AI
-
-### 15. User AI ⬜
+## User AI ⬜
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
 | AI 페르소나 시뮬레이션 | ⬜ | 리서치 페르소나 기반 대화 검증 가능 |
 | 유저 클론 검증 | ➖ | 실제 유저 데이터 필요 (서비스 출시 후) |
-
----
-
-## 산출물 전체 맵
-
-| 파일 | Phase | 그룹 |
-|------|-------|------|
-| `docs/archive/research-plan-v1.md` | 1-Design | Research |
-| `docs/archive/research/track-*.md` (4개) | 1-Design | Research |
-| `docs/archive/gtr-research-presentation.*` | 1-Design | Research |
-| `docs/ux-writing-v1.md` | 1-Design | UX Writing |
-| `docs/gtr-design-guide.md` (v2.0) | 1-Design | UI Design |
-| `docs/gtr-design-guide.html` | 1-Design | UI Design |
-| `docs/layout-wireframe-v2.md` (v2.1) | 1-Design | UI Design |
-| `docs/layout-wireframe-v2.html` | 1-Design | UI Design |
-| `docs/design-qa-report.md` | 1-Design | Critique (Design QA) |
-| `docs/prototype-handoff.md` | 1-Design | Handoff |
-| `goodthings_v1.0.html` | 2-Frontend | Frontend Dev |
-| `docs/GTR_infrastructure.md` | 4-Infra | DevOps & Deploy |
-| `docs/ecc-workflow-guide.md` | — | ECC 워크플로우 가이드 |
-
----
-
-## 다음 단계 로드맵
-
-```
-현재 위치
-    ↓
-┌─────────────────────────────────────────────────────┐
-│  Phase 1 — Design ✅ 완료                              │
-└──────────────────────────┬──────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────┐
-│  Phase 2 — Frontend (~80%)                            │
-│                                                       │
-│  ✅ 2-A~E: 공통 레이아웃·상품·메뉴·갤러리·            │
-│            장바구니·결제·로그인·마이페이지·플로우      │
-│  ✅ RP-1~9: pixel-port 재이식 + 3총사 리뷰 Pass 1    │
-│  ⬜ 2-F: 검색 시스템 4-layer + 콘텐츠 채우기          │
-│  ⬜ 2-G: 반응형(4 BP) + 프로덕션 마무리(CSP·env)     │
-└──────────────────────────┬──────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────┐
-│  Phase 3 — Backend                                    │
-│                                                       │
-│  ⑩ Supabase DB 스키마 설계 + RLS                      │
-│  ⑪ API Route Handler 구현                             │
-│  ⑫ Supabase Auth 연동 (이메일 + 소셜)                 │
-│  ⑬ 토스페이먼츠 결제 연동                              │
-│  ⑭ 주문 프로세스 상태 머신                             │
-└──────────────────────────┬──────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────┐
-│  Phase 4+5 — Infra & QA                               │
-│                                                       │
-│  ⑮ Vercel 배포 + 도메인 연결                           │
-│  ⑯ 모니터링 (Sentry + Vercel Analytics)               │
-│  ⑰ WCAG 2.1 AA 접근성 + Core Web Vitals              │
-│  ⑱ 크로스 브라우저 QA + E2E 테스트                     │
-└─────────────────────────────────────────────────────┘
-```
