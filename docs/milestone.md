@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-12 (RP-7 완료 — 체크아웃+주문완료 재이식 + 장바구니 담기 연결 + Cart persist. 다음: RP-8 로그인+MyPage)
+> **최종 업데이트:** 2026-04-15 (RP-9 완료 — TextField/Textarea 공통화 + 3총사 리뷰 Pass 1. 다음: B-1 Daum Postcode 연동)
 
 ---
 
@@ -23,21 +23,19 @@
 | Phase | 그룹 수 | 완료 | 진행 중 | 미착수 | 진행률 |
 |-------|---------|------|---------|--------|--------|
 | Phase 1 — Design | 5 | 5 | 0 | 0 | 100% |
-| Phase 2 — Frontend | 2 | 0 | 2 | 0 | ~30% |
+| Phase 2 — Frontend | 2 | 0 | 2 | 0 | ~80% |
 | Phase 3 — Backend | 3 | 0 | 0 | 3 | 0% |
 | Phase 4 — Infrastructure | 1 | 0 | 1 | 0 | ~20% |
 | Phase 5 — Quality Assurance | 3 | 0 | 0 | 3 | 0% |
 | User AI | 1 | 0 | 0 | 1 | 0% |
 
-**현재 위치: Phase 1 — Design 100% 완료 → Phase 2 Next.js 전환 준비**
+**현재 위치: Phase 2 Next.js 전환 진행 중 — RP-9 완료(인풋필드 공통화·3총사 리뷰 반영). 다음: 검색 시스템 (2-F)**
 
 ---
 
 ## Phase 1 — Design
 
 ### 1. Research ✅
-
-리서치 전 과정의 계획, 수집, 분석, 아카이빙.
 
 | 항목 | 상태 | 산출물 | 비고 |
 |------|------|--------|------|
@@ -53,8 +51,6 @@
 
 ### 2. UX Writing ✅
 
-브랜드 가이드 기반 카피 작성과 라이팅 품질 검수.
-
 | 항목 | 상태 | 산출물 | 비고 |
 |------|------|--------|------|
 | 보이스 & 톤 가이드 | ✅ | `docs/gtr-design-guide.md` Part 7 | "차분한 자신감" 톤 정의 |
@@ -66,8 +62,6 @@
 ---
 
 ### 3. Critique ✅
-
-디자인 품질을 다각도로 피드백하고 QA.
 
 | 항목 | 상태 | 산출물 | 비고 |
 |------|------|--------|------|
@@ -81,8 +75,6 @@
 
 ### 4. UI Design ✅
 
-UI 생성, 반응형 변환, 인터랙션 설계.
-
 | 항목 | 상태 | 산출물 | 비고 |
 |------|------|--------|------|
 | 컬러 시스템 | ✅ | `docs/gtr-design-guide.md` Part 1 | Warm-shifted B&W 토큰 체계, 구현 완전 일치 |
@@ -92,7 +84,7 @@ UI 생성, 반응형 변환, 인터랙션 설계.
 | Z-index 체계 | ✅ | `docs/gtr-design-guide.md` Part 5 | 8단계 레이어 토큰 |
 | 컴포넌트 토큰 | ✅ | `docs/gtr-design-guide.md` Part 6 | CTA·Tab·TextLink·CloseBtn·Arrow·Icon |
 | 브랜드 에센스 | ✅ | `docs/gtr-design-guide.md` Part 0 | 차별점·전환 목표·UX 원칙 통합 |
-| 아이콘 시스템 | ✅ | `goodthings_v1.0.html` + `images/icons/` | inline SVG 전환 완료, 상태별 아이콘 분기 (location_add/change 등) |
+| 아이콘 시스템 | ✅ | `goodthings_v1.0.html` + `images/icons/` | inline SVG 전환 완료, 상태별 아이콘 분기 |
 | 레이아웃 와이어프레임 | ✅ | `docs/layout-wireframe-v2.md`, `.html` | 데스크탑 + 모바일, 실제 구현값 반영 v2.1 |
 | 인터랙션 스펙 | ✅ | `docs/gtr-design-guide.md` Part 4 | 모션 토큰 + 안티패턴 정의 |
 | ~~Photoshop 시안 제작~~ | ➖ | — | HTML 프로토타입으로 대체 완료 |
@@ -102,11 +94,9 @@ UI 생성, 반응형 변환, 인터랙션 설계.
 
 ### 5. Handoff ✅
 
-디자인에서 개발로의 스펙 전달.
-
 | 항목 | 상태 | 산출물 | 비고 |
 |------|------|--------|------|
-| 디자인 토큰 파일 (CSS) | ✅ | `goodthings_v1.0.html` :root | 179개 토큰 (컬러 4개 신규 추가), ~320건 하드코딩 치환 완료 |
+| 디자인 토큰 파일 (CSS) | ✅ | `goodthings_v1.0.html` :root | 179개 토큰, ~320건 하드코딩 치환 완료 |
 | 컴포넌트 명세서 | ✅ | `docs/prototype-handoff.md` | 12 서브 페이지, 7 드로어/패널, 9 데이터 구조, 40+ 상태 함수 |
 | 상태별 동작 스펙 | ✅ | `docs/prototype-handoff.md` | 페이지 열기/닫기 패턴, 카트, 검색 4계층, 폼 5종, 애니메이션 |
 | 핸드오프 스펙 문서 | ✅ | `docs/prototype-handoff.md` | 14개 섹션, Next.js 전환 결정 사항 포함 |
@@ -118,112 +108,106 @@ UI 생성, 반응형 변환, 인터랙션 설계.
 
 ### 6. Frontend Development 🔄
 
-디자인 스펙을 실제 코드로 구현.
-
 | 항목 | 상태 | 산출물 | 비고 |
 |------|------|--------|------|
 | HTML 프로토타입 | ✅ | `goodthings_v1.0.html` (11,100+ lines) | 12 서브 페이지, 검색 시스템, 장바구니, 결제, 마이페이지, 주문완료 UI |
-| CSS 디자인 토큰 적용 | ✅ | CSS Custom Properties | 컬러·폰트·letter-spacing·모션·z-index 179개 + 스페이싱 14+5 토큰 체계 완비 |
-| 인터랙션 / 애니메이션 | ✅ | 프로토타입 내 JS/CSS | 히어로 비디오, 스크롤 리빌, 드로어, 오버레이, 크로스페이드, 토스트 시스템 |
+| CSS 디자인 토큰 | ✅ | CSS Custom Properties | 컬러·폰트·letter-spacing·모션·z-index 179개 + 스페이싱 14+5 토큰 체계 |
+| 인터랙션 / 애니메이션 | ✅ | 프로토타입 내 JS/CSS | 히어로 비디오, 스크롤 리빌, 드로어, 오버레이, 크로스페이드, 토스트 |
 | Next.js 프로젝트 셋업 | ✅ | `next/` | Tailwind v4 + 179 토큰 이관 완료 |
-| 공통 레이아웃 (Header/Footer) | ✅ | `next/src/components/` | 글래스모피즘 헤더, 푸터, 어나운스바, 코드 리뷰 8건 반영 |
-| 상태 관리 (Zustand) | ✅ | `next/src/lib/store.ts` | 장바구니·인증 스토어 + Header 직접 연동 |
-| UI 베이스 컴포넌트 | ✅ | `next/src/components/ui/` | Button·Input·Tabs·Badge 4종, 리뷰 8건 수정 반영 |
-| 페이지 라우팅 셋업 | ✅ | `next/src/app/` | /story, /menu, /shop, /gooddays 4개 라우트 + Metadata SEO |
-| 상품 컴포넌트 | ✅ | `next/src/components/product/` | ProductCard·ProductGrid — IO 스크롤 리빌, 리뷰 13건 수정 완료 |
-| 메뉴 컴포넌트 | ✅ | `next/src/components/menu/` | MenuCard·MenuGrid·NutritionDrawer — Tabs 필터 + 온도 배지 + 540px 우측 슬라이드인 영양정보 드로어(Radix Dialog), 리뷰 수정 완료 |
-| 갤러리 컴포넌트 | ✅ | `next/src/components/gallery/` | GalleryGrid·Cell·Lightbox·GalleryClient — 벤토 5패턴, 리뷰 수정 완료 |
-| 공통 히어로 컴포넌트 | ✅ | `next/src/components/layout/PageHero` | 3개 페이지 DRY 추출, CSS Module 토큰 적용 |
-| 복합 UI 컴포넌트 (2-A) | ✅ | `next/src/components/ui/` | Drawer·Modal·Toast + Pretendard 로컬 폰트, R-1 리뷰 9건 수정, 스페이싱 토큰 적용 |
-| 상품 상세 페이지 (2-B) | ✅ | `next/src/components/product/`, `next/src/app/shop/[slug]/` | ImageGallery·PurchaseOptions·RadarChart·RoastStage·RecipeGuide·ProductAccordion 11컴포넌트, SSG 6상품, R-2 리뷰 7건 수정 |
-| 장바구니·체크아웃 (2-C) | ✅ | `next/src/components/cart/`, `next/src/components/checkout/`, `next/src/components/order/`, `next/src/app/(checkout)/` | CartDrawer(4)·CheckoutForm(5)·OrderComplete 13컴포넌트 + Route Group `(main)`/`(checkout)` 분리 + H6 Header `openDrawer` 직접 연동, R-3 리뷰 HIGH 5건 + MEDIUM 2건 수정 |
-| 로그인·마이페이지 (2-D) | ✅ | `next/src/app/(main)/login/`, `next/src/app/(main)/mypage/`, `next/src/components/login/`, `next/src/components/mypage/`, `next/src/components/ui/ConfirmModal.tsx`, `next/src/hooks/{useLoginForm,useRegisterForm,useAuthGuard,useAddressForm,usePasswordChangeForm}.ts`, `next/src/lib/formHelpers.ts` | LoginForm·RegisterForm·PasswordResetForm·GuestLookupForm + MyPageView(Account·Subscription·Manage·OrderList) + ConfirmModal + `useAuthGuard`(`useSyncExternalStore` 기반 SSR 안전, `/mypage` static prerender 복구). R-4 리뷰 HIGH 9건 수정 완료 (PII 최소화·inert·중첩 interactive·비동기 모달). **묶음 보강 (2026-04-10):** (1) `formHelpers.focusNextOnEnter` 유틸 신규, IME 조합 가드 포함 → LoginForm·RegisterForm·ManageSection 비밀번호 변경 폼에 Enter 키 다음 필드 이동 적용, (2) `useAuthGuard.bypassRedirect()` 추가 → MyPageView 로그아웃 시 `/login` 튐 레이스 수정(호출 순서 `bypassRedirect → logout → router.replace('/')`). 동적 helper text·실시간 validation 리팩토링은 이월. |
-| 플로우 복구 (2-E) | 🔄 | `next/src/app/(main)/cart/`, `next/src/components/cart/{CartPageView,CartPageRow}.*`, `next/src/lib/cartCalc.ts` | **2-E-1 ✅** `/cart` 풀페이지: CartPageView·CartPageRow 신규, `lib/cartCalc.ts` 공용 계산기로 DRY(드로어/풀페이지 공유), CartEmpty `variant='page'` 확장. **2-E-2 ✅** CartDrawer 푸터 `[장바구니 보기][주문하기]` 2버튼, `useProductPurchase` 상품 담기 시 `openDrawer()` 자동 호출 흡수. **2-E-3 ✅** 정적 에셋 이관 `public/images/{gallery,cafe-menu,icons,...}` (pixel-port P-0, 2026-04-10). **2-E-4 ⬜** `/biz-inquiry` B2B 폼. 런타임 검증은 2-E 전체 완료 후 일괄 수행. |
-| 검색 시스템 + 콘텐츠 (2-F) | ⬜ | — | **검색 엔진 코어** `lib/search/{constants,normalize,chosung,matcher,engine}` (4-layer + `SEARCH_SYNONYMS` + `CAT_LABEL` + 단음절 규칙 + NFC 재조합) + Vitest TDD 80%↑, **검색 오버레이 + `/search` SRP** (`.has-panel` 토글, Radix early return 금지), **콘텐츠 채우기**: GoodDays 갤러리 22장 연결 / Story 섹션 / MyPage ManageSection 실콘텐츠 |
-| 반응형 + 프로덕션 (2-G) | ⬜ | — | **반응형 일괄**: 카페 메뉴 카드 터치(`project_cat_card_hover_responsive`) / 영양정보 모바일 인라인 아코디언(`project_nutrition_panel_responsive`) / 구매 옵션 행(`project_purchase_row_responsive`) + 4 브레이크포인트(360/768/1024/1440) 회귀 점검. **프로덕션 전 필수 처리** 5건(H3·H4·H5·H6·M7) 잔여 마감. **`useFormValidation` 훅 통일** (`project_nextjs_form_validation`) — 로그인/회원가입/체크아웃/주소/비번/비즈문의 6개 폼 마이그레이션 |
+| 공통 레이아웃 (Header/Footer) | ✅ | `next/src/components/` | 글래스모피즘 헤더, 푸터, 어나운스바, 코드 리뷰 반영 |
+| 상태 관리 (Zustand) | ✅ | `next/src/lib/store.ts` | 장바구니·인증 스토어 + Cart persist(localStorage) |
+| UI 베이스 컴포넌트 | ✅ | `next/src/components/ui/` | TextField·Textarea·Button·Tabs·Badge 등, 코드 리뷰 반영 |
+| 페이지 라우팅 | ✅ | `next/src/app/` | /story, /menu, /shop, /gooddays + Metadata SEO |
+| 상품 컴포넌트 | ✅ | `next/src/components/product/` | ProductCard·ProductGrid — IO 스크롤 리빌, 리뷰 반영 |
+| 메뉴 컴포넌트 | ✅ | `next/src/components/menu/` | CafeMenuCard·CafeMenuGrid·NutritionDrawer — Tabs 필터, 영양정보 드로어(Radix) |
+| 갤러리 컴포넌트 | ✅ | `next/src/components/gallery/` | GalleryGrid·Cell·Lightbox — 벤토 5패턴 |
+| 공통 히어로 컴포넌트 | ✅ | `next/src/components/layout/PageHero` | 3개 페이지 DRY 추출 |
+| 복합 UI (2-A) | ✅ | `next/src/components/ui/` | Drawer·Modal·Toast + Pretendard 로컬 폰트 |
+| 상품 상세 (2-B) | ✅ | `next/src/components/product/`, `next/src/app/shop/[slug]/` | ImageGallery·PurchaseOptions·RadarChart·RoastStage·RecipeGuide·ProductAccordion, SSG 6상품 |
+| 장바구니·체크아웃 (2-C) | ✅ | `next/src/components/cart/`, `next/src/components/checkout/`, `next/src/components/order/` | CartDrawer·CheckoutPage·OrderCompletePage, Route Group `(main)`/`(checkout)` 분리 |
+| 로그인·마이페이지 (2-D) | ✅ | `next/src/app/(main)/login/`, `next/src/app/(main)/mypage/`, `next/src/components/auth/` | LoginForm·RegisterForm·MyPageView + ConfirmModal + `useAuthGuard`(SSR 안전) |
+| 플로우 복구 (2-E) | ✅ | `next/src/app/(main)/cart/`, `next/src/components/biz/` | `/cart` 풀페이지, CartDrawer 2버튼, 정적 에셋 이관, `/biz-inquiry` B2B 폼 |
+| 검색 시스템 + 콘텐츠 (2-F) | ⬜ | — | 검색 엔진 4-layer, 검색 오버레이 + SRP, GoodDays/Story/MyPage 콘텐츠 채우기 |
+| 반응형 + 프로덕션 (2-G) | ⬜ | — | 4 브레이크포인트(360/768/1024/1440) 반응형, CSP·환경변수·빌드 최종화 |
 
 ---
 
 ### 7. Content & Asset 🔄
 
-디자인 에셋 최적화·체계화와 콘텐츠 데이터 바인딩.
-
 | 항목 | 상태 | 산출물 | 비고 |
 |------|------|--------|------|
 | 이미지 최적화 (WebP/AVIF) | 🔄 | 프로토타입 내 일부 WebP | 본격 파이프라인 미구축 |
-| 아이콘 시스템 | ✅ | `goodthings_v1.0.html` inline SVG | Lucide 기반 inline SVG + `--color-icon-default` 토큰, 원본 SVG 파일 `images/icons/` 동기화 |
+| 아이콘 시스템 | ✅ | `goodthings_v1.0.html` inline SVG | Lucide 기반 inline SVG + `--color-icon-default` 토큰, `images/icons/` 동기화 |
 | 콘텐츠 매핑 (DB↔UI) | ⬜ | — | Supabase 스키마 확정 후 설계 |
 
 ---
 
-### 🔒 프로덕션 전 필수 처리 (코드 리뷰 지적 사항)
+### 🔒 프로덕션 전 필수 처리
 
-> 3명 리뷰어(code-reviewer, typescript-reviewer, security-reviewer) 교차 검증에서 도출된 항목.
-> 각 항목은 해당 작업 단계에서 반드시 함께 처리한다.
+> 코드 리뷰에서 도출된 항목. 해당 작업 단계에서 반드시 함께 처리한다.
 
-| ID | 이슈 | 처리 시점 | 담당 작업 | 상태 |
-|----|------|-----------|-----------|------|
-| H3 | 사업자 정보(휴대폰·이메일) 소스코드 하드코딩 → 환경변수/DB 이관 | Phase 2-G — 프로덕션 마무리 | `.env.local` 임시 이관 → Phase 3에서 DB 이관 | ⬜ |
-| H4 | Pretendard CDN — SRI 미적용 → 로컬 폰트 전환 | Phase 2-A — 복합 UI 시 | `next/font/local`로 전환, CDN 의존 제거 | ✅ |
-| H5 | Footer 전체 `'use client'` → Server/Client 분리 | Phase 2-B — 상품 상세 시 | `BizInfoToggle` 분리, Footer 셸은 Server Component | ✅ |
-| H6 | Header 정적 부분이 클라이언트 번들에 포함 → 경계 재설계 | Phase 2-C — 장바구니 시 | Header가 `useCartStore.openDrawer` 직접 구독, `onCartClick` prop 제거 | ✅ |
-| M7 | CSP 등 보안 응답 헤더 미설정 | Phase 2-G — 프로덕션 마무리 | `next.config.ts` headers() 설정 | ⬜ |
+| ID | 이슈 | 처리 시점 | 상태 |
+|----|------|-----------|------|
+| H3 | 사업자 정보 소스코드 하드코딩 → 환경변수/DB 이관 | Phase 2-G | ⬜ |
+| H4 | Pretendard CDN SRI 미적용 → 로컬 폰트 전환 | Phase 2-A | ✅ |
+| H5 | Footer 전체 `'use client'` → Server/Client 분리 | Phase 2-B | ✅ |
+| H6 | Header 정적 부분 클라이언트 번들 포함 → `useCartStore` 직접 구독 | Phase 2-C | ✅ |
+| M7 | CSP 등 보안 응답 헤더 미설정 → `next.config.ts` headers() | Phase 2-G | ⬜ |
 
 ---
 
 ### 🔍 코드 리뷰 계획
 
-> 각 단계 구현 완료 직후 리뷰를 실행하고, 지적 사항 반영 후 커밋한다.
-> 결제·인증 관련 단계는 security-reviewer를 추가 투입한다.
+> 각 단계 구현 완료 직후 리뷰 실행, 지적 사항 반영 후 커밋. 결제·인증 단계는 security-reviewer 추가 투입.
 
-| 순서 | 대상 | 리뷰어 | 보안 리뷰 | 상태 |
-|------|------|--------|----------|------|
-| R-0a | 상품 컴포넌트 (ProductCard·ProductGrid) | ts-reviewer + code-reviewer | — | ✅ H5 M6 수정 |
-| R-0b | 메뉴 컴포넌트 (MenuCard·MenuGrid) | ts-reviewer + code-reviewer | — | ✅ H9 M4 수정 |
-| R-0c | 갤러리 컴포넌트 (GalleryGrid·Cell·Lightbox) | ts-reviewer + code-reviewer | — | ✅ H6 M5 수정 |
-| R-1 | 복합 UI (2-A: Drawer·Modal·Toast) | ts-reviewer + code-reviewer | — | ✅ H3 M5 수정 |
-| R-2 | 상품 상세 (2-B: Gallery·Purchase·Tabs·Nutrition) | ts-reviewer + code-reviewer | — | ✅ H5 M3 수정 |
-| R-3 | 장바구니·체크아웃 (2-C: CartDrawer·CheckoutForm) | ts-reviewer + code-reviewer | ✅ security | ✅ HIGH 5 + MEDIUM 2 수정 |
-| R-4 | 로그인·마이페이지 (2-D: LoginForm·MyPage) | ts-reviewer + code-reviewer | ✅ security | ✅ HIGH 9 수정 |
-| R-5 | 플로우 복구 (2-E: `/cart`·CartDrawer 2버튼·에셋·`/biz-inquiry`) | ts-reviewer + code-reviewer | — | ⬜ |
-| R-6 | 검색 시스템 + 콘텐츠 (2-F: 검색 엔진·오버레이·SRP·Story/GoodDays/MyPage) | ts-reviewer + code-reviewer | ✅ security (검색 입력 XSS) | ⬜ |
-| R-7 | 반응형 + 프로덕션 (2-G: 반응형·체크리스트 5건·useFormValidation) | ts-reviewer + code-reviewer | ✅ security (CSP) | ⬜ |
+#### 원개발 단계 (R-x)
 
-#### pixel-port 재이식 리뷰 (claude/pixel-port 브랜치)
+| 순서 | 대상 | 리뷰어 | 상태 |
+|------|------|--------|------|
+| R-0a~c | 상품·메뉴·갤러리 컴포넌트 | ts-reviewer + code-reviewer | ✅ HIGH 13 + MEDIUM 5 |
+| R-1 | 복합 UI (2-A: Drawer·Modal·Toast) | ts-reviewer + code-reviewer | ✅ HIGH 3 + MEDIUM 5 |
+| R-2 | 상품 상세 (2-B) | ts-reviewer + code-reviewer | ✅ HIGH 5 + MEDIUM 3 |
+| R-3 | 장바구니·체크아웃 (2-C) | ts-reviewer + security-reviewer | ✅ HIGH 5 + MEDIUM 2 |
+| R-4 | 로그인·마이페이지 (2-D) | ts-reviewer + code-reviewer + security-reviewer | ✅ HIGH 9 |
+| R-5 | 플로우 복구 (2-E) + `/biz-inquiry` | ts-reviewer + code-reviewer | ⬜ |
+| R-6 | 검색 시스템 + 콘텐츠 (2-F) | ts-reviewer + code-reviewer + security-reviewer | ⬜ |
+| R-7 | 반응형 + 프로덕션 (2-G) | ts-reviewer + code-reviewer + security-reviewer | ⬜ |
 
-> 각 Phase 구현 완료 + 사용자 시각 확인 직후 3총사(ts-reviewer + code-reviewer + security-reviewer) 병렬 실행.
-> 지적 사항 반영 후 커밋한다.
+#### pixel-port 재이식 (RP-x)
 
-| 순서 | 대상 | 리뷰어 | 보안 리뷰 | 상태 |
-|------|------|--------|----------|------|
-| RP-1 | 공통 레이아웃 (AnnouncementBar·SiteHeader·SiteFooter·BizToggle·SRInitializer·useHeaderTheme·headerThemeConfig·layout.tsx) | ts-reviewer + code-reviewer + security-reviewer | — | ✅ |
-| RP-2 | 홈 섹션 7개 (HeroSection·CafeMenuSection·PhilSection·BeansScrollSection·TwoColSection·RoasterySection·GoodDaysSection·useSR·page.tsx·globals.css) | ts-reviewer + code-reviewer + security-reviewer | — | ✅ |
-| RP-3 | Shop 페이지 재이식 | ts-reviewer + code-reviewer | — | ✅ |
-| RP-4 | 상품 상세 재이식 (ImageGallery·PurchaseOptions·RoastStage·RadarChart·RecipeGuide·ProductAccordion) | ts-reviewer + code-reviewer | — | ✅ |
-| RP-5 | 카페 메뉴 페이지 재이식 | ts-reviewer + architect + silent-failure-hunter | — | ✅ |
-| RP-6 | Story + 보조 페이지 재이식 (/biz-inquiry·/gooddays·/story) | ts-reviewer + architect + silent-failure-hunter | — | ✅ |
-| RP-7 | 체크아웃 + OrderComplete 재이식 | ts-reviewer + code-reviewer | ✅ security | ✅ |
-| RP-8 | 로그인 + MyPage 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
-| RP-9 | CartDrawer + /cart 풀페이지 재이식 | ts-reviewer + code-reviewer | ✅ security | ⬜ |
-| RP-10 | 검색 시스템 4-layer 재이식 (TDD 80%↑) | ts-reviewer + code-reviewer | ✅ security (XSS) | ⬜ |
-| RP-11 | 반응형(4 breakpoints) + 프로덕션 (CSP·환경변수·빌드) | ts-reviewer + code-reviewer | ✅ security (CSP) | ⬜ |
+> `claude/pixel-port` 브랜치 — 각 Phase 완료 + 시각 확인 직후 3총사(ts-reviewer + code-reviewer + security-reviewer) 병렬 실행.
 
-**R-0a~c**: 완료 (2026-04-10). ts-reviewer ×3 + code-reviewer 병렬 실행, HIGH 13건 + MEDIUM 5건 수정 반영.
-**R-1**: 완료 (2026-04-10). ts-reviewer + code-reviewer 병렬 실행, HIGH 3건 + MEDIUM 5건 + LOW 3건 수정 반영. 포커스 관리·접근성 대비·토큰 수정·타입 안전성 개선.
-**R-2**: 완료 (2026-04-10). ts-reviewer + code-reviewer 병렬 실행, HIGH 5건 + MEDIUM 3건 수정 반영. setTimeout cleanup·ARIA role 충돌·useEffect 의존성·aria-controls·alt 텍스트·use client 경계 명시.
-**R-3**: 완료 (2026-04-10). ts-reviewer + security-reviewer 병렬 실행, HIGH 5건 + MEDIUM 2건 수정. OrderCompleteClient `useRef`→`useState` (ESLint react-hooks/refs 블록), 이메일 형식 정규식, 전화번호 형식 정규식, 비회원 비밀번호 최소 길이(4자), `FREE_SHIPPING_THRESHOLD`/`SHIPPING_FEE` 상수 `lib/store`에서 단일 export, `extractKrName` 유틸 `lib/utils`로 추출. 백엔드 연동 전 필수 처리(평문 비밀번호·서버 재검증·주문번호 서버 생성·CSP 헤더)는 Phase 2-F로 이관.
-**RP-3**: 완료 (2026-04-11). ShopCard(Quick Add 패널·빠른 추가·스크롤 reveal)·ShopFilterTabs(isMounted 스냅·isInitRef baseDelay)·ShopPage·products.ts 신규 이식. backdrop-filter GPU 충돌→inline style 우회, button-in-button→div[role=button] 전환, CSS hover 룰 제거→JS inline opacity, 볼륨 버튼 290ms 통일. 코드 리뷰 H-1~H-3 + M-4~M-5 수정, Deferred(M-1~M-3·H-4) docs/code-review-deferred.md 기록. 후속 폴리시(2026-04-12, `18af1435`): 헤더 Shop 재클릭 시 `resetTick` 카운터로 카드 key 변경 → 탭 전환과 동일한 속도감(baseDelay 0 + col stagger)으로 remount. 매진 카드도 hover 시 바가 등장하도록 분기 제거 + 뱃지 상시 표시, `.sp-qa-bar--disabled` opacity 상속으로 정돈. unmount cleanup useEffect 추가(타이머 leak 방지, ECC 삼총사 교차 검증 수용).
-**RP-1, RP-2**: 완료 (2026-04-11). ts-reviewer + code-reviewer + security-reviewer 3총사 병렬 실행, HIGH 7건 수정 (useCallback 안정화·DOM 직접 조작 제거·cleanup·BizToggle React state 전환·중복 id 제거·rel 수정·env var) + MEDIUM 2건 수정 (scrollIntoView·fallback '—'). useSR.ts dead code 삭제, SRInitializer 신규 생성, page.tsx 서버 컴포넌트 전환.
-**R-4**: 완료 (2026-04-10). typescript-reviewer + code-reviewer + security-reviewer 병렬 실행, HIGH 9건 수정. (1) ConfirmModal 비동기 `onConfirm` 지원 + `isPending` 상태로 ESC/overlay 닫기 차단, (2) Level 2 PII 최소화 — localStorage에 `{isLoggedIn, displayName}`만 저장, user 객체는 메모리 only, (3) 크로스 스토어 `purgeSession()` 헬퍼로 로그아웃 시 authStorage + cartStorage 동시 클리어, (4-5) 데모 크리덴셜/유저 명백한 placeholder화 (`demo@goodthings.test` / `010-0000-0000`), (6) 아코디언 3종 `aria-hidden`+`tabIndex` → React 19 `inert` 속성 전환, (7) OrderCard 중첩 interactive HTML 위반 수정 (meta 행을 토글 버튼 바깥으로 분리), (8) `useAuthGuard` zustand persist unsubscribe 타입 가드 (NOOP fallback), (9) `/mypage` Static prerender (`useSyncExternalStore` 기반 SSR 안전). TypeScript pass · ESLint 0 errors · next build 성공 · 런타임 검증 (Claude Preview MCP) 완료.
-**RP-5**: 완료 (2026-04-12). 프로토타입 `#cafe-menu-page` 를 `/menu` 라우트로 재이식. 파일 격리 원칙 준수 — `.cm-*` 클래스 신규 작성(ShopCard 재활용 금지). 구성: `lib/cafeMenu.ts`(CAFE_MENU 20건 + 필터/정렬 유틸·NEW 우선 stable sort) · `CafeMenuPage`(카테고리 필터 + 그리드 + 페이지네이션) · `CafeFilterTabs`(슬라이딩 인디케이터) · `CafeMenuGrid` · `CafeMenuCard`(이미지 + 이름 + 가격 + NEW 뱃지 + 인라인 오버레이 상세). URL 쿼리 복구 구현 — `?cat=brewing&item=b04` 형식으로 필터/하이라이트 타겟 지정, `item` 이 현재 필터와 불일치 시 `all` 로 폴백 후 재검색(silent failure 방지). Home CafeMenuSection `.cm-spec a` 링크 → `/menu?cat=<id>&item=<id>` 로 연결. **React 19 대응**: `react-hooks/set-state-in-effect` 룰 활성화 — CafeMenuPage 의 URL 동기화를 "adjusting state during render" 패턴으로 전환(prev 값 비교 후 인라인 setState), 하이라이트 타이머는 `highlightTimeoutRef` 로 race 보호. `react-hooks/refs` 룰 대응 — CafeMenuPage/ShopPage `bodyRef` → `useState` callback ref 로 전환, ShopPage `isInitRef` 는 baseDelay 고정 의도로 유지 + 블록 레벨 `eslint-disable` 처리. 기존 6개 파일(SiteHeader/ProductAccordions/ProductDetailPage/ProductGallery/PurchaseRow/useHeaderTheme)의 legitimate prop-sync useEffect 에 `eslint-disable` + 의도 주석 추가. `/menu` 라우트는 `useSearchParams` 사용으로 Suspense 바운더리 필수 — CafeMenuPage 를 `<Suspense fallback={<div id="cm-body" />}>` 으로 래핑해 SSG prerender CSR bailout 회피. **3총사 교차검증**: typescript-reviewer + architect + silent-failure-hunter 병렬 실행, HIGH 반영(ShopPage ESLint parity fix·stable sort 인덱스 tie-breaker·target 불일치 폴백·scrollIntoView 하이라이트 복원). **Deferred**: URL `?cat` 양방향 sync(프로토타입에 없음) · `resetTick`/`gtr:cafe-menu-reset` 브릿지(프로토타입에 없음) · 공통 Pagination 컴포넌트 추출. tsc pass · eslint 0 errors · next build 성공 · 런타임 검증 완료(4개 URL 케이스: /menu, ?cat=signature, ?cat=brewing&item=b04, ?cat=dessert&item=s01 폴백).
+| 순서 | 대상 | 상태 |
+|------|------|------|
+| RP-1 | 공통 레이아웃 (Header·Footer·AnnouncementBar) | ✅ |
+| RP-2 | 홈 섹션 7개 | ✅ |
+| RP-3 | Shop 페이지 재이식 | ✅ |
+| RP-4 | 상품 상세 재이식 | ✅ |
+| RP-5 | 카페 메뉴 페이지 재이식 | ✅ |
+| RP-6 | Story · BizInquiry · GoodDays 재이식 | ✅ |
+| RP-7 | 체크아웃 + OrderComplete 재이식 | ✅ |
+| RP-8 | 로그인 + MyPage 재이식 + 인풋필드 UX 전면 적용 | ✅ |
+| RP-9 | TextField/Textarea 공통화 + 3총사 리뷰 Pass 1 | ✅ |
+| RP-10 | 검색 시스템 4-layer 재이식 (TDD 80%↑) | ⬜ |
+| RP-11 | 반응형(4 breakpoints) + 프로덕션 (CSP·환경변수·빌드) | ⬜ |
 
-**RP-6 폴리시** (2026-04-12, `a3527a74`·`d3aec51e`): 디자인 가이드 V2(`docs/gtr-design-guide.html` — 5단계 텍스트 토큰 + 클릭-복사 hex). 굿데이즈 instant 라이트박스(`?img=` query → `gd-lb-instant` CSS → 2 rAF 후 해제). 로케이션 영업시간 재정리(주소 제거, 매장이용/라스트오더 안내 추가, `~` 범위 표기 통일). 라벨 컬러 배경별 분리(`--color-label-on-white:#A08B6D` / `--color-label-on-warm:#857052`). SR 토글 재생(메인 페이지 `data-sr`→`data-sr-toggle`, SRInitializer 듀얼 IO). 스토리 페이지 `data-sr-story` 분리(SRInitializer 충돌 방지). 영업시간 라벨 개선(`오늘은 21:00까지 영업합니다` / `내일은 12:00에 오픈합니다`). 비즈니스 관심제품 체크박스→복수선택 드롭다운 전환. 미사용 CSS 정리 대상 확인: `.bi-check-group`·`.bi-check-label`·`.bi-check-row`·`.bi-check-item`·`.bi-note-icon`·`--color-accent-gold`·`--color-accent-warm`.
+#### RP 완료 기록
 
-**RP-6**: 완료 (2026-04-12). 프로토타입 `#story-page`·`#biz-page`·`#gd-page` 를 `/story`·`/biz-inquiry`·/gooddays` 라우트로 재이식. 파일 격리 — `.st-*` / `.bi-*` / `.gd-*` 클래스 신규 작성(chp-*·기존 카드 재활용 금지). **6a Story**: `lib/story.ts`(STORY_HERO·STORY_TWO_COL·STORY_PROMISE·STORY_LOCATION) + `StoryPage`(히어로 200/450ms 순차 페이드 + sr-txt/sr-img 토글 IO threshold 0.3) + Location 해시 앵커(`/story#location`). SR 시스템 race 해결: SRInitializer 가 one-shot 이라 Story 의 토글 동작과 충돌 → `[data-sr-toggle]` marker attribute 분리(`[data-sr]:not([data-sr-toggle])`). KR 히어로 250ms 딜레이를 transition shorthand 인라인으로 보강(L4961~4966 parity). **6b Biz Inquiry**: `lib/biz.ts`(BIZ_FIELDS·VALIDATION) + `BizInquiryPage`(커스텀 드롭다운 outside-click·전화번호 자동 하이픈·blur 형식 검증·warn Set·필수 필드 게이트) + `useToast` Zustand store + `ToastContainer` portal. SiteFooter 는 RSC 유지하면서 Wholesale 링크만 `FooterWholesaleLink` client leaf 로 분할 → `gtr:biz-reset` 디스패치. **6c Good Days**: `lib/gooddays.ts`(`buildGoodDaysGrid()` 순수 함수 — featured 우선 + placeholder fallback 매거진 배치) + `GoodDaysPage`(타이틀 rAF×2 anim + 셀 IO row-index×70ms stagger + 인라인 라이트박스 600ms settled + Esc/Arrow 키보드). headerThemeConfig 에 `/gooddays: light` 등록. **6d 등장 연출 parity**: `@keyframes pageEnter` 350ms spring 추가(프로토타입 L733), `#st-body / #bi-body / #gd-page` 적용. SR 스태거 d1=0/d2=150/d3=300/d4=450ms 검증. **same-page reentry**: SiteHeader 에 handleStoryClick·handleMenuClick·handleGoodDaysClick 추가, `gtr:story-reset`·`gtr:menu-reset`·`gtr:gooddays-reset` window 이벤트 + 각 페이지 `resetTick` state 로 재진입 시 연출 재트리거. **3총사 교차검증 HIGH 3건 반영**: typescript-reviewer + architect + silent-failure-hunter 병렬. (H1) StoryPage `setHeroEnVisible(false)` 동기 setState `react-hooks/set-state-in-effect` 위반 → 첫 호출만 disable directive 추가. (H2) GoodDaysPage `openLightbox` 600ms `setTimeout` cleanup 누락 → `settleTimerRef` 보관 + `openLightbox`/`closeLightbox`/언마운트 시 clearTimeout(빠른 열기/닫기 시 다음 진입의 black 시작 상태 스킵 방지). (H3) GoodDaysPage body overflow `prev` 캡처 패턴 → 다른 페이지에서 `'hidden'` 인 채 진입 시 영구 잠금 위험 → cleanup 시 빈 문자열 직접 해제(라이트박스가 lock 소유). pre-existing jsx-a11y 미사용 disable 2건 정리. **Deferred (RP-7 진입 전 권장)**: same-page reentry 추상화(`useSamePageReset` hook + 통합 nav 핸들러), `usePageEnterAnimation` hook(resetTick + timeout + IO 3중 수동 조율 통일), Toast 정책 재정의(배열 큐 vs 단일 정책), SiteHeader 326라인 컴포지션 분할(Nav/Search/Icons), Biz `handleSubmit` 형식 warn 게이트 보강, `buildGoodDaysGrid` featured slot 사전 검증. tsc pass · eslint 0 errors/warnings · next build 성공.
+**RP-1, RP-2** 완료 (2026-04-11): 3총사 병렬. HIGH 7건 + MEDIUM 2건 수정. useCallback 안정화·DOM 직접 조작 제거·BizToggle React state 전환·env var.
 
-**RP-7**: 완료 (2026-04-12, `037946e7`). 프로토타입 `#checkout-page`·`#order-complete-page` 를 `/checkout`·`/order-complete` 독립 라우트로 재이식. `(main)` 라우트 그룹 밖 배치 — SiteHeader/SiteFooter 없이 자체 미니 헤더만 사용. **CheckoutPage**: 5섹션 폼(연락처·배송지·비회원PW·결제수단·약관동의) + 오른쪽 sticky 주문 요약. floating label input(`:placeholder-shown`+`:focus`), 커스텀 드롭다운(배송 메시지), 결제수단 카드/계좌이체 슬라이딩 인디케이터 탭, 약관 전체동의+개별동의 체크박스(SVG 아이콘), 주문 제출 시 주문번호 생성(`GT-YYYYMMDD-NNNNN`) → sessionStorage 저장 → `/order-complete` 이동 + 장바구니 클리어. **OrderCompletePage**: sessionStorage 에서 주문 읽기, 주문번호 클립보드 복사, 상품 카드(카테고리·한글명·볼륨·수량·가격), staggerUp 진입 연출. **PurchaseRow 장바구니 연결**: `handleCart()` 빈 placeholder → `useCartStore.addItem` + `useToast` 완전 연결(slug·name·price·qty·color·image·type·period·category·volume). **Cart Store persist**: Zustand persist middleware 추가(`gtr-cart-store` localStorage, items only partialize) — 페이지 이동 시 장바구니 유지. **globals.css**: `chp-*`(체크아웃) + `ocp-*`(주문완료) CSS ~350줄 추가. headerThemeConfig `/order-complete: light` 등록. **Deferred**: 3총사 리뷰 미실행(다음 세션 권장), 반응형 미적용(RP-11). tsc pass · next build 성공 · 런타임 검증 완료.
+**RP-3** 완료 (2026-04-11~12, `18af1435`→`09365e43`): ts-reviewer + code-reviewer. HIGH 3건 + MEDIUM 2건 수정. Shop 재클릭 `resetTick` 패턴, backdrop-filter GPU 충돌 → inline style 우회. Deferred 4건(`docs/code-review-deferred.md`).
 
-**RP-4**: 완료 (2026-04-11~12). 메인 이식 (`bcf1ffc7`) + 에디토리얼 튜닝 패스 (`07149fd3`) + 3총사 리뷰 반영 커밋 (`a7b19102`) + Recipe Guide 폴리시 2건 (`29b2264b`·`e88ecc1b`). ProductGallery·PurchaseRow·ProductDetailBody·ProductRoastStage·ProductFlavorNote·ProductRecipeGuide·ProductAccordions 구성. 튜닝 내용: 스펙 카드 warm-beige 프레임화 + 로스팅 포인트 텍스트 제거(게이지와 중복), Flavor Note 레이더 500×500 확대 + pill 태그 레이더 하단 재배치(margin-top:-40px 로 이하 섹션 동반 상승), Recipe Guide 2×2 카드 그리드(모바일 1열), 아코디언 헤더 Inter→Pretendard·16px/400/secondary + 본문 위계 재설정. **3총사 교차검증 HIGH 5건 반영 (2026-04-12)**: typescript-reviewer + architect + silent-failure-hunter 병렬 실행. (H1) 데이터 소스 삼중화 제거 — `lib/productData.ts`·`types/product.ts` 삭제, `lib/products.ts` canonical + `ProductStatus`·`RoastStage`·`DripBagRecipe` union 타입 도입. (H2) ProductRoastStage `colorRaf` closure leak 수정 — 상위 scope 로 끌어올려 재진입/언마운트 시 `cancelAnimationFrame` 가능. (H3) 전체 볼륨 매진 엣지 케이스 — ProductDetailPage 가격 숨김 + PurchaseRow `disabled` 게이트 통합(`allSoldOut` 판정). (H4) `getStatusBadgeClass` 공유 헬퍼 추출 — ShopCard ↔ ProductDetailPage 중복 제거. (H5) `splitName()` 공유 유틸로 `extractKrName`·`splitProductName` 통합. `peru-de-caffein` 10개 soldOut drift 해결. pixel-port 원칙 준수 — ProductAccordions 하드코딩 테이블은 프로토타입 대조 결과 canonical 확인으로 유지. **Recipe Guide 폴리시 (2026-04-12)**: (1) 라인아트 아이콘 제거 → 196×196 컬러 일러스트 7종(커피빈 4 + 드립백 3) 이식, SVGO multipass 최적화(-13~-23%), ILLUST_SIZE 단일 상수 통합, 모바일 반응형 override 제거. 베이스라인 정렬은 소스 SVG 재정렬로 해결(bbox bottom 177.31~179.54 범위). (2) 레시피 범위 표기 `-` → `~` 공백없음으로 통일 (TIP 라인 톤 정합, 한글 UX 관례). tsc pass · build 성공.
+**RP-4** 완료 (2026-04-12, `a7b19102`): 3총사 병렬. HIGH 5건 수정. 데이터 소스 삼중화 제거(`lib/products.ts` canonical), RecipeGuide 컬러 일러스트 7종 이식, 전체 매진 엣지 케이스 처리.
+
+**RP-5** 완료 (2026-04-12): 3총사 병렬. URL 쿼리 복구(`?cat=&item=`), React 19 `set-state-in-effect` 대응, ShopPage `bodyRef` → callback ref. Deferred 3건.
+
+**RP-6** 완료 (2026-04-12, `d3aec51e`): Story·BizInquiry·GoodDays 재이식. 3총사 병렬. HIGH 3건 수정(setTimeout cleanup·body overflow 소유권·set-state-in-effect). same-page reentry 패턴(`gtr:*-reset` + `resetTick`). Deferred 6건.
+
+**RP-7** 완료 (2026-04-12, `037946e7`): CheckoutPage + OrderCompletePage 재이식. PurchaseRow 장바구니 완전 연결. Cart persist(Zustand). 3총사 리뷰는 RP-9에서 일괄 처리.
+
+**RP-8** 완료 (2026-04-13, `c87a9ea2`): LoginPage + MyPagePage 재이식. 인풋필드 UX 전면 적용 — blur 검증·자동 포맷(`usePhoneFormat`·`useOrderNumberFormat`)·아이콘 접근성. 전용 훅 7종 신규.
+
+**RP-9** 완료 (2026-04-15, `8752d3b9`→`50e6820e`): (A-1) bi-field↔chp-field 통합·`TextField` 공통 컴포넌트 추출. (A-2) `SearchIcon`·`ClearIcon` 공통화. (A-3) `Textarea` 공통화·잔여 `.bi-*` CSS 정리. **3총사 리뷰 Pass 1** (RP-7~RP-9 전체 대상) — CRITICAL 2건(DEMO_CREDENTIALS dev-only 격리)·HIGH 7건(span→button 교체·스크롤 셀렉터 버그·타이머 ref·totalQty 구독 통일·formatPhone 중복·비밀번호 최소 길이·StoredOrderSummary 타입)·MEDIUM 12건(EMAIL_RE 강화·zipcode 검증·WARN_CLEARABLE_KEYS·매직 넘버 상수화·`as never` 제거 등) 수정. Deferred 5건(인증 구조·OAuth whitelist·비번 재설정 UX·파일 분리는 Phase 2-F 처리, PASSWORD_MAX_LENGTH 16 현행 유지).
 
 ---
 
@@ -326,7 +310,7 @@ UI 생성, 반응형 변환, 인터랙션 설계.
 | `docs/prototype-handoff.md` | 1-Design | Handoff |
 | `goodthings_v1.0.html` | 2-Frontend | Frontend Dev |
 | `docs/GTR_infrastructure.md` | 4-Infra | DevOps & Deploy |
-| `docs/ecc-workflow-guide.md` | — | ECC 워크플로우 가이드 (product-design-agent 대체) |
+| `docs/ecc-workflow-guide.md` | — | ECC 워크플로우 가이드 |
 
 ---
 
@@ -337,21 +321,16 @@ UI 생성, 반응형 변환, 인터랙션 설계.
     ↓
 ┌─────────────────────────────────────────────────────┐
 │  Phase 1 — Design ✅ 완료                              │
-│                                                       │
-│  ① HTML 프로토타입 UI 폴리싱 ✅                        │
-│  ② UI Critique + Design QA 검수 ✅                     │
-│  ③ Handoff 스펙 문서 작성 ✅                            │
-│  ④ 접근성 기초 적용 ✅                                  │
-│  ⑤ 코드 리뷰 (XSS 수정, 토큰 치환, 중복 제거) ✅      │
 └──────────────────────────┬──────────────────────────┘
                            ▼
 ┌─────────────────────────────────────────────────────┐
-│  Phase 2 — Frontend                                   │
+│  Phase 2 — Frontend (~80%)                            │
 │                                                       │
-│  ⑥ Next.js 프로젝트 스캐폴딩 (App Router)             │
-│  ⑦ React 컴포넌트 전환 (Radix UI 기반)                │
-│  ⑧ 이미지 파이프라인 (WebP/AVIF, srcset)              │
-│  ⑨ 반응형 구현                                        │
+│  ✅ 2-A~E: 공통 레이아웃·상품·메뉴·갤러리·            │
+│            장바구니·결제·로그인·마이페이지·플로우      │
+│  ✅ RP-1~9: pixel-port 재이식 + 3총사 리뷰 Pass 1    │
+│  ⬜ 2-F: 검색 시스템 4-layer + 콘텐츠 채우기          │
+│  ⬜ 2-G: 반응형(4 BP) + 프로덕션 마무리(CSP·env)     │
 └──────────────────────────┬──────────────────────────┘
                            ▼
 ┌─────────────────────────────────────────────────────┐
