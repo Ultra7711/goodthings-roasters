@@ -45,6 +45,10 @@ export default function SiteHeader() {
   /* 검색 패널 실제 렌더 높이 60px + border 0.5px ≈ 60.5px.
      dim-top = headerBottom + 61 로 gap을 최소화 (프로토타입은 +60 사용). */
   const SEARCH_PANEL_HEIGHT = 61;
+  /** 헤더 높이 기본값 — getBoundingClientRect 실패 시 fallback (CSS 헤더 높이와 동기화) */
+  const HEADER_HEIGHT_FALLBACK = 60;
+  /** 검색 패널 렌더 완료 후 포커스 지연 ms */
+  const SEARCH_FOCUS_DELAY_MS = 20;
 
   const closeSearch = useCallback(() => {
     setIsSearchOpen(false);
@@ -129,12 +133,12 @@ export default function SiteHeader() {
   }
 
   function openSearch() {
-    const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? 60;
+    const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? HEADER_HEIGHT_FALLBACK;
     document.documentElement.style.setProperty('--search-drop-top', `${headerBottom}px`);
     document.documentElement.style.setProperty('--dim-top', `${headerBottom + SEARCH_PANEL_HEIGHT}px`);
     document.body.style.overflow = 'hidden';
     setIsSearchOpen(true);
-    setTimeout(() => searchInputRef.current?.focus(), 20);
+    setTimeout(() => searchInputRef.current?.focus(), SEARCH_FOCUS_DELAY_MS);
   }
 
   /* 언마운트 시 body.overflow 강제 해제 */

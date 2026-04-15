@@ -330,14 +330,17 @@ export default function LoginPage() {
               <button className="lp-submit-btn" type="submit" disabled={loginForm.isLoading}>
                 {loginForm.isLoading ? '로그인 중…' : '로그인'}
               </button>
-              <button
-                className="lp-demo-fill-btn"
-                type="button"
-                onClick={loginForm.loginAsDemo}
-                disabled={loginForm.isLoading}
-              >
-                테스트 계정으로 로그인
-              </button>
+              {/* 개발 환경 전용 — 프로덕션 빌드에서 렌더되지 않음 */}
+              {process.env.NODE_ENV === 'development' && (
+                <button
+                  className="lp-demo-fill-btn"
+                  type="button"
+                  onClick={loginForm.loginAsDemo}
+                  disabled={loginForm.isLoading}
+                >
+                  테스트 계정으로 로그인
+                </button>
+              )}
             </form>
           )}
 
@@ -379,7 +382,7 @@ export default function LoginPage() {
               <TextField
                 type="password"
                 label="비밀번호 확인"
-                autoComplete="new-password"
+                autoComplete="off"
                 disabled={registerForm.pw2Disabled}
                 value={registerForm.password2}
                 onChange={registerForm.setPassword2}

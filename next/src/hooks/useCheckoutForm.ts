@@ -13,6 +13,7 @@ import { INITIAL_CHECKOUT } from '@/types/checkout';
 import {
   EMAIL_RE,
   PHONE_RE,
+  ZIPCODE_RE,
   GUEST_PASSWORD_MIN_LENGTH,
 } from '@/lib/validation';
 
@@ -132,7 +133,12 @@ export function useCheckoutForm(): UseCheckoutFormReturn {
       } else if (!PHONE_RE.test(phoneTrimmed)) {
         newErrors.phone = '올바른 전화번호 형식을 입력해 주세요.';
       }
-      if (!form.zipcode.trim()) newErrors.zipcode = '주소를 검색해 주세요.';
+      const zipcodeTrimmed = form.zipcode.trim();
+      if (!zipcodeTrimmed) {
+        newErrors.zipcode = '주소를 검색해 주세요.';
+      } else if (!ZIPCODE_RE.test(zipcodeTrimmed)) {
+        newErrors.zipcode = '올바른 우편번호(5자리)를 입력해 주세요.';
+      }
       if (!form.addr1.trim()) newErrors.addr1 = '주소를 검색해 주세요.';
 
       /* 계좌이체 전용 */

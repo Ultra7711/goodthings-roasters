@@ -30,6 +30,8 @@ import { shakeFields } from '@/lib/shakeFields';
 import { TextField } from '@/components/ui/TextField';
 import { Textarea } from '@/components/ui/Textarea';
 import { useInputNav } from '@/hooks/useInputNav';
+import { usePhoneFormat } from '@/hooks/usePhoneFormat';
+import { isValidEmail } from '@/lib/validation';
 import {
   BIZ_TYPE_OPTIONS,
   BIZ_VOLUME_OPTIONS,
@@ -37,21 +39,6 @@ import {
   BIZ_PRODUCT_OPTIONS,
   type BizDropdownOption,
 } from '@/lib/biz';
-
-/* 전화번호 자동 하이픈 — 02 (서울) 와 010 (모바일) 분기 */
-function formatPhone(val: string): string {
-  const d = val.replace(/[^0-9]/g, '');
-  if (d.startsWith('02')) {
-    const n = d.slice(0, 10);
-    if (n.length <= 2) return n;
-    if (n.length <= 6) return n.slice(0, 2) + '-' + n.slice(2);
-    return n.slice(0, 2) + '-' + n.slice(2, n.length - 4) + '-' + n.slice(n.length - 4);
-  }
-  const n = d.slice(0, 11);
-  if (n.length <= 3) return n;
-  if (n.length <= 7) return n.slice(0, 3) + '-' + n.slice(3);
-  return n.slice(0, 3) + '-' + n.slice(3, n.length - 4) + '-' + n.slice(n.length - 4);
-}
 
 /* 사업자등록번호 자동 하이픈 (XXX-XX-XXXXX) */
 function formatBizReg(val: string): string {
@@ -95,6 +82,8 @@ const INITIAL_FORM: FormState = {
 
 /* warn 상태 키 — 필수 필드 6 개 + 업종 드롭다운 */
 type WarnKey = 'name' | 'email' | 'phone' | 'company' | 'address' | 'message' | 'type';
+/** handleTextChange에서 warn 해제 대상 키 집합 */
+const WARN_CLEARABLE_KEYS = new Set<WarnKey>(['name', 'email', 'phone', 'company', 'address', 'message']);
 const REQUIRED_TEXT_FIELDS: { key: Exclude<WarnKey, 'type'>; label: string }[] = [
   { key: 'name', label: '고객명' },
   { key: 'email', label: '이메일' },
@@ -167,17 +156,24 @@ export default function BizInquiryPage() {
 
   function handleTextChange<K extends keyof FormState>(key: K, val: string) {
     setForm((f) => ({ ...f, [key]: val }));
-    if ((['name', 'email', 'phone', 'company', 'address', 'message'] as const).includes(key as never)) {
+    if (WARN_CLEARABLE_KEYS.has(key as WarnKey)) {
       clearWarn(key as WarnKey);
     }
   }
 
-  function handlePhoneChange(v: string) {
-    const formatted = formatPhone(v);
-    setForm((f) => ({ ...f, phone: formatted }));
-    clearWarn('phone');
-    setPhoneHelper((h) => ({ ...h, warn: false }));
-  }
+  /* 전화번호 자동 하이픈 — usePhoneFormat 훅 사용 (H-5) */
+  const { handleChangeValue: handlePhoneChange } = usePhoneFormat(
+    useCallback((formatted: string) => {
+      setForm((f) => ({ ...f, phone: formatted }));
+      setWarns((prev) => {
+        if (!prev.has('phone')) return prev;
+        const next = new Set(prev);
+        next.delete('phone');
+        return next;
+      });
+      setPhoneHelper((h) => ({ ...h, warn: false }));
+    }, []),
+  );
 
   function handlePhoneBlur() {
     const digits = form.phone.replace(/\D/g, '');
@@ -188,6 +184,14 @@ export default function BizInquiryPage() {
         text: '잘못된 형식입니다. (예: 010-1234-5678 / 02-1234-5678)',
         warn: true,
       });
+    }
+  }
+
+  /* 이메일 blur 검증 — 빈 값 skip, 형식 불일치 시 warn (M-2) */
+  function handleEmailBlur() {
+    const trimmed = form.email.trim();
+    if (trimmed && !isValidEmail(trimmed)) {
+      setWarns((prev) => new Set(prev).add('email'));
     }
   }
 
@@ -284,9 +288,16 @@ export default function BizInquiryPage() {
             label="이메일 *"
             helper="이메일 주소를 입력하세요."
             value={form.email}
-            error={warns.has('email') ? '이메일을 입력하세요.' : undefined}
+            error={
+              warns.has('email')
+                ? form.email.trim()
+                  ? '올바른 이메일 형식으로 입력하세요.'
+                  : '이메일을 입력하세요.'
+                : undefined
+            }
             autoComplete="email"
             onChange={(v) => handleTextChange('email', v)}
+            onBlur={handleEmailBlur}
             onKeyDown={handleEnterNext}
           />
           <TextField

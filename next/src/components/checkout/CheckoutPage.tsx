@@ -20,7 +20,7 @@ import Link from 'next/link';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
 import { useInputNav } from '@/hooks/useInputNav';
-import { useCartStore, useAuthStore, FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/lib/store';
+import { useCartStore, useAuthStore } from '@/lib/store';
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
 import { shakeFields } from '@/lib/shakeFields';
@@ -99,7 +99,7 @@ export default function CheckoutPage() {
 
   /* ── 장바구니 ── */
   const items = useCartStore((s) => s.items);
-  const totalQty = useCartStore((s) => s.totalQty);
+  const totalQty = useCartStore((s) => s.totalQty());
   const subtotal = useCartStore((s) => s.subtotal);
   const shippingFee = useCartStore((s) => s.shippingFee);
   const totalPrice = useCartStore((s) => s.totalPrice);
@@ -146,13 +146,15 @@ export default function CheckoutPage() {
 
   /* ── 결제수단 전환 fade ── */
   const [payFade, setPayFade] = useState(false);
+  const payFadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handlePaymentSwitch = useCallback((method: PaymentMethod) => {
     if (method === form.paymentMethod) return;
     setPaymentMethod(method);
     setPayFade(true);
-    const t = setTimeout(() => setPayFade(false), 260);
-    return () => clearTimeout(t);
+    if (payFadeTimerRef.current) clearTimeout(payFadeTimerRef.current);
+    payFadeTimerRef.current = setTimeout(() => setPayFade(false), 260);
   }, [form.paymentMethod, setPaymentMethod]);
+  useEffect(() => () => { if (payFadeTimerRef.current) clearTimeout(payFadeTimerRef.current); }, []);
 
   /* ── 주소 검색 (데모: 더미 데이터) ── */
   const handleAddressSearch = useCallback(() => {
@@ -184,7 +186,7 @@ export default function CheckoutPage() {
     if (!ok) {
       /* shake + 첫 에러 필드로 스크롤 */
       shakeFields(chpFormRef.current);
-      const firstErr = document.querySelector('.chp-field.error');
+      const firstErr = chpFormRef.current?.querySelector('.chp-field.input-warn');
       if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
@@ -195,8 +197,18 @@ export default function CheckoutPage() {
     const seq = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
     const orderNumber = `GT-${ymd}-${seq}`;
 
-    /* sessionStorage에 주문 정보 저장 (order-complete에서 읽음) */
-    sessionStorage.setItem('gtr-last-order', JSON.stringify({
+    /* sessionStorage에 주문 요약 저장 (order-complete에서 읽음)
+       StoredOrderSummary 타입: PII(이름·전화·주소) 필드 의도적 제외 */
+    type StoredOrderSummary = {
+      number: string;
+      items: Array<{
+        name: string; slug: string; category: string;
+        volume: string | null; qty: number; priceNum: number;
+        image: { src: string; bg: string };
+        type: string; period: string | null;
+      }>;
+    };
+    const summary: StoredOrderSummary = {
       number: orderNumber,
       items: items.map((i) => ({
         name: i.name,
@@ -209,7 +221,8 @@ export default function CheckoutPage() {
         type: i.type,
         period: i.period,
       })),
-    }));
+    };
+    sessionStorage.setItem('gtr-last-order', JSON.stringify(summary));
 
     clearCart();
     router.push('/order-complete');
@@ -248,7 +261,7 @@ export default function CheckoutPage() {
           </Link>
           <span className="hdr-icon-btn" style={{ position: 'relative' }} aria-label="장바구니">
             <CartIcon />
-            {totalQty() > 0 && <span className="cart-badge">{totalQty()}</span>}
+            {totalQty > 0 && <span className="cart-badge">{totalQty}</span>}
           </span>
         </div>
       </div>
@@ -564,7 +577,7 @@ export default function CheckoutPage() {
 
           <div className="chp-summary-totals">
             <div className="chp-sum-row">
-              <span>상품 금액 · 총 {totalQty()}개 상품</span>
+              <span>상품 금액 · 총 {totalQty}개 상품</span>
               <span>{formatPrice(subtotal())}</span>
             </div>
             <div className="chp-sum-row">

@@ -127,7 +127,9 @@ export function useLoginForm(
     [email, password, runLogin],
   );
 
+  /* 테스트 계정 로그인 — 개발 환경 전용 */
   const loginAsDemo = useCallback(() => {
+    if (process.env.NODE_ENV !== 'development') return;
     setEmailState(DEMO_CREDENTIALS.email);
     setPasswordState(DEMO_CREDENTIALS.password);
     setErrors({});

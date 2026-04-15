@@ -4,9 +4,9 @@
    .input-shake 를 추가하고 애니메이션 종료 후 자동 제거.
    ══════════════════════════════════════════ */
 
-export function shakeFields(container?: HTMLElement | null) {
-  const root = container || document;
-  const fields = root.querySelectorAll<HTMLElement>(
+export function shakeFields(container: HTMLElement | null) {
+  if (!container) return;
+  const fields = container.querySelectorAll<HTMLElement>(
     '.chp-field.input-warn, .bi-field.bi-input-warn',
   );
   fields.forEach((el) => {

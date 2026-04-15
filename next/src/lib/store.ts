@@ -213,7 +213,9 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true });
         await delay(MOCK_LATENCY_MS);
 
+        /* 데모 로그인 — 개발 환경 전용 (프로덕션 빌드에서 실행 안 됨) */
         if (
+          process.env.NODE_ENV === 'development' &&
           email.trim() === DEMO_CREDENTIALS.email &&
           password === DEMO_CREDENTIALS.password
         ) {

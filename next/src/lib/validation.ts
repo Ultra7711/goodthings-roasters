@@ -4,8 +4,8 @@
    useCheckoutForm, useLoginForm, useAddressForm 공용
    ══════════════════════════════════════════ */
 
-/** 이메일 (간단 검증 — RFC 완전 준수 아님) */
-export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** 이메일 — 영숫자·특수문자 허용, TLD 2자 이상 필수 */
+export const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
 
 /** 전화번호 — 02-XXXX-XXXX / 0XX-XXX(X)-XXXX / 01X-XXXX-XXXX */
 export const PHONE_RE = /^(02-\d{3,4}-\d{4}|0[1-9]\d-\d{3,4}-\d{4})$/;
@@ -23,7 +23,7 @@ export const PASSWORD_MIN_LENGTH = 6;
 export const PASSWORD_MAX_LENGTH = 16;
 
 /** 비회원 주문 비밀번호 최소 길이 (간이 검증용) */
-export const GUEST_PASSWORD_MIN_LENGTH = 4;
+export const GUEST_PASSWORD_MIN_LENGTH = 6;
 
 /* ══════════════════════════════════════════
    검증 함수

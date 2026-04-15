@@ -164,43 +164,51 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
       {/* 액션 아이콘 (눈 + 지우기 2개 이상인 경우 래퍼) */}
       {!customAction && needsActionsWrapper && (
         <span className="chp-input-actions">
-          <span
+          <button
+            type="button"
             className="chp-input-action visible"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setShowPw((v) => !v)}
-            title={showPw ? '비밀번호 숨기기' : '비밀번호 보기'}
+            aria-label={showPw ? '비밀번호 숨기기' : '비밀번호 보기'}
           >
             {showPw ? <EyeOpenIcon /> : <EyeClosedIcon />}
-          </span>
-          <span
+          </button>
+          <button
+            type="button"
             className="chp-input-action visible"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleClear}
-            title="지우기"
+            aria-label="지우기"
           >
             <ClearIcon />
-          </span>
+          </button>
         </span>
       )}
 
       {/* 눈 아이콘만 (값 없음일 때는 렌더 안 함 — 위에서 value>0 조건) */}
       {!customAction && showEyeIcon && !showClearIcon && (
-        <span
+        <button
+          type="button"
           className="chp-input-action visible"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => setShowPw((v) => !v)}
-          title={showPw ? '비밀번호 숨기기' : '비밀번호 보기'}
+          aria-label={showPw ? '비밀번호 숨기기' : '비밀번호 보기'}
         >
           {showPw ? <EyeOpenIcon /> : <EyeClosedIcon />}
-        </span>
+        </button>
       )}
 
       {/* 클리어 아이콘만 */}
       {!customAction && showClearIcon && !showEyeIcon && (
-        <span
+        <button
+          type="button"
           className="chp-input-action visible"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={handleClear}
-          title="지우기"
+          aria-label="지우기"
         >
           <ClearIcon />
-        </span>
+        </button>
       )}
 
       {/* 헬퍼 텍스트 — error 우선, 없으면 helper 기본값 */}

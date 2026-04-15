@@ -116,7 +116,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
       if (!strength.valid) {
         setErrors((prev) => ({
           ...prev,
-          password: passwordStrengthMessage(strength) ?? '',
+          password: passwordStrengthMessage(strength) ?? '비밀번호 형식이 올바르지 않습니다.',
         }));
       }
     }
@@ -152,7 +152,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
       } else {
         const strength = checkPasswordStrength(password);
         if (!strength.valid) {
-          newErrors.password = passwordStrengthMessage(strength) ?? '';
+          newErrors.password = passwordStrengthMessage(strength) ?? '비밀번호 형식이 올바르지 않습니다.';
         }
       }
 

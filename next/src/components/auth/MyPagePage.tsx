@@ -13,7 +13,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -142,8 +142,9 @@ export default function MyPagePage() {
     },
   });
 
+  const { setField: setAddrField } = addressForm;
   const { handleChangeValue: handleAddrPhoneChange } = usePhoneFormat(
-    useCallback((v: string) => addressForm.setField('phone', v), [addressForm]),
+    useCallback((v: string) => setAddrField('phone', v), [setAddrField]),
   );
 
   /* 주소 아코디언 열기 시 현재 값으로 리셋 */
