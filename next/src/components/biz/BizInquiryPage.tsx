@@ -28,6 +28,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { shakeFields } from '@/lib/shakeFields';
 import { TextField } from '@/components/ui/TextField';
+import { Textarea } from '@/components/ui/Textarea';
 import { useInputNav } from '@/hooks/useInputNav';
 import {
   BIZ_TYPE_OPTIONS,
@@ -409,25 +410,17 @@ export default function BizInquiryPage() {
 
         {/* 문의 내용 */}
         <FormSection label="문의 내용">
-          <div className={`bi-field${warns.has('message') ? ' bi-input-warn' : ''}`}>
-            <textarea
-              id="bi-message"
-              className="bi-input bi-textarea"
-              placeholder=" "
-              rows={5}
-              value={form.message}
-              onChange={(e) => handleTextChange('message', e.target.value)}
-            />
-            <label className="bi-floating-label" htmlFor="bi-message">
-              요청 사항 *
-            </label>
-            <div
-              className={`bi-helper${warns.has('message') ? ' visible warn' : ''}`}
-              id="bi-message-helper"
-            >
-              궁금한 점이나 요청 사항을 자유롭게 적어주세요.
-            </div>
-          </div>
+          <Textarea
+            id="bi-message"
+            label="요청 사항 *"
+            helper="궁금한 점이나 요청 사항을 자유롭게 적어주세요."
+            value={form.message}
+            error={warns.has('message') ? '요청 사항을 입력하세요.' : undefined}
+            rows={5}
+            onChange={(v) => handleTextChange('message', v)}
+            onClear={() => handleTextChange('message', '')}
+          />
+          {/* 폼 최하단에서 Enter 네비게이션 타겟이 없어도 OK */}
           <button
             className="bi-submit-btn"
             id="bi-submit-btn"

@@ -3713,33 +3713,11 @@ footer.blk {
   flex-direction: column;
 }
 
-/* ── bi-field 기본 ── */
+/* ── bi-field 기본 ── (dropdown wrapper 용도로만 잔존 — 텍스트 인풋/textarea 는
+       chp-field + TextField / Textarea 컴포넌트로 모두 이관됨) */
 .bi-field {
   position: relative;
   margin-bottom: 24px;
-}
-.bi-input {
-  width: 100%;
-  height: 56px;
-  padding: 20px 36px 4px 0;
-  border: none;
-  border-bottom: 0.5px solid var(--color-border-secondary);
-  background: transparent;
-  outline: none;
-  font-family: var(--font-kr);
-  font-size: var(--type-input-size);
-  font-weight: var(--type-input-weight);
-  color: var(--color-text-primary);
-  transition: border-color var(--duration-hover) linear;
-  appearance: none;
-}
-.bi-input:focus {
-  border-bottom-width: 2px;
-  border-bottom-style: solid;
-  border-bottom-color: var(--color-text-primary);
-}
-.bi-input::placeholder {
-  color: transparent;
 }
 .bi-floating-label {
   position: absolute;
@@ -3754,77 +3732,8 @@ footer.blk {
   transition: all var(--duration-hover) cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: left top;
 }
-.bi-input:focus ~ .bi-floating-label,
-.bi-input:not(:placeholder-shown) ~ .bi-floating-label {
-  top: 4px;
-  transform: translateY(0) scale(0.75);
-  color: var(--color-text-caption);
-}
-.bi-input:focus ~ .bi-floating-label {
-  color: var(--color-text-primary);
-}
-.bi-helper {
-  font-family: var(--font-kr);
-  font-size: var(--type-caption-size);
-  font-weight: 400;
-  color: var(--color-text-caption);
-  margin-top: 6px;
-  display: none;
-  line-height: 1.5;
-}
-.bi-helper.visible {
-  display: block;
-}
-.bi-helper.warn {
-  color: var(--color-error);
-}
-.bi-field.bi-input-warn .bi-input {
-  border-bottom-color: var(--color-error);
-}
 .bi-field.bi-input-warn .bi-floating-label {
   color: var(--color-error);
-}
-.bi-field.bi-input-warn .bi-input-action {
-  color: var(--color-error);
-}
-
-/* ── 텍스트 영역 ── */
-.bi-textarea {
-  height: auto;
-  min-height: 120px;
-  padding-top: 24px;
-  resize: vertical;
-  line-height: var(--lh-normal);
-}
-.bi-textarea:not(:placeholder-shown) ~ .bi-floating-label,
-.bi-textarea:focus ~ .bi-floating-label {
-  top: 4px;
-  transform: translateY(0) scale(0.75);
-}
-
-/* ── 클리어 버튼 ── */
-.bi-input-action {
-  position: absolute;
-  right: 0;
-  top: 35px;
-  transform: translateY(-50%);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  color: rgba(156, 152, 144, 0.7);
-  background: transparent;
-  border: none;
-  padding: 0;
-  transition: color var(--duration-hover) ease;
-}
-.bi-input-action:hover {
-  color: var(--color-icon-default);
-}
-.bi-input-action.visible {
-  display: flex;
 }
 
 /* ── 커스텀 드롭다운 ── */
@@ -4406,12 +4315,28 @@ footer.blk {
 .chp-field.input-warn .chp-input { border-bottom-color: var(--color-error); }
 .chp-field.input-warn .chp-floating-label { color: var(--color-error); }
 .chp-field.input-warn .chp-helper { display: block; color: var(--color-error); }
-.chp-field.input-warn .chp-helper::before,
-.bi-field.bi-input-warn .bi-helper::before { content: '\26A0\0020'; }
+.chp-field.input-warn .chp-helper::before { content: '\26A0\0020'; }
 .chp-field.input-warn .chp-input-action { color: var(--color-error); }
 .chp-field.input-success .chp-input { border-bottom-color: var(--color-success); }
 @keyframes chp-shake { 0%,100% { margin-left: 0; } 20% { margin-left: -6px; } 40% { margin-left: 5px; } 60% { margin-left: -3px; } 80% { margin-left: 2px; } }
 .chp-field.input-shake, .bi-field.input-shake { animation: chp-shake .35s ease; }
+
+/* textarea (multiline) */
+.chp-textarea {
+  height: auto;
+  min-height: 120px;
+  padding-top: 24px;
+  padding-right: 36px;
+  resize: vertical;
+  line-height: var(--lh-normal);
+}
+.chp-textarea:not(:placeholder-shown) ~ .chp-floating-label,
+.chp-textarea:focus ~ .chp-floating-label {
+  top: 4px;
+  transform: translateY(0) scale(0.75);
+}
+/* textarea 클리어 버튼 — 우측 상단 (label 영역 아래) */
+.chp-textarea-clear { top: 24px; transform: none; }
 
 /* select floating label */
 select.chp-input {
