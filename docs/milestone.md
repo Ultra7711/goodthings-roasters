@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-16 (P3-2 완료 — Upstash Redis + @upstash/ratelimit Sliding Window IP Rate Limiting. rateLimit.ts 신규(buildRateLimitResponse/checkRateLimitWith/checkRateLimit). 5개 라우트 적용(initiate×2/callback×3). 환경변수 미설정 시 패스스루. Vitest 56/56 통과. 다음: P2-2 RLS or Phase 3-B auth_logs)
+> **최종 업데이트:** 2026-04-16 (Backend P0 완료 — Supabase CLI 도입 + 마이그레이션 9종 클라우드 dev 적용. 001~008 스키마 + 009 security_hardening(prevent_id_change search_path 고정 + orders 트리거 보정). 테이블 6/ENUM 5/RLS forced 6/정책 11/함수 6/트리거 11. Security·Performance advisors No issues. `docs/backend-architecture-plan.md` §11.5 모델 선택 가이드 실험 단계. 다음: P1 — @supabase/ssr + proxy.ts CSP + zod 검증)
 
 ---
 
@@ -24,12 +24,12 @@
 |-------|---------|------|---------|--------|--------|
 | Phase 1 — Design | 5 | 5 | 0 | 0 | 100% |
 | Phase 2 — Frontend | 2 | 0 | 2 | 0 | ~80% |
-| Phase 3 — Backend | 3 | 2 | 1 | 0 | ~35% |
+| Phase 3 — Backend | 3 | 2 | 1 | 0 | ~45% |
 | Phase 4 — Infrastructure | 1 | 0 | 1 | 0 | ~20% |
 | Phase 5 — Quality Assurance | 3 | 0 | 0 | 3 | 0% |
 | User AI | 1 | 0 | 0 | 1 | 0% |
 
-**현재 위치: P3-2 완료 — Upstash Redis Sliding Window Rate Limiting (5개 라우트). 다음: P2-2 Supabase RLS (orders/profiles/cart_items) — Phase 3 스키마 설계 시 처리**
+**현재 위치: Backend P0 완료 — DB 스키마 9종 + RLS forced 6개 + 보안 하드닝(009) 클라우드 dev 적용. 다음: Backend P1 — @supabase/ssr 설정 + proxy.ts CSP + Route Handler + zod + Resend**
 
 ---
 
@@ -219,14 +219,17 @@
 
 ## Phase 3 — Backend
 
-### 8. Data & API ⬜
+### 8. Data & API 🔄
+
+> **계획 문서:** `docs/backend-architecture-plan.md` (14주 로드맵 + §11.5 모델 선택 가이드 실험 단계)
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| DB 스키마 설계 | ⬜ | 상품·주문·유저 테이블 설계 필요 |
-| API 엔드포인트 설계 | ⬜ | Next.js Route Handler 구조 |
-| API 구현 | ⬜ | — |
-| RLS 정책 | ⬜ | Supabase Row Level Security |
+| **Backend P0** DB 스키마 설계 | ✅ | 마이그레이션 001~009 — profiles/addresses/orders/order_items/subscriptions/payment_transactions + RLS + handle_new_user + security_hardening. 클라우드 dev(`ceqewbbjuhtnarzgkzmx`) 적용 완료 (2026-04-16) |
+| **Backend P0** RLS 정책 | ✅ | `relforcerowsecurity=true` 6개 테이블, 정책 11개, PK id UPDATE 차단 트리거 4개(profiles/addresses/orders/subscriptions) (2026-04-16) |
+| **Backend P0** Security advisors | ✅ | 009 적용 후 `function_search_path_mutable` WARN 해소. No issues found (2026-04-16) |
+| **Backend P1** API 엔드포인트 설계 | ⬜ | Next.js Route Handler + `@supabase/ssr` + zod 검증 |
+| **Backend P1** API 구현 | ⬜ | — |
 
 ### 9. Auth & Security 🔄
 
@@ -271,7 +274,7 @@
 | 도메인 / DNS | ✅ | — | goodthingsroasters.com |
 | 비용 구조 분석 | ✅ | `docs/GTR_infrastructure.md` | ~₩10,500/월 베이스라인 |
 | Vercel 프로젝트 설정 | ⬜ | — | Next.js 프로젝트 생성 후 연결 |
-| Supabase 프로젝트 설정 | ⬜ | — | DB·Auth·Storage 구성 |
+| Supabase 프로젝트 설정 | 🔄 | — | dev 프로젝트(`ceqewbbjuhtnarzgkzmx`) + CLI v2.91.2 + 마이그레이션 9종 적용 완료. staging/prod 환경 분리 남음 (2026-04-16) |
 | CI/CD 파이프라인 | ⬜ | — | Vercel 자동 배포 |
 | 모니터링 / 에러 트래킹 | ⬜ | — | Sentry, Vercel Analytics |
 
