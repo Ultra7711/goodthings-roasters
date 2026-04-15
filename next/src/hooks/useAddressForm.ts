@@ -13,12 +13,7 @@ import { useCallback, useState } from 'react';
 import type { UserAddress } from '@/types/address';
 import { EMPTY_ADDRESS } from '@/types/address';
 import { isValidPhone, isValidZipcode } from '@/lib/validation';
-
-/** 더미 주소 (Phase 2-F에서 Daum Postcode API로 교체) */
-const DUMMY_LOOKUP_ADDRESS = {
-  zipcode: '06035',
-  addr1: '서울특별시 강남구 가로수길 12',
-} as const;
+import { openPostcode } from '@/lib/daumPostcode';
 
 export type AddressFormErrors = Partial<Record<keyof UserAddress, string>>;
 
@@ -52,20 +47,23 @@ export function useAddressForm({ initial, onSave }: UseAddressFormOptions) {
     setErrors({});
   }, []);
 
-  /** 주소 검색 (더미) */
-  const lookupAddress = useCallback(() => {
-    setForm((prev) => ({
-      ...prev,
-      zipcode: DUMMY_LOOKUP_ADDRESS.zipcode,
-      addr1: DUMMY_LOOKUP_ADDRESS.addr1,
-    }));
-    setErrors((prev) => {
-      if (!prev.zipcode && !prev.addr1) return prev;
-      const next = { ...prev };
-      delete next.zipcode;
-      delete next.addr1;
-      return next;
-    });
+  /** 주소 검색 (Daum Postcode API) */
+  const lookupAddress = useCallback(async () => {
+    try {
+      const result = await openPostcode();
+      if (!result) return;
+      setForm((prev) => ({ ...prev, zipcode: result.zipcode, addr1: result.addr1 }));
+      setErrors((prev) => {
+        if (!prev.zipcode && !prev.addr1) return prev;
+        const next = { ...prev };
+        delete next.zipcode;
+        delete next.addr1;
+        return next;
+      });
+    } catch {
+      // 스크립트 로드 실패 — 사용자에게 별도 알림 없이 조용히 종료
+      // Phase 2-G: toast 연동 고려
+    }
   }, []);
 
   /** blur 시 전화번호 형식 검증 */

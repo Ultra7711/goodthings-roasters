@@ -19,6 +19,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
+import { openPostcode } from '@/lib/daumPostcode';
 import { useInputNav } from '@/hooks/useInputNav';
 import { useCartStore, useAuthStore } from '@/lib/store';
 import { useToast } from '@/hooks/useToast';
@@ -156,13 +157,16 @@ export default function CheckoutPage() {
   }, [form.paymentMethod, setPaymentMethod]);
   useEffect(() => () => { if (payFadeTimerRef.current) clearTimeout(payFadeTimerRef.current); }, []);
 
-  /* ── 주소 검색 (데모: 더미 데이터) ── */
-  const handleAddressSearch = useCallback(() => {
-    /* Phase 2-F: Daum Postcode API 연동
-       현재는 데모 데이터로 채움 */
-    setField('addr1', '서울특별시 강남구 테헤란로 427');
-    setField('zipcode', '06159');
-    toast('주소가 입력되었습니다.');
+  /* ── 주소 검색 (Daum Postcode API) ── */
+  const handleAddressSearch = useCallback(async () => {
+    try {
+      const result = await openPostcode();
+      if (!result) return;
+      setField('addr1', result.addr1);
+      setField('zipcode', result.zipcode);
+    } catch {
+      toast('주소 검색을 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.');
+    }
   }, [setField, toast]);
 
   /* ── bank select ── */
