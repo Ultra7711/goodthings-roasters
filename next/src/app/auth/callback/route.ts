@@ -28,6 +28,7 @@ import {
   extractIp,
   extractUserAgent,
 } from '@/lib/auth/logger';
+import { checkRateLimit } from '@/lib/auth/rateLimit';
 
 /* ── Supabase 어드민 클라이언트 (서버 전용, 세션 비유지) ── */
 const supabaseAdmin = createClient(
@@ -41,6 +42,9 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   /** 로그인 후 이동할 경로 (기본: /mypage) */
   const next = searchParams.get('next') ?? '/mypage';
+
+  const limited = await checkRateLimit(request, 'auth_callback');
+  if (limited) return limited;
 
   const ip = extractIp(request);
   const userAgent = extractUserAgent(request);

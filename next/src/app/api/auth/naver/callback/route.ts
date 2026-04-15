@@ -26,6 +26,7 @@ import {
   extractIp,
   extractUserAgent,
 } from '@/lib/auth/logger';
+import { checkRateLimit } from '@/lib/auth/rateLimit';
 
 /* ── 네이버 API 응답 타입 ── */
 type NaverTokenResponse = {
@@ -68,6 +69,9 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const urlState = searchParams.get('state');
+
+  const limited = await checkRateLimit(request, 'auth_callback');
+  if (limited) return limited;
 
   const ip = extractIp(request);
   const userAgent = extractUserAgent(request);

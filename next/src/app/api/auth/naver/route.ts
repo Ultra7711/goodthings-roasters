@@ -7,6 +7,7 @@
 
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { checkRateLimit } from '@/lib/auth/rateLimit';
 
 /** CSRF state 쿠키 이름 */
 const CSRF_COOKIE = 'naver_oauth_state';
@@ -14,6 +15,9 @@ const CSRF_COOKIE = 'naver_oauth_state';
 const CSRF_COOKIE_MAX_AGE = 600;
 
 export async function GET(request: Request) {
+  const limited = await checkRateLimit(request, 'auth_initiate');
+  if (limited) return limited;
+
   const { origin } = new URL(request.url);
   const state = crypto.randomUUID();
 

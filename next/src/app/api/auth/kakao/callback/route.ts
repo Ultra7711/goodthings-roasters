@@ -24,6 +24,7 @@ import {
   extractIp,
   extractUserAgent,
 } from '@/lib/auth/logger';
+import { checkRateLimit } from '@/lib/auth/rateLimit';
 
 /* ── 카카오 API 응답 타입 ── */
 type KakaoTokenResponse = {
@@ -67,6 +68,9 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const urlState = searchParams.get('state');
+
+  const limited = await checkRateLimit(request, 'auth_callback');
+  if (limited) return limited;
 
   const ip = extractIp(request);
   const userAgent = extractUserAgent(request);
