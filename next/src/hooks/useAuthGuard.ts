@@ -3,6 +3,10 @@
    보호 페이지(/mypage 등)용 클라이언트 사이드 인증 가드
    - Zustand persist 하이드레이션 완료 대기
    - 미로그인 시 지정 경로로 리다이렉트
+
+   ⚠️  보안 경계 아님 — UX 보조 도구
+   실제 보안 경계는 서버 컴포넌트의 supabase.auth.getUser() (P1-2).
+   이 훅은 localStorage 조작으로 우회 가능하므로 인가 결정에 사용하지 않는다.
    ══════════════════════════════════════════ */
 
 'use client';
@@ -10,6 +14,7 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 
 type UseAuthGuardOptions = {
   /** 미로그인 시 이동할 경로 (기본 /login) */
@@ -73,7 +78,15 @@ export function useAuthGuard(
         bypassRef.current = false;
         return;
       }
-      router.replace(redirectTo);
+      /* P0-4: Zustand가 미로그인으로 판정할 때 Supabase 세션을 직접 확인.
+         OAuth 콜백이 verifyOtp로 세션 쿠키를 주입했으나(P0-3) AuthSyncProvider의
+         onAuthStateChange가 아직 Zustand를 업데이트하지 못한 경우를 대비한 안전망. */
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+          router.replace(redirectTo);
+        }
+        // session 있으면 AuthSyncProvider가 곧 Zustand를 동기화 — 리다이렉트 생략
+      });
     }
   }, [ready, isLoggedIn, router, redirectTo]);
 

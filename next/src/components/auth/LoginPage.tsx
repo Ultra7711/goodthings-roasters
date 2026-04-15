@@ -25,9 +25,46 @@ import { useOrderNumberFormat } from '@/hooks/useOrderNumberFormat';
 import { shakeFields } from '@/lib/shakeFields';
 import { useToast } from '@/hooks/useToast';
 import { TextField } from '@/components/ui/TextField';
+import { supabase } from '@/lib/supabase';
 
 /* ── 폼 모드 ── */
 type LoginMode = 'login' | 'register' | 'reset' | 'guest-lookup';
+
+/* ── OAuth 콜백 에러 메시지 맵 (?error=... 파라미터) ──
+   P1-1 account_conflict_* 는 ADR-001 §3.2 병합 금지 안내 문구와 1:1 매핑.
+   provider 별 안내가 다르므로 하드코딩된 메시지를 유지한다. */
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  /* accountMerge block — 기존 provider별 안내 (ADR §3.2) */
+  account_conflict_email:
+    '이 이메일은 이미 가입되어 있습니다. 이메일·비밀번호로 로그인해 주세요.',
+  account_conflict_google:
+    '이 이메일은 이미 Google 계정으로 가입되어 있습니다. Google로 로그인해 주세요.',
+  account_conflict_kakao:
+    '이 이메일은 이미 카카오 계정으로 가입되어 있습니다. 카카오로 로그인해 주세요.',
+  account_conflict_naver:
+    '이 이메일은 이미 네이버 계정으로 가입되어 있습니다. 네이버로 로그인해 주세요.',
+  account_conflict_unknown:
+    '이메일 중복으로 로그인할 수 없습니다. 기존 가입 방법으로 로그인해 주세요.',
+  /* 공통 OAuth 에러 */
+  auth_no_code: '로그인 정보가 누락되었습니다. 다시 시도해 주세요.',
+  auth_exchange_failed: '로그인 처리 중 오류가 발생했습니다. 다시 시도해 주세요.',
+  /* Naver */
+  naver_csrf_invalid: '보안 검증 실패로 로그인을 취소했습니다. 다시 시도해 주세요.',
+  naver_no_code: '네이버 로그인 정보가 누락되었습니다.',
+  naver_token_request_failed: '네이버 로그인 요청 중 오류가 발생했습니다.',
+  naver_token_missing: '네이버 로그인 토큰을 받지 못했습니다.',
+  naver_profile_failed: '네이버 프로필 조회에 실패했습니다.',
+  naver_profile_missing: '네이버 프로필 정보를 받지 못했습니다.',
+  naver_signin_failed: '네이버 로그인 처리 중 오류가 발생했습니다.',
+  /* Kakao */
+  kakao_csrf_invalid: '보안 검증 실패로 로그인을 취소했습니다. 다시 시도해 주세요.',
+  kakao_no_code: '카카오 로그인 정보가 누락되었습니다.',
+  kakao_token_request_failed: '카카오 로그인 요청 중 오류가 발생했습니다.',
+  kakao_token_missing: '카카오 로그인 토큰을 받지 못했습니다.',
+  kakao_profile_failed: '카카오 프로필 조회에 실패했습니다.',
+  kakao_profile_missing: '카카오 프로필 정보를 받지 못했습니다.',
+  kakao_signin_failed: '카카오 로그인 처리 중 오류가 발생했습니다.',
+};
 
 /* ── 소셜 로그인 SVG ── */
 function KakaoIcon() {
@@ -78,6 +115,34 @@ export default function LoginPage() {
   const resetNav = useInputNav(resetRef);
   const guestNav = useInputNav(guestRef);
 
+  /* ── 소셜 로그인 ── */
+  const [socialLoading, setSocialLoading] = useState<'kakao' | 'google' | 'naver' | null>(null);
+
+  const handleGoogleLogin = useCallback(async () => {
+    setSocialLoading('google');
+    try {
+      const redirectTo = `${window.location.origin}/auth/callback${fromCheckout ? '?next=/checkout' : ''}`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo },
+      });
+      if (error) toast('로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    } catch {
+      toast('로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      setSocialLoading(null);
+    }
+  }, [fromCheckout, toast]);
+
+  const handleKakaoLogin = useCallback(() => {
+    setSocialLoading('kakao');
+    window.location.href = '/api/auth/kakao';
+  }, []);
+
+  const handleNaverLogin = useCallback(() => {
+    setSocialLoading('naver');
+    window.location.href = '/api/auth/naver';
+  }, []);
+
   /* ── 폼 훅 ── */
   const loginForm = useLoginForm({ fromCheckout });
   const registerForm = useRegisterForm();
@@ -120,6 +185,24 @@ export default function LoginPage() {
       router.replace(fromCheckout ? '/checkout' : '/mypage');
     }
   }, [isLoggedIn, router, fromCheckout]);
+
+  /* ── OAuth 콜백 에러 표시 (?error=...) ──
+     P1-1 account_conflict_* 포함 모든 OAuth 서버 에러를 toast로 안내.
+     처리 후 URL에서 파라미터 제거해 새로고침 시 재표시 방지. */
+  const errorParam = params.get('error');
+  const handledErrorRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!errorParam || handledErrorRef.current === errorParam) return;
+    handledErrorRef.current = errorParam;
+    const msg =
+      OAUTH_ERROR_MESSAGES[errorParam] ??
+      '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    toast(msg);
+    /* URL 정리 — error 파라미터만 제거, 다른 쿼리(from 등)는 유지 */
+    const url = new URL(window.location.href);
+    url.searchParams.delete('error');
+    router.replace(url.pathname + (url.search || ''));
+  }, [errorParam, toast, router]);
 
   /* ── 모드 전환 시 에러 초기화 ── */
   const switchMode = useCallback((next: LoginMode) => {
@@ -468,26 +551,35 @@ export default function LoginPage() {
                 <button
                   className="lp-social-btn lp-social-btn--kakao"
                   type="button"
-                  onClick={() => toast('카카오 로그인은 준비 중입니다.')}
+                  disabled={socialLoading !== null}
+                  onClick={handleKakaoLogin}
                 >
                   <span className="lp-social-icon"><KakaoIcon /></span>
-                  <span className="lp-social-label">카카오로 계속하기</span>
+                  <span className="lp-social-label">
+                    {socialLoading === 'kakao' ? '연결 중…' : '카카오로 계속하기'}
+                  </span>
                 </button>
                 <button
                   className="lp-social-btn lp-social-btn--naver"
                   type="button"
-                  onClick={() => toast('네이버 로그인은 준비 중입니다.')}
+                  disabled={socialLoading !== null}
+                  onClick={handleNaverLogin}
                 >
                   <span className="lp-social-icon"><NaverIcon /></span>
-                  <span className="lp-social-label">네이버로 계속하기</span>
+                  <span className="lp-social-label">
+                    {socialLoading === 'naver' ? '연결 중…' : '네이버로 계속하기'}
+                  </span>
                 </button>
                 <button
                   className="lp-social-btn lp-social-btn--google"
                   type="button"
-                  onClick={() => toast('Google 로그인은 준비 중입니다.')}
+                  disabled={socialLoading !== null}
+                  onClick={() => void handleGoogleLogin()}
                 >
                   <span className="lp-social-icon"><GoogleIcon /></span>
-                  <span className="lp-social-label">Google로 계속하기</span>
+                  <span className="lp-social-label">
+                    {socialLoading === 'google' ? '연결 중…' : 'Google로 계속하기'}
+                  </span>
                 </button>
               </div>
             </>

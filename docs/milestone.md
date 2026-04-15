@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-15 (RP-9 완료 — TextField/Textarea 공통화 + 3총사 리뷰 Pass 1. 다음: B-1 Daum Postcode 연동)
+> **최종 업데이트:** 2026-04-16 (P1-1 ADR-001 계정 병합 정책 완료 — E2E 시나리오 1~3 통과(Naver/Google 재로그인·Kakao synthetic) + `accountMerge.test.ts` Vitest 21 케이스 통과 + Issue 1 Google `iss` fallback 탐지 수정 + 자기참조 가드. 다음: P2-1 Zustand 인증 제거·P2-2 RLS)
 
 ---
 
@@ -24,12 +24,12 @@
 |-------|---------|------|---------|--------|--------|
 | Phase 1 — Design | 5 | 5 | 0 | 0 | 100% |
 | Phase 2 — Frontend | 2 | 0 | 2 | 0 | ~80% |
-| Phase 3 — Backend | 3 | 0 | 0 | 3 | 0% |
+| Phase 3 — Backend | 3 | 0 | 1 | 2 | ~5% |
 | Phase 4 — Infrastructure | 1 | 0 | 1 | 0 | ~20% |
 | Phase 5 — Quality Assurance | 3 | 0 | 0 | 3 | 0% |
 | User AI | 1 | 0 | 0 | 1 | 0% |
 
-**현재 위치: Phase 2 Next.js 전환 진행 중 — RP-9 완료(인풋필드 공통화·3총사 리뷰 반영). 다음: 검색 시스템 (2-F)**
+**현재 위치: Phase 2-F OAuth 보안 P0~P1 완료 — ADR-001 계정 병합 정책 + E2E 1~3 통과 + Vitest 21 케이스 통과. 다음: P2-1 Zustand 제거·P2-2 RLS 정책**
 
 ---
 
@@ -153,6 +153,12 @@
 | H5 | Footer 전체 `'use client'` → Server/Client 분리 | Phase 2-B | ✅ |
 | H6 | Header 정적 부분 클라이언트 번들 포함 → `useCartStore` 직접 구독 | Phase 2-C | ✅ |
 | M7 | CSP 등 보안 응답 헤더 미설정 → `next.config.ts` headers() | Phase 2-G | ⬜ |
+| **P0-1** | OAuth `state` 쿠키 미설정 → CSRF 방어 (Naver/Kakao 커스텀 라우트) | Phase 2-F (즉시) | ✅ |
+| **P0-2** | Zustand `isLoggedIn` ↔ Supabase 세션 괴리 → `AuthSyncProvider` 브리지 | Phase 2-F (즉시) | ✅ |
+| **P0-3** | magic link implicit flow race condition → `verifyOtp` 서버사이드 세션 발급 | Phase 2-F (즉시) | ✅ |
+| **P0-4** | `useAuthGuard` Zustand 판정 → `getSession()` 폴백 안전망 | Phase 2-F (즉시) | ✅ |
+| **P1-2** | 보호 라우트 클라이언트 가드 의존 → Server Component `supabase.auth.getUser()` 가드 도입 | Phase 2-F | ✅ |
+| **P1-1** | IdP 이메일 검증(`email_verified`) 미확인 + 계정 병합 정책 부재 → ADR-001 코드 이행 | Phase 2-F | ✅ |
 
 ---
 
@@ -222,13 +228,28 @@
 | API 구현 | ⬜ | — |
 | RLS 정책 | ⬜ | Supabase Row Level Security |
 
-### 9. Auth & Security ⬜
+### 9. Auth & Security 🔄
+
+> **계획 문서:** `docs/oauth-security-plan.md` (P 시리즈 전체) · `docs/adr/ADR-001-oauth-account-merge-policy.md`
+>
+> **원칙:** 3-tier separation — Zustand(UI) / Supabase(Session) / Server+RLS(Security boundary). Zustand 는 UX 힌트일 뿐 보안 경계가 아니다.
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| 인증 플로우 설계 | ⬜ | Supabase Auth (이메일 + 소셜 로그인) |
-| RBAC / 인가 정책 | ⬜ | — |
-| 보안 감사 | ⬜ | 개발 완료 후 실시 |
+| 인증 플로우 설계 | ✅ | `docs/oauth-security-plan.md` + ADR-001 작성 완료 (2026-04-15) |
+| **P0-1** OAuth state 쿠키 (CSRF) | ✅ | Naver/Kakao 콜백에 HttpOnly+SameSite=Lax CSRF 쿠키 검증·소비 구현 (2026-04-16) |
+| **P0-2** AuthSyncProvider (Zustand↔Supabase 브리지) | ✅ | `onAuthStateChange` → Zustand 동기화. `app/layout.tsx` 최상위 마운트 (2026-04-16) |
+| **P0-3** magic link race condition → verifyOtp 서버세션 | ✅ | `hashed_token` → `verifyOtp` 서버사이드 소비. `lib/supabaseServer.ts` 신규. Kakao·Naver·Google 3종 정상화 (2026-04-16) |
+| **P0-4** useAuthGuard getSession 폴백 | ✅ | Zustand 미로그인 시 `supabase.auth.getSession()` 이중 확인 안전망 (2026-04-16) |
+| **P1-2** 보호 라우트 Server Component 가드 | ✅ | `/mypage`·`/checkout` Server Component + `supabase.auth.getUser()` 서버 사이드 검증 완료 (2026-04-16) |
+| **P1-1** 이메일 검증 + 계정 병합 (ADR-001 코드 이행) | ✅ | `lib/auth/{providers,syntheticEmail,accountMerge}.ts` 구현. Naver/Kakao/Google 3종 callback 연동 + LoginPage `account_conflict_*` 메시지. ADR §6.4 Google PKCE 제약 리뷰어 기록. **E2E 시나리오 1~3 통과** + `accountMerge.test.ts` Vitest 21 케이스 통과. Issue 1 Google `iss` fallback 탐지 + 자기참조 가드 수정 (2026-04-16) |
+| **P2-1** Zustand 인증 상태 제거 (리팩터링) | ⬜ | 장기: `useAuthGuard` → `useSupabaseSession` 훅으로 전환, `store.isLoggedIn` 단계적 폐기 |
+| **P2-2** Supabase RLS 정책 | ⬜ | `orders`·`profiles`·`cart_items` 테이블에 `auth.uid()` 기반 정책 |
+| ~~**P2-3**~~ generateLink 서버 세션 발급 | ✅ | P0-3에 흡수 완료 (verifyOtp 방식으로 달성) |
+| **P3-1** OAuth 이벤트 로깅 | ⬜ | 로그인 성공/실패·CSRF 실패 이벤트 구조화 로깅 |
+| **P3-2** 로그인/콜백 Rate Limiting | ⬜ | Upstash Redis + `@upstash/ratelimit` IP 단위 제한 |
+| RBAC / 인가 정책 | ⬜ | admin/customer 역할 분리 — Phase 3-10 이후 |
+| 최종 보안 감사 | ⬜ | P0~P2 완료 후 security-reviewer 전면 감사 |
 
 ### 10. Payment & Order ⬜
 

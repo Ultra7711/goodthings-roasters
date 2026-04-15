@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { Inter } from 'next/font/google';
+import AuthSyncProvider from '@/components/auth/AuthSyncProvider';
 import './globals.css';
 
 const inter = Inter({
@@ -29,7 +30,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={`${inter.variable} ${pretendard.variable} antialiased`}>
-      <body>{children}</body>
+      {/* AuthSyncProvider: Supabase 세션 → Zustand 동기화 브리지 (P0-2)
+          모든 OAuth 완료(Naver·Kakao magic link, Google /auth/callback) 직후
+          onAuthStateChange 이벤트를 캐치해 Zustand isLoggedIn을 갱신한다. */}
+      <body>
+        <AuthSyncProvider>{children}</AuthSyncProvider>
+      </body>
     </html>
   );
 }
