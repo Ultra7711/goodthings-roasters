@@ -15,6 +15,7 @@ import { usePathname } from 'next/navigation';
 import { useHeaderTheme } from '@/hooks/useHeaderTheme';
 import { getInitialHeaderTheme } from '@/lib/headerThemeConfig';
 import { useAuthStore, useCartStore } from '@/lib/store';
+import { ClearIcon } from '@/components/ui/InputIcons';
 
 export default function SiteHeader() {
   const headerRef = useRef<HTMLDivElement>(null);
@@ -296,9 +297,7 @@ export default function SiteHeader() {
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={handleSearchClear}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M12,3C7.1,3,3,7,3,12s4.1,9,9,9,9-4,9-9S17,3,12,3ZM15.7,14.3c.4.4.4,1,0,1.4-.4.4-.5.3-.7.3s-.5,0-.7-.3l-2.3-2.3-2.3,2.3c-.2.2-.5.3-.7.3s-.5,0-.7-.3c-.4-.4-.4-1,0-1.4l2.3-2.3-2.3-2.3c-.4-.4-.4-1,0-1.4.4-.4,1-.4,1.4,0l2.3,2.3,2.3-2.3c.4-.4,1-.4,1.4,0,.4.4.4,1,0,1.4l-2.3,2.3,2.3,2.3Z" />
-                  </svg>
+                  <ClearIcon />
                 </button>
               )}
             </div>

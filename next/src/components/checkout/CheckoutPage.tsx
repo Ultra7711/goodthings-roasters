@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
 import { shakeFields } from '@/lib/shakeFields';
 import { TextField } from '@/components/ui/TextField';
+import { SearchIcon } from '@/components/ui/InputIcons';
 import type { PaymentMethod } from '@/types/checkout';
 
 /* ── 배송 메시지 옵션 ── */
@@ -53,14 +54,6 @@ function ChevronRight({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9,18l6-6-6-6" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-      <circle cx="7" cy="7" r="4.5" /><line x1="10.5" y1="10.5" x2="14" y2="14" />
     </svg>
   );
 }

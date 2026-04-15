@@ -26,6 +26,7 @@ import { useInputNav } from '@/hooks/useInputNav';
 import { shakeFields } from '@/lib/shakeFields';
 import { useToast } from '@/hooks/useToast';
 import { TextField } from '@/components/ui/TextField';
+import { SearchIcon } from '@/components/ui/InputIcons';
 import { MOCK_ORDERS, MOCK_SUBSCRIPTIONS } from '@/lib/mockMyPageData';
 import { extractKrName, formatPrice } from '@/lib/utils';
 import type { Order } from '@/types/order';
@@ -71,14 +72,6 @@ function WithdrawIcon() {
       <path d="M12,15c-3.8,0-5.4,2.7-6,6.1" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M16,16l5,5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M21,16l-5,5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-      <circle cx="7" cy="7" r="4.5" /><line x1="10.5" y1="10.5" x2="14" y2="14" />
     </svg>
   );
 }

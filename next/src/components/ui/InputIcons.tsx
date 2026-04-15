@@ -1,12 +1,22 @@
 /* ══════════════════════════════════════════
    InputIcons — 인풋 필드 공통 아이콘
-   ClearIcon (circle-x_fill), EyeOpenIcon, EyeClosedIcon
+   ClearIcon (circle-x_fill), EyeOpenIcon, EyeClosedIcon, SearchIcon
    ══════════════════════════════════════════ */
 
 export function ClearIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12,3C7.1,3,3,7,3,12s4.1,9,9,9,9-4,9-9S17,3,12,3ZM15.7,14.3c.4.4.4,1,0,1.4-.4.4-.5.3-.7.3s-.5,0-.7-.3l-2.3-2.3-2.3,2.3c-.2.2-.5.3-.7.3s-.5,0-.7-.3c-.4-.4-.4-1,0-1.4l2.3-2.3-2.3-2.3c-.4-.4-.4-1,0-1.4.4-.4,1-.4,1.4,0l2.3,2.3,2.3-2.3c.4-.4,1-.4,1.4,0,.4.4.4,1,0,1.4l-2.3,2.3,2.3,2.3Z" />
+    </svg>
+  );
+}
+
+/** 돋보기 — 헤더 검색 패널 + 주소 검색 버튼 공통 */
+export function SearchIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+      <circle cx="7" cy="7" r="4.5" />
+      <line x1="10.5" y1="10.5" x2="14" y2="14" />
     </svg>
   );
 }
