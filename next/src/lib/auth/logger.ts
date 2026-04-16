@@ -90,14 +90,24 @@ export function maskEmail(email: string): string {
 
 /**
  * Request 헤더에서 클라이언트 IP 추출.
- * Vercel 환경: x-forwarded-for 첫 번째 값 사용.
+ *
+ * Pass 1 H-3 반영:
+ *   이전: x-forwarded-for 첫 번째 값 → 공격자가 헤더를 조작하여 rate limit 우회 가능.
+ *   변경: x-real-ip (Vercel edge 가 덮어씀) 우선 → 없으면 x-forwarded-for 마지막 값.
+ *         Vercel 은 수신된 x-forwarded-for 끝에 자신이 확인한 실제 client IP 를
+ *         append 하므로 마지막 값이 조작 불가능한 신뢰 값이다.
+ *   참고: Vercel docs — https://vercel.com/docs/edge-network/headers/request-headers
  */
 export function extractIp(request: Request): string | undefined {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
-    request.headers.get('x-real-ip') ??
-    undefined
-  );
+  const realIp = request.headers.get('x-real-ip')?.trim();
+  if (realIp) return realIp;
+
+  const xff = request.headers.get('x-forwarded-for');
+  if (!xff) return undefined;
+
+  /* 마지막 IP = Vercel 이 append 한 실제 원본 */
+  const parts = xff.split(',').map((s) => s.trim()).filter(Boolean);
+  return parts.at(-1);
 }
 
 /**

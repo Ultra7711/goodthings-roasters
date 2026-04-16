@@ -172,8 +172,21 @@ describe('extractIp', () => {
     return new Request('https://example.com', { headers });
   }
 
-  it('x-forwarded-for — 첫 번째 값 반환 (공백 trim)', () => {
-    expect(extractIp(makeReq({ 'x-forwarded-for': '1.2.3.4, 5.6.7.8' }))).toBe('1.2.3.4');
+  /* Pass 1 H-3 반영: Vercel edge 는 수신된 x-forwarded-for 끝에 자신이 확인한
+     client IP 를 append. "마지막 값" 이 조작 불가능한 신뢰 IP.
+     이전의 "첫 번째 값" 로직은 클라이언트가 헤더를 조작해 rate limit 우회 가능. */
+
+  it('x-real-ip 가 있으면 최우선 반환 (Vercel edge 덮어쓰기)', () => {
+    expect(
+      extractIp(makeReq({
+        'x-real-ip': '10.0.0.1',
+        'x-forwarded-for': '1.2.3.4, 5.6.7.8',
+      })),
+    ).toBe('10.0.0.1');
+  });
+
+  it('x-forwarded-for — 마지막 값 반환 (공백 trim)', () => {
+    expect(extractIp(makeReq({ 'x-forwarded-for': '1.2.3.4, 5.6.7.8' }))).toBe('5.6.7.8');
   });
 
   it('x-forwarded-for — 단일 IP', () => {
@@ -186,6 +199,12 @@ describe('extractIp', () => {
 
   it('헤더 없으면 undefined', () => {
     expect(extractIp(makeReq({}))).toBeUndefined();
+  });
+
+  it('x-forwarded-for 끝 공백/빈 값 방어', () => {
+    expect(
+      extractIp(makeReq({ 'x-forwarded-for': '1.2.3.4, 5.6.7.8,  ' })),
+    ).toBe('5.6.7.8');
   });
 });
 

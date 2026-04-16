@@ -28,6 +28,11 @@ import { shakeFields } from '@/lib/shakeFields';
 import { TextField } from '@/components/ui/TextField';
 import { SearchIcon } from '@/components/ui/InputIcons';
 import type { PaymentMethod } from '@/types/checkout';
+import {
+  buildOrderPayload,
+  createOrder,
+  OrderApiError,
+} from '@/lib/api/orderClient';
 
 /* ── 배송 메시지 옵션 ── */
 const DELIVERY_OPTIONS = [
@@ -183,8 +188,27 @@ export default function CheckoutPage() {
     revealForm();
   }, [form.email, revealForm]);
 
-  /* ── 제출 ── */
-  const handleSubmit = useCallback(() => {
+  /* ── 제출 상태 (중복 클릭 방지) ── */
+  const [submitting, setSubmitting] = useState(false);
+
+  /* ── 언마운트 감시 (Pass 1 CODE/H-1)
+     성공 시 router.push 이후 컴포넌트가 언마운트되므로,
+     setState 호출을 차단해 React 경고 및 상태 불일치를 방지. */
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  /* ── 제출 ──
+     Pass 1 CODE/H-1: try/finally + isMounted + navigated flag 로
+     성공/실패/언마운트 경로 모두에서 submit 상태가 일관되게 복구.
+  */
+  const handleSubmit = useCallback(async () => {
+    if (submitting) return;
+
     clearErrors();
     const ok = validate(isLoggedIn);
     if (!ok) {
@@ -195,42 +219,81 @@ export default function CheckoutPage() {
       return;
     }
 
-    /* 데모: 주문번호 생성 후 주문완료 이동 */
-    const now = new Date();
-    const ymd = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-    const seq = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
-    const orderNumber = `GT-${ymd}-${seq}`;
+    setSubmitting(true);
+    /* 성공 경로 여부 — finally 에서 버튼 복구를 스킵하기 위한 플래그 */
+    let navigated = false;
+    try {
+      /* API 호출 — 서버가 가격·총액 재계산 후 order_number 발급 */
+      /* Pass 1 CODE/H-3: agreement 하드코딩 제거 — 실제 체크 상태 전달 */
+      const payload = buildOrderPayload(form, items, isLoggedIn, agreements);
+      const result = await createOrder(payload);
 
-    /* sessionStorage에 주문 요약 저장 (order-complete에서 읽음)
-       StoredOrderSummary 타입: PII(이름·전화·주소) 필드 의도적 제외 */
-    type StoredOrderSummary = {
-      number: string;
-      items: Array<{
-        name: string; slug: string; category: string;
-        volume: string | null; qty: number; priceNum: number;
-        image: { src: string; bg: string };
-        type: string; period: string | null;
-      }>;
-    };
-    const summary: StoredOrderSummary = {
-      number: orderNumber,
-      items: items.map((i) => ({
-        name: i.name,
-        slug: i.slug,
-        category: i.category,
-        volume: i.volume,
-        qty: i.qty,
-        priceNum: i.priceNum,
-        image: { src: i.image ?? '', bg: i.color },
-        type: i.type,
-        period: i.period,
-      })),
-    };
-    sessionStorage.setItem('gtr-last-order', JSON.stringify(summary));
+      /* 주문 완료 페이지 표시용 요약 저장 (PII 제외) */
+      type StoredOrderSummary = {
+        number: string;
+        items: Array<{
+          name: string; slug: string; category: string;
+          volume: string | null; qty: number; priceNum: number;
+          image: { src: string; bg: string };
+          type: string; period: string | null;
+        }>;
+      };
+      const summary: StoredOrderSummary = {
+        number: result.orderNumber,
+        items: items.map((i) => ({
+          name: i.name,
+          slug: i.slug,
+          category: i.category,
+          volume: i.volume,
+          qty: i.qty,
+          priceNum: i.priceNum,
+          image: { src: i.image ?? '', bg: i.color },
+          type: i.type,
+          period: i.period,
+        })),
+      };
+      sessionStorage.setItem('gtr-last-order', JSON.stringify(summary));
 
-    clearCart();
-    router.push('/order-complete');
-  }, [clearErrors, validate, isLoggedIn, items, clearCart, router]);
+      clearCart();
+      router.push('/order-complete');
+      navigated = true;
+    } catch (err) {
+      if (err instanceof OrderApiError) {
+        switch (err.code) {
+          case 'rate_limited':
+            toast('잠시 후 다시 시도해 주세요.');
+            break;
+          case 'agreement_required':
+            toast('필수 약관에 동의해 주세요.');
+            break;
+          case 'conflict':
+            /* product_not_found / volume_not_found / volume_sold_out */
+            toast('상품 정보가 변경되었습니다. 장바구니를 확인해 주세요.');
+            break;
+          case 'validation_failed':
+            toast('입력 정보를 확인해 주세요.');
+            break;
+          case 'network_error':
+            toast('네트워크 오류가 발생했습니다.');
+            break;
+          case 'forbidden':
+            /* CSRF 가드 차단 — 정상 사용자에겐 거의 발생하지 않음 */
+            toast('요청이 차단되었습니다. 페이지를 새로고침해 주세요.');
+            break;
+          default:
+            toast('주문 처리 중 오류가 발생했습니다.');
+        }
+      } else {
+        toast('주문 처리 중 오류가 발생했습니다.');
+      }
+    } finally {
+      /* 성공 경로는 이미 라우팅 중 → 버튼 유지.
+         실패 경로에서만, 그리고 아직 마운트 상태일 때만 복구. */
+      if (!navigated && isMountedRef.current) {
+        setSubmitting(false);
+      }
+    }
+  }, [submitting, clearErrors, validate, isLoggedIn, form, items, agreements, clearCart, router, toast]);
 
   /* ── 빈 장바구니 보호 ── */
   if (items.length === 0) {
@@ -528,8 +591,14 @@ export default function CheckoutPage() {
               </div>
 
               {/* 결제하기 버튼 */}
-              <button className="chp-submit-btn" type="button" onClick={handleSubmit}>
-                결제하기
+              <button
+                className="chp-submit-btn"
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting}
+                aria-busy={submitting}
+              >
+                {submitting ? '주문 처리 중…' : '결제하기'}
               </button>
 
               {/* 정기배송 안내 */}

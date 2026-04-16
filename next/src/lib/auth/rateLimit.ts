@@ -87,8 +87,10 @@ export function buildRateLimitResponse(
   reset: number,
 ): NextResponse {
   const retryAfter = Math.max(0, Math.ceil((reset - Date.now()) / 1000));
+  /* Pass 1 H1: errors.ts 표준 코드 'rate_limited' 로 통일.
+     OrderApiError.code 경로에서 CheckoutPage switch 가 동일 리터럴을 기대함. */
   return new NextResponse(
-    JSON.stringify({ error: 'rate_limit_exceeded', retryAfter }),
+    JSON.stringify({ error: 'rate_limited', retryAfter }),
     {
       status: 429,
       headers: {

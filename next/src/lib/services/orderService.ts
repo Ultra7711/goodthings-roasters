@@ -19,7 +19,8 @@
 
 import { hash as argon2Hash } from '@node-rs/argon2';
 import { PRODUCTS, type Product, type ProductVolume } from '@/lib/products';
-import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/lib/store';
+/* Pass 1 CODE/H-2: 배송비 규칙은 cartCalc 에서 단일 소스로 관리 */
+import { calcShippingFee } from '@/lib/cartCalc';
 import {
   createOrder as createOrderRpc,
   type CreateOrderRpcItem,
@@ -29,6 +30,10 @@ import type {
   OrderCreateInput,
   OrderItemInput,
 } from '@/lib/schemas/order';
+
+/* calcShippingFee 는 @/lib/cartCalc 로 이관.
+   기존 소비자 편의를 위해 재export — 정책 규칙 자체는 cartCalc 단일 소스. */
+export { calcShippingFee } from '@/lib/cartCalc';
 
 /* ══════════════════════════════════════════
    상수
@@ -98,15 +103,6 @@ export function resolveVolume(product: Product, volume: string): ProductVolume {
     );
   }
   return found;
-}
-
-/**
- * 배송비 계산 — 프런트 cartCalc 와 완전 동일 규칙.
- * (프로토타입 정책: 소계 0 → 0, 30,000 이상 → 0, 그 외 3,000)
- */
-export function calcShippingFee(subtotal: number): number {
-  if (subtotal === 0) return 0;
-  return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
 }
 
 /**

@@ -45,10 +45,10 @@ describe('buildRateLimitResponse', () => {
     expect(Number(res.headers.get('Retry-After'))).toBe(0);
   });
 
-  it('JSON 바디 — error: rate_limit_exceeded + retryAfter 숫자', async () => {
+  it('JSON 바디 — error: rate_limited + retryAfter 숫자', async () => {
     const res = buildRateLimitResponse(10, 0, RESET_FUTURE);
     const body = await res.json() as { error: string; retryAfter: number };
-    expect(body.error).toBe('rate_limit_exceeded');
+    expect(body.error).toBe('rate_limited');
     expect(typeof body.retryAfter).toBe('number');
     expect(body.retryAfter).toBeGreaterThanOrEqual(0);
   });
@@ -111,7 +111,7 @@ describe('checkRateLimitWith', () => {
     expect(capturedKey).toBe('unknown');
   });
 
-  it('x-forwarded-for 첫 번째 IP 를 limiter 에 전달', async () => {
+  it('x-forwarded-for 마지막 IP 를 limiter 에 전달 (Pass 1 H-3: Vercel edge 신뢰 IP)', async () => {
     let capturedKey: string | undefined;
     const limiter = {
       limit: async (key: string) => {
@@ -120,7 +120,7 @@ describe('checkRateLimitWith', () => {
       },
     };
     await checkRateLimitWith(makeReq('5.6.7.8, 9.9.9.9'), limiter);
-    expect(capturedKey).toBe('5.6.7.8');
+    expect(capturedKey).toBe('9.9.9.9');
   });
 
   it('한도 초과 응답에 X-RateLimit-Remaining: 0 포함', async () => {
