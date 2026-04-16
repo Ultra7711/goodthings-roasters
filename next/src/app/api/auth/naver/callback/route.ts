@@ -27,6 +27,7 @@ import {
   extractUserAgent,
 } from '@/lib/auth/logger';
 import { checkRateLimit } from '@/lib/auth/rateLimit';
+import { sendWelcomeEmail } from '@/lib/email/notifications';
 
 /* ── 네이버 API 응답 타입 ── */
 type NaverTokenResponse = {
@@ -175,6 +176,10 @@ export async function GET(request: Request) {
       email_confirm: true,
       user_metadata: { ...baseMetadata, providers: ['naver'] },
     });
+    /* 신규 가입 환영 메일 (fire-and-forget — 발송 실패해도 로그인 중단 없음) */
+    if (!isSyntheticEmail) {
+      void sendWelcomeEmail(email, baseMetadata.full_name || undefined);
+    }
   } else if (decision.action === 'allow_merge') {
     // 기존 계정의 providers 배열에 naver 추가 (ADR §3.2 — 병합 허용 시 metadata 확장)
     // Naver 콜백에서는 실무상 도달하기 어려움(Naver는 항상 미검증이라 기존이 검증이면 block됨).

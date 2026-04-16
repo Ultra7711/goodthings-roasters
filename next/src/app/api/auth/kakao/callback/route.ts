@@ -25,6 +25,7 @@ import {
   extractUserAgent,
 } from '@/lib/auth/logger';
 import { checkRateLimit } from '@/lib/auth/rateLimit';
+import { sendWelcomeEmail } from '@/lib/email/notifications';
 
 /* ── 카카오 API 응답 타입 ── */
 type KakaoTokenResponse = {
@@ -179,6 +180,10 @@ export async function GET(request: Request) {
       email_confirm: true,
       user_metadata: { ...baseMetadata, providers: ['kakao'] },
     });
+    /* 신규 가입 환영 메일 (fire-and-forget — 발송 실패해도 로그인 중단 없음) */
+    if (!isSyntheticEmail) {
+      void sendWelcomeEmail(email, baseMetadata.full_name || undefined);
+    }
   } else if (decision.action === 'allow_merge') {
     // 기존 계정의 providers 배열에 kakao 추가 + (필요 시) email_verified 승격
     const { data: existing } = await supabaseAdmin.auth.admin.getUserById(

@@ -35,6 +35,7 @@ import {
   confirmOrder,
   PaymentServiceError,
 } from '@/lib/services/paymentService';
+import { sendOrderConfirmationEmail } from '@/lib/email/notifications';
 
 export async function POST(request: Request): Promise<Response> {
   /* 1) CSRF 가드 */
@@ -57,6 +58,10 @@ export async function POST(request: Request): Promise<Response> {
   /* 5) 서비스 호출 */
   try {
     const result = await confirmOrder(input, { userId });
+
+    /* 6) 주문 확인 메일 (fire-and-forget — 실패해도 결제 롤백 없음, docs §10) */
+    void sendOrderConfirmationEmail(result.orderNumber, result.virtualAccount);
+
     return apiSuccess(result);
   } catch (err) {
     if (err instanceof PaymentServiceError) {
