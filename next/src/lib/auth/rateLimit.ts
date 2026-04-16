@@ -61,18 +61,17 @@ function getLimiter(preset: RateLimitPreset): Ratelimit | null {
   const redis = getRedis();
   if (!redis) return null;
 
-  if (!_limiters.has(preset)) {
-    const { requests, window } = LIMITS[preset];
-    _limiters.set(
-      preset,
-      new Ratelimit({
-        redis,
-        limiter: Ratelimit.slidingWindow(requests, window as Parameters<typeof Ratelimit.slidingWindow>[1]),
-        prefix: `gtr_rl_${preset}`,
-      }),
-    );
-  }
-  return _limiters.get(preset)!;
+  const cached = _limiters.get(preset);
+  if (cached) return cached;
+
+  const { requests, window } = LIMITS[preset];
+  const limiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(requests, window as Parameters<typeof Ratelimit.slidingWindow>[1]),
+    prefix: `gtr_rl_${preset}`,
+  });
+  _limiters.set(preset, limiter);
+  return limiter;
 }
 
 /* ══════════════════════════════════════════

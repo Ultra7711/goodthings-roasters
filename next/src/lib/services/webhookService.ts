@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   webhookService.ts — Toss 웹훅 비즈 로직 (P2-B Session 5 B-4)
+   webhookService.ts — Toss 웹훅 비즈 로직 (P2-B Session 5 B-4 · Session 6 폴리시)
 
    역할:
    - ADR-002 하이브리드 인증 실행자.
@@ -9,9 +9,15 @@
      (§5) 을 코드로 고정.
    - 23505 UNIQUE 위반은 "이미 처리된 웹훅" 으로 해석 → 200 skip (silent).
 
+   Session 6 변경:
+   - H-4 (쿼리 통합): `findOrderWithPaymentByOrderNumber` 단일 쿼리로 orders + payments
+     동시 조회. 기존 2회 round-trip 제거.
+   - C-3 (PII 마스킹): RPC 의 rawPayload 저장 전 `maskTossPayload` 적용.
+   - ts H-3: TossNetworkError 중복 throw 분기 축약.
+
    반환 원칙:
    - Route Handler 가 HTTP 응답으로 변환할 수 있도록 `WebhookResult` 가
-     `{ kind, detail?, http }` 구조를 돌려준다. Response 객체는 만들지 않는다.
+     `{ kind, detail? }` 구조를 돌려준다. Response 객체는 만들지 않는다.
    - 타이밍 역전(§5.3.1) 전용 kind `timing_inversion` → Route 가 `Retry-After` +
      `x-webhook-timing-inversion` 헤더를 붙여 503 으로 응답.
 
@@ -19,6 +25,7 @@
    - docs/payments-flow.md §3.2 · §3.2.4 · §3.2.5 · §5 · §5.3
    - docs/adr/ADR-002-payment-webhook-verification.md §3
    - supabase/migrations/012_payments_hardening.sql §4.4 (apply_webhook_event RPC)
+   - supabase/migrations/013_payments_hardening_followup.sql
    ══════════════════════════════════════════════════════════════════════════ */
 
 import {
@@ -28,17 +35,16 @@ import {
   isPgUniqueViolation,
   unknownWebhookIdempotencyKey,
 } from '@/lib/payments/idempotency';
+import { maskTossPayload } from '@/lib/payments/mask';
 import {
   TossApiError,
-  TossNetworkError,
   getPayment as tossGetPayment,
   type TossGetPaymentResponse,
 } from '@/lib/payments/tossClient';
 import { verifyDepositSecret } from '@/lib/payments/webhookVerify';
 import {
   applyWebhookEventRpc,
-  findOrderForConfirm,
-  findPaymentByOrderNumber,
+  findOrderWithPaymentByOrderNumber,
 } from '@/lib/repositories/paymentRepo';
 import type {
   CardWebhookPayload,
@@ -107,9 +113,7 @@ export function mapDepositStatus(paymentStatus: string): DbPaymentEventType {
 
 /**
  * 카드 웹훅 이벤트별 저장할 amount 결정.
- * - PARTIAL_CANCELED: 해당 취소 트랜잭션 금액 (음수 저장은 006 enum 이 허용).
- *                     하지만 012 `apply_webhook_event` 는 `abs(p_amount)` 로 처리하므로
- *                     **양수로 그대로 전달**한다.
+ * - PARTIAL_CANCELED: 해당 취소 트랜잭션 금액 (012 `apply_webhook_event` 가 `abs` 처리).
  * - CANCELED: 전액 환불 — totalAmount.
  * - DONE / EXPIRED / ABORTED: totalAmount.
  * - 기타(webhook_received): 0.
@@ -158,11 +162,12 @@ function buildCardIdempotencyKey(
 /**
  * 카드 웹훅 처리 (ADR-002 §3.1).
  *
- * 1) Toss GET 재조회 (권위) — 4xx/5xx 는 구분해 auth_failed/bad_request.
- * 2) orders 조회 — order_number = payload.data.orderId.
+ * 1) Toss GET 재조회 (권위) — 4xx 는 auth_failed, 네트워크는 throw(500 유도).
+ * 2) `findOrderWithPaymentByOrderNumber` 단일 쿼리로 orders + payments 조회.
  *    payments 행 없음 = 타이밍 역전 (confirm 전에 웹훅 도착) → 503.
  * 3) 총액 교차검증 — order.total_amount !== authoritative.totalAmount → 401 위조.
- * 4) 멱등 키 합성 → apply_webhook_event RPC.
+ *    (Toss 스펙상 totalAmount 는 원 승인 금액으로 부분취소 후에도 불변.)
+ * 4) 멱등 키 합성 → apply_webhook_event RPC (rawPayload 는 마스킹 후 저장).
  * 5) 23505 UNIQUE → 200 silent.
  */
 export async function handleCardWebhook(
@@ -177,11 +182,7 @@ export async function handleCardWebhook(
       /* 4xx → Toss 가 해당 paymentKey 를 모른다 / 위조 — 401 분기. */
       return { kind: 'auth_failed', detail: `toss_api_${err.status}` };
     }
-    if (err instanceof TossNetworkError) {
-      /* 네트워크/5xx 재시도 실패 — Toss 가 재시도하도록 500 이 맞지만,
-         Route 에서 500 을 떨어뜨려 Toss retry 유발. 여기서는 throw. */
-      throw err;
-    }
+    /* TossNetworkError · 기타 예외는 재시도 유도(500)를 위해 그대로 throw. */
     throw err;
   }
 
@@ -190,35 +191,32 @@ export async function handleCardWebhook(
     return { kind: 'auth_failed', detail: 'order_id_mismatch' };
   }
 
-  /* 2) DB 매칭 — payments 존재 여부로 타이밍 역전 판정 */
-  const paymentRow = await findPaymentByOrderNumber(payload.data.orderId);
-  if (!paymentRow) {
+  /* 2) DB 단일 쿼리 — orders + payments 동시 조회 (H-4) */
+  const combo = await findOrderWithPaymentByOrderNumber(payload.data.orderId);
+  if (!combo) {
+    return { kind: 'bad_request', detail: 'order_not_found' };
+  }
+  if (!combo.payment) {
     /* §5.3.1 — pending 상태에서 웹훅이 confirm 보다 먼저 도착. */
     return { kind: 'timing_inversion', detail: 'payment_row_missing' };
   }
 
-  /* order UUID 확보 — RPC 는 UUID 필요 */
-  const order = await findOrderForConfirm(payload.data.orderId);
-  if (!order) {
-    return { kind: 'bad_request', detail: 'order_not_found' };
-  }
-
   /* 3) 총액 교차검증 */
-  if (order.total_amount !== authoritative.totalAmount) {
+  if (combo.order.total_amount !== authoritative.totalAmount) {
     return { kind: 'auth_failed', detail: 'amount_mismatch' };
   }
 
-  /* 4) 멱등 키 합성 + RPC */
+  /* 4) 멱등 키 합성 + RPC (rawPayload 는 PII 마스킹) */
   const eventType = mapCardStatus(authoritative.status);
   const amount = pickCardAmount(authoritative);
   const idempotencyKey = buildCardIdempotencyKey(payload, authoritative);
 
   try {
     await applyWebhookEventRpc({
-      orderId: order.id,
+      orderId: combo.order.id,
       eventType,
       amount,
-      rawPayload: { payload, authoritative } as unknown,
+      rawPayload: maskTossPayload({ payload, authoritative }),
       idempotencyKey,
     });
     return OK;
@@ -231,21 +229,24 @@ export async function handleCardWebhook(
 /**
  * 가상계좌 DEPOSIT_CALLBACK 처리 (ADR-002 §3.2).
  *
- * 1) payments 조회 — 없거나 webhook_secret 없음 → 503 타이밍 역전.
+ * 1) orders + payments 동시 조회. 없거나 webhook_secret 없음 → 503 타이밍 역전.
  * 2) timing-safe 비교 → 불일치 401.
- * 3) event_type 매핑 + 멱등 키 → RPC.
+ * 3) event_type 매핑 + 멱등 키 → RPC (rawPayload 는 마스킹).
  */
 export async function handleVirtualAccountWebhook(
   payload: DepositWebhookPayload,
 ): Promise<WebhookResult> {
-  /* 1) payments 조회 */
-  const paymentRow = await findPaymentByOrderNumber(payload.data.orderId);
-  if (!paymentRow || !paymentRow.webhook_secret) {
+  /* 1) orders + payments 단일 쿼리 */
+  const combo = await findOrderWithPaymentByOrderNumber(payload.data.orderId);
+  if (!combo) {
+    return { kind: 'bad_request', detail: 'order_not_found' };
+  }
+  if (!combo.payment || !combo.payment.webhook_secret) {
     return { kind: 'timing_inversion', detail: 'webhook_secret_unavailable' };
   }
 
   /* 2) timing-safe 비교 */
-  if (!verifyDepositSecret(payload.secret, paymentRow.webhook_secret)) {
+  if (!verifyDepositSecret(payload.secret, combo.payment.webhook_secret)) {
     return { kind: 'auth_failed', detail: 'secret_mismatch' };
   }
 
@@ -259,14 +260,14 @@ export async function handleVirtualAccountWebhook(
 
   /* 금액: DONE = approved_amount, 그 외(취소/만료) = approved_amount.
      (부분 환불이 없는 가상계좌 특성상 전액 기준이 맞다.) */
-  const amount = paymentRow.approved_amount;
+  const amount = combo.payment.approved_amount;
 
   try {
     await applyWebhookEventRpc({
-      orderId: paymentRow.order_id,
+      orderId: combo.payment.order_id,
       eventType,
       amount,
-      rawPayload: payload as unknown,
+      rawPayload: maskTossPayload(payload),
       idempotencyKey,
     });
     return OK;

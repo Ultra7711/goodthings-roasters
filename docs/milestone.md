@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-16 (Phase 2-F 검색 시스템 완료 — 4-layer 엔진(L1 정규화·L2 동의어 쌍방향·L3 거센소리→평음·L4 초성) + A 사전 인덱스 + B 동치류 역인덱스(Set 기반·자기참조 차단) + C 스코어 랭킹 + E 하이라이트 spans + 단일 음절 가드. SearchPage·SearchResultCard·SearchEmpty·HighlightText UI + SiteHeader Enter 제출. TDD 123/123 + 3총사 Pass 1(HIGH 5 + MEDIUM 정리). 커밋 `f52bc6ac`·`cd88093e`·`5a21842b`. 다음: Phase 2-F 콘텐츠(GoodDays/Story/MyPage 채우기) 또는 Phase 2-G(반응형+프로덕션) 또는 Backend P2(Route Handler + Resend))
+> **최종 업데이트:** 2026-04-16 (Backend P2-B Session 6 B-7 3총사+database-reviewer 4-병렬 리뷰 Pass 1 완료 — CRITICAL 3건(C-1 lock order · C-2 refund lock · C-3 PII 마스킹) + HIGH 10건(H-1 DRY primitives · H-2 payments absent fail · H-3 guest ownership · H-4 단일 쿼리 · H-5 coalesce payment_key · code H-3·H-4 · ts H-1·H-2·H-3) + security H-1 게스트 이메일 교차검증 + M-3 approvedAt 감사 보존. 013 마이그레이션(apply_webhook_event 재정의) + `schemas/common.ts`(OrderNumber·PaymentKey·Amount·GuestEmail 단일 선언) + `payments/mask.ts`(카드·계좌·이메일·폰 마스킹 allowlist) + `findOrderWithPaymentByOrderNumber`(left join 단일 쿼리) + paymentService 단계별 helper 분리 + TOSS_METHOD_TABLE 상수 + CheckoutPage→OrderCompletePage guestEmail pass-through + webhookService.test.ts combo fixture 재구성 + `docs/toss-support-inquiry.md`(고객센터 문의 템플릿 4섹션). tsc/eslint 0 error · 195/195 vitest 그린 · `next build` 성공.)
 
 ---
 
@@ -29,7 +29,7 @@
 | Phase 5 — Quality Assurance | 3 | 0 | 0 | 3 | 0% |
 | User AI | 1 | 0 | 0 | 1 | 0% |
 
-**현재 위치: Phase 2-F 검색 시스템(엔진+UI) 완료 — TDD 123/123 · 3총사 Pass 1. 다음: Phase 2-F 콘텐츠 채우기 또는 Phase 2-G(반응형+프로덕션) 또는 Backend P2(Route Handler + Resend)**
+**현재 위치: Backend P2-B Session 6 B-7 3총사+DB 4-병렬 리뷰 Pass 1 완료 — CRITICAL 3 · HIGH 10 · security H-1 · M-3 일괄 수정, 195/195 vitest 그린. 다음: Session 7(B-5 정산·B-6 UX) 또는 C-1 자동 재시도 모니터링 또는 Phase 2-F 콘텐츠/2-G 반응형**
 
 ---
 
@@ -145,6 +145,7 @@
 | **Backend P2-B Session 3.5 B-2** 결제위젯 UI | ✅ | CheckoutPayment.tsx(@tosspayments/tosspayments-sdk v2.6) + CheckoutPage `step: 'form'→'payment'` 전환 + OrderCompletePage successUrl 쿼리(paymentKey/orderId/amount) 수신 · sessionStorage 이관 + failUrl 안내 toast + Strict Mode 이중 마운트 방어(cancelled flag + cleanup innerHTML) (2026-04-16) |
 | **Backend P2-B Session 4 B-3** confirm API + 3중 멱등 방어 | ✅ | 012 `payments` + `confirm_payment` RPC(SECURITY DEFINER + SELECT FOR UPDATE) + tossClient(Basic Auth + 10s timeout + 5xx 1회 재시도) + idempotency 키 합성 유틸 + paymentService(7단계 흐름 · ALREADY_PROCESSED_PAYMENT 리체크) + `POST /api/payments/confirm`(CSRF+RateLimit 10/60s+zod+getClaims) + OrderCompletePage 연동(pending/success/deposit_waiting/failed 상태 머신 · sessionStorage 'gtr-confirmed:{paymentKey}' dedup · clearCart) + 171/171 vitest 그린 (2026-04-16) |
 | **Backend P2-B Session 5 B-4** Toss 웹훅 엔드포인트 | ✅ | `POST /api/payments/webhook` + ADR-002 하이브리드 인증(카드 GET 재조회 · 가상계좌 timing-safe secret) + `webhookVerify`(node:crypto timingSafeEqual) + zod `KnownWebhookSchema`(discriminatedUnion PAYMENT_STATUS_CHANGED/DEPOSIT_CALLBACK) + `webhookService`(status 매핑 + PARTIAL_CANCELED cancels[-1] 멱등 키 + 23505 silent skip + 총액 교차검증 401) + 012 `apply_webhook_event` RPC 래퍼 + CSRF `CSRF_EXEMPT_PATHS` 화이트리스트 + §5.3.1 timing-inversion 503(`Retry-After:30` + `x-webhook-timing-inversion:true`) + 193/193 vitest 그린(신규 22/22) (2026-04-16) |
+| **Backend P2-B Session 6 B-7** 3총사+database-reviewer Pass 1 | ✅ | 013 마이그레이션(apply_webhook_event 재정의 · C-1 lock order · C-2 refund lock · H-2 payments absent fail · H-5 coalesce payment_key) + `schemas/common.ts` DRY + `payments/mask.ts`(카드·계좌·이메일·폰 allowlist) + `findOrderWithPaymentByOrderNumber` 단일 쿼리(H-4) + paymentService 단계별 helper 분리 + TOSS_METHOD_TABLE(code H-3) + approvedAt 누락 시 `toss_failed`(M-3) + 게스트 이메일 교차검증(security H-1/H-3 · CheckoutPage→OrderCompletePage pass-through) + rawPayload/rawResponse 마스킹(C-3) + tossClient RETRY_ONCE 잔재 정리(ts H-1) + rateLimit non-null assertion 제거(ts H-2) + webhookService.test.ts combo fixture 재구성 + `docs/toss-support-inquiry.md`(IP CIDR/서명/UA/재시도 정책 4문의 템플릿) · 195/195 vitest · tsc/eslint 0 · `next build` 성공 (2026-04-16) |
 | **Backend P2** 잔여 (B-5~H) | ⬜ | 정산 리포트·Resend·회원탈퇴·RLS/RBAC·프로덕션·인프라 (session_plan 참조) |
 
 ### 9. Auth & Security 🔄

@@ -39,6 +39,8 @@ type OrderItemData = {
 
 type LastOrder = {
   number: string;
+  /** 게스트 주문만 세팅. 로그인 사용자는 undefined — user_id 로 소유권 식별. */
+  guestEmail?: string;
   items: OrderItemData[];
 };
 
@@ -149,6 +151,22 @@ export default function OrderCompletePage() {
         return;
       }
 
+      /* security H-1/H-3: 게스트 주문은 sessionStorage 에 저장된 이메일을
+         confirm API 에 함께 전달 — 서버가 orders.guest_email 과 대조.
+         sessionStorage 를 직접 읽어 effect 의존성 배열을 늘리지 않는다. */
+      let guestEmail: string | undefined;
+      try {
+        const rawLast = sessionStorage.getItem('gtr-last-order');
+        if (rawLast) {
+          const parsed = JSON.parse(rawLast) as { guestEmail?: unknown };
+          if (typeof parsed.guestEmail === 'string' && parsed.guestEmail.length > 0) {
+            guestEmail = parsed.guestEmail;
+          }
+        }
+      } catch {
+        /* 손상된 JSON — guestEmail 없이 진행 (서버가 forbidden 으로 끊음) */
+      }
+
       try {
         const res = await fetch('/api/payments/confirm', {
           method: 'POST',
@@ -157,6 +175,7 @@ export default function OrderCompletePage() {
             paymentKey,
             orderId: paidOrderId,
             amount: amountNum,
+            ...(guestEmail ? { guestEmail } : {}),
           }),
         });
 

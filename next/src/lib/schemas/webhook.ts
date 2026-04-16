@@ -19,18 +19,11 @@
 
 import { z } from 'zod';
 
+import { OrderNumberSchema, PaymentKeySchema } from '@/lib/schemas/common';
+
 /* ── 공통 원시 타입 ─────────────────────────────────────────────────────── */
 
-const OrderNumberSchema = z
-  .string()
-  .regex(/^GT-\d{8}-\d{5}$/, { message: 'invalid_order_number' });
-
-const PaymentKeySchema = z
-  .string()
-  .min(1)
-  .max(200)
-  .regex(/^[A-Za-z0-9_-]+$/, { message: 'payment_key_invalid_chars' });
-
+/** NonEmptyString 은 `eventType` · `createdAt` · `status` 등 자유 문자열 필드용 */
 const NonEmptyString = z.string().min(1);
 
 /* ── 카드 PAYMENT_STATUS_CHANGED ────────────────────────────────────────── */

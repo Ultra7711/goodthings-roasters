@@ -260,9 +260,15 @@ export default function CheckoutPage() {
       const payload = buildOrderPayload(form, items, isLoggedIn, agreements);
       const result = await createOrder(payload);
 
-      /* 주문 완료 페이지 표시용 요약 저장 (PII 제외) */
+      /* 주문 완료 페이지 표시용 요약 저장 (PII 제외) +
+         security H-1/H-3: 게스트 주문은 confirm 시점에 소유권 교차검증을 위해
+         이메일을 한 번 더 클라이언트로 전달해야 한다. 로그인 세션은 Supabase 쿠키
+         (user_id) 로 소유권을 증명하므로 이메일을 저장하지 않는다.
+         sessionStorage 는 탭 종료 시 자동 폐기되어 브라우저에 장기 체류하지 않음. */
       type StoredOrderSummary = {
         number: string;
+        /** 게스트 주문만 세팅. 로그인 사용자는 undefined. */
+        guestEmail?: string;
         items: Array<{
           name: string; slug: string; category: string;
           volume: string | null; qty: number; priceNum: number;
@@ -272,6 +278,7 @@ export default function CheckoutPage() {
       };
       const summary: StoredOrderSummary = {
         number: result.orderNumber,
+        guestEmail: isLoggedIn ? undefined : form.email.trim().toLowerCase(),
         items: items.map((i) => ({
           name: i.name,
           slug: i.slug,

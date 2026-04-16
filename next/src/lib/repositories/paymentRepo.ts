@@ -98,29 +98,45 @@ export async function findPaymentByOrderId(
 }
 
 /**
- * `orders.order_number` 기준 payments 레코드 + 소속 order 식별자 동시 조회.
+ * 웹훅 경로에서 필요한 order + payment 한 번에 조회용 결과 타입.
+ * - order 는 존재해야 null 미반환 조건을 만족하고,
+ * - payment 는 타이밍 역전(§5.3.1) 케이스에서 null 일 수 있다 (inner→left join).
+ */
+export type OrderWithPayment = {
+  order: Pick<OrderForConfirm, 'id' | 'order_number' | 'status' | 'payment_method' | 'total_amount'>;
+  payment: PaymentRow | null;
+};
+
+/**
+ * `orders.order_number` 기준 orders + payments 한 번의 라운드트립으로 조회.
  *
  * 용도 — 웹훅(§3.2):
- * - Toss 웹훅 페이로드의 `data.orderId` 는 우리가 발행한 `order_number` (예 `GT-20260416-00001`).
- * - RPC (`apply_webhook_event`) 는 UUID 형태의 `orders.id` 를 요구하므로
- *   orders 를 한 번 조회해 UUID + webhook_secret 을 함께 얻는다.
- * - 카드 경로는 `webhook_secret` 을 사용하지 않지만 총액/상태는 GET 재조회로 대체.
- * - 가상계좌 경로에서 `webhook_secret` 을 timing-safe 비교.
+ * - Toss 웹훅 페이로드의 `data.orderId` 는 `order_number` (예 `GT-20260416-00001`).
+ * - 카드 경로는 총액 교차검증용 `orders.total_amount`, UUID 전달용 `orders.id`,
+ *   타이밍 역전 판정용 `payment` 존재 여부가 모두 필요.
+ * - 기존 `findPaymentByOrderNumber` + `findOrderForConfirm` 2회 쿼리 → 단일 쿼리.
  *
- * @returns null = 주문 또는 payments 레코드 없음
+ * left join 이므로 payments 가 아직 없어도 orders 가 있으면 결과 반환.
+ * orders 자체가 없으면 null.
+ *
+ * @returns null = orders 레코드 없음 (order_number 불일치)
  */
-export async function findPaymentByOrderNumber(
+export async function findOrderWithPaymentByOrderNumber(
   orderNumber: string,
-): Promise<PaymentRow | null> {
+): Promise<OrderWithPayment | null> {
   const admin = getSupabaseAdmin();
 
-  /* orders → payments (1:1) 조인. payments 가 없으면 inner join 결과 비어있음. */
+  /* orders → payments (left join). payments 가 없어도 orders 는 반환. */
   const { data, error } = await admin
     .from('orders')
     .select(
       `
       id,
-      payments:payments!inner (
+      order_number,
+      status,
+      payment_method,
+      total_amount,
+      payments (
         id,
         order_id,
         payment_key,
@@ -135,14 +151,31 @@ export async function findPaymentByOrderNumber(
       `,
     )
     .eq('order_number', orderNumber)
-    .maybeSingle<{ id: string; payments: PaymentRow | PaymentRow[] | null }>();
+    .maybeSingle<{
+      id: string;
+      order_number: string;
+      status: DbOrderStatus;
+      payment_method: DbPaymentMethod;
+      total_amount: number;
+      payments: PaymentRow | PaymentRow[] | null;
+    }>();
 
   if (error) throw error;
   if (!data) return null;
 
-  /* Supabase 는 1:1 관계도 상황에 따라 배열로 반환할 수 있어 양쪽 모두 처리. */
-  const payment = Array.isArray(data.payments) ? data.payments[0] : data.payments;
-  return payment ?? null;
+  /* Supabase 는 1:1 관계도 배열로 반환할 수 있어 양쪽 모두 처리. */
+  const payment = Array.isArray(data.payments) ? (data.payments[0] ?? null) : data.payments;
+
+  return {
+    order: {
+      id: data.id,
+      order_number: data.order_number,
+      status: data.status,
+      payment_method: data.payment_method,
+      total_amount: data.total_amount,
+    },
+    payment: payment ?? null,
+  };
 }
 
 /* ══════════════════════════════════════════

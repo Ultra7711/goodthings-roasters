@@ -1,5 +1,9 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   webhookService.test.ts — Toss 웹훅 처리 단위 테스트 (P2-B B-4)
+   webhookService.test.ts — Toss 웹훅 처리 단위 테스트 (P2-B B-4 · Session 6 폴리시)
+
+   Session 6 변경:
+   - `findPaymentByOrderNumber` + `findOrderForConfirm` 이원 쿼리 →
+     `findOrderWithPaymentByOrderNumber` 단일 쿼리 (H-4) 에 맞춰 mock 재구성.
 
    커버리지:
    - mapCardStatus · mapDepositStatus (§3.2.4 매핑 테이블 전수)
@@ -10,10 +14,12 @@
        · payments 레코드 없음 → timing_inversion
        · 23505 UNIQUE → ok (silent skip)
        · Toss 4xx → auth_failed
+       · Toss 응답 orderId 불일치 → auth_failed
    - handleVirtualAccountWebhook
        · DONE 정상 경로
        · secret 불일치 → auth_failed
        · webhook_secret 없음 → timing_inversion
+       · payments 행 없음 → timing_inversion
        · 23505 UNIQUE → ok
    - handleUnknownWebhook → ok (감사 로그만)
 
@@ -53,9 +59,9 @@ vi.mock('@/lib/payments/tossClient', () => {
 
 vi.mock('@/lib/repositories/paymentRepo', () => ({
   applyWebhookEventRpc: vi.fn(),
-  findOrderForConfirm: vi.fn(),
-  findPaymentByOrderNumber: vi.fn(),
+  findOrderWithPaymentByOrderNumber: vi.fn(),
   findPaymentByOrderId: vi.fn(),
+  findOrderForConfirm: vi.fn(),
   confirmPaymentRpc: vi.fn(),
 }));
 
@@ -77,9 +83,8 @@ import {
 } from '@/lib/payments/tossClient';
 import {
   applyWebhookEventRpc,
-  findOrderForConfirm,
-  findPaymentByOrderNumber,
-  type OrderForConfirm,
+  findOrderWithPaymentByOrderNumber,
+  type OrderWithPayment,
   type PaymentRow,
 } from '@/lib/repositories/paymentRepo';
 import type {
@@ -98,13 +103,12 @@ const PAYMENT_KEY = 'toss_test_payment_key_ABC123';
 const TOTAL_AMOUNT = 28_000;
 const WEBHOOK_SECRET = 'webhook_secret_abcdef_0123456789';
 
-function makeOrder(overrides: Partial<OrderForConfirm> = {}): OrderForConfirm {
+function makeOrderSlice(
+  overrides: Partial<OrderWithPayment['order']> = {},
+): OrderWithPayment['order'] {
   return {
     id: ORDER_UUID,
     order_number: ORDER_NUMBER,
-    user_id: null,
-    guest_email: 'guest@example.com',
-    contact_email: 'guest@example.com',
     status: 'paid',
     payment_method: 'card',
     total_amount: TOTAL_AMOUNT,
@@ -125,6 +129,17 @@ function makePayment(overrides: Partial<PaymentRow> = {}): PaymentRow {
     status: 'approved',
     approved_at: '2026-04-16T01:00:00.000Z',
     ...overrides,
+  };
+}
+
+/** `findOrderWithPaymentByOrderNumber` 의 정상 응답 조립자. */
+function makeCombo(
+  orderOverrides: Partial<OrderWithPayment['order']> = {},
+  payment: PaymentRow | null = makePayment(),
+): OrderWithPayment {
+  return {
+    order: makeOrderSlice(orderOverrides),
+    payment,
   };
 }
 
@@ -190,8 +205,7 @@ function makeUniqueViolation(): Error & { code: string } {
 
 beforeEach(() => {
   vi.mocked(tossGetPayment).mockReset();
-  vi.mocked(findOrderForConfirm).mockReset();
-  vi.mocked(findPaymentByOrderNumber).mockReset();
+  vi.mocked(findOrderWithPaymentByOrderNumber).mockReset();
   vi.mocked(applyWebhookEventRpc).mockReset();
 });
 
@@ -241,14 +255,14 @@ describe('mapDepositStatus — §3.2.4 매핑', () => {
 describe('handleCardWebhook', () => {
   it('DONE 정상 경로 — 권위 GET → applyWebhookEventRpc 호출, kind=ok', async () => {
     vi.mocked(tossGetPayment).mockResolvedValue(makeTossGetResponse());
-    vi.mocked(findPaymentByOrderNumber).mockResolvedValue(makePayment());
-    vi.mocked(findOrderForConfirm).mockResolvedValue(makeOrder());
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(makeCombo());
     vi.mocked(applyWebhookEventRpc).mockResolvedValue(undefined);
 
     const result = await handleCardWebhook(makeCardPayload());
 
     expect(result.kind).toBe('ok');
     expect(tossGetPayment).toHaveBeenCalledWith(PAYMENT_KEY);
+    expect(findOrderWithPaymentByOrderNumber).toHaveBeenCalledWith(ORDER_NUMBER);
     expect(applyWebhookEventRpc).toHaveBeenCalledTimes(1);
     const rpcArgs = vi.mocked(applyWebhookEventRpc).mock.calls[0][0];
     expect(rpcArgs.orderId).toBe(ORDER_UUID);
@@ -269,8 +283,7 @@ describe('handleCardWebhook', () => {
         ],
       }),
     );
-    vi.mocked(findPaymentByOrderNumber).mockResolvedValue(makePayment());
-    vi.mocked(findOrderForConfirm).mockResolvedValue(makeOrder());
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(makeCombo());
     vi.mocked(applyWebhookEventRpc).mockResolvedValue(undefined);
 
     const result = await handleCardWebhook(makeCardPayload());
@@ -289,8 +302,7 @@ describe('handleCardWebhook', () => {
     vi.mocked(tossGetPayment).mockResolvedValue(
       makeTossGetResponse({ totalAmount: 99_999 }),
     );
-    vi.mocked(findPaymentByOrderNumber).mockResolvedValue(makePayment());
-    vi.mocked(findOrderForConfirm).mockResolvedValue(makeOrder());
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(makeCombo());
 
     const result = await handleCardWebhook(makeCardPayload());
 
@@ -299,20 +311,33 @@ describe('handleCardWebhook', () => {
     expect(applyWebhookEventRpc).not.toHaveBeenCalled();
   });
 
+  it('orders 레코드 없음 → bad_request', async () => {
+    vi.mocked(tossGetPayment).mockResolvedValue(makeTossGetResponse());
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(null);
+
+    const result = await handleCardWebhook(makeCardPayload());
+
+    expect(result.kind).toBe('bad_request');
+    expect(result.detail).toBe('order_not_found');
+    expect(applyWebhookEventRpc).not.toHaveBeenCalled();
+  });
+
   it('payments 레코드 없음 → timing_inversion', async () => {
     vi.mocked(tossGetPayment).mockResolvedValue(makeTossGetResponse());
-    vi.mocked(findPaymentByOrderNumber).mockResolvedValue(null);
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(
+      makeCombo({}, null),
+    );
 
     const result = await handleCardWebhook(makeCardPayload());
 
     expect(result.kind).toBe('timing_inversion');
+    expect(result.detail).toBe('payment_row_missing');
     expect(applyWebhookEventRpc).not.toHaveBeenCalled();
   });
 
   it('23505 UNIQUE → ok (silent skip)', async () => {
     vi.mocked(tossGetPayment).mockResolvedValue(makeTossGetResponse());
-    vi.mocked(findPaymentByOrderNumber).mockResolvedValue(makePayment());
-    vi.mocked(findOrderForConfirm).mockResolvedValue(makeOrder());
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(makeCombo());
     vi.mocked(applyWebhookEventRpc).mockRejectedValue(makeUniqueViolation());
 
     const result = await handleCardWebhook(makeCardPayload());
@@ -340,7 +365,7 @@ describe('handleCardWebhook', () => {
 
     expect(result.kind).toBe('auth_failed');
     expect(result.detail).toBe('order_id_mismatch');
-    expect(findPaymentByOrderNumber).not.toHaveBeenCalled();
+    expect(findOrderWithPaymentByOrderNumber).not.toHaveBeenCalled();
   });
 });
 
@@ -349,11 +374,14 @@ describe('handleCardWebhook', () => {
    ══════════════════════════════════════════ */
 
 describe('handleVirtualAccountWebhook', () => {
-  const virtualPayment = () =>
-    makePayment({ method: 'transfer', webhook_secret: WEBHOOK_SECRET });
+  const virtualCombo = () =>
+    makeCombo(
+      { payment_method: 'transfer' },
+      makePayment({ method: 'transfer', webhook_secret: WEBHOOK_SECRET }),
+    );
 
   it('DONE 정상 경로 — timing-safe secret 일치 + RPC 호출', async () => {
-    vi.mocked(findPaymentByOrderNumber).mockResolvedValue(virtualPayment());
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(virtualCombo());
     vi.mocked(applyWebhookEventRpc).mockResolvedValue(undefined);
 
     const result = await handleVirtualAccountWebhook(makeDepositPayload());
@@ -368,7 +396,7 @@ describe('handleVirtualAccountWebhook', () => {
   });
 
   it('secret 불일치 → auth_failed (timing-safe)', async () => {
-    vi.mocked(findPaymentByOrderNumber).mockResolvedValue(virtualPayment());
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(virtualCombo());
 
     const result = await handleVirtualAccountWebhook(
       makeDepositPayload({}, 'wrong_secret_value_xx'),
@@ -380,8 +408,11 @@ describe('handleVirtualAccountWebhook', () => {
   });
 
   it('webhook_secret 컬럼 없음 → timing_inversion', async () => {
-    vi.mocked(findPaymentByOrderNumber).mockResolvedValue(
-      makePayment({ method: 'transfer', webhook_secret: null }),
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(
+      makeCombo(
+        { payment_method: 'transfer' },
+        makePayment({ method: 'transfer', webhook_secret: null }),
+      ),
     );
 
     const result = await handleVirtualAccountWebhook(makeDepositPayload());
@@ -391,15 +422,26 @@ describe('handleVirtualAccountWebhook', () => {
   });
 
   it('payments 행 자체 없음 → timing_inversion', async () => {
-    vi.mocked(findPaymentByOrderNumber).mockResolvedValue(null);
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(
+      makeCombo({ payment_method: 'transfer' }, null),
+    );
 
     const result = await handleVirtualAccountWebhook(makeDepositPayload());
 
     expect(result.kind).toBe('timing_inversion');
   });
 
+  it('orders 자체 없음 → bad_request', async () => {
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(null);
+
+    const result = await handleVirtualAccountWebhook(makeDepositPayload());
+
+    expect(result.kind).toBe('bad_request');
+    expect(result.detail).toBe('order_not_found');
+  });
+
   it('23505 UNIQUE → ok (silent skip)', async () => {
-    vi.mocked(findPaymentByOrderNumber).mockResolvedValue(virtualPayment());
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(virtualCombo());
     vi.mocked(applyWebhookEventRpc).mockRejectedValue(makeUniqueViolation());
 
     const result = await handleVirtualAccountWebhook(makeDepositPayload());

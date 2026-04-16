@@ -32,8 +32,6 @@ if (typeof window !== 'undefined') {
 
 const TOSS_API_BASE = 'https://api.tosspayments.com';
 const TOSS_TIMEOUT_MS = 10_000;
-/** 네트워크/5xx 1회 재시도 (payments-flow §3.1.1) */
-const RETRY_ONCE = true;
 
 /* ══════════════════════════════════════════
    에러 타입
@@ -149,13 +147,11 @@ async function tossFetch<T>(
   try {
     return await attempt();
   } catch (err) {
-    /* 1회 재시도 판정:
+    /* 1회 재시도 판정 (payments-flow §3.1.1):
        - AbortError (timeout) → 재시도
        - TypeError/fetch 실패 → 재시도
        - TossApiError && 5xx → 재시도
        - TossApiError && 4xx → 즉시 throw (재시도 무의미) */
-    if (!RETRY_ONCE) throw err;
-
     const retriable =
       (err instanceof TossApiError && isRetriableStatus(err.status)) ||
       err instanceof DOMException || // AbortError

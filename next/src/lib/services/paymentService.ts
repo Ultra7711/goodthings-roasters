@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   paymentService.ts — 결제 비즈 로직 (P2-B Session 4 B-3)
+   paymentService.ts — 결제 비즈 로직 (P2-B Session 4 B-3 · Session 6 폴리시)
 
    역할:
    - confirm 플로우의 3중 멱등 방어 중 "레이어 1 · 레이어 3" 책임.
@@ -12,22 +12,32 @@
    - Toss 호출은 tossClient 에 위임 (재시도·timeout·base64 인증).
    - payment_transactions INSERT 는 RPC 내부에서 처리 — 서비스는 RPC 호출만.
 
+   Session 6 변경:
+   - security H-1/H-3: 게스트 소유권 교차검증 (options.guestEmail ↔ orders.guest_email).
+   - M-3: Toss `approvedAt` 누락 시 fallback 금지 → `toss_failed`.
+     (기존 `new Date().toISOString()` 대체는 감사 추적을 불가능하게 만든다.)
+   - code H-3: `mapTossMethod` 를 단일 상수 테이블로 좁혀 오매핑 방지.
+   - code H-4: 135-라인 confirmOrder 를 단계별 보조 함수로 분리.
+   - C-3: RPC 로 전달하는 `rawResponse` 는 `maskTossPayload` 적용.
+
    참조:
    - docs/payments-flow.md §3.1 (스펙) · §3.1.3 (3중 방어) · §4.3 (RPC)
    - docs/backend-architecture-plan.md §7.2 (레이어 분리)
    ══════════════════════════════════════════════════════════════════════════ */
 
+import { isPgUniqueViolation } from '@/lib/payments/idempotency';
+import { maskTossPayload } from '@/lib/payments/mask';
 import {
   confirmPayment as tossConfirmPayment,
   TossApiError,
   TossNetworkError,
   type TossConfirmResponse,
 } from '@/lib/payments/tossClient';
-import { isPgUniqueViolation } from '@/lib/payments/idempotency';
 import {
+  confirmPaymentRpc,
   findOrderForConfirm,
   findPaymentByOrderId,
-  confirmPaymentRpc,
+  type OrderForConfirm,
   type PaymentRow,
 } from '@/lib/repositories/paymentRepo';
 import type { PaymentConfirmInput } from '@/lib/schemas/payment';
@@ -81,29 +91,38 @@ export type ConfirmResult = {
 };
 
 /* ══════════════════════════════════════════
-   내부 유틸
+   내부 유틸 — method 매핑 (code H-3)
    ══════════════════════════════════════════ */
 
 /**
- * Toss 응답의 `method` 문자열(한글)을 DB payment_method enum 에 매핑.
- * - '카드' → 'card'
- * - '가상계좌' → 'transfer'
- * - '계좌이체' → 'transfer'
+ * Toss `method` 응답 → DB `payment_method` enum 단일 매핑 테이블.
  *
- * 기타 수단(간편결제·휴대폰 등)은 MVP 범위 밖 — method_mismatch 로 거부.
+ * Toss 가 한글(`카드`/`가상계좌`/`계좌이체`) 또는 영어 토큰(`CARD`/`VIRTUAL_ACCOUNT`/
+ * `TRANSFER`/`card`) 를 섞어 반환할 수 있어 모두 열거한다. 여기에 없는 수단
+ * (간편결제·휴대폰·문화상품권 등) 은 MVP 범위 밖 → `method_mismatch` 로 거부.
  */
+const TOSS_METHOD_TABLE: Readonly<Record<string, DbPaymentMethod>> = {
+  카드: 'card',
+  CARD: 'card',
+  card: 'card',
+  가상계좌: 'transfer',
+  계좌이체: 'transfer',
+  VIRTUAL_ACCOUNT: 'transfer',
+  TRANSFER: 'transfer',
+};
+
 function mapTossMethod(method: string | undefined): DbPaymentMethod | null {
   if (!method) return null;
-  if (method === '카드' || method === 'CARD' || method === 'card') return 'card';
-  if (method === '가상계좌' || method === '계좌이체' || method === 'VIRTUAL_ACCOUNT' || method === 'TRANSFER') {
-    return 'transfer';
-  }
-  return null;
+  return TOSS_METHOD_TABLE[method] ?? null;
 }
 
+/* ══════════════════════════════════════════
+   내부 유틸 — 결과 조립
+   ══════════════════════════════════════════ */
+
 /**
- * 멱등 경로(이미 paid) 에서 응답 payload 조립.
- * payments 레코드가 반드시 존재 (confirm RPC 가 upsert 완료 상태).
+ * 멱등 경로(이미 paid) · 정상 커밋 후 공통 응답 조립.
+ * payments 레코드가 없는 경우(= pending 상태의 멱등 조회) 는 method=card 기본값.
  */
 function buildResultFromExisting(
   orderNumber: string,
@@ -133,6 +152,161 @@ function buildResultFromExisting(
 }
 
 /* ══════════════════════════════════════════
+   내부 유틸 — 단계별 보조 함수 (code H-4 분리)
+   ══════════════════════════════════════════ */
+
+/**
+ * 소유권 교차검증.
+ * - 회원: `orders.user_id === options.userId`
+ * - 게스트: `orders.user_id === null` AND `orders.guest_email === input.guestEmail`
+ *
+ * guestEmail 은 옵션으로 보냈어도(하위호환) DB 값이 존재하면 반드시 일치해야
+ * 한다. 대소문자 차이로 인한 오탐 방지를 위해 로컬 비교는 소문자 정규화.
+ */
+function assertOwnership(
+  order: OrderForConfirm,
+  options: ConfirmOptions,
+  guestEmail: string | undefined,
+): void {
+  if (options.userId) {
+    if (order.user_id !== options.userId) {
+      throw new PaymentServiceError('forbidden', 'not_owner');
+    }
+    return;
+  }
+
+  /* 게스트 플로우: user_id 가 null 이어야 한다. */
+  if (order.user_id !== null) {
+    throw new PaymentServiceError('forbidden', 'guest_cannot_confirm_member_order');
+  }
+
+  /* guest_email 교차검증 (security H-1/H-3).
+     - DB 값이 있으면 클라이언트가 반드시 같은 이메일을 보내야 한다.
+     - DB 값이 없는 레거시 주문은 스킵 허용 (방어적 — 하지만 신규 주문 경로에서는
+       체크아웃이 항상 guest_email 을 저장하므로 사실상 모든 주문이 검증된다). */
+  const dbEmail = order.guest_email?.trim().toLowerCase() ?? null;
+  if (dbEmail) {
+    const sent = guestEmail?.trim().toLowerCase();
+    if (!sent || sent !== dbEmail) {
+      throw new PaymentServiceError('forbidden', 'guest_email_mismatch');
+    }
+  }
+}
+
+/**
+ * 상태·금액 교차검증 + 이미 paid 인 경우 멱등 응답 조기 반환.
+ * @returns 멱등 응답 (이미 paid) / null (pending → 다음 단계 진행)
+ */
+async function handleStateAndAmount(
+  order: OrderForConfirm,
+  input: PaymentConfirmInput,
+): Promise<ConfirmResult | null> {
+  if (order.status === 'paid') {
+    const existing = await findPaymentByOrderId(order.id);
+    return buildResultFromExisting(
+      order.order_number,
+      order.status,
+      order.total_amount,
+      existing,
+    );
+  }
+  if (order.status !== 'pending') {
+    throw new PaymentServiceError('state_conflict', order.status);
+  }
+
+  if (order.total_amount !== input.amount) {
+    throw new PaymentServiceError('amount_mismatch');
+  }
+  return null;
+}
+
+/**
+ * Toss confirm 호출 + `ALREADY_PROCESSED_PAYMENT` 레이스 복구.
+ * - 4xx → `toss_failed`
+ * - Network/5xx → `toss_unavailable`
+ *
+ * @returns `{ kind: 'response', value }` 또는 `{ kind: 'idempotent', value }`.
+ *   후자는 동시 요청이 먼저 RPC 까지 끝낸 케이스로 멱등 응답 그대로 반환해야 한다.
+ */
+async function callToss(
+  input: PaymentConfirmInput,
+): Promise<
+  | { kind: 'response'; value: TossConfirmResponse }
+  | { kind: 'idempotent'; value: ConfirmResult }
+> {
+  try {
+    const value = await tossConfirmPayment({
+      paymentKey: input.paymentKey,
+      orderId: input.orderId,
+      amount: input.amount,
+    });
+    return { kind: 'response', value };
+  } catch (err) {
+    if (err instanceof TossApiError) {
+      if (err.code === 'ALREADY_PROCESSED_PAYMENT') {
+        const recheck = await findOrderForConfirm(input.orderId);
+        if (recheck?.status === 'paid') {
+          const existing = await findPaymentByOrderId(recheck.id);
+          return {
+            kind: 'idempotent',
+            value: buildResultFromExisting(
+              recheck.order_number,
+              recheck.status,
+              recheck.total_amount,
+              existing,
+            ),
+          };
+        }
+      }
+      throw new PaymentServiceError('toss_failed', err.code);
+    }
+    if (err instanceof TossNetworkError) {
+      throw new PaymentServiceError('toss_unavailable');
+    }
+    throw err;
+  }
+}
+
+/**
+ * Toss 응답 → RPC 파라미터 조립. method 일치·webhook_secret·approvedAt 검증 포함.
+ *
+ * M-3: `approvedAt` 누락 시 서버 now() 로 대체하던 기존 코드는 감사 불가능 →
+ *      `toss_failed(approved_at_missing)` 로 거부. 정상 응답이라면 Toss 가 반드시 채운다.
+ */
+function deriveRpcParams(
+  order: OrderForConfirm,
+  tossResponse: TossConfirmResponse,
+): {
+  method: DbPaymentMethod;
+  webhookSecret: string | null;
+  approvedAt: string;
+} {
+  const method = mapTossMethod(tossResponse.method);
+  if (!method) {
+    throw new PaymentServiceError('method_mismatch', tossResponse.method ?? 'unknown');
+  }
+  if (method !== order.payment_method) {
+    throw new PaymentServiceError(
+      'method_mismatch',
+      `expected=${order.payment_method},actual=${method}`,
+    );
+  }
+
+  const webhookSecret =
+    method === 'transfer' ? (tossResponse.virtualAccount?.secret ?? null) : null;
+  if (method === 'transfer' && !webhookSecret) {
+    throw new PaymentServiceError('toss_failed', 'virtual_account_secret_missing');
+  }
+
+  const approvedAt = tossResponse.approvedAt;
+  if (!approvedAt) {
+    throw new PaymentServiceError('toss_failed', 'approved_at_missing');
+  }
+
+  return { method, webhookSecret, approvedAt };
+}
+
+/* ══════════════════════════════════════════
    confirm 플로우
    ══════════════════════════════════════════ */
 
@@ -146,12 +320,11 @@ export type ConfirmOptions = {
  *
  * 처리 순서:
  *   1) orders 조회 (order_number 기준)
- *   2) 소유권 검사: 회원 → user_id 일치, 게스트 → user_id == null
- *   3) 상태 검사: 이미 paid 면 기존 payments 로 멱등 응답 / pending 만 진행
- *   4) 금액 교차 검증: orders.total_amount === input.amount
- *   5) Toss confirm 호출
- *   6) Toss 응답의 method ↔ orders.payment_method 일치 확인
- *   7) confirm_payment RPC — 원자 커밋 (이미 paid 면 RPC 가 멱등 반환)
+ *   2) 소유권 검사: 회원 user_id · 게스트 guest_email 교차검증
+ *   3) 상태·금액 검사: 이미 paid → 멱등 응답 / pending 만 진행
+ *   4) Toss confirm 호출
+ *   5) Toss method ↔ orders.payment_method 일치 + approvedAt 존재 확인
+ *   6) confirm_payment RPC — 원자 커밋 (이미 paid 면 RPC 가 멱등 반환)
  *
  * 레이어 3 (23505 UNIQUE) 은 `payment_transactions.idempotency_key` 에서
  * 트리거되며, RPC 가 throw 한 PostgrestError 를 여기서 catch → 멱등 응답 변환.
@@ -166,103 +339,31 @@ export async function confirmOrder(
     throw new PaymentServiceError('not_found');
   }
 
-  /* 2) 소유권 검사 */
-  if (options.userId) {
-    if (order.user_id !== options.userId) {
-      throw new PaymentServiceError('forbidden', 'not_owner');
-    }
-  } else {
-    /* 게스트 플로우: user_id 가 null 이어야 한다.
-       회원 주문을 비로그인 상태에서 confirm 시도하는 것은 차단. */
-    if (order.user_id !== null) {
-      throw new PaymentServiceError('forbidden', 'guest_cannot_confirm_member_order');
-    }
-  }
+  /* 2) 소유권 검사 (회원·게스트 분기) */
+  assertOwnership(order, options, input.guestEmail);
 
-  /* 3) 상태 검사 — 레이어 1 핵심 (§3.1.3) */
-  if (order.status === 'paid') {
-    const existing = await findPaymentByOrderId(order.id);
-    return buildResultFromExisting(
-      order.order_number,
-      order.status,
-      order.total_amount,
-      existing,
-    );
-  }
-  if (order.status !== 'pending') {
-    throw new PaymentServiceError('state_conflict', order.status);
-  }
+  /* 3) 상태·금액 검사 (멱등 paid 조기 반환) */
+  const idempotent = await handleStateAndAmount(order, input);
+  if (idempotent) return idempotent;
 
-  /* 4) 금액 교차 검증 — Toss 호출 전 (돈이 움직이기 전) */
-  if (order.total_amount !== input.amount) {
-    throw new PaymentServiceError('amount_mismatch');
-  }
+  /* 4) Toss confirm 호출 */
+  const toss = await callToss(input);
+  if (toss.kind === 'idempotent') return toss.value;
+  const tossResponse = toss.value;
 
-  /* 5) Toss confirm 호출 */
-  let tossResponse: TossConfirmResponse;
-  try {
-    tossResponse = await tossConfirmPayment({
-      paymentKey: input.paymentKey,
-      orderId: input.orderId,
-      amount: input.amount,
-    });
-  } catch (err) {
-    if (err instanceof TossApiError) {
-      /* Toss 가 `ALREADY_PROCESSED_PAYMENT` 를 반환하는 엣지:
-         레이어 1 이 order.status='pending' 을 읽은 직후 동시 호출이 이미 RPC 까지
-         완료했을 수 있음 → 재조회해서 paid 이면 멱등 응답. */
-      if (err.code === 'ALREADY_PROCESSED_PAYMENT') {
-        const recheck = await findOrderForConfirm(input.orderId);
-        if (recheck?.status === 'paid') {
-          const existing = await findPaymentByOrderId(recheck.id);
-          return buildResultFromExisting(
-            recheck.order_number,
-            recheck.status,
-            recheck.total_amount,
-            existing,
-          );
-        }
-      }
-      throw new PaymentServiceError('toss_failed', err.code);
-    }
-    if (err instanceof TossNetworkError) {
-      throw new PaymentServiceError('toss_unavailable');
-    }
-    throw err;
-  }
+  /* 5) method / webhook_secret / approvedAt 검증 */
+  const { method, webhookSecret, approvedAt } = deriveRpcParams(order, tossResponse);
 
-  /* 6) method 매핑 + 일치 확인 */
-  const tossMethod = mapTossMethod(tossResponse.method);
-  if (!tossMethod) {
-    throw new PaymentServiceError('method_mismatch', tossResponse.method ?? 'unknown');
-  }
-  if (tossMethod !== order.payment_method) {
-    throw new PaymentServiceError('method_mismatch',
-      `expected=${order.payment_method},actual=${tossMethod}`);
-  }
-
-  /* 7) RPC — 원자 커밋
-     가상계좌 webhook_secret 은 Toss 응답의 virtualAccount.secret 에서 추출.
-     카드는 null. */
-  const webhookSecret =
-    tossMethod === 'transfer'
-      ? tossResponse.virtualAccount?.secret ?? null
-      : null;
-
-  /* 가상계좌인데 secret 누락 = Toss 스펙 위반. 저장 거부. */
-  if (tossMethod === 'transfer' && !webhookSecret) {
-    throw new PaymentServiceError('toss_failed', 'virtual_account_secret_missing');
-  }
-
+  /* 6) RPC — 원자 커밋. rawResponse 는 C-3 마스킹 후 저장. */
   try {
     const rpcResult = await confirmPaymentRpc({
       orderId: order.id,
       paymentKey: tossResponse.paymentKey,
-      method: tossMethod,
+      method,
       webhookSecret,
       approvedAmount: tossResponse.totalAmount,
-      approvedAt: tossResponse.approvedAt ?? new Date().toISOString(),
-      rawResponse: tossResponse as unknown,
+      approvedAt,
+      rawResponse: maskTossPayload(tossResponse),
     });
 
     const payment = await findPaymentByOrderId(order.id);
