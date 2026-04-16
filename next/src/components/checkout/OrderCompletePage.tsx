@@ -5,9 +5,11 @@
    설계 결정:
    1. sessionStorage 'gtr-last-order' 에서 주문 정보 읽기
       (CheckoutPage 제출 시 저장)
-   2. 진입 연출: .ocp-enter 래퍼 → staggerUp CSS 애니메이션
-   3. 주문번호 복사: navigator.clipboard
-   4. 주문 내역 보기: /mypage (데모, Phase 2-F 연동)
+   2. Toss successUrl 쿼리(paymentKey/orderId/amount/paymentType) 수신 →
+      'gtr-last-payment' 로 저장 (B-3 confirm API 에서 소비) + 장바구니 비우기
+   3. 진입 연출: .ocp-enter 래퍼 → staggerUp CSS 애니메이션
+   4. 주문번호 복사: navigator.clipboard
+   5. 주문 내역 보기: /mypage (데모, Phase 2-F 연동)
    ══════════════════════════════════════════ */
 
 'use client';
@@ -15,9 +17,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
+import { useCartStore } from '@/lib/store';
 
 type OrderItemData = {
   name: string;
@@ -54,8 +57,10 @@ function CopyIcon() {
 
 export default function OrderCompletePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { show: toast } = useToast();
   const [entered, setEntered] = useState(false);
+  const clearCart = useCartStore((s) => s.clearCart);
 
   /* sessionStorage 에서 주문 정보 읽기 */
   const order = useMemo<LastOrder | null>(() => {
@@ -68,6 +73,30 @@ export default function OrderCompletePage() {
       return null;
     }
   }, []);
+
+  /* Toss successUrl 쿼리 파라미터 수신 (B-2) ──
+     paymentKey / orderId / amount / paymentType 을 sessionStorage 에 저장.
+     B-3 confirm API 에서 이 값을 읽어 최종 승인 처리 예정.
+     저장 후 장바구니도 이 시점에 비운다 (결제 실패 시 CheckoutPage 에 cart 유지). */
+  useEffect(() => {
+    const paymentKey = searchParams.get('paymentKey');
+    const paidOrderId = searchParams.get('orderId');
+    const amountParam = searchParams.get('amount');
+    const paymentType = searchParams.get('paymentType');
+
+    if (!paymentKey || !paidOrderId || !amountParam) return;
+
+    try {
+      sessionStorage.setItem(
+        'gtr-last-payment',
+        JSON.stringify({ paymentKey, orderId: paidOrderId, amount: amountParam, paymentType }),
+      );
+    } catch {
+      /* storage quota 등 — 무시 (화면 표시는 gtr-last-order 기반) */
+    }
+
+    clearCart();
+  }, [searchParams, clearCart]);
 
   /* 진입 연출 트리거 */
   useEffect(() => {

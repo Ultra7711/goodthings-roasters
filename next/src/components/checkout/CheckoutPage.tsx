@@ -6,15 +6,17 @@
    1. chp-* 클래스: BizInquiryPage 의 bi-* 와 동일 격리 원칙으로
       프로토타입 원본 클래스명 유지 (globals.css 에 정의).
    2. 폼 상태: useCheckoutForm 훅 (types/checkout.ts 기반)
-   3. 장바구니: useCartStore (Zustand)
-   4. 결제: 데모 단계 — submit 시 OrderComplete 이동 (Phase 2-F 토스페이먼츠 연동)
-   5. Daum 주소 검색: 외부 스크립트 동적 로드 (Phase 2-F)
+   3. 장바구니: useCartStore (Zustand) — clearCart 는 OrderCompletePage 에서 호출
+   4. 결제 (B-2): submit 성공 → step='payment' 전환 → CheckoutPayment 렌더
+      - Toss 결제위젯 리다이렉트 성공 → /order-complete
+      - 결제 실패 → /checkout?error=payment_failed 로 돌아와 안내 toast
+   5. Daum 주소 검색: openPostcode() (동적 스크립트 로드)
    ══════════════════════════════════════════ */
 
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
@@ -32,7 +34,9 @@ import {
   buildOrderPayload,
   createOrder,
   OrderApiError,
+  type CreateOrderResponse,
 } from '@/lib/api/orderClient';
+import CheckoutPayment from './CheckoutPayment';
 
 /* ── 배송 메시지 옵션 ── */
 const DELIVERY_OPTIONS = [
@@ -99,7 +103,7 @@ function CheckboxIcon({ checked }: { checked: boolean }) {
 
 /* ══════════════════════════════════════════ */
 export default function CheckoutPage() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const { show: toast } = useToast();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
 
@@ -109,10 +113,38 @@ export default function CheckoutPage() {
   const subtotal = useCartStore((s) => s.subtotal);
   const shippingFee = useCartStore((s) => s.shippingFee);
   const totalPrice = useCartStore((s) => s.totalPrice);
-  const clearCart = useCartStore((s) => s.clearCart);
+  /* clearCart 는 OrderCompletePage 에서 호출 (결제 성공 redirect 후) */
+
+  /* ── 결제 단계 상태 (B-2) ──
+     'form'    : 주문 정보 입력 단계
+     'payment' : createOrder 성공 후 토스 결제위젯 단계
+     결제 성공 → /order-complete 로 Toss 가 redirect
+     결제 실패 → /checkout?error=payment_failed 로 돌아와 form 단계 유지 */
+  const [step, setStep] = useState<'form' | 'payment'>('form');
+  const [orderResult, setOrderResult] = useState<CreateOrderResponse | null>(null);
+
+  /* failUrl 로부터 돌아온 경우 안내 toast (마운트 1회) */
+  const failNoticeShownRef = useRef(false);
+  useEffect(() => {
+    if (failNoticeShownRef.current) return;
+    const error = searchParams.get('error');
+    if (error === 'payment_failed') {
+      failNoticeShownRef.current = true;
+      toast('결제가 완료되지 않았습니다. 다시 시도해 주세요.');
+    }
+  }, [searchParams, toast]);
 
   /* ── 정기배송 여부 ── */
   const hasSubscription = useMemo(() => items.some((i) => i.type === 'subscription'), [items]);
+
+  /* ── Toss orderName (B-2) ──
+     상품 1건 → 상품명 그대로, 여러 건 → "상품명 외 N건" */
+  const orderName = useMemo(() => {
+    if (items.length === 0) return '';
+    const first = items[0];
+    const rest = items.length - 1;
+    return rest > 0 ? `${first.name} 외 ${rest}건` : first.name;
+  }, [items]);
 
   /* ── 폼 훅 ── */
   const {
@@ -192,8 +224,8 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
 
   /* ── 언마운트 감시 (Pass 1 CODE/H-1)
-     성공 시 router.push 이후 컴포넌트가 언마운트되므로,
-     setState 호출을 차단해 React 경고 및 상태 불일치를 방지. */
+     B-2 이후: step 전환은 이 컴포넌트가 살아 있으므로 언마운트 위험은 낮지만,
+     비동기 완료 전 사용자가 뒤로가기로 이탈하는 케이스 대비 유지. */
   const isMountedRef = useRef(true);
   useEffect(() => {
     isMountedRef.current = true;
@@ -254,8 +286,12 @@ export default function CheckoutPage() {
       };
       sessionStorage.setItem('gtr-last-order', JSON.stringify(summary));
 
-      clearCart();
-      router.push('/order-complete');
+      /* B-2: 결제 단계로 전환 — 장바구니 비우기는 결제 성공 redirect 후
+         OrderCompletePage 에서 처리 (결제 실패 시 cart 유지). */
+      if (isMountedRef.current) {
+        setOrderResult(result);
+        setStep('payment');
+      }
       navigated = true;
     } catch (err) {
       if (err instanceof OrderApiError) {
@@ -293,7 +329,7 @@ export default function CheckoutPage() {
         setSubmitting(false);
       }
     }
-  }, [submitting, clearErrors, validate, isLoggedIn, form, items, agreements, clearCart, router, toast]);
+  }, [submitting, clearErrors, validate, isLoggedIn, form, items, agreements, toast]);
 
   /* ── 빈 장바구니 보호 ── */
   if (items.length === 0) {
@@ -337,6 +373,8 @@ export default function CheckoutPage() {
       <div className="chp-body">
         {/* ── 좌측 폼 ── */}
         <div className="chp-left" ref={chpFormRef}>
+        {step === 'form' && (
+          <>
           {/* 연락처 */}
           <div className="chp-section">
             <div className="chp-section-header">
@@ -618,6 +656,24 @@ export default function CheckoutPage() {
               </div>
             </>
           )}
+          </>
+        )}
+
+        {step === 'payment' && orderResult && (
+          <CheckoutPayment
+            orderNumber={orderResult.orderNumber}
+            orderName={orderName}
+            amount={orderResult.totalAmount}
+            customerEmail={form.email.trim()}
+            customerName={form.firstname.trim()}
+            customerMobilePhone={(() => {
+              const digits = form.phone.replace(/\D/g, '');
+              /* 한국 휴대폰 10~11자리만 Toss 에 전달 (형식 위반 시 Toss 오류) */
+              return digits.length >= 10 && digits.length <= 11 ? digits : undefined;
+            })()}
+            onBack={() => setStep('form')}
+          />
+        )}
         </div>
 
         {/* ── 우측 주문 요약 ── */}
