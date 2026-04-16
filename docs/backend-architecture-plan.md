@@ -2,7 +2,7 @@
 
 > **버전**: v1.0 (2026-04-16)
 > **상태**: 초안 (사용자 검토 대기)
-> **관련 문서**: [oauth-security-plan.md](./oauth-security-plan.md) · [adr/ADR-001-oauth-account-merge-policy.md](./adr/ADR-001-oauth-account-merge-policy.md) · [milestone.md](./milestone.md)
+> **관련 문서**: [oauth-security-plan.md](./oauth-security-plan.md) · [payments-flow.md](./payments-flow.md) · [adr/ADR-001-oauth-account-merge-policy.md](./adr/ADR-001-oauth-account-merge-policy.md) · [adr/ADR-002-payment-webhook-verification.md](./adr/ADR-002-payment-webhook-verification.md) · [milestone.md](./milestone.md)
 
 ---
 
@@ -30,6 +30,7 @@
 - **ADR-001** (2026-04-14): OAuth 계정 병합 정책 — synthetic email + pending_link_with.
 - **P0~P3** (2026-04-15~16): OAuth 보안 4단계 체계화 (`oauth-security-plan.md` §P0~§P3).
 - **P2-2** (2026-04-16): DB 스키마 001~008 + 본 문서 통합 → 본 계획 승인 후 Supabase 실행.
+- **ADR-002** (2026-04-16): TossPayments 웹훅 인증 모델 — 수단별 하이브리드 (카드 GET 재조회 / 가상계좌 per-payment secret). 본 문서 §6.1~§6.2 의 "HMAC-SHA256" 표기를 정정.
 
 ---
 
@@ -57,7 +58,7 @@
 
 | 패키지 | 버전 | 용도 |
 |---|---|---|
-| `@tosspayments/tosspayments-sdk` | **^2.5.0** | 결제위젯 v2 (payment-sdk v1·payment-widget-sdk 레거시 대체). Basic Auth `base64('{secretKey}:')` + Idempotency-Key + HMAC-SHA256 웹훅. |
+| `@tosspayments/tosspayments-sdk` | **^2.5.0** | 결제위젯 v2 (payment-sdk v1·payment-widget-sdk 레거시 대체). Basic Auth `base64('{secretKey}:')` + Idempotency-Key. 웹훅 인증은 수단별 하이브리드 ([ADR-002](./adr/ADR-002-payment-webhook-verification.md)). |
 | `resend` | **^4.0.0** | 트랜잭셔널 메일 (주문확인·배송안내). 2 req/s 전역 제한. |
 | `@react-email/components` | **^0.0.32** | Resend 와 React 기반 메일 템플릿. |
 
@@ -264,8 +265,7 @@ NEXT_PUBLIC_TOSS_CLIENT_KEY
 
 # 서버 전용 (절대 NEXT_PUBLIC_ 금지)
 SUPABASE_SERVICE_ROLE_KEY      # service_role 권한 (RLS 우회)
-TOSS_SECRET_KEY                # 결제 승인 API
-TOSS_WEBHOOK_SECRET_KEY        # 웹훅 서명 검증
+TOSS_SECRET_KEY                # 결제 승인 API + 웹훅 GET 재조회 Basic Auth (ADR-002)
 RESEND_API_KEY                 # 트랜잭셔널 메일
 UPSTASH_REDIS_REST_URL         # rate limit (Vercel Marketplace 자동 주입)
 UPSTASH_REDIS_REST_TOKEN
@@ -322,6 +322,13 @@ export const signupLimit = new Ratelimit({
 
 ### 6.1 결제 플로우
 
+> ⚠️ **편차 공지 (2026-04-16)**: 본 섹션의 "HMAC-SHA256 서명" 표기는 **사실과 다르다**. Toss 공식 웹훅(`PAYMENT_STATUS_CHANGED` / `DEPOSIT_CALLBACK`) 은 HMAC 공유 시크릿 방식을 **지원하지 않는다**. 실제 채택 모델은 결제 수단별 하이브리드 — **카드 = GET 재조회**, **가상계좌 = per-payment secret** — 이며, 본 문서는 아래 두 문서로 정정·대체된다:
+>
+> - [ADR-002: TossPayments 웹훅 인증 모델 — 수단별 하이브리드](./adr/ADR-002-payment-webhook-verification.md)
+> - [payments-flow.md — 결제 라이프사이클 단일 출처 문서](./payments-flow.md)
+>
+> 아래 §6.1 다이어그램·§6.2 멱등성 설명은 참고용 히스토리로 남겨두며, **구현 시에는 `payments-flow.md` §2~§4 를 우선**한다.
+
 ```
 [클라이언트]                [서버 Route Handler]          [TossPayments]       [DB]
   1. 주문서 작성       →   POST /api/orders
@@ -339,19 +346,23 @@ export const signupLimit = new Ratelimit({
                            - orders.status = 'paid'
                            - payment_transactions INSERT ───────────────→  payment_transactions
   4. 주문완료 페이지 이동
-                       ←── Toss 비동기 웹훅 (HMAC-SHA256 서명)
+                       ←── Toss 비동기 웹훅 (수단별 검증 — ADR-002 참조)
                            POST /api/payments/webhook
-                           - raw body HMAC 검증
+                           - 카드: GET /v1/payments/{paymentKey} 재조회
+                           - 가상계좌: top-level secret timing-safe 비교
                            - idempotency_key UNIQUE → 중복 skip
                            - payment_transactions INSERT
                            - 상태 동기화
 ```
 
-### 6.2 웹훅 멱등성
+### 6.2 웹훅 인증 · 멱등성
+
+> **인증 모델은 [ADR-002](./adr/ADR-002-payment-webhook-verification.md) 로 이관.** 아래는 멱등성 요점만 유지.
 
 - `payment_transactions.idempotency_key UNIQUE` 제약으로 중복 INSERT 는 23505 오류 → Route Handler 에서 catch 후 200 OK.
-- 동일 이벤트 재전송 시 자연 skip.
-- raw body 검증을 위해 Route Handler 에서 `await req.text()` 후 수동 `JSON.parse`.
+- Toss 는 2xx 응답을 받지 못하면 exponential backoff 로 **최대 7회** 재시도 (`payments-flow.md §1.4`).
+- idempotency_key 합성 규칙: `webhook:{paymentKey}:{status}:{approvedAt|createdAt}` (Toss 가 고유 eventId 를 제공하지 않음).
+- raw body 는 감사 로그용으로 `payment_transactions.raw_payload` 에 저장 (단, `secret` 필드는 `[REDACTED]` 치환).
 
 ### 6.3 주문 상태 머신
 
@@ -635,7 +646,7 @@ dev ↔ prod 간 스키마는 동일 파일 세트. staging 은 트래픽 발생
 | RLS Integration 테스트 | Implement | Vitest 패턴 반복 |
 | `getClaims()` 서버 가드 이행 | Implement | 기존 가드 교체 |
 | pgcrypto 암호화 (`009_encryption.sql`) | Architect | 키 회전·성능·장애 시나리오 |
-| TossPayments 웹훅 HMAC·멱등성 | Architect | 결제 정합성 결정 |
+| TossPayments 웹훅 인증·멱등성 (ADR-002 이행) | Architect | 결제 정합성 결정 |
 | 소프트삭제 배치 (`010_account_deletion.sql`) | Architect | 익명화 정책 결정 |
 | 마이그레이션 003 스키마 개정 (예기치 못한 정책 변경) | Architect | 되돌리기 어려움 |
 | 3-agent 병렬 리뷰 (database·architect·security) | Architect | 각 서브에이전트 Opus |
@@ -684,7 +695,7 @@ dev ↔ prod 간 스키마는 동일 파일 세트. staging 은 트래픽 발생
 - [ ] `009_encryption.sql` — pgcrypto 컬럼 암호화 (§3.4)
 - [ ] `010_account_deletion.sql` — soft-delete + 익명화 배치 (§6.5)
 - [ ] `@tosspayments/tosspayments-sdk@^2.5.0` 결제 위젯 통합
-- [ ] 웹훅 HMAC-SHA256 서명 검증 라우트
+- [ ] 웹훅 수단별 하이브리드 검증 라우트 (ADR-002: 카드 GET 재조회 · 가상계좌 per-payment secret)
 - [ ] React Email 템플릿 (주문확인·배송안내)
 - [ ] RLS 정책 Integration 테스트 80% 커버
 - [ ] Supabase CLI + GitHub Actions 마이그레이션 파이프라인
