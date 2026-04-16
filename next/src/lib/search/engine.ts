@@ -9,8 +9,7 @@ import type { CafeMenuItem } from '@/lib/cafeMenu';
 import type { Product } from '@/lib/products';
 import { CAT_LABEL } from './constants';
 import { buildIndexedField, matchEntry } from './matcher';
-import { extractChosung, isChosungOnly } from './chosung';
-import { normalizeL1 } from './normalize';
+import { extractChosung } from './chosung';
 import type { SearchIndexEntry, SearchResult } from './types';
 
 /**
@@ -81,11 +80,6 @@ export function search(
 ): SearchResult[] {
   const trimmed = rawQuery.trim();
   if (!trimmed) return [];
-
-  // 초성 전용 쿼리 — 필드 레벨 초성 매치 플로우로 위임
-  const _normalized = normalizeL1(trimmed);
-  void _normalized; // 현재 불사용 — 향후 early-return 최적화 여지
-  void isChosungOnly;
 
   const results: SearchResult[] = [];
   for (const entry of index) {

@@ -14,6 +14,9 @@ import { ClearIcon, SearchIcon } from '@/components/ui/InputIcons';
 import SearchResultCard from './SearchResultCard';
 import SearchEmpty from './SearchEmpty';
 
+/** 검색 쿼리 최대 길이 — 클라이언트 DoS 가드 (SiteHeader 와 동일 값) */
+const SEARCH_QUERY_MAX_LENGTH = 100;
+
 export default function SearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,6 +24,10 @@ export default function SearchPage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [inputValue, setInputValue] = useState(initialQuery);
+  /* Committed-search 패턴:
+     - useSearch 에 초기 URL 쿼리를 전달하여 URL = 확정 쿼리 1:1 매핑 유지.
+     - 인풋 타이핑 중에는 결과가 갱신되지 않음 (프로토타입 SRP 동작 일치).
+     - Enter 제출 시 URL 을 replace → initialQuery 갱신 → useSearch 재실행. */
   const { query, results, hasQuery, hasResults } = useSearch(initialQuery);
 
   /* URL 쿼리 변경 시 인풋값 동기화 (뒤로가기/다른 경로 재진입 대응) */
@@ -61,6 +68,7 @@ export default function SearchPage() {
             autoComplete="off"
             spellCheck={false}
             aria-label="상품 검색"
+            maxLength={SEARCH_QUERY_MAX_LENGTH}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={onKeyDown}
@@ -68,18 +76,10 @@ export default function SearchPage() {
           {inputValue && (
             <button
               type="button"
+              className="search-clear-btn"
               aria-label="검색어 지우기"
               onMouseDown={(e) => e.preventDefault()}
               onClick={onClear}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-text-secondary)',
-                padding: 0,
-                display: 'flex',
-                alignItems: 'center',
-              }}
             >
               <ClearIcon />
             </button>

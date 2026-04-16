@@ -34,6 +34,17 @@ describe('buildSynonymIndex — equivalence class → 양방향 reverse index', 
     expect(fromDonut).toContain('doughnut');
     expect(fromDonut).not.toContain('donut'); // 자기 자신 제외
   });
+
+  it('같은 클래스 내 L1-등가 토큰 자기참조 차단 — "drip bag" / "dripbag"', () => {
+    // SYNONYM_CLASSES 에 ['dripbag', 'drip bag', '드립백'] 가 있음.
+    // 'drip bag' 은 L1 → 'dripbag' 이므로 'dripbag' 키의 siblings 에
+    // 자기 자신이 포함되면 버그. 명시적으로 차단되는지 회귀 방지.
+    const idx = buildSynonymIndex();
+    const fromDripbag = idx.get('dripbag') ?? [];
+    expect(fromDripbag).not.toContain('dripbag');
+    expect(fromDripbag).not.toContain('drip bag');
+    expect(fromDripbag).toContain('드립백');
+  });
 });
 
 describe('buildIndexedField — 필드 전처리', () => {
@@ -86,8 +97,9 @@ describe('matchField — Layer 1 직접 매치', () => {
 
 describe('matchField — Layer 3 음운 정규화 매치', () => {
   it('거센소리 쿼리가 평음 변환 후 매치된다', () => {
-    // name 필드 "라떼" — 쿼리 "라테" (ㅌ→ㄷ 후 "라데" ... 잠깐 이건 맞지않음)
-    // 실제로: "라떼" L3 → "라데", "라테" L3 → "라데" — L3 후 일치
+    // "라떼" L3 → "라데" (된소리 ㄸ → 평음 ㄷ).
+    // "라테" L3 → "라데" (거센소리 ㅌ → 평음 ㄷ).
+    // L3 정규화 후 양쪽 모두 "라데" 로 일치하므로 layer ≤ 3 에서 매치.
     const field = buildIndexedField('name', '라떼');
     const r = matchField(field, '라테');
     expect(r.matched).toBe(true);

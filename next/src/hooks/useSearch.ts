@@ -14,6 +14,8 @@ export function useSearch(query: string): {
   hasResults: boolean;
 } {
   const trimmed = query.trim();
+  /* SEARCH_INDEX 는 모듈 로드 시 고정되는 싱글톤이므로 deps 에서 생략 안전.
+     향후 동적 인덱스(상품 CRUD) 로 전환 시 deps 재검토 필요. */
   const results = useMemo(() => searchAll(trimmed), [trimmed]);
   return {
     query: trimmed,

@@ -17,6 +17,17 @@ import { getInitialHeaderTheme } from '@/lib/headerThemeConfig';
 import { useAuthStore, useCartStore } from '@/lib/store';
 import { ClearIcon } from '@/components/ui/InputIcons';
 
+/* ── 모듈 스코프 상수 — 렌더마다 재생성 방지 ───────────────
+   검색 패널 실제 렌더 높이 60px + border 0.5px ≈ 60.5px.
+   dim-top = headerBottom + 61 로 gap 최소화 (프로토타입은 +60 사용). */
+const SEARCH_PANEL_HEIGHT = 61;
+/** 헤더 높이 기본값 — getBoundingClientRect 실패 시 fallback (CSS 헤더 높이와 동기화) */
+const HEADER_HEIGHT_FALLBACK = 60;
+/** 검색 패널 렌더 완료 후 포커스 지연 ms (CSS transition 종료 타이밍) */
+const SEARCH_FOCUS_DELAY_MS = 20;
+/** 검색 쿼리 최대 길이 — DoS 가드 (브라우저 메인 스레드 정지 방지) */
+const SEARCH_QUERY_MAX_LENGTH = 100;
+
 export default function SiteHeader() {
   const headerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -41,15 +52,6 @@ export default function SiteHeader() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
-
-  /* 검색 열기/닫기 */
-  /* 검색 패널 실제 렌더 높이 60px + border 0.5px ≈ 60.5px.
-     dim-top = headerBottom + 61 로 gap을 최소화 (프로토타입은 +60 사용). */
-  const SEARCH_PANEL_HEIGHT = 61;
-  /** 헤더 높이 기본값 — getBoundingClientRect 실패 시 fallback (CSS 헤더 높이와 동기화) */
-  const HEADER_HEIGHT_FALLBACK = 60;
-  /** 검색 패널 렌더 완료 후 포커스 지연 ms */
-  const SEARCH_FOCUS_DELAY_MS = 20;
 
   const closeSearch = useCallback(() => {
     setIsSearchOpen(false);
@@ -308,6 +310,7 @@ export default function SiteHeader() {
                 autoComplete="off"
                 spellCheck={false}
                 aria-label="상품 검색"
+                maxLength={SEARCH_QUERY_MAX_LENGTH}
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 onKeyDown={handleSearchKeyDown}

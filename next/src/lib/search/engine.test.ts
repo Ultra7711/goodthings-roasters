@@ -119,11 +119,11 @@ describe('search — Layer 별 매치', () => {
     expect(results[0].layer).toBe(1);
   });
 
-  it('L2 동의어 매치 — "coffee" → "커피" 포함 항목', () => {
+  it('L2 동의어 매치 — "coffee" → "Coffee Bean" 카테고리 항목 히트', () => {
+    // category 필드에 "Coffee Bean" 이 들어가므로 L1 direct substring 으로 매치됨.
+    // 동의어 사전 빌드 회귀 조기 탐지 목적으로 결과 존재만 검증.
     const results = search(idx, 'coffee');
-    // "에스프레소 블렌드" 의 desc 는 커피 포함 안함. 아메리카노 menuDesc 도 "커피" 단어 없음.
-    // 대신 "아아" 축약어가 "아이스 아메리카노" 를 매치하는지 확인하는 더 명확한 테스트:
-    expect(results.length).toBeGreaterThanOrEqual(0);
+    expect(results.length).toBeGreaterThan(0);
   });
 
   it('L2 동의어 — "아아" → "아이스아메리카노" 매치', () => {

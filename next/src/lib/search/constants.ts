@@ -14,9 +14,9 @@ import type { FieldKey } from './types';
  */
 export const SYNONYM_CLASSES: readonly (readonly string[])[] = [
   // 커피 · 원두 · 브루잉
+  // '원두' 는 'coffeebean' 클래스에만 배치 — 다중 클래스 교차 참조 방지.
   ['coffee', '커피'],
-  ['bean', '원두'],
-  ['coffeebean', 'coffee bean', '커피빈', '원두'],
+  ['bean', 'coffeebean', 'coffee bean', '커피빈', '원두'],
   ['brewing', '브루잉'],
   // 에스프레소 음료
   ['latte', '라떼', '라테'],
@@ -134,11 +134,3 @@ export const MATCH_BONUS = {
   synonym: -5,
   chosung: -20,
 } as const;
-
-/** Layer 에 따른 최소 스코어 fallback */
-export const LAYER_DEFAULT_SCORE: Readonly<Record<1 | 2 | 3 | 4, number>> = {
-  1: 0,    // 실제 스코어 계산 후 할당
-  2: -5,
-  3: 0,
-  4: -20,
-};

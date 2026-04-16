@@ -74,9 +74,23 @@ export default function SearchResultCard({ result }: Props) {
     }
   };
   const priceLabel = c.price > 0 ? `${c.price.toLocaleString('ko-KR')}원` : '';
-  const thumbBg = c.img
-    ? `${c.bg || 'var(--color-background-secondary)'} url('${c.img}') center/cover no-repeat`
-    : c.bg || 'var(--color-background-secondary)';
+  /* 배경을 단일 shorthand 로 조립하면 img 필드에 따옴표 포함된 문자열이 들어올 경우
+     CSS 속성 주입이 가능 (현재 데이터 정적이나 향후 Supabase 전환 대비).
+     - encodeURI 로 공백·제어문자 인코딩
+     - 결과를 double quote 로 감싸서 남은 single quote 를 리터럴로 처리
+     - 남은 double quote 는 %22 치환 */
+  const safeBgUrl = c.img
+    ? `url("${encodeURI(c.img).replace(/"/g, '%22')}")`
+    : undefined;
+  const thumbStyle: React.CSSProperties = {
+    backgroundColor: c.bg || 'var(--color-background-secondary)',
+    ...(safeBgUrl && {
+      backgroundImage: safeBgUrl,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+    }),
+  };
 
   return (
     <button
@@ -86,7 +100,7 @@ export default function SearchResultCard({ result }: Props) {
       onKeyDown={onKey}
       aria-label={`${c.name} 카페 메뉴로 이동`}
     >
-      <div className="search-result-thumb" style={{ background: thumbBg }} />
+      <div className="search-result-thumb" style={thumbStyle} />
       <div className="search-result-info">
         <div className="search-result-category">Cafe Menu</div>
         <div className="search-result-name">

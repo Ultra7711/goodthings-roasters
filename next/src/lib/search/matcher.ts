@@ -25,23 +25,32 @@ const NAME_ONLY_FIELDS: ReadonlySet<FieldKey> = new Set(['name', 'category']);
    equivalence class 의 모든 토큰을 양방향으로 연결.
    키는 normalizeL1 결과 (쿼리 비교 효율).
 */
-export function buildSynonymIndex(): Map<string, string[]> {
-  const map = new Map<string, string[]>();
+export function buildSynonymIndex(): Map<string, readonly string[]> {
+  /* 중간 자료구조로 Set 사용 — O(1) 중복 제거 + 자기참조(normalizeL1 이 같은 키로 수렴하는 경우) 필터.
+     같은 클래스 내 'coffee bean' / 'coffeebean' 처럼 L1 결과가 동일한 토큰이
+     siblings 에 섞이면 "자기 자신의 동의어" 상태가 되어 향후 매칭 순서 변경 시
+     조용한 버그가 되므로 명시적으로 제외. */
+  const map = new Map<string, Set<string>>();
   for (const cls of SYNONYM_CLASSES) {
     const normalizedTokens = cls.map((t) => normalizeL1(t));
     for (let i = 0; i < normalizedTokens.length; i++) {
       const key = normalizedTokens[i];
       if (!key) continue;
-      const siblings = cls.filter((_, j) => j !== i);
-      const existing = map.get(key) ?? [];
-      // 중복 제거 (같은 equivalence class 중복 등록 방지)
-      for (const s of siblings) {
-        if (!existing.includes(s)) existing.push(s);
+      const bucket = map.get(key) ?? new Set<string>();
+      for (let j = 0; j < cls.length; j++) {
+        if (j === i) continue;
+        const sibling = cls[j];
+        // 자기참조 차단: sibling 의 L1 이 key 와 같으면 제외
+        if (normalizedTokens[j] === key) continue;
+        bucket.add(sibling);
       }
-      map.set(key, existing);
+      map.set(key, bucket);
     }
   }
-  return map;
+  // readonly array 로 freeze 해 외부 변이 차단
+  const frozen = new Map<string, readonly string[]>();
+  for (const [k, v] of map) frozen.set(k, Object.freeze(Array.from(v)));
+  return frozen;
 }
 
 /** 모듈 스코프 싱글톤 — buildSynonymIndex 1회 초기화 */
