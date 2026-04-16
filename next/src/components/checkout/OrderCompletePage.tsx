@@ -1,12 +1,15 @@
 /* ══════════════════════════════════════════
    OrderCompletePage — /order-complete
-   프로토타입 #order-complete-page 이식 (RP-7).
+   프로토타입 #order-complete-page 이식 (RP-7) + B-3 confirm 연동.
 
    설계 결정:
    1. sessionStorage 'gtr-last-order' 에서 주문 정보 읽기
       (CheckoutPage 제출 시 저장)
    2. Toss successUrl 쿼리(paymentKey/orderId/amount/paymentType) 수신 →
-      'gtr-last-payment' 로 저장 (B-3 confirm API 에서 소비) + 장바구니 비우기
+      (a) POST /api/payments/confirm 호출 (B-3)
+      (b) 성공 → 'gtr-last-payment' 저장 + 장바구니 비우기 + paymentStatus='paid'
+      (c) 실패 → 실패 상태 UI + 고객센터 안내
+      중복 호출 방어: sessionStorage 'gtr-confirmed:{paymentKey}' 플래그
    3. 진입 연출: .ocp-enter 래퍼 → staggerUp CSS 애니메이션
    4. 주문번호 복사: navigator.clipboard
    5. 주문 내역 보기: /mypage (데모, Phase 2-F 연동)
@@ -55,11 +58,39 @@ function CopyIcon() {
   );
 }
 
+/* ── confirm 상태 ── */
+type ConfirmState =
+  /** Toss 쿼리가 아직 없음 (직접 접근 혹은 성공 redirect 전) */
+  | { kind: 'idle' }
+  /** confirm API 호출 중 */
+  | { kind: 'pending' }
+  /** 승인 완료 (paid) */
+  | { kind: 'success'; orderNumber: string; method: 'card' | 'transfer' }
+  /** 입금 대기 (가상계좌 pending) — B-5 에서 UX 확장 */
+  | { kind: 'deposit_waiting'; orderNumber: string }
+  /** 승인 실패 (amount_mismatch · toss_failed 등) */
+  | { kind: 'failed'; detail: string };
+
+/* ── confirm 응답 (서버가 반환) ── */
+type ConfirmResponseData = {
+  orderNumber: string;
+  status: 'pending' | 'paid' | 'cancelled' | string;
+  totalAmount: number;
+  method: 'card' | 'transfer';
+  virtualAccount: {
+    bank: string | null;
+    accountNumber: string;
+    dueDate: string | null;
+    customerName: string | null;
+  } | null;
+};
+
 export default function OrderCompletePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { show: toast } = useToast();
   const [entered, setEntered] = useState(false);
+  const [confirmState, setConfirmState] = useState<ConfirmState>({ kind: 'idle' });
   const clearCart = useCartStore((s) => s.clearCart);
 
   /* sessionStorage 에서 주문 정보 읽기 */
@@ -74,10 +105,12 @@ export default function OrderCompletePage() {
     }
   }, []);
 
-  /* Toss successUrl 쿼리 파라미터 수신 (B-2) ──
-     paymentKey / orderId / amount / paymentType 을 sessionStorage 에 저장.
-     B-3 confirm API 에서 이 값을 읽어 최종 승인 처리 예정.
-     저장 후 장바구니도 이 시점에 비운다 (결제 실패 시 CheckoutPage 에 cart 유지). */
+  /* Toss successUrl 쿼리 파라미터 수신 (B-2) + confirm API 호출 (B-3) ──
+     1. 쿼리 저장 (새로고침 시 디버깅용).
+     2. 동일 paymentKey 중복 호출 방어: sessionStorage 'gtr-confirmed:{paymentKey}'.
+     3. POST /api/payments/confirm → 성공 시 장바구니 비우고 success 상태.
+     4. 실패 시 failed 상태 (재시도 또는 고객센터 안내 UI).
+  */
   useEffect(() => {
     const paymentKey = searchParams.get('paymentKey');
     const paidOrderId = searchParams.get('orderId');
@@ -86,16 +119,95 @@ export default function OrderCompletePage() {
 
     if (!paymentKey || !paidOrderId || !amountParam) return;
 
+    /* 중복 호출 방어 플래그 — Strict Mode 이중 invoke + 뒤로가기 재진입 대응 */
+    const flagKey = `gtr-confirmed:${paymentKey}`;
+    if (sessionStorage.getItem(flagKey)) {
+      /* 이미 처리됨 — 기존 상태 유지 */
+      return;
+    }
+
     try {
       sessionStorage.setItem(
         'gtr-last-payment',
         JSON.stringify({ paymentKey, orderId: paidOrderId, amount: amountParam, paymentType }),
       );
     } catch {
-      /* storage quota 등 — 무시 (화면 표시는 gtr-last-order 기반) */
+      /* storage quota 등 — 무시 */
     }
 
-    clearCart();
+    let cancelled = false;
+
+    (async () => {
+      /* setState 는 전부 async 경로로 옮겨 react-hooks/set-state-in-effect 회피.
+         await 직전이므로 microtask 한 틱 뒤에 'pending' 이 반영됨 — UX 차이 없음. */
+      if (cancelled) return;
+      setConfirmState({ kind: 'pending' });
+
+      const amountNum = Number(amountParam);
+      if (!Number.isFinite(amountNum) || amountNum <= 0) {
+        if (!cancelled) setConfirmState({ kind: 'failed', detail: 'invalid_amount_param' });
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/payments/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paymentKey,
+            orderId: paidOrderId,
+            amount: amountNum,
+          }),
+        });
+
+        const body = await res.json().catch(() => null);
+
+        if (cancelled) return;
+
+        if (!res.ok) {
+          const detail =
+            (body && typeof body === 'object' && 'detail' in body && typeof body.detail === 'string')
+              ? body.detail
+              : body && typeof body === 'object' && 'error' in body && typeof body.error === 'string'
+                ? body.error
+                : `http_${res.status}`;
+          setConfirmState({ kind: 'failed', detail });
+          return;
+        }
+
+        const data = body?.data as ConfirmResponseData | undefined;
+        if (!data) {
+          setConfirmState({ kind: 'failed', detail: 'empty_response' });
+          return;
+        }
+
+        /* 성공 — 중복 호출 차단 플래그 세팅 + 장바구니 비우기 */
+        try {
+          sessionStorage.setItem(flagKey, '1');
+        } catch {
+          /* ignore */
+        }
+        clearCart();
+
+        if (data.status === 'paid') {
+          setConfirmState({
+            kind: 'success',
+            orderNumber: data.orderNumber,
+            method: data.method,
+          });
+        } else {
+          /* 가상계좌 입금 대기 등 — B-5 에서 세분화 */
+          setConfirmState({ kind: 'deposit_waiting', orderNumber: data.orderNumber });
+        }
+      } catch {
+        if (cancelled) return;
+        setConfirmState({ kind: 'failed', detail: 'network_error' });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams, clearCart]);
 
   /* 진입 연출 트리거 */
@@ -133,6 +245,51 @@ export default function OrderCompletePage() {
           <Link href="/" className="ocp-btn-primary" style={{ maxWidth: 280, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             홈으로 돌아가기
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  /* confirm 실패 — 재시도/고객센터 안내 */
+  if (confirmState.kind === 'failed') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+        <div className="ocp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+          <div className="chp-hdr-inner">
+            <Link href="/">
+              <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} style={{ cursor: 'pointer' }} />
+            </Link>
+          </div>
+        </div>
+        <div className="ocp-body">
+          <div className={`ocp-inner${entered ? ' ocp-enter' : ''}`}>
+            <h1 className="ocp-title">결제 승인에<br />실패했습니다.</h1>
+            <p className="ocp-subtitle" style={{ marginTop: 16 }}>
+              결제가 최종 완료되지 않았습니다. 잠시 후 다시 시도하거나, 문제가 지속되면 고객센터로 문의해 주세요.
+            </p>
+            <p
+              style={{
+                fontFamily: 'var(--font-kr)',
+                fontSize: 'var(--type-body-s-size)',
+                color: 'var(--color-text-tertiary)',
+                marginTop: 8,
+              }}
+            >
+              오류 코드: {confirmState.detail}
+            </p>
+            <div className="ocp-actions" style={{ marginTop: 32 }}>
+              <Link
+                href="/checkout"
+                className="ocp-btn-primary"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                결제 다시 시도하기
+              </Link>
+              <button className="ocp-btn-secondary" onClick={() => router.push('/')}>
+                홈으로 돌아가기
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );

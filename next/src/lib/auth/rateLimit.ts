@@ -11,6 +11,9 @@
                      IdP 리다이렉트 / 브라우저 재시도 감안 — 여유있게 제한
    - order_create  : 주문 생성 엔드포인트 (10 req / 60s)
                      중복 클릭/자동 재시도 방지 — auth_initiate 수준
+   - payment_confirm: 결제 승인 엔드포인트 (10 req / 60s)
+                     정상 재시도(뒤로가기·모바일 이중호출) 를 허용하되
+                     브루트포스성 호출 차단. payments-flow.md §3.1 기준.
    - guest_pin     : 게스트 주문조회 PIN 검증 (5 req / 600s)
                      PIN 브루트포스 방어 — OWASP ASVS §6.6.3 준수 (느슨한 IP 단위)
 
@@ -29,12 +32,14 @@ export type RateLimitPreset =
   | 'auth_initiate'
   | 'auth_callback'
   | 'order_create'
+  | 'payment_confirm'
   | 'guest_pin';
 
 const LIMITS: Record<RateLimitPreset, { requests: number; window: string }> = {
   auth_initiate: { requests: 10, window: '1 m' },
   auth_callback: { requests: 20, window: '1 m' },
   order_create: { requests: 10, window: '1 m' },
+  payment_confirm: { requests: 10, window: '1 m' },
   /* 게스트 PIN: 10 분 윈도우로 넓혀 브루트포스 완화 */
   guest_pin: { requests: 5, window: '10 m' },
 };

@@ -37,3 +37,21 @@ export type OrderItemType = 'normal' | 'subscription';
 
 /** 004_order_items.sql public.subscription_period */
 export type DbSubscriptionPeriod = '2주' | '4주' | '6주' | '8주';
+
+/** 006_payment_transactions.sql public.payment_event_type */
+export type DbPaymentEventType =
+  | 'payment_approved'
+  | 'payment_failed'
+  | 'payment_cancelled'
+  | 'refund_requested'
+  | 'refund_completed'
+  | 'webhook_received';
+
+/** 012_payments_hardening.sql public.payment_status */
+export type DbPaymentStatus =
+  | 'pending'
+  | 'approved'
+  | 'partial_refunded'
+  | 'refunded'
+  | 'failed'
+  | 'cancelled';
