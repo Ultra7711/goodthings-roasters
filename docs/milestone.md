@@ -140,7 +140,10 @@
 | **Backend P0** RLS 정책 | ✅ | `relforcerowsecurity=true` 6개 테이블, 정책 11개, PK id UPDATE 차단 트리거 4개(profiles/addresses/orders/subscriptions) (2026-04-16) |
 | **Backend P0** Security advisors | ✅ | 009 적용 후 `function_search_path_mutable` WARN 해소. No issues found (2026-04-16) |
 | **Backend P1** 기반 레이어 | ✅ | proxy.ts(Next.js 16) + per-request Nonce CSP + SECURITY_HEADERS(HSTS/COOP/CORP/Permissions-Policy) + `lib/api/errors.ts` §7.4 표준 응답 + `lib/api/validate.ts` zod 파서 + `getClaims`/`requireAuth` 서버 가드(mypage·checkout 적용) + `.env.example` 17키 동기화 + gitleaks·npm audit CI (`677bff52`·`95bb50eb`, 2026-04-16) |
-| **Backend P2** Route Handler 구현 | ⬜ | orders · payments · subscriptions 실엔드포인트 + Resend 트랜잭셔널 메일 |
+| **Backend P2-A** 주문 생성/조회 API | ✅ | orders · order_items · create_order RPC + CheckoutPage 연동 + P2-A 리뷰 Pass 1 (CRITICAL 0·HIGH 10 반영) (`6ec1d993`, 2026-04-16) |
+| **Backend P2-B Session 3 B-1** 결제 플로우 설계 | ✅ | ADR-002 하이브리드 웹훅 인증 + `payments-flow.md` v1.0.7 (800줄, §0~§9 완비) + backend-architecture-plan §6.1~§6.2 편차 공지 + 사용자 블로커 7건 전체 해결 (`9643bcb0`, 2026-04-16) |
+| **Backend P2-B Session 3 B-2** 결제위젯 UI | 🔄 | CheckoutPayment.tsx + TossPayments SDK v2 + successUrl 포맷 확정 (예정) |
+| **Backend P2** 잔여 (B-3~H) | ⬜ | confirm API·웹훅·Resend·회원탈퇴·RLS/RBAC·프로덕션·인프라 (session_plan 참조) |
 
 ### 9. Auth & Security 🔄
 
