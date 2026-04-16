@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-16 (Backend P2-B Session 6 B-7 3총사+database-reviewer 4-병렬 리뷰 Pass 1 완료 — CRITICAL 3건(C-1 lock order · C-2 refund lock · C-3 PII 마스킹) + HIGH 10건(H-1 DRY primitives · H-2 payments absent fail · H-3 guest ownership · H-4 단일 쿼리 · H-5 coalesce payment_key · code H-3·H-4 · ts H-1·H-2·H-3) + security H-1 게스트 이메일 교차검증 + M-3 approvedAt 감사 보존. 013 마이그레이션(apply_webhook_event 재정의) + `schemas/common.ts`(OrderNumber·PaymentKey·Amount·GuestEmail 단일 선언) + `payments/mask.ts`(카드·계좌·이메일·폰 마스킹 allowlist) + `findOrderWithPaymentByOrderNumber`(left join 단일 쿼리) + paymentService 단계별 helper 분리 + TOSS_METHOD_TABLE 상수 + CheckoutPage→OrderCompletePage guestEmail pass-through + webhookService.test.ts combo fixture 재구성 + `docs/toss-support-inquiry.md`(고객센터 문의 템플릿 4섹션). tsc/eslint 0 error · 195/195 vitest 그린 · `next build` 성공.)
+> **최종 업데이트:** 2026-04-17 (Backend P2-B Session 7 Pass 1 A안 완료 — 3총사 + database-reviewer 4-병렬 리뷰 13건 반영. ① DB H-2 실버그 수정: `014_settlement_report.sql` `get_pending_transfer_snapshot` TTL 기준 `o.created_at` → `p.approved_at` (Toss `dueDate` 정합), ② docs 크로스-피리어드 환불 §9.1 + UNIQUE 의존성 주석 + `pending_transfer_count` semantic comment, ③ `rateLimit.ts` 재귀→while 루프 + `MAX_WAIT_MS=5000` (code H-1 / ts M-5 / sec M-4), ④ 공용 `lib/utils/maskEmail.ts` 단일화 (`{head}***@domain`) + `payments/mask.ts` 통합 (code H-2), ⑤ `sendEmail.ts` security H-1 `subjectLen` / H-3 `'network error'` 고정 / M-1 `idempotencyKey` 12자 truncate + JSON.stringify / M-3 `/^[\w:._\-]{1,255}$/` 형식 검증, ⑥ `config.ts` security H-2 `EMAIL_MODE=stub + NODE_ENV=production` 부트 throw, ⑦ docs/email-infrastructure.md §5.3 / §6.2~6.5 / §9 / §13 동기화. 테스트 15→18 (`[2]` throw, `[7-a/b/c]` 추가) · 213/213 그린 · tsc/eslint/build 클린.)
 
 ---
 
@@ -29,7 +29,7 @@
 | Phase 5 — Quality Assurance | 3 | 0 | 0 | 3 | 0% |
 | User AI | 1 | 0 | 0 | 1 | 0% |
 
-**현재 위치: Backend P2-B Session 6 폴리시(리서치 기반 재조정) 완료 — H-1 프레이밍 보정 + UX 폴백(재입력 프롬프트), H-3(IP allowlist) 기각, M-3 단순화(throw→fallback+warn), `docs/security-research-2026-04-16.md` 통합 리서치 기록. 다음: Session 7(B-5 정산·B-6 UX) 또는 C-1 자동 재시도 모니터링 또는 Phase 2-F 콘텐츠/2-G 반응형**
+**현재 위치: Backend P2-B Session 7 스펙 설계 완료(B-5 정산 RPC · Resend 인프라) — 구현 착수 대기. 다음: ① 사용자 승인 → 014 마이그레이션 + `next/src/lib/email/` 7파일 + 테스트 15 + 3총사+DB 4-병렬 리뷰 ② 또는 Session 8(신규 위협 4건: carding rate limit · Referrer-Policy · order_number UUID · PCI 로그 보존)**
 
 ---
 

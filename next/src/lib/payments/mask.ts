@@ -60,21 +60,19 @@ export function maskAccountNumber(input: string | null | undefined): string | nu
 
 /* ── 이메일 마스킹 ─────────────────────────────────────────────────────── */
 
+import { maskEmailAddress } from '../utils/maskEmail';
+
 /**
- * 이메일 local-part 앞 1자 + 마지막 1자만 남기고 중간은 `*`.
- * `a@b.com` 류 극단 짧은 경우 그대로 둔다.
+ * 이메일 마스킹 — `lib/utils/maskEmail` 공용 유틸 래퍼 (null 허용).
+ *
+ * 2026-04-17 code-review H-2 통합:
+ *   기존에는 `{head}***{tail}@domain` 규칙이었으나, email 로깅 경로와
+ *   규칙이 달라 공용 유틸 (`j***@example.com`) 로 일원화. tail 자리 제거는
+ *   PII 재식별 위험을 낮추는 방향이라 DB 저장 측면에서도 수용 가능.
  */
 export function maskEmail(input: string | null | undefined): string | null {
   if (!input) return input ?? null;
-  const at = input.lastIndexOf('@');
-  if (at <= 1) return input; // 'a@b.com' 형태는 그대로
-  const local = input.slice(0, at);
-  const domain = input.slice(at);
-  if (local.length <= 2) return `${local[0]}*${domain}`;
-  const head = local[0];
-  const tail = local[local.length - 1];
-  const middle = '*'.repeat(Math.max(1, local.length - 2));
-  return `${head}${middle}${tail}${domain}`;
+  return maskEmailAddress(input);
 }
 
 /* ── 휴대폰 마스킹 ─────────────────────────────────────────────────────── */
