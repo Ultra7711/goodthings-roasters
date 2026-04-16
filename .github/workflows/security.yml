@@ -1,0 +1,54 @@
+# ═══════════════════════════════════════════════════════════════
+# security.yml — 보안 CI: gitleaks 시크릿 스캔 + npm audit
+#
+# 트리거:
+#   - push/PR → main, master (프로덕션 보호)
+#   - 매주 월요일 00:00 UTC (cron — 신규 CVE 자동 탐지)
+#
+# 참조: docs/backend-architecture-plan.md §10 (운영·CI)
+# ═══════════════════════════════════════════════════════════════
+
+name: Security Scan
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # 매주 월요일 00:00 UTC — 의존성 취약점 정기 점검
+    - cron: "0 0 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  # ── 1. gitleaks — 커밋 내 시크릿 탐지 ─────────────────────
+  gitleaks:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 전체 히스토리 — gitleaks 가 diff 기반 스캔
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── 2. npm audit — 의존성 취약점 검사 ─────────────────────
+  npm-audit:
+    name: npm Audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: next
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: next/package-lock.json
+      - run: npm ci --ignore-scripts
+      # high/critical 만 CI 실패 — moderate 는 경고만
+      - run: npm audit --audit-level=high
