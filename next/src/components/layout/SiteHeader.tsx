@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useHeaderTheme } from '@/hooks/useHeaderTheme';
 import { getInitialHeaderTheme } from '@/lib/headerThemeConfig';
 import { useAuthStore, useCartStore } from '@/lib/store';
@@ -23,6 +23,7 @@ export default function SiteHeader() {
 
   /* 페이지별 초기 테마 — 플래시 방지 */
   const pathname = usePathname();
+  const router = useRouter();
   const initialTheme = getInitialHeaderTheme(pathname);
   const { isDark, skipTransition } = useHeaderTheme(headerRef, initialTheme);
 
@@ -62,6 +63,23 @@ export default function SiteHeader() {
   function handleSearchClear() {
     setSearchValue('');
     searchInputRef.current?.focus();
+  }
+
+  /* Enter 제출 → /search?q=<encoded> 네비게이션.
+     - 빈 쿼리는 무시 (prototype 동작 일치).
+     - closeSearch() 선제 호출로 패널·딤·body.overflow 정리 후 이동. */
+  function handleSearchSubmit() {
+    const q = searchValue.trim();
+    if (!q) return;
+    closeSearch();
+    router.push(`/search?q=${encodeURIComponent(q)}`);
+  }
+
+  function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearchSubmit();
+    }
   }
 
   /* 로고 클릭 → 홈으로 복귀
@@ -292,6 +310,7 @@ export default function SiteHeader() {
                 aria-label="상품 검색"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
               />
               {searchValue && (
                 <button
