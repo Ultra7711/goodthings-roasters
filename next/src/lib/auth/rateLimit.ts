@@ -9,6 +9,10 @@
                      의도적 사용자 액션 — 엄격하게 제한
    - auth_callback : OAuth 콜백 라우트 (20 req / 60s)
                      IdP 리다이렉트 / 브라우저 재시도 감안 — 여유있게 제한
+   - order_create  : 주문 생성 엔드포인트 (10 req / 60s)
+                     중복 클릭/자동 재시도 방지 — auth_initiate 수준
+   - guest_pin     : 게스트 주문조회 PIN 검증 (5 req / 600s)
+                     PIN 브루트포스 방어 — OWASP ASVS §6.6.3 준수 (느슨한 IP 단위)
 
    개발 환경 패스스루:
    - UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN 미설정 시 rate limiting 비활성화.
@@ -21,11 +25,18 @@ import { NextResponse } from 'next/server';
 import { extractIp } from './logger';
 
 /* ── 프리셋 정의 ── */
-export type RateLimitPreset = 'auth_initiate' | 'auth_callback';
+export type RateLimitPreset =
+  | 'auth_initiate'
+  | 'auth_callback'
+  | 'order_create'
+  | 'guest_pin';
 
 const LIMITS: Record<RateLimitPreset, { requests: number; window: string }> = {
   auth_initiate: { requests: 10, window: '1 m' },
   auth_callback: { requests: 20, window: '1 m' },
+  order_create: { requests: 10, window: '1 m' },
+  /* 게스트 PIN: 10 분 윈도우로 넓혀 브루트포스 완화 */
+  guest_pin: { requests: 5, window: '10 m' },
 };
 
 /* ── 모듈 수준 singleton (Next.js 워커 재사용) ── */
