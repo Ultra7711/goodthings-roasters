@@ -13,15 +13,25 @@
    - payment_transactions INSERT 는 RPC 내부에서 처리 — 서비스는 RPC 호출만.
 
    Session 6 변경:
-   - security H-1/H-3: 게스트 소유권 교차검증 (options.guestEmail ↔ orders.guest_email).
-   - M-3: Toss `approvedAt` 누락 시 fallback 금지 → `toss_failed`.
-     (기존 `new Date().toISOString()` 대체는 감사 추적을 불가능하게 만든다.)
+   - security H-1: 게스트 소유권 교차검증 (options.guestEmail ↔ orders.guest_email).
+     실제 방어 대상은 MitM 이 아니라 "레퍼러 누출/공유 링크로 유출된 successUrl 의
+     30초 재조회" 윈도우. 토스 공식이나 국내 커머스 표준에는 포함되지 않는 추가
+     방어층이며, 비용 대비 가치 중립 — 제거해도 무방하나 저비용이라 유지.
    - code H-3: `mapTossMethod` 를 단일 상수 테이블로 좁혀 오매핑 방지.
    - code H-4: 135-라인 confirmOrder 를 단계별 보조 함수로 분리.
-   - C-3: RPC 로 전달하는 `rawResponse` 는 `maskTossPayload` 적용.
+   - C-3: RPC 로 전달하는 `rawResponse` 는 `maskTossPayload` 적용 (PCI DSS 3.4.1).
+
+   Session 6 폴리시(리서치 기반 재조정):
+   - M-3: `approvedAt` 누락 시 throw 대신 서버 now() fallback + `console.warn`
+     + `rawResponse._fallback.approved_at=true` 플래그. 이유: DONE 상태에서
+     approvedAt 누락은 실제로 0% 에 가까우며, throw 시 오탐으로 인한 정상 결제
+     실패 피해가 감사 정확도 이득을 초과.
+   - H-3 (Toss 웹훅 IP allowlist 추가 제안): 공식 IP CIDR 미공개 + ADR-002
+     하이브리드 인증으로 이미 무력화 → 도입 금지.
 
    참조:
    - docs/payments-flow.md §3.1 (스펙) · §3.1.3 (3중 방어) · §4.3 (RPC)
+   - docs/security-research-2026-04-16.md (A/B/C 3자 리서치 종합)
    - docs/backend-architecture-plan.md §7.2 (레이어 분리)
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -180,10 +190,15 @@ function assertOwnership(
     throw new PaymentServiceError('forbidden', 'guest_cannot_confirm_member_order');
   }
 
-  /* guest_email 교차검증 (security H-1/H-3).
+  /* guest_email 교차검증 (security H-1).
      - DB 값이 있으면 클라이언트가 반드시 같은 이메일을 보내야 한다.
      - DB 값이 없는 레거시 주문은 스킵 허용 (방어적 — 하지만 신규 주문 경로에서는
-       체크아웃이 항상 guest_email 을 저장하므로 사실상 모든 주문이 검증된다). */
+       체크아웃이 항상 guest_email 을 저장하므로 사실상 모든 주문이 검증된다).
+
+     실제 방어 대상 (2026-04-16 리서치 기반 재평가):
+       MitM 이 아니라 "레퍼러 누출 · 공유 링크로 유출된 successUrl 의 30초 재조회"
+       윈도우. 토스 공식/국내 커머스 표준에 포함되지 않는 추가 방어층이지만 비용이
+       낮아 유지. 제거해도 무방. 상세: docs/security-research-2026-04-16.md §2.1 */
   const dbEmail = order.guest_email?.trim().toLowerCase() ?? null;
   if (dbEmail) {
     const sent = guestEmail?.trim().toLowerCase();
@@ -268,10 +283,14 @@ async function callToss(
 }
 
 /**
- * Toss 응답 → RPC 파라미터 조립. method 일치·webhook_secret·approvedAt 검증 포함.
+ * Toss 응답 → RPC 파라미터 조립. method 일치·webhook_secret 검증 포함.
  *
- * M-3: `approvedAt` 누락 시 서버 now() 로 대체하던 기존 코드는 감사 불가능 →
- *      `toss_failed(approved_at_missing)` 로 거부. 정상 응답이라면 Toss 가 반드시 채운다.
+ * M-3 (Session 6 리서치 기반 재조정):
+ *   - 과거: `approvedAt` 누락 시 `toss_failed(approved_at_missing)` throw.
+ *     → 정당한 결제를 오탐으로 실패시킬 위험이 감사 정확도 이득보다 큼.
+ *   - 현재: 누락 시 서버 `now()` 로 대체 + `console.warn` + `approvedAtFallback=true`
+ *     플래그 반환. 호출부에서 rawResponse 에 `_fallback.approved_at=true` 기록해
+ *     감사 추적성 유지. DONE 상태에서 approvedAt 누락은 실질적으로 0% 에 가깝다.
  */
 function deriveRpcParams(
   order: OrderForConfirm,
@@ -280,6 +299,7 @@ function deriveRpcParams(
   method: DbPaymentMethod;
   webhookSecret: string | null;
   approvedAt: string;
+  approvedAtFallback: boolean;
 } {
   const method = mapTossMethod(tossResponse.method);
   if (!method) {
@@ -298,12 +318,19 @@ function deriveRpcParams(
     throw new PaymentServiceError('toss_failed', 'virtual_account_secret_missing');
   }
 
-  const approvedAt = tossResponse.approvedAt;
+  let approvedAt = tossResponse.approvedAt;
+  let approvedAtFallback = false;
   if (!approvedAt) {
-    throw new PaymentServiceError('toss_failed', 'approved_at_missing');
+    approvedAt = new Date().toISOString();
+    approvedAtFallback = true;
+    console.warn('[paymentService] approvedAt missing from Toss response — fallback to server now()', {
+      orderId: order.id,
+      paymentKey: tossResponse.paymentKey,
+      fallbackApprovedAt: approvedAt,
+    });
   }
 
-  return { method, webhookSecret, approvedAt };
+  return { method, webhookSecret, approvedAt, approvedAtFallback };
 }
 
 /* ══════════════════════════════════════════
@@ -352,9 +379,19 @@ export async function confirmOrder(
   const tossResponse = toss.value;
 
   /* 5) method / webhook_secret / approvedAt 검증 */
-  const { method, webhookSecret, approvedAt } = deriveRpcParams(order, tossResponse);
+  const { method, webhookSecret, approvedAt, approvedAtFallback } = deriveRpcParams(
+    order,
+    tossResponse,
+  );
 
-  /* 6) RPC — 원자 커밋. rawResponse 는 C-3 마스킹 후 저장. */
+  /* 6) RPC — 원자 커밋. rawResponse 는 C-3 마스킹 후 저장.
+     approvedAt fallback 발생 시 `_fallback.approved_at=true` 플래그로 감사 추적성 유지. */
+  const maskedResponse = maskTossPayload(tossResponse);
+  const rawResponseForRpc =
+    approvedAtFallback && maskedResponse !== null && typeof maskedResponse === 'object'
+      ? { ...(maskedResponse as Record<string, unknown>), _fallback: { approved_at: true } }
+      : maskedResponse;
+
   try {
     const rpcResult = await confirmPaymentRpc({
       orderId: order.id,
@@ -363,7 +400,7 @@ export async function confirmOrder(
       webhookSecret,
       approvedAmount: tossResponse.totalAmount,
       approvedAt,
-      rawResponse: maskTossPayload(tossResponse),
+      rawResponse: rawResponseForRpc,
     });
 
     const payment = await findPaymentByOrderId(order.id);

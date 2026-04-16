@@ -758,6 +758,27 @@ alter table payments drop column webhook_secret_plain;
 
 클라 응답은 `{ error: 'payment_failed', code: 'card_declined' | 'amount_mismatch' | ... }` 의 **제한된 enum** 만 반환. Toss 내부 메시지는 서버 로그(Sentry) 로만.
 
+### 6.7 게스트 주문 소유권 교차검증 (H-1)
+
+**위치**: `paymentService.assertOwnership()` — 회원은 `orders.user_id === session.userId` 확인. **게스트는 body.guestEmail ↔ orders.guest_email 교차검증** 추가.
+
+**실제 위협 모델** (2026-04-16 리서치 기반 재평가 — `docs/security-research-2026-04-16.md` §2.1 참조):
+
+- 1차 방어는 이미 Toss 본인인증(카드·휴대폰) + `paymentKey` unguessability + `amount` 서버 교차검증으로 충분.
+- H-1 이 실질적으로 닫는 창은 **레퍼러 헤더 누출 또는 공유 링크로 유출된 successUrl 의 30초 재조회 윈도우** 라는 극히 좁은 경로. MitM 은 이미 TLS 가 방어한다.
+- 토스 공식 가이드나 국내 커머스 표준 구현에는 포함되지 않는 **추가 방어층** — 비용(서버 코드 한 줄 + UI 한 줄)이 낮아 유지하되, 제거해도 보안상 치명적이지 않다.
+- 클라이언트가 `guestEmail` 을 잘못 보내면 UX 폴백이 동작 (§6.8 참조).
+
+**코드 위치**: `paymentService.assertOwnership()` — 코멘트에 본 섹션 포인터 명시.
+
+### 6.8 H-1 게스트 소유권 불일치 UX 폴백
+
+`/api/payments/confirm` 이 `forbidden.guest_email_mismatch` 를 반환하면 OrderCompletePage 는 **에러 페이지 대신 이메일 재입력 프롬프트**를 렌더한다. 이유는 "체크아웃에서 실수로 typo 한 이메일이 로컬스토리지에 남아 있다가 successUrl 접속 시 불일치하는" 경우가 악의적 공격보다 훨씬 흔하기 때문.
+
+- 첫 진입 시 `confirm` 403 + `code='guest_email_mismatch'` 수신 시: 이메일 입력 필드 + 재시도 버튼.
+- 재입력 후 `confirm` 재호출 → 성공 시 정상 완료 화면으로 전환.
+- 3회 실패 시 "주문내역 조회" 링크로 분기 (DRY: B-6 주문조회 UX 공유).
+
 ---
 
 ## §7. 테스트 계획 (B-6)
@@ -842,3 +863,4 @@ alter table payments drop column webhook_secret_plain;
 | 2026-04-16 | v1.0.5 | JW (+ Claude Opus 4.6) | §3.2.2·§3.2.3 의 `idempotency_key` 합성 규칙을 **이벤트별 하이브리드** 로 교체 + §3.2.5 통합 규칙 섹션 신설. context7 재검증 결과 `PAYMENT_STATUS_CHANGED.data.lastTransactionKey` 존재 · `DEPOSIT_CALLBACK` 에는 부재 · 부분취소는 `data.cancels[]` 배열로 제공됨을 확인. 종전 규칙(`{paymentKey}:{status}:{approvedAt}`) 은 PARTIAL_CANCELED 다회 발생 시 `approvedAt` 이 원 승인 시각으로 고정되어 동일 키로 collapse → 감사 로그 유실 엣지 케이스 존재. 신규 규칙은 `cancels[-1].transactionKey` 로 구분. ADR-002 §3.3 동일 반영. |
 | 2026-04-16 | v1.0.6 | JW (+ Claude Opus 4.6) | §3.1.3 **3중 방어 섹션 신설** — Toss 가 confirm `Idempotency-Key` 헤더를 공식 지원하지 않는 현실을 전제로, ① 앱 레이어 pre-check (`orders.status='paid'` → Toss 호출 생략) · ② `confirm_payment` RPC FOR UPDATE + 멱등 RETURN (§4.3) · ③ `payment_transactions.idempotency_key UNIQUE` (`confirm:{paymentKey}`) 3개 독립 계층으로 중복 confirm 흡수. 시나리오별 커버리지 매트릭스 포함. 블로커 #1 **해결됨** 마킹 (§8.2). §3.1.1 Idempotency-Key 주석을 §3.1.3 참조로 축약. |
 | 2026-04-16 | v1.0.7 | JW (+ Claude Opus 4.6) | **블로커 #2~#7 전체 확정** — §1.2 범위에 "고객 셀프 환불 UI 영구 deferred" 명시(전액·부분 모두 어드민 경유) · §8.1 체크리스트에 청약철회 안내 페이지 + Toss Dashboard 접근 권한 관리 2항목 추가 · §8.2 블로커 테이블 6건 해결/확정 상태 마킹. 부분환불 UI 제공 시 수요 유도 우려 (사용자 지적) 수용 → MVP Toss Dashboard → Phase 3 자체 어드민 툴 경로로 일원화. msw@^2.7.0 승인 + 012 마이그레이션 Supabase Studio 수동 적용 확정. |
+| 2026-04-16 | v1.0.8 | JW (+ Claude Opus 4.6) | **Session 6 폴리시 — 리서치 기반 재조정** (`docs/security-research-2026-04-16.md`). §6.7·§6.8 신설: H-1 게스트 소유권 교차검증의 실제 위협 모델을 "레퍼러 누출 · 공유 successUrl 30s 재조회" 로 재프레이밍(+ UX 폴백 — 재입력 프롬프트, 3회 실패 시 주문조회 분기). H-3 (Toss 웹훅 IP allowlist 추가 제안) **기각** — ADR-002 §4.3 에 기각 사유 기록(GET 재조회 + timing-safe secret 이 서명 검증과 동등 역할 → IP 중복 방어). M-3 `approved_at_missing` throw 를 서버 now() 폴백 + `console.warn` + `_fallback.approved_at` 플래그로 단순화 (오탐 비용 > 감사 정확도 이득). |

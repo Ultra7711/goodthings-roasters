@@ -29,7 +29,7 @@
 | Phase 5 — Quality Assurance | 3 | 0 | 0 | 3 | 0% |
 | User AI | 1 | 0 | 0 | 1 | 0% |
 
-**현재 위치: Backend P2-B Session 6 B-7 3총사+DB 4-병렬 리뷰 Pass 1 완료 — CRITICAL 3 · HIGH 10 · security H-1 · M-3 일괄 수정, 195/195 vitest 그린. 다음: Session 7(B-5 정산·B-6 UX) 또는 C-1 자동 재시도 모니터링 또는 Phase 2-F 콘텐츠/2-G 반응형**
+**현재 위치: Backend P2-B Session 6 폴리시(리서치 기반 재조정) 완료 — H-1 프레이밍 보정 + UX 폴백(재입력 프롬프트), H-3(IP allowlist) 기각, M-3 단순화(throw→fallback+warn), `docs/security-research-2026-04-16.md` 통합 리서치 기록. 다음: Session 7(B-5 정산·B-6 UX) 또는 C-1 자동 재시도 모니터링 또는 Phase 2-F 콘텐츠/2-G 반응형**
 
 ---
 
@@ -146,6 +146,7 @@
 | **Backend P2-B Session 4 B-3** confirm API + 3중 멱등 방어 | ✅ | 012 `payments` + `confirm_payment` RPC(SECURITY DEFINER + SELECT FOR UPDATE) + tossClient(Basic Auth + 10s timeout + 5xx 1회 재시도) + idempotency 키 합성 유틸 + paymentService(7단계 흐름 · ALREADY_PROCESSED_PAYMENT 리체크) + `POST /api/payments/confirm`(CSRF+RateLimit 10/60s+zod+getClaims) + OrderCompletePage 연동(pending/success/deposit_waiting/failed 상태 머신 · sessionStorage 'gtr-confirmed:{paymentKey}' dedup · clearCart) + 171/171 vitest 그린 (2026-04-16) |
 | **Backend P2-B Session 5 B-4** Toss 웹훅 엔드포인트 | ✅ | `POST /api/payments/webhook` + ADR-002 하이브리드 인증(카드 GET 재조회 · 가상계좌 timing-safe secret) + `webhookVerify`(node:crypto timingSafeEqual) + zod `KnownWebhookSchema`(discriminatedUnion PAYMENT_STATUS_CHANGED/DEPOSIT_CALLBACK) + `webhookService`(status 매핑 + PARTIAL_CANCELED cancels[-1] 멱등 키 + 23505 silent skip + 총액 교차검증 401) + 012 `apply_webhook_event` RPC 래퍼 + CSRF `CSRF_EXEMPT_PATHS` 화이트리스트 + §5.3.1 timing-inversion 503(`Retry-After:30` + `x-webhook-timing-inversion:true`) + 193/193 vitest 그린(신규 22/22) (2026-04-16) |
 | **Backend P2-B Session 6 B-7** 3총사+database-reviewer Pass 1 | ✅ | 013 마이그레이션(apply_webhook_event 재정의 · C-1 lock order · C-2 refund lock · H-2 payments absent fail · H-5 coalesce payment_key) + `schemas/common.ts` DRY + `payments/mask.ts`(카드·계좌·이메일·폰 allowlist) + `findOrderWithPaymentByOrderNumber` 단일 쿼리(H-4) + paymentService 단계별 helper 분리 + TOSS_METHOD_TABLE(code H-3) + approvedAt 누락 시 `toss_failed`(M-3) + 게스트 이메일 교차검증(security H-1/H-3 · CheckoutPage→OrderCompletePage pass-through) + rawPayload/rawResponse 마스킹(C-3) + tossClient RETRY_ONCE 잔재 정리(ts H-1) + rateLimit non-null assertion 제거(ts H-2) + webhookService.test.ts combo fixture 재구성 + `docs/toss-support-inquiry.md`(IP CIDR/서명/UA/재시도 정책 4문의 템플릿) · 195/195 vitest · tsc/eslint 0 · `next build` 성공 (2026-04-16) |
+| **Backend P2-B Session 6 폴리시** 리서치 기반 재조정 | ✅ | 사용자 지적("업계 표준 리서치 없이 리뷰 권고 기계 수용?") → 3-parallel research(Toss 공식·국내 커머스·OWASP) → `docs/security-research-2026-04-16.md` 통합 기록. **H-1** 프레이밍 보정(MitM→레퍼러 누출·공유 successUrl 30s 재조회) + UX 폴백 신설(OrderCompletePage 재입력 프롬프트 3회 한도) + `payments-flow.md §6.7/6.8` · **H-3**(Toss 웹훅 IP allowlist 추가 제안) 기각 — ADR-002 §4.3 행 추가 · `toss-support-inquiry.md` IP 문의 섹션 제거 · **M-3** 단순화(throw→new Date() fallback + console.warn + `_fallback.approved_at` 플래그). 전역 교훈: `memory/feedback_industry_standard_research.md` (2026-04-17) |
 | **Backend P2** 잔여 (B-5~H) | ⬜ | 정산 리포트·Resend·회원탈퇴·RLS/RBAC·프로덕션·인프라 (session_plan 참조) |
 
 ### 9. Auth & Security 🔄
