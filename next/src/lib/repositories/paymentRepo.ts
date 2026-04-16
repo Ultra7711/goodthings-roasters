@@ -15,6 +15,7 @@
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import type {
   DbOrderStatus,
+  DbPaymentEventType,
   DbPaymentMethod,
   DbPaymentStatus,
 } from '@/types/db';
@@ -94,6 +95,102 @@ export async function findPaymentByOrderId(
 
   if (error) throw error;
   return data ?? null;
+}
+
+/**
+ * `orders.order_number` 기준 payments 레코드 + 소속 order 식별자 동시 조회.
+ *
+ * 용도 — 웹훅(§3.2):
+ * - Toss 웹훅 페이로드의 `data.orderId` 는 우리가 발행한 `order_number` (예 `GT-20260416-00001`).
+ * - RPC (`apply_webhook_event`) 는 UUID 형태의 `orders.id` 를 요구하므로
+ *   orders 를 한 번 조회해 UUID + webhook_secret 을 함께 얻는다.
+ * - 카드 경로는 `webhook_secret` 을 사용하지 않지만 총액/상태는 GET 재조회로 대체.
+ * - 가상계좌 경로에서 `webhook_secret` 을 timing-safe 비교.
+ *
+ * @returns null = 주문 또는 payments 레코드 없음
+ */
+export async function findPaymentByOrderNumber(
+  orderNumber: string,
+): Promise<PaymentRow | null> {
+  const admin = getSupabaseAdmin();
+
+  /* orders → payments (1:1) 조인. payments 가 없으면 inner join 결과 비어있음. */
+  const { data, error } = await admin
+    .from('orders')
+    .select(
+      `
+      id,
+      payments:payments!inner (
+        id,
+        order_id,
+        payment_key,
+        method,
+        webhook_secret,
+        approved_amount,
+        refunded_amount,
+        balance_amount,
+        status,
+        approved_at
+      )
+      `,
+    )
+    .eq('order_number', orderNumber)
+    .maybeSingle<{ id: string; payments: PaymentRow | PaymentRow[] | null }>();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  /* Supabase 는 1:1 관계도 상황에 따라 배열로 반환할 수 있어 양쪽 모두 처리. */
+  const payment = Array.isArray(data.payments) ? data.payments[0] : data.payments;
+  return payment ?? null;
+}
+
+/* ══════════════════════════════════════════
+   apply_webhook_event RPC — 웹훅 멱등 커밋
+   ══════════════════════════════════════════ */
+
+export type ApplyWebhookEventRpcParams = {
+  /** orders.id (UUID). webhook 페이로드의 order_number 를 한 번 더 조회해 얻는다. */
+  orderId: string;
+  eventType: DbPaymentEventType;
+  /**
+   * payment_transactions 에 기록될 금액.
+   * - 카드 DONE: 총 승인 금액
+   * - 카드 PARTIAL_CANCELED: 해당 취소 트랜잭션 금액
+   * - 가상계좌 DONE: 입금 금액
+   * - refund_*: 환불 금액
+   */
+  amount: number;
+  rawPayload: unknown;
+  idempotencyKey: string;
+};
+
+/**
+ * 012 `apply_webhook_event(...)` RPC 호출.
+ * - payment_transactions INSERT (UNIQUE(idempotency_key) → 23505 on duplicate).
+ * - eventType 에 따라 payments.status / orders.status 상태 전이.
+ * - `webhook_received` 는 감사 로그 용도 (상태 전이 없음).
+ *
+ * 에러 전략:
+ * - 23505 (unique_violation) 는 **호출자(webhookService) 가 삼킴** → 200 응답.
+ * - 그 외 PostgrestError 는 throw → route 에서 500.
+ *
+ * @throws PostgrestError (unique_violation 포함 — 분기는 호출자 책임)
+ */
+export async function applyWebhookEventRpc(
+  params: ApplyWebhookEventRpcParams,
+): Promise<void> {
+  const admin = getSupabaseAdmin();
+
+  const { error } = await admin.rpc('apply_webhook_event', {
+    p_order_id: params.orderId,
+    p_event_type: params.eventType,
+    p_amount: params.amount,
+    p_raw: params.rawPayload,
+    p_idempotency_key: params.idempotencyKey,
+  });
+
+  if (error) throw error;
 }
 
 /* ══════════════════════════════════════════

@@ -21,6 +21,30 @@
 
 import { apiError } from './errors';
 
+/* ══════════════════════════════════════════
+   CSRF 화이트리스트 (외부 발신자 엔드포인트)
+   ══════════════════════════════════════════
+   - Toss 웹훅: 외부 서버가 호출 → Origin 헤더 부재/상이 정상. 대신 카드=GET
+     재조회, 가상계좌=per-payment secret timing-safe 비교로 방어 (ADR-002).
+   - 경로는 `URL.pathname` 으로만 비교 (쿼리·호스트 무관). 신규 외부 엔드포인트
+     추가 시에만 이 목록을 확장한다.
+
+   참조: docs/payments-flow.md §6.1
+   ══════════════════════════════════════════ */
+
+const CSRF_EXEMPT_PATHS: ReadonlySet<string> = new Set<string>([
+  '/api/payments/webhook',
+]);
+
+function isCsrfExemptPath(request: Request): boolean {
+  try {
+    const pathname = new URL(request.url).pathname;
+    return CSRF_EXEMPT_PATHS.has(pathname);
+  } catch {
+    return false;
+  }
+}
+
 /* ── 허용 Origin 수집 ──────────────────────────────────────────────── */
 
 function collectAllowedOrigins(): Set<string> {
@@ -118,6 +142,9 @@ export function isOriginAllowed(
  *   if (blocked) return blocked;
  */
 export function enforceSameOrigin(request: Request): Response | null {
+  /* 외부 발신자 엔드포인트(Toss 웹훅 등) 는 Origin 검증 불가 — 별도 인증 사용. */
+  if (isCsrfExemptPath(request)) return null;
+
   const allowed = collectAllowedOrigins();
   if (isOriginAllowed(request, allowed)) return null;
   return apiError('forbidden', { detail: 'origin_not_allowed' });
