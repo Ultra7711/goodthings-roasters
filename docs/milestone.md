@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-16 (Backend P1 완료 — P1-A zod v4 + @node-rs/argon2 설치(`677bff52`) · P1-B~F proxy.ts(Next.js 16) + per-request Nonce CSP + `NextResponse.next({request:{headers}})` 패턴 + SECURITY_HEADERS(HSTS/COOP/CORP/Permissions-Policy) + `lib/api/errors.ts` §7.4 표준 응답 + `lib/api/validate.ts` zod 파서 + `getClaims`/`requireAuth` 서버 가드(mypage·checkout 적용) + `.env.example` 17키 동기화 + gitleaks + npm audit CI(`95bb50eb`). 다음: Phase 2-F(검색 시스템 4-layer) 또는 Backend P2(Route Handler 실구현 + Resend))
+> **최종 업데이트:** 2026-04-16 (Phase 2-F 검색 시스템 완료 — 4-layer 엔진(L1 정규화·L2 동의어 쌍방향·L3 거센소리→평음·L4 초성) + A 사전 인덱스 + B 동치류 역인덱스(Set 기반·자기참조 차단) + C 스코어 랭킹 + E 하이라이트 spans + 단일 음절 가드. SearchPage·SearchResultCard·SearchEmpty·HighlightText UI + SiteHeader Enter 제출. TDD 123/123 + 3총사 Pass 1(HIGH 5 + MEDIUM 정리). 커밋 `f52bc6ac`·`cd88093e`·`5a21842b`. 다음: Phase 2-F 콘텐츠(GoodDays/Story/MyPage 채우기) 또는 Phase 2-G(반응형+프로덕션) 또는 Backend P2(Route Handler + Resend))
 
 ---
 
@@ -23,13 +23,13 @@
 | Phase | 그룹 수 | 완료 | 진행 중 | 미착수 | 진행률 |
 |-------|---------|------|---------|--------|--------|
 | Phase 1 — Design | 5 | 5 | 0 | 0 | 100% |
-| Phase 2 — Frontend | 2 | 0 | 2 | 0 | ~80% |
+| Phase 2 — Frontend | 2 | 0 | 2 | 0 | ~85% |
 | Phase 3 — Backend | 3 | 2 | 1 | 0 | ~55% |
 | Phase 4 — Infrastructure | 1 | 0 | 1 | 0 | ~20% |
 | Phase 5 — Quality Assurance | 3 | 0 | 0 | 3 | 0% |
 | User AI | 1 | 0 | 0 | 1 | 0% |
 
-**현재 위치: Backend P1 완료 — proxy.ts(Next.js 16) + Nonce CSP + SECURITY_HEADERS + API 표준 응답/검증 유틸 + getClaims 서버 가드 + 보안 CI. 다음: Phase 2-F(검색 시스템 4-layer) 또는 Backend P2(Route Handler 실구현 + Resend)**
+**현재 위치: Phase 2-F 검색 시스템(엔진+UI) 완료 — TDD 123/123 · 3총사 Pass 1. 다음: Phase 2-F 콘텐츠 채우기 또는 Phase 2-G(반응형+프로덕션) 또는 Backend P2(Route Handler + Resend)**
 
 ---
 
@@ -70,7 +70,7 @@
 | 장바구니·체크아웃 (2-C) | ✅ | `next/src/components/cart/`, `next/src/components/checkout/`, `next/src/components/order/` | CartDrawer·CheckoutPage·OrderCompletePage, Route Group `(main)`/`(checkout)` 분리 |
 | 로그인·마이페이지 (2-D) | ✅ | `next/src/app/(main)/login/`, `next/src/app/(main)/mypage/`, `next/src/components/auth/` | LoginForm·RegisterForm·MyPageView + ConfirmModal + `useAuthGuard`(SSR 안전) |
 | 플로우 복구 (2-E) | ✅ | `next/src/app/(main)/cart/`, `next/src/components/biz/` | `/cart` 풀페이지, CartDrawer 2버튼, 정적 에셋 이관, `/biz-inquiry` B2B 폼 |
-| 검색 시스템 + 콘텐츠 (2-F) | ⬜ | — | 검색 엔진 4-layer, 검색 오버레이 + SRP, GoodDays/Story/MyPage 콘텐츠 채우기 |
+| 검색 시스템 + 콘텐츠 (2-F) | 🔄 | `next/src/lib/search/`, `next/src/components/search/`, `next/src/app/(main)/search/` | 검색 엔진 4-layer(A 사전 인덱스·B 쌍방향 동치류·C 스코어 랭킹·E 하이라이트 spans) + SRP UI + SiteHeader Enter 제출 ✅ (TDD 123/123, `f52bc6ac`·`cd88093e`·`5a21842b`). GoodDays/Story/MyPage 콘텐츠 채우기 ⬜ |
 | 반응형 + 프로덕션 (2-G) | ⬜ | — | 4 브레이크포인트(360/768/1024/1440) 반응형, CSP·환경변수·빌드 최종화 |
 
 ---
@@ -106,7 +106,7 @@
 |------|------|------|
 | R-0a~c · R-1~R-4 | 상품·메뉴·갤러리·2-A~2-D 전체 | ✅ HIGH 35 + MEDIUM 15 수정 |
 | R-5 | 2-E 플로우 복구 + `/biz-inquiry` | ⬜ (RP 재이식 이후 필요 시) |
-| R-6 | 2-F 검색 + 콘텐츠 | ⬜ |
+| R-6 | 2-F 검색 엔진 + UI | ✅ HIGH 5 + MEDIUM 정리 (3총사 Pass 1, `5a21842b`) · 콘텐츠 파트는 차기 |
 | R-7 | 2-G 반응형 + 프로덕션 | ⬜ |
 
 #### pixel-port 재이식 (RP-x)
@@ -123,7 +123,7 @@
 | RP-7 | Checkout + OrderComplete | `037946e7` | ✅ PurchaseRow 카트 연결 · Cart persist |
 | RP-8 | Login + MyPage + 인풋 UX | `c87a9ea2` | ✅ blur 검증·자동 포맷·전용 훅 7종 |
 | RP-9 | TextField/Textarea 공통화 + 3총사 Pass 1 | `8752d3b9`→`50e6820e` | ✅ CRITICAL 2 · HIGH 7 · MEDIUM 12 · Deferred 5 |
-| RP-10 | 검색 시스템 4-layer (TDD 80%↑) | — | ⬜ |
+| RP-10 | 검색 시스템 4-layer (TDD 80%↑) | `f52bc6ac`→`5a21842b` | ✅ A+B+C+E 개선, 단일 음절 가드, TDD 123/123 · HIGH 5 + MEDIUM 정리 |
 | RP-11 | 반응형(4 BP) + 프로덕션(CSP·env·빌드) | — | ⬜ |
 
 ---
