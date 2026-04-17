@@ -74,6 +74,16 @@ export async function POST(request: Request): Promise<Response> {
           return apiError('server_error');
       }
     }
+    /* Postgres 23505 (unique_violation) — cart upsert 동시성 경합.
+       partial unique index 가 잡아낸 경우 409 로 변환하여 클라이언트가 재시도. */
+    if (
+      err !== null &&
+      typeof err === 'object' &&
+      'code' in err &&
+      (err as { code: unknown }).code === '23505'
+    ) {
+      return apiError('conflict', { detail: 'cart_concurrent_update' });
+    }
     console.error('[POST /api/cart] unexpected error', err);
     return apiError('server_error');
   }

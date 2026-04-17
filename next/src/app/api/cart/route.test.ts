@@ -3,6 +3,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { NextResponse } from 'next/server';
 
 vi.mock('@/lib/api/csrf', () => ({
   enforceSameOrigin: vi.fn(() => null),
@@ -107,7 +108,7 @@ describe('POST /api/cart', () => {
 
   it('Rate Limit → 429', async () => {
     checkRateLimitMock.mockResolvedValueOnce(
-      new Response('{}', { status: 429 }),
+      new NextResponse('{}', { status: 429 }),
     );
     const res = await POST(makeRequest());
     expect(res.status).toBe(429);
@@ -173,6 +174,18 @@ describe('POST /api/cart', () => {
     expect(res.status).toBe(400);
     const body = (await res.json()) as { error: string; detail?: string };
     expect(body.error).toBe('validation_failed');
+  });
+
+  it('Postgres 23505 (unique_violation) → 409 cart_concurrent_update', async () => {
+    addCartItemMock.mockRejectedValueOnce({
+      code: '23505',
+      message: 'duplicate key value violates unique constraint',
+    });
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(409);
+    const body = (await res.json()) as { error: string; detail?: string };
+    expect(body.error).toBe('conflict');
+    expect(body.detail).toBe('cart_concurrent_update');
   });
 
   it('일반 에러 → 500', async () => {

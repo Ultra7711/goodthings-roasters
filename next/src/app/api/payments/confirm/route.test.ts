@@ -19,6 +19,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { NextResponse } from 'next/server';
 
 /* ── Module mocks ─────────────────────────────────────────────────────── */
 
@@ -157,7 +158,7 @@ describe('POST /api/payments/confirm', () => {
   });
 
   it('[2] Rate Limit 초과 시 checkRateLimit 응답을 그대로 반환', async () => {
-    const limitedRes = new Response(
+    const limitedRes = new NextResponse(
       JSON.stringify({ error: 'rate_limited', retryAfter: 30 }),
       { status: 429 },
     );
@@ -217,7 +218,7 @@ describe('POST /api/payments/confirm', () => {
   /* ── Carding RL (Session 8 #1) ─────────────────────────────────────── */
 
   it('[6] Carding 한도 초과 시 checkCardingLimit 응답 그대로 (429)', async () => {
-    const cardingRes = new Response(
+    const cardingRes = new NextResponse(
       JSON.stringify({ error: 'too_many_card_attempts', retryAfter: 600 }),
       { status: 429 },
     );

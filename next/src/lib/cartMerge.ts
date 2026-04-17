@@ -27,12 +27,17 @@ function flagKey(userId: string): string {
 
 /** items → /api/cart/merge 입력 포맷. qty/volume 누락 행은 스킵.
  *  서버 스키마(CartMergeSchema) 로 파싱해 enum 타입을 정규화 + 검증 실패 행은 제외. */
+function hasVolume(item: CartItem): item is CartItem & { volume: string } {
+  return typeof item.volume === 'string' && item.volume.length > 0;
+}
+
 export function toMergePayload(items: CartItem[]): CartMergeInput | null {
   const mapped = items
-    .filter((i) => i.volume && i.qty > 0)
+    .filter((i) => hasVolume(i) && i.qty > 0)
+    .filter(hasVolume)
     .map((i) => ({
       productSlug: i.slug,
-      volume: i.volume as string,
+      volume: i.volume,
       quantity: Math.min(99, Math.max(1, i.qty)),
       itemType: i.type ?? 'normal',
       subscriptionPeriod:
@@ -46,7 +51,7 @@ export function toMergePayload(items: CartItem[]): CartMergeInput | null {
 }
 
 export type MergeResult =
-  | { status: 'skipped'; reason: 'no-items' | 'already-merged' }
+  | { status: 'skipped'; reason: 'no-items' | 'already-merged' | 'ssr-env' }
   | { status: 'ok'; merged: number; skipped: number }
   | { status: 'error'; detail: string };
 
@@ -60,7 +65,7 @@ export async function mergeGuestCartToServer(
   onSuccess: () => void,
 ): Promise<MergeResult> {
   if (typeof window === 'undefined') {
-    return { status: 'skipped', reason: 'no-items' };
+    return { status: 'skipped', reason: 'ssr-env' };
   }
 
   const key = flagKey(userId);

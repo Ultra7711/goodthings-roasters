@@ -184,15 +184,18 @@ export async function deleteCartItem(id: string): Promise<boolean> {
 }
 
 /**
- * 전체 카트 비우기 (결제 완료 후 호출 예정 — Session 14+).
+ * 특정 사용자의 카트 아이템 전체 삭제 (결제 완료 후 호출 예정 — Session 14+).
+ *
+ * @param userId — 삭제 대상 사용자 UUID. 반드시 인증 세션의 user.id 와 일치해야 함.
+ *   RLS 정책 `cart_items_delete_own` 이 `auth.uid() = user_id` 로 제한하지만,
+ *   방어적으로 WHERE 절에도 명시 — service_role 컨텍스트 또는 RLS 변경 시 안전장치.
  */
-export async function clearCart(): Promise<void> {
+export async function clearCartItems(userId: string): Promise<void> {
   const supabase = await createRouteHandlerClient();
   const { error } = await supabase
     .from('cart_items')
     .delete()
-    /* where 없이 delete 는 Supabase 에서 막혀 있음 → user_id not null 조건으로 전체 매칭 */
-    .not('user_id', 'is', null);
+    .eq('user_id', userId);
 
   if (error) throw error;
 }
