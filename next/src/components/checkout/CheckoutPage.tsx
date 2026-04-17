@@ -20,6 +20,7 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
+import { useHasHydrated } from '@/hooks/useHasHydrated';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
 import { openPostcode } from '@/lib/daumPostcode';
@@ -107,6 +108,11 @@ export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const { show: toast } = useToast();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  /* BUG-003 응급 (ADR-004 Step A): persist hydration 완료 전까지는
+     items / isLoggedIn 이 서버 값과 다를 수 있어 "빈 장바구니" UI 또는
+     잘못된 로그인 분기가 깜빡인다. Step B 에서 TanStack Query + server props
+     로 대체 시 제거 예정. */
+  const hydrated = useHasHydrated(useCartStore, useAuthStore);
 
   /* ── 장바구니 ── */
   const items = useCartStore((s) => s.items);
@@ -335,6 +341,22 @@ export default function CheckoutPage() {
       }
     }
   }, [submitting, clearErrors, validate, isLoggedIn, form, items, agreements, toast]);
+
+  /* ── 하이드레이션 대기 스켈레톤 ──
+     persist 복원 전에는 items/isLoggedIn 판정 불가. 미니 헤더만 그린다. */
+  if (!hydrated) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+        <div className="chp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+          <div className="chp-hdr-inner">
+            <Link href="/">
+              <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   /* ── 빈 장바구니 보호 ── */
   if (items.length === 0) {
