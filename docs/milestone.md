@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-04-17 · Backend Session 13.5 — Session 8~13 리뷰 하드닝 (migration 021 적용) 완료.
+> **최종 업데이트:** 2026-04-18 · Backend Session 17 — ADR-004 Step D (Zustand 완전 제거) + 3병렬 리뷰 하드닝 완료.
 
 ---
 
@@ -23,13 +23,13 @@
 | Phase | 완료 | 진행 중 | 미착수 | 진행률 |
 |-------|------|---------|--------|--------|
 | Phase 1 — Design | 5 | 0 | 0 | 100% |
-| Phase 2 — Frontend | 1 | 3 | 0 | ~80% |
+| Phase 2 — Frontend | 2 | 2 | 0 | ~85% |
 | Phase 3 — Backend | 2 | 1 | 0 | ~55% |
 | Phase 4 — Infrastructure | 0 | 1 | 0 | ~20% |
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
 | User AI | 0 | 0 | 1 | 0% |
 
-**현재 위치:** Backend Session 14 완료 — 카트 UI DB 연동(AuthSyncProvider GET /api/cart + write-through mirror) + ADR-004 Step A (`useHasHydrated`) + C-M3 bulk merge RPC (migration 022). **E2E 스모크 테스트 통과.** **다음: Session 15 — ADR-004 Step B (TanStack Query 도입 + `useCart*` 훅 + `useCartStore` 제거).**
+**현재 위치:** Backend Session 17 완료 — ADR-004 Step D 이행으로 Zustand 의존성 완전 제거. `lib/store.ts` 삭제 · `useToast` 를 `toastStore` + 훅 분리 · `AuthSyncProvider` 하드닝 · `DEMO_*` 제거. **3병렬 리뷰 HIGH 4·MED 4·LOW 2 전량 하드닝 완료.** **다음: Phase 2-G 프로덕션 준비 (반응형 4BP · CSP · 환경변수 · 번들 감사).**
 
 ---
 
@@ -42,7 +42,7 @@
 | 항목 | 상태 | 비고 |
 |------|------|------|
 | 2-F 콘텐츠 채우기 | ⬜ | GoodDays / Story / MyPage — 검색 엔진/SRP 는 완료 |
-| 2-F2 상태관리 단일화 (ADR-004) | ⬜ | Zustand 제거 · TanStack Query 도입 · Backend Session 15~17 과 연동 |
+| 2-F2 상태관리 단일화 (ADR-004) | ✅ | Step A~D 완료 (Session 14~17) · Zustand 제거 · TanStack Query + useSupabaseSession 단일 소스 |
 | 2-G 반응형 + 프로덕션 | ⬜ | 4 브레이크포인트(360/768/1024/1440) + CSP·환경변수·빌드 최종화 |
 
 #### 7. Content & Asset
@@ -56,7 +56,7 @@
 
 | ID | 이슈 | 처리 시점 |
 |----|------|-----------|
-| A1 | ADR-004 Zustand 제거 이행 완료 확인 (`rg "from 'zustand'"` 0건) | Session 17 종료 시 |
+| A1 | ADR-004 Zustand 제거 이행 완료 확인 (`rg "from 'zustand'"` 0건) | ✅ Session 17 완료 (2026-04-18, `bc6e2258`) |
 | H3 | 사업자 정보 소스코드 하드코딩 → 환경변수/DB 이관 | Phase 2-G |
 | M7 | CSP 등 보안 응답 헤더 최종 점검 → `next.config.ts headers()` | Phase 2-G |
 
@@ -86,10 +86,10 @@
 | Session 13 | P2-F guest cart merge 트리거 + RBAC (`profiles.role` + `is_admin()` + `requireAdmin` + ADR-003) | ✅ |
 | Session 13.5 | Session 8~13 리뷰 하드닝 (CRITICAL 2 + HIGH 4 · migration 021) | ✅ |
 | Session 14 | 카트 UI DB 연동 (hydrate + write-through mirror) + ADR-004 Step A (`useHasHydrated`) + C-M3 bulk RPC (migration 022) · E2E 스모크 통과 | ✅ |
-| **Session 15** | **ADR-004 Step B — TanStack Query 도입 + `useCart*` 훅 + `useCartStore` 제거** | **⬜ (다음)** |
-| Session 16 | ADR-004 Step C — `useSupabaseSession` + `useAuthStore`·`DEMO_CREDENTIALS` 제거 + BUG-004 근본 해결 | ⬜ |
-| Session 17 | ADR-004 Step D — zustand 의존성 제거 + localStorage 마이그레이션 + 번들 측정 | ⬜ |
-| Session 18+ | P2-G 프로덕션 / P2-H 인프라 | ⬜ |
+| Session 15 | ADR-004 Step B — TanStack Query 도입 + `useCart*` 훅 + `useCartStore` 제거 | ✅ |
+| Session 16 | ADR-004 Step C — `useSupabaseSession` + `useAuthStore`·`DEMO_CREDENTIALS` 제거 + BUG-004 근본 해결 | ✅ |
+| Session 17 | ADR-004 Step D — zustand 의존성 제거 + `useToast` 분리 + AuthSyncProvider 하드닝 (리뷰 HIGH 4·MED 4·LOW 2) | ✅ |
+| **Session 18+** | **P2-G 프로덕션 (반응형 4BP · CSP · 환경변수 · 번들 감사) / P2-H 인프라** | **⬜ (다음)** |
 | 차후 | P2-C 정기배송 엔진 | ⬜ (정책 확정 대기) |
 
 > 세부 세션별 범위는 `memory/project_backend_p2_session_plan.md` 참조.

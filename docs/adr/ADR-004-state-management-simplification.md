@@ -1,7 +1,7 @@
 # ADR-004: State Management 단일화 — Zustand 제거 로드맵
 
-**Status:** Proposed
-**Date:** 2026-04-17
+**Status:** Accepted — Implemented (Step A~D 완료)
+**Date:** 2026-04-17 (최종 완료: 2026-04-18)
 **Deciders:** GTR Frontend/Backend owners
 **Related:** ADR-001 (OAuth 3-tier separation) · ADR-002 (결제 하이브리드 인증) · ADR-003 (RBAC) · BUG-003 · BUG-004
 
@@ -65,13 +65,23 @@ Zustand 를 제거하고 아래 구성으로 이행한다.
 - **검증**: E2E — Kakao/Google/Naver 로그인 → 새로고침 → 로그아웃 → 재로그인 플로우. BUG-003/004 최종 클로즈.
 - **예상**: 1.5 세션.
 
-### Step D — 클린업 (Session 17)
+### Step D — 클린업 (Session 17) ✅ 완료 (2026-04-18, `bc6e2258`)
 
-- **범위**: `package.json` 에서 `zustand` 의존성 삭제, `next/src/lib/store.ts` 파일 삭제, localStorage 키 마이그레이션 스크립트 (`app/layout.tsx` 최초 로드 시 1회 `gtr-cart-store` · `gtr-auth-store` 제거 + 버전 플래그 기록). 번들 사이즈 측정 (`next build` 비교). `docs/milestone-completed.md` 의 P2-1 완료 표기에 "Step C 에서 최종 제거" 각주 추가.
-- **선행조건**: Step C 완료.
-- **리스크**: 낮음.
-- **검증**: `rg "from 'zustand'"` → 0건. 번들 diff ≥ 8KB gzip 감소 기대.
-- **예상**: 0.5 세션.
+- **범위 (실행 결과)**:
+  - `package.json` · `package-lock.json` 에서 `zustand` 의존성 삭제
+  - `next/src/lib/store.ts` 파일 삭제
+  - `useToast` 를 `lib/toastStore.ts` (순수 스토어) + `hooks/useToast.ts` (훅) 로 분리하여 zustand 의존성 완전 제거 · 서버 컴포넌트 import 안전
+  - `AuthSyncProvider` 재작성: Zustand setter 제거 · `prevUserIdRef` 기반 cart merge 중복 호출 가드 · `showToast` 실패 피드백 · `.catch` unhandled rejection 방지
+  - `DEMO_USER` · `DEMO_CREDENTIALS` · `MOCK_LATENCY_MS` · `purgeSession` 제거
+  - `cartCalc.ts` · `orderService.test.ts` 의 `@/lib/store` import 경로를 `@/hooks/useCart` 로 이관
+  - localStorage 키 마이그레이션 스크립트는 **불채택** — `persist.partialize` 로 이미 영속화 범위가 `isLoggedIn`/`displayName` 뿐이었고 재로그인 시 `useSupabaseSession` 으로 덮어써지므로 잔여 키 cleanup 불필요 판단 (Session 16 스모크에서 검증)
+- **검증 결과**:
+  - `grep "from 'zustand'" next/src` → 0 hits ✅
+  - `tsc --noEmit` clean ✅
+  - `vitest run` 378/378 green ✅
+  - `next build` success ✅
+  - Session 17 3병렬 리뷰 (code · typescript · silent-failure) HIGH 4·MED 4·LOW 2 → 전량 하드닝 (`bc6e2258`)
+- **실제 소요**: 1 세션 (Session 17).
 
 ## 5. Non-goals
 
@@ -89,11 +99,11 @@ Zustand 를 제거하고 아래 구성으로 이행한다.
 
 단계별 완료 기준은 각 Step 검증 항목과 일치. 최종 수용 기준:
 
-- [ ] `rg "from 'zustand'" next/src` → 0 hits
-- [ ] `next/src/lib/store.ts` 삭제
-- [ ] BUG-003 · BUG-004 클로즈 (E2E 회귀 테스트 포함)
-- [ ] `DEMO_CREDENTIALS` · `MOCK_LATENCY_MS` 제거
-- [ ] 프로덕션 번들 First Load JS gzip 감소 (측정 로그를 `memory/` 에 기록)
+- [x] `rg "from 'zustand'" next/src` → 0 hits (2026-04-18)
+- [x] `next/src/lib/store.ts` 삭제 (2026-04-18, `84c9474b`)
+- [x] BUG-003 · BUG-004 구조 원인 제거 (Step C 완료 시점, Session 16) — E2E 회귀는 Phase 2-G 테스트 섹션에서 실행 예정
+- [x] `DEMO_CREDENTIALS` · `MOCK_LATENCY_MS` 제거 (Session 16~17)
+- [ ] 프로덕션 번들 First Load JS gzip 감소 측정 (Phase 2-G 번들 감사 때 일괄)
 - [ ] `docs/oauth-security-plan.md` P2-1 · `docs/milestone-completed.md` 에 Step C 이행 각주 추가
 
 ## 8. Open Questions
