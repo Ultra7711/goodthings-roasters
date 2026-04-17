@@ -1,10 +1,12 @@
 /* ══════════════════════════════════════════
-   useToast
-   글로벌 토스트 알림 상태 관리
-   프로토타입 showToast() 패턴 이식
+   useToast  (ADR-004 Step C-4)
+   글로벌 토스트 알림 상태 관리.
+   useSyncExternalStore 기반 모듈 싱글톤 (zustand 의존성 제거).
    ══════════════════════════════════════════ */
 
-import { create } from 'zustand';
+'use client';
+
+import { useSyncExternalStore } from 'react';
 
 type ToastEntry = {
   id: string;
@@ -12,38 +14,50 @@ type ToastEntry = {
   duration: number;
 };
 
-type ToastStore = {
-  toasts: ToastEntry[];
-  show: (message: string, duration?: number) => void;
-  dismiss: (id: string) => void;
-};
-
 const MAX_TOASTS = 3;
 const DEFAULT_DURATION = 2500;
 
-export const useToastStore = create<ToastStore>((set) => {
-  let counter = 0;
+let toasts: ToastEntry[] = [];
+let counter = 0;
+const listeners = new Set<() => void>();
 
-  return {
-    toasts: [],
+function emit() {
+  listeners.forEach((l) => l());
+}
 
-    show: (message, duration = DEFAULT_DURATION) => {
-      const id = `toast-${++counter}`;
-      set((state) => ({
-        toasts: [...state.toasts, { id, message, duration }].slice(-MAX_TOASTS),
-      }));
-    },
-
-    dismiss: (id) => {
-      set((state) => ({
-        toasts: state.toasts.filter((t) => t.id !== id),
-      }));
-    },
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
   };
-});
+}
 
-/** 컴포넌트에서 사용할 편의 훅 */
+function getSnapshot(): ToastEntry[] {
+  return toasts;
+}
+
+const SERVER_SNAPSHOT: ToastEntry[] = [];
+function getServerSnapshot(): ToastEntry[] {
+  return SERVER_SNAPSHOT;
+}
+
+export function showToast(message: string, duration: number = DEFAULT_DURATION) {
+  const id = `toast-${++counter}`;
+  toasts = [...toasts, { id, message, duration }].slice(-MAX_TOASTS);
+  emit();
+}
+
+export function dismissToast(id: string) {
+  toasts = toasts.filter((t) => t.id !== id);
+  emit();
+}
+
+/** ToastContainer 전용 — 전체 toasts 배열 구독 */
+export function useToasts(): ToastEntry[] {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
+/** 컴포넌트에서 사용할 편의 훅 — 기존 API 호환 (`toast({ show }).show(...)`) */
 export function useToast() {
-  const show = useToastStore((s) => s.show);
-  return { show };
+  return { show: showToast };
 }

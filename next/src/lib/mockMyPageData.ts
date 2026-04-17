@@ -123,23 +123,3 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
 
 /** 더미 기본 주소 — 초기 상태는 null (등록된 주소 없음) */
 export const MOCK_DEFAULT_ADDRESS: UserAddress | null = null;
-
-/* ══════════════════════════════════════════
-   데모 계정
-   ⚠️ Phase 2-F (Supabase Auth) 전환 시 전체 제거 필수
-   프로덕션 빌드에도 포함되므로 모든 값은 명백한 테스트용 placeholder로 유지
-   (실존 가능한 이메일·전화번호·비밀번호 형식 금지)
-   ══════════════════════════════════════════ */
-
-export const DEMO_CREDENTIALS = {
-  email: 'demo@goodthings.test',
-  password: 'demo1234!',
-} as const;
-
-export const DEMO_USER = {
-  id: 'demo-user',
-  email: DEMO_CREDENTIALS.email,
-  name: '데모 유저',
-  phone: '010-0000-0000',
-  address: null,
-} as const;

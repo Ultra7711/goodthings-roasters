@@ -8,7 +8,7 @@
    ══════════════════════════════════════════ */
 
 import type { CartItem } from '@/types/cart';
-import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from './store';
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/hooks/useCart';
 
 export type CartTotals = {
   /** 상품 소계 (수량 포함) */

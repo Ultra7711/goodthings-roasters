@@ -15,7 +15,7 @@ import {
   OrderServiceError,
 } from './orderService';
 import { PRODUCTS } from '@/lib/products';
-import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/lib/store';
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/hooks/useCart';
 
 /* ── 픽스처 ──────────────────────────────────────────────────────────── */
 

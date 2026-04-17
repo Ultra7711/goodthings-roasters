@@ -4,7 +4,7 @@
    프로토타입 #mp-addr-accordion 로직 이식
    - 받는 분·전화번호·우편번호·기본주소·상세주소 5필드
    - 주소 검색 버튼 클릭 시 더미 주소 주입 (Phase 2-F에서 Daum Postcode API 연동)
-   - 저장 시 useAuthStore.updateAddress 호출
+   - 저장 시 onSave 콜백 호출 (호출부가 세션 state 업데이트 담당)
    ══════════════════════════════════════════ */
 
 'use client';
