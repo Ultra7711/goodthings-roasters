@@ -1,16 +1,16 @@
 /* ══════════════════════════════════════════
    useLoginForm
-   로그인 폼 상태 + 검증 + Auth 스토어 연동
+   로그인 폼 상태 + 검증 + Supabase 이메일 로그인 연동
    - 이메일/비번 blank/형식 검증
-   - useAuthStore.login() 호출
+   - supabase.auth.signInWithPassword() 직접 호출
    - 성공 시 fromCheckout 여부에 따라 리다이렉트
+   ADR-004 Step C-3: useAuthStore 제거 · DEMO_CREDENTIALS 제거.
    ══════════════════════════════════════════ */
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import { isValidEmail } from '@/lib/validation';
-import { DEMO_CREDENTIALS } from '@/lib/mockMyPageData';
 
 type LoginFormErrors = {
   email?: string;
@@ -33,9 +33,19 @@ type UseLoginFormReturn = {
   blurEmail: () => void;
   /** 폼 submit 핸들러 */
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  /** 데모 계정으로 즉시 로그인 */
-  loginAsDemo: () => void;
 };
+
+/** Supabase 에러 메시지를 사용자 친화 문구로 변환 */
+function mapLoginError(message: string): string {
+  const lower = message.toLowerCase();
+  if (lower.includes('invalid login credentials')) {
+    return '이메일 또는 비밀번호가 올바르지 않습니다.';
+  }
+  if (lower.includes('email not confirmed')) {
+    return '이메일 인증이 완료되지 않았습니다. 메일함을 확인해 주세요.';
+  }
+  return '로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+}
 
 export function useLoginForm(
   options: UseLoginFormOptions = {},
@@ -43,12 +53,11 @@ export function useLoginForm(
   const { fromCheckout = false } = options;
 
   const router = useRouter();
-  const login = useAuthStore((s) => s.login);
-  const isLoading = useAuthStore((s) => s.isLoading);
 
   const [email, setEmailState] = useState('');
   const [password, setPasswordState] = useState('');
   const [errors, setErrors] = useState<LoginFormErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   /** 입력 변경 시 해당 필드 에러 + submit 에러 제거 */
   const setEmail = useCallback((value: string) => {
@@ -86,17 +95,25 @@ export function useLoginForm(
     router.push(fromCheckout ? '/checkout' : '/mypage');
   }, [router, fromCheckout]);
 
-  /** 공용 로그인 실행 (검증 제외) */
+  /** 로그인 실행 (검증 통과 후) */
   const runLogin = useCallback(
     async (emailValue: string, passwordValue: string) => {
-      const result = await login(emailValue, passwordValue);
-      if (result.ok) {
+      setIsLoading(true);
+      try {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: emailValue,
+          password: passwordValue,
+        });
+        if (error) {
+          setErrors({ submit: mapLoginError(error.message) });
+          return;
+        }
         redirectOnSuccess();
-      } else {
-        setErrors({ submit: result.error });
+      } finally {
+        setIsLoading(false);
       }
     },
-    [login, redirectOnSuccess],
+    [redirectOnSuccess],
   );
 
   const handleSubmit = useCallback(
@@ -127,15 +144,6 @@ export function useLoginForm(
     [email, password, runLogin],
   );
 
-  /* 테스트 계정 로그인 — 개발 환경 전용 */
-  const loginAsDemo = useCallback(() => {
-    if (process.env.NODE_ENV !== 'development') return;
-    setEmailState(DEMO_CREDENTIALS.email);
-    setPasswordState(DEMO_CREDENTIALS.password);
-    setErrors({});
-    void runLogin(DEMO_CREDENTIALS.email, DEMO_CREDENTIALS.password);
-  }, [runLogin]);
-
   return {
     email,
     password,
@@ -145,6 +153,5 @@ export function useLoginForm(
     setPassword,
     blurEmail,
     handleSubmit,
-    loginAsDemo,
   };
 }

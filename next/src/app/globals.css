@@ -4858,6 +4858,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-error); margin-bottom: 16px; text-align: center;
 }
 
+/* submit 안내(성공/info) 메시지 */
+.lp-submit-notice {
+  font-family: var(--font-kr); font-size: var(--type-body-s-size);
+  color: var(--color-text-secondary); margin-bottom: 16px; text-align: center;
+}
+
 /* 제출 버튼 — Full-width Tier 1 CTA */
 .lp-submit-btn {
   display: flex; align-items: center; justify-content: center;

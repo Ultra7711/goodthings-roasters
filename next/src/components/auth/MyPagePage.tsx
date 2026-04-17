@@ -18,8 +18,9 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { useAuthStore } from '@/lib/store';
+import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { supabase } from '@/lib/supabase';
+import type { UserAddress } from '@/types/address';
 import { useAddressForm } from '@/hooks/useAddressForm';
 import { usePasswordChangeForm } from '@/hooks/usePasswordChangeForm';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
@@ -107,10 +108,26 @@ export default function MyPagePage() {
   const { show: toast } = useToast();
   const { ready, authorized, bypassRedirect } = useAuthGuard();
 
-  /* ── Auth Store (UI 힌트 전용) ── */
-  const user = useAuthStore((s) => s.user);
-  const displayName = useAuthStore((s) => s.displayName);
-  const updateAddress = useAuthStore((s) => s.updateAddress);
+  /* ── Supabase session 기반 user 정보 ── */
+  const { user: supabaseUser } = useSupabaseSession();
+  const meta = supabaseUser?.user_metadata ?? {};
+  const metaName = (meta.full_name as string | undefined) ?? (meta.name as string | undefined);
+  const emailHandle = supabaseUser?.email?.split('@')[0];
+  const displayName = metaName ?? emailHandle ?? null;
+
+  /* 주소는 DB persist 미도입 — 로컬 state (세션 내 임시).
+     ADR-004 Step C-2.5: 기존 Zustand 도 partialize 로 persist 안 했으므로 동작 동일. */
+  const [address, setAddress] = useState<UserAddress | null>(null);
+  const updateAddress = setAddress;
+
+  const user = supabaseUser
+    ? {
+        id: supabaseUser.id,
+        email: supabaseUser.email ?? '',
+        name: metaName ?? emailHandle ?? '',
+        address,
+      }
+    : null;
 
   /* ── 아코디언 상태 ── */
   const [addrOpen, setAddrOpen] = useState(false);
