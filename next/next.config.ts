@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 /**
  * 정적 보안 헤더 — 모든 응답에 자동 첨부.
@@ -30,6 +31,13 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // Turbopack workspace root 를 next/ 로 고정.
+  // 상위 디렉터리(goodthings-roasters/)에 package-lock.json 이 존재할 수 있어
+  // (supabase CLI 등 repo-level devDeps) 자동 추론이 루트를 잘못 선택하는 문제 회피.
+  turbopack: {
+    root: path.join(__dirname),
+  },
+
   // @node-rs/argon2 는 native binary 를 포함하므로 서버 번들에서 제외한다.
   // Next.js 가 Node.js native 모듈을 webpack 으로 처리하지 않고 런타임에 require 한다.
   serverExternalPackages: ["@node-rs/argon2"],
