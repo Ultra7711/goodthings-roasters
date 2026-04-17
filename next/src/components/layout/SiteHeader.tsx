@@ -20,9 +20,9 @@ import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { ClearIcon } from '@/components/ui/InputIcons';
 
 /* ── 모듈 스코프 상수 — 렌더마다 재생성 방지 ───────────────
-   검색 패널 실제 렌더 높이 60px + border 0.5px ≈ 60.5px.
-   dim-top = headerBottom + 61 로 gap 최소화 (프로토타입은 +60 사용). */
-const SEARCH_PANEL_HEIGHT = 61;
+   검색 패널 실제 렌더 높이 60px (border 제거됨 — 공지바/헤더 hairline 일괄 제거와 일관).
+   dim-top = headerBottom + 60 로 gap 0 맞춤. */
+const SEARCH_PANEL_HEIGHT = 60;
 /** 헤더 높이 기본값 — getBoundingClientRect 실패 시 fallback (CSS 헤더 높이와 동기화) */
 const HEADER_HEIGHT_FALLBACK = 60;
 /** 검색 패널 렌더 완료 후 포커스 지연 ms (CSS transition 종료 타이밍) */

@@ -401,6 +401,7 @@ body {
 }
 
 /* ══ 헤더 ══ */
+
 #site-hdr-wrap {
   position: sticky;
   top: 0;
@@ -409,20 +410,15 @@ body {
   /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 (Tailwind v4 Lightning CSS drop 이슈 회피) */
   border-left: .5px solid rgba(255,255,255,.4);
   border-right: .5px solid rgba(255,255,255,.4);
-  border-bottom: 1px solid rgba(0,0,0,.04);
-  box-shadow: 0 1px 0 rgba(255,255,255,.08) inset;
   overflow: visible;
   transition:
     background var(--duration-slide) ease,
-    border-color var(--duration-slide) ease,
-    box-shadow var(--duration-slide) ease;
+    border-color var(--duration-slide) ease;
 }
 #site-hdr-wrap.hdr-dark {
   background: rgba(28,27,25,.75);
   /* backdrop-filter는 inline style에서 관리 (light/dark 모두 동일 blur 값) */
   border-color: transparent;
-  border-bottom-color: rgba(255,255,255,.06);
-  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset;
 }
 /* 라우트 변경 직후 한 프레임 동안만 부여되는 클래스 — 네비게이션 애니메이션과
    겹쳐 보이는 테마 페이드를 제거하기 위해 transition 을 일시 비활성화.
@@ -548,14 +544,13 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
   right: 0;
   background: var(--search-panel-bg);
   /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 */
-  border-bottom: .5px solid var(--search-panel-border-bottom-color);
   overflow: hidden;
   max-height: 0;
   opacity: 0;
   transition: max-height 180ms cubic-bezier(.4,0,.2,1), opacity 150ms ease;
   z-index: var(--z-modal);
 }
-#search-drop.open { max-height: 62px; opacity: 1; }
+#search-drop.open { max-height: 60px; opacity: 1; }
 #search-drop-inner {
   height: var(--search-panel-height);
   display: flex;
@@ -2014,13 +2009,13 @@ footer.blk {
   font-size: var(--type-heading-s-size);
   font-weight: 400;
   letter-spacing: var(--ls-neutral);
-  color: var(--color-text-caption);
+  color: var(--tab-color);
   transition: color var(--duration-hover) ease;
   white-space: nowrap;
   text-align: center;
 }
-.cm-filter-tab:hover { color: var(--color-text-primary); }
-.cm-filter-tab.active { font-weight: 500; color: var(--color-text-primary); }
+.cm-filter-tab:hover { color: var(--tab-color-active); }
+.cm-filter-tab.active { font-weight: 500; color: var(--tab-color-active); }
 .cm-tab-label { pointer-events: none; }
 
 /* 그리드 + 카드 */
@@ -5398,7 +5393,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   left: 20px; right: 0; height: .5px;
   background: var(--color-border-tertiary);
 }
-.search-result-item:last-child::after { display: none; }
+.search-results-list > li:last-child .search-result-item::after { display: none; }
 .search-result-item:hover .search-result-name { color: var(--color-accent, var(--color-text-primary)); }
 
 .search-result-thumb {

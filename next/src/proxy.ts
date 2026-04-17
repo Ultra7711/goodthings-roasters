@@ -60,11 +60,16 @@ function buildContentSecurityPolicy(nonce: string, isDev: boolean): string {
   // strict-dynamic: nonce 가 부여된 초기 스크립트가 로드하는 후속 스크립트를 자동 신뢰
   //                 → 번들 스플리팅/동적 import 대응
   // unsafe-eval:    dev 에서만 (React Fast Refresh / sourcemap 진단 용)
-  // unsafe-inline:  dev 스타일 전용 (HMR 인라인 스타일 주입)
+  // style-src 'unsafe-inline' (nonce 미사용):
+  //   CSP3 에서 nonce 와 'unsafe-inline' 공존 시 'unsafe-inline' 이 무시되어
+  //   React 의 style={{...}} (style attribute) 가 전부 거부됨. style attribute 에는
+  //   nonce 를 부여할 수 없으므로 style-src 는 nonce 없이 'unsafe-inline' 만 허용.
+  //   Next.js 공식 CSP 가이드 · 업계 표준과 일치 (script-src 와 달리 style
+  //   inline 은 XSS 영향 제한적).
   const directives = [
     `default-src 'self'`,
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://pay.toss.im`,
-    `style-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-inline'" : ''} https://fonts.googleapis.com https://t1.daumcdn.net`,
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://t1.daumcdn.net`,
     `img-src 'self' blob: data: https://*.supabase.co https://*.tosspayments.com https://t1.daumcdn.net https://postfiles.pstatic.net`,
     `font-src 'self' https://fonts.gstatic.com data:`,
     // Supabase: HTTPS REST + WSS Realtime / TossPayments: 결제 API / Resend: 메일 트리거

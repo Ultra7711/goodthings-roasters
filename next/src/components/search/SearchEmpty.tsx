@@ -20,7 +20,7 @@ export default function SearchEmpty({ query, hasQuery }: Props) {
   }
   return (
     <div className="search-no-results">
-      <strong>&lsquo;{query}&rsquo;</strong>에 대한 검색 결과가 없습니다.
+      <strong>&ldquo;{query}&rdquo;</strong>에 대한 검색 결과가 없습니다.
       <div className="search-no-results-hint">다른 검색어로 시도해 보세요.</div>
     </div>
   );
