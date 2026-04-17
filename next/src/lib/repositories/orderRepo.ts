@@ -89,6 +89,8 @@ export type OrderItemRow = {
 export type OrderRow = {
   id: string;
   order_number: string;
+  /** 018 마이그레이션 — enumeration 방어용 공개 식별자 (UUID v4). 고객 대면 URL/이메일 전용. */
+  public_token: string;
   user_id: string | null;
   guest_email: string | null;
   contact_email: string;
@@ -173,7 +175,7 @@ export async function createOrder(
 
 /** ORDER_SELECT_COLUMNS — join 포함 전체 */
 const ORDER_SELECT = `
-  id, order_number, user_id, guest_email,
+  id, order_number, public_token, user_id, guest_email,
   contact_email, contact_phone,
   shipping_name, shipping_phone, shipping_zipcode,
   shipping_addr1, shipping_addr2,
@@ -229,6 +231,55 @@ export async function findGuestOrderWithHash(
     .from('orders')
     .select(`${ORDER_SELECT}, guest_lookup_pin_hash`)
     .eq('order_number', orderNumber)
+    .eq('guest_email', email)
+    .is('user_id', null)
+    .maybeSingle<OrderRow & { guest_lookup_pin_hash: string | null }>();
+
+  if (error) throw error;
+  return data ?? null;
+}
+
+/* ══════════════════════════════════════════
+   018 — public_token 기반 lookup (Session 8 보안 #3)
+
+   고객 대면 URL/이메일에서 order_number 대신 UUID v4 public_token 을
+   사용하기 위한 조회 경로. 기존 order_number lookup 과 병행 (스펙 §4.4 - 4a).
+   ══════════════════════════════════════════ */
+
+/**
+ * 회원 본인 주문 조회 — public_token 기반 (018).
+ * RLS `orders_select_own` 에 의해 타인 주문은 자동 차단.
+ */
+export async function findOrderForUserByToken(
+  publicToken: string,
+): Promise<OrderRow | null> {
+  const supabase = await createRouteHandlerClient();
+  const { data, error } = await supabase
+    .from('orders')
+    .select(ORDER_SELECT)
+    .eq('public_token', publicToken)
+    .maybeSingle<OrderRow>();
+
+  if (error) throw error;
+  return data ?? null;
+}
+
+/**
+ * 게스트 주문 조회 — public_token + email 로 교차검증 (018).
+ *
+ * - `findGuestOrderWithHash` 의 token 변형. 로직/방어층은 동일.
+ * - UUID token 은 URL enumeration 내성이 확보되어 있지만, guest_email 교차검증을
+ *   유지해 이메일+PIN 이 알려진 상태에서의 표적 공격도 차단한다.
+ */
+export async function findGuestOrderByTokenWithHash(
+  publicToken: string,
+  email: string,
+): Promise<(OrderRow & { guest_lookup_pin_hash: string | null }) | null> {
+  const admin = getSupabaseAdmin();
+  const { data, error } = await admin
+    .from('orders')
+    .select(`${ORDER_SELECT}, guest_lookup_pin_hash`)
+    .eq('public_token', publicToken)
     .eq('guest_email', email)
     .is('user_id', null)
     .maybeSingle<OrderRow & { guest_lookup_pin_hash: string | null }>();
