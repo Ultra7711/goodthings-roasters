@@ -147,7 +147,13 @@ grant  execute on function public.get_daily_settlement(timestamptz, timestamptz,
 comment on function public.get_daily_settlement(timestamptz, timestamptz, text) is
   'Phase 2-B B-5 정산: 기간 내 KST 일별 승인·환불·pending 발급 집계. '
   'SECURITY DEFINER + service_role only. '
-  'approved_at 은 _fallback.approved_at=true 행도 포함.';
+  'approved_at 은 _fallback.approved_at=true 행도 포함. '
+  /* db M-1 정책 (Session 8): 가상계좌 0-amount 행 처리
+     - approved_at IS NULL (미입금/발급만) 행은 approved_amount 집계에서 자동 제외
+       (WHERE p.approved_at BETWEEN ... 필터). pending_transfer_count 는 별도 집계.
+     - approved_amount=0 (회계 0원 승인) 행은 실제 발생 시 정상 승인으로 간주하여
+       포함한다 — 미래에 프로모션·전액쿠폰 결제 도입 시 신호 보존이 필요하므로
+       추가 필터 없이 그대로 노출. Session 11 결제 훅 최종 연동 시 재검토. */';
 
 
 -- ───────────────────────────────────────────────────────────────────────────

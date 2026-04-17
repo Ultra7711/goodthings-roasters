@@ -20,9 +20,17 @@
      - security H-1: subject 원문 로깅 제거 → subjectLen 만 기록
      - security M-1: idempotencyKey JSON.stringify + 12자 truncate
      - security M-3: idempotencyKey 형식 검증 (/^[\w:._\-]{1,255}$/)
+
+   2026-04-17 Session 8 Deferred 처리:
+     - code M-x: logFailure 헬퍼로 console.error 3회 중복 DRY
+     - security L-1: provider_error cause 에 response 전체 저장 금지 →
+       { hasData, hasError, dataId } 요약만 보존 (PII 필드 유출 차단)
+     - ts L-2: Resend SDK 타입(`CreateEmailOptions`/`CreateEmailRequestOptions`)
+       정식 import → `unknown as` 캐스트 제거
    ════════════════════════════════════════════════════════════════════════ */
 
 import { randomUUID } from 'node:crypto';
+import type { CreateEmailOptions, CreateEmailRequestOptions } from 'resend';
 import { getEmailConfig } from './config';
 import { getRateLimiter, getResendClient } from './client';
 import { EmailError, normalizeResendError } from './errors';
@@ -93,6 +101,43 @@ type ResendSendResult = {
   error: unknown;
 };
 
+/**
+ * live 경로 실패 로그 헬퍼 (code M-x DRY).
+ *
+ * 3개 실패 분기(throw / response.error / missing id)가 동일 포맷을 공유하므로
+ * 단일 helper 로 묶는다. PII 필드(subject 원문·body·response 전체) 는 로깅
+ * 대상에서 제외 — to 는 마스킹, duration 은 숫자만.
+ */
+function logLiveFailure(
+  err: EmailError,
+  to: EmailPayload['to'],
+  startedAt: number,
+): void {
+  console.error(
+    `[email:live] FAIL code=${err.code} retryable=${err.retryable} ` +
+      `to=${maskRecipients(to)} duration=${Date.now() - startedAt}ms`,
+  );
+}
+
+/**
+ * Resend 응답의 안전한 요약 (security L-1).
+ *
+ * provider_error cause 에 response 전체를 저장하면 차후 response.data.to /
+ * response.error.headers 등 향후 SDK 변경으로 PII 필드가 포함될 수 있다.
+ * 형태 불변 필드(boolean·문자열 id)만 남겨 로그 안전성 보존.
+ */
+function summarizeResendResponse(res: ResendSendResult): {
+  hasData: boolean;
+  hasError: boolean;
+  dataId: string | null;
+} {
+  return {
+    hasData: res.data !== null,
+    hasError: res.error !== null && res.error !== undefined,
+    dataId: res.data?.id ?? null,
+  };
+}
+
 async function liveSend(payload: EmailPayload): Promise<EmailResult> {
   const config = getEmailConfig();
   const bucket = getRateLimiter();
@@ -103,19 +148,22 @@ async function liveSend(payload: EmailPayload): Promise<EmailResult> {
   const from = payload.from ?? config.fromEmail;
   const replyTo = payload.replyTo ?? config.replyTo ?? undefined;
 
-  const sdkPayload: Record<string, unknown> = {
+  /* ts L-2: Resend 정식 타입 사용 (unknown as 제거).
+     CreateEmailOptions 는 html/text/react 중 최소 1개를 요구하는 discriminated
+     RequireAtLeastOne 이지만 validatePayload 가 이미 보장한다. */
+  const sdkPayload: CreateEmailOptions = {
     from,
     to: payload.to,
     subject: payload.subject,
-  };
-  if (payload.html !== undefined) sdkPayload.html = payload.html;
-  if (payload.text !== undefined) sdkPayload.text = payload.text;
-  if (payload.react !== undefined) sdkPayload.react = payload.react;
-  if (payload.cc !== undefined) sdkPayload.cc = payload.cc;
-  if (payload.bcc !== undefined) sdkPayload.bcc = payload.bcc;
-  if (replyTo !== undefined) sdkPayload.replyTo = replyTo;
+    ...(payload.html !== undefined ? { html: payload.html } : {}),
+    ...(payload.text !== undefined ? { text: payload.text } : {}),
+    ...(payload.react !== undefined ? { react: payload.react } : {}),
+    ...(payload.cc !== undefined ? { cc: payload.cc } : {}),
+    ...(payload.bcc !== undefined ? { bcc: payload.bcc } : {}),
+    ...(replyTo !== undefined ? { replyTo } : {}),
+  } as CreateEmailOptions;
 
-  const sendOptions = payload.idempotencyKey
+  const sendOptions: CreateEmailRequestOptions | undefined = payload.idempotencyKey
     ? { idempotencyKey: payload.idempotencyKey }
     : undefined;
 
@@ -123,11 +171,7 @@ async function liveSend(payload: EmailPayload): Promise<EmailResult> {
   let response: ResendSendResult;
   try {
     // Resend v4: client.emails.send(payload, options?)
-    response = (await client.emails.send(
-      // SDK 타입이 버전별로 변동하므로 여기서는 unknown as 로 주입한다.
-      sdkPayload as unknown as Parameters<typeof client.emails.send>[0],
-      sendOptions as unknown as Parameters<typeof client.emails.send>[1],
-    )) as ResendSendResult;
+    response = (await client.emails.send(sdkPayload, sendOptions)) as ResendSendResult;
   } catch (err) {
     // security H-3: 원본 err.message 를 EmailError.message 로 복사하지 않는다.
     // 고정 문자열로 교체하고 원본은 cause 에만 보존 → 클라이언트 응답 유출 차단.
@@ -135,28 +179,25 @@ async function liveSend(payload: EmailPayload): Promise<EmailResult> {
       err instanceof EmailError
         ? err
         : new EmailError('network_error', 'network error', true, err);
-    console.error(
-      `[email:live] FAIL code=${normalized.code} retryable=${normalized.retryable} ` +
-        `to=${maskRecipients(payload.to)} duration=${Date.now() - start}ms`,
-    );
+    logLiveFailure(normalized, payload.to, start);
     return { ok: false, error: normalized.toShape(), mode: 'live' };
   }
 
   if (response.error) {
     const normalized = normalizeResendError(response.error);
-    console.error(
-      `[email:live] FAIL code=${normalized.code} retryable=${normalized.retryable} ` +
-        `to=${maskRecipients(payload.to)} duration=${Date.now() - start}ms`,
-    );
+    logLiveFailure(normalized, payload.to, start);
     return { ok: false, error: normalized.toShape(), mode: 'live' };
   }
 
   if (!response.data?.id) {
-    const err = new EmailError('provider_error', 'resend response missing id', true, response);
-    console.error(
-      `[email:live] FAIL code=${err.code} retryable=${err.retryable} ` +
-        `to=${maskRecipients(payload.to)} duration=${Date.now() - start}ms`,
+    /* security L-1: response 전체를 cause 로 넘기지 않고 요약만 보존. */
+    const err = new EmailError(
+      'provider_error',
+      'resend response missing id',
+      true,
+      summarizeResendResponse(response),
     );
+    logLiveFailure(err, payload.to, start);
     return { ok: false, error: err.toShape(), mode: 'live' };
   }
 
