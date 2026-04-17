@@ -16,6 +16,71 @@ import { DEMO_CREDENTIALS, DEMO_USER } from './mockMyPageData';
 export const FREE_SHIPPING_THRESHOLD = 30000;
 export const SHIPPING_FEE = 3000;
 
+/* ══════════════════════════════════════════
+   서버 미러 (Session 14)
+   ADR-004 Step B 에서 TanStack Query 로 대체 시 제거.
+   동적 import — store ↔ cartSync 순환 회피.
+   ════════════════════════════════════════ */
+
+type MirrorAddContext = {
+  addedLocalId: number | null;
+  mergedServerId: string | null;
+  mergedQty: number;
+};
+
+type MirrorAddPayload = {
+  slug: string;
+  volume: string | null;
+  type: CartItem['type'];
+  period: string | null;
+  qty: number;
+};
+
+async function mirrorAddOrPatch(
+  payload: MirrorAddPayload,
+  ctx: MirrorAddContext,
+): Promise<void> {
+  if (!payload.volume) return;
+  const { pushAddToServer, pushPatchToServer, toSubscriptionPeriod } =
+    await import('./cartSync');
+
+  /* 기존 항목 수량 합산인 경우 — PATCH (serverId 이미 존재) */
+  if (ctx.mergedServerId) {
+    await pushPatchToServer(ctx.mergedServerId, ctx.mergedQty);
+    return;
+  }
+
+  /* 신규 — POST 후 반환된 serverId 를 해당 로컬 아이템에 기록 */
+  const serverId = await pushAddToServer({
+    productSlug: payload.slug,
+    volume: payload.volume,
+    quantity: Math.min(99, Math.max(1, payload.qty)),
+    itemType: payload.type,
+    subscriptionPeriod:
+      payload.type === 'subscription'
+        ? toSubscriptionPeriod(payload.period)
+        : null,
+  });
+
+  if (serverId && ctx.addedLocalId !== null) {
+    useCartStore.setState((state) => ({
+      items: state.items.map((i) =>
+        i.id === ctx.addedLocalId ? { ...i, serverId } : i,
+      ),
+    }));
+  }
+}
+
+async function mirrorPatch(serverId: string, qty: number): Promise<void> {
+  const { pushPatchToServer } = await import('./cartSync');
+  await pushPatchToServer(serverId, qty);
+}
+
+async function mirrorDelete(serverId: string): Promise<void> {
+  const { pushDeleteToServer } = await import('./cartSync');
+  await pushDeleteToServer(serverId);
+}
+
 /* ════════════════════════════════════════
    Cart Store
    ════════════════════════════════════════ */
@@ -28,6 +93,8 @@ type CartStore = {
   openDrawer: () => void;
   /** 드로어 닫기 */
   closeDrawer: () => void;
+  /** items 전체 교체 (서버 하이드레이션 전용 — Session 14) */
+  setItems: (items: CartItem[]) => void;
   /** 장바구니에 상품 추가 (동일 상품이면 수량 합산) */
   addItem: (payload: AddToCartPayload) => void;
   /** 장바구니에서 상품 제거 */
@@ -54,7 +121,12 @@ export const useCartStore = create<CartStore>()(
   openDrawer: () => set({ isDrawerOpen: true }),
   closeDrawer: () => set({ isDrawerOpen: false }),
 
+  setItems: (items) => set({ items }),
+
   addItem: (payload) => {
+    let addedLocalId: number | null = null;
+    let mergedServerId: string | null = null;
+    let mergedQty = 0;
     set((state) => {
       const existIdx = state.items.findIndex(
         (i) =>
@@ -66,15 +138,20 @@ export const useCartStore = create<CartStore>()(
 
       if (existIdx >= 0) {
         /* 동일 상품: 수량 합산 (불변 패턴) */
+        const existing = state.items[existIdx];
+        mergedServerId = existing.serverId ?? null;
+        mergedQty = Math.min(99, existing.qty + payload.qty);
         const updated = state.items.map((item, idx) =>
-          idx === existIdx ? { ...item, qty: item.qty + payload.qty } : item,
+          idx === existIdx ? { ...item, qty: mergedQty } : item,
         );
         return { items: updated };
       }
 
       /* 신규 상품 추가 */
+      addedLocalId = Date.now();
       const newItem: CartItem = {
-        id: Date.now(),
+        id: addedLocalId,
+        serverId: null,
         slug: payload.slug,
         name: payload.name,
         price: payload.price,
@@ -89,22 +166,57 @@ export const useCartStore = create<CartStore>()(
       };
       return { items: [...state.items, newItem] };
     });
+
+    /* 로그인 상태면 서버 미러 — fire-and-forget (Session 14).
+       실패해도 로컬 상태는 유지. 다음 하이드레이션 시점에 정합성 복원. */
+    if (typeof window !== 'undefined' && useAuthStore.getState().isLoggedIn) {
+      void mirrorAddOrPatch(
+        {
+          slug: payload.slug,
+          volume: payload.volume ?? null,
+          type: payload.type ?? 'normal',
+          period: payload.period ?? null,
+          qty: payload.qty,
+        },
+        { addedLocalId, mergedServerId, mergedQty },
+      );
+    }
   },
 
   removeItem: (id) => {
-    set((state) => ({
-      items: state.items.filter((i) => i.id !== id),
-    }));
+    let targetServerId: string | null = null;
+    set((state) => {
+      const target = state.items.find((i) => i.id === id);
+      targetServerId = target?.serverId ?? null;
+      return { items: state.items.filter((i) => i.id !== id) };
+    });
+    if (
+      targetServerId &&
+      typeof window !== 'undefined' &&
+      useAuthStore.getState().isLoggedIn
+    ) {
+      void mirrorDelete(targetServerId);
+    }
   },
 
   updateQty: (id, delta) => {
+    let targetServerId: string | null = null;
+    let nextQty = 0;
     set((state) => ({
-      items: state.items.map((item) =>
-        item.id === id
-          ? { ...item, qty: Math.max(1, item.qty + delta) }
-          : item,
-      ),
+      items: state.items.map((item) => {
+        if (item.id !== id) return item;
+        nextQty = Math.max(1, item.qty + delta);
+        targetServerId = item.serverId ?? null;
+        return { ...item, qty: nextQty };
+      }),
     }));
+    if (
+      targetServerId &&
+      typeof window !== 'undefined' &&
+      useAuthStore.getState().isLoggedIn
+    ) {
+      void mirrorPatch(targetServerId, nextQty);
+    }
   },
 
   clearCart: () => set({ items: [] }),

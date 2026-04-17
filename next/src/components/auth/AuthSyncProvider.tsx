@@ -27,6 +27,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore, useCartStore } from '@/lib/store';
 import type { User } from '@/types/auth';
 import { mergeGuestCartToServer, clearMergeFlag } from '@/lib/cartMerge';
+import { fetchServerCart } from '@/lib/cartSync';
 
 type Props = { children: ReactNode };
 
@@ -58,9 +59,20 @@ export default function AuthSyncProvider({ children }: Props) {
         setUser(mapUser(session.user));
 
         /* guest cart → DB 1회 흡수. sessionStorage 플래그로 중복 방지.
-         * fire-and-forget: auth 동기화 블로킹 금지, 실패는 플래그 미설정으로 재시도. */
+         * fire-and-forget: auth 동기화 블로킹 금지, 실패는 플래그 미설정으로 재시도.
+         * merge 성공/스킵 후 서버 카트 GET → Zustand 치환 (cross-device sync). */
         const { items, clearCart } = useCartStore.getState();
-        void mergeGuestCartToServer(session.user.id, items, clearCart);
+        void mergeGuestCartToServer(session.user.id, items, clearCart).then(
+          async (result) => {
+            if (result.status === 'error') return;
+            try {
+              const serverItems = await fetchServerCart();
+              useCartStore.getState().setItems(serverItems);
+            } catch {
+              /* 하이드레이션 실패 — 기존 Zustand items 유지 */
+            }
+          },
+        );
       } else if (event === 'SIGNED_OUT') {
         // 명시적 로그아웃 시에만 clearUser 호출 (cart 비움 포함)
         const prevUserId = useAuthStore.getState().user?.id;

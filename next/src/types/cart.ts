@@ -6,8 +6,10 @@
 export type CartItemType = 'normal' | 'subscription';
 
 export type CartItem = {
-  /** 고유 ID (Date.now 기반) */
+  /** UI/React key 전용 로컬 ID (Date.now 기반). DB 원격 동기화와 무관. */
   id: number;
+  /** DB cart_items.id (UUID). 로그인 상태에서 서버로 미러된 항목만 세팅. Step B 에서 제거 예정. */
+  serverId?: string | null;
   /** 상품 slug (URL key) */
   slug: string;
   /** 상품명 */
