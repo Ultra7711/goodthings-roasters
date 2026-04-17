@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useHeaderTheme } from '@/hooks/useHeaderTheme';
 import { getInitialHeaderTheme } from '@/lib/headerThemeConfig';
-import { useAuthStore } from '@/lib/store';
+import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { useCartQuery } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { ClearIcon } from '@/components/ui/InputIcons';
@@ -46,7 +46,7 @@ export default function SiteHeader() {
 
   /* SSR 안전: 클라이언트에서만 store 값 사용 */
   const { totalQty } = useCartQuery();
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const { isLoggedIn } = useSupabaseSession();
   const { open: openDrawer } = useCartDrawer();
 
   useEffect(() => {
