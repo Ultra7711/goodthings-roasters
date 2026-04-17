@@ -27,6 +27,8 @@ import type {
 export type OrderForConfirm = {
   id: string;
   order_number: string;
+  /** Session 11 보안 #3-4a: 고객 대면 이메일 CTA 링크용 UUID v4. */
+  public_token: string;
   user_id: string | null;
   guest_email: string | null;
   contact_email: string;
@@ -50,7 +52,7 @@ export async function findOrderForConfirm(
   const { data, error } = await admin
     .from('orders')
     .select(
-      'id, order_number, user_id, guest_email, contact_email, status, payment_method, total_amount',
+      'id, order_number, public_token, user_id, guest_email, contact_email, status, payment_method, total_amount',
     )
     .eq('order_number', orderNumber)
     .maybeSingle<OrderForConfirm>();

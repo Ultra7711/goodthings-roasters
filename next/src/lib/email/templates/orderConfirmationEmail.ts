@@ -10,6 +10,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { esc, stripNewlines } from './utils';
+import { buildOrderCompleteUrl } from './urls';
 import type { DbPaymentMethod } from '@/types/db';
 
 export type OrderConfirmationEmailItem = {
@@ -39,6 +40,12 @@ export type OrderConfirmationEmailProps = {
    * false/undefined = 기존 "주문이 확인되었습니다" 메일 (confirm 직후).
    */
   depositCompleted?: boolean;
+  /**
+   * Session 11 보안 #3-4a: 주문 공개 토큰 (orders.public_token UUID v4).
+   * 존재하면 `/order-complete?token=...` CTA 링크를 렌더링한다.
+   * 이메일 링크의 `?orderNumber=` enumeration 표면을 제거하기 위한 1급 식별자.
+   */
+  publicToken?: string;
 };
 
 function formatKRW(amount: number): string {
@@ -55,7 +62,8 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
   html: string;
   text: string;
 } {
-  const { orderNumber, recipientName, subtotal, shippingFee, discountAmount, totalAmount, method, items, virtualAccount, depositCompleted } = props;
+  const { orderNumber, recipientName, subtotal, shippingFee, discountAmount, totalAmount, method, items, virtualAccount, depositCompleted, publicToken } = props;
+  const orderCompleteUrl = buildOrderCompleteUrl(publicToken);
 
   /* CRLF 인젝션 방어 — subject 헤더 삽입 전 제거 */
   const safeOrderNumber = stripNewlines(orderNumber);
@@ -175,6 +183,21 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
 
             ${virtualAccountBlock}
 
+            ${
+              orderCompleteUrl
+                ? `<table cellpadding="0" cellspacing="0" style="margin:32px 0 0;">
+              <tr>
+                <td style="background-color:#7A6B52;border-radius:4px;">
+                  <a href="${orderCompleteUrl}"
+                     style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:500;color:#FAFAF8;text-decoration:none;letter-spacing:0.03em;">
+                    주문 내역 보기
+                  </a>
+                </td>
+              </tr>
+            </table>`
+                : ''
+            }
+
             <hr style="border:none;border-top:1px solid #E8E6E1;margin:32px 0 20px;">
             <p style="margin:0;font-size:12px;color:#A8A49E;line-height:1.6;">
               본 메일은 발신 전용입니다. 문의는 홈페이지를 통해 연락해 주세요.
@@ -205,6 +228,8 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
 
   const discountText = discountAmount > 0 ? `\n할인: -${formatKRW(discountAmount)}` : '';
 
+  const ctaText = orderCompleteUrl ? `\n\n주문 내역 보기: ${orderCompleteUrl}` : '';
+
   const text = `[굳띵즈] ${headline} — ${safeOrderNumber}
 
 ${introText}
@@ -215,7 +240,7 @@ ${itemsText}
 소계: ${formatKRW(subtotal)}
 배송비: ${shippingFee === 0 ? '무료' : formatKRW(shippingFee)}${discountText}
 합계: ${formatKRW(totalAmount)}
-결제 방법: ${METHOD_LABELS[method]}${vaText}
+결제 방법: ${METHOD_LABELS[method]}${vaText}${ctaText}
 
 © ${new Date().getFullYear()} Good Things Roasters`;
 

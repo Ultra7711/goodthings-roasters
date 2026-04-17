@@ -9,12 +9,17 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { esc, stripNewlines } from './utils';
+import { buildOrderCompleteUrl } from './urls';
 
 export type ShippingNotificationEmailProps = {
   orderNumber: string;
   recipientName?: string;
   trackingNumber?: string;
   carrier?: string;
+  /**
+   * Session 11 보안 #3-4a: 주문 공개 토큰. 존재 시 `/order-complete?token=...` CTA 렌더.
+   */
+  publicToken?: string;
 };
 
 export function renderShippingNotificationEmail(props: ShippingNotificationEmailProps): {
@@ -22,7 +27,8 @@ export function renderShippingNotificationEmail(props: ShippingNotificationEmail
   html: string;
   text: string;
 } {
-  const { orderNumber, recipientName, trackingNumber, carrier } = props;
+  const { orderNumber, recipientName, trackingNumber, carrier, publicToken } = props;
+  const orderCompleteUrl = buildOrderCompleteUrl(publicToken);
 
   /* CRLF 인젝션 방어 */
   const safeOrderNumber = stripNewlines(orderNumber);
@@ -73,6 +79,21 @@ export function renderShippingNotificationEmail(props: ShippingNotificationEmail
 
             ${trackingBlock}
 
+            ${
+              orderCompleteUrl
+                ? `<table cellpadding="0" cellspacing="0" style="margin:32px 0 0;">
+              <tr>
+                <td style="background-color:#7A6B52;border-radius:4px;">
+                  <a href="${orderCompleteUrl}"
+                     style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:500;color:#FAFAF8;text-decoration:none;letter-spacing:0.03em;">
+                    주문 내역 보기
+                  </a>
+                </td>
+              </tr>
+            </table>`
+                : ''
+            }
+
             <hr style="border:none;border-top:1px solid #E8E6E1;margin:32px 0 20px;">
             <p style="margin:0;font-size:12px;color:#A8A49E;line-height:1.6;">
               본 메일은 발신 전용입니다. 문의는 홈페이지를 통해 연락해 주세요.
@@ -97,10 +118,12 @@ export function renderShippingNotificationEmail(props: ShippingNotificationEmail
       ? `\n─ 배송 추적 ─\n택배사: ${carrier}\n송장번호: ${trackingNumber}`
       : '';
 
+  const ctaText = orderCompleteUrl ? `\n\n주문 내역 보기: ${orderCompleteUrl}` : '';
+
   const text = `[굳띵즈] 상품이 출발했습니다 — ${safeOrderNumber}
 
 ${recipientName?.trim() || '고객'}님, 주문하신 원두가 출발했습니다.
-신선한 상태로 곧 도착할 예정입니다.${trackingText}
+신선한 상태로 곧 도착할 예정입니다.${trackingText}${ctaText}
 
 © ${new Date().getFullYear()} Good Things Roasters`;
 

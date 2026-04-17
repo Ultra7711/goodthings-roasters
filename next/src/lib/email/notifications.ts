@@ -25,6 +25,8 @@ import type { DbPaymentMethod } from '@/types/db';
 
 type OrderRow = {
   id: string;
+  /** Session 11 보안 #3-4a: 이메일 CTA 링크용 UUID v4. */
+  public_token: string;
   contact_email: string;
   shipping_name: string;
   subtotal: number;
@@ -41,6 +43,7 @@ type OrderItemRow = {
 };
 
 type ShippingOrderRow = {
+  public_token: string;
   contact_email: string;
   shipping_name: string;
 };
@@ -60,7 +63,7 @@ async function fetchOrderForEmail(
   const { data: order, error: orderErr } = await admin
     .from('orders')
     .select(
-      'id, contact_email, shipping_name, subtotal, shipping_fee, discount_amount, total_amount, payment_method',
+      'id, public_token, contact_email, shipping_name, subtotal, shipping_fee, discount_amount, total_amount, payment_method',
     )
     .eq('order_number', orderNumber)
     .single();
@@ -129,7 +132,7 @@ export async function sendWelcomeEmail(to: string, name?: string): Promise<void>
 export async function sendOrderConfirmationEmail(
   orderNumber: string,
   virtualAccount: VirtualAccountInfo,
-  opts?: { depositCompleted?: boolean },
+  opts?: { depositCompleted?: boolean; publicToken?: string },
 ): Promise<void> {
   try {
     const fetched = await fetchOrderForEmail(orderNumber);
@@ -137,6 +140,9 @@ export async function sendOrderConfirmationEmail(
 
     const { order, items } = fetched;
     const depositCompleted = opts?.depositCompleted === true;
+    /* Session 11 #3: 호출자(confirm/route.ts) 가 ConfirmResult.publicToken 을
+       직접 전달 가능. 없으면 DB 에서 읽은 값으로 폴백 (webhook 경로). */
+    const publicToken = opts?.publicToken ?? order.public_token;
     const { subject, html, text } = renderOrderConfirmationEmail({
       orderNumber,
       recipientName: order.shipping_name,
@@ -152,6 +158,7 @@ export async function sendOrderConfirmationEmail(
       })),
       virtualAccount,
       depositCompleted,
+      publicToken,
     });
 
     /* 최초 confirm 메일과 입금완료 메일이 서로 다른 idempotencyKey 를 갖도록 분리 */
@@ -187,13 +194,13 @@ export async function sendOrderConfirmationEmail(
  */
 export async function sendShippingNotificationEmail(
   orderNumber: string,
-  opts?: { trackingNumber?: string; carrier?: string },
+  opts?: { trackingNumber?: string; carrier?: string; publicToken?: string },
 ): Promise<void> {
   try {
     const admin = getSupabaseAdmin();
     const { data, error } = await admin
       .from('orders')
-      .select('contact_email, shipping_name')
+      .select('public_token, contact_email, shipping_name')
       .eq('order_number', orderNumber)
       .single();
 
@@ -212,6 +219,7 @@ export async function sendShippingNotificationEmail(
       recipientName: order.shipping_name,
       trackingNumber: opts?.trackingNumber,
       carrier: opts?.carrier,
+      publicToken: opts?.publicToken ?? order.public_token,
     });
 
     const result = await sendEmail({

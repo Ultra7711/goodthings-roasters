@@ -29,7 +29,7 @@
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
 | User AI | 0 | 0 | 1 | 0% |
 
-**현재 위치:** Backend P2-B Session 8 완료. **다음: Session 11 — P2-D Resend 이메일 템플릿 + 보안 #3-4b (production `?orderNumber=` 차단).**
+**현재 위치:** Backend P2-D Session 11 완료. **다음: Session 12+ — P2-F RLS/RBAC.**
 
 ---
 
@@ -79,8 +79,8 @@
 | Session 3~6 | P2-B B-1 ~ B-4 + 리뷰 Pass 1 | ✅ |
 | Session 7 | B-5 정산 RPC + Resend 인프라 + Pass 1 A안 | ✅ |
 | Session 8 | 결제 보안 하드닝 #1~#4 + 통합 테스트 A/C/B | ✅ |
-| **Session 11** | **P2-D Resend 이메일 템플릿 + 보안 #3-4b (prod `?orderNumber=` 차단)** | **⬜ (다음)** |
-| Session 12+ | P2-F RLS / RBAC | ⬜ |
+| Session 11 | P2-D Resend 이메일 템플릿 + 보안 #3-4b (prod `?orderNumber=` 차단) | ✅ |
+| **Session 12+** | **P2-F RLS / RBAC** | **⬜ (다음)** |
 | Session 13+ | P2-G 프로덕션 / P2-H 인프라 | ⬜ |
 | 차후 | P2-C 정기배송 엔진 | ⬜ (정책 확정 대기) |
 

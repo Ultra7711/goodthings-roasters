@@ -100,6 +100,7 @@ const VALID_INPUT = {
 
 const SUCCESS_RESULT = {
   orderNumber: 'GT-20260417-00001',
+  publicToken: '6ba7b810-9dad-41d1-80b4-00c04fd430c8',
   status: 'paid' as const,
   totalAmount: 12800,
   method: 'card' as const,
@@ -253,17 +254,19 @@ describe('POST /api/payments/confirm', () => {
     expect(body.data.orderNumber).toBe(SUCCESS_RESULT.orderNumber);
     expect(body.data.status).toBe('paid');
 
-    /* 이메일은 await 되지 않음 (fire-and-forget) 이나 동기 호출 자체는 즉시 */
+    /* 이메일은 await 되지 않음 (fire-and-forget) 이나 동기 호출 자체는 즉시
+       Session 11 #3-4a: publicToken 세번째 인자로 전달. */
     expect(sendOrderConfirmationEmailMock).toHaveBeenCalledWith(
       SUCCESS_RESULT.orderNumber,
       null,
+      { publicToken: SUCCESS_RESULT.publicToken },
     );
   });
 
   it('[9] 200 — 가상계좌 결제 시 virtualAccount 페이로드 포함 전달', async () => {
     const vaResult = {
       ...SUCCESS_RESULT,
-      method: 'virtual_account' as const,
+      method: 'transfer' as const,
       virtualAccount: {
         bank: '국민',
         accountNumber: '0000000000',
@@ -279,6 +282,7 @@ describe('POST /api/payments/confirm', () => {
     expect(sendOrderConfirmationEmailMock).toHaveBeenCalledWith(
       vaResult.orderNumber,
       vaResult.virtualAccount,
+      { publicToken: vaResult.publicToken },
     );
   });
 

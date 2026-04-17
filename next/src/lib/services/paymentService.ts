@@ -89,6 +89,12 @@ export type PaymentServiceErrorCode =
 
 export type ConfirmResult = {
   orderNumber: string;
+  /**
+   * Session 11 보안 #3-4a: 고객 대면 UUID v4.
+   * confirm API 응답 → 클라이언트가 `/order-complete?token=...` 으로 deep-link,
+   * 이메일 CTA 링크 생성 경로에도 그대로 전달.
+   */
+  publicToken: string;
   status: DbOrderStatus; // 정상 = 'paid', 멱등 = 기존 상태
   totalAmount: number;
   method: DbPaymentMethod;
@@ -137,6 +143,7 @@ function mapTossMethod(method: string | undefined): DbPaymentMethod | null {
  */
 function buildResultFromExisting(
   orderNumber: string,
+  publicToken: string,
   status: DbOrderStatus,
   totalAmount: number,
   payment: PaymentRow | null,
@@ -155,6 +162,7 @@ function buildResultFromExisting(
 
   return {
     orderNumber,
+    publicToken,
     status,
     totalAmount,
     method,
@@ -221,6 +229,7 @@ async function handleStateAndAmount(
     const existing = await findPaymentByOrderId(order.id);
     return buildResultFromExisting(
       order.order_number,
+      order.public_token,
       order.status,
       order.total_amount,
       existing,
@@ -267,6 +276,7 @@ async function callToss(
             kind: 'idempotent',
             value: buildResultFromExisting(
               recheck.order_number,
+              recheck.public_token,
               recheck.status,
               recheck.total_amount,
               existing,
@@ -408,6 +418,7 @@ export async function confirmOrder(
     const payment = await findPaymentByOrderId(order.id);
     return buildResultFromExisting(
       rpcResult.orderNumber,
+      order.public_token,
       rpcResult.status,
       order.total_amount,
       payment,
@@ -422,6 +433,7 @@ export async function confirmOrder(
         const existing = await findPaymentByOrderId(recheck.id);
         return buildResultFromExisting(
           recheck.order_number,
+          recheck.public_token,
           recheck.status,
           recheck.total_amount,
           existing,

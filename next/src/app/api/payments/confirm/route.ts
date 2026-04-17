@@ -69,8 +69,12 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const result = await confirmOrder(input, { userId });
 
-    /* 6) 주문 확인 메일 (fire-and-forget — 실패해도 결제 롤백 없음, docs §10) */
-    void sendOrderConfirmationEmail(result.orderNumber, result.virtualAccount);
+    /* 6) 주문 확인 메일 (fire-and-forget — 실패해도 결제 롤백 없음, docs §10)
+          Session 11 #3-4a: publicToken 전달 → 템플릿 CTA 링크에 enumeration-safe
+          `/order-complete?token={uuid}` 사용. */
+    void sendOrderConfirmationEmail(result.orderNumber, result.virtualAccount, {
+      publicToken: result.publicToken,
+    });
 
     return apiSuccess(result);
   } catch (err) {
