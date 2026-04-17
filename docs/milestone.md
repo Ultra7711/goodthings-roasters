@@ -23,8 +23,8 @@
 | Phase | 완료 | 진행 중 | 미착수 | 진행률 |
 |-------|------|---------|--------|--------|
 | Phase 1 — Design | 5 | 0 | 0 | 100% |
-| Phase 2 — Frontend | 1 | 2 | 0 | ~85% |
-| Phase 3 — Backend | 2 | 1 | 0 | ~60% |
+| Phase 2 — Frontend | 1 | 3 | 0 | ~80% |
+| Phase 3 — Backend | 2 | 1 | 0 | ~55% |
 | Phase 4 — Infrastructure | 0 | 1 | 0 | ~20% |
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
 | User AI | 0 | 0 | 1 | 0% |
@@ -42,6 +42,7 @@
 | 항목 | 상태 | 비고 |
 |------|------|------|
 | 2-F 콘텐츠 채우기 | ⬜ | GoodDays / Story / MyPage — 검색 엔진/SRP 는 완료 |
+| 2-F2 상태관리 단일화 (ADR-004) | ⬜ | Zustand 제거 · TanStack Query 도입 · Backend Session 15~17 과 연동 |
 | 2-G 반응형 + 프로덕션 | ⬜ | 4 브레이크포인트(360/768/1024/1440) + CSP·환경변수·빌드 최종화 |
 
 #### 7. Content & Asset
@@ -55,6 +56,7 @@
 
 | ID | 이슈 | 처리 시점 |
 |----|------|-----------|
+| A1 | ADR-004 Zustand 제거 이행 완료 확인 (`rg "from 'zustand'"` 0건) | Session 17 종료 시 |
 | H3 | 사업자 정보 소스코드 하드코딩 → 환경변수/DB 이관 | Phase 2-G |
 | M7 | CSP 등 보안 응답 헤더 최종 점검 → `next.config.ts headers()` | Phase 2-G |
 
@@ -82,8 +84,11 @@
 | Session 11 | P2-D Resend 이메일 템플릿 + 보안 #3-4b (prod `?orderNumber=` 차단) | ✅ |
 | Session 12 | P2-F DB 카트 인프라 — `cart_items` 테이블 + RLS 4종 + Repo/Service/API/테스트 | ✅ |
 | Session 13 | P2-F guest cart merge 트리거 + RBAC (`profiles.role` + `is_admin()` + `requireAdmin` + ADR-003) | ✅ |
-| **Session 14+** | **카트 UI DB 연동 + BUG-003 hydration 해결** | **⬜ (다음)** |
-| Session 15+ | P2-G 프로덕션 / P2-H 인프라 | ⬜ |
+| **Session 14** | **카트 UI DB 연동 + BUG-003 응급 (ADR-004 Step A — `useHasHydrated`)** | **⬜ (다음)** |
+| Session 15 | ADR-004 Step B — TanStack Query 도입 + `useCart*` 훅 + `useCartStore` 제거 | ⬜ |
+| Session 16 | ADR-004 Step C — `useSupabaseSession` + `useAuthStore`·`DEMO_CREDENTIALS` 제거 + BUG-004 근본 해결 | ⬜ |
+| Session 17 | ADR-004 Step D — zustand 의존성 제거 + localStorage 마이그레이션 + 번들 측정 | ⬜ |
+| Session 18+ | P2-G 프로덕션 / P2-H 인프라 | ⬜ |
 | 차후 | P2-C 정기배송 엔진 | ⬜ (정책 확정 대기) |
 
 > 세부 세션별 범위는 `memory/project_backend_p2_session_plan.md` 참조.
@@ -160,5 +165,7 @@
 | `docs/settlement-report.md` | Session 7 정산 RPC 스펙 |
 | `docs/adr/ADR-001-oauth-account-merge-policy.md` | OAuth 계정 병합 정책 |
 | `docs/adr/ADR-002-payment-webhook-verification.md` | 결제 웹훅 하이브리드 인증 |
+| `docs/adr/ADR-003-rbac-role-separation.md` | RBAC 역할 분리 정책 |
+| `docs/adr/ADR-004-state-management-simplification.md` | Zustand 제거 · TanStack Query 이행 로드맵 |
 | `docs/security-research-2026-04-16.md` | Session 6 폴리시 — 업계 표준 리서치 근거 |
 | `memory/project_backend_p2_session_plan.md` | 세션별 모델·에이전트 계획 |
