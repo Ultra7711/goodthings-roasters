@@ -3595,6 +3595,87 @@ footer.blk {
   height: 100%;
   border: 0;
 }
+/* Kakao Map CustomOverlay — 마커 클릭 시 말풍선 */
+.st-map-overlay {
+  position: relative;
+  background: #FAFAF8;
+  border: 1px solid #E8E6E1;
+  border-radius: 8px;
+  padding: 14px 16px 12px;
+  min-width: 200px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-family: inherit;
+}
+.st-map-overlay::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: #FAFAF8;
+  border-right: 1px solid #E8E6E1;
+  border-bottom: 1px solid #E8E6E1;
+}
+.st-map-overlay-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #6B6963;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.st-map-overlay-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1C1B19;
+}
+.st-map-overlay-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1C1B19;
+  margin-bottom: 10px;
+  padding-right: 22px;
+  letter-spacing: -0.01em;
+}
+.st-map-overlay-actions {
+  display: flex;
+  gap: 6px;
+}
+.st-map-overlay-btn {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #1C1B19;
+  background: #FFFFFF;
+  border: 1px solid #E8E6E1;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+.st-map-overlay-btn:hover {
+  background: #F4F2EC;
+  border-color: #A8A49E;
+}
+.st-map-overlay-btn--primary {
+  background: #1C1B19;
+  color: #FAFAF8;
+  border-color: #1C1B19;
+}
+.st-map-overlay-btn--primary:hover {
+  background: #3A3935;
+  border-color: #3A3935;
+}
 .st-location-info {
   display: flex;
   flex-direction: column;

@@ -31,6 +31,7 @@ import {
   STORY_TWO_COL,
   type StoryTwoColItem,
 } from '@/lib/story';
+import KakaoMap from './KakaoMap';
 
 /* 본문 \n\n → <br><br> 단락 분리 */
 function paragraphs(body: string) {
@@ -146,15 +147,13 @@ export default function StoryPage() {
       >
         <div className="st-location-inner">
           <div className="st-location-map" data-sr-story>
-            <iframe
-              src={STORY_LOCATION.mapSrc}
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="Good Things Roasters 위치"
+            <KakaoMap
+              lat={STORY_LOCATION.lat}
+              lng={STORY_LOCATION.lng}
+              level={STORY_LOCATION.zoomLevel}
+              title={`${STORY_LOCATION.name} 위치`}
+              placeName={STORY_LOCATION.kakaoPlaceName}
+              placeId={STORY_LOCATION.kakaoPlaceId}
             />
           </div>
           <div className="st-location-info" data-sr-story>
