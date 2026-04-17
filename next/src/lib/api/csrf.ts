@@ -36,10 +36,18 @@ const CSRF_EXEMPT_PATHS: ReadonlySet<string> = new Set<string>([
   '/api/payments/webhook',
 ]);
 
+/**
+ * CSRF Origin 검증을 건너뛸 경로 prefix.
+ * - `/api/admin/` : 어드민 API 키(x-admin-secret) 검증 경로 — 브라우저 호출이 아니므로
+ *   Origin 이 없거나 다른 호스트일 수 있음. 인증은 timing-safe 비교로 대체 (Session 8-B).
+ */
+const CSRF_EXEMPT_PREFIXES: readonly string[] = ['/api/admin/'];
+
 function isCsrfExemptPath(request: Request): boolean {
   try {
     const pathname = new URL(request.url).pathname;
-    return CSRF_EXEMPT_PATHS.has(pathname);
+    if (CSRF_EXEMPT_PATHS.has(pathname)) return true;
+    return CSRF_EXEMPT_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   } catch {
     return false;
   }

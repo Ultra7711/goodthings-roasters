@@ -33,6 +33,12 @@ export type OrderConfirmationEmailProps = {
     dueDate: string | null;
     customerName: string | null;
   } | null;
+  /**
+   * Session 8-B B-1: 가상계좌 입금 완료 알림 모드.
+   * true = `[굳띵즈] 입금이 확인되었습니다` 톤으로 전환 + 가상계좌 안내 블록 숨김.
+   * false/undefined = 기존 "주문이 확인되었습니다" 메일 (confirm 직후).
+   */
+  depositCompleted?: boolean;
 };
 
 function formatKRW(amount: number): string {
@@ -49,12 +55,24 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
   html: string;
   text: string;
 } {
-  const { orderNumber, recipientName, subtotal, shippingFee, discountAmount, totalAmount, method, items, virtualAccount } = props;
+  const { orderNumber, recipientName, subtotal, shippingFee, discountAmount, totalAmount, method, items, virtualAccount, depositCompleted } = props;
 
   /* CRLF 인젝션 방어 — subject 헤더 삽입 전 제거 */
   const safeOrderNumber = stripNewlines(orderNumber);
   const displayName = esc(recipientName?.trim() || '고객');
-  const subject = `[굳띵즈] 주문이 확인되었습니다 — ${safeOrderNumber}`;
+
+  /* Session 8-B B-1: 입금 완료 모드에서는 subject/headline/intro 를 전환하고
+     가상계좌 블록은 숨긴다 (이미 입금 완료 → 재안내 불필요). */
+  const headline = depositCompleted
+    ? '입금이 확인되었습니다'
+    : '주문이 확인되었습니다';
+  const subject = `[굳띵즈] ${headline} — ${safeOrderNumber}`;
+  const intro = depositCompleted
+    ? `${displayName}님, 입금이 정상적으로 확인되었습니다.<br>곧 배송 준비를 시작하겠습니다.`
+    : `${displayName}님, 주문해 주셔서 감사합니다.<br>신선하게 로스팅된 원두를 곧 보내드리겠습니다.`;
+  const introText = depositCompleted
+    ? `${recipientName?.trim() || '고객'}님, 입금이 정상적으로 확인되었습니다. 곧 배송 준비를 시작하겠습니다.`
+    : `${recipientName?.trim() || '고객'}님, 주문해 주셔서 감사합니다.`;
 
   const itemRows = items
     .map(
@@ -75,8 +93,9 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
             </tr>`
       : '';
 
+  /* 입금 완료 모드에서는 가상계좌 안내 블록을 숨김 */
   const virtualAccountBlock =
-    virtualAccount != null
+    virtualAccount != null && !depositCompleted
       ? `<div style="background-color:#F5F5F3;border:1px solid #E8E6E1;border-radius:6px;padding:20px;margin:24px 0 0;">
               <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#1C1B19;">가상계좌 안내</p>
               <table cellpadding="0" cellspacing="0" width="100%">
@@ -118,11 +137,10 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
         </tr>
         <tr>
           <td style="padding:48px 40px 40px;">
-            <h1 style="margin:0 0 6px;font-size:24px;font-weight:300;color:#1C1B19;">주문이 확인되었습니다</h1>
+            <h1 style="margin:0 0 6px;font-size:24px;font-weight:300;color:#1C1B19;">${esc(headline)}</h1>
             <p style="margin:0 0 28px;font-size:13px;color:#A8A49E;">주문번호: ${esc(safeOrderNumber)}</p>
             <p style="margin:0 0 32px;font-size:15px;color:#6B6963;line-height:1.7;">
-              ${displayName}님, 주문해 주셔서 감사합니다.<br>
-              신선하게 로스팅된 원두를 곧 보내드리겠습니다.
+              ${intro}
             </p>
 
             <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:24px;">
@@ -181,15 +199,15 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
     .join('\n');
 
   const vaText =
-    virtualAccount != null
+    virtualAccount != null && !depositCompleted
       ? `\n─ 가상계좌 안내 ─\n은행: ${virtualAccount.bank ?? '—'}\n계좌번호: ${virtualAccount.accountNumber}${virtualAccount.dueDate ? `\n입금 기한: ${virtualAccount.dueDate}` : ''}`
       : '';
 
   const discountText = discountAmount > 0 ? `\n할인: -${formatKRW(discountAmount)}` : '';
 
-  const text = `[굳띵즈] 주문이 확인되었습니다 — ${safeOrderNumber}
+  const text = `[굳띵즈] ${headline} — ${safeOrderNumber}
 
-${recipientName?.trim() || '고객'}님, 주문해 주셔서 감사합니다.
+${introText}
 
 ─ 주문 상품 ─
 ${itemsText}

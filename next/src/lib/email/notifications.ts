@@ -117,18 +117,26 @@ export async function sendWelcomeEmail(to: string, name?: string): Promise<void>
  * 결제 승인 완료 주문 확인 메일.
  * confirm/route.ts 성공 후 호출 (fire-and-forget).
  *
+ * Session 8-B B-1:
+ * - `depositCompleted=true` 면 가상계좌 입금 완료 알림 모드.
+ *   템플릿이 "[굳띵즈] 입금이 확인되었습니다" 로 전환되고 idempotencyKey 는
+ *   `order-paid:${orderNumber}` 로 분리되어 최초 confirm 메일과 중복되지 않는다.
+ *
  * @param orderNumber 주문번호
  * @param virtualAccount confirmOrder 결과의 virtualAccount (가상계좌 시 안내)
+ * @param opts.depositCompleted true = 입금 완료 알림(웹훅 경로), false/미지정 = confirm 직후
  */
 export async function sendOrderConfirmationEmail(
   orderNumber: string,
   virtualAccount: VirtualAccountInfo,
+  opts?: { depositCompleted?: boolean },
 ): Promise<void> {
   try {
     const fetched = await fetchOrderForEmail(orderNumber);
     if (!fetched) return;
 
     const { order, items } = fetched;
+    const depositCompleted = opts?.depositCompleted === true;
     const { subject, html, text } = renderOrderConfirmationEmail({
       orderNumber,
       recipientName: order.shipping_name,
@@ -143,18 +151,25 @@ export async function sendOrderConfirmationEmail(
         unitPrice: i.unit_price,
       })),
       virtualAccount,
+      depositCompleted,
     });
+
+    /* 최초 confirm 메일과 입금완료 메일이 서로 다른 idempotencyKey 를 갖도록 분리 */
+    const idempotencyKey = depositCompleted
+      ? `order-paid:${orderNumber}`
+      : `order-confirm:${orderNumber}`;
 
     const result = await sendEmail({
       to: order.contact_email,
       subject,
       html,
       text,
-      idempotencyKey: `order-confirm:${orderNumber}`,
+      idempotencyKey,
     });
     if (!result.ok) {
       console.error('[notifications] sendOrderConfirmationEmail FAIL', {
         code: result.error.code,
+        depositCompleted,
       });
     }
   } catch (err) {

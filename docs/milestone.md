@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-17 (Backend P2-B Session 8 E 시리즈 회원탈퇴 완료 — B안(선 해지 후 탈퇴 + 원클릭 동선) 업계 리서치 기반 채택. ① `015_account_delete.sql`: `orders.account_deleted_at` 컬럼 + `orders_user_or_guest` 3분기 CHECK 재작성(회원/게스트/익명화) + RPC `delete_account(p_user_id)` SECURITY DEFINER(활성 구독 차단·PII sentinel 치환·cancelled/expired 구독 DELETE 단일 트랜잭션), ② `rateLimit.ts` `account_delete` 프리셋(3req/15m) + `logger.ts` `account.delete.blocked/success/failed` 이벤트, ③ `POST /api/account/delete` 8단계 플로우(CSRF→RateLimit→getClaims→confirm '탈퇴'→RPC→admin.deleteUser→signOut→log), 409 `subscription_active` / 500 orphan 경로 방어, ④ `MyPagePage.tsx` `confirmWithdraw()` 실제 API 연동(409/429/일반 오류 토스트 분기), ⑤ `route.test.ts` 6 케이스(401/400/409/500/200/invalid_json). 219/219 그린 · tsc clean · build 성공.)
+> **최종 업데이트:** 2026-04-17 (Backend P2-B Session 8-B 웹훅 배송훅 연동 완료 — B-1 가상계좌 입금 확인 메일 + B-2 어드민 출고 전환 엔드포인트 통합 구현. ① `orderConfirmationEmail` 템플릿에 `depositCompleted` 분기 추가(헤드라인 "입금이 확인되었습니다"·VA 블록 숨김·idempotencyKey `order-paid:` 분리), ② `webhookService.ts` 가상계좌 `payment_approved` 이벤트 분기에서 입금 완료 메일 fire-and-forget 훅, ③ `016_shipping_dispatch.sql` — `orders.shipped_at` 컬럼 + RPC `dispatch_order(p_order_id, p_tracking, p_carrier)` SECURITY DEFINER(row-lock + paid→shipping 원자 전환·illegal_state/invalid_tracking/order_not_found 분기·service_role grant), ④ `csrf.ts` `CSRF_EXEMPT_PREFIXES=['/api/admin/']` 도입(브라우저 호출 없음·bearer 대체 인증), ⑤ `adminAuth.ts` `x-admin-secret` 헤더를 `ADMIN_API_SECRET` 과 `crypto.timingSafeEqual` 비교(미설정·빈 문자열·길이 불일치 fail-closed), ⑥ `POST /api/admin/orders/[orderNumber]/ship` 7단계 플로우(admin 인증→OrderNumberSchema→zod body→orders 조회→RPC→배송 알림 메일 훅→200), ⑦ `.env.example` `ADMIN_API_SECRET` 추가, ⑧ 테스트: `adminAuth.test.ts` 6 케이스 + `route.test.ts` 7 케이스(401/404 포맷/400 validation/404 조회/409 illegal_state/200 + 메일 훅/400 invalid_json). 232/232 그린 · tsc clean · build 성공.)
 
 ---
 
@@ -29,7 +29,7 @@
 | Phase 5 — Quality Assurance | 3 | 0 | 0 | 3 | 0% |
 | User AI | 1 | 0 | 0 | 1 | 0% |
 
-**현재 위치: Backend P2-B Session 8 D-4 Pass 1 완료 (트랜잭셔널 메일 전체 완료). 다음 옵션: A 회원탈퇴(E 시리즈) · B 웹훅 배송훅 연동 · C 리뷰 Deferred 처리 · D F-RLS/RBAC**
+**현재 위치: Backend P2-B Session 8-B 웹훅 배송훅 연동 완료 (B-1 입금 완료 메일 + B-2 어드민 출고 엔드포인트). 다음 옵션: A 리뷰 Deferred 처리 · B F-RLS/RBAC · C C 정기배송 · D 프로덕션/인프라**
 
 ---
 

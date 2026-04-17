@@ -46,6 +46,7 @@ import {
   applyWebhookEventRpc,
   findOrderWithPaymentByOrderNumber,
 } from '@/lib/repositories/paymentRepo';
+import { sendOrderConfirmationEmail } from '@/lib/email/notifications';
 import type {
   CardWebhookPayload,
   DepositWebhookPayload,
@@ -270,6 +271,19 @@ export async function handleVirtualAccountWebhook(
       rawPayload: maskTossPayload(payload),
       idempotencyKey,
     });
+
+    /* Session 8-B B-1: 가상계좌 입금 확정 시 입금 완료 알림 메일 (fire-and-forget).
+       - 조건: DONE 에 매핑된 `payment_approved` 이벤트만 발송 (취소/만료 제외).
+       - 중복 발송 방어: sendEmail idempotencyKey `order-paid:{orderNumber}` 로 분리.
+         Resend 측 키 유효기간 내 재시도는 no-op. */
+    if (eventType === 'payment_approved') {
+      void sendOrderConfirmationEmail(
+        payload.data.orderId,
+        null,
+        { depositCompleted: true },
+      );
+    }
+
     return OK;
   } catch (err) {
     if (isPgUniqueViolation(err)) return OK;
