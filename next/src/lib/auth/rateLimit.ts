@@ -38,7 +38,8 @@ export type RateLimitPreset =
   | 'payment_confirm'
   | 'payment_confirm_reject'
   | 'guest_pin'
-  | 'account_delete';
+  | 'account_delete'
+  | 'cart_write';
 
 const LIMITS: Record<RateLimitPreset, { requests: number; window: string }> = {
   auth_initiate: { requests: 10, window: '1 m' },
@@ -52,6 +53,8 @@ const LIMITS: Record<RateLimitPreset, { requests: number; window: string }> = {
   guest_pin: { requests: 5, window: '10 m' },
   /* 회원 탈퇴: 비가역 — 15 분 윈도우 3 회. 정기배송 해지 후 재시도 여유 확보 */
   account_delete: { requests: 3, window: '15 m' },
+  /* 카트 쓰기(POST/PATCH/DELETE/merge): 분당 60회. 사용자 UI 조작 수준 빈도 허용 + 봇 차단. */
+  cart_write: { requests: 60, window: '1 m' },
 };
 
 /* ── 모듈 수준 singleton (Next.js 워커 재사용) ── */
