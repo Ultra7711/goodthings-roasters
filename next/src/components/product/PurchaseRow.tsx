@@ -15,14 +15,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Product } from '@/lib/products';
 import { useAddCartItem } from '@/hooks/useCart';
+import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useToast } from '@/hooks/useToast';
-
-const SUB_CYCLES: { value: string; label: string }[] = [
-  { value: '1', label: '매주 배송' },
-  { value: '2', label: '2주마다 배송' },
-  { value: '3', label: '3주마다 배송' },
-  { value: '4', label: '4주마다 배송' },
-];
+import { SUB_CYCLES } from '@/hooks/useProductPurchase';
 
 type Props = {
   product: Product;
@@ -33,6 +28,7 @@ type Props = {
 export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
   const hasVolumes = product.volumes.length > 0;
   const addCart = useAddCartItem();
+  const { open: openDrawer } = useCartDrawer();
   const { show: showToast } = useToast();
 
   const [qty, setQty] = useState(1);
@@ -142,6 +138,7 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
       volume: vol?.label ?? null,
     });
     showToast('장바구니에 담았습니다.');
+    openDrawer();
   }
 
   const currentCycleLabel =

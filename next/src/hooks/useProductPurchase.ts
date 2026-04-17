@@ -12,12 +12,13 @@ import { useAddCartItem } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { formatPrice } from '@/lib/utils';
 
-/** 정기배송 주기 옵션 */
+/* 정기배송 주기 옵션 — DB enum `public.subscription_period` 와 동기화 필수.
+   ADR-005 (예정): 주기 옵션을 lookup 테이블로 이관해 어드민 편집 허용. */
 export const SUB_CYCLES = [
-  { value: '1', label: '매주 배송' },
   { value: '2', label: '2주마다 배송' },
-  { value: '3', label: '3주마다 배송' },
   { value: '4', label: '4주마다 배송' },
+  { value: '6', label: '6주마다 배송' },
+  { value: '8', label: '8주마다 배송' },
 ] as const;
 
 type OrderType = 'normal' | 'subscription';
@@ -29,7 +30,7 @@ export function useProductPurchase(product: Product) {
   const [volumeIdx, setVolumeIdx] = useState(0);
   const [qty, setQty] = useState(1);
   const [orderType, setOrderType] = useState<OrderType>('normal');
-  const [cycleValue, setCycleValue] = useState('2');
+  const [cycleValue, setCycleValue] = useState('2'); /* '2','4','6','8' 중 하나 — SUB_CYCLES 와 일치 */
 
   const selectedVolume = product.volumes[volumeIdx];
   const basePrice = selectedVolume?.price ?? 0;
@@ -69,7 +70,7 @@ export function useProductPurchase(product: Product) {
       color: product.color,
       image: product.images[0]?.src ?? null,
       type,
-      period: isSubscription ? `${cycleValue}주마다` : null,
+      period: isSubscription ? `${cycleValue}주` : null,
       category: product.category,
       volume: selectedVolume?.label ?? null,
     });

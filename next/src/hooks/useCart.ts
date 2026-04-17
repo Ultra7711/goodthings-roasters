@@ -71,7 +71,7 @@ function mapRowToCartItem(row: ServerCartRow): CartItem | null {
     slug: row.product_slug,
     name: product.name,
     price: product.price,
-    priceNum: row.unit_price_snapshot || parsePrice(product.price),
+    priceNum: row.unit_price_snapshot ?? parsePrice(product.price),
     qty: row.quantity,
     color: firstImage?.bg ?? product.color ?? '#ECEAE6',
     image: firstImage?.src ?? null,
