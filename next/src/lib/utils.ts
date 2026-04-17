@@ -19,3 +19,12 @@ export function extractKrName(name: string): string {
   );
   return m ? m[1].trim() : name;
 }
+
+/** Open redirect 방어: 내부 경로(/...)만 허용, 프로토콜·호스트·스킴 혼입 차단. */
+export function safeRedirectPath(path: string | null | undefined, fallback = '/'): string {
+  if (!path) return fallback;
+  if (!path.startsWith('/')) return fallback;
+  if (path.startsWith('//') || path.startsWith('/\\')) return fallback;
+  if (/^\/[a-z][a-z0-9+.-]*:/i.test(path)) return fallback;
+  return path;
+}

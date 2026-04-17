@@ -58,7 +58,15 @@ function mapSignUpError(message: string): string {
   return '회원가입에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 }
 
-export function useRegisterForm(): UseRegisterFormReturn {
+type UseRegisterFormOptions = {
+  /** 성공 시 이동할 경로 (open redirect 방어 검증 필요) */
+  redirectTo?: string;
+};
+
+export function useRegisterForm(
+  options: UseRegisterFormOptions = {},
+): UseRegisterFormReturn {
+  const { redirectTo = '/' } = options;
   const router = useRouter();
 
   const [name, setNameState] = useState('');
@@ -160,10 +168,10 @@ export function useRegisterForm(): UseRegisterFormReturn {
           setErrors({ submit: mapSignUpError(error.message) });
           return;
         }
-        /* 이메일 인증이 비활성화된 경우 session 즉시 발급 → /mypage
+        /* 이메일 인증이 비활성화된 경우 session 즉시 발급 → redirectTo
            활성화된 경우 session 은 null, 사용자에게 메일 확인 안내 */
         if (data.session) {
-          router.push('/mypage');
+          router.push(redirectTo);
         } else {
           setNotice('가입 확인 메일을 보냈습니다. 메일함을 확인해 주세요.');
         }
@@ -171,7 +179,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
         setIsLoading(false);
       }
     },
-    [router],
+    [router, redirectTo],
   );
 
   const handleSubmit = useCallback(

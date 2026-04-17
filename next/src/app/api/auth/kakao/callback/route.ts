@@ -247,8 +247,8 @@ export async function GET(request: Request) {
     ip,
     userAgent,
   });
-  // 세션 쿠키는 verifyOtp에서 이미 발급됨 — state 쿠키 소비 후 /mypage로 직접 리다이렉트
-  const res = NextResponse.redirect(`${origin}/mypage`);
+  // 세션 쿠키는 verifyOtp에서 이미 발급됨 — state 쿠키 소비 후 홈으로 직접 리다이렉트
+  const res = NextResponse.redirect(`${origin}/`);
   res.cookies.delete(CSRF_COOKIE);
   return res;
 }
