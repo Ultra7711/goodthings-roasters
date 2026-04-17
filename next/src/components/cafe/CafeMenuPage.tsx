@@ -63,7 +63,10 @@ export default function CafeMenuPage() {
   // ───────────────────────────────────────────
   const [prevUrlFilter, setPrevUrlFilter] = useState(urlFilter);
   const searchKey = searchParams.toString();
-  const [prevSearchKey, setPrevSearchKey] = useState(searchKey);
+  /* null 초기값 — 초기 렌더에서도 `?item=` 복구 로직을 한 번 타도록 한다.
+     `useState(searchKey)` 로 초기화하면 검색 결과에서 `/menu?item=<id>` 로
+     진입하는 "첫 번째 렌더" 에서 condition 이 이미 동일해 highlight 가 누락됨. */
+  const [prevSearchKey, setPrevSearchKey] = useState<string | null>(null);
 
   if (prevUrlFilter !== urlFilter) {
     setPrevUrlFilter(urlFilter);
