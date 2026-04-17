@@ -64,6 +64,8 @@ export type CreateOrderRpcResult = {
   id: string;
   orderNumber: string;
   totalAmount: number;
+  /** 서버 기준 주문 생성 시각 (ISO-8601). 017 마이그레이션에서 RPC 반환값에 추가. */
+  createdAt: string;
 };
 
 /* ── 주문 DTO (조회용) ────────────────────────────────────────────────── */
@@ -149,7 +151,12 @@ export async function createOrder(
       p_terms_version: params.termsVersion,
       p_items: params.items,
     })
-    .single<{ id: string; order_number: string; total_amount: number }>();
+    .single<{
+      id: string;
+      order_number: string;
+      total_amount: number;
+      created_at: string;
+    }>();
 
   if (error) throw error;
   if (!data) throw new Error('create_order_rpc_empty_result');
@@ -158,6 +165,7 @@ export async function createOrder(
     id: data.id,
     orderNumber: data.order_number,
     totalAmount: data.total_amount,
+    createdAt: data.created_at,
   };
 }
 
@@ -202,7 +210,15 @@ export async function findOrderForUser(
 
 /**
  * 게스트 주문 조회. service_role 로 PIN 검증 전 레코드 로드.
- * - 반환 시점에는 PIN 해시를 함께 전달 (호출자가 argon2 verify 후 결정).
+ *
+ * 흐름:
+ * 1) (orderNumber, guest_email, user_id is null) 3중 조건으로 맞는 행 선택
+ * 2) 반환값에 `guest_lookup_pin_hash` 포함 → 호출자(orderService)가 argon2 verify
+ * 3) 검증 실패 / 주문 미존재 모두 호출자에서 동일한 404 로 매핑 (enumeration 방어)
+ *
+ * 주의:
+ * - service_role 을 사용하므로 RLS 우회. PIN 해시 검증 책임은 반드시 호출자가 진다.
+ * - email 비교는 DB level exact match — 정규화(소문자)는 insert 시점에서 보장.
  */
 export async function findGuestOrderWithHash(
   orderNumber: string,

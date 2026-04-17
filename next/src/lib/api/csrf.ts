@@ -100,16 +100,10 @@ function extractOrigin(request: Request): string | null {
   const origin = request.headers.get('origin');
   if (origin) return normalizeOrigin(origin);
 
-  /* Origin 이 비어있는 경우 Referer 로 fallback (iOS WebView 등) */
+  /* Origin 이 비어있는 경우 Referer 로 fallback (iOS WebView 등).
+     M-13: normalizeOrigin 재사용 (DRY — 동일 URL→origin 변환 로직 중복 제거). */
   const referer = request.headers.get('referer');
-  if (referer) {
-    try {
-      const u = new URL(referer);
-      return `${u.protocol}//${u.host}`;
-    } catch {
-      return null;
-    }
-  }
+  if (referer) return normalizeOrigin(referer);
 
   return null;
 }

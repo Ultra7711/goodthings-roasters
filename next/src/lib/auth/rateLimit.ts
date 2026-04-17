@@ -96,6 +96,8 @@ export function buildRateLimitResponse(
   remaining: number,
   reset: number,
 ): NextResponse {
+  /* 동일 값(retryAfter) 을 JSON 바디와 Retry-After 헤더에 재사용하여 body/header
+     정합성을 담보 (M-9). Math.max(0, ...) 로 시계 드리프트·지연 도착 시 음수 방어. */
   const retryAfter = Math.max(0, Math.ceil((reset - Date.now()) / 1000));
   /* Pass 1 H1: errors.ts 표준 코드 'rate_limited' 로 통일.
      OrderApiError.code 경로에서 CheckoutPage switch 가 동일 리터럴을 기대함. */

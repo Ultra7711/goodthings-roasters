@@ -1,15 +1,16 @@
 /* ══════════════════════════════════════════
    useOrderNumberFormat
    주문번호 입력 시 GT- 프리픽스 + 자동 하이픈
-   포맷: GT-XXXXXXXX-XXXXX (날짜 8자리 - 시퀀스 5자리)
+   포맷: GT-XXXXXXXX-XXXXX[X] (날짜 8자리 - 시퀀스 5~6자리)
+   011_orders_hardening.sql 에서 일일 시퀀스 modulo 확장으로 6자리 허용.
    ══════════════════════════════════════════ */
 
 import { useCallback, type ChangeEvent, type ClipboardEvent, type FocusEvent } from 'react';
 
 const PREFIX = 'GT-';
 const DATE_LEN = 8;
-const SEQ_LEN = 5;
-const MAX_DIGITS = DATE_LEN + SEQ_LEN; // 13
+const SEQ_LEN = 6;
+const MAX_DIGITS = DATE_LEN + SEQ_LEN; // 14 — 5자리 주문번호는 그대로 표시 가능
 
 /** 숫자만 추출 후 GT-XXXXXXXX-XXXXX 형식으로 포맷 */
 function formatOrderNumber(raw: string): string {

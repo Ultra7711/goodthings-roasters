@@ -20,6 +20,7 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
+import { useIsMounted } from '@/hooks/useIsMounted';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
 import { openPostcode } from '@/lib/daumPostcode';
 import { useInputNav } from '@/hooks/useInputNav';
@@ -223,16 +224,10 @@ export default function CheckoutPage() {
   /* ── 제출 상태 (중복 클릭 방지) ── */
   const [submitting, setSubmitting] = useState(false);
 
-  /* ── 언마운트 감시 (Pass 1 CODE/H-1)
+  /* ── 언마운트 감시 (Pass 1 CODE/H-1, M-11 공용 훅 추출)
      B-2 이후: step 전환은 이 컴포넌트가 살아 있으므로 언마운트 위험은 낮지만,
      비동기 완료 전 사용자가 뒤로가기로 이탈하는 케이스 대비 유지. */
-  const isMountedRef = useRef(true);
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+  const isMountedRef = useIsMounted();
 
   /* ── 제출 ──
      Pass 1 CODE/H-1: try/finally + isMounted + navigated flag 로
@@ -267,6 +262,8 @@ export default function CheckoutPage() {
          sessionStorage 는 탭 종료 시 자동 폐기되어 브라우저에 장기 체류하지 않음. */
       type StoredOrderSummary = {
         number: string;
+        /** 서버 기준 주문 생성 시각 (ISO-8601). M-3 — timezone 일관성. */
+        createdAt: string;
         /** 게스트 주문만 세팅. 로그인 사용자는 undefined. */
         guestEmail?: string;
         items: Array<{
@@ -278,6 +275,7 @@ export default function CheckoutPage() {
       };
       const summary: StoredOrderSummary = {
         number: result.orderNumber,
+        createdAt: result.createdAt,
         guestEmail: isLoggedIn ? undefined : form.email.trim().toLowerCase(),
         items: items.map((i) => ({
           name: i.name,

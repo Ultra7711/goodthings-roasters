@@ -9,18 +9,19 @@
 
    참조:
    - docs/payments-flow.md §3.1 · §3.2.1
-   - supabase/migrations/003_orders.sql (order_number 포맷 `GT-YYYYMMDD-NNNNN`)
+   - supabase/migrations/003_orders.sql (원본 `GT-YYYYMMDD-NNNNN`)
+   - supabase/migrations/011_orders_hardening.sql (DB/H-1 — 시퀀스 `{5,6}` 허용)
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { z } from 'zod';
 
 /**
- * `orders.order_number` — `GT-YYYYMMDD-NNNNN`.
- * 008 enum 과 003 테이블의 포맷과 일치.
+ * `orders.order_number` — `GT-YYYYMMDD-NNNNN[N]`.
+ * 003 테이블 원본(5자리) + 011 하드닝(modulo 확장으로 6자리 허용) 동기화.
  */
 export const OrderNumberSchema = z
   .string()
-  .regex(/^GT-\d{8}-\d{5}$/, { message: 'invalid_order_number' });
+  .regex(/^GT-\d{8}-\d{5,6}$/, { message: 'invalid_order_number' });
 
 /**
  * Toss paymentKey.

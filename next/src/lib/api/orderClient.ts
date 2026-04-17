@@ -8,7 +8,7 @@
 
    흐름:
    1) buildOrderPayload(form, cart, isLoggedIn) → OrderCreateInput
-   2) createOrder(payload) → { id, orderNumber, totalAmount }
+   2) createOrder(payload) → { id, orderNumber, totalAmount, createdAt }
    3) 실패 시 서버의 error code 를 OrderApiError.code 로 승격
 
    참조:
@@ -27,18 +27,67 @@ export type CreateOrderResponse = {
   id: string;
   orderNumber: string;
   totalAmount: number;
+  /** 서버 기준 주문 생성 시각 (ISO-8601). create_order RPC 반환값 (017 마이그레이션). */
+  createdAt: string;
 };
+
+/**
+ * OrderApiError 코드 유니온 (M-10 — Pass 1 deferred).
+ *
+ * 두 출처의 유한 집합:
+ *   1) 서버 errors.ts `ApiErrorCode` — 'validation_failed' | 'unauthorized' |
+ *      'forbidden' | 'not_found' | 'rate_limited' | 'payment_failed' |
+ *      'conflict' | 'server_error'
+ *   2) 클라이언트 전용 — 'network_error' (fetch 실패) /
+ *      'invalid_response' (응답 스키마 위반) / 'agreement_required' (buildPayload invariant)
+ *
+ * `unknown_error` 는 서버가 새 코드를 도입했는데 클라 번들이 구버전인 과도기 fallback.
+ * switch 는 default 에서 `never` 체크로 exhaustive 보장한다.
+ */
+export type OrderApiErrorCode =
+  | 'validation_failed'
+  | 'unauthorized'
+  | 'forbidden'
+  | 'not_found'
+  | 'rate_limited'
+  | 'payment_failed'
+  | 'conflict'
+  | 'server_error'
+  | 'network_error'
+  | 'invalid_response'
+  | 'agreement_required'
+  | 'unknown_error';
+
+/** 서버 응답 body.error 문자열을 {@link OrderApiErrorCode} 로 좁힌다. 모르는 코드는 `unknown_error` 로 fallback. */
+function narrowErrorCode(raw: string | undefined): OrderApiErrorCode {
+  switch (raw) {
+    case 'validation_failed':
+    case 'unauthorized':
+    case 'forbidden':
+    case 'not_found':
+    case 'rate_limited':
+    case 'payment_failed':
+    case 'conflict':
+    case 'server_error':
+    case 'network_error':
+    case 'invalid_response':
+    case 'agreement_required':
+      return raw;
+    default:
+      return 'unknown_error';
+  }
+}
 
 /** 서버 에러 응답을 감싸 UI 로 전달하는 커스텀 에러 */
 export class OrderApiError extends Error {
-  readonly code: string;
+  readonly code: OrderApiErrorCode;
   readonly status: number;
   readonly detail?: string;
   readonly fields?: Record<string, string[] | undefined>;
   readonly retryAfter?: number;
 
   constructor(opts: {
-    code: string;
+    code: OrderApiErrorCode;
     status: number;
     detail?: string;
     fields?: Record<string, string[] | undefined>;
@@ -193,7 +242,7 @@ export async function createOrder(
       /* 비-JSON 응답 */
     }
     throw new OrderApiError({
-      code: body.error ?? 'server_error',
+      code: narrowErrorCode(body.error),
       status: res.status,
       detail: body.detail,
       fields: body.fields,

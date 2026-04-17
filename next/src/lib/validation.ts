@@ -13,8 +13,8 @@ export const PHONE_RE = /^(02-\d{3,4}-\d{4}|0[1-9]\d-\d{3,4}-\d{4})$/;
 /** 우편번호 (5자리 숫자) */
 export const ZIPCODE_RE = /^\d{5}$/;
 
-/** 주문번호 (GT-YYYYMMDD-NNNNN) */
-export const ORDER_NUMBER_RE = /^GT-\d{8}-\d{5}$/;
+/** 주문번호 (GT-YYYYMMDD-NNNNN[N]) — 011 하드닝으로 5~6자리 시퀀스 허용 */
+export const ORDER_NUMBER_RE = /^GT-\d{8}-\d{5,6}$/;
 
 /** 비밀번호 최소 길이 (회원가입 · 비회원 주문용) */
 export const PASSWORD_MIN_LENGTH = 6;

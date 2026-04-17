@@ -139,11 +139,19 @@ export type OrderCreateInput = z.infer<typeof OrderCreateSchema>;
 
 /* ── 게스트 주문 조회 입력 (A-4) ──────────────────────────────────────── */
 
-/** GT-YYYYMMDD-NNNNN 포맷 (003_orders.sql orders_number_format 과 동일) */
+/** GT-YYYYMMDD-NNNNN[N] 포맷 (011_orders_hardening.sql orders_number_format `{5,6}`).
+    일일 시퀀스가 100,000 건을 초과하면 6자리 확장 (modulo 1,000,000). */
 export const OrderNumberSchema = z
   .string()
-  .regex(/^GT-\d{8}-\d{5}$/, { message: 'invalid_order_number' });
+  .regex(/^GT-\d{8}-\d{5,6}$/, { message: 'invalid_order_number' });
 
+/**
+ * 게스트 주문 조회 입력 (POST /api/orders/guest-lookup).
+ *
+ * - `orderNumber` + `email` 로 주문 특정 → `pin` argon2 verify 로 권한 확인.
+ * - PIN 불일치/주문 미존재 모두 동일 응답(404 + 타이밍 상수)으로 enumeration 방어.
+ * - Rate limiting (`guest_pin`, 5 req / 10 min) 과 조합하여 브루트포스 차단.
+ */
 export const GuestLookupSchema = z.object({
   orderNumber: OrderNumberSchema,
   email: EmailSchema,
