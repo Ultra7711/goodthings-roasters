@@ -4,7 +4,7 @@
    단일 소스:
    - 로그인: `/api/cart` (서버 DB + RLS)
    - 게스트: `localStorage['gtr-guest-cart']` (guestCart.ts)
-   분기: queryFn / mutationFn 에서 `useAuthStore.getState().isLoggedIn` 확인.
+   분기: queryFn / mutationFn 에서 `getSessionSnapshot().isLoggedIn` 확인.
    전환: AuthSyncProvider 가 auth 이벤트 시 `queryClient.invalidateQueries(['cart'])`.
 
    낙관적 업데이트:
@@ -23,7 +23,7 @@ import type { SubscriptionPeriod } from '@/lib/schemas/order';
 import { SUBSCRIPTION_PERIODS } from '@/lib/schemas/order';
 import { PRODUCTS } from '@/lib/products';
 import { parsePrice } from '@/lib/utils';
-import { useAuthStore } from '@/lib/store';
+import { getSessionSnapshot } from '@/hooks/useSupabaseSession';
 import {
   readGuestCart,
   writeGuestCart,
@@ -136,7 +136,7 @@ function findDuplicateIdx(
    ══════════════════════════════════════════ */
 
 async function fetchCart(): Promise<CartItem[]> {
-  const isLoggedIn = useAuthStore.getState().isLoggedIn;
+  const isLoggedIn = getSessionSnapshot().isLoggedIn;
   if (!isLoggedIn) {
     return readGuestCart();
   }
@@ -191,7 +191,7 @@ export function useAddCartItem() {
 
   return useMutation<void, Error, AddToCartPayload, MutationCtx>({
     mutationFn: async (payload) => {
-      const isLoggedIn = useAuthStore.getState().isLoggedIn;
+      const isLoggedIn = getSessionSnapshot().isLoggedIn;
       if (!isLoggedIn) return; /* 게스트: onMutate 에서 localStorage 반영 완료 */
       const input = payloadToInput(payload);
       if (!input) throw new Error('invalid_payload');
@@ -206,7 +206,7 @@ export function useAddCartItem() {
     onMutate: async (payload) => {
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
       const previous = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY);
-      const wasLoggedIn = useAuthStore.getState().isLoggedIn;
+      const wasLoggedIn = getSessionSnapshot().isLoggedIn;
       const current = previous ?? [];
       const idx = findDuplicateIdx(current, payload);
       let next: CartItem[];
@@ -248,7 +248,7 @@ export function useUpdateCartQty() {
     MutationCtx & { nextQty: number }
   >({
     mutationFn: async ({ id, delta: _delta }) => {
-      const isLoggedIn = useAuthStore.getState().isLoggedIn;
+      const isLoggedIn = getSessionSnapshot().isLoggedIn;
       if (!isLoggedIn) return;
       /* onMutate 에서 이미 nextQty 계산됨 — 캐시에서 다시 읽는다 */
       const current = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY) ?? [];
@@ -265,7 +265,7 @@ export function useUpdateCartQty() {
     onMutate: async ({ id, delta }) => {
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
       const previous = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY);
-      const wasLoggedIn = useAuthStore.getState().isLoggedIn;
+      const wasLoggedIn = getSessionSnapshot().isLoggedIn;
       const current = previous ?? [];
       let nextQty = 0;
       const next = current.map((item) => {
@@ -297,7 +297,7 @@ export function useRemoveCartItem() {
 
   return useMutation<void, Error, string, MutationCtx>({
     mutationFn: async (id) => {
-      const isLoggedIn = useAuthStore.getState().isLoggedIn;
+      const isLoggedIn = getSessionSnapshot().isLoggedIn;
       if (!isLoggedIn) return;
       const res = await fetch(`/api/cart/${id}`, {
         method: 'DELETE',
@@ -308,7 +308,7 @@ export function useRemoveCartItem() {
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
       const previous = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY);
-      const wasLoggedIn = useAuthStore.getState().isLoggedIn;
+      const wasLoggedIn = getSessionSnapshot().isLoggedIn;
       const next = (previous ?? []).filter((i) => i.id !== id);
       queryClient.setQueryData<CartItem[]>(CART_QUERY_KEY, next);
       if (!wasLoggedIn) writeGuestCart(next);
@@ -336,6 +336,6 @@ export function useClearCart() {
   const queryClient = useQueryClient();
   return () => {
     queryClient.setQueryData<CartItem[]>(CART_QUERY_KEY, []);
-    if (!useAuthStore.getState().isLoggedIn) clearGuestCart();
+    if (!getSessionSnapshot().isLoggedIn) clearGuestCart();
   };
 }

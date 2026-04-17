@@ -24,7 +24,7 @@ import { useIsMounted } from '@/hooks/useIsMounted';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
 import { openPostcode } from '@/lib/daumPostcode';
 import { useInputNav } from '@/hooks/useInputNav';
-import { useAuthStore } from '@/lib/store';
+import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { useCartQuery } from '@/hooks/useCart';
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
@@ -107,7 +107,7 @@ function CheckboxIcon({ checked }: { checked: boolean }) {
 export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const { show: toast } = useToast();
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const { isLoggedIn } = useSupabaseSession();
 
   /* ── 장바구니 (ADR-004 Step B: TanStack Query) ──
      isLoading: 최초 로드 중 — 스켈레톤 UI. BUG-003 근본 해결. */

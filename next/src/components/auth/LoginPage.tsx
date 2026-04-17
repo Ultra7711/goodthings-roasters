@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { useLoginForm } from '@/hooks/useLoginForm';
 import { useRegisterForm } from '@/hooks/useRegisterForm';
 import { useInputNav } from '@/hooks/useInputNav';
-import { useAuthStore } from '@/lib/store';
+import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { isValidEmail, isValidOrderNumber } from '@/lib/validation';
 import { useOrderNumberFormat } from '@/hooks/useOrderNumberFormat';
 import { shakeFields } from '@/lib/shakeFields';
@@ -179,7 +179,7 @@ export default function LoginPage() {
   }, [guestErrors]);
 
   /* ── 이미 로그인 상태이면 리다이렉트 ── */
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const { isLoggedIn } = useSupabaseSession();
   useEffect(() => {
     if (isLoggedIn) {
       router.replace(fromCheckout ? '/checkout' : '/mypage');

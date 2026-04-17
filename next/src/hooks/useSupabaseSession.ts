@@ -58,6 +58,20 @@ function getServerSnapshot(): SessionSnapshot {
 }
 
 /**
+ * 훅 밖(mutation fn 등)에서 현재 session 스냅샷을 읽어야 할 때.
+ * React 렌더 사이클과 무관하게 최신 값을 반환.
+ */
+export function getSessionSnapshot() {
+  ensureSubscribed();
+  return {
+    session: currentSnapshot.session,
+    user: currentSnapshot.session?.user ?? null,
+    isLoggedIn: !!currentSnapshot.session,
+    isLoading: currentSnapshot.isLoading,
+  };
+}
+
+/**
  * Supabase session 구독 훅.
  * - `isLoggedIn`: `session` 유무
  * - `user`: session.user (없으면 null)
