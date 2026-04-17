@@ -28,6 +28,31 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 /**
+ * Session 8 보안 #2 (docs/payments-security-hardening.md §3): 결제 트랜잭션 경로 전용
+ * Referrer-Policy 오버라이드 목록. `same-origin` 으로 축소해 3rd-party 스크립트
+ * (GTM / GA4 / 광고 픽셀) 에 `order_number` 가 Referer 헤더로 누출되는 것을 차단.
+ *
+ * 전역 기본값 (next.config.ts): `strict-origin-when-cross-origin`.
+ * 이 경로들에서만 `same-origin` 으로 축소 — 내부 탐색 분석은 유지.
+ */
+const PAYMENT_SENSITIVE_PATH_PREFIXES = [
+  '/checkout',
+  '/order-complete',
+  '/orders/lookup',
+  '/api/payments/',
+  '/api/orders/guest-lookup',
+] as const;
+
+export function shouldOverrideReferrerPolicy(pathname: string): boolean {
+  return PAYMENT_SENSITIVE_PATH_PREFIXES.some((prefix) => {
+    /* prefix 자체가 `/`로 끝나면(예: '/api/payments/') 하위 경로만 허용 */
+    if (prefix.endsWith('/')) return pathname.startsWith(prefix);
+    /* 그 외: 정확 매치 혹은 경로 경계(`/`) subpath */
+    return pathname === prefix || pathname.startsWith(`${prefix}/`);
+  });
+}
+
+/**
  * CSP 구성 — 허용 오리진은 단일 출처에서 관리.
  * 서드파티 추가/삭제 시 이 함수만 수정하면 proxy 전체가 일관성 유지.
  */
@@ -116,6 +141,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
      정적 보안 헤더 (HSTS·COOP·CORP 등) 는 next.config.ts headers() 가 담당.
      CSP 만 per-request 라 여기서 동적 주입. */
   supabaseResponse.headers.set('Content-Security-Policy', csp);
+
+  /* ── 5. 결제 경로 Referrer-Policy 축소 (Session 8 보안 #2) ─────────────
+     3rd-party 분석/광고 태그에 order_number 누출 방어. 전역은
+     strict-origin-when-cross-origin 유지, 민감 경로만 same-origin 으로 축소. */
+  if (shouldOverrideReferrerPolicy(request.nextUrl.pathname)) {
+    supabaseResponse.headers.set('Referrer-Policy', 'same-origin');
+  }
 
   return supabaseResponse;
 }
