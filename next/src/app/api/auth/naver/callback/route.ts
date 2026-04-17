@@ -171,13 +171,13 @@ export async function GET(request: Request) {
 
   if (decision.action === 'allow_new') {
     // 신규 계정 생성. race/duplicate 에러는 무시 — 후속 generateLink가 이메일로 동작.
-    await supabaseAdmin.auth.admin.createUser({
+    const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email,
       email_confirm: true,
       user_metadata: { ...baseMetadata, providers: ['naver'] },
     });
-    /* 신규 가입 환영 메일 (fire-and-forget — 발송 실패해도 로그인 중단 없음) */
-    if (!isSyntheticEmail) {
+    /* 신규 가입 환영 메일 — createUser 성공 + 실주소 확인 후만 발송 (fire-and-forget) */
+    if (!createErr && !isSyntheticEmail) {
       void sendWelcomeEmail(email, baseMetadata.full_name || undefined);
     }
   } else if (decision.action === 'allow_merge') {

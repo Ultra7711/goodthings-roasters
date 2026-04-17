@@ -7,6 +7,11 @@
    - 호출처에서 await 없이 void 로 호출해도 된다.
 
    DB 접근: getSupabaseAdmin() (service_role, RLS 우회)
+
+   D-4 Pass 1 수정:
+   - HIGH-2(code): welcome idempotencyKey 이메일 특수문자 정규화 (@ + 등 → _)
+   - MEDIUM-1(code): sendShippingNotificationEmail as string 캐스트 제거
+   - LOW-2(security): Supabase 에러 message 원문 → code 만 로깅
    ════════════════════════════════════════════════════════════════════════ */
 
 import { sendEmail } from './sendEmail';
@@ -35,6 +40,11 @@ type OrderItemRow = {
   unit_price: number;
 };
 
+type ShippingOrderRow = {
+  contact_email: string;
+  shipping_name: string;
+};
+
 type VirtualAccountInfo = {
   bank: string | null;
   accountNumber: string;
@@ -56,10 +66,9 @@ async function fetchOrderForEmail(
     .single();
 
   if (orderErr || !order) {
-    console.error(
-      `[notifications] fetchOrderForEmail: order not found order_number=${orderNumber}`,
-      orderErr?.message,
-    );
+    console.error('[notifications] fetchOrderForEmail: order not found', {
+      code: orderErr?.code,
+    });
     return null;
   }
 
@@ -69,10 +78,9 @@ async function fetchOrderForEmail(
     .eq('order_id', (order as OrderRow).id);
 
   if (itemsErr || !items) {
-    console.error(
-      `[notifications] fetchOrderForEmail: items not found order_number=${orderNumber}`,
-      itemsErr?.message,
-    );
+    console.error('[notifications] fetchOrderForEmail: items not found', {
+      code: itemsErr?.code,
+    });
     return null;
   }
 
@@ -88,17 +96,17 @@ async function fetchOrderForEmail(
 export async function sendWelcomeEmail(to: string, name?: string): Promise<void> {
   try {
     const { subject, html, text } = renderWelcomeEmail({ name });
+    /* HIGH-2: 이메일 주소의 @, + 등 IDEMPOTENCY_KEY_PATTERN 미허용 문자를 _ 로 치환 */
+    const safeKey = to.toLowerCase().replace(/[^a-z0-9._\-]/g, '_').slice(0, 120);
     const result = await sendEmail({
       to,
       subject,
       html,
       text,
-      idempotencyKey: `welcome:${to.slice(0, 120)}`,
+      idempotencyKey: `welcome:${safeKey}`,
     });
     if (!result.ok) {
-      console.error(
-        `[notifications] sendWelcomeEmail FAIL code=${result.error.code}`,
-      );
+      console.error('[notifications] sendWelcomeEmail FAIL', { code: result.error.code });
     }
   } catch (err) {
     console.error('[notifications] sendWelcomeEmail unexpected error', err);
@@ -145,15 +153,12 @@ export async function sendOrderConfirmationEmail(
       idempotencyKey: `order-confirm:${orderNumber}`,
     });
     if (!result.ok) {
-      console.error(
-        `[notifications] sendOrderConfirmationEmail FAIL code=${result.error.code} order=${orderNumber}`,
-      );
+      console.error('[notifications] sendOrderConfirmationEmail FAIL', {
+        code: result.error.code,
+      });
     }
   } catch (err) {
-    console.error(
-      `[notifications] sendOrderConfirmationEmail unexpected error order=${orderNumber}`,
-      err,
-    );
+    console.error('[notifications] sendOrderConfirmationEmail unexpected error', err);
   }
 }
 
@@ -171,43 +176,42 @@ export async function sendShippingNotificationEmail(
 ): Promise<void> {
   try {
     const admin = getSupabaseAdmin();
-    const { data: order, error } = await admin
+    const { data, error } = await admin
       .from('orders')
       .select('contact_email, shipping_name')
       .eq('order_number', orderNumber)
       .single();
 
-    if (error || !order) {
-      console.error(
-        `[notifications] sendShippingNotificationEmail: order not found order_number=${orderNumber}`,
-        error?.message,
-      );
+    if (error || !data) {
+      console.error('[notifications] sendShippingNotificationEmail: order not found', {
+        code: error?.code,
+      });
       return;
     }
 
+    /* MEDIUM-1: as string 캐스트 제거 — 명시적 타입으로 안전하게 처리 */
+    const order = data as ShippingOrderRow;
+
     const { subject, html, text } = renderShippingNotificationEmail({
       orderNumber,
-      recipientName: order.shipping_name as string,
+      recipientName: order.shipping_name,
       trackingNumber: opts?.trackingNumber,
       carrier: opts?.carrier,
     });
 
     const result = await sendEmail({
-      to: order.contact_email as string,
+      to: order.contact_email,
       subject,
       html,
       text,
       idempotencyKey: `shipping:${orderNumber}`,
     });
     if (!result.ok) {
-      console.error(
-        `[notifications] sendShippingNotificationEmail FAIL code=${result.error.code} order=${orderNumber}`,
-      );
+      console.error('[notifications] sendShippingNotificationEmail FAIL', {
+        code: result.error.code,
+      });
     }
   } catch (err) {
-    console.error(
-      `[notifications] sendShippingNotificationEmail unexpected error order=${orderNumber}`,
-      err,
-    );
+    console.error('[notifications] sendShippingNotificationEmail unexpected error', err);
   }
 }

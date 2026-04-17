@@ -2,7 +2,15 @@
    email/templates/orderConfirmationEmail.ts — 주문 확인 메일 템플릿
 
    사용처: notifications.sendOrderConfirmationEmail()
+
+   D-4 Pass 1 수정:
+   - HIGH-1: 모든 동적 값 esc() 적용 (item.name, displayName, VA 필드)
+   - sec MEDIUM-2: orderNumber stripNewlines() → CRLF 헤더 인젝션 방어
+   - code LOW-1: formatMethod 타입을 Record<DbPaymentMethod, string> 으로 좁힘
    ════════════════════════════════════════════════════════════════════════ */
+
+import { esc, stripNewlines } from './utils';
+import type { DbPaymentMethod } from '@/types/db';
 
 export type OrderConfirmationEmailItem = {
   name: string;
@@ -17,7 +25,7 @@ export type OrderConfirmationEmailProps = {
   shippingFee: number;
   discountAmount: number;
   totalAmount: number;
-  method: string;
+  method: DbPaymentMethod;
   items: OrderConfirmationEmailItem[];
   virtualAccount?: {
     bank: string | null;
@@ -31,13 +39,10 @@ function formatKRW(amount: number): string {
   return amount.toLocaleString('ko-KR') + '원';
 }
 
-function formatMethod(method: string): string {
-  const map: Record<string, string> = {
-    card: '신용카드',
-    transfer: '가상계좌',
-  };
-  return map[method] ?? method;
-}
+const METHOD_LABELS: Record<DbPaymentMethod, string> = {
+  card: '신용카드',
+  transfer: '가상계좌',
+};
 
 export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps): {
   subject: string;
@@ -45,14 +50,17 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
   text: string;
 } {
   const { orderNumber, recipientName, subtotal, shippingFee, discountAmount, totalAmount, method, items, virtualAccount } = props;
-  const displayName = recipientName?.trim() || '고객';
-  const subject = `[굳띵즈] 주문이 확인되었습니다 — ${orderNumber}`;
+
+  /* CRLF 인젝션 방어 — subject 헤더 삽입 전 제거 */
+  const safeOrderNumber = stripNewlines(orderNumber);
+  const displayName = esc(recipientName?.trim() || '고객');
+  const subject = `[굳띵즈] 주문이 확인되었습니다 — ${safeOrderNumber}`;
 
   const itemRows = items
     .map(
       (item) => `
             <tr>
-              <td style="padding:10px 0;border-bottom:1px solid #E8E6E1;font-size:14px;color:#1C1B19;line-height:1.4;">${item.name}</td>
+              <td style="padding:10px 0;border-bottom:1px solid #E8E6E1;font-size:14px;color:#1C1B19;line-height:1.4;">${esc(item.name)}</td>
               <td style="padding:10px 0;border-bottom:1px solid #E8E6E1;font-size:14px;color:#6B6963;text-align:center;white-space:nowrap;">${item.quantity}개</td>
               <td style="padding:10px 0;border-bottom:1px solid #E8E6E1;font-size:14px;color:#1C1B19;text-align:right;white-space:nowrap;">${formatKRW(item.unitPrice * item.quantity)}</td>
             </tr>`,
@@ -74,17 +82,17 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
               <table cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td style="font-size:13px;color:#6B6963;padding-bottom:8px;">은행</td>
-                  <td style="font-size:13px;color:#1C1B19;text-align:right;padding-bottom:8px;">${virtualAccount.bank ?? '—'}</td>
+                  <td style="font-size:13px;color:#1C1B19;text-align:right;padding-bottom:8px;">${esc(virtualAccount.bank ?? '—')}</td>
                 </tr>
                 <tr>
                   <td style="font-size:13px;color:#6B6963;padding-bottom:8px;">계좌번호</td>
-                  <td style="font-size:13px;color:#1C1B19;text-align:right;padding-bottom:8px;">${virtualAccount.accountNumber}</td>
+                  <td style="font-size:13px;color:#1C1B19;text-align:right;padding-bottom:8px;">${esc(virtualAccount.accountNumber)}</td>
                 </tr>
                 ${
                   virtualAccount.dueDate
                     ? `<tr>
                   <td style="font-size:13px;color:#6B6963;">입금 기한</td>
-                  <td style="font-size:13px;color:#7A6B52;font-weight:500;text-align:right;">${virtualAccount.dueDate}</td>
+                  <td style="font-size:13px;color:#7A6B52;font-weight:500;text-align:right;">${esc(virtualAccount.dueDate)}</td>
                 </tr>`
                     : ''
                 }
@@ -97,7 +105,7 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>${subject}</title>
+<title>${esc(subject)}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#F0EDE8;font-family:'Pretendard','Inter',-apple-system,BlinkMacSystemFont,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0EDE8;padding:40px 20px;">
@@ -111,7 +119,7 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
         <tr>
           <td style="padding:48px 40px 40px;">
             <h1 style="margin:0 0 6px;font-size:24px;font-weight:300;color:#1C1B19;">주문이 확인되었습니다</h1>
-            <p style="margin:0 0 28px;font-size:13px;color:#A8A49E;">주문번호: ${orderNumber}</p>
+            <p style="margin:0 0 28px;font-size:13px;color:#A8A49E;">주문번호: ${esc(safeOrderNumber)}</p>
             <p style="margin:0 0 32px;font-size:15px;color:#6B6963;line-height:1.7;">
               ${displayName}님, 주문해 주셔서 감사합니다.<br>
               신선하게 로스팅된 원두를 곧 보내드리겠습니다.
@@ -145,7 +153,7 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
               </tr>
             </table>
 
-            <p style="margin:16px 0 0;font-size:13px;color:#6B6963;">결제 방법: ${formatMethod(method)}</p>
+            <p style="margin:16px 0 0;font-size:13px;color:#6B6963;">결제 방법: ${METHOD_LABELS[method]}</p>
 
             ${virtualAccountBlock}
 
@@ -158,7 +166,7 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
         <tr>
           <td style="padding:20px 40px 24px;background-color:#F0EDE8;border-top:1px solid #E8E6E1;">
             <p style="margin:0;font-size:12px;color:#A8A49E;line-height:1.6;">
-              © 2025 Good Things Roasters. All rights reserved.
+              © ${new Date().getFullYear()} Good Things Roasters. All rights reserved.
             </p>
           </td>
         </tr>
@@ -179,9 +187,9 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
 
   const discountText = discountAmount > 0 ? `\n할인: -${formatKRW(discountAmount)}` : '';
 
-  const text = `[굳띵즈] 주문이 확인되었습니다 — ${orderNumber}
+  const text = `[굳띵즈] 주문이 확인되었습니다 — ${safeOrderNumber}
 
-${displayName}님, 주문해 주셔서 감사합니다.
+${recipientName?.trim() || '고객'}님, 주문해 주셔서 감사합니다.
 
 ─ 주문 상품 ─
 ${itemsText}
@@ -189,9 +197,9 @@ ${itemsText}
 소계: ${formatKRW(subtotal)}
 배송비: ${shippingFee === 0 ? '무료' : formatKRW(shippingFee)}${discountText}
 합계: ${formatKRW(totalAmount)}
-결제 방법: ${formatMethod(method)}${vaText}
+결제 방법: ${METHOD_LABELS[method]}${vaText}
 
-© 2025 Good Things Roasters`;
+© ${new Date().getFullYear()} Good Things Roasters`;
 
   return { subject, html, text };
 }
