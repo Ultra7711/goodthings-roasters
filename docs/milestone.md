@@ -29,7 +29,7 @@
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
 | User AI | 0 | 0 | 1 | 0% |
 
-**현재 위치:** Backend Session 13 완료 — guest cart merge 트리거(AuthSyncProvider) + RBAC (`profiles.role` + `is_admin()` + `requireAdmin`). **다음: Session 14 — 카트 UI DB 연동 + BUG-003 hydration 해결.**
+**현재 위치:** Backend Session 14 완료 — 카트 UI DB 연동(AuthSyncProvider GET /api/cart + write-through mirror) + ADR-004 Step A (`useHasHydrated`) + C-M3 bulk merge RPC (migration 022). **E2E 스모크 테스트 통과.** **다음: Session 15 — ADR-004 Step B (TanStack Query 도입 + `useCart*` 훅 + `useCartStore` 제거).**
 
 ---
 
@@ -85,8 +85,8 @@
 | Session 12 | P2-F DB 카트 인프라 — `cart_items` 테이블 + RLS 4종 + Repo/Service/API/테스트 | ✅ |
 | Session 13 | P2-F guest cart merge 트리거 + RBAC (`profiles.role` + `is_admin()` + `requireAdmin` + ADR-003) | ✅ |
 | Session 13.5 | Session 8~13 리뷰 하드닝 (CRITICAL 2 + HIGH 4 · migration 021) | ✅ |
-| **Session 14** | **카트 UI DB 연동 + BUG-003 응급 (ADR-004 Step A — `useHasHydrated`)** | **⬜ (다음)** |
-| Session 15 | ADR-004 Step B — TanStack Query 도입 + `useCart*` 훅 + `useCartStore` 제거 | ⬜ |
+| Session 14 | 카트 UI DB 연동 (hydrate + write-through mirror) + ADR-004 Step A (`useHasHydrated`) + C-M3 bulk RPC (migration 022) · E2E 스모크 통과 | ✅ |
+| **Session 15** | **ADR-004 Step B — TanStack Query 도입 + `useCart*` 훅 + `useCartStore` 제거** | **⬜ (다음)** |
 | Session 16 | ADR-004 Step C — `useSupabaseSession` + `useAuthStore`·`DEMO_CREDENTIALS` 제거 + BUG-004 근본 해결 | ⬜ |
 | Session 17 | ADR-004 Step D — zustand 의존성 제거 + localStorage 마이그레이션 + 번들 측정 | ⬜ |
 | Session 18+ | P2-G 프로덕션 / P2-H 인프라 | ⬜ |
