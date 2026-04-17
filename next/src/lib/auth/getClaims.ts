@@ -78,3 +78,49 @@ export async function requireAuth(): Promise<AuthClaims> {
   }
   return claims;
 }
+
+/* ── RBAC: admin 가드 ────────────────────────────────────────────────── */
+
+/**
+ * 주어진 userId 가 admin 역할인지 DB 에 조회한다.
+ * `public.is_admin(uuid)` RPC (SECURITY DEFINER STABLE) 를 호출 → RLS 우회.
+ *
+ * Route Handler / 서버 컴포넌트 공용. 비인증·비admin 시 `false`.
+ */
+export async function isAdmin(userId: string): Promise<boolean> {
+  const supabase = await createRouteHandlerClient();
+  const { data, error } = await supabase.rpc('is_admin', { uid: userId });
+  if (error) {
+    console.error('[isAdmin] rpc error', error);
+    return false;
+  }
+  return data === true;
+}
+
+/** admin claims — AuthClaims + `role: 'admin'` 증거 */
+export type AdminClaims = AuthClaims & { role: 'admin' };
+
+/**
+ * admin 필수 Route Handler 가드. 비인증 또는 비admin 시 `null` 반환.
+ * 호출처는 `null` 이면 401/403 으로 응답.
+ *
+ * 서버 컴포넌트에서는 `requireAdminOrRedirect()` 사용.
+ */
+export async function getAdminClaims(): Promise<AdminClaims | null> {
+  const claims = await getClaims();
+  if (!claims) return null;
+  const admin = await isAdmin(claims.userId);
+  if (!admin) return null;
+  return { ...claims, role: 'admin' };
+}
+
+/**
+ * admin 필수 서버 컴포넌트 가드. 비인증 → `/login`, 비admin → `/` 리다이렉트.
+ */
+export async function requireAdminOrRedirect(): Promise<AdminClaims> {
+  const claims = await getClaims();
+  if (!claims) redirect('/login');
+  const admin = await isAdmin(claims.userId);
+  if (!admin) redirect('/');
+  return { ...claims, role: 'admin' };
+}
