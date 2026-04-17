@@ -14,7 +14,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Product } from '@/lib/products';
-import { useCartStore } from '@/lib/store';
+import { useAddCartItem } from '@/hooks/useCart';
 import { useToast } from '@/hooks/useToast';
 
 const SUB_CYCLES: { value: string; label: string }[] = [
@@ -32,8 +32,7 @@ type Props = {
 
 export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
   const hasVolumes = product.volumes.length > 0;
-  const addItem = useCartStore((s) => s.addItem);
-  const openDrawer = useCartStore((s) => s.openDrawer);
+  const addCart = useAddCartItem();
   const { show: showToast } = useToast();
 
   const [qty, setQty] = useState(1);
@@ -129,7 +128,7 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
     const priceNum = vol?.price ?? 0;
     const priceStr = `${priceNum.toLocaleString('ko-KR')}원`;
     const mainImg = product.images[0]?.src ?? null;
-    addItem({
+    addCart.mutate({
       slug: product.slug,
       name: product.name,
       price: priceStr,

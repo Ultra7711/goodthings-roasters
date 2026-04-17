@@ -34,7 +34,7 @@ const baseForm: CheckoutFormData = {
 };
 
 const baseItem: CartItem = {
-  id: 1,
+  id: '1',
   slug: 'autumn-night',
   name: '가을의 밤 Autumn Night',
   price: '14,000원',
@@ -234,7 +234,7 @@ describe('buildOrderPayload — 아이템 매핑 (가격 필드 제외)', () => 
   });
 
   it('여러 아이템 유지 + 순서 보존', () => {
-    const item2: CartItem = { ...baseItem, id: 2, slug: 'refreshing-afternoon', qty: 1 };
+    const item2: CartItem = { ...baseItem, id: '2', slug: 'refreshing-afternoon', qty: 1 };
     const payload = buildOrderPayload(baseForm, [baseItem, item2], true, AGREED);
     expect(payload.items).toHaveLength(2);
     expect(payload.items[0].productSlug).toBe('autumn-night');

@@ -14,7 +14,9 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useHeaderTheme } from '@/hooks/useHeaderTheme';
 import { getInitialHeaderTheme } from '@/lib/headerThemeConfig';
-import { useAuthStore, useCartStore } from '@/lib/store';
+import { useAuthStore } from '@/lib/store';
+import { useCartQuery } from '@/hooks/useCart';
+import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { ClearIcon } from '@/components/ui/InputIcons';
 
 /* ── 모듈 스코프 상수 — 렌더마다 재생성 방지 ───────────────
@@ -43,9 +45,9 @@ export default function SiteHeader() {
   const [mounted, setMounted] = useState(false);
 
   /* SSR 안전: 클라이언트에서만 store 값 사용 */
-  const totalQty = useCartStore((s) => s.totalQty());
+  const { totalQty } = useCartQuery();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  const openDrawer = useCartStore((s) => s.openDrawer);
+  const { open: openDrawer } = useCartDrawer();
 
   useEffect(() => {
     // SSR hydration 이후 mount flag 세팅 — 의도적 1회성 setState-in-effect.

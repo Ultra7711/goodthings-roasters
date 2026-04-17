@@ -99,5 +99,6 @@ Zustand 를 제거하고 아래 구성으로 이행한다.
 ## 8. Open Questions
 
 1. **TanStack Query vs Server Action** — 본 ADR 은 카트 드로어의 mutation 빈도와 optimistic DX 를 근거로 TanStack Query 를 선택했다. 단, **상품 카드 "담기" 버튼 한정** Server Action 병행은 허용 — 라우트 세그먼트 `revalidatePath('/cart')` 로 간단히 정합성 유지 가능. 최종 판단은 Step B 킥오프 시 PoC 1일 후 확정 권장.
+   - **결론 (Session 15, 2026-04-17):** TanStack Query 단일 채택 확정. Server Action 병행 PoC 는 Step D 번들 메트릭이 동기를 제공할 때까지 defer. 근거: 현재 6 개 소비처 모두 optimistic 경로 공유 + 단일 `['cart']` 키로 auth 이벤트 bridge 가 단순화 · 병행 시 2 경로 캐시 동기화 비용 추가 발생.
 2. **Step A + Step B 같은 세션 여부** — **분리 권장**. Step A 는 릴리즈 가능한 응급 패치로 Session 14 전반에 클로즈하고 push. Step B 는 dependency 추가 · provider 배선 · 6 소비처 전환이 겹쳐 1.5 세션이 필요하므로 같은 세션에 묶으면 롤백 단위가 커진다.
 3. **DEMO_CREDENTIALS 제거 시점** — Step C 와 동반 권장. 별도 선행 세션으로 빼면 `useAuthStore.login` 본체가 비는 "시체 훅" 상태가 생겨 되레 혼란. Step C 에서 훅 자체를 드랍하며 한 번에 정리.

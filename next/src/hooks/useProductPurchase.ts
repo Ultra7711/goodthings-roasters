@@ -8,7 +8,8 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { Product } from '@/lib/products';
 import type { CartItemType } from '@/types/cart';
-import { useCartStore } from '@/lib/store';
+import { useAddCartItem } from '@/hooks/useCart';
+import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { formatPrice } from '@/lib/utils';
 
 /** 정기배송 주기 옵션 */
@@ -22,8 +23,8 @@ export const SUB_CYCLES = [
 type OrderType = 'normal' | 'subscription';
 
 export function useProductPurchase(product: Product) {
-  const addItem = useCartStore((s) => s.addItem);
-  const openDrawer = useCartStore((s) => s.openDrawer);
+  const addCart = useAddCartItem();
+  const { open: openDrawer } = useCartDrawer();
 
   const [volumeIdx, setVolumeIdx] = useState(0);
   const [qty, setQty] = useState(1);
@@ -59,7 +60,7 @@ export function useProductPurchase(product: Product) {
     const isSubscription = orderType === 'subscription' && product.subscription;
     const type: CartItemType = isSubscription ? 'subscription' : 'normal';
 
-    addItem({
+    addCart.mutate({
       slug: product.slug,
       name: product.name,
       price: formatPrice(basePrice),
@@ -75,7 +76,7 @@ export function useProductPurchase(product: Product) {
 
     /* 프로토타입 addToCart() 동작 일치: 담기 직후 장바구니 드로어 즉시 오픈. */
     openDrawer();
-  }, [addItem, openDrawer, product, basePrice, qty, orderType, cycleValue, selectedVolume, isSoldOut]);
+  }, [addCart, openDrawer, product, basePrice, qty, orderType, cycleValue, selectedVolume, isSoldOut]);
 
   return {
     volumeIdx,

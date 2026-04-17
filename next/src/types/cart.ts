@@ -1,15 +1,15 @@
 /* ══════════════════════════════════════════
    Cart Types
-   프로토타입 cartItems 구조 기반
+   ADR-004 Step B: id 를 string UUID 로 통일.
+   - 로그인: DB cart_items.id (UUID)
+   - 게스트: crypto.randomUUID()
    ══════════════════════════════════════════ */
 
 export type CartItemType = 'normal' | 'subscription';
 
 export type CartItem = {
-  /** UI/React key 전용 로컬 ID (Date.now 기반). DB 원격 동기화와 무관. */
-  id: number;
-  /** DB cart_items.id (UUID). 로그인 상태에서 서버로 미러된 항목만 세팅. Step B 에서 제거 예정. */
-  serverId?: string | null;
+  /** UUID. 로그인=DB cart_items.id · 게스트=crypto.randomUUID(). */
+  id: string;
   /** 상품 slug (URL key) */
   slug: string;
   /** 상품명 */

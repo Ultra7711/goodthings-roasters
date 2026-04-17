@@ -6,7 +6,7 @@
    1. chp-* 클래스: BizInquiryPage 의 bi-* 와 동일 격리 원칙으로
       프로토타입 원본 클래스명 유지 (globals.css 에 정의).
    2. 폼 상태: useCheckoutForm 훅 (types/checkout.ts 기반)
-   3. 장바구니: useCartStore (Zustand) — clearCart 는 OrderCompletePage 에서 호출
+   3. 장바구니: useCartQuery (TanStack Query) — clearCart 는 OrderCompletePage 에서 호출
    4. 결제 (B-2): submit 성공 → step='payment' 전환 → CheckoutPayment 렌더
       - Toss 결제위젯 리다이렉트 성공 → /order-complete
       - 결제 실패 → /checkout?error=payment_failed 로 돌아와 안내 toast
@@ -20,12 +20,12 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
-import { useHasHydrated } from '@/hooks/useHasHydrated';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
 import { openPostcode } from '@/lib/daumPostcode';
 import { useInputNav } from '@/hooks/useInputNav';
-import { useCartStore, useAuthStore } from '@/lib/store';
+import { useAuthStore } from '@/lib/store';
+import { useCartQuery } from '@/hooks/useCart';
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
 import { shakeFields } from '@/lib/shakeFields';
@@ -108,18 +108,17 @@ export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const { show: toast } = useToast();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  /* BUG-003 응급 (ADR-004 Step A): persist hydration 완료 전까지는
-     items / isLoggedIn 이 서버 값과 다를 수 있어 "빈 장바구니" UI 또는
-     잘못된 로그인 분기가 깜빡인다. Step B 에서 TanStack Query + server props
-     로 대체 시 제거 예정. */
-  const hydrated = useHasHydrated(useCartStore, useAuthStore);
 
-  /* ── 장바구니 ── */
-  const items = useCartStore((s) => s.items);
-  const totalQty = useCartStore((s) => s.totalQty());
-  const subtotal = useCartStore((s) => s.subtotal);
-  const shippingFee = useCartStore((s) => s.shippingFee);
-  const totalPrice = useCartStore((s) => s.totalPrice);
+  /* ── 장바구니 (ADR-004 Step B: TanStack Query) ──
+     isLoading: 최초 로드 중 — 스켈레톤 UI. BUG-003 근본 해결. */
+  const {
+    items,
+    totalQty,
+    subtotal,
+    shippingFee,
+    totalPrice,
+    isLoading: cartLoading,
+  } = useCartQuery();
   /* clearCart 는 OrderCompletePage 에서 호출 (결제 성공 redirect 후) */
 
   /* ── 결제 단계 상태 (B-2) ──
@@ -343,8 +342,8 @@ export default function CheckoutPage() {
   }, [submitting, clearErrors, validate, isLoggedIn, form, items, agreements, toast]);
 
   /* ── 하이드레이션 대기 스켈레톤 ──
-     persist 복원 전에는 items/isLoggedIn 판정 불가. 미니 헤더만 그린다. */
-  if (!hydrated) {
+     ['cart'] 최초 로드 중엔 items 판정 불가. 미니 헤더만 그린다. */
+  if (cartLoading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
         <div className="chp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
@@ -734,15 +733,15 @@ export default function CheckoutPage() {
           <div className="chp-summary-totals">
             <div className="chp-sum-row">
               <span>상품 금액 · 총 {totalQty}개 상품</span>
-              <span>{formatPrice(subtotal())}</span>
+              <span>{formatPrice(subtotal)}</span>
             </div>
             <div className="chp-sum-row">
               <span>배송비</span>
-              <span>{shippingFee() === 0 ? '무료' : formatPrice(shippingFee())}</span>
+              <span>{shippingFee === 0 ? '무료' : formatPrice(shippingFee)}</span>
             </div>
             <div className="chp-sum-total-row">
               <span>결제예정금액</span>
-              <span>{formatPrice(totalPrice())}</span>
+              <span>{formatPrice(totalPrice)}</span>
             </div>
             <div className="chp-tax-note">부가세 포함</div>
             {hasSubscription && (

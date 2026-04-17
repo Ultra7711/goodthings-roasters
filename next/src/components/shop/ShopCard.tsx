@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { type Product, extractKrName, formatStartPrice, getStatusBadgeClass } from '@/lib/products';
-import { useCartStore } from '@/lib/store';
+import { useAddCartItem } from '@/hooks/useCart';
 
 const HOVER_DELAY_MS = 400;
 const QA_TEXT_DELAY_MS = 150;
@@ -25,7 +25,7 @@ type Props = {
 
 export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot, baseDelay = 0 }: Props) {
   const router = useRouter();
-  const addItem = useCartStore((s) => s.addItem);
+  const addCart = useAddCartItem();
 
   const [qaOpen, setQaOpen] = useState(false);
   const [qaClosing, setQaClosing] = useState(false);
@@ -157,7 +157,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
 
     const vol = p.volumes[activeVolIdx];
     if (vol?.soldOut) { closeQa(); return; }
-    addItem({
+    addCart.mutate({
       slug: p.slug,
       name: p.name,
       price: vol ? `${vol.price.toLocaleString('ko-KR')}원` : '',

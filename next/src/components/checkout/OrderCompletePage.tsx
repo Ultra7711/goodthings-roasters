@@ -23,7 +23,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
-import { useCartStore } from '@/lib/store';
+import { useClearCart } from '@/hooks/useCart';
 
 /* H-1 폴백 UX — 게스트 이메일 불일치 재입력 허용 한도.
    3회 초과 시 주문조회(B-6) 분기로 안내. */
@@ -113,7 +113,7 @@ export default function OrderCompletePage() {
     amount: number;
     flagKey: string;
   } | null>(null);
-  const clearCart = useCartStore((s) => s.clearCart);
+  const clearCart = useClearCart();
 
   /* sessionStorage 에서 주문 정보 읽기 */
   const order = useMemo<LastOrder | null>(() => {
