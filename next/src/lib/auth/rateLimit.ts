@@ -229,19 +229,15 @@ export async function checkCardingLimitWith(
   const { success, limit, remaining, reset } = await limiter.limit(key);
 
   if (!success && enforceEnabled) {
-    const retryAfter = Math.max(0, Math.ceil((reset - Date.now()) / 1000));
+    const base = buildRateLimitResponse(limit, remaining, reset);
+    /* error code 만 교체 — 헤더·retryAfter 는 buildRateLimitResponse 가 관리 */
+    const retryAfter = base.headers.get('Retry-After') ?? '0';
     return new NextResponse(
-      JSON.stringify({ error: 'too_many_card_attempts', retryAfter }),
-      {
-        status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          'Retry-After': String(retryAfter),
-          'X-RateLimit-Limit': String(limit),
-          'X-RateLimit-Remaining': String(remaining),
-          'X-RateLimit-Reset': String(reset),
-        },
-      },
+      JSON.stringify({
+        error: 'too_many_card_attempts',
+        retryAfter: Number(retryAfter),
+      }),
+      { status: 429, headers: base.headers },
     );
   }
   return null;

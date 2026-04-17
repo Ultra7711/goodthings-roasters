@@ -91,7 +91,11 @@ export async function isAdmin(userId: string): Promise<boolean> {
   const supabase = await createRouteHandlerClient();
   const { data, error } = await supabase.rpc('is_admin', { uid: userId });
   if (error) {
-    console.error('[isAdmin] rpc error', error);
+    /* PostgrestError 원본 전체 로깅 시 connection string 등 민감정보 노출 우려 — code/message 만 기록. */
+    console.error('[isAdmin] rpc error', {
+      code: error.code,
+      message: error.message,
+    });
     return false;
   }
   return data === true;

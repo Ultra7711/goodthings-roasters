@@ -87,6 +87,16 @@ async function fetchOrderForEmail(
     return null;
   }
 
+  /* 빈 order_items 방어: 주문은 존재하지만 아이템이 없는 상태에서 이메일을 보내면
+     상품 목록 없는 빈 이메일이 송부됨. 정상 주문은 items > 0 이 보장되므로 null 반환. */
+  if (items.length === 0) {
+    console.error(
+      '[notifications] fetchOrderForEmail: order_items empty, skipping email',
+      { orderNumber },
+    );
+    return null;
+  }
+
   return { order: order as OrderRow, items: items as OrderItemRow[] };
 }
 

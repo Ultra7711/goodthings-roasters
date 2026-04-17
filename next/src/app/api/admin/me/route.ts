@@ -15,6 +15,8 @@ import { apiError, apiSuccess } from '@/lib/api/errors';
 import { getClaims, isAdmin } from '@/lib/auth/getClaims';
 
 export async function GET(): Promise<Response> {
+  /* 의도적으로 getClaims + isAdmin 을 분리 호출하여 401(비인증) / 403(비admin)
+     구분 유지. `getAdminClaims()` 는 두 케이스를 모두 null 로 반환하므로 여기선 사용 안 함. */
   const claims = await getClaims();
   if (!claims) return apiError('unauthorized');
 
