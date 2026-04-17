@@ -28,7 +28,11 @@
 import { apiError, apiSuccess } from '@/lib/api/errors';
 import { enforceSameOrigin } from '@/lib/api/csrf';
 import { parseBody } from '@/lib/api/validate';
-import { checkRateLimit } from '@/lib/auth/rateLimit';
+import {
+  checkRateLimit,
+  checkCardingLimit,
+  recordCardingAttempt,
+} from '@/lib/auth/rateLimit';
 import { getClaims } from '@/lib/auth/getClaims';
 import { PaymentConfirmSchema } from '@/lib/schemas/payment';
 import {
@@ -56,6 +60,11 @@ export async function POST(request: Request): Promise<Response> {
   const claims = await getClaims();
   const userId = claims?.userId ?? null;
 
+  /* 4.5) Carding RL 선검사 (Session 8 보안 #1 · docs/payments-security-hardening.md §2).
+         직전 세션에서 카드 거절 코드가 5회 이상 누적된 IP:user 는 10분 차단. */
+  const cardingBlocked = await checkCardingLimit(request, userId);
+  if (cardingBlocked) return cardingBlocked;
+
   /* 5) 서비스 호출 */
   try {
     const result = await confirmOrder(input, { userId });
@@ -80,6 +89,9 @@ export async function POST(request: Request): Promise<Response> {
         case 'toss_failed':
           /* Toss 가 거부 (카드사 승인 실패 · ALREADY_PROCESSED_PAYMENT 예외 등).
              상세 code 는 클라이언트가 FAQ 매칭에 사용. */
+          /* Session 8 #1: 카드 거절 코드면 carding 카운트 증분 (fire-and-forget).
+             다음 confirm 호출의 checkCardingLimit 이 동일 키로 조회 → 차단. */
+          void recordCardingAttempt(request, userId, err.detail);
           return apiError('payment_failed', { detail: err.detail ?? 'unknown' });
         case 'toss_unavailable':
           return apiError('server_error', {

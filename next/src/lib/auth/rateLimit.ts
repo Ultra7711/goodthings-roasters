@@ -36,6 +36,7 @@ export type RateLimitPreset =
   | 'auth_callback'
   | 'order_create'
   | 'payment_confirm'
+  | 'payment_confirm_reject'
   | 'guest_pin'
   | 'account_delete';
 
@@ -44,6 +45,9 @@ const LIMITS: Record<RateLimitPreset, { requests: number; window: string }> = {
   auth_callback: { requests: 20, window: '1 m' },
   order_create: { requests: 10, window: '1 m' },
   payment_confirm: { requests: 10, window: '1 m' },
+  /* Session 8 보안 #1: Carding RL (확정안 B + C 부분, docs/payments-security-hardening.md §2).
+     Toss 카드 거절 코드 반복 전용 — 5 req / 10 min. 총량 상한은 payment_confirm 이 담당. */
+  payment_confirm_reject: { requests: 5, window: '10 m' },
   /* 게스트 PIN: 10 분 윈도우로 넓혀 브루트포스 완화 */
   guest_pin: { requests: 5, window: '10 m' },
   /* 회원 탈퇴: 비가역 — 15 분 윈도우 3 회. 정기배송 해지 후 재시도 여유 확보 */
@@ -162,4 +166,87 @@ export async function checkRateLimit(
   preset: RateLimitPreset,
 ): Promise<NextResponse | null> {
   return checkRateLimitWith(request, getLimiter(preset));
+}
+
+/* ══════════════════════════════════════════
+   Carding RL — payment_confirm_reject preset (Session 8 보안 #1)
+   ══════════════════════════════════════════ */
+
+/**
+ * Carding 카운트 키 빌더 — `{ip}:{userIdOrGuest}` (확정 D1).
+ *
+ * - 로그인: user_id 기준 (세션 하이재킹 + IP 변경 시에도 추적).
+ * - 게스트: IP 단독 (guest 는 고유 식별자 없음 → IP 를 게스트 버킷으로).
+ *
+ * sessionId 는 복잡도 대비 이득 작아 미사용.
+ */
+function buildCardingKey(request: Request, userId: string | null): string {
+  const ip = extractIp(request) ?? 'unknown';
+  return `${ip}:${userId ?? 'guest'}`;
+}
+
+/**
+ * Carding Rate Limit 선검사 — confirm 플로우 진입 직전에 호출.
+ *
+ * - 한도 초과 시 429 `too_many_card_attempts` 반환.
+ * - `CARDING_LIMIT_ENABLED !== 'true'` 이면 dry-run: 카운트는 올라가지만 차단 없음.
+ * - Redis 미설정 환경 (개발/로컬) 은 항상 통과.
+ *
+ * @returns 차단 시 NextResponse, 통과 시 null
+ */
+export async function checkCardingLimit(
+  request: Request,
+  userId: string | null,
+): Promise<NextResponse | null> {
+  const limiter = getLimiter('payment_confirm_reject');
+  if (!limiter) return null;
+
+  const key = buildCardingKey(request, userId);
+  const { success, limit, remaining, reset } = await limiter.limit(key);
+
+  /* dry-run 모드: 카운트는 올라가지만 실제 차단은 하지 않음 (롤아웃 24h) */
+  const enforceEnabled = process.env.CARDING_LIMIT_ENABLED === 'true';
+  if (!success && enforceEnabled) {
+    const retryAfter = Math.max(0, Math.ceil((reset - Date.now()) / 1000));
+    return new NextResponse(
+      JSON.stringify({ error: 'too_many_card_attempts', retryAfter }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': String(retryAfter),
+          'X-RateLimit-Limit': String(limit),
+          'X-RateLimit-Remaining': String(remaining),
+          'X-RateLimit-Reset': String(reset),
+        },
+      },
+    );
+  }
+  return null;
+}
+
+/**
+ * Carding 공격 시그널 카운트 증분 — Toss 가 카드 거절 코드를 반환한 시점에 호출.
+ *
+ * - `isCardRejectionCode(tossCode)` true 인 경우에만 incr.
+ * - 결과는 버림 (이후 호출의 `checkCardingLimit` 이 동일 키를 조회해 판정).
+ * - Redis 미설정 환경은 no-op.
+ *
+ * 이 함수는 "공격 시그널 기록" 책임만 — 429 반환은 다음 confirm 시도의
+ * `checkCardingLimit` 이 담당한다.
+ */
+export async function recordCardingAttempt(
+  request: Request,
+  userId: string | null,
+  tossCode: string | null | undefined,
+): Promise<void> {
+  const { isCardRejectionCode } = await import('@/lib/payments/tossErrorCodes');
+  if (!isCardRejectionCode(tossCode)) return;
+
+  const limiter = getLimiter('payment_confirm_reject');
+  if (!limiter) return;
+
+  const key = buildCardingKey(request, userId);
+  /* limit() 결과값은 신경쓰지 않는다 — 증분만 목적. */
+  await limiter.limit(key);
 }
