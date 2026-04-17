@@ -14,6 +14,7 @@ import type { UserAddress } from '@/types/address';
 import { EMPTY_ADDRESS } from '@/types/address';
 import { isValidPhone, isValidZipcode } from '@/lib/validation';
 import { openPostcode } from '@/lib/daumPostcode';
+import { showToast } from '@/lib/toastStore';
 
 export type AddressFormErrors = Partial<Record<keyof UserAddress, string>>;
 
@@ -61,8 +62,8 @@ export function useAddressForm({ initial, onSave }: UseAddressFormOptions) {
         return next;
       });
     } catch {
-      // 스크립트 로드 실패 — 사용자에게 별도 알림 없이 조용히 종료
-      // Phase 2-G: toast 연동 고려
+      /* 스크립트 로드 실패 시 사용자에게 알림 (CheckoutPage 동일 경로와 일관성) */
+      showToast('주소 검색을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }, []);
 
