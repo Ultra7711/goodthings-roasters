@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-04-17 · Backend Session 13 — guest cart merge + RBAC (admin/customer) 완료.
+> **최종 업데이트:** 2026-04-17 · Backend Session 13.5 — Session 8~13 리뷰 하드닝 (migration 021 적용) 완료.
 
 ---
 
@@ -84,6 +84,7 @@
 | Session 11 | P2-D Resend 이메일 템플릿 + 보안 #3-4b (prod `?orderNumber=` 차단) | ✅ |
 | Session 12 | P2-F DB 카트 인프라 — `cart_items` 테이블 + RLS 4종 + Repo/Service/API/테스트 | ✅ |
 | Session 13 | P2-F guest cart merge 트리거 + RBAC (`profiles.role` + `is_admin()` + `requireAdmin` + ADR-003) | ✅ |
+| Session 13.5 | Session 8~13 리뷰 하드닝 (CRITICAL 2 + HIGH 4 · migration 021) | ✅ |
 | **Session 14** | **카트 UI DB 연동 + BUG-003 응급 (ADR-004 Step A — `useHasHydrated`)** | **⬜ (다음)** |
 | Session 15 | ADR-004 Step B — TanStack Query 도입 + `useCart*` 훅 + `useCartStore` 제거 | ⬜ |
 | Session 16 | ADR-004 Step C — `useSupabaseSession` + `useAuthStore`·`DEMO_CREDENTIALS` 제거 + BUG-004 근본 해결 | ⬜ |
