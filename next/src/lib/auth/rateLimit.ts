@@ -179,8 +179,10 @@ export async function checkRateLimit(
  * - 게스트: IP 단독 (guest 는 고유 식별자 없음 → IP 를 게스트 버킷으로).
  *
  * sessionId 는 복잡도 대비 이득 작아 미사용.
+ *
+ * 테스트 주입용으로 export — 다른 호출처는 기존 `check/record` 래퍼만 사용할 것.
  */
-function buildCardingKey(request: Request, userId: string | null): string {
+export function buildCardingKey(request: Request, userId: string | null): string {
   const ip = extractIp(request) ?? 'unknown';
   return `${ip}:${userId ?? 'guest'}`;
 }
@@ -198,14 +200,31 @@ export async function checkCardingLimit(
   request: Request,
   userId: string | null,
 ): Promise<NextResponse | null> {
-  const limiter = getLimiter('payment_confirm_reject');
+  return checkCardingLimitWith(
+    request,
+    userId,
+    getLimiter('payment_confirm_reject'),
+    process.env.CARDING_LIMIT_ENABLED === 'true',
+  );
+}
+
+/**
+ * `checkCardingLimit` 의 DI 변형 — 테스트 전용.
+ *
+ * @param limiter null 이면 항상 통과 (Redis 미설정 환경 모사)
+ * @param enforceEnabled false 면 dry-run (카운트만 올라가고 차단 안 함)
+ */
+export async function checkCardingLimitWith(
+  request: Request,
+  userId: string | null,
+  limiter: LimiterLike | null,
+  enforceEnabled: boolean,
+): Promise<NextResponse | null> {
   if (!limiter) return null;
 
   const key = buildCardingKey(request, userId);
   const { success, limit, remaining, reset } = await limiter.limit(key);
 
-  /* dry-run 모드: 카운트는 올라가지만 실제 차단은 하지 않음 (롤아웃 24h) */
-  const enforceEnabled = process.env.CARDING_LIMIT_ENABLED === 'true';
   if (!success && enforceEnabled) {
     const retryAfter = Math.max(0, Math.ceil((reset - Date.now()) / 1000));
     return new NextResponse(
@@ -242,10 +261,25 @@ export async function recordCardingAttempt(
 ): Promise<void> {
   const { isCardRejectionCode } = await import('@/lib/payments/tossErrorCodes');
   if (!isCardRejectionCode(tossCode)) return;
+  await recordCardingAttemptWith(
+    request,
+    userId,
+    getLimiter('payment_confirm_reject'),
+  );
+}
 
-  const limiter = getLimiter('payment_confirm_reject');
+/**
+ * `recordCardingAttempt` 의 DI 변형 — 테스트 전용.
+ *
+ * `isCardRejectionCode` 필터링은 호출자 책임. 이 함수는 순수하게 한 번
+ * `limiter.limit(key)` 를 호출해 카운트만 증분한다.
+ */
+export async function recordCardingAttemptWith(
+  request: Request,
+  userId: string | null,
+  limiter: LimiterLike | null,
+): Promise<void> {
   if (!limiter) return;
-
   const key = buildCardingKey(request, userId);
   /* limit() 결과값은 신경쓰지 않는다 — 증분만 목적. */
   await limiter.limit(key);
