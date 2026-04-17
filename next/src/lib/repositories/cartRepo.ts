@@ -183,6 +183,47 @@ export async function deleteCartItem(id: string): Promise<boolean> {
   return (data?.length ?? 0) > 0;
 }
 
+/* ══════════════════════════════════════════
+   Bulk merge (C-M3) — 단일 RPC 호출로 N 아이템 일괄 upsert.
+   ══════════════════════════════════════════ */
+
+export type BulkMergeItem = {
+  productSlug: string;
+  productVolume: string;
+  quantity: number;
+  unitPriceSnapshot: number;
+  itemType: OrderItemType;
+  subscriptionPeriod: SubscriptionPeriod | null;
+};
+
+/**
+ * merge_cart_items RPC 호출. 검증 완료된 아이템 배열을 원자적으로 upsert.
+ * RLS 준수 (SECURITY INVOKER) — user-context 클라이언트 사용.
+ * @returns merged 행 수 (RPC 반환값)
+ */
+export async function bulkMergeCartItems(
+  userId: string,
+  items: BulkMergeItem[],
+): Promise<number> {
+  if (items.length === 0) return 0;
+  const supabase = await createRouteHandlerClient();
+  const payload = items.map((i) => ({
+    product_slug: i.productSlug,
+    product_volume: i.productVolume,
+    quantity: i.quantity,
+    unit_price_snapshot: i.unitPriceSnapshot,
+    item_type: i.itemType,
+    subscription_period: i.subscriptionPeriod,
+  }));
+
+  const { data, error } = await supabase.rpc('merge_cart_items', {
+    p_user_id: userId,
+    p_items: payload,
+  });
+  if (error) throw error;
+  return typeof data === 'number' ? data : 0;
+}
+
 /**
  * 특정 사용자의 카트 아이템 전체 삭제 (결제 완료 후 호출 예정 — Session 14+).
  *

@@ -13,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/repositories/cartRepo', () => ({
   upsertCartItem: vi.fn(),
+  bulkMergeCartItems: vi.fn(),
 }));
 
 import {
@@ -20,7 +21,10 @@ import {
   buildUpsertParams,
   mergeGuestCart,
 } from './cartService';
-import { upsertCartItem } from '@/lib/repositories/cartRepo';
+import {
+  upsertCartItem,
+  bulkMergeCartItems,
+} from '@/lib/repositories/cartRepo';
 import { OrderServiceError } from './orderService';
 import { PRODUCTS } from '@/lib/products';
 
@@ -30,6 +34,7 @@ const USER_ID = '11111111-1111-1111-1111-111111111111';
 
 beforeEach(() => {
   vi.mocked(upsertCartItem).mockReset();
+  vi.mocked(bulkMergeCartItems).mockReset();
   vi.mocked(upsertCartItem).mockImplementation(async (params) => ({
     id: 'row-id',
     user_id: params.userId,
@@ -42,6 +47,9 @@ beforeEach(() => {
     created_at: '2026-04-17T00:00:00.000Z',
     updated_at: '2026-04-17T00:00:00.000Z',
   }));
+  vi.mocked(bulkMergeCartItems).mockImplementation(
+    async (_userId, items) => items.length,
+  );
 });
 
 describe('buildUpsertParams — 입력 검증 및 단가 스냅샷', () => {
@@ -148,7 +156,8 @@ describe('mergeGuestCart — 로그인 직후 localStorage 흡수', () => {
     });
     expect(result.merged).toBe(2);
     expect(result.skipped).toBe(0);
-    expect(upsertCartItem).toHaveBeenCalledTimes(2);
+    expect(bulkMergeCartItems).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(bulkMergeCartItems).mock.calls[0][1]).toHaveLength(2);
   });
 
   it('도메인 에러(잘못된 slug) 는 스킵, 나머지 진행', async () => {
@@ -173,11 +182,12 @@ describe('mergeGuestCart — 로그인 직후 localStorage 흡수', () => {
     });
     expect(result.merged).toBe(1);
     expect(result.skipped).toBe(1);
-    expect(upsertCartItem).toHaveBeenCalledTimes(1);
+    expect(bulkMergeCartItems).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(bulkMergeCartItems).mock.calls[0][1]).toHaveLength(1);
   });
 
   it('DB 오류(비 도메인 에러) 는 상위로 전파', async () => {
-    vi.mocked(upsertCartItem).mockRejectedValueOnce(new Error('db down'));
+    vi.mocked(bulkMergeCartItems).mockRejectedValueOnce(new Error('db down'));
     const v0 = coffeeBean.volumes[0];
     await expect(
       mergeGuestCart(USER_ID, {

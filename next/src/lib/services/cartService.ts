@@ -19,8 +19,10 @@ import {
 import type { CartItemInput, CartMergeInput } from '@/lib/schemas/cart';
 import {
   upsertCartItem,
+  bulkMergeCartItems,
   type CartItemRow,
   type UpsertCartItemParams,
+  type BulkMergeItem,
 } from '@/lib/repositories/cartRepo';
 
 /* ── 입력 → repo 파라미터 ─────────────────────────────────────────────── */
@@ -69,28 +71,35 @@ export async function addCartItem(
    ══════════════════════════════════════════ */
 
 /**
- * 게스트 카트 배열을 회원 카트에 순차 merge.
+ * 게스트 카트 배열을 회원 카트에 일괄 merge (C-M3: bulk RPC).
  *
- * - 중복 아이템(동일 키) 은 repo 의 upsertCartItem 이 quantity 합산 처리.
- * - 실패 아이템(product/volume not found 등) 은 스킵하고 남은 항목 진행.
- *   → 클라는 "N 개 중 M 개 담김" 형태로 표현 가능.
+ * 동작:
+ * - 서비스 레이어에서 PRODUCTS 카탈로그 검증 수행 (buildUpsertParams).
+ *   실패 아이템은 skipped 로 카운트하고 제외.
+ * - 검증 통과 아이템 전체를 단일 RPC(merge_cart_items) 로 원자적 upsert.
+ * - 중복 아이템(동일 키) 은 RPC 내부에서 quantity 합산 (상한 99).
  *
- * @returns 성공 적재된 행 수
+ * @returns { merged, skipped }
  */
 export async function mergeGuestCart(
   userId: string,
   input: CartMergeInput,
 ): Promise<{ merged: number; skipped: number }> {
-  let merged = 0;
   let skipped = 0;
+  const bulkItems: BulkMergeItem[] = [];
 
   for (const item of input.items) {
     try {
       const params = buildUpsertParams(userId, item);
-      await upsertCartItem(params);
-      merged += 1;
+      bulkItems.push({
+        productSlug: params.productSlug,
+        productVolume: params.productVolume,
+        quantity: params.quantity,
+        unitPriceSnapshot: params.unitPriceSnapshot,
+        itemType: params.itemType,
+        subscriptionPeriod: params.subscriptionPeriod,
+      });
     } catch (err) {
-      /* 알려진 도메인 에러는 스킵. 그 외 DB 오류는 상위로 전파. */
       if (err instanceof OrderServiceError) {
         skipped += 1;
         continue;
@@ -99,5 +108,6 @@ export async function mergeGuestCart(
     }
   }
 
+  const merged = await bulkMergeCartItems(userId, bulkItems);
   return { merged, skipped };
 }
