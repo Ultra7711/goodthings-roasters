@@ -19,14 +19,18 @@ import type { AuthProvider } from './providers';
 export type AuthEventName =
   | 'oauth.login.success'
   | 'oauth.login.failed'
-  | 'oauth.merge_blocked';
+  | 'oauth.merge_blocked'
+  /* 회원 탈퇴 (Session 8-E) — 활성 구독 차단·익명화 성공·최종 실패 */
+  | 'account.delete.blocked'
+  | 'account.delete.success'
+  | 'account.delete.failed';
 
 /* ── 로그 페이로드 ── */
 export type AuthEventPayload = {
   /** 이벤트 이름 */
   event: AuthEventName;
-  /** OAuth provider */
-  provider: AuthProvider | 'unknown';
+  /** OAuth provider — OAuth 이벤트 전용. account.delete.* 등은 optional */
+  provider?: AuthProvider | 'unknown';
   /** 마스킹된 이메일 — 원본 이메일 절대 전달 금지 (PII) */
   emailMasked: string;
   outcome: 'success' | 'failed' | 'blocked';

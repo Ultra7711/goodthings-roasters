@@ -230,20 +230,48 @@ export default function MyPagePage() {
     router.replace('/');
   }, [bypassRedirect, router, toast]);
 
-  /* ── 회원 탈퇴 ──
-     TODO(Phase 3): Server Action으로 실제 auth.users 레코드 삭제 추가.
-     현재는 세션 종료만 수행 (계정 데이터는 Supabase에 남음).
-     토스트는 router.replace 전에 호출해 언마운트 이후 state 업데이트 방지. */
+  /* ── 회원 탈퇴 (Session 8-E) ──
+     POST /api/account/delete → RPC delete_account + auth.admin.deleteUser.
+     409 subscription_active → 정기배송 선 해지 안내.
+     429 rate_limited → 재시도 안내.
+     성공 시 로컬 signOut + '/' 리다이렉트. */
   const confirmWithdraw = useCallback(async () => {
-    setWithdrawOpen(false);
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast('오류가 발생했습니다. 다시 시도해 주세요.');
-      return;
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: '탈퇴' }),
+      });
+
+      if (res.status === 409) {
+        const json = (await res.json().catch(() => null)) as
+          | { error?: string; detail?: string }
+          | null;
+        if (json?.detail === 'subscription_active') {
+          toast('진행 중인 정기배송을 먼저 해지해 주세요.');
+          return;
+        }
+      }
+
+      if (res.status === 429) {
+        toast('요청이 많습니다. 잠시 후 다시 시도해 주세요.');
+        return;
+      }
+
+      if (!res.ok) {
+        toast('탈퇴 처리 중 오류가 발생했습니다. 다시 시도해 주세요.');
+        return;
+      }
+
+      setWithdrawOpen(false);
+      /* 서버에서 이미 signOut 완료 — 로컬 세션 쿠키 정리 (실패해도 무시) */
+      await supabase.auth.signOut().catch(() => {});
+      toast('탈퇴 처리가 완료되었습니다.');
+      bypassRedirect();
+      router.replace('/');
+    } catch {
+      toast('네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
     }
-    toast('탈퇴 처리가 완료되었습니다.');
-    bypassRedirect();
-    router.replace('/');
   }, [bypassRedirect, router, toast]);
 
   /* ── 주문번호 복사 ── */

@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-17 (Backend P2-B Session 8 D-4 Pass 1 완료 — code/security 리뷰 전면 반영. ① `utils.ts` 신규: `esc()`(HTML 5종 이스케이프) + `stripNewlines()`(CRLF 제거), ② 템플릿 3종 esc() 전면 적용(XSS HIGH-1), ③ orderNumber stripNewlines() → subject CRLF 인젝션 방어(MEDIUM-2), ④ notifications.ts idempotencyKey 특수문자 정규화(HIGH-2), ShippingOrderRow 명시 타입·as string 제거, 에러 코드만 로깅, ⑤ Kakao/Naver OAuth callback createUser 에러 체크 후 환영 메일 조건부 발송(HIGH-3). 213/213 그린 · tsc clean · build 성공. 커밋 `acfb0d2d`)
+> **최종 업데이트:** 2026-04-17 (Backend P2-B Session 8 E 시리즈 회원탈퇴 완료 — B안(선 해지 후 탈퇴 + 원클릭 동선) 업계 리서치 기반 채택. ① `015_account_delete.sql`: `orders.account_deleted_at` 컬럼 + `orders_user_or_guest` 3분기 CHECK 재작성(회원/게스트/익명화) + RPC `delete_account(p_user_id)` SECURITY DEFINER(활성 구독 차단·PII sentinel 치환·cancelled/expired 구독 DELETE 단일 트랜잭션), ② `rateLimit.ts` `account_delete` 프리셋(3req/15m) + `logger.ts` `account.delete.blocked/success/failed` 이벤트, ③ `POST /api/account/delete` 8단계 플로우(CSRF→RateLimit→getClaims→confirm '탈퇴'→RPC→admin.deleteUser→signOut→log), 409 `subscription_active` / 500 orphan 경로 방어, ④ `MyPagePage.tsx` `confirmWithdraw()` 실제 API 연동(409/429/일반 오류 토스트 분기), ⑤ `route.test.ts` 6 케이스(401/400/409/500/200/invalid_json). 219/219 그린 · tsc clean · build 성공.)
 
 ---
 

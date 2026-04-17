@@ -16,6 +16,9 @@
                      브루트포스성 호출 차단. payments-flow.md §3.1 기준.
    - guest_pin     : 게스트 주문조회 PIN 검증 (5 req / 600s)
                      PIN 브루트포스 방어 — OWASP ASVS §6.6.3 준수 (느슨한 IP 단위)
+   - account_delete: 회원 탈퇴 엔드포인트 (3 req / 900s)
+                     비가역 작업 — 최엄격. 실수/오폭주 방지 + subscription_active
+                     재시도 여유(해지 페이지 이동 후 재시도) 고려.
 
    개발 환경 패스스루:
    - UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN 미설정 시 rate limiting 비활성화.
@@ -33,7 +36,8 @@ export type RateLimitPreset =
   | 'auth_callback'
   | 'order_create'
   | 'payment_confirm'
-  | 'guest_pin';
+  | 'guest_pin'
+  | 'account_delete';
 
 const LIMITS: Record<RateLimitPreset, { requests: number; window: string }> = {
   auth_initiate: { requests: 10, window: '1 m' },
@@ -42,6 +46,8 @@ const LIMITS: Record<RateLimitPreset, { requests: number; window: string }> = {
   payment_confirm: { requests: 10, window: '1 m' },
   /* 게스트 PIN: 10 분 윈도우로 넓혀 브루트포스 완화 */
   guest_pin: { requests: 5, window: '10 m' },
+  /* 회원 탈퇴: 비가역 — 15 분 윈도우 3 회. 정기배송 해지 후 재시도 여유 확보 */
+  account_delete: { requests: 3, window: '15 m' },
 };
 
 /* ── 모듈 수준 singleton (Next.js 워커 재사용) ── */
