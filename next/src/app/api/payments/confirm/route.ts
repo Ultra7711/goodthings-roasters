@@ -36,6 +36,7 @@ import {
   PaymentServiceError,
 } from '@/lib/services/paymentService';
 import { sendOrderConfirmationEmail } from '@/lib/email/notifications';
+import { logPaymentEvent, safeErrorMessage } from '@/lib/logging/paymentLogger';
 
 export async function POST(request: Request): Promise<Response> {
   /* 1) CSRF 가드 */
@@ -94,8 +95,10 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    /* DB 오류 등 — 서버 로그에만 스택 남김 */
-    console.error('[POST /api/payments/confirm] unexpected error', err);
+    /* Session 8 보안 #4: 프로덕션에서는 err.message only, stack 은 dev/staging. */
+    logPaymentEvent('error', 'confirm_unexpected_error', {
+      errorMessage: safeErrorMessage(err),
+    });
     return apiError('server_error');
   }
 }

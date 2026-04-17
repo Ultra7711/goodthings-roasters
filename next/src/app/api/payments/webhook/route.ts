@@ -38,6 +38,7 @@ import {
   handleVirtualAccountWebhook,
   type WebhookResult,
 } from '@/lib/services/webhookService';
+import { logPaymentEvent, safeErrorMessage } from '@/lib/logging/paymentLogger';
 
 /* ══════════════════════════════════════════
    응답 빌더
@@ -100,7 +101,9 @@ export async function POST(request: Request): Promise<Response> {
   try {
     raw = await request.text();
   } catch (err) {
-    console.error('[POST /api/payments/webhook] body read failed', err);
+    logPaymentEvent('error', 'webhook_body_read_failed', {
+      errorMessage: safeErrorMessage(err),
+    });
     return apiError('validation_failed', { detail: 'body_read_failed' });
   }
 
@@ -142,8 +145,11 @@ export async function POST(request: Request): Promise<Response> {
     /* eventType 자체가 문자열이 아님 — 진짜 파싱 실패 */
     return apiError('validation_failed', { detail: 'schema_invalid' });
   } catch (err) {
-    /* DB/네트워크 등 예기치 못한 실패 — 500 로 Toss 재시도 유도 */
-    console.error('[POST /api/payments/webhook] unexpected error', err);
+    /* DB/네트워크 등 예기치 못한 실패 — 500 로 Toss 재시도 유도.
+       Session 8 보안 #4: 프로덕션에서는 err.message only. */
+    logPaymentEvent('error', 'webhook_unexpected_error', {
+      errorMessage: safeErrorMessage(err),
+    });
     return apiError('server_error');
   }
 }

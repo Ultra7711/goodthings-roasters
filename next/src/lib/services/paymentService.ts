@@ -37,6 +37,7 @@
 
 import { isPgUniqueViolation } from '@/lib/payments/idempotency';
 import { maskTossPayload } from '@/lib/payments/mask';
+import { logPaymentEvent, maskPaymentKey } from '@/lib/logging/paymentLogger';
 import {
   confirmPayment as tossConfirmPayment,
   TossApiError,
@@ -323,9 +324,10 @@ function deriveRpcParams(
   if (!approvedAt) {
     approvedAt = new Date().toISOString();
     approvedAtFallback = true;
-    console.warn('[paymentService] approvedAt missing from Toss response — fallback to server now()', {
+    /* Session 8 보안 #4: paymentKey 평문 금지 → maskPaymentKey 로 치환. */
+    logPaymentEvent('warn', 'approved_at_fallback', {
       orderId: order.id,
-      paymentKey: tossResponse.paymentKey,
+      paymentKeyMasked: maskPaymentKey(tossResponse.paymentKey),
       fallbackApprovedAt: approvedAt,
     });
   }
