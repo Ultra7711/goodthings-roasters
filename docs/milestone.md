@@ -29,7 +29,7 @@
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
 | User AI | 0 | 0 | 1 | 0% |
 
-**현재 위치:** Backend P2-D Session 11 완료. **다음: Session 12+ — P2-F RLS/RBAC.**
+**현재 위치:** Backend Session 12 완료 — DB 카트 인프라 + `cart_items` RLS. **다음: Session 13 — RBAC (admin/customer) + 카트 UI 연동.**
 
 ---
 
@@ -80,8 +80,9 @@
 | Session 7 | B-5 정산 RPC + Resend 인프라 + Pass 1 A안 | ✅ |
 | Session 8 | 결제 보안 하드닝 #1~#4 + 통합 테스트 A/C/B | ✅ |
 | Session 11 | P2-D Resend 이메일 템플릿 + 보안 #3-4b (prod `?orderNumber=` 차단) | ✅ |
-| **Session 12+** | **P2-F RLS / RBAC** | **⬜ (다음)** |
-| Session 13+ | P2-G 프로덕션 / P2-H 인프라 | ⬜ |
+| Session 12 | P2-F DB 카트 인프라 — `cart_items` 테이블 + RLS 4종 + Repo/Service/API/테스트 | ✅ |
+| **Session 13+** | **P2-F RBAC (admin/customer 역할 분리) + 카트 UI 연동** | **⬜ (다음)** |
+| Session 14+ | P2-G 프로덕션 / P2-H 인프라 | ⬜ |
 | 차후 | P2-C 정기배송 엔진 | ⬜ (정책 확정 대기) |
 
 > 세부 세션별 범위는 `memory/project_backend_p2_session_plan.md` 참조.
@@ -102,8 +103,8 @@
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| P2-2 Supabase RLS 정책 (앱 레벨) | ⬜ | P0 에서 6개 테이블 + 정책 11개 선적용 완료. `cart_items` 등 앱 레벨 확장은 Session 12+ |
-| RBAC / 인가 정책 | ⬜ | admin/customer 역할 분리 (Session 12+) |
+| P2-2 Supabase RLS 정책 (앱 레벨) | 🟡 | P0 6 테이블 + Session 12 `cart_items` 4 정책 적용. 이후 앱 레벨 신규 테이블 시 확장 |
+| RBAC / 인가 정책 | ⬜ | admin/customer 역할 분리 (Session 13+) |
 | 최종 보안 감사 | ⬜ | P2-2 완료 후 security-reviewer 전면 감사 |
 
 #### Payment & Order 잔여
