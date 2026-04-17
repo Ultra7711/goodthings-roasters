@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 진행 상태를 추적합니다.
 >
 > **운용 모드:** 이미지 모드 (Photoshop 기반 시안 + 마크다운 스펙 문서)
-> **최종 업데이트:** 2026-04-17 (Backend P2-B Session 8 D-2/D-3 완료 — 트랜잭셔널 메일 템플릿 3종 + 훅 통합. ① D-2 HTML 템플릿: `welcomeEmail.ts`(신규 가입), `orderConfirmationEmail.ts`(주문 확인 · 상품 테이블 + 가상계좌 안내), `shippingNotificationEmail.ts`(배송 시작 · 송장번호), ② D-3 `notifications.ts` fire-and-forget 래퍼 3종 — `sendWelcomeEmail` / `sendOrderConfirmationEmail`(orders+order_items DB fetch) / `sendShippingNotificationEmail`, ③ `confirm/route.ts` 결제 승인 후 `void sendOrderConfirmationEmail` 주입(롤백 없음 원칙), ④ kakao/naver OAuth callback `allow_new + !isSyntheticEmail` 조건 `void sendWelcomeEmail` 주입. 213/213 그린 · tsc clean · build 성공. 커밋 `fca12329`)
+> **최종 업데이트:** 2026-04-17 (Backend P2-B Session 8 D-4 Pass 1 완료 — code/security 리뷰 전면 반영. ① `utils.ts` 신규: `esc()`(HTML 5종 이스케이프) + `stripNewlines()`(CRLF 제거), ② 템플릿 3종 esc() 전면 적용(XSS HIGH-1), ③ orderNumber stripNewlines() → subject CRLF 인젝션 방어(MEDIUM-2), ④ notifications.ts idempotencyKey 특수문자 정규화(HIGH-2), ShippingOrderRow 명시 타입·as string 제거, 에러 코드만 로깅, ⑤ Kakao/Naver OAuth callback createUser 에러 체크 후 환영 메일 조건부 발송(HIGH-3). 213/213 그린 · tsc clean · build 성공. 커밋 `acfb0d2d`)
 
 ---
 
@@ -29,7 +29,7 @@
 | Phase 5 — Quality Assurance | 3 | 0 | 0 | 3 | 0% |
 | User AI | 1 | 0 | 0 | 1 | 0% |
 
-**현재 위치: Backend P2-B Session 8 D-2/D-3 완료 (트랜잭셔널 메일 템플릿 3종 + 훅 통합). 다음: D-4 code/security 리뷰 → 또는 E 회원탈퇴(B-6) · B-6 보안 4건 · 통합 테스트 중 선택**
+**현재 위치: Backend P2-B Session 8 D-4 Pass 1 완료 (트랜잭셔널 메일 전체 완료). 다음 옵션: A 회원탈퇴(E 시리즈) · B 웹훅 배송훅 연동 · C 리뷰 Deferred 처리 · D F-RLS/RBAC**
 
 ---
 
