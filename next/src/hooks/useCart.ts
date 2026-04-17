@@ -8,9 +8,11 @@
    전환: AuthSyncProvider 가 auth 이벤트 시 `queryClient.invalidateQueries(['cart'])`.
 
    낙관적 업데이트:
-   - onMutate: 캐시 스냅샷 + 즉시 업데이트
-   - onError: 스냅샷 복원 + toast (호출부 책임)
+   - onMutate: 캐시 스냅샷 + 즉시 업데이트 + wasLoggedIn 캡처 → context
+   - onError: 스냅샷 복원 + console.error (호출부 toast 는 mutation.isError 관찰)
    - onSettled: 로그인 모드만 invalidateQueries (게스트는 localStorage 원천)
+   - auth race 방어: onError/onSettled 는 context.wasLoggedIn 참조. mutationFn 만
+     fresh read (실제 race window 는 onMutate → mutationFn enqueue 사이 sub-ms).
    ══════════════════════════════════════════════════════════════════════════ */
 
 'use client';
@@ -142,7 +144,10 @@ async function fetchCart(): Promise<CartItem[]> {
     method: 'GET',
     credentials: 'same-origin',
   });
-  if (!res.ok) return [];
+  if (!res.ok) {
+    /* silent-fail 방지: throw → useCartQuery.isError 활성, UI 에서 오류 표시 가능 */
+    throw new Error(`cart_fetch_${res.status}`);
+  }
   const body = (await res.json()) as ApiEnvelope<{ items: ServerCartRow[] }>;
   const rows = body.data?.items ?? [];
   return rows.map(mapRowToCartItem).filter((i): i is CartItem => i !== null);
@@ -179,7 +184,7 @@ export function useCartQuery() {
    Mutations
    ══════════════════════════════════════════ */
 
-type MutationCtx = { previous: CartItem[] | undefined };
+type MutationCtx = { previous: CartItem[] | undefined; wasLoggedIn: boolean };
 
 export function useAddCartItem() {
   const queryClient = useQueryClient();
@@ -187,12 +192,7 @@ export function useAddCartItem() {
   return useMutation<void, Error, AddToCartPayload, MutationCtx>({
     mutationFn: async (payload) => {
       const isLoggedIn = useAuthStore.getState().isLoggedIn;
-      if (!isLoggedIn) {
-        /* 게스트: localStorage 쓰기는 onMutate 에서 이미 반영 */
-        const current = readGuestCart();
-        writeGuestCart(current); /* no-op sync — 캐시 반영 보장은 onSettled */
-        return;
-      }
+      if (!isLoggedIn) return; /* 게스트: onMutate 에서 localStorage 반영 완료 */
       const input = payloadToInput(payload);
       if (!input) throw new Error('invalid_payload');
       const res = await fetch('/api/cart', {
@@ -206,6 +206,7 @@ export function useAddCartItem() {
     onMutate: async (payload) => {
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
       const previous = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY);
+      const wasLoggedIn = useAuthStore.getState().isLoggedIn;
       const current = previous ?? [];
       const idx = findDuplicateIdx(current, payload);
       let next: CartItem[];
@@ -219,18 +220,18 @@ export function useAddCartItem() {
         next = [...current, newGuestCartItem(payload)];
       }
       queryClient.setQueryData<CartItem[]>(CART_QUERY_KEY, next);
-      /* 게스트는 localStorage 도 동기화 */
-      if (!useAuthStore.getState().isLoggedIn) writeGuestCart(next);
-      return { previous };
+      if (!wasLoggedIn) writeGuestCart(next);
+      return { previous, wasLoggedIn };
     },
-    onError: (_err, _payload, context) => {
+    onError: (err, _payload, context) => {
+      console.error('[useAddCartItem] failed', err);
       if (context?.previous !== undefined) {
         queryClient.setQueryData(CART_QUERY_KEY, context.previous);
-        if (!useAuthStore.getState().isLoggedIn) writeGuestCart(context.previous);
+        if (!context.wasLoggedIn) writeGuestCart(context.previous);
       }
     },
-    onSettled: () => {
-      if (useAuthStore.getState().isLoggedIn) {
+    onSettled: (_data, _err, _payload, context) => {
+      if (context?.wasLoggedIn) {
         void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
       }
     },
@@ -264,6 +265,7 @@ export function useUpdateCartQty() {
     onMutate: async ({ id, delta }) => {
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
       const previous = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY);
+      const wasLoggedIn = useAuthStore.getState().isLoggedIn;
       const current = previous ?? [];
       let nextQty = 0;
       const next = current.map((item) => {
@@ -272,17 +274,18 @@ export function useUpdateCartQty() {
         return { ...item, qty: nextQty };
       });
       queryClient.setQueryData<CartItem[]>(CART_QUERY_KEY, next);
-      if (!useAuthStore.getState().isLoggedIn) writeGuestCart(next);
-      return { previous, nextQty };
+      if (!wasLoggedIn) writeGuestCart(next);
+      return { previous, wasLoggedIn, nextQty };
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
+      console.error('[useUpdateCartQty] failed', err);
       if (context?.previous !== undefined) {
         queryClient.setQueryData(CART_QUERY_KEY, context.previous);
-        if (!useAuthStore.getState().isLoggedIn) writeGuestCart(context.previous);
+        if (!context.wasLoggedIn) writeGuestCart(context.previous);
       }
     },
-    onSettled: () => {
-      if (useAuthStore.getState().isLoggedIn) {
+    onSettled: (_data, _err, _vars, context) => {
+      if (context?.wasLoggedIn) {
         void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
       }
     },
@@ -305,32 +308,34 @@ export function useRemoveCartItem() {
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
       const previous = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY);
+      const wasLoggedIn = useAuthStore.getState().isLoggedIn;
       const next = (previous ?? []).filter((i) => i.id !== id);
       queryClient.setQueryData<CartItem[]>(CART_QUERY_KEY, next);
-      if (!useAuthStore.getState().isLoggedIn) writeGuestCart(next);
-      return { previous };
+      if (!wasLoggedIn) writeGuestCart(next);
+      return { previous, wasLoggedIn };
     },
-    onError: (_err, _id, context) => {
+    onError: (err, _id, context) => {
+      console.error('[useRemoveCartItem] failed', err);
       if (context?.previous !== undefined) {
         queryClient.setQueryData(CART_QUERY_KEY, context.previous);
-        if (!useAuthStore.getState().isLoggedIn) writeGuestCart(context.previous);
+        if (!context.wasLoggedIn) writeGuestCart(context.previous);
       }
     },
-    onSettled: () => {
-      if (useAuthStore.getState().isLoggedIn) {
+    onSettled: (_data, _err, _id, context) => {
+      if (context?.wasLoggedIn) {
         void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
       }
     },
   });
 }
 
-/** 로컬 캐시·스토리지만 비움. 서버 전체 삭제는 별도 API 필요 시 추가.
- *  OrderCompletePage 에서 결제 성공 후 호출 — 서버는 이미 주문 생성 시 카트 정리됨. */
+/** 로컬 캐시·스토리지만 비움. 서버 카트는 주문 RPC 가 이미 정리.
+ *  로그인 모드 invalidate 제거 — setQueryData([]) 직후 refetch 가 서버
+ *  정리 완료 전 시점이면 빈 카트를 이전 데이터로 덮을 수 있음 (TS H-2). */
 export function useClearCart() {
   const queryClient = useQueryClient();
   return () => {
     queryClient.setQueryData<CartItem[]>(CART_QUERY_KEY, []);
     if (!useAuthStore.getState().isLoggedIn) clearGuestCart();
-    else void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
   };
 }

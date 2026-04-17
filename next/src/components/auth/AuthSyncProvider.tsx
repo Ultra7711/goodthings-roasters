@@ -56,10 +56,18 @@ export default function AuthSyncProvider({ children }: Props) {
         setUser(mapUser(session.user));
 
         /* guest cart → DB 1회 흡수. merge 종료 후 ['cart'] invalidate →
-           useCartQuery 가 서버 카트를 재페치. fire-and-forget. */
-        void mergeGuestCartToServer(session.user.id).finally(() => {
-          void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
-        });
+           useCartQuery 가 서버 카트를 재페치. fire-and-forget.
+           merge 실패는 console.error 로 노출 (silent F-03) — 사용자 toast 는
+           상위 레이어에서 결정, 여기는 invalidate 로 서버 권위 동기화만 보장. */
+        void mergeGuestCartToServer(session.user.id)
+          .then((result) => {
+            if (result.status === 'error') {
+              console.error('[AuthSync] cart merge failed', result.detail);
+            }
+          })
+          .finally(() => {
+            void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+          });
       } else if (event === 'SIGNED_OUT') {
         const prevUserId = useAuthStore.getState().user?.id;
         if (prevUserId) clearMergeFlag(prevUserId);
