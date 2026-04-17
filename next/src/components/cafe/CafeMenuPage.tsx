@@ -42,14 +42,6 @@ export default function CafeMenuPage() {
   const [nutriId, setNutriId] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
 
-  // 헤더 Menu 재클릭 시 진입 연출 재트리거용 카운터.
-  // - CafeMenuCard key 에 포함되어 동일 filter 에서도 카드 remount → IntersectionObserver
-  //   상태 초기화 + 등장 연출 재생
-  // - 래퍼(cm-anim) 자체는 재생하지 않음 → 탭 전환과 동일한 속도감 유지
-  // - SiteHeader 는 레이아웃 트리 외부에 있어 props 로 직접 연결 불가 → window 커스텀
-  //   이벤트(`gtr:menu-reset`) 기반 브리지 사용 (ShopPage 와 동일한 패턴)
-  const [resetTick, setResetTick] = useState(0);
-
   // body element — callback ref 로 받아서 scrollRoot 전달 시 리렌더 트리거 보장
   const [bodyEl, setBodyEl] = useState<HTMLDivElement | null>(null);
 
@@ -112,11 +104,10 @@ export default function CafeMenuPage() {
   }, [bodyEl]);
 
   /* SiteHeader 의 Menu 링크를 /menu 내에서 클릭했을 때 발송되는
-     'gtr:menu-reset' 이벤트 수신 → 필터/페이지 초기화 + 스크롤 top + 카드 remount.
-     SiteHeader 는 컴포넌트 트리 외부(레이아웃)에 있어 props 로 직접
-     연결할 수 없으므로 window 커스텀 이벤트 기반 브리지를 사용.
-     resetTick 은 CafeMenuCard key 에 포함되어 동일 filter 상태에서도 remount 강제.
-     cm-anim 래퍼는 재생하지 않아 탭 전환과 동일한 타이밍으로 카드가 올라오게 한다. */
+     'gtr:menu-reset' 이벤트 수신 → 필터/페이지 초기화 + 스크롤 top.
+     동일 filter 상태에서는 카드 remount 를 강제하지 않는다 — 뷰포트에 이미
+     보이는 카드가 opacity 1→0→1 로 되감겨 플리커로 보이는 이슈 방지.
+     필터가 바뀌는 경우에만 자연스럽게 remount. (ShopPage 와 동일 패턴) */
   useEffect(() => {
     function onReset() {
       setFilter('all');
@@ -124,7 +115,6 @@ export default function CafeMenuPage() {
       setNutriId(null);
       setHighlightId(null);
       window.scrollTo({ top: 0, behavior: 'instant' });
-      setResetTick((n) => n + 1);
     }
     window.addEventListener('gtr:menu-reset', onReset);
     return () => window.removeEventListener('gtr:menu-reset', onReset);
@@ -207,7 +197,6 @@ export default function CafeMenuPage() {
         items={items}
         filterKey={filter}
         pageKey={currentPage}
-        resetTick={resetTick}
         highlightId={highlightId}
         scrollRoot={bodyEl}
         onOpenNutrition={handleOpenNutrition}

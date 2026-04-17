@@ -17,10 +17,6 @@ const CARD_BASE_DELAY_INIT = 420; // 초기 로드: 탭(0.3s) 등장 후 카드 
 export default function ShopPage() {
   const [filter, setFilter] = useState<FilterKey>('all');
   const [page, setPage] = useState(1);
-  // 헤더 Shop 메뉴 재클릭 시 진입 연출 재트리거용 카운터.
-  // - sp-anim 클래스 재토글 useEffect 의 dep
-  // - ShopCard key 에 포함되어 동일 filter 에서도 카드 remount → 등장 연출 재생
-  const [resetTick, setResetTick] = useState(0);
   // body element — callback ref 로 받아 scrollRoot 전달 시 리렌더 트리거 보장
   const [bodyEl, setBodyEl] = useState<HTMLDivElement | null>(null);
   // 초기 진입 플래그 — 최초 마운트에만 true 여서 첫 카드 stagger 에 0.42s 의
@@ -42,18 +38,16 @@ export default function ShopPage() {
   }, [bodyEl]);
 
   /* SiteHeader 의 Shop 링크를 /shop 내에서 클릭했을 때 발송되는
-     'gtr:shop-reset' 이벤트 수신 → 필터/페이지 초기화 + 스크롤 top + 카드 remount.
-     SiteHeader 는 컴포넌트 트리 외부(레이아웃)에 있어 props 로 직접
-     연결할 수 없으므로 window 커스텀 이벤트 기반 브리지를 사용.
-     resetTick 은 ShopCard key 에 포함되어 동일 filter 상태에서도 remount 를 강제.
-     sp-anim 래퍼는 재생하지 않고 isInitRef 도 그대로 두어 탭 전환과 동일한 타이밍
-     (baseDelay 0, col stagger +70ms)으로 카드가 올라오게 한다. */
+     'gtr:shop-reset' 이벤트 수신 → 필터/페이지 초기화 + 스크롤 top.
+     동일 filter 상태에서는 카드 remount 를 강제하지 않는다 — 이미 뷰포트에
+     보이는 카드가 opacity 1→0→1 로 되감기며 플리커로 보이는 이슈가 있어,
+     필터 전환과 동일하게 filter 가 바뀌는 경우에만 자연스럽게 remount 되도록
+     한다. 스크롤 top + 필터 리셋 만으로도 "초기 상태 복귀" 피드백은 충분. */
   useEffect(() => {
     function onReset() {
       setFilter('all');
       setPage(1);
       window.scrollTo({ top: 0, behavior: 'instant' });
-      setResetTick((n) => n + 1);
     }
     window.addEventListener('gtr:shop-reset', onReset);
     return () => window.removeEventListener('gtr:shop-reset', onReset);
@@ -95,7 +89,7 @@ export default function ShopPage() {
       <div id="sp-grid">
         {items.map((product, i) => (
           <ShopCard
-            key={`${resetTick}-${filter}-${product.slug}`}
+            key={`${filter}-${product.slug}`}
             product={product}
             colIndex={i % COLS}
             isSubFilter={filter === 'sub'}
