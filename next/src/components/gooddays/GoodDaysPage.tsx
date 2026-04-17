@@ -41,7 +41,7 @@ export default function GoodDaysPage() {
   const rootRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const [anim, setAnim] = useState(false);
-  const [resetTick, setResetTick] = useState(0);
+  const [resetTick] = useState(0);
   /* 라이트박스 portal 은 document.body 가 존재해야 렌더 가능 — SSR/hydration 회피.
      mount 직후 1회성 true 전환 — SiteHeader.tsx L40 setMounted 컨벤션 동일. */
   const [mounted, setMounted] = useState(false);
@@ -128,11 +128,11 @@ export default function GoodDaysPage() {
     return () => io.disconnect();
   }, [rows, resetTick]);
 
-  /* same-page reentry — SiteHeader Good Days 링크 재클릭 시 발송 */
+  /* same-page reentry — SiteHeader Good Days 링크 재클릭 시 발송.
+     Menu/Shop 과 동일하게 스크롤 top 만 수행 — entrance 애니메이션은 재생하지 않음. */
   useEffect(() => {
     function onReset() {
       window.scrollTo({ top: 0, behavior: 'instant' });
-      setResetTick((t) => t + 1);
     }
     window.addEventListener('gtr:gooddays-reset', onReset);
     return () => window.removeEventListener('gtr:gooddays-reset', onReset);

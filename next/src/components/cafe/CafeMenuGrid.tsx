@@ -19,26 +19,33 @@ type Props = {
   pageKey: number;
   highlightId: string | null;
   scrollRoot: HTMLElement | null;
+  baseDelay?: number;
+  instant?: boolean;
   onOpenNutrition: (id: string) => void;
 };
 
 export default function CafeMenuGrid({
   items,
-  filterKey,
-  pageKey,
+  filterKey: _filterKey,
+  pageKey: _pageKey,
   highlightId,
   scrollRoot,
+  baseDelay = 0,
+  instant = false,
   onOpenNutrition,
 }: Props) {
   return (
     <div id="cm-grid">
       {items.map((item, i) => (
+        // key 는 item.id — 공통 아이템은 persist. 새로 mount 되는 카드는 instant=true 일 때 애니 스킵.
         <CafeMenuCard
-          key={`${filterKey}-${pageKey}-${item.id}`}
+          key={item.id}
           item={item}
           colIndex={i % 3}
           scrollRoot={scrollRoot}
           isHighlight={highlightId === item.id}
+          baseDelay={baseDelay}
+          instant={instant}
           onOpenNutrition={onOpenNutrition}
         />
       ))}

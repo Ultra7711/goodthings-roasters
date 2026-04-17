@@ -57,6 +57,8 @@ type Props = {
   colIndex: number; // 0~2, reveal stagger 용
   scrollRoot: HTMLElement | null;
   isHighlight: boolean;
+  baseDelay?: number; // 초기 로드 시 추가 딜레이(ms) — 필터 전환 시는 0 (ShopCard 와 동일)
+  instant?: boolean; // 탭 전환 후 새 카드 mount 시 true — entry 애니메이션 완전 스킵
   onOpenNutrition: (id: string) => void;
 };
 
@@ -65,9 +67,11 @@ export default function CafeMenuCard({
   colIndex,
   scrollRoot,
   isHighlight,
+  baseDelay = 0,
+  instant = false,
   onOpenNutrition,
 }: Props) {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(instant);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // 스크롤 reveal — one-shot IntersectionObserver (RP-5d)
@@ -110,7 +114,7 @@ export default function CafeMenuCard({
         (visible ? ' cm-visible' : '') +
         (isHighlight ? ' cm-card--highlight' : '')
       }
-      style={{ transitionDelay: `${colIndex * STAGGER_MS}ms` }}
+      style={{ transitionDelay: `${baseDelay + colIndex * STAGGER_MS}ms` }}
       onClick={handleOpen}
       role="button"
       tabIndex={0}

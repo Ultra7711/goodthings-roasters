@@ -210,10 +210,38 @@ export default function SiteHeader() {
 
           {/* 네비게이션 */}
           <nav className="hdr-nav" aria-label="메인 내비게이션">
-            <Link href="/story" className="nav-link" onClick={handleStoryClick}>The Story</Link>
-            <Link href="/menu" className="nav-link" onClick={handleMenuClick}>Menu</Link>
-            <Link href="/shop" className="nav-link" onClick={handleShopClick}>Shop</Link>
-            <Link href="/gooddays" className="nav-link" onClick={handleGoodDaysClick}>Good Days</Link>
+            <Link
+              href="/story"
+              className="nav-link"
+              aria-current={pathname.startsWith('/story') ? 'page' : undefined}
+              onClick={handleStoryClick}
+            >
+              The Story
+            </Link>
+            <Link
+              href="/menu"
+              className="nav-link"
+              aria-current={pathname.startsWith('/menu') ? 'page' : undefined}
+              onClick={handleMenuClick}
+            >
+              Menu
+            </Link>
+            <Link
+              href="/shop"
+              className="nav-link"
+              aria-current={pathname.startsWith('/shop') ? 'page' : undefined}
+              onClick={handleShopClick}
+            >
+              Shop
+            </Link>
+            <Link
+              href="/gooddays"
+              className="nav-link"
+              aria-current={pathname.startsWith('/gooddays') ? 'page' : undefined}
+              onClick={handleGoodDaysClick}
+            >
+              Good Days
+            </Link>
           </nav>
 
           {/* 아이콘 버튼 그룹 */}

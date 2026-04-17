@@ -40,17 +40,17 @@ function paragraphs(body: string) {
 export default function StoryPage() {
   const bodyRef = useRef<HTMLDivElement | null>(null);
   /* 헤더 Story 재클릭 시 sr/hero 연출을 다시 트리거하기 위한 카운터 */
-  const [resetTick, setResetTick] = useState(0);
+  const [resetTick] = useState(0);
   /* 히어로 텍스트 페이드: 마운트 + resetTick 변경 시 false → true 로 전환 */
   const [heroEnVisible, setHeroEnVisible] = useState(false);
   const [heroKrVisible, setHeroKrVisible] = useState(false);
 
   /* SiteHeader 의 The Story 링크 재클릭 시 발송되는 'gtr:story-reset' 수신 →
-     스크롤 top + resetTick 증가 (samepage_reentry_animation 패턴) */
+     스크롤 top 만. Menu/Shop 과 동일하게 같은 페이지 재클릭 시 entrance 애니메이션은
+     재생하지 않는다 (resetTick 증가 제거). */
   useEffect(() => {
     function onReset() {
       window.scrollTo({ top: 0, behavior: 'instant' });
-      setResetTick((n) => n + 1);
     }
     window.addEventListener('gtr:story-reset', onReset);
     return () => window.removeEventListener('gtr:story-reset', onReset);

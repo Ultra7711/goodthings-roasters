@@ -27,6 +27,8 @@ import {
 } from '@/lib/cafeMenu';
 
 const HIGHLIGHT_MS = 1500;
+// ShopPage 와 동일 — 탭(0.3s) 등장 후 카드 시작, 진입 후엔 0
+const CARD_BASE_DELAY_INIT = 420;
 
 export default function CafeMenuPage() {
   const searchParams = useSearchParams();
@@ -47,6 +49,10 @@ export default function CafeMenuPage() {
 
   // highlight timeout 을 ref 로 관리해 연속 URL 변경 시 경합 방지
   const highlightTimeoutRef = useRef<number | null>(null);
+
+  // 초기 진입 플래그 — ShopPage 와 동일. 최초 마운트에만 true 여서 첫 카드 stagger 에
+  // 420ms baseDelay 부여 (탭 0.3s 등장 직후 카드 따라옴). 이후 필터 전환에서는 0.
+  const isInitRef = useRef(true);
 
   // ───────────────────────────────────────────
   // Adjusting state during render — urlFilter / searchParams prop 동기화
@@ -93,6 +99,18 @@ export default function CafeMenuPage() {
     }
   }
 
+  // 전체 메뉴 이미지 프리로드 — 최초 마운트에 1회.
+  // 탭 전환 시 새로 mount 되는 카드가 네트워크에서 이미지를 받느라 배경색만 잠깐
+  // 보이는 깜빡임 방지. 브라우저 캐시에 올려두면 이후 탭 전환은 즉시 표시됨.
+  useEffect(() => {
+    CAFE_MENU.forEach((item) => {
+      if (item.img) {
+        const img = new Image();
+        img.src = item.img;
+      }
+    });
+  }, []);
+
   // 페이지 진입 연출 — bodyEl 이 붙는 순간 cm-anim 토글 (최초 마운트에만).
   // 헤더 Menu 재클릭 시엔 래퍼 연출을 재생하지 않고 카드만 remount 되도록 해
   // "탭 전환과 동일한 속도감"을 유지한다. (ShopPage 와 동일 패턴)
@@ -101,24 +119,29 @@ export default function CafeMenuPage() {
     bodyEl.classList.remove('cm-anim');
     void bodyEl.offsetHeight;
     bodyEl.classList.add('cm-anim');
+    // 진입 연출 완료 → 이후 필터 전환은 baseDelay 0
+    isInitRef.current = false;
   }, [bodyEl]);
 
   /* SiteHeader 의 Menu 링크를 /menu 내에서 클릭했을 때 발송되는
-     'gtr:menu-reset' 이벤트 수신 → 필터/페이지 초기화 + 스크롤 top.
-     동일 filter 상태에서는 카드 remount 를 강제하지 않는다 — 뷰포트에 이미
-     보이는 카드가 opacity 1→0→1 로 되감겨 플리커로 보이는 이슈 방지.
-     필터가 바뀌는 경우에만 자연스럽게 remount. (ShopPage 와 동일 패턴) */
+     'gtr:menu-reset' 이벤트 수신 → 스크롤 top + cm-anim 래퍼 리빌 재생만 수행.
+     필터/페이지는 건드리지 않는다 — 필터가 바뀌면 카드가 remount 되며
+     fade-in 재생이 겹쳐 "과한 연출" 로 보이기 때문. 열려있는 영양정보 시트와
+     하이라이트는 진입 초기 상태로 돌리기 위해 정리. (ShopPage 와 동일 패턴) */
   useEffect(() => {
     function onReset() {
-      setFilter('all');
-      setPage(1);
       setNutriId(null);
       setHighlightId(null);
       window.scrollTo({ top: 0, behavior: 'instant' });
+      if (bodyEl) {
+        bodyEl.classList.remove('cm-anim');
+        void bodyEl.offsetHeight;
+        bodyEl.classList.add('cm-anim');
+      }
     }
     window.addEventListener('gtr:menu-reset', onReset);
     return () => window.removeEventListener('gtr:menu-reset', onReset);
-  }, []);
+  }, [bodyEl]);
 
   // highlight 자동 소거 — highlightId 가 새로 세팅될 때마다 이전 timer 초기화 후 재등록
   useEffect(() => {
@@ -199,6 +222,8 @@ export default function CafeMenuPage() {
         pageKey={currentPage}
         highlightId={highlightId}
         scrollRoot={bodyEl}
+        baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
+        instant={!isInitRef.current}
         onOpenNutrition={handleOpenNutrition}
       />
 

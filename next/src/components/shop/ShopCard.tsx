@@ -21,9 +21,10 @@ type Props = {
   isSubFilter: boolean;
   scrollRoot: HTMLElement | null;
   baseDelay?: number; // 초기 로드 시 추가 딜레이(ms) — 필터 전환 시는 0
+  instant?: boolean; // 탭 전환 후 새 카드 mount 시 true — entry 애니메이션 완전 스킵
 };
 
-export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot, baseDelay = 0 }: Props) {
+export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot, baseDelay = 0, instant = false }: Props) {
   const router = useRouter();
   const addCart = useAddCartItem();
 
@@ -31,7 +32,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   const [qaClosing, setQaClosing] = useState(false);
   const [qaBarText, setQaBarText] = useState('빠른 추가');
   const [activeVolIdx, setActiveVolIdx] = useState(() => findFirstAvailVolIdx(p));
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(instant);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

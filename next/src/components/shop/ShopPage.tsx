@@ -25,6 +25,19 @@ export default function ShopPage() {
   // useRef 사용: render 중 읽히지만 setState-in-effect 룰과의 충돌을 피하기 위한 의도.
   const isInitRef = useRef(true);
 
+  // 전체 상품 이미지 프리로드 — 최초 마운트에 1회.
+  // 탭 전환 시 새 카드 mount 로 인한 이미지 로드 깜빡임 방지.
+  useEffect(() => {
+    PRODUCTS.forEach((p) => {
+      p.images.forEach((im) => {
+        if (im.src) {
+          const img = new Image();
+          img.src = im.src;
+        }
+      });
+    });
+  }, []);
+
   // 페이지 진입 연출 — 프로토타입 sp-anim 클래스 트리거 (최초 마운트에만).
   // 헤더 Shop 재클릭 시엔 래퍼 연출을 재생하지 않고 카드만 remount 되도록 해
   // "탭 전환과 동일한 속도감"을 유지한다.
@@ -38,20 +51,22 @@ export default function ShopPage() {
   }, [bodyEl]);
 
   /* SiteHeader 의 Shop 링크를 /shop 내에서 클릭했을 때 발송되는
-     'gtr:shop-reset' 이벤트 수신 → 필터/페이지 초기화 + 스크롤 top.
-     동일 filter 상태에서는 카드 remount 를 강제하지 않는다 — 이미 뷰포트에
-     보이는 카드가 opacity 1→0→1 로 되감기며 플리커로 보이는 이슈가 있어,
-     필터 전환과 동일하게 filter 가 바뀌는 경우에만 자연스럽게 remount 되도록
-     한다. 스크롤 top + 필터 리셋 만으로도 "초기 상태 복귀" 피드백은 충분. */
+     'gtr:shop-reset' 이벤트 수신 → 스크롤 top + sp-anim 래퍼 리빌 재생만 수행.
+     필터/페이지는 건드리지 않는다 — 필터가 바뀌면 카드가 remount 되며
+     fade-in 재생이 겹쳐 "과한 연출" 로 보이기 때문. 동일 필터 재클릭과 동일한
+     조용한 진입 느낌을 모든 경우에 유지. */
   useEffect(() => {
     function onReset() {
-      setFilter('all');
-      setPage(1);
       window.scrollTo({ top: 0, behavior: 'instant' });
+      if (bodyEl) {
+        bodyEl.classList.remove('sp-anim');
+        void bodyEl.offsetHeight;
+        bodyEl.classList.add('sp-anim');
+      }
     }
     window.addEventListener('gtr:shop-reset', onReset);
     return () => window.removeEventListener('gtr:shop-reset', onReset);
-  }, []);
+  }, [bodyEl]);
 
   const filtered = filterProducts(PRODUCTS, filter);
   const totalPages = Math.max(1, Math.ceil(filtered.length / SP_PER_PAGE));
@@ -89,12 +104,13 @@ export default function ShopPage() {
       <div id="sp-grid">
         {items.map((product, i) => (
           <ShopCard
-            key={`${filter}-${product.slug}`}
+            key={product.slug}
             product={product}
             colIndex={i % COLS}
             isSubFilter={filter === 'sub'}
             scrollRoot={bodyEl}
             baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
+            instant={!isInitRef.current}
           />
         ))}
       </div>
