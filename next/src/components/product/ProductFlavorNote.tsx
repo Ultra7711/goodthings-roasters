@@ -290,6 +290,7 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
   return (
     <div id="pd-note-section" className="pd-info-section">
       <h3 className="pd-section-title">Flavor Note</h3>
+      <p className="pd-section-intro">다섯 가지 요소로 구성한 풍미 프로필입니다.</p>
       <div id="pd-note-layout">
         <div id="pd-radar-wrap">
           <canvas id="pd-radar-canvas" width={500} height={500} ref={canvasRef} />

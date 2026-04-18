@@ -148,6 +148,7 @@ export default function ProductRoastStage({ roastStage }: Props) {
   return (
     <div id="pd-roast-section" className="pd-info-section" ref={sectionRef}>
       <h3 className="pd-section-title">Roasting Stage</h3>
+      <p className="pd-section-intro">원두의 로스팅 단계를 5단계로 표시합니다.</p>
       <div id="pd-roast-bar">
         <div id="pd-roast-segments" ref={segsWrapRef}>
           {SEG_COLORS.map((c, i) => (

@@ -3567,16 +3567,18 @@ footer.blk {
   background: var(--color-background-secondary);
 }
 
-/* ── 레시피 가이드 (Coffee Bean) ── */
-#pd-recipe-intro {
+/* ── 섹션 intro (Roasting/Flavor/Recipe 공통) ── */
+.pd-section-intro {
   font-family: var(--font-kr);
-  font-size: var(--type-heading-s-size);
+  font-size: var(--type-body-m-size);
   font-weight: 400;
   color: var(--color-text-secondary);
-  line-height: 1.8;
-  margin-bottom: 28px;
+  line-height: 1.7;
+  margin: -6px 0 24px;
   white-space: pre-line;
 }
+
+/* ── 레시피 가이드 (Coffee Bean) ── */
 #pd-recipe-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3596,7 +3598,6 @@ footer.blk {
   align-self: stretch;
 }
 .pd-recipe-card {
-  /* 옵션 B: 카드 헤더 = 196×196 컬러 일러스트 → 메서드 라벨 → 표/본문 */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3626,20 +3627,22 @@ footer.blk {
   color: var(--color-text-primary);
   line-height: 1.2;
   text-align: center;
-  /* 일러스트와 본문 사이 구분선 */
+  /* 메서드와 표 사이 구분선 */
   padding-bottom: 14px;
   border-bottom: 1px solid var(--color-border-tertiary);
   align-self: stretch;
 }
 .pd-recipe-table {
+  /* 가장 긴 값을 기준으로 박스 폭 자동 결정 후 카드 내 중앙 정렬 */
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: max-content max-content;
   row-gap: 6px;
   column-gap: var(--gap-lg);
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   align-items: center;
-  align-self: stretch;
+  width: fit-content;
+  margin: 0 auto;
 }
 .pd-recipe-dt {
   font-weight: 500;

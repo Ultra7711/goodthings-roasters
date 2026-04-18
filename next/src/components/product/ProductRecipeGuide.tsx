@@ -14,9 +14,6 @@ type Props = {
   product: Product;
 };
 
-const COFFEE_INTRO =
-  '굳띵즈 커피를 더욱 맛있게 즐길 수 있는 레시피입니다.\n굳띵즈의 커피를 맛있게 즐겨보세요.';
-
 const ILLUST_SIZE = 196;
 
 /** Coffee Bean 메서드 → 일러스트 파일 슬러그 */
@@ -32,15 +29,15 @@ export default function ProductRecipeGuide({ product }: Props) {
 
   if (isDripBag) {
     const dr = DRIP_BAG_RECIPE;
-    const steps: { num: '01' | '02' | '03'; text: string; src: string }[] = [
-      { num: '01', text: dr.step1, src: '/images/icons/recipe_dripbag_01.svg' },
-      { num: '02', text: dr.step2, src: '/images/icons/recipe_dripbag_02.svg' },
-      { num: '03', text: dr.step3, src: '/images/icons/recipe_dripbag_03.svg' },
+    const steps: { num: '01' | '02' | '03'; title: string; text: string; src: string }[] = [
+      { num: '01', title: '드립백 열기', text: dr.step1, src: '/images/icons/recipe_dripbag_01.svg' },
+      { num: '02', title: '향 즐기기', text: dr.step2, src: '/images/icons/recipe_dripbag_02.svg' },
+      { num: '03', title: '커피 내리기', text: dr.step3, src: '/images/icons/recipe_dripbag_03.svg' },
     ];
     return (
       <div id="pd-recipe-section" className="pd-info-section">
         <h3 className="pd-section-title">Recipe Guide</h3>
-        <p id="pd-recipe-intro">드립백을 가장 맛있게 즐길 수 있는 방법입니다.</p>
+        <p className="pd-section-intro">이 드립백을 더 맛있게 즐기는 방법입니다.</p>
         <div id="pd-recipe-cards" className="is-drip">
           {steps.map((s) => (
             <div key={s.num} className="pd-recipe-card">
@@ -56,7 +53,7 @@ export default function ProductRecipeGuide({ product }: Props) {
                   decoding="async"
                 />
               </div>
-              <div className="pd-recipe-method">STEP {s.num}</div>
+              <div className="pd-recipe-method">{s.title}</div>
               <p className="pd-drip-step-body">{s.text}</p>
             </div>
           ))}
@@ -76,7 +73,7 @@ export default function ProductRecipeGuide({ product }: Props) {
   return (
     <div id="pd-recipe-section" className="pd-info-section">
       <h3 className="pd-section-title">Recipe Guide</h3>
-      <p id="pd-recipe-intro">{COFFEE_INTRO}</p>
+      <p className="pd-section-intro">이 원두를 더 맛있게 즐기는 방법입니다.</p>
       <div id="pd-recipe-cards">
         {product.recipe.map((r) => {
           const slug = COFFEE_METHOD_SLUG[r.method];
