@@ -17,8 +17,15 @@ declare global {
       maps: {
         load: (cb: () => void) => void;
         LatLng: new (lat: number, lng: number) => unknown;
+        Size: new (w: number, h: number) => unknown;
+        Point: new (x: number, y: number) => unknown;
+        MarkerImage: new (
+          src: string,
+          size: unknown,
+          options?: { offset?: unknown },
+        ) => unknown;
         Map: new (container: HTMLElement, opts: { center: unknown; level: number }) => unknown;
-        Marker: new (opts: { position: unknown; map?: unknown }) => {
+        Marker: new (opts: { position: unknown; map?: unknown; image?: unknown }) => {
           setMap: (map: unknown) => void;
         };
         CustomOverlay: new (opts: {
@@ -29,6 +36,17 @@ declare global {
         }) => {
           setMap: (map: unknown) => void;
           getMap: () => unknown;
+        };
+        ZoomControl: new () => unknown;
+        ControlPosition: {
+          TOPLEFT: unknown;
+          TOP: unknown;
+          TOPRIGHT: unknown;
+          LEFT: unknown;
+          RIGHT: unknown;
+          BOTTOMLEFT: unknown;
+          BOTTOM: unknown;
+          BOTTOMRIGHT: unknown;
         };
         event: {
           addListener: (target: unknown, type: string, handler: () => void) => void;
@@ -74,19 +92,18 @@ type Props = {
   placeId?: string;
 };
 
-/* 말풍선 HTML 생성 — 상세·길찾기 두 버튼. 링크는 새 탭. */
+/* 말풍선 HTML 생성 — 길찾기·카카오맵 상세 두 버튼. 링크는 새 탭.
+   닫기: 마커 재클릭 또는 지도 빈 영역 클릭. */
 function buildOverlayContent({
   placeName,
   placeId,
   lat,
   lng,
-  onClose,
 }: {
   placeName: string;
   placeId?: string;
   lat: number;
   lng: number;
-  onClose: () => void;
 }): HTMLElement {
   const wrap = document.createElement('div');
   wrap.className = 'st-map-overlay';
@@ -97,18 +114,12 @@ function buildOverlayContent({
   const toHref = `https://map.kakao.com/link/to/${encodeURIComponent(placeName)},${lat},${lng}`;
 
   wrap.innerHTML = `
-    <button type="button" class="st-map-overlay-close" aria-label="닫기">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 3l8 8M11 3l-8 8"/></svg>
-    </button>
     <div class="st-map-overlay-name">${placeName}</div>
     <div class="st-map-overlay-actions">
-      <a class="st-map-overlay-btn" href="${detailHref}" target="_blank" rel="noopener noreferrer">카카오맵 상세</a>
-      <a class="st-map-overlay-btn st-map-overlay-btn--primary" href="${toHref}" target="_blank" rel="noopener noreferrer">길찾기</a>
+      <a class="st-map-overlay-btn" href="${toHref}" target="_blank" rel="noopener noreferrer">길찾기</a>
+      <a class="st-map-overlay-btn st-map-overlay-btn--primary" href="${detailHref}" target="_blank" rel="noopener noreferrer">카카오맵 상세</a>
     </div>
   `;
-
-  const closeBtn = wrap.querySelector<HTMLButtonElement>('.st-map-overlay-close');
-  closeBtn?.addEventListener('click', onClose);
 
   return wrap;
 }
@@ -138,24 +149,32 @@ export default function KakaoMap({
           if (cancelled || !containerRef.current) return;
           const kakao = window.kakao.maps;
           const center = new kakao.LatLng(lat, lng);
-          const map = new kakao.Map(containerRef.current, { center, level });
-          const marker = new kakao.Marker({ position: center, map });
+          const map = new kakao.Map(containerRef.current, { center, level }) as {
+            addControl: (control: unknown, position: unknown) => void;
+          };
+          /* 확대/축소 게이지 컨트롤 — 우측 중앙 */
+          map.addControl(new kakao.ZoomControl(), kakao.ControlPosition.RIGHT);
+          /* 브랜드 커스텀 마커 — 28×36 티어드롭, 바닥 중앙 앵커 */
+          const markerImage = new kakao.MarkerImage(
+            '/images/icons/map_marker.svg',
+            new kakao.Size(28, 36),
+            { offset: new kakao.Point(14, 36) },
+          );
+          const marker = new kakao.Marker({ position: center, map, image: markerImage });
 
           const overlay = new kakao.CustomOverlay({
             position: center,
-            content: buildOverlayContent({
-              placeName,
-              placeId,
-              lat,
-              lng,
-              onClose: () => overlay.setMap(null),
-            }),
+            content: buildOverlayContent({ placeName, placeId, lat, lng }),
             yAnchor: 1.35,
           });
 
           kakao.event.addListener(marker, 'click', () => {
             if (overlay.getMap()) overlay.setMap(null);
             else overlay.setMap(map);
+          });
+          /* 지도 빈 영역 클릭 → 말풍선 닫기 */
+          kakao.event.addListener(map, 'click', () => {
+            if (overlay.getMap()) overlay.setMap(null);
           });
         });
       })
