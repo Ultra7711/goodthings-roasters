@@ -234,7 +234,9 @@ export function useAddCartItem() {
     },
     onSettled: (_data, _err, _payload, context) => {
       if (context?.wasLoggedIn) {
-        void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+        queryClient
+          .invalidateQueries({ queryKey: CART_QUERY_KEY })
+          .catch((err) => console.error('[useCart] invalidate failed', err));
       }
     },
   });
@@ -288,7 +290,9 @@ export function useUpdateCartQty() {
     },
     onSettled: (_data, _err, _vars, context) => {
       if (context?.wasLoggedIn) {
-        void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+        queryClient
+          .invalidateQueries({ queryKey: CART_QUERY_KEY })
+          .catch((err) => console.error('[useCart] invalidate failed', err));
       }
     },
   });
@@ -325,7 +329,9 @@ export function useRemoveCartItem() {
     },
     onSettled: (_data, _err, _id, context) => {
       if (context?.wasLoggedIn) {
-        void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+        queryClient
+          .invalidateQueries({ queryKey: CART_QUERY_KEY })
+          .catch((err) => console.error('[useCart] invalidate failed', err));
       }
     },
   });
