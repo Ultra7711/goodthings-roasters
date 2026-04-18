@@ -35,48 +35,6 @@ import type { Subscription, SubscriptionCycle } from '@/types/subscription';
 import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
 
 /* ── SVG 아이콘 ── */
-function AddressIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20,10c0-4.4-3.6-8-8-8S4,5.6,4,10s5.5,10.2,7.4,11.8c.2.1.4.2.6.2s1.6-1.2,1.6-1.2" />
-      <circle cx="12" cy="10" r="3" />
-      <path d="M19,14v7" /><path d="M22.5,17.5h-7" />
-    </svg>
-  );
-}
-
-function EditIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12,3h-6c-1.1,0-2,.9-2,2v14c0,1.1.9,2,2,2h12c1.1,0,2-.9,2-2v-6" />
-      <path d="M18.4,2.6c.8-.8,2.2-.8,3,0s.8,2.2,0,3l-9,9c-.2.2-.5.4-.9.5l-2.9.8c-.3,0-.5,0-.6-.3v-.3l.8-2.9c0-.3.3-.6.5-.9L18.4,2.6Z" />
-    </svg>
-  );
-}
-
-function PasswordIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <ellipse cx="12" cy="7.7" rx="5.3" ry="5.2" strokeMiterlimit="10" />
-      <path d="M12,15c-3.8,0-5.4,2.7-6,6.1" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16.5,19h-6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M13,21.5v-2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="18.5" cy="19" r="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function WithdrawIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <ellipse cx="12" cy="7.7" rx="5.3" ry="5.2" strokeMiterlimit="10" />
-      <path d="M12,15c-3.8,0-5.4,2.7-6,6.1" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16,16l5,5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M21,16l-5,5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function ChevronDown() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -89,14 +47,6 @@ function ChevronRight() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9,6l6,6-6,6" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19,5l-14,14" /><path d="M5,5l14,14" />
     </svg>
   );
 }
@@ -372,7 +322,8 @@ export default function MyPagePage() {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    addrOpen ? setAddrOpen(false) : openAddrAccordion();
+                    if (addrOpen) setAddrOpen(false);
+                    else openAddrAccordion();
                   }
                 }}
               >
@@ -485,7 +436,8 @@ export default function MyPagePage() {
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          subEditId === sub.id ? setSubEditId(null) : openSubAccordion(sub);
+                          if (subEditId === sub.id) setSubEditId(null);
+                          else openSubAccordion(sub);
                         }
                       }}
                     >
@@ -558,7 +510,12 @@ export default function MyPagePage() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  pwOpen ? (pwForm.reset(), setPwOpen(false)) : openPwAccordion();
+                  if (pwOpen) {
+                    pwForm.reset();
+                    setPwOpen(false);
+                  } else {
+                    openPwAccordion();
+                  }
                 }
               }}
             >
