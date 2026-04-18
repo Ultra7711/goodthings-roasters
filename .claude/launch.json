@@ -20,6 +20,13 @@
       "runtimeArgs": ["run", "dev"],
       "cwd": "next",
       "port": 3000
+    },
+    {
+      "name": "design-polish",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "-p", "3002"],
+      "cwd": ".claude/worktrees/design-polish/next",
+      "port": 3002
     }
   ]
 }
