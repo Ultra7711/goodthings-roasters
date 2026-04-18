@@ -30,7 +30,7 @@ const CAT_CARDS = [
 
 export default function CafeMenuSection() {
   return (
-    <section className="blk blk--bg-secondary" id="cafe-menu-blk" data-header-theme="light">
+    <section className="blk blk--bg-secondary" id="cafe-menu-blk" data-header-theme="light" style={{ paddingBottom: '120px' }}>
       {/* 시즌 배너 */}
       <div className="season-banner-section" data-sr-toggle>
         <div className="season-banner">

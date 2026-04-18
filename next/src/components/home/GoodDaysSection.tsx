@@ -29,7 +29,7 @@ const PICKS = [
 
 export default function GoodDaysSection() {
   return (
-    <section className="blk" data-header-theme="light" data-sr-toggle>
+    <section className="blk blk--bg-secondary" data-header-theme="light" data-sr-toggle>
       <div className="gooddays-sec">
         <div className="moments-grid" id="main-gd-grid">
           {PICKS.map((img, i) => (

@@ -1185,7 +1185,7 @@ footer.blk {
 .img-dessert   { background: url('/images/sections/img_cafemenu_dessert_main.webp') center/cover no-repeat; }
 
 /* ══ .phil-section ══ */
-.phil-section { background: var(--color-surface-warm); margin-top: 120px; }
+.phil-section { background: var(--color-surface-warm); padding: 120px 0; }
 .phil {
   /* 공통 max-width 1440 그룹(.hdr, .hero-c, …, .phil, …)의 override:
      우측 이미지를 viewport 우측 끝까지 bleed하고, 이미지가 섹션 높이를
@@ -1458,12 +1458,12 @@ footer.blk {
 */
 .roastery {
   position: relative;
-  height: 560px;
-  background: var(--color-background-primary);
+  min-height: 680px;
+  padding-top: 120px;
+  background: var(--color-background-secondary);
   display: flex;
   align-items: flex-end;
   overflow: hidden;
-  margin-top: 120px;
   /* 1440 그리드 기준 좌측 25% 패널 경계:
      - ≤1440: 360px (고정 25%)
      - >1440: 360 + (100vw-1440)/2  (1440-centered 그리드의 좌측 25% 끝단) */
@@ -1475,7 +1475,9 @@ footer.blk {
   position: absolute;
   inset: 0;
   left: var(--roastery-panel-edge);
-  background: url('/images/sections/img_roastery.webp') center/cover no-repeat;
+  background:
+    linear-gradient(to bottom, transparent 75%, var(--color-background-secondary) 100%),
+    url('/images/sections/img_roastery.webp') center/cover no-repeat;
 }
 .roastery-c {
   position: relative;
@@ -1541,7 +1543,7 @@ footer.blk {
 }
 
 /* ══ .gooddays-sec (홈 모먼트 그리드) ══ */
-.gooddays-sec { padding: 80px 60px 60px; }
+.gooddays-sec { padding: 80px 60px 120px; }
 .moments-grid {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
@@ -3978,9 +3980,8 @@ footer.blk {
 
 /* ── Two-column 섹션 (COFFEE / BREWING / BAKERY) ── */
 .st-two-col {
-  padding: 0;
+  padding: 120px 0;
   overflow: hidden;
-  margin-top: 120px;
 }
 .st-two-col:last-of-type {
   margin-bottom: 0;
@@ -4040,10 +4041,8 @@ footer.blk {
   word-break: keep-all;
 }
 
-/* ── Promise 섹션 (센터 정렬, bg2 배경) ── */
+/* ── Promise 섹션 (센터 정렬, tertiary 배경) ── */
 .st-promise {
-  margin-top: 120px;
-  background: #e8e2da;
   padding: 120px 60px;
   text-align: center;
 }
