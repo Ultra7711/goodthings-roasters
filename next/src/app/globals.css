@@ -1672,7 +1672,7 @@ footer.blk {
   left: 0;
   height: 2px;
   width: 0;
-  background: var(--color-text-primary);
+  background: var(--color-accent-gold);
   transition: left var(--duration-transition) cubic-bezier(.4,0,.2,1),
               width var(--duration-transition) cubic-bezier(.4,0,.2,1);
   z-index: 1;
@@ -2062,7 +2062,7 @@ footer.blk {
   left: 0;
   height: 2px;
   width: 0;
-  background: var(--color-text-primary);
+  background: var(--color-accent-gold);
   transition: left var(--duration-transition) cubic-bezier(.4,0,.2,1),
               width var(--duration-transition) cubic-bezier(.4,0,.2,1);
   z-index: 1;
