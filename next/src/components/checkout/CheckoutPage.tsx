@@ -352,6 +352,8 @@ export default function CheckoutPage() {
         setSubmitting(false);
       }
     }
+    /* isMountedRef 는 ref — deps 불필요 (재생성 시 stale 위험 없음) */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submitting, clearErrors, validate, isLoggedIn, form, items, agreements, toast]);
 
   /* ── 하이드레이션 대기 스켈레톤 ──

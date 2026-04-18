@@ -216,6 +216,8 @@ export default function CafeMenuPage() {
         <CafeFilterTabs active={filter} onChange={handleFilterChange} />
       </div>
 
+      {/* isInitRef.current 는 mount 1회성 플래그 — 렌더 영향 없는 Ref 직접 참조 의도 */}
+      {/* eslint-disable react-hooks/refs */}
       <CafeMenuGrid
         items={items}
         filterKey={filter}
@@ -226,6 +228,7 @@ export default function CafeMenuPage() {
         instant={!isInitRef.current}
         onOpenNutrition={handleOpenNutrition}
       />
+      {/* eslint-enable react-hooks/refs */}
 
       <CafeNutritionSheet item={nutriItem} onClose={handleCloseNutrition} />
 

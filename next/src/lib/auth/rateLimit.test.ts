@@ -81,6 +81,7 @@ describe('checkRateLimitWith', () => {
 
   function makeLimiter(success: boolean) {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       limit: async (_key: string) => ({
         success,
         limit: 10,

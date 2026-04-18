@@ -154,6 +154,8 @@ export function usePasswordChangeForm({
     reset();
     onSuccess?.();
     return true;
+    /* KR_PW_ERRORS 는 모듈 상수 — deps 불필요 */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current, next, confirm, reset, onSuccess]);
 
   return {

@@ -73,6 +73,8 @@ export default function GoodDaysPage() {
     if (idx < 0) return;
     imgQueryHandledRef.current = true;
     // instant: transition 없이 즉시 검정 배경 표시 (화이트 flash 차단)
+    // 쿼리 진입 1회성 동기 set — useEffect 내 즉시 set 의도된 패턴
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLbInstant(true);
     setLightboxIdx(idx);
     setLbSettled(false);

@@ -26,8 +26,8 @@ type Props = {
 
 export default function CafeMenuGrid({
   items,
-  filterKey: _filterKey,
-  pageKey: _pageKey,
+  /* filterKey/pageKey 는 부모(CafeMenuPage)가 key 조립에 사용 — 이 컴포넌트
+     본문에서는 직접 참조하지 않으나 Props 시그니처는 호출 계약상 유지한다. */
   highlightId,
   scrollRoot,
   baseDelay = 0,

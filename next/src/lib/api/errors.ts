@@ -58,7 +58,8 @@ type DetailErrorBody = {
   detail?: string;
 };
 
-type ApiErrorBody = ValidationErrorBody | RateLimitedErrorBody | DetailErrorBody;
+/** 모든 에러 응답 바디의 합집합 — 클라이언트 파싱 시 활용 가능. */
+export type ApiErrorBody = ValidationErrorBody | RateLimitedErrorBody | DetailErrorBody;
 
 /* ── 성공 응답 ───────────────────────────────────────────────────────── */
 

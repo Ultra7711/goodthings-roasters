@@ -98,11 +98,9 @@ function payloadToInput(payload: AddToCartPayload) {
 }
 
 function newGuestCartItem(payload: AddToCartPayload): CartItem {
+  /* 'use client' 환경 — crypto.randomUUID 항상 사용 가능 (TS L-1) */
   return {
-    id:
-      typeof crypto !== 'undefined' && 'randomUUID' in crypto
-        ? crypto.randomUUID()
-        : `guest-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    id: crypto.randomUUID(),
     slug: payload.slug,
     name: payload.name,
     price: payload.price,
@@ -251,10 +249,11 @@ export function useUpdateCartQty() {
     { id: string; delta: number },
     MutationCtx & { nextQty: number }
   >({
-    mutationFn: async ({ id, delta: _delta }) => {
+    mutationFn: async ({ id }) => {
       const isLoggedIn = getSessionSnapshot().isLoggedIn;
       if (!isLoggedIn) return;
-      /* onMutate 에서 이미 nextQty 계산됨 — 캐시에서 다시 읽는다 */
+      /* delta 는 onMutate 에서 이미 nextQty 로 환산되어 캐시에 반영됨.
+         mutationFn 은 캐시의 최신 qty 만 서버로 전송한다. */
       const current = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY) ?? [];
       const target = current.find((i) => i.id === id);
       if (!target) return;

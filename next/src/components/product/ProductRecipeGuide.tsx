@@ -45,6 +45,8 @@ export default function ProductRecipeGuide({ product }: Props) {
           {steps.map((s) => (
             <div key={s.num} className="pd-recipe-card">
               <div className="pd-recipe-illust">
+                {/* SVG 일러스트 — 정적 width/height + lazy 로딩, next/image 의 추가 최적화 불필요 */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={s.src}
                   alt={`드립백 STEP ${s.num} 일러스트`}
@@ -82,6 +84,8 @@ export default function ProductRecipeGuide({ product }: Props) {
             <div key={r.method} className="pd-recipe-card">
               {slug && (
                 <div className="pd-recipe-illust">
+                  {/* SVG 일러스트 — 정적 width/height + lazy 로딩, next/image 의 추가 최적화 불필요 */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/images/icons/recipe_${slug}_large.svg`}
                     alt={`${r.method} 추출 기구 일러스트`}
