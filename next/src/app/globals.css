@@ -1892,7 +1892,7 @@ footer.blk {
   pointer-events: none;
   box-sizing: border-box;
 }
-.badge-new { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.badge-new { background: var(--color-status-new); color: var(--color-text-inverse); }
 .badge-pop-1 { background: var(--color-warning); }
 .badge-pop-2 { background: var(--color-error); }
 .badge-pop-3 { background: var(--color-error); }
@@ -5789,8 +5789,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-caption); background: var(--color-background-tertiary);
   line-height: 1; box-sizing: border-box;
 }
-.mp-order-status--shipping { color: var(--color-text-inverse); background: var(--color-text-tertiary); }
-.mp-order-status--delivered { color: var(--color-text-primary); background: var(--color-surface-warm); }
+.mp-order-status--shipping { color: var(--color-text-inverse); background: var(--color-status-live); }
+.mp-order-status--delivered { color: var(--color-text-inverse); background: var(--color-status-done); }
 .mp-order-summary {
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 500;
   color: var(--color-text-primary); margin-top: 12px;
