@@ -14,6 +14,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { FlavorNote } from '@/lib/products';
+import { easeBack, easeHoverOut } from '@/lib/ease';
 
 const LABELS = ['단맛', '무게감', '여운', '향', '산미'];
 const KEYS: (keyof FlavorNote)[] = ['sweet', 'body', 'aftertaste', 'aroma', 'acidity'];
@@ -64,12 +65,7 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
     let hoverT = 0;
     let isHovered = false;
 
-    const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
-    const easeBack = (t: number) => {
-      const c1 = 1.4;
-      const c3 = c1 + 1;
-      return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-    };
+    /* easeBack / easeHoverOut 은 lib/ease 에서 공유 (Roast 마커와 동일 커브) */
 
     const vtx = (i: number, prog: number) => {
       const a = angleOff + (2 * Math.PI * i) / N;
@@ -195,7 +191,7 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
       const hStart = performance.now();
       const step = (now: number) => {
         const raw = Math.min((now - hStart) / hoverDur, 1);
-        const eased = easeOut(raw);
+        const eased = easeHoverOut(raw);
         hoverT = fromT + (toT - fromT) * eased;
         drawStatic(hoverT);
         if (raw < 1) hoverRaf = requestAnimationFrame(step);
@@ -224,7 +220,7 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
       for (let i = 0; i < N; i++) {
         const vStart = i * stagger;
         const raw = Math.max(0, Math.min((elapsed - vStart) / vertexDur, 1));
-        progs.push(vals[i] === MAX_VAL ? easeOut(raw) : easeBack(raw));
+        progs.push(easeBack(raw));
       }
       drawData(progs, 0);
       ctx.restore();
