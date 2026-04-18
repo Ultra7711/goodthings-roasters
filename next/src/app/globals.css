@@ -767,6 +767,13 @@ footer.blk {
 }
 .f-biz-inline.open { max-height: 240px; opacity: 1; margin-top: 8px; }
 .f-biz-sep { padding: 0 .3em; }
+.f-biz-lookup {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--duration-hover) linear;
+}
+.f-biz-lookup:hover { color: var(--color-text-inverse); }
 
 /* ══ CTA 버튼 ══ */
 .cta-btn {

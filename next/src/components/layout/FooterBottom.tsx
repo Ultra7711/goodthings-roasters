@@ -37,6 +37,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { BUSINESS_INFO } from '@/lib/constants';
+
+/* 공정거래위원회 통신판매 사업자정보 조회 (전자상거래법 §13 의무) */
+const FTC_BIZ_LOOKUP_URL = `https://www.ftc.go.kr/bizCommPop.do?wrkr_no=${BUSINESS_INFO.registrationNumber.replace(/-/g, '')}`;
 
 // 루프 종료 후 패널 하단과 뷰포트 하단 사이에 유지할 여백
 const BIZ_DETAIL_BOTTOM_PADDING = 16;
@@ -155,11 +159,20 @@ export default function FooterBottom() {
         id="f-biz-detail"
         aria-hidden={!open}
       >
-        주식회사 브이티이코프<span className="f-biz-sep">·</span>
-        대표 김주호<span className="f-biz-sep">·</span>
-        사업자 등록번호 510-81-30238<span className="f-biz-sep">·</span>
-        통신판매업 신고번호 2023-경북구미-0508<span className="f-biz-sep">·</span>
-        주소 경북 구미시 인동21길 22-11<span className="f-biz-sep">·</span>
+        {BUSINESS_INFO.companyName}<span className="f-biz-sep">·</span>
+        대표 {BUSINESS_INFO.ceo}<span className="f-biz-sep">·</span>
+        사업자 등록번호 {BUSINESS_INFO.registrationNumber}<span className="f-biz-sep">·</span>
+        통신판매업 신고번호 {BUSINESS_INFO.onlineBusinessNumber}{' '}
+        <a
+          className="f-biz-lookup"
+          href={FTC_BIZ_LOOKUP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          [사업자정보 확인]
+        </a>
+        <span className="f-biz-sep">·</span>
+        주소 {BUSINESS_INFO.address}<span className="f-biz-sep">·</span>
         전화번호 {process.env.NEXT_PUBLIC_CONTACT_PHONE ?? '—'}<span className="f-biz-sep">·</span>
         이메일 {process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? '—'}
       </div>
