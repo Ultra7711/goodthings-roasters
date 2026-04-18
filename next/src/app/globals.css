@@ -1959,7 +1959,7 @@ footer.blk {
   left: 7px;
   right: 7px;
   height: 2px;
-  background: var(--color-text-primary);
+  background: var(--color-accent-gold);
 }
 .sp-pg-btn:hover { color: var(--color-text-primary); }
 .sp-pg-arrow {
@@ -3152,7 +3152,7 @@ footer.blk {
   left: 0;
   height: 2px;
   width: 0;
-  background: var(--color-text-primary);
+  background: var(--color-accent-gold);
   transition:
     left var(--duration-transition) cubic-bezier(.4, 0, .2, 1),
     width var(--duration-transition) cubic-bezier(.4, 0, .2, 1);
@@ -5132,7 +5132,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-payment-methods::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--color-border-secondary); }
 .chp-payment-indicator {
   position: absolute; bottom: 0; left: 0; width: 50%; height: 2px;
-  background: var(--color-text-primary);
+  background: var(--color-accent-gold);
   transition: transform var(--duration-transition) cubic-bezier(.4,0,.2,1);
   z-index: 1;
 }
