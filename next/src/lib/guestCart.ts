@@ -22,7 +22,14 @@ export function readGuestCart(): CartItem[] {
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
     return parsed as CartItem[];
-  } catch {
+  } catch (err) {
+    /* 손상 JSON: 로그 + 키 제거로 추적 가능, 영구 오염 방지 */
+    console.warn('[guestCart] parse error — resetting', err);
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* removeItem 도 실패하면 무시 */
+    }
     return [];
   }
 }
@@ -31,8 +38,9 @@ export function writeGuestCart(items: CartItem[]): void {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  } catch {
-    /* quota exceeded — 무시 */
+  } catch (err) {
+    /* quota exceeded 등 — UX 영향 추적용 로그 */
+    console.warn('[guestCart] write failed (quota?)', err);
   }
 }
 
@@ -40,7 +48,7 @@ export function clearGuestCart(): void {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    /* 무시 */
+  } catch (err) {
+    console.warn('[guestCart] clear failed', err);
   }
 }
