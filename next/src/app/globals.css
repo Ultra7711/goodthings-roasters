@@ -6359,3 +6359,40 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cp-order-btn:hover:not(:disabled) { opacity: .85; }
 .cp-order-btn:active:not(:disabled) { opacity: .7; }
 .cp-order-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ══ Step 3-A-4: Primary CTA hover gold rule ══
+   호버 시 하단 2px gold 인셋 선으로 state 시그널.
+   다크 bg 버튼 → gold-on-dark (#C28E5A)
+   라이트 bg 버튼 → gold (#A47146)
+   site-wide darken(opacity .85) 패턴과 병행 사용. */
+
+/* hover 미정의 CTA에 darken 통일 */
+.season-cta,
+.roastery-cta-btn {
+  transition: opacity var(--duration-hover) ease, box-shadow var(--duration-hover) var(--ease-default);
+}
+.season-cta:hover,
+.roastery-cta-btn:hover {
+  opacity: .85;
+}
+
+/* 다크 bg + 라이트 텍스트 CTA → gold-on-dark */
+.cta-btn-light-filled:hover,
+.cta-btn-dark-outline:hover,
+.season-cta:hover,
+.roastery-cta-btn:hover,
+.lp-submit-btn:hover,
+.lp-guest-buy-btn:hover,
+.chp-submit-btn:hover,
+.chp-login-primary-btn:hover,
+.ocp-btn-primary:hover,
+.cp-order-btn:hover:not(:disabled),
+.bi-submit-btn:hover {
+  box-shadow: inset 0 -2px 0 var(--color-accent-gold-on-dark);
+}
+
+/* 라이트 bg 버튼 → 기본 gold */
+.cta-btn-dark-filled:hover,
+.cta-btn-light-outline:hover {
+  box-shadow: inset 0 -2px 0 var(--color-accent-gold);
+}
