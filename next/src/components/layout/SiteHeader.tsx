@@ -38,7 +38,7 @@ export default function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const initialTheme = getInitialHeaderTheme(pathname);
-  const { isDark, skipTransition } = useHeaderTheme(headerRef, initialTheme);
+  const { isDark, skipTransition } = useHeaderTheme(headerRef, initialTheme, pathname);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');

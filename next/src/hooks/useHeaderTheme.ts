@@ -34,6 +34,11 @@ function isValidTheme(value: string | undefined): value is HeaderTheme {
 export function useHeaderTheme(
   headerRef: React.RefObject<HTMLElement | null>,
   initialTheme: HeaderTheme = 'dark',
+  /* pathname 포함 시 light ↔ light 라우트 전환(예: /shop ↔ /menu)에서도
+     hdr-on-secondary 등 pathname 기반 클래스 변경 전에 transition 을 차단.
+     initialTheme 만 deps 로 두면 light-to-light 는 skipTransition 이 발동하지
+     않아 배경 fade 가 보이는 이슈가 있음. */
+  pathname?: string,
 ) {
   /* SSR/hydration 초기값은 페이지별 설정을 따른다.
      틀린 값으로 시작하면 페이지 로드 직후 light ↔ dark 플래시가 발생함.
@@ -77,7 +82,7 @@ export function useHeaderTheme(
       cancelAnimationFrame(id1);
       cancelAnimationFrame(id2);
     };
-  }, [initialTheme]);
+  }, [initialTheme, pathname]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
