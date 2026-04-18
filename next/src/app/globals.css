@@ -267,6 +267,7 @@
   --ls-uppercase: .06em;
   --ls-label: .08em;
   --ls-label-wide: .1em;
+  --ls-editorial: .12em;
 
   /* ══ Icon color tokens — Foreground Opacity Policy ══
      원칙: foreground (icon stroke/fill, text) 는 불투명 단색 only.
@@ -1150,9 +1151,9 @@ footer.blk {
 .cat-title {
   font-family: var(--font-en);
   font-size: var(--type-price-m-size);
-  font-weight: 600;
+  font-weight: 300;
   color: var(--color-text-inverse);
-  letter-spacing: var(--ls-label);
+  letter-spacing: var(--ls-editorial);
   text-transform: uppercase;
   margin-bottom: 22px;
 }
