@@ -156,6 +156,10 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     e.stopPropagation();
     if (!qaOpen) { openQa(); return; }
 
+    /* 중복 클릭 가드 — closeQa() 250ms 트랜지션 동안 같은 mutate 가
+       이중 호출되어 카트 수량이 +2 되는 것을 막는다. (Session 15 code M-2) */
+    if (addCart.isPending) return;
+
     const vol = p.volumes[activeVolIdx];
     if (vol?.soldOut) { closeQa(); return; }
     addCart.mutate({

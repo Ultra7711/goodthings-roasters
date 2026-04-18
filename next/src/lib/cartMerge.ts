@@ -25,9 +25,9 @@ function hasVolume(item: CartItem): item is CartItem & { volume: string } {
 }
 
 export function toMergePayload(items: CartItem[]): CartMergeInput | null {
+  /* 단일 type-guard filter 로 hasVolume + qty>0 동시 처리 (TS M-3) */
   const mapped = items
-    .filter((i) => hasVolume(i) && i.qty > 0)
-    .filter(hasVolume)
+    .filter((i): i is CartItem & { volume: string } => hasVolume(i) && i.qty > 0)
     .map((i) => ({
       productSlug: i.slug,
       volume: i.volume,
@@ -39,7 +39,11 @@ export function toMergePayload(items: CartItem[]): CartMergeInput | null {
 
   if (mapped.length === 0) return null;
   const parsed = CartMergeSchema.safeParse({ items: mapped });
-  if (!parsed.success) return null;
+  if (!parsed.success) {
+    /* 스키마 변경/데이터 이상 감지용 — silent merge 탈락 방지 (silent F-05) */
+    console.warn('[cartMerge] schema validation failed', parsed.error.flatten());
+    return null;
+  }
   return parsed.data;
 }
 
