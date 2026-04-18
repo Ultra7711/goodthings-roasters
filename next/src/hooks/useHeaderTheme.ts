@@ -6,8 +6,12 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { HeaderTheme } from '@/types/navigation';
+
+/* SSR 환경에서 useLayoutEffect 경고 회피 — 브라우저에선 layout, 서버에선 no-op. */
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 /** dataset 값이 유효한 HeaderTheme인지 런타임 검증 */
 function isValidTheme(value: string | undefined): value is HeaderTheme {
@@ -56,7 +60,12 @@ export function useHeaderTheme(
   /* initialTheme prop 변경에 따른 헤더 테마 동기화 + transition 일시 차단 의도.
      route 전환 시 한 프레임 동안 transition 을 끊어야 헤더 배경 slow fade 이슈를 막을 수 있음. */
   /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
+  /* useLayoutEffect 사용 이유: 라우트 변경 직후 stale isDark 로 인한 첫 프레임
+     플래시 방지. useEffect 는 paint 이후 실행돼 Render 1 (이전 라우트의 isDark
+     잔존) 이 화면에 그려진 뒤에야 보정되지만, useLayoutEffect 는 paint 전에
+     동기 실행되므로 보정된 Render 2 가 첫 paint 가 된다.
+     예: Home(dark) → /shop(light) 진입 시 headerbg warm-white 번쩍임 제거. */
+  useIsomorphicLayoutEffect(() => {
     fallbackThemeRef.current = initialTheme;
     setIsDark(initialTheme === 'dark');
     setSkipTransition(true);
