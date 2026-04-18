@@ -2585,9 +2585,6 @@ footer.blk {
   gap: var(--gap-xs);
   transition: border-color var(--duration-hover) ease;
 }
-#cart-drawer-panel .cd-qty:hover {
-  border-color: var(--color-input-box-border-hover);
-}
 #cart-drawer-panel .cd-qty-btn {
   width: 24px;
   height: 24px;
@@ -3182,7 +3179,6 @@ footer.blk {
   align-items: center;
   transition: border-color var(--duration-hover) ease;
 }
-.pd-input-box:hover,
 .pd-input-box:focus-within {
   border-color: var(--color-input-box-border-hover);
 }
@@ -3223,7 +3219,7 @@ footer.blk {
     transform var(--duration-hover) ease;
   flex-shrink: 0;
 }
-.pd-input-box:hover .pd-input-box-chevron { color: var(--color-text-primary); }
+.pd-input-box-chevron:hover { color: var(--color-text-primary); }
 .pd-input-box[data-open="true"] .pd-input-box-chevron {
   transform: rotate(180deg);
   color: var(--color-text-primary);
