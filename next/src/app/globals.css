@@ -269,6 +269,16 @@
   --ls-label-wide: .1em;
   --ls-editorial: .12em;
 
+  /* ── chip 공통 (roast-pill · note-tag silhouette 일치) ── */
+  --chip-radius: 20px;
+  --chip-padding-y: 2px;
+  --chip-padding-x: 12px;
+  --chip-line-height: 18px;
+  --chip-font-size: var(--type-caption-size);
+  --chip-font-weight: 500;
+  --chip-letter-spacing: var(--ls-body-s);
+  --chip-border-width: 1px;
+
   /* ══ Icon color tokens — Foreground Opacity Policy ══
      원칙: foreground (icon stroke/fill, text) 는 불투명 단색 only.
            반투명은 배경/보더/그림자/오버레이 에만 허용 (알파 누적 → 교차점 진함 회피).
@@ -3499,10 +3509,14 @@ footer.blk {
   display: inline-block;
   background: #8b5e3c;
   color: var(--color-text-inverse);
-  border-radius: 20px;
-  padding: 2px 12px;
-  font-size: var(--type-caption-size);
-  font-weight: 500;
+  /* chip silhouette 토큰 — .pd-note-tag 와 높이 매칭 */
+  border: var(--chip-border-width) solid transparent;
+  border-radius: var(--chip-radius);
+  padding: var(--chip-padding-y) var(--chip-padding-x);
+  font-size: var(--chip-font-size);
+  font-weight: var(--chip-font-weight);
+  letter-spacing: var(--chip-letter-spacing);
+  line-height: var(--chip-line-height);
 }
 
 /* ── Flavor Note: 레이더 차트(센터) + 태그 pill(하단) ── */
@@ -3533,17 +3547,16 @@ footer.blk {
   margin-top: -40px;
 }
 .pd-note-tag {
-  /* Roasting Stage "미디엄" pill 과 사이즈 매칭
-     font-size/padding/line-height 동일, 외곽선 스타일만 유지 */
+  /* chip silhouette 토큰 — .pd-roast-pill 과 형태 일치, state 는 outline */
   font-family: var(--font-en);
-  font-size: var(--type-caption-size);
-  font-weight: 500;
-  letter-spacing: var(--ls-body-s);
+  font-size: var(--chip-font-size);
+  font-weight: var(--chip-font-weight);
+  letter-spacing: var(--chip-letter-spacing);
   color: var(--color-text-secondary);
-  padding: 2px 12px;
-  border: 1px solid var(--color-border-tertiary);
-  border-radius: 20px;
-  line-height: 18px;
+  padding: var(--chip-padding-y) var(--chip-padding-x);
+  border: var(--chip-border-width) solid var(--color-border-tertiary);
+  border-radius: var(--chip-radius);
+  line-height: var(--chip-line-height);
   white-space: nowrap;
   transition: color var(--duration-hover) ease,
               border-color var(--duration-hover) ease,
