@@ -2552,7 +2552,6 @@ footer.blk {
   font-size: var(--type-body-s-size);
   font-weight: 500;
   letter-spacing: var(--ls-button);
-  text-transform: uppercase;
   color: var(--color-text-inverse);
   background: #9C9890;
   padding: 0 10px;
@@ -6122,15 +6121,22 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-primary);
   white-space: nowrap;
 }
-.cp-item-badges { display: flex; gap: var(--gap-xs); flex-wrap: wrap; margin-top: 2px; }
+.cp-item-badges { display: flex; align-items: center; gap: var(--gap-xs); margin-top: 8px; }
 .cp-item-badge {
-  font-family: var(--font-kr);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-en);
   font-size: var(--type-body-s-size);
-  font-weight: 400;
-  color: var(--color-text-secondary);
-  padding: 2px 8px;
-  border: 1px solid var(--color-border-primary);
-  background: transparent;
+  font-weight: 500;
+  letter-spacing: var(--ls-button);
+  color: var(--color-text-inverse);
+  background: #9C9890;
+  padding: 0 10px;
+  height: 20px;
+  width: fit-content;
+  line-height: 1;
+  border-radius: 3px;
 }
 .cp-item-price {
   width: 128px; flex-shrink: 0; margin-right: 48px;
