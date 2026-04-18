@@ -26,6 +26,7 @@ import { openPostcode } from '@/lib/daumPostcode';
 import { useInputNav } from '@/hooks/useInputNav';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { useCartQuery } from '@/hooks/useCart';
+import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
 import { shakeFields } from '@/lib/shakeFields';
@@ -107,7 +108,8 @@ function CheckboxIcon({ checked }: { checked: boolean }) {
 export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const { show: toast } = useToast();
-  const { isLoggedIn } = useSupabaseSession();
+  const { isLoggedIn, isLoading: sessionLoading, user } = useSupabaseSession();
+  const { open: openDrawer } = useCartDrawer();
 
   /* ── 장바구니 (ADR-004 Step B: TanStack Query) ──
      isLoading: 최초 로드 중 — 스켈레톤 UI. BUG-003 근본 해결. */
@@ -158,6 +160,17 @@ export default function CheckoutPage() {
     setField, setPaymentMethod, toggleAgreement, toggleAllAgreements,
     revealForm, validate, clearErrors, blurEmail, blurPhone,
   } = useCheckoutForm();
+
+  /* ── 로그인 유저 자동 진입 (BUG-003) ──
+     서버 requireAuth() 통과 후에도 클라이언트가 게스트 UI 에 머무는 문제 해결.
+     INITIAL_SESSION 수신 후 로그인 상태이면 이메일 prefill + 폼 reveal. */
+  useEffect(() => {
+    if (sessionLoading) return;
+    if (!isLoggedIn || !user) return;
+    if (isFormRevealed) return;
+    if (user.email && !form.email) setField('email', user.email);
+    revealForm();
+  }, [sessionLoading, isLoggedIn, user, isFormRevealed, form.email, setField, revealForm]);
 
   /* ── 전화번호 ── */
   const { handleChangeValue: handlePhoneChange } = usePhoneFormat(
@@ -388,10 +401,10 @@ export default function CheckoutPage() {
           <Link href="/">
             <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />
           </Link>
-          <span className="hdr-icon-btn" style={{ position: 'relative' }} aria-label="장바구니">
+          <button className="hdr-icon-btn" type="button" onClick={openDrawer} style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} aria-label="장바구니">
             <CartIcon />
-            {totalQty > 0 && <span className="cart-badge">{totalQty}</span>}
-          </span>
+            {totalQty > 0 && <span className="cart-badge visible">{totalQty}</span>}
+          </button>
         </div>
       </div>
 
@@ -436,7 +449,7 @@ export default function CheckoutPage() {
           {isFormRevealed && (
             <>
               {/* 배송지 */}
-              <div className="chp-section">
+              <div className="chp-section chp-section--no-border">
                 <h2 className="chp-section-title">배송지</h2>
                 {/* 받는 분 */}
                 <TextField
