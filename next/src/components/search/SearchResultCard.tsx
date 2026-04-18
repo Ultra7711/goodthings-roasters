@@ -10,6 +10,7 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import HighlightText from './HighlightText';
+import { extractKrName } from '@/lib/utils';
 import type { SearchResult } from '@/lib/search/types';
 
 type Props = {
@@ -56,7 +57,7 @@ export default function SearchResultCard({ result }: Props) {
         <div className="search-result-info">
           <div className="search-result-category">{categoryLabel}</div>
           <div className="search-result-name">
-            <HighlightText text={p.name} spans={result.spans} field="name" />
+            <HighlightText text={extractKrName(p.name)} spans={result.spans} field="name" />
           </div>
           <div className="search-result-price">{p.price}</div>
         </div>

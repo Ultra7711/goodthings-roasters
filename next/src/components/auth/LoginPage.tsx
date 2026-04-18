@@ -21,6 +21,7 @@ import { useRegisterForm } from '@/hooks/useRegisterForm';
 import { useInputNav } from '@/hooks/useInputNav';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { isValidEmail, isValidOrderNumber } from '@/lib/validation';
+import { safeRedirectPath } from '@/lib/utils';
 import { useOrderNumberFormat } from '@/hooks/useOrderNumberFormat';
 import { shakeFields } from '@/lib/shakeFields';
 import { useToast } from '@/hooks/useToast';
@@ -103,6 +104,9 @@ export default function LoginPage() {
   /** 체크아웃에서 진입한 경우 */
   const fromCheckout = params.get('from') === 'checkout';
 
+  /** 로그인 후 돌아갈 경로 (?redirect=/path, 기본 /) — open redirect 방어 검증 */
+  const redirectTo = safeRedirectPath(params.get('redirect'), '/');
+
   const [mode, setMode] = useState<LoginMode>('login');
 
   /* ── 폼 refs + Enter 네비게이션 ── */
@@ -121,17 +125,18 @@ export default function LoginPage() {
   const handleGoogleLogin = useCallback(async () => {
     setSocialLoading('google');
     try {
-      const redirectTo = `${window.location.origin}/auth/callback${fromCheckout ? '?next=/checkout' : ''}`;
+      const nextPath = fromCheckout ? '/checkout' : redirectTo;
+      const callbackUrl = `${window.location.origin}/auth/callback${nextPath !== '/' ? `?next=${encodeURIComponent(nextPath)}` : ''}`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo },
+        options: { redirectTo: callbackUrl },
       });
       if (error) toast('로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     } catch {
       toast('로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       setSocialLoading(null);
     }
-  }, [fromCheckout, toast]);
+  }, [fromCheckout, redirectTo, toast]);
 
   const handleKakaoLogin = useCallback(() => {
     setSocialLoading('kakao');
@@ -144,8 +149,8 @@ export default function LoginPage() {
   }, []);
 
   /* ── 폼 훅 ── */
-  const loginForm = useLoginForm({ fromCheckout });
-  const registerForm = useRegisterForm();
+  const loginForm = useLoginForm({ fromCheckout, redirectTo });
+  const registerForm = useRegisterForm({ redirectTo });
 
   /* ── 비밀번호 재설정 (간이) ── */
   const [resetEmail, setResetEmail] = useState('');
@@ -182,9 +187,9 @@ export default function LoginPage() {
   const { isLoggedIn } = useSupabaseSession();
   useEffect(() => {
     if (isLoggedIn) {
-      router.replace(fromCheckout ? '/checkout' : '/mypage');
+      router.replace(fromCheckout ? '/checkout' : redirectTo);
     }
-  }, [isLoggedIn, router, fromCheckout]);
+  }, [isLoggedIn, router, fromCheckout, redirectTo]);
 
   /* ── OAuth 콜백 에러 표시 (?error=...) ──
      P1-1 account_conflict_* 포함 모든 OAuth 서버 에러를 toast로 안내.

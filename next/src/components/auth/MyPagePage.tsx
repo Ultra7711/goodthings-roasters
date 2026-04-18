@@ -35,48 +35,6 @@ import type { Subscription, SubscriptionCycle } from '@/types/subscription';
 import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
 
 /* ── SVG 아이콘 ── */
-function AddressIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20,10c0-4.4-3.6-8-8-8S4,5.6,4,10s5.5,10.2,7.4,11.8c.2.1.4.2.6.2s1.6-1.2,1.6-1.2" />
-      <circle cx="12" cy="10" r="3" />
-      <path d="M19,14v7" /><path d="M22.5,17.5h-7" />
-    </svg>
-  );
-}
-
-function EditIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12,3h-6c-1.1,0-2,.9-2,2v14c0,1.1.9,2,2,2h12c1.1,0,2-.9,2-2v-6" />
-      <path d="M18.4,2.6c.8-.8,2.2-.8,3,0s.8,2.2,0,3l-9,9c-.2.2-.5.4-.9.5l-2.9.8c-.3,0-.5,0-.6-.3v-.3l.8-2.9c0-.3.3-.6.5-.9L18.4,2.6Z" />
-    </svg>
-  );
-}
-
-function PasswordIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <ellipse cx="12" cy="7.7" rx="5.3" ry="5.2" strokeMiterlimit="10" />
-      <path d="M12,15c-3.8,0-5.4,2.7-6,6.1" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16.5,19h-6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M13,21.5v-2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="18.5" cy="19" r="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function WithdrawIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <ellipse cx="12" cy="7.7" rx="5.3" ry="5.2" strokeMiterlimit="10" />
-      <path d="M12,15c-3.8,0-5.4,2.7-6,6.1" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16,16l5,5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M21,16l-5,5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function ChevronDown() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -85,10 +43,10 @@ function ChevronDown() {
   );
 }
 
-function CloseIcon() {
+function ChevronRight() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19,5l-14,14" /><path d="M5,5l14,14" />
+      <path d="M9,6l6,6-6,6" />
     </svg>
   );
 }
@@ -307,7 +265,7 @@ export default function MyPagePage() {
   const hasAddress = !!user?.address;
   const addrDisplay = hasAddress
     ? `(${user!.address!.zipcode}) ${user!.address!.addr1}${user!.address!.addr2 ? ` ${user!.address!.addr2}` : ''}`
-    : '등록된 주소가 없습니다.';
+    : '등록된 배송지 정보가 없습니다.';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
@@ -344,6 +302,7 @@ export default function MyPagePage() {
           {/* ── 계정 정보 ── */}
           <div className="mp-section">
             <h2 className="mp-section-title">계정 정보</h2>
+            <div className="mp-section-body">
             <div className="mp-info-row">
               <span className="mp-info-label">이름</span>
               <span className="mp-info-value">{user?.name ?? displayName ?? ''}</span>
@@ -354,35 +313,44 @@ export default function MyPagePage() {
             </div>
             {/* 주소 행 */}
             <div className="mp-info-row mp-info-row--addr">
-              <div className="mp-info-row-top">
-                <span className={`mp-info-label${!hasAddress ? ' mp-addr-empty' : ''}`}>
-                  {hasAddress ? '주소' : addrDisplay}
-                </span>
+              <div
+                className="mp-info-row-top"
+                role="button"
+                tabIndex={0}
+                aria-label={addrOpen ? '닫기' : hasAddress ? '주소 편집' : '새 주소 추가'}
+                onClick={() => addrOpen ? setAddrOpen(false) : openAddrAccordion()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (addrOpen) setAddrOpen(false);
+                    else openAddrAccordion();
+                  }
+                }}
+              >
+                <span className="mp-info-label">배송지 정보</span>
                 <div className="mp-info-addr-right">
-                  {hasAddress && (
-                    <span className="mp-info-value mp-info-addr-text">{addrDisplay}</span>
-                  )}
-                  <button
-                    className="mp-addr-icon-btn"
-                    type="button"
-                    aria-label={addrOpen ? '닫기' : hasAddress ? '주소 편집' : '새 주소 추가'}
-                    onClick={() => addrOpen ? setAddrOpen(false) : openAddrAccordion()}
+                  <span
+                    className="mp-info-value mp-info-addr-text"
+                    style={!hasAddress ? { color: '#9C9890' } : undefined}
                   >
-                    {addrOpen ? <CloseIcon /> : hasAddress ? <EditIcon /> : <AddressIcon />}
-                  </button>
+                    {addrDisplay}
+                  </span>
+                  <span className="mp-addr-icon-btn" aria-hidden="true">
+                    {addrOpen ? <ChevronDown /> : <ChevronRight />}
+                  </span>
                 </div>
               </div>
               {/* 주소 아코디언 */}
               <div className={`mp-accordion${addrOpen ? ' open' : ''}`}>
                 <div className="mp-accordion-inner" ref={addrFormRef}>
                   <TextField
-                    label="이름"
+                    label="받는 분"
                     value={addressForm.form.name}
                     onChange={(v) => addressForm.setField('name', v)}
                     onClear={() => addressForm.setField('name', '')}
                     onKeyDown={addrNav}
                     error={addressForm.errors.name}
-                    helper="이름을 입력하세요."
+                    helper="받는 분의 이름을 입력하세요."
                   />
                   <TextField
                     type="tel"
@@ -446,33 +414,43 @@ export default function MyPagePage() {
                 </div>
               </div>
             </div>
+            </div>
           </div>
 
           {/* ── 정기배송 관리 ── */}
           <div className="mp-section mp-section--no-border">
             <h2 className="mp-section-title">정기배송 관리</h2>
+            <div className="mp-section-body">
             <div className="mp-sub-list">
               {subscriptions.length === 0 ? (
                 <div className="mp-empty-state">정기배송 내역이 없습니다.</div>
               ) : (
                 subscriptions.map((sub) => (
                   <div className="mp-sub-item" key={sub.id}>
-                    <div className="mp-sub-item-top">
+                    <div
+                      className="mp-sub-item-top"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={subEditId === sub.id ? '닫기' : '편집'}
+                      onClick={() => subEditId === sub.id ? setSubEditId(null) : openSubAccordion(sub)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          if (subEditId === sub.id) setSubEditId(null);
+                          else openSubAccordion(sub);
+                        }
+                      }}
+                    >
                       <div className="mp-sub-item-info">
                         <span className="mp-sub-item-name">
-                          {sub.name}
+                          {extractKrName(sub.name)}
                           <span className="mp-sub-item-vol"> · {sub.volume} · {sub.cycle}</span>
                         </span>
                         <span className="mp-sub-item-status">다음 배송 {sub.nextDate}</span>
                       </div>
-                      <button
-                        className="mp-icon-btn mp-sub-edit-btn"
-                        type="button"
-                        aria-label={subEditId === sub.id ? '닫기' : '편집'}
-                        onClick={() => subEditId === sub.id ? setSubEditId(null) : openSubAccordion(sub)}
-                      >
-                        {subEditId === sub.id ? <CloseIcon /> : <EditIcon />}
-                      </button>
+                      <span className="mp-icon-btn mp-sub-edit-btn" aria-hidden="true">
+                        {subEditId === sub.id ? <ChevronDown /> : <ChevronRight />}
+                      </span>
                     </div>
                     <div className={`mp-accordion mp-sub-accordion${subEditId === sub.id ? ' open' : ''}`}>
                       <div className="mp-accordion-inner">
@@ -516,22 +494,35 @@ export default function MyPagePage() {
                 ))
               )}
             </div>
+            </div>
           </div>
 
           {/* ── 계정 관리 ── */}
           <div className="mp-section mp-section--no-border">
             <h2 className="mp-section-title">계정 관리</h2>
-            <div className="mp-info-row mp-info-row--action">
+            <div className="mp-section-body">
+            <div
+              className="mp-info-row mp-info-row--action"
+              role="button"
+              tabIndex={0}
+              aria-label={pwOpen ? '닫기' : '비밀번호 변경'}
+              onClick={() => pwOpen ? (pwForm.reset(), setPwOpen(false)) : openPwAccordion()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  if (pwOpen) {
+                    pwForm.reset();
+                    setPwOpen(false);
+                  } else {
+                    openPwAccordion();
+                  }
+                }
+              }}
+            >
               <span className="mp-info-label">비밀번호 변경</span>
-              <button
-                className="mp-icon-btn"
-                type="button"
-                aria-label={pwOpen ? '닫기' : '비밀번호 변경'}
-                style={{ position: 'relative', top: 4 }}
-                onClick={() => pwOpen ? (pwForm.reset(), setPwOpen(false)) : openPwAccordion()}
-              >
-                {pwOpen ? <CloseIcon /> : <PasswordIcon />}
-              </button>
+              <span className="mp-icon-btn" aria-hidden="true" style={{ position: 'relative', top: 4 }}>
+                {pwOpen ? <ChevronDown /> : <ChevronRight />}
+              </span>
             </div>
             {/* 비밀번호 변경 아코디언 */}
             <div className={`mp-accordion${pwOpen ? ' open' : ''}`}>
@@ -590,8 +581,9 @@ export default function MyPagePage() {
                   setWithdrawOpen(true);
                 }}
               >
-                <WithdrawIcon />
+                <ChevronRight />
               </button>
+            </div>
             </div>
           </div>
         </div>
@@ -599,6 +591,7 @@ export default function MyPagePage() {
         {/* ══ 우측: 주문 내역 ══ */}
         <div className="mp-right">
           <h2 className="mp-section-title">주문 내역</h2>
+          <div className="mp-section-body">
           <div className="mp-order-list">
             {MOCK_ORDERS.length === 0 ? (
               <div className="mp-empty-state">주문 내역이 아직 없습니다.</div>
@@ -627,15 +620,21 @@ export default function MyPagePage() {
                         </button>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span className={`mp-order-status${order.status === '배송중' ? ' mp-order-status--shipping' : ' mp-order-status--delivered'}`}>
                         {order.status}
                       </span>
-                      <span className="mp-order-toggle"><ChevronDown /></span>
+                      <span className="mp-order-toggle">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9,6l6,6-6,6" />
+                        </svg>
+                      </span>
                     </div>
                   </div>
-                  <div className="mp-order-summary">{order.name}</div>
-                  <div className="mp-order-detail">{order.detail}</div>
+                  <div className="mp-order-summary">
+                    {extractKrName(order.name)}
+                    <span className="mp-order-detail"> · {order.detail}</span>
+                  </div>
                   <div className="mp-order-price-row">
                     <span className="mp-order-price">{order.price}</span>
                   </div>
@@ -667,6 +666,7 @@ export default function MyPagePage() {
                 </div>
               ))
             )}
+          </div>
           </div>
         </div>
       </div>

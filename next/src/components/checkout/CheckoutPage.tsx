@@ -28,7 +28,7 @@ import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { useCartQuery } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useToast } from '@/hooks/useToast';
-import { formatPrice } from '@/lib/utils';
+import { extractKrName, formatPrice } from '@/lib/utils';
 import { shakeFields } from '@/lib/shakeFields';
 import { TextField } from '@/components/ui/TextField';
 import { SearchIcon } from '@/components/ui/InputIcons';
@@ -403,7 +403,13 @@ export default function CheckoutPage() {
           <Link href="/">
             <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />
           </Link>
-          <button className="hdr-icon-btn" type="button" onClick={openDrawer} style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} aria-label="장바구니">
+          <button
+            type="button"
+            className="hdr-icon-btn"
+            style={{ position: 'relative' }}
+            aria-label="장바구니"
+            onClick={openDrawer}
+          >
             <CartIcon />
             {totalQty > 0 && <span className="cart-badge visible">{totalQty}</span>}
           </button>
@@ -732,7 +738,7 @@ export default function CheckoutPage() {
                   <span className="chp-sum-item-qty">{item.qty}</span>
                 </div>
                 <div className="chp-sum-item-info">
-                  <div className="chp-sum-item-name">{item.name}</div>
+                  <div className="chp-sum-item-name">{extractKrName(item.name)}</div>
                   <div className="chp-sum-item-badges">
                     {item.volume && <span className="chp-sum-item-badge">{item.volume}</span>}
                     {item.type === 'subscription' && item.period && (

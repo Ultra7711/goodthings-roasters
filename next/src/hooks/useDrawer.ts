@@ -35,13 +35,20 @@ export function useDrawer({ open, onClose }: UseDrawerArgs): void {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  // body scroll lock — 드로어 오픈 동안
+  // body scroll lock — 드로어 오픈 동안 + scrollbar-gutter 일시 해제
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
+    const html = document.documentElement;
+    const prevOverflow = document.body.style.overflow;
+    const prevGutter = html.style.scrollbarGutter;
+    // html { scrollbar-gutter: stable } 를 auto 로 해제 → ICB 가 전체 viewport 로 확장,
+    // fixed 드로어 패널의 right:0 이 true viewport 우측 끝에 정렬됨.
+    // 뒤쪽 콘텐츠는 backdrop 으로 덮이므로 gutter 해제로 인한 시프트가 보이지 않음.
+    html.style.scrollbarGutter = 'auto';
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevOverflow;
+      html.style.scrollbarGutter = prevGutter;
     };
   }, [open]);
 }

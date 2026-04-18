@@ -40,8 +40,15 @@ const supabaseAdmin = createClient(
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  /** 로그인 후 이동할 경로 (기본: /mypage) */
-  const next = searchParams.get('next') ?? '/mypage';
+  /** 로그인 후 이동할 경로 (기본: /) — open redirect 방어: 내부 경로만 허용 */
+  const nextRaw = searchParams.get('next') ?? '/';
+  const next =
+    nextRaw.startsWith('/') &&
+    !nextRaw.startsWith('//') &&
+    !nextRaw.startsWith('/\\') &&
+    !/^\/[a-z][a-z0-9+.-]*:/i.test(nextRaw)
+      ? nextRaw
+      : '/';
 
   const limited = await checkRateLimit(request, 'auth_callback');
   if (limited) return limited;

@@ -8,6 +8,11 @@
    ══════════════════════════════════════════ */
 
 import { useShopStatus } from '@/hooks/useShopStatus';
+import { STORY_LOCATION } from '@/lib/story';
+
+const KAKAO_DIRECTIONS_HREF = `https://map.kakao.com/link/to/${encodeURIComponent(
+  STORY_LOCATION.kakaoPlaceName,
+)},${STORY_LOCATION.lat},${STORY_LOCATION.lng}`;
 
 function HoursLabel() {
   const status = useShopStatus();
@@ -31,7 +36,7 @@ export default function RoasterySection() {
           </span>
           <a
             className="roastery-cta-btn sr-txt sr-txt--d4"
-            href="https://www.google.com/maps/place/%EA%B5%B3%EB%9D%B5%EC%A6%88/data=!3m1!4b1!4m6!3m5!1s0x3565c50004149c59:0x773edd85861bb816!8m2!3d36.0981256!4d128.4306089!16s%2Fg%2F11m6zd9r28!5m1!1e1?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3D"
+            href={KAKAO_DIRECTIONS_HREF}
             target="_blank"
             rel="noopener noreferrer"
           >

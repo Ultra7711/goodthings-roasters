@@ -75,7 +75,7 @@ function buildContentSecurityPolicy(nonce: string, isDev: boolean): string {
     // Supabase: HTTPS REST + WSS Realtime / TossPayments: 결제 API / Resend: 메일 트리거
     // OAuth providers: kakao/naver/google 토큰 교환
     `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.tosspayments.com https://pay.toss.im https://api.resend.com https://dapi.kakao.com https://openapi.naver.com https://accounts.google.com`,
-    `frame-src 'self' https://*.tosspayments.com https://pay.toss.im https://t1.daumcdn.net https://postcode.map.daum.net`,
+    `frame-src 'self' https://*.tosspayments.com https://pay.toss.im https://t1.daumcdn.net https://postcode.map.daum.net https://postcode.map.kakao.com`,
     `worker-src 'self' blob:`,
     `object-src 'none'`,
     `base-uri 'self'`,

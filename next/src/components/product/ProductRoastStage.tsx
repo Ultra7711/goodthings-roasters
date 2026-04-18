@@ -16,6 +16,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { Product } from '@/lib/products';
+import { EASE_BACK_CSS } from '@/lib/ease';
 
 const STAGES = ['light', 'medium-light', 'medium', 'medium-dark', 'dark'] as const;
 const STAGE_LABELS = ['라이트', '미디엄 라이트', '미디엄', '미디엄 다크', '다크'];
@@ -90,7 +91,7 @@ export default function ProductRoastStage({ roastStage }: Props) {
             marker.style.color = SEG_COLORS[0];
             const t = setTimeout(() => {
               marker.style.transition =
-                'left 1.5s cubic-bezier(.4,1.3,.5,1),width .25s ease-out,height .25s ease-out,border-color .15s ease';
+                `left 1.5s ${EASE_BACK_CSS},width .25s ease-out,height .25s ease-out,border-color .15s ease`;
               marker.style.left = `${markerPct}%`;
 
               /* 지나가는 단계 색상 실시간 반영 */
@@ -148,6 +149,7 @@ export default function ProductRoastStage({ roastStage }: Props) {
   return (
     <div id="pd-roast-section" className="pd-info-section" ref={sectionRef}>
       <h3 className="pd-section-title">Roasting Stage</h3>
+      <p className="pd-section-intro">원두의 로스팅 단계를 5단계로 표시합니다.</p>
       <div id="pd-roast-bar">
         <div id="pd-roast-segments" ref={segsWrapRef}>
           {SEG_COLORS.map((c, i) => (

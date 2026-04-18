@@ -21,6 +21,8 @@ type LoginFormErrors = {
 type UseLoginFormOptions = {
   /** 체크아웃에서 진입했는지 여부 (성공 시 리다이렉트 분기) */
   fromCheckout?: boolean;
+  /** 성공 시 이동할 경로 (open redirect 방어 검증 필요) */
+  redirectTo?: string;
 };
 
 type UseLoginFormReturn = {
@@ -50,7 +52,7 @@ function mapLoginError(message: string): string {
 export function useLoginForm(
   options: UseLoginFormOptions = {},
 ): UseLoginFormReturn {
-  const { fromCheckout = false } = options;
+  const { fromCheckout = false, redirectTo = '/' } = options;
 
   const router = useRouter();
 
@@ -92,8 +94,8 @@ export function useLoginForm(
 
   /** 로그인 성공 후 리다이렉트 */
   const redirectOnSuccess = useCallback(() => {
-    router.push(fromCheckout ? '/checkout' : '/mypage');
-  }, [router, fromCheckout]);
+    router.push(fromCheckout ? '/checkout' : redirectTo);
+  }, [router, fromCheckout, redirectTo]);
 
   /** 로그인 실행 (검증 통과 후) */
   const runLogin = useCallback(
