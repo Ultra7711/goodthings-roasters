@@ -1,0 +1,21 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+~$*
+
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+
+# Claude Code local settings
+.claude/
+
+# Original high-res images (webp conversions used instead)
+images/original/
+
+# Legacy / archive documents
+GOODTHINGS_Design_System_v1.3.md
+GOODTHINGS_Renewal_Project_v14.md
+goodthings_renewal_v14_archive.html
