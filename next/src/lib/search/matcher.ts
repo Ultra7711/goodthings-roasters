@@ -103,10 +103,39 @@ type LayerMatch = {
   spans: MatchSpan[];
 } | null;
 
+/**
+ * category 필드는 "non-coffee 논커피" · "Coffee Bean 커피빈 원두" 처럼
+ * 복수 토큰을 공백으로 이어붙여 인덱싱한다. L1 정규화는 공백도 strip 하므로
+ * 단순 substring 매치는 "커피" → "noncoffee논커피" 의 '논커피' 내부 hit,
+ * "coffee" → "noncoffee" 내부 hit 같은 오매칭을 낳는다 (BUG-005).
+ *
+ * 해결: category 필드 한정, raw 기준 토큰 경계 확인.
+ * 매치 시작의 raw 위치가 문자열 처음이거나 바로 앞 문자가 공백일 때만 허용.
+ * (하이픈은 boundary 가 아님 — "non-coffee" 의 "coffee" 는 거부되어야 함)
+ * prefix-of-token 은 허용 → "커피" 가 "커피빈" 머리에 걸리는 건 OK.
+ */
+function findBoundaryIndex(
+  field: IndexedField,
+  haystack: string,
+  needle: string,
+): number {
+  if (field.key !== 'category') return haystack.indexOf(needle);
+  let from = 0;
+  while (from <= haystack.length - needle.length) {
+    const idx = haystack.indexOf(needle, from);
+    if (idx < 0) return -1;
+    if (idx === 0) return idx;
+    const rawStart = field.rawOffsetByL1[idx];
+    if (rawStart === 0 || /\s/.test(field.raw[rawStart - 1])) return idx;
+    from = idx + 1;
+  }
+  return -1;
+}
+
 /** L1 직접 매치 — field.l1 에 normalizedQuery 가 포함되는가 */
 function tryLayer1(field: IndexedField, nQuery: string): LayerMatch {
   if (!nQuery) return null;
-  const idx = field.l1.indexOf(nQuery);
+  const idx = findBoundaryIndex(field, field.l1, nQuery);
   if (idx < 0) return null;
   const span = l1RangeToRawSpan(field, idx, nQuery.length);
   if (!span) return null;
@@ -121,7 +150,7 @@ function tryLayer1(field: IndexedField, nQuery: string): LayerMatch {
 /** L3 음운 정규화 매치 */
 function tryLayer3(field: IndexedField, l3Query: string): LayerMatch {
   if (!l3Query) return null;
-  const idx = field.l3.indexOf(l3Query);
+  const idx = findBoundaryIndex(field, field.l3, l3Query);
   if (idx < 0) return null;
   // L3 의 index 는 l1 문자 단위와 일치 (NFC 재조합 후 같은 음절 카운트).
   // 따라서 rawOffsetByL1 을 그대로 재사용 가능.
@@ -147,7 +176,7 @@ function tryLayer2(
     const nSyn = useL3 ? normalizeFull(syn) : normalizeL1(syn);
     const target = useL3 ? field.l3 : field.l1;
     if (!nSyn) continue;
-    const idx = target.indexOf(nSyn);
+    const idx = findBoundaryIndex(field, target, nSyn);
     if (idx < 0) continue;
     const span = l1RangeToRawSpan(field, idx, nSyn.length);
     if (!span) continue;
