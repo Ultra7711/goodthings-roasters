@@ -14,6 +14,20 @@ import type { CartItem } from '@/types/cart';
 
 const STORAGE_KEY = 'gtr-guest-cart';
 
+/* 최소 런타임 구조 가드 (TS M-1).
+   localStorage 오염/구버전 스키마 데이터로 인한 런타임 오류 방지.
+   필수 필드만 검증 — 타입 강제까지는 zod 도입 시 확장. */
+function isCartItemShape(v: unknown): v is CartItem {
+  if (typeof v !== 'object' || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return (
+    typeof o.id === 'string' &&
+    typeof o.slug === 'string' &&
+    typeof o.qty === 'number' &&
+    typeof o.priceNum === 'number'
+  );
+}
+
 export function readGuestCart(): CartItem[] {
   if (typeof window === 'undefined') return [];
   try {
@@ -21,7 +35,7 @@ export function readGuestCart(): CartItem[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed as CartItem[];
+    return parsed.filter(isCartItemShape);
   } catch (err) {
     /* 손상 JSON: 로그 + 키 제거로 추적 가능, 영구 오염 방지 */
     console.warn('[guestCart] parse error — resetting', err);

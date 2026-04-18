@@ -158,7 +158,9 @@ export function useCartQuery() {
     queryKey: CART_QUERY_KEY,
     queryFn: fetchCart,
     staleTime: 30_000,
-    retry: 1,
+    /* 모바일 일시 단절 대응 — 카트만 retry:2 + 지수 백오프 (silent F-07). */
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
   });
 
   const items: CartItem[] = query.data ?? [];
