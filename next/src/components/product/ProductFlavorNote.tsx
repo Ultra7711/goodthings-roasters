@@ -133,10 +133,13 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
         else ctx.lineTo(p.x, p.y);
       }
       ctx.closePath();
+      /* Step 3-A-2: 과포화 그라디언트 → subtle gold tint.
+         중심 0.06 → 가장자리 0.14 로 낮춰 stroke 라인이 데이터 실루엣을
+         주도하고 fill 은 warm wash 만 얹도록 변경. */
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
-      grad.addColorStop(0, hexToRgba(color, 0.35));
-      grad.addColorStop(0.5, hexToRgba(color, 0.6));
-      grad.addColorStop(1, hexToRgba(color, 0.8));
+      grad.addColorStop(0, hexToRgba(color, 0.06));
+      grad.addColorStop(0.5, hexToRgba(color, 0.1));
+      grad.addColorStop(1, hexToRgba(color, 0.14));
       ctx.fillStyle = grad;
       ctx.fill();
       ctx.strokeStyle = hexToRgba(color, 1);
