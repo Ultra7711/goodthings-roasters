@@ -467,6 +467,10 @@ body {
   /* backdrop-filter는 inline style에서 관리 (light/dark 모두 동일 blur 값) */
   border-color: transparent;
 }
+/* 라이트 헤더가 secondary 배경 페이지 위에 올라갈 때 — Shop 등 */
+#site-hdr-wrap.hdr-on-secondary {
+  background: rgba(245,243,240,.72);
+}
 /* 라우트 변경 직후 한 프레임 동안만 부여되는 클래스 — 네비게이션 애니메이션과
    겹쳐 보이는 테마 페이드를 제거하기 위해 transition 을 일시 비활성화.
    스크롤 기반 light/dark 전환의 fade 는 그대로 유지됨. */
@@ -1591,13 +1595,16 @@ footer.blk {
 .moment-card:hover::after { background: rgba(0,0,0,.06); }
 
 /* ══ SHOP PAGE ══ */
+.sp-page-bg {
+  background: var(--color-background-secondary);
+  width: 100%;
+}
 #sp-body {
   flex: 1;
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
   padding: 100px 60px 80px;
-  background: var(--color-background-secondary);
 }
 #sp-head { padding-top: 8px; }
 #sp-title-area { margin-bottom: 48px; }

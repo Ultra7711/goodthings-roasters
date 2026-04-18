@@ -187,7 +187,9 @@ export default function SiteHeader() {
         ref={headerRef}
         id="site-hdr-wrap"
         className={
-          (isDark ? 'blk hdr-dark' : 'blk') + (skipTransition ? ' hdr-instant' : '')
+          (isDark ? 'blk hdr-dark' : 'blk') +
+          (skipTransition ? ' hdr-instant' : '') +
+          (pathname === '/shop' && !isDark ? ' hdr-on-secondary' : '')
         }
         style={{
           backdropFilter: 'blur(16px)',

@@ -87,6 +87,7 @@ export default function ShopPage() {
   }
 
   return (
+    <div className="sp-page-bg">
     <div id="sp-body" ref={setBodyEl}>
       <div id="sp-head">
         <div id="sp-title-area">
@@ -155,6 +156,7 @@ export default function ShopPage() {
           </button>
         </div>
       )}
+    </div>
     </div>
   );
 }
