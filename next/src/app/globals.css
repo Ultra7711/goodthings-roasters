@@ -3614,9 +3614,11 @@ footer.blk {
   grid-template-columns: 1fr 1fr;
   gap: var(--gap-md);
 }
-/* Drip Bag 레시피: 3단계 → 3열 그리드 (임시 적용) */
+/* Drip Bag 레시피: 3단계 → 3열 그리드 (임시 적용).
+   minmax(0, 1fr) 로 min-content 전파를 끊어 #pd-info 컬럼이 카드 min-content 만큼
+   부풀어 오르는 현상 차단 (드립백 상세에서 좌/우 590/850 비대칭 버그 수정). */
 #pd-recipe-cards.is-drip {
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .pd-drip-step-body {
   font-family: var(--font-kr);
