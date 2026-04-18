@@ -119,12 +119,12 @@ export default function StoryPage() {
       </section>
 
       {/* ── COFFEE / BREWING / BAKERY ── */}
-      {STORY_TWO_COL.map((item) => (
-        <StoryTwoColSection key={item.label} item={item} />
+      {STORY_TWO_COL.map((item, idx) => (
+        <StoryTwoColSection key={item.label} item={item} bgVariant={idx % 2 === 1 ? 'secondary' : null} />
       ))}
 
       {/* ── PROMISE ── */}
-      <section className="st-promise" data-header-theme="light" data-sr-story>
+      <section className="st-promise blk--bg-tertiary" data-header-theme="light" data-sr-story>
         <div className="st-promise-inner">
           <span className="st-label sr-txt sr-txt--d1">{STORY_PROMISE.label}</span>
           <h2 className="st-promise-heading sr-txt sr-txt--d2">{STORY_PROMISE.heading}</h2>
@@ -178,8 +178,8 @@ export default function StoryPage() {
 }
 
 /* ── 좌우 교차 섹션 ── */
-function StoryTwoColSection({ item }: { item: StoryTwoColItem }) {
-  const cls = `st-two-col${item.reverse ? ' st-two-col--reverse' : ''}`;
+function StoryTwoColSection({ item, bgVariant }: { item: StoryTwoColItem; bgVariant?: 'secondary' | null }) {
+  const cls = `st-two-col${item.reverse ? ' st-two-col--reverse' : ''}${bgVariant === 'secondary' ? ' blk--bg-secondary' : ''}`;
   return (
     <section className={cls} data-header-theme="light" data-sr-story>
       <div className="st-two-col-inner">

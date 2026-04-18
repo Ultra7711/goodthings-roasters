@@ -383,6 +383,11 @@ body {
   margin-bottom: 0;
 }
 
+/* Phase 3 Step 1 — 섹션 배경 3단계 로테이션 (warm paper 단계) */
+.blk--bg-secondary { background: var(--color-background-secondary); }
+.blk--bg-tertiary  { background: var(--color-background-tertiary); }
+.blk--bg-warm      { background: var(--color-surface-warm); }
+
 /* ══ 콘텐츠 최대폭 1440px 중앙 제한 ══
    프로토타입 라인 248–261 이식 */
 .hdr,
@@ -1180,7 +1185,7 @@ footer.blk {
 .img-dessert   { background: url('/images/sections/img_cafemenu_dessert_main.webp') center/cover no-repeat; }
 
 /* ══ .phil-section ══ */
-.phil-section { background: #E8E2DA; margin-top: 120px; }
+.phil-section { background: var(--color-surface-warm); margin-top: 120px; }
 .phil {
   /* 공통 max-width 1440 그룹(.hdr, .hero-c, …, .phil, …)의 override:
      우측 이미지를 viewport 우측 끝까지 bleed하고, 이미지가 섹션 높이를
@@ -1299,7 +1304,7 @@ footer.blk {
   aspect-ratio: 1/1;
   width: 100%;
   overflow: hidden;
-  background: var(--color-background-secondary);
+  background: var(--color-surface-warm);
   display: block;
   font-size: 0;
 }
@@ -1576,6 +1581,7 @@ footer.blk {
   max-width: 1440px;
   margin: 0 auto;
   padding: 100px 60px 80px;
+  background: var(--color-background-secondary);
 }
 #sp-head { padding-top: 8px; }
 #sp-title-area { margin-bottom: 48px; }
@@ -1697,6 +1703,7 @@ footer.blk {
   inset: 0;
   overflow: hidden;
   border: 1px solid var(--color-border-surface);
+  background: var(--color-surface-warm);
 }
 .sp-card-img {
   width: 100%;
@@ -2861,7 +2868,7 @@ footer.blk {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  background: var(--color-background-secondary);
+  background: var(--color-surface-warm);
   overflow: hidden;
 }
 
@@ -5597,7 +5604,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-section:first-of-type { margin-top: 24px; }
 .mp-section--no-border { border-top: none; }
 .mp-section-body {
-  background: var(--color-background-secondary);
+  background: var(--color-background-tertiary);
   margin: -2px -20px;
   padding: 2px 20px;
   border-radius: 16px;
