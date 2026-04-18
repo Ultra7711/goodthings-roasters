@@ -62,12 +62,26 @@
 
   /* ── 컬러: Accent & Feedback ── */
   --color-accent-gold: #A47146;
+  --color-accent-gold-on-dark: #C28E5A;
   --color-label-on-white: #A08B6D;
   --color-label-on-warm: #857052;
   --color-error: #C4554E;
   --color-success: #5C7A4B;
   --color-info: #4A6B8A;
   --color-warning: #B8943F;
+
+  /* ── 컬러: Status (warm 축 통일) ── */
+  --color-status-live: var(--color-accent-gold);
+  --color-status-done: #7A7068;
+  --color-status-new: #B8563A;
+
+  /* ── 그림자: Warm-tinted (카드 플로팅) ── */
+  --shadow-card-warm:
+    0 1px 2px rgba(60, 45, 30, 0.04),
+    0 8px 24px -8px rgba(60, 45, 30, 0.08);
+  --shadow-card-warm-hover:
+    0 2px 4px rgba(60, 45, 30, 0.06),
+    0 16px 32px -12px rgba(60, 45, 30, 0.12);
 
   /* ── 스페이싱 (4px 기반 스케일) ── */
   --space-1: 4px;
