@@ -3779,7 +3779,25 @@ footer.blk {
   border-bottom: .5px solid var(--color-border-tertiary);
   margin-top: 48px;
 }
-.pd-accordion { border-top: .5px solid var(--color-border-tertiary); }
+.pd-accordion {
+  border-top: .5px solid var(--color-border-tertiary);
+  position: relative;
+}
+/* Step 3-A-3: 열린 아코디언에만 좌측 2px gold 엣지바 — 활성 상태 시그널.
+   본문 패딩을 밀지 않도록 ::before 로 절대 배치. */
+.pd-accordion::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-accent-gold);
+  opacity: 0;
+  transition: opacity var(--duration-hover) ease;
+  pointer-events: none;
+}
+.pd-accordion.open::before { opacity: 1; }
 .pd-accordion-hd {
   display: flex;
   align-items: center;
@@ -3792,7 +3810,17 @@ footer.blk {
   width: 100%;
   text-align: left;
 }
-.pd-accordion-hd:hover { opacity: .6; }
+/* Step 3-A-3: 호버 — 사이트 전역 아이콘 버튼 다크닝 패턴에 정렬.
+   label: secondary → primary (한 단계 진하게)
+   icon: default → muted-hover (한 단계 진하게)
+   gold 는 열림 상태의 좌측 엣지바에만 한정해 state 시그널로 사용하고
+   hover 는 전반적으로 "한 단계 어두워짐" 으로 통일한다. */
+.pd-accordion-hd:hover .pd-accordion-label {
+  color: var(--color-text-primary);
+}
+.pd-accordion-hd:hover .pd-accordion-icon {
+  color: var(--color-icon-muted-hover);
+}
 .pd-accordion-label {
   /* 본문 리딩 컬럼과 동일 톤 — 시각적으로 조용한 헤더
      사이즈는 본문(15px)보다 한 단계 위인 16px 로 헤더 역할 강화 */
@@ -3800,9 +3828,11 @@ footer.blk {
   font-size: 16px;
   font-weight: 400;
   color: var(--color-text-secondary);
+  transition: color var(--duration-hover) ease;
 }
 .pd-accordion-icon {
   color: var(--color-icon-default);
+  transition: color var(--duration-hover) ease;
   width: 20px;
   height: 20px;
   flex-shrink: 0;
@@ -3815,11 +3845,8 @@ footer.blk {
   height: 20px;
   display: block;
 }
-.pd-icon-v {
-  transform-origin: center;
-  transition: transform var(--duration-transition) ease;
-}
-.pd-accordion.open .pd-icon-v { transform: rotate(90deg); }
+/* + → − 회전 애니메이션 제거: 열림 시 v 획을 즉시 숨겨 + → − 로 전환 */
+.pd-accordion.open .pd-icon-v { display: none; }
 .pd-accordion-body {
   /* 본문 사이즈(15px) 유지, 위계는 컬러(tertiary)로만 형성 */
   font-family: var(--font-kr);
