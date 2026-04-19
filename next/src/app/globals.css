@@ -2255,6 +2255,10 @@ footer.blk {
   overflow-y: auto;
 }
 #cafe-nutrition-sheet.open #cns-panel { transform: translateX(0); }
+/* 모바일: <768 풀스크린 (Session 38 Step C) */
+@media (max-width: 767px) {
+  #cns-panel { width: 100vw; }
+}
 #cns-close {
   position: absolute;
   top: 12px;
