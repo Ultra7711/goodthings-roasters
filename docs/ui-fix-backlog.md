@@ -14,20 +14,6 @@
 
 ## 오픈 이슈
 
-### UI-006 — 🟡 카트 드로어 우측 스크롤바 영역 잘림 재발
-- **재현:** 헤더 카트 아이콘 클릭 → 드로어 오픈 → 우측 가장자리 ~15px 흰 띠 또는 `.cd-remove` X 버튼이 스크롤바 밑에 깔림
-- **시도:**
-  1. `#cart-drawer` 를 `inset: 0` → `width: 100vw` 로 변경 · 패널 `position: absolute` 로 전환 → 변화 없음
-  2. `useDrawer` 에서 `html { overflow: hidden }` 동시 잠금 추가 → 변화 없음
-  3. `.cd-body { scrollbar-gutter: stable }` 추가 → 변화 없음
-  모두 원복. 근본 원인 미파악.
-- **가설 후보:**
-  - 브라우저 네이티브 스크롤바가 fixed 엘리먼트 위에 페인트 (OS/브라우저 별)
-  - `.cd-body` 내부 스크롤바가 `.cd-item` 우측 컨텐츠와 실제로 겹침 (scrollbar-gutter 적용 실패)
-  - UI-005 해결 시 전제였던 "backdrop 이 gutter 를 덮음" 조건이 깨짐
-- **발견:** 2026-04-19 Session 34 (UI-005 해결 이후 재발)
-- **상태:** 미해결 · Deferred
-
 ### UI-004 — 🟡 전체 버튼 hover 동작 규칙 전수 조사 · 정립 · 일괄 적용
 - **배경:** Step 3-A-4 에서 CTA 11종만 hover 규칙 통일. 아이콘/텍스트 버튼 등 나머지는 제각각.
 - **조사 범위 (유형별 분류):**
@@ -51,6 +37,18 @@
 ---
 
 ## 완료 이슈
+
+### UI-006 — 🟡 카트 드로어 우측 스크롤바 영역 잘림 재발
+- **재현:** 헤더 카트 아이콘 클릭 → 드로어 오픈 → 우측 ~15px 흰 띠, `.cd-remove` X 버튼·프로모 배경·배송비 헤어라인이 스크롤바 gutter 안쪽에서 끝남
+- **원인:** `html { scrollbar-gutter: stable }` 상태에서 `position: fixed` 요소의 **페인트가 ICB(=viewport − 15px) 에서 클리핑**됨. `right: 0` 이나 `width: 100vw`, 음수 `right` 확장 모두 bounding box 는 1087 까지 가지만 실제 렌더는 1072 에서 잘림 (CSS 만으로는 ICB 경계를 벗어난 페인트 불가).
+- **해결 (Session 35):** `useDrawer` 에서 드로어 오픈 동안
+  1. `html.scrollbarGutter = 'auto'` → ICB 가 1087 로 확장 → 페인트 1087 까지
+  2. probe (`position:fixed;width:100vw`) 로 실제 gutter 측정 (clientWidth 가 innerWidth 와 동일 보고되는 케이스 대응)
+  3. `body.paddingRight = <measured>` → body content-box 1072 유지 → sticky 헤더·페이지 레이아웃 시프트 없음 (UI-005 회귀 방지)
+  4. `body.overflow = 'hidden'` → 페이지 스크롤 잠금
+- **검증:** `panel.right = bg.right = 1087` · `bodyPadR = 15px` · 헤더 로고 시프트 없음
+- **발견:** 2026-04-19 Session 34 (UI-005 해결 이후 재발)
+- **완료:** 2026-04-19 Session 35
 
 ### UI-005 — 🟡 카트 드로어 호출 시 배경 페이지 우측 밀림 (scrollbar gutter)
 - **재현:** 헤더 카트 아이콘 클릭 → 드로어 오픈 순간 헤더 로고 우측 시프트
