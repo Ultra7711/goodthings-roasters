@@ -3,7 +3,14 @@ title: Claude Design 핸드오프 패키지 — Phase 3 팔레트 실험
 created: 2026-04-18
 session: 22
 branch: claude/design-polish
+status: RETIRED (Session 33 에서 01~09 패키지로 대체)
+superseded_by: README.md · 01-screenshots-session33/ · 02~09 파일
 ---
+
+> ⚠️ **은퇴 (2026-04-19)** — 이 문서는 Session 22 1차 실험용. Claude Design 2차 실험은 본 디렉터리의
+> `README.md` + `07-prompt.md` + 첨부 8종 을 사용하세요. 아래 내용은 히스토리 보존용.
+
+
 
 # Claude Design 핸드오프 패키지
 
