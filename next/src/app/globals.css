@@ -2723,7 +2723,9 @@ footer.blk {
   color: var(--link-cta-color);
   letter-spacing: var(--link-cta-letter-spacing);
   text-decoration: underline;
-  text-underline-offset: var(--link-cta-underline-offset);
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
   transition: text-decoration-color var(--duration-hover) ease;
   margin-top: 8px;
 }
@@ -4608,13 +4610,15 @@ footer.blk {
   letter-spacing: var(--text-link-letter-spacing);
   color: var(--text-link-color);
   cursor: pointer;
-  border-bottom: var(--text-link-border);
-  padding-bottom: var(--text-link-padding-bottom);
   line-height: 1;
-  transition: border-bottom-color var(--duration-hover) ease;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--duration-hover) ease;
 }
 .bi-privacy-link:hover {
-  border-bottom-color: var(--color-accent-gold);
+  text-decoration-color: var(--color-accent-gold);
 }
 
 /* ══════════════════════════════════════════
@@ -4888,11 +4892,14 @@ footer.blk {
   font-size: var(--type-body-m-size); font-weight: var(--text-link-font-weight);
   letter-spacing: var(--text-link-letter-spacing);
   color: var(--text-link-color); cursor: pointer;
-  border-bottom: var(--text-link-border); padding-bottom: var(--text-link-padding-bottom);
   line-height: 1;
-  transition: border-bottom-color var(--duration-hover) ease;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--duration-hover) ease;
 }
-.chp-link:hover { border-bottom-color: var(--color-accent-gold); }
+.chp-link:hover { text-decoration-color: var(--color-accent-gold); }
 .chp-section-desc {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
   color: var(--color-text-secondary); margin-bottom: 16px; line-height: 1.8;
@@ -5128,12 +5135,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-weight: var(--text-link-font-weight);
   letter-spacing: var(--text-link-letter-spacing);
   color: var(--text-link-subtle-color);
-  border-bottom: var(--text-link-subtle-border);
-  padding-bottom: var(--text-link-padding-bottom);
   line-height: 1;
-  transition: border-bottom-color var(--duration-hover) ease;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--duration-hover) ease;
 }
-.chp-guest-link:hover { border-bottom-color: var(--color-accent-gold); }
+.chp-guest-link:hover { text-decoration-color: var(--color-accent-gold); }
 
 /* 결제수단 탭 */
 .chp-payment-methods { display: flex; position: relative; margin-top: 20px; margin-bottom: 24px; }
@@ -5220,10 +5229,13 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-legal-link {
   flex: 0 0 auto; font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
   color: var(--color-text-caption); cursor: pointer;
-  border-bottom: .5px solid var(--color-border-secondary); padding-bottom: 1px;
-  transition: color var(--duration-hover) linear;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--duration-hover) ease;
 }
-.chp-legal-link:hover { color: var(--color-text-secondary); }
+.chp-legal-link:hover { text-decoration-color: var(--color-accent-gold); }
 
 /* 우측 주문 요약 */
 .chp-right {
@@ -5415,7 +5427,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-family: var(--font-kr); font-size: var(--link-cta-font-size); font-weight: var(--link-cta-font-weight);
   color: var(--link-cta-color); cursor: pointer;
   letter-spacing: var(--link-cta-letter-spacing);
-  text-decoration: underline; text-underline-offset: var(--link-cta-underline-offset);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
   transition: text-decoration-color var(--duration-hover) ease;
 }
 .ocp-btn-secondary:hover { text-decoration-color: var(--color-accent-gold); }
@@ -5454,14 +5469,18 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   display: inline-flex; align-items: center;
   height: auto; padding: 0; margin: 0;
   background: transparent; color: var(--text-link-color);
-  border: none; border-bottom: var(--text-link-border);
+  border: none;
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: var(--text-link-font-weight);
   letter-spacing: var(--text-link-letter-spacing);
-  padding-bottom: var(--text-link-padding-bottom); line-height: 1;
-  cursor: pointer; text-decoration: none;
-  transition: border-bottom-color var(--duration-hover) ease;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--duration-hover) ease;
 }
-.lp-switch-link:hover { border-bottom-color: var(--color-accent-gold); }
+.lp-switch-link:hover { text-decoration-color: var(--color-accent-gold); }
 
 /* 폼 */
 .lp-right {
@@ -5480,11 +5499,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: var(--text-link-font-weight);
   letter-spacing: var(--text-link-letter-spacing);
   color: var(--text-link-subtle-color); cursor: pointer;
-  border-bottom: var(--text-link-subtle-border); padding-bottom: var(--text-link-padding-bottom);
   line-height: 1;
-  transition: border-bottom-color var(--duration-hover) ease;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--duration-hover) ease;
 }
-.lp-forgot span:hover { border-bottom-color: var(--color-accent-gold); }
+.lp-forgot span:hover { text-decoration-color: var(--color-accent-gold); }
 
 /* submit 에러 메시지 */
 .lp-submit-error {
@@ -5573,12 +5595,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-weight: var(--text-link-font-weight);
   letter-spacing: var(--text-link-letter-spacing);
   color: var(--text-link-subtle-color);
-  border-bottom: var(--text-link-subtle-border);
-  padding-bottom: var(--text-link-padding-bottom);
   line-height: 1;
-  transition: border-bottom-color var(--duration-hover) ease;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--duration-hover) ease;
 }
-.lp-guest-order-btn:hover { border-bottom-color: var(--color-accent-gold); }
+.lp-guest-order-btn:hover { text-decoration-color: var(--color-accent-gold); }
 
 /* 비회원 구매 박스 (체크아웃 진입) */
 .lp-guest-buy-box {
@@ -5633,19 +5657,20 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   background: transparent;
   color: var(--text-link-color);
   border: none;
-  border-bottom: var(--text-link-border);
   line-height: 1;
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   font-weight: var(--text-link-font-weight);
   letter-spacing: var(--text-link-letter-spacing);
   padding: 0;
-  padding-bottom: var(--text-link-padding-bottom);
   cursor: pointer;
-  text-decoration: none;
-  transition: border-bottom-color var(--duration-hover) ease;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--duration-hover) ease;
 }
-.mp-logout-link:hover { border-bottom-color: var(--color-accent-gold); }
+.mp-logout-link:hover { text-decoration-color: var(--color-accent-gold); }
 
 /* 섹션 — #12: 컨텐츠(타이틀 제외)만 흰 박스 */
 .mp-section {
@@ -5875,15 +5900,16 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-weight: var(--text-link-font-weight);
   letter-spacing: var(--text-link-letter-spacing);
   color: var(--text-link-subtle-color);
-  text-decoration: none;
-  border-bottom: var(--text-link-subtle-border);
-  padding-bottom: var(--text-link-padding-bottom);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
   height: auto; line-height: 1;
-  transition: border-bottom-color var(--duration-hover) ease;
+  transition: text-decoration-color var(--duration-hover) ease;
   white-space: nowrap;
   align-self: center;
 }
-.mp-sub-unsubscribe:hover { border-bottom-color: var(--color-accent-gold); }
+.mp-sub-unsubscribe:hover { text-decoration-color: var(--color-accent-gold); }
 
 /* 회원 탈퇴 확인 모달 */
 /* 회원 탈퇴 모달 오버레이 + 쉐이킹 */
@@ -6339,7 +6365,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   cursor: pointer;
   background: transparent; border: none;
   text-decoration: underline;
-  text-underline-offset: var(--link-cta-underline-offset);
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
   letter-spacing: var(--link-cta-letter-spacing);
   transition: text-decoration-color var(--duration-hover) ease;
   padding: 0;
