@@ -677,7 +677,7 @@ button.hdr-icon-btn { background: none; border: none; }
   top: 0;
   right: 0;
   height: 100%;
-  width: min(360px, 100vw);
+  width: var(--drawer-width);
   background: var(--drawer-bg);
   z-index: calc(var(--z-drawer) + 1);
   display: flex;
