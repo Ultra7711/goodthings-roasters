@@ -14,8 +14,8 @@ import {
 const COLS = 3;
 const CARD_BASE_DELAY_INIT = 420; // 초기 로드: 탭(0.3s) 등장 후 카드 시작 (ms)
 
-export default function ShopPage() {
-  const [filter, setFilter] = useState<FilterKey>('all');
+export default function ShopPage({ initialFilter = 'all' }: { initialFilter?: FilterKey }) {
+  const [filter, setFilter] = useState<FilterKey>(initialFilter);
   const [page, setPage] = useState(1);
   // body element — callback ref 로 받아 scrollRoot 전달 시 리렌더 트리거 보장
   const [bodyEl, setBodyEl] = useState<HTMLDivElement | null>(null);

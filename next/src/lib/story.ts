@@ -52,7 +52,7 @@ export const STORY_LOCATION = {
   label: 'Location',
   name: 'Good Things Roasters',
   notice: '매장 이용 20:50까지  ·  라스트오더 20:30',
-  hours: '화~금  12:00~21:00\n토~일  11:00~21:00\n월요일 휴무',
+  hours: '화~금  12:00~21:00\n토~일  11:00~21:00\n매주 월요일 휴무',
   /* Kakao Maps 좌표 (WGS84) — 매장 확정 좌표로 교체 필요 */
   lat: 36.0981256,
   lng: 128.4306089,
