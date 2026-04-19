@@ -1092,7 +1092,7 @@ footer.blk {
   font-weight: 500;
   color: var(--color-text-inverse);
   background: var(--color-btn-primary-bg);
-  border: 1px solid var(--color-btn-primary-bg);
+  border: none;
   width: 148px;
   height: 48px;
   display: flex;
@@ -1550,7 +1550,7 @@ footer.blk {
   font-weight: 500;
   color: var(--color-text-inverse);
   background: var(--color-background-inverse);
-  border: 1px solid var(--color-background-inverse);
+  border: none;
   width: 148px;
   height: 48px;
   display: flex;
@@ -2714,10 +2714,10 @@ footer.blk {
   letter-spacing: var(--link-cta-letter-spacing);
   text-decoration: underline;
   text-underline-offset: var(--link-cta-underline-offset);
-  transition: opacity var(--duration-hover) ease;
+  transition: text-decoration-color var(--duration-hover) ease;
   margin-top: 8px;
 }
-#cart-drawer-panel .cd-shop-btn:hover { opacity: .6; }
+#cart-drawer-panel .cd-shop-btn:hover { text-decoration-color: var(--color-accent-gold); }
 
 /* 배송비 행 */
 #cart-drawer-panel .cd-shipping-item {
@@ -4603,10 +4603,10 @@ footer.blk {
   border-bottom: var(--text-link-border);
   padding-bottom: var(--text-link-padding-bottom);
   line-height: 1;
-  transition: color var(--duration-hover) ease;
+  transition: border-bottom-color var(--duration-hover) ease;
 }
 .bi-privacy-link:hover {
-  color: var(--text-link-color-hover);
+  border-bottom-color: var(--color-accent-gold);
 }
 
 /* ══════════════════════════════════════════
@@ -4879,9 +4879,9 @@ footer.blk {
   color: var(--text-link-color); cursor: pointer;
   border-bottom: var(--text-link-border); padding-bottom: var(--text-link-padding-bottom);
   line-height: 1;
-  transition: color var(--duration-hover) ease;
+  transition: border-bottom-color var(--duration-hover) ease;
 }
-.chp-link:hover { color: var(--text-link-color-hover); }
+.chp-link:hover { border-bottom-color: var(--color-accent-gold); }
 .chp-section-desc {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
   color: var(--color-text-secondary); margin-bottom: 16px; line-height: 1.8;
@@ -5120,9 +5120,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   border-bottom: var(--text-link-subtle-border);
   padding-bottom: var(--text-link-padding-bottom);
   line-height: 1;
-  transition: color var(--duration-hover) ease;
+  transition: border-bottom-color var(--duration-hover) ease;
 }
-.chp-guest-link:hover { color: var(--text-link-subtle-color-hover); }
+.chp-guest-link:hover { border-bottom-color: var(--color-accent-gold); }
 
 /* 결제수단 탭 */
 .chp-payment-methods { display: flex; position: relative; margin-top: 20px; margin-bottom: 24px; }
@@ -5405,9 +5405,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--link-cta-color); cursor: pointer;
   letter-spacing: var(--link-cta-letter-spacing);
   text-decoration: underline; text-underline-offset: var(--link-cta-underline-offset);
-  transition: opacity var(--duration-hover) ease;
+  transition: text-decoration-color var(--duration-hover) ease;
 }
-.ocp-btn-secondary:hover { opacity: .6; }
+.ocp-btn-secondary:hover { text-decoration-color: var(--color-accent-gold); }
 
 /* 진입 연출 — stagger */
 .ocp-enter .ocp-title { animation: staggerUp .5s var(--ease-spring) .1s both; }
@@ -5448,9 +5448,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   letter-spacing: var(--text-link-letter-spacing);
   padding-bottom: var(--text-link-padding-bottom); line-height: 1;
   cursor: pointer; text-decoration: none;
-  transition: color var(--duration-hover) ease;
+  transition: border-bottom-color var(--duration-hover) ease;
 }
-.lp-switch-link:hover { color: var(--text-link-color-hover); }
+.lp-switch-link:hover { border-bottom-color: var(--color-accent-gold); }
 
 /* 폼 */
 .lp-right {
@@ -5471,9 +5471,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--text-link-subtle-color); cursor: pointer;
   border-bottom: var(--text-link-subtle-border); padding-bottom: var(--text-link-padding-bottom);
   line-height: 1;
-  transition: color var(--duration-hover) ease;
+  transition: border-bottom-color var(--duration-hover) ease;
 }
-.lp-forgot span:hover { color: var(--text-link-subtle-color-hover); }
+.lp-forgot span:hover { border-bottom-color: var(--color-accent-gold); }
 
 /* submit 에러 메시지 */
 .lp-submit-error {
@@ -5565,9 +5565,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   border-bottom: var(--text-link-subtle-border);
   padding-bottom: var(--text-link-padding-bottom);
   line-height: 1;
-  transition: color var(--duration-hover) ease;
+  transition: border-bottom-color var(--duration-hover) ease;
 }
-.lp-guest-order-btn:hover { color: var(--text-link-subtle-color-hover); }
+.lp-guest-order-btn:hover { border-bottom-color: var(--color-accent-gold); }
 
 /* 비회원 구매 박스 (체크아웃 진입) */
 .lp-guest-buy-box {
@@ -5632,9 +5632,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   padding-bottom: var(--text-link-padding-bottom);
   cursor: pointer;
   text-decoration: none;
-  transition: color var(--duration-hover) ease;
+  transition: border-bottom-color var(--duration-hover) ease;
 }
-.mp-logout-link:hover { color: var(--text-link-color-hover); }
+.mp-logout-link:hover { border-bottom-color: var(--color-accent-gold); }
 
 /* 섹션 — #12: 컨텐츠(타이틀 제외)만 흰 박스 */
 .mp-section {
@@ -5868,11 +5868,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   border-bottom: var(--text-link-subtle-border);
   padding-bottom: var(--text-link-padding-bottom);
   height: auto; line-height: 1;
-  transition: color var(--duration-hover) ease;
+  transition: border-bottom-color var(--duration-hover) ease;
   white-space: nowrap;
   align-self: center;
 }
-.mp-sub-unsubscribe:hover { color: var(--text-link-subtle-color-hover); }
+.mp-sub-unsubscribe:hover { border-bottom-color: var(--color-accent-gold); }
 
 /* 회원 탈퇴 확인 모달 */
 /* 회원 탈퇴 모달 오버레이 + 쉐이킹 */
@@ -6331,10 +6331,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-decoration: underline;
   text-underline-offset: var(--link-cta-underline-offset);
   letter-spacing: var(--link-cta-letter-spacing);
-  transition: opacity var(--duration-hover) ease;
+  transition: text-decoration-color var(--duration-hover) ease;
   padding: 0;
 }
-.cp-continue-link:hover { opacity: .6; }
+.cp-continue-link:hover { text-decoration-color: var(--color-accent-gold); }
 .cp-order-btn {
   width: 299px; height: 48px;
   background: var(--color-btn-primary-bg);
@@ -6362,8 +6362,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   transition: opacity var(--duration-hover) ease, box-shadow var(--duration-hover) var(--ease-default);
 }
 /* 다크 bg + 라이트 텍스트 CTA → gold-on-dark
-   2중 인셋: 하단 1px bg 스트립 + 그 위 2px gold
-   → gold 라인이 바닥에서 1px 떠 보이며 하단에 얇은 프레임이 있는 듯한 효과 */
+   2중 인셋: 하단 1px bg 스트립(위 레이어) + 그 아래 3px gold
+   → box-shadow 는 먼저 선언된 것이 위에 그려지므로 bg 스트립을 먼저 선언.
+     결과: 바닥 1px 은 bg, 그 위 2px 만 gold 노출 → 라인이 1px 떠 보이는 효과. */
 .cta-btn-light-filled:hover,
 .cta-btn-dark-outline:hover,
 .season-cta:hover,
@@ -6374,16 +6375,23 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-login-primary-btn:hover,
 .ocp-btn-primary:hover,
 .cp-order-btn:hover:not(:disabled),
-.bi-submit-btn:hover {
+.bi-submit-btn:hover,
+#pd-cart-btn:hover:not(.disabled),
+.mp-save-btn:hover,
+.st-map-overlay-btn--primary:hover {
   box-shadow:
-    inset 0 -3px 0 var(--color-accent-gold-on-dark),
-    inset 0 -1px 0 var(--color-btn-primary-bg);
+    inset 0 -1px 0 var(--color-btn-primary-bg),
+    inset 0 -3px 0 var(--color-accent-gold-on-dark);
+  opacity: 1;
 }
 
 /* 라이트 bg 버튼 → 기본 gold */
 .cta-btn-dark-filled:hover,
-.cta-btn-light-outline:hover {
+.cta-btn-light-outline:hover,
+.mp-cancel-btn:hover,
+.st-map-overlay-btn:hover {
   box-shadow: inset 0 -2px 0 var(--color-accent-gold);
+  opacity: 1;
 }
 
 /* ══ Step 3-A-5: 섹션 eyebrow gold rule ══
