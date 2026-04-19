@@ -372,7 +372,7 @@ export default function CheckoutPage() {
         >
           <div className="chp-hdr-inner">
             <Link href="/">
-              <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />
+              <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={150} height={30} className="chp-logo-img" />
             </Link>
           </div>
         </div>
@@ -393,7 +393,7 @@ export default function CheckoutPage() {
         >
           <div className="chp-hdr-inner">
             <Link href="/">
-              <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />
+              <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={150} height={30} className="chp-logo-img" />
             </Link>
           </div>
         </div>
@@ -421,7 +421,7 @@ export default function CheckoutPage() {
         >
         <div className="chp-hdr-inner">
           <Link href="/">
-            <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />
+            <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={150} height={30} className="chp-logo-img" />
           </Link>
           <button
             type="button"
