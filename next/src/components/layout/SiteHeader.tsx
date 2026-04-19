@@ -18,6 +18,7 @@ import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { useCartQuery } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { ClearIcon } from '@/components/ui/InputIcons';
+import MobileNavDrawer from '@/components/layout/MobileNavDrawer';
 
 /* ── 모듈 스코프 상수 — 렌더마다 재생성 방지 ───────────────
    검색 패널 실제 렌더 높이 60px (border 제거됨 — 공지바/헤더 hairline 일괄 제거와 일관).
@@ -43,6 +44,7 @@ export default function SiteHeader() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   /* SSR 안전: 클라이언트에서만 store 값 사용 */
   const { totalQty } = useCartQuery();
@@ -198,8 +200,22 @@ export default function SiteHeader() {
         }}
       >
         <div className="hdr">
-          {/* 로고 */}
+          {/* 로고 + 모바일 햄버거 */}
           <div className="hdr-left">
+            <button
+              type="button"
+              className="hdr-menu-toggle"
+              aria-label="메뉴 열기"
+              aria-expanded={isMobileNavOpen}
+              aria-controls="mobile-nav-panel"
+              onClick={() => setIsMobileNavOpen(true)}
+            >
+              <svg className="hi" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4,5h16" />
+                <path d="M4,12h16" />
+                <path d="M4,19h16" />
+              </svg>
+            </button>
             <Link href="/" aria-label="Good Things Roasters 홈" onClick={handleLogoClick}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -363,6 +379,13 @@ export default function SiteHeader() {
           </div>,
           document.body,
         )}
+
+      {/* ── 모바일 네비 드로어 ── */}
+      <MobileNavDrawer
+        open={isMobileNavOpen}
+        onClose={() => setIsMobileNavOpen(false)}
+        isLoggedIn={mounted && isLoggedIn}
+      />
 
       {/* ── 검색 딤 오버레이 (portal → body) ── */}
       {mounted &&

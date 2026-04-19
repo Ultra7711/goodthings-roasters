@@ -615,6 +615,126 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
 }
 .cart-badge.visible { display: flex; }
 
+/* ══ 햄버거 토글 — 데스크탑 숨김 · 모바일 표시 ══ */
+.hdr-menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-left: -8px;
+  margin-right: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  transition: opacity var(--duration-hover) var(--ease-default);
+  opacity: .7;
+}
+.hdr-menu-toggle:hover { opacity: 1; }
+#site-hdr-wrap.hdr-dark .hdr-menu-toggle { color: var(--on-dark-secondary); }
+#site-hdr-wrap.hdr-dark .hdr-menu-toggle:hover { color: var(--color-text-inverse); }
+
+@media (max-width: 767px) {
+  .hdr-nav { display: none; }
+  .hdr-menu-toggle { display: flex; }
+}
+
+/* ══ 모바일 네비 드로어 ══ */
+#mobile-nav {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawer);
+  pointer-events: none;
+}
+#mobile-nav.open { pointer-events: auto; }
+#mobile-nav-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay-dim-bg);
+  opacity: 0;
+  transition: opacity var(--drawer-dim-fade-duration) ease var(--drawer-dim-fade-delay);
+  pointer-events: none;
+}
+#mobile-nav.open #mobile-nav-bg {
+  opacity: 1;
+  pointer-events: auto;
+}
+#mobile-nav-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(360px, 100vw);
+  background: var(--drawer-bg);
+  z-index: calc(var(--z-drawer) + 1);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform var(--drawer-transition-duration) var(--drawer-transition-easing);
+}
+#mobile-nav.open #mobile-nav-panel { transform: translateX(0); }
+.mn-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: var(--header-height);
+  padding: 0 20px;
+}
+.mn-close {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  opacity: .7;
+  transition: opacity var(--duration-hover) ease;
+}
+.mn-close:hover { opacity: 1; }
+.mn-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 28px 40px;
+  gap: 4px;
+}
+.mn-link {
+  font-family: var(--font-en);
+  font-size: var(--type-h3-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-nav);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding: 16px 0;
+  opacity: .75;
+  transition: opacity var(--duration-hover) ease;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.mn-link:hover,
+.mn-link.is-active { opacity: 1; }
+.mn-footer {
+  margin-top: auto;
+  padding: 24px 28px 40px;
+  border-top: .5px solid var(--color-border-hairline);
+}
+.mn-sub-link {
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.mn-sub-link:hover { color: var(--color-text-primary); }
+
 /* ══ 검색 드롭 패널 ══ */
 #search-drop {
   position: fixed;
@@ -1323,6 +1443,12 @@ footer.blk {
 .beans-scroll.dragging .bean-card { pointer-events: none; }
 .beans-scroll::-webkit-scrollbar { display: none; }
 .beans-scroll .bean-card { flex-shrink: 0; width: 25vw; max-width: 360px; user-select: none; }
+@media (max-width: 1023px) {
+  .beans-scroll .bean-card { width: 40vw; }
+}
+@media (max-width: 767px) {
+  .beans-scroll .bean-card { width: 72vw; max-width: 320px; }
+}
 .beans-dots {
   display: flex;
   justify-content: center;
@@ -1740,6 +1866,26 @@ footer.blk {
 .sp-filter-tab.active { font-weight: 500; color: var(--tab-color-active); }
 .sp-tab-label { pointer-events: none; }
 
+/* 모바일 반응형 — 탭 수평 스크롤 (Session 41) */
+@media (max-width: 767px) {
+  #sp-filter-tabs {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-left: calc(-1 * var(--layout-padding-x));
+    margin-right: calc(-1 * var(--layout-padding-x));
+    padding-left: var(--layout-padding-x);
+    padding-right: var(--layout-padding-x);
+  }
+  #sp-filter-tabs::-webkit-scrollbar { display: none; }
+  .sp-filter-tab {
+    padding: 16px 18px 14px;
+    min-width: auto;
+    flex-shrink: 0;
+  }
+}
+
 /* 카드 그리드 */
 #sp-grid {
   display: grid;
@@ -2134,11 +2280,34 @@ footer.blk {
 .cm-filter-tab.active { font-weight: 500; color: var(--tab-color-active); }
 .cm-tab-label { pointer-events: none; }
 
+/* 모바일 반응형 — 탭 수평 스크롤 · 그리드 BP 분기 */
+@media (max-width: 767px) {
+  #cm-filter-tabs {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-left: calc(-1 * var(--layout-padding-x));
+    margin-right: calc(-1 * var(--layout-padding-x));
+    padding-left: var(--layout-padding-x);
+    padding-right: var(--layout-padding-x);
+  }
+  #cm-filter-tabs::-webkit-scrollbar { display: none; }
+  .cm-filter-tab {
+    padding: 16px 18px 14px;
+    min-width: auto;
+    flex-shrink: 0;
+  }
+}
+
 /* 그리드 + 카드 */
 #cm-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: clamp(12px, 1.4vw, 20px);
+}
+@media (max-width: 1023px) {
+  #cm-grid { grid-template-columns: repeat(2, 1fr); }
 }
 .cm-card {
   cursor: pointer;
@@ -4757,6 +4926,30 @@ footer.blk {
   grid-template-rows: 560px;
 }
 
+/* 모바일: 전 row 2컬럼 + aspect-ratio (Session 41) */
+@media (max-width: 767px) {
+  .gd-row--a,
+  .gd-row--b,
+  .gd-row--c,
+  .gd-row--d {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto;
+  }
+  .gd-row--e {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+  .gd-cell {
+    aspect-ratio: 3 / 2;
+  }
+  .gd-cell--span {
+    grid-row: auto;
+  }
+  .gd-row--e .gd-cell {
+    aspect-ratio: 16 / 10;
+  }
+}
+
 /* 셀 + 스크롤 리빌 */
 .gd-cell {
   opacity: 0;
@@ -5654,6 +5847,18 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   transition: text-decoration-color var(--duration-hover) ease;
 }
 .lp-guest-order-btn:hover { text-decoration-color: var(--color-accent-gold); }
+
+/* ── Session 41 · 모바일 tap-target 확장 (시각 변경 없음) ── */
+@media (max-width: 767px) {
+  .lp-switch-link,
+  .lp-forgot span,
+  .lp-guest-order-btn {
+    padding-top: 10px; padding-bottom: 10px;
+    margin-top: -10px; margin-bottom: -10px;
+  }
+  .lp-guest-order-btn { display: inline-block; }
+  .lp-forgot { margin-top: 0; }
+}
 
 /* 비회원 구매 박스 (체크아웃 진입) */
 .lp-guest-buy-box {
