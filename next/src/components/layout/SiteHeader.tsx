@@ -307,7 +307,7 @@ export default function SiteHeader() {
               id="main-cart-icon-btn"
               type="button"
               aria-label="장바구니"
-              onClick={openDrawer}
+              onClick={() => { closeSearch(); openDrawer(); }}
             >
               <svg className="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="8" cy="21" r="1" />
@@ -329,7 +329,7 @@ export default function SiteHeader() {
               aria-label="메뉴 열기"
               aria-expanded={isMobileNavOpen}
               aria-controls="mobile-nav-panel"
-              onClick={() => setIsMobileNavOpen(true)}
+              onClick={() => { closeSearch(); setIsMobileNavOpen(true); }}
             >
               <svg className="hi" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4,5h16" />
