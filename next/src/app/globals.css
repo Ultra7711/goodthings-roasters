@@ -62,7 +62,7 @@
 
   /* ── 컬러: Accent & Feedback ── */
   --color-accent-gold: #A47146;
-  --color-accent-gold-on-dark: #B88555;
+  --color-accent-gold-on-dark: #D4A574;
   --color-label-on-white: #A08B6D;
   --color-label-on-warm: #857052;
   --color-label-on-dark: #C8BFB1;
@@ -2814,7 +2814,6 @@ footer.blk {
   font-weight: var(--cta-btn-font-weight);
   letter-spacing: var(--cta-btn-letter-spacing);
 }
-#cart-drawer-panel .cd-cta-secondary:hover { opacity: .6; }
 #cart-drawer-panel .cd-cta-secondary:active { opacity: .7; }
 #cart-drawer-panel .cd-cta-primary:active { opacity: .7; }
 
@@ -6362,7 +6361,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .roastery-cta-btn {
   transition: opacity var(--duration-hover) ease, box-shadow var(--duration-hover) var(--ease-default);
 }
-/* 다크 bg + 라이트 텍스트 CTA → gold-on-dark */
+/* 다크 bg + 라이트 텍스트 CTA → gold-on-dark
+   2중 인셋: 하단 1px bg 스트립 + 그 위 2px gold
+   → gold 라인이 바닥에서 1px 떠 보이며 하단에 얇은 프레임이 있는 듯한 효과 */
 .cta-btn-light-filled:hover,
 .cta-btn-dark-outline:hover,
 .season-cta:hover,
@@ -6374,7 +6375,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .ocp-btn-primary:hover,
 .cp-order-btn:hover:not(:disabled),
 .bi-submit-btn:hover {
-  box-shadow: inset 0 -2px 0 var(--color-accent-gold-on-dark);
+  box-shadow:
+    inset 0 -3px 0 var(--color-accent-gold-on-dark),
+    inset 0 -1px 0 var(--color-btn-primary-bg);
 }
 
 /* 라이트 bg 버튼 → 기본 gold */
