@@ -200,22 +200,8 @@ export default function SiteHeader() {
         }}
       >
         <div className="hdr">
-          {/* 로고 + 모바일 햄버거 */}
+          {/* 로고 */}
           <div className="hdr-left">
-            <button
-              type="button"
-              className="hdr-menu-toggle"
-              aria-label="메뉴 열기"
-              aria-expanded={isMobileNavOpen}
-              aria-controls="mobile-nav-panel"
-              onClick={() => setIsMobileNavOpen(true)}
-            >
-              <svg className="hi" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4,5h16" />
-                <path d="M4,12h16" />
-                <path d="M4,19h16" />
-              </svg>
-            </button>
             <Link
               href="/"
               aria-label="Good Things Roasters 홈"
@@ -285,10 +271,10 @@ export default function SiteHeader() {
               </svg>
             </button>
 
-            {/* 로그인 / 마이페이지 */}
+            {/* 로그인 / 마이페이지 — 데스크탑 전용 (<768 에서는 햄버거 메뉴 내장) */}
             <Link
               href={mounted && isLoggedIn ? '/mypage' : '/login'}
-              className="hdr-icon-btn"
+              className="hdr-icon-btn hdr-icon-user"
               aria-label={mounted && isLoggedIn ? '마이페이지' : '로그인'}
             >
               {/* 비로그인 아이콘 */}
@@ -334,6 +320,22 @@ export default function SiteHeader() {
                   {totalQty}
                 </span>
               )}
+            </button>
+
+            {/* 모바일 햄버거 — <768 전용 */}
+            <button
+              type="button"
+              className="hdr-menu-toggle"
+              aria-label="메뉴 열기"
+              aria-expanded={isMobileNavOpen}
+              aria-controls="mobile-nav-panel"
+              onClick={() => setIsMobileNavOpen(true)}
+            >
+              <svg className="hi" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4,5h16" />
+                <path d="M4,12h16" />
+                <path d="M4,19h16" />
+              </svg>
             </button>
           </div>
         </div>

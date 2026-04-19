@@ -103,13 +103,20 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
         </nav>
 
         <div className="mn-footer">
-          <Link
-            href={isLoggedIn ? '/mypage' : '/login'}
-            className="mn-sub-link"
-            onClick={onClose}
-          >
-            {isLoggedIn ? '마이페이지' : '로그인'}
-          </Link>
+          {isLoggedIn ? (
+            <Link href="/mypage" className="mn-sub-link" onClick={onClose}>
+              마이페이지
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="mn-sub-link" onClick={onClose}>
+                로그인
+              </Link>
+              <Link href="/register" className="mn-sub-link" onClick={onClose}>
+                회원가입
+              </Link>
+            </>
+          )}
         </div>
       </aside>
     </div>,

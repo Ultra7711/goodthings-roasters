@@ -626,15 +626,13 @@ button.hdr-icon-btn { background: none; border: none; }
 }
 .cart-badge.visible { display: flex; }
 
-/* ══ 햄버거 토글 — 데스크탑 숨김 · 모바일 표시 ══ */
+/* ══ 햄버거 토글 — 데스크탑 숨김 · 모바일 표시 (hdr-icons 끝에 배치) ══ */
 .hdr-menu-toggle {
   display: none;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-  margin-left: -8px;
-  margin-right: 4px;
   background: none;
   border: none;
   padding: 0;
@@ -650,6 +648,8 @@ button.hdr-icon-btn { background: none; border: none; }
 @media (max-width: 767px) {
   .hdr-nav { display: none; }
   .hdr-menu-toggle { display: flex; }
+  /* 로그인/마이페이지 아이콘은 햄버거 메뉴로 내장 */
+  .hdr-icons .hdr-icon-user { display: none; }
 }
 
 /* ══ 모바일 네비 드로어 ══ */
