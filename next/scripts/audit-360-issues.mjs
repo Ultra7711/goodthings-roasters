@@ -28,11 +28,13 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3000';
-const WIDTH = 360;
-const HEIGHT = 780;
-const TAP_MIN = 40; // 사이트 관례 (WCAG 44 보다 완화)
+const WIDTH = Number(process.env.VW ?? 360);
+const HEIGHT = Number(process.env.VH ?? 780);
+const TAP_MIN = Number(process.env.TAP_MIN ?? 40); // 사이트 관례 (WCAG 44 보다 완화)
+const AUDIT_DIR = process.env.AUDIT_DIR ?? 'session41-audit';
+const OUT_FILE = process.env.OUT_FILE ?? `${WIDTH}-issues`;
 
-const OUT_DIR = resolve(__dirname, '../../docs/design-baseline/session41-audit');
+const OUT_DIR = resolve(__dirname, `../../docs/design-baseline/${AUDIT_DIR}`);
 
 /** @type {Array<{ name: string; path: string; delayMs?: number; scrollY?: number }>} */
 const JOBS = [
@@ -233,19 +235,19 @@ async function run() {
   await browser.close();
 
   // JSON
-  await writeFile(resolve(OUT_DIR, '360-issues.json'), JSON.stringify(report, null, 2), 'utf8');
+  await writeFile(resolve(OUT_DIR, `${OUT_FILE}.json`), JSON.stringify(report, null, 2), 'utf8');
 
   // Markdown
   const md = renderMd(report);
-  await writeFile(resolve(OUT_DIR, '360-issues.md'), md, 'utf8');
+  await writeFile(resolve(OUT_DIR, `${OUT_FILE}.md`), md, 'utf8');
 
-  console.log(`\n[audit360] done — ${resolve(OUT_DIR, '360-issues.md')}`);
+  console.log(`\n[audit360] done — ${resolve(OUT_DIR, `${OUT_FILE}.md`)}`);
 }
 
 /** @param {Record<string, any>} report */
 function renderMd(report) {
   const lines = [];
-  lines.push(`# Session 41 · 360 Viewport Audit`);
+  lines.push(`# Viewport Audit — ${WIDTH}x${HEIGHT}`);
   lines.push('');
   lines.push(`- viewport: ${WIDTH}x${HEIGHT}`);
   lines.push(`- tap min: ${TAP_MIN}px`);
