@@ -139,7 +139,7 @@
      우측 슬라이드인 드로어(영양정보, 장바구니 등)가 공통으로 소비하는 값.
      새 드로어 추가 시 이 토큰만 사용해 가로폭·배경·트랜지션 일관성을 유지한다.
      상세: memory/feedback_drawer_pattern.md */
-  --drawer-width: 540px;
+  --drawer-width: min(540px, 100vw);
   --drawer-bg: var(--color-background-primary);
   /* 프로토타입은 드로어에 shadow 없음 — 토큰만 예약, 개별 드로어에서 override 가능 */
   --drawer-shadow: none;
@@ -2432,6 +2432,10 @@ footer.blk {
   transition: transform var(--drawer-transition-duration) var(--drawer-transition-easing);
 }
 #cart-drawer.open #cart-drawer-panel { transform: translateX(0); }
+/* 모바일: <768 풀스크린 (Session 38 Step C) */
+@media (max-width: 767px) {
+  #cart-drawer-panel { width: 100vw; }
+}
 
 /* 헤더 */
 #cart-drawer-panel .cd-header {
