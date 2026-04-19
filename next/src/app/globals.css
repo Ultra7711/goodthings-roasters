@@ -2891,6 +2891,18 @@ footer.blk {
   opacity: 1;
   transform: translateY(0);
 }
+@media (max-width: 1023px) {
+  #pd-content { grid-template-columns: 1fr; }
+  #pd-img-wrap {
+    position: static;
+    grid-column: 1;
+    padding: 0 var(--layout-padding-x);
+  }
+  #pd-info {
+    grid-column: 1;
+    padding: 48px var(--layout-padding-x) 80px;
+  }
+}
 
 /* 좌: 이미지 */
 #pd-img-main-wrap {
@@ -4889,6 +4901,17 @@ footer.blk {
   gap: 80px;
   align-items: start;
 }
+@media (max-width: 1023px) {
+  .chp-body {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding: 0 var(--layout-padding-x) 80px;
+  }
+  .chp-left { padding-top: 24px; }
+}
+@media (max-width: 767px) {
+  .chp-field-row { grid-template-columns: 1fr; }
+}
 
 /* 좌측 폼 */
 .chp-left { padding-top: 48px; }
@@ -5252,9 +5275,19 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 /* 우측 주문 요약 */
 .chp-right {
-  position: sticky; top: 80px;
+  position: sticky;
+  top: 80px;
   padding-top: 33px;
 }
+@media (max-width: 1023px) {
+  .chp-right {
+    order: -1;
+    position: static;
+    padding-top: 16px;
+    top: auto;
+  }
+}
+
 .chp-right-title {
   font-family: var(--font-en); font-size: var(--type-heading-m-size); font-weight: var(--type-heading-m-weight);
   letter-spacing: var(--ls-heading); color: var(--color-text-primary); margin-bottom: 20px;
