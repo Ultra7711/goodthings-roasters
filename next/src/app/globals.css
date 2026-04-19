@@ -1271,11 +1271,31 @@ footer.blk {
   border: none;
   width: 148px;
   height: 48px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   letter-spacing: var(--ls-button);
+}
+
+/* <768: 시즌 배너 세로 스택 — season-txt 의 flex-shrink 압축 방지 */
+@media (max-width: 767px) {
+  .season-banner {
+    flex-direction: column;
+    aspect-ratio: auto;
+    gap: 32px;
+    padding: 0 24px;
+  }
+  .season-banner-img {
+    flex: 0 0 auto;
+    width: 100%;
+    aspect-ratio: 9/5;
+  }
+  .season-txt {
+    flex: 0 0 auto;
+    width: 100%;
+  }
 }
 
 /* ══ 카테고리 카드 그리드 ══ */
@@ -2004,6 +2024,7 @@ footer.blk {
 .sp-qa-vols { display: flex; gap: 6px; }
 .sp-qa-vol-btn {
   flex: 1;
+  min-width: 40px;
   height: 48px;
   border: .5px solid var(--color-border-secondary);
   background: var(--color-background-primary);
