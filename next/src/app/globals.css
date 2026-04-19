@@ -3366,7 +3366,6 @@ footer.blk {
   backface-visibility: hidden;
   margin-bottom: 0;
 }
-#pd-cart-btn:hover { opacity: .85; }
 #pd-cart-btn:active { opacity: .7; }
 #pd-cart-btn.disabled { opacity: .3; pointer-events: none; }
 
