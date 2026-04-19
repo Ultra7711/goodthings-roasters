@@ -14,24 +14,6 @@
 
 ## 오픈 이슈
 
-### UI-002 — 🟡 Shop 상품 카드: "매진" → "품절" 문구 변경
-- **재현:** Shop 페이지 · 품절 상품 카드 오버레이
-- **증상:** 현재 "매진" 으로 표기 → "품절" 로 일관화 (쇼핑몰 표준 용어)
-- **대상:** ShopPage / ProductCard 내 SOLD_OUT 레이블 문자열
-- **발견:** 2026-04-19 Session 29
-- **상태:** 미수정
-
-### UI-003 — 🟡 페이지 배경 통일: Shop 배경(secondary warm) 전파
-- **대상 페이지:** Menu · Good Days · MyPage · Login · Checkout (Step 1 · Step 2 양쪽)
-- **증상:** 현재 페이지별 배경이 제각각(웜화이트/secondary 혼재). Shop 과 동일한 secondary warm 배경으로 통일.
-- **원칙:** 기본 배경 = Shop 배경(secondary). 웜화이트는 이후 **선택적 강조용**으로만 사용.
-- **웜화이트 사용처 (예시):** 드롭다운 메뉴 배경, 팝오버, 카드 강조 레이어, 모달 패널 등 — secondary 배경 위에 얹히는 상위 서페이스
-- **관련:** `memory/project_palette_shop_detail_tone.md` (쇼핑 동선 tone 통일 메모)
-- **발견:** 2026-04-19 Session 29
-- **상태:** 미수정
-
----
-
 ### UI-004 — 🟡 전체 버튼 hover 동작 규칙 전수 조사 · 정립 · 일괄 적용
 - **배경:** Step 3-A-4 에서 CTA 11종만 hover 규칙 통일. 아이콘/텍스트 버튼 등 나머지는 제각각.
 - **조사 범위 (유형별 분류):**
@@ -52,17 +34,31 @@
 - **발견:** 2026-04-19 Session 29
 - **상태:** 미수정
 
-### UI-005 — 🟡 카트 드로어 호출 시 배경 페이지 우측 밀림 (scrollbar gutter)
-- **재현:** 헤더 카트 아이콘 클릭 → 드로어 오픈 순간
-- **증상:** body `overflow:hidden` 적용되며 세로 스크롤바 사라짐 → 그 폭(≈15px)만큼 배경 UI 가 순간 우측으로 점프
-- **가설:** drawer open 시 body lock 패턴에서 `scrollbar-gutter: stable` 미적용. html/body 에 `scrollbar-gutter: stable` 선언 또는 lock 시점에 `padding-right: var(--scrollbar-width)` 보정 필요
-- **관련:** useDrawer 훅 · 다른 모달/오버레이 오픈 시에도 동일 이슈 확인 필요
-- **발견:** 2026-04-19 Session 29
-- **상태:** 미수정
-
 ---
 
 ## 완료 이슈
+
+### UI-005 — 🟡 카트 드로어 호출 시 배경 페이지 우측 밀림 (scrollbar gutter)
+- **재현:** 헤더 카트 아이콘 클릭 → 드로어 오픈 순간 헤더 로고 우측 시프트
+- **원인:** `useDrawer` 가 `html.scrollbarGutter = 'auto'` 로 해제 → ICB 가 viewport 전체로 확장 → fixed 헤더 좌표 15px 우측 이동
+- **해결:** Session 34 — gutter 해제 로직 제거. `html { scrollbar-gutter: stable }` 유지 → ICB 폭 불변, 헤더 시프트 없음. 드로어 우측 15px gutter 는 backdrop 이 덮음.
+- **발견:** 2026-04-19 Session 29
+- **완료:** 2026-04-19 Session 34
+
+### UI-002 — 🟡 Shop 상품 카드: "매진" → "품절" 문구 변경
+- **재현:** Shop 페이지 · 품절 상품 카드 오버레이
+- **증상:** 현재 "매진" 으로 표기 → "품절" 로 일관화 (쇼핑몰 표준 용어)
+- **해결:** 커밋 `9b60f204` (Session 34) — ProductStatus enum 치환 + 데이터/분기/UI/주석 25건 전수 치환
+- **발견:** 2026-04-19 Session 29
+- **완료:** 2026-04-19 Session 34
+
+### UI-003 — 🟡 페이지 배경 통일
+- **원안:** Shop 배경(secondary warm) 을 전 페이지에 전파
+- **실제 해결 경로:** Session 33 Claude Design round-2 팔레트 도입 과정에서 "Shop 차별화 정책 폐기" 결정 → Shop `.sp-page-bg` 를 bg1 로 변경 (`1299ca99`). 전 페이지 bg1 통일로 수렴.
+- **결과:** 원안(secondary 통일) 과 반대 방향이지만 "페이지 간 배경 톤 통일" 목적 달성.
+- **관련:** `memory/project_palette_shop_detail_tone.md` (원안 미채택 기록)
+- **발견:** 2026-04-19 Session 29
+- **완료:** 2026-04-19 Session 33 (대안 경로)
 
 ### UI-001 — 🔴 Shop 페이지 하단: 푸터와 본문 경계 사이 흰색 ~10px 라인
 - **재현:** Shop 페이지 스크롤 최하단
