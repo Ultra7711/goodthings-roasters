@@ -62,9 +62,10 @@
 
   /* ── 컬러: Accent & Feedback ── */
   --color-accent-gold: #A47146;
-  --color-accent-gold-on-dark: #C28E5A;
+  --color-accent-gold-on-dark: #B88555;
   --color-label-on-white: #A08B6D;
   --color-label-on-warm: #857052;
+  --color-label-on-dark: #C8BFB1;
   --color-error: #C4554E;
   --color-success: #5C7A4B;
   --color-info: #4A6B8A;
@@ -1013,6 +1014,7 @@ footer.blk {
   font-weight: 500;
   color: var(--color-label-on-white);
   letter-spacing: var(--ls-label);
+  text-transform: uppercase;
 }
 .blk-heading {
   font-family: var(--font-kr);
@@ -1062,7 +1064,7 @@ footer.blk {
 .season-tag {
   font-family: var(--font-en);
   font-size: var(--type-body-s-size);
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: var(--ls-uppercase);
   color: var(--color-label-on-warm);
   line-height: 1.2;
@@ -1446,7 +1448,7 @@ footer.blk {
   font-weight: 500;
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  color: var(--color-border-input);
+  color: var(--color-label-on-dark);
   margin-bottom: 4px;
 }
 .tci-h {
@@ -4094,11 +4096,11 @@ footer.blk {
 /* ── Promise 섹션 (센터 정렬, tertiary 배경) ── */
 .st-promise {
   padding: 120px 60px;
-  text-align: center;
 }
 .st-promise-inner {
-  max-width: 1440px;
+  max-width: 560px;
   margin: 0 auto;
+  text-align: left;
 }
 .st-promise-heading {
   font-family: var(--font-kr);
@@ -4115,7 +4117,7 @@ footer.blk {
   font-weight: 400;
   line-height: 1.6;
   color: var(--color-text-secondary);
-  margin: 0 auto;
+  margin: 0;
   max-width: 560px;
   word-break: keep-all;
 }
@@ -6395,4 +6397,35 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-dark-filled:hover,
 .cta-btn-light-outline:hover {
   box-shadow: inset 0 -2px 0 var(--color-accent-gold);
+}
+
+/* ══ Step 3-A-5: 섹션 eyebrow gold rule ══
+   Home·Story 섹션 머리 uppercase eyebrow 앞에 32px gold 수평선.
+   대상: .blk-label · .phil-lbl · .roastery-lbl · .tci-lbl · .st-label (5종)
+   제외: .season-tag (시즌 배너 별도 맥락) */
+.blk-label,
+.phil-lbl,
+.roastery-lbl,
+.tci-lbl,
+.st-label,
+.season-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.blk-label::before,
+.phil-lbl::before,
+.roastery-lbl::before,
+.tci-lbl::before,
+.st-label::before,
+.season-tag::before {
+  content: '';
+  display: inline-block;
+  width: 32px;
+  height: 2px;
+  background: var(--color-accent-gold);
+}
+/* 다크 bg 위 eyebrow → on-dark variant */
+.tci-lbl::before {
+  background: var(--color-accent-gold-on-dark);
 }
