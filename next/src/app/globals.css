@@ -1620,6 +1620,16 @@ footer.blk {
 }
 .moment-card:hover .moment-img { transform: scale(1.03); }
 .moment-card:hover::after { background: rgba(0,0,0,.06); }
+@media (max-width: 767px) {
+  .moments-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(5, auto);
+    aspect-ratio: auto;
+    gap: var(--gap-md);
+  }
+  .moments-grid .moment-card:first-child { grid-row: auto; }
+  .moments-grid .moment-card { aspect-ratio: 3/2; }
+}
 
 /* ══ SHOP PAGE ══ */
 .sp-page-bg {
@@ -1729,6 +1739,9 @@ footer.blk {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: clamp(12px, 1.4vw, 20px);
+}
+@media (max-width: 1023px) {
+  #sp-grid { grid-template-columns: repeat(2, 1fr); }
 }
 .sp-card {
   cursor: pointer;
@@ -4067,6 +4080,15 @@ footer.blk {
   flex-direction: column;
   justify-content: center;
   padding: 80px 80px;
+}
+@media (max-width: 767px) {
+  .st-two-col-inner {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .st-two-col--reverse .st-two-col-inner { direction: ltr; }
+  .st-col-img { aspect-ratio: 3/2; }
+  .st-col-txt { padding: 40px 24px; }
 }
 .st-col-heading {
   font-family: var(--font-kr);
