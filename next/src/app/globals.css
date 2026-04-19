@@ -76,14 +76,6 @@
   --color-status-done: #7A7068;
   --color-status-new: #B8563A;
 
-  /* ── 그림자: Warm-tinted (카드 플로팅) ── */
-  --shadow-card-warm:
-    0 1px 2px rgba(60, 45, 30, 0.04),
-    0 8px 24px -8px rgba(60, 45, 30, 0.08);
-  --shadow-card-warm-hover:
-    0 2px 4px rgba(60, 45, 30, 0.06),
-    0 16px 32px -12px rgba(60, 45, 30, 0.12);
-
   /* ── 스페이싱 (4px 기반 스케일) ── */
   --space-1: 4px;
   --space-2: 8px;
@@ -1905,7 +1897,7 @@ footer.blk {
 .badge-pop-2 { background: var(--color-error); }
 .badge-pop-3 { background: var(--color-error); }
 .badge-ltd { background: var(--color-info); }
-.badge-sold { background: #8C8580; }
+.badge-sold { background: var(--color-badge-sold-out); }
 
 /* 카드 정보 */
 .sp-card-info {
