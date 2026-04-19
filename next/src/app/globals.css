@@ -11,10 +11,10 @@
   --font-kr: var(--font-pretendard), 'Pretendard Variable', 'Pretendard', sans-serif;
 
   /* ── 컬러: Background ── */
-  --color-background-primary: #FAFAF8;
-  --color-background-secondary: #F5F3F0;
-  --color-background-tertiary: #ECEAE6;
-  --color-background-inverse: #1C1B19;
+  --color-background-primary: #FBF8F3;
+  --color-background-secondary: #EFEAE0;
+  --color-background-tertiary: #E4DACB;
+  --color-background-inverse: #1E1B16;
 
   /* ══ 컬러: Text — 5단계 semantic + legacy alias ══
      신규 체계는 의도 기반 이름(display / heading / body / support / caption)을 쓰고
@@ -53,7 +53,7 @@
 
   /* ── 컬러: Surface ── */
   --color-surface-stone: #4A4845;
-  --color-surface-warm: #E8E2DA;
+  --color-surface-warm: #E4DACB;
 
   /* ── 컬러: Interactive (CTA) ── */
   --color-btn-primary-bg: #1C1B19;
@@ -61,9 +61,9 @@
   --color-btn-primary-bg-active: #0F0E0D;
 
   /* ── 컬러: Accent & Feedback ── */
-  --color-accent-gold: #A47146;
-  --color-accent-gold-on-dark: #D4A574;
-  --color-label-on-white: #A08B6D;
+  --color-accent-gold: #A5693A;
+  --color-accent-gold-on-dark: #D9A36A;
+  --color-label-on-white: #9A7E54;
   --color-label-on-warm: #857052;
   --color-label-on-dark: #C8BFB1;
   --color-error: #C4554E;
