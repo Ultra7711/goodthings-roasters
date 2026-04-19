@@ -36,7 +36,8 @@ const FULL_PAGE = process.env.FULL_PAGE === '1';
 const WIDTH = Number(process.argv[2] ?? 1440);
 const HEIGHT = WIDTH >= 1024 ? 900 : WIDTH >= 768 ? 1024 : 780;
 
-const OUT_DIR = resolve(__dirname, `../../docs/design-baseline/session37-audit/${WIDTH}`);
+const OUT_LABEL = process.env.OUT_LABEL ?? 'session37-audit';
+const OUT_DIR = resolve(__dirname, `../../docs/design-baseline/${OUT_LABEL}/${WIDTH}`);
 
 /**
  * 홈은 히어로 비디오 인트로 타이포가 페이지 타이포로 오인될 수 있어 별도 처리:
