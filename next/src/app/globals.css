@@ -550,7 +550,7 @@ textarea:-webkit-autofill:active {
 .hdr-icons {
   flex: 1;
   display: flex;
-  gap: var(--gap-lg);
+  gap: 4px; /* Session 43 — icon-btn 40x40 화장 후 시각 간격 유지 (padding 8 * 2 + gap 4 = 20) */
   align-items: center;
   justify-content: flex-end;
 }
@@ -569,18 +569,28 @@ textarea:-webkit-autofill:active {
   color: var(--color-text-primary);
   line-height: var(--lh-tight);
   text-decoration: none;
+  /* Session 43 — tap-area 44h (19 + 12.5*2 padding, 시각 변경 없음) */
+  padding-block: 12.5px;
+  margin-block: -12.5px;
+  display: inline-flex;
+  align-items: center;
 }
 .nav-link:hover { opacity: 1; }
 /* 현재 페이지 표시 — opacity 1 강조만 */
 .nav-link[aria-current="page"] { opacity: 1; }
 
-button.hdr-icon-btn { background: none; border: none; padding: 0; }
+button.hdr-icon-btn { background: none; border: none; }
 .hdr-icon-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   text-decoration: none;
+  /* Session 43 — tap-area 40x40 (icon 24 + padding 8 * 2). .hdr-icons gap 4px 로 시각 간격 20 유지 */
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  box-sizing: border-box;
 }
 .hi {
   width: 24px;
@@ -595,8 +605,9 @@ button.hdr-icon-btn { background: none; border: none; padding: 0; }
 .cart-badge {
   opacity: 1 !important;
   position: absolute;
-  top: -6px;
-  right: -7px;
+  /* Session 43 — hdr-icon-btn 40x40 화장 (padding 8) 후 시각 위치 보정: top -6 → 2, right -7 → 1 */
+  top: 2px;
+  right: 1px;
   min-width: 20px;
   height: 20px;
   padding: 0 5px;
@@ -853,8 +864,14 @@ footer.blk {
   opacity: var(--opacity-footer-sns-rest);
   display: flex;
   align-items: center;
+  justify-content: center;
   line-height: 1;
-  margin-top: -2px;
+  /* Session 43 — tap-area 40x40 (icon 24 + padding 8 * 2, 시각 변경 없음) */
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  margin: -8px -8px calc(-8px - 2px); /* 기존 margin-top: -2px 보존 */
+  box-sizing: border-box;
   transition: opacity var(--duration-hover) linear;
 }
 .footer-sns-link:hover { opacity: var(--opacity-footer-sns-hover); }
@@ -900,7 +917,9 @@ footer.blk {
   font-size: var(--type-caption-size);
   font-weight: 300;
   color: var(--on-dark-tertiary);
-  padding: 5px 0;
+  /* Session 43 — tap-area 44h (text 12 + padding 16 * 2 = 44, 시각 변경 최소화) */
+  padding: 16px 0;
+  margin: -11px 0; /* 기존 5px padding → 16px 으로 확장한 증가분(11) 상쇄 */
   line-height: 1;
   cursor: pointer;
   transition: color var(--duration-hover) linear;
@@ -942,7 +961,9 @@ footer.blk {
   cursor: pointer;
   border: none;
   background: none;
-  padding: 0;
+  /* Session 43 — tap-area 44h (padding-block 13 * 2 + text 18 = 44) · inline 으로 배치되어 margin-block 으로 상쇄 */
+  padding: 13px 0;
+  margin-block: -13px;
   transition: color var(--duration-hover) linear;
 }
 .f-biz-toggle:hover { color: var(--color-text-inverse); }
@@ -973,6 +994,11 @@ footer.blk {
   color: inherit;
   text-decoration: underline;
   text-underline-offset: 2px;
+  /* Session 43 — tap-area 44h (text 15 + padding 14.5 * 2 = 44) · inline-block 로 size 적용 */
+  display: inline-block;
+  padding: 14.5px 0;
+  margin-block: -14.5px;
+  line-height: 1;
   transition: color var(--duration-hover) linear;
 }
 .f-biz-lookup:hover { color: var(--color-text-inverse); }
@@ -1454,21 +1480,24 @@ footer.blk {
   justify-content: center;
   align-items: center;
   gap: 0;
-  padding: 20px 0 0;
+  /* Session 43 — beans-dot border 9 → 17 확장으로 16px 초과 증가분을 padding-top 축소로 상쇄 */
+  padding: 12px 0 0;
 }
 .beans-dot {
   height: 6px;
   width: 6px;
   border-radius: 3px;
   background: var(--color-border-primary);
-  border: 9px solid transparent;
+  /* Session 43 — tap-area 40x40 (dot 6 + border 17 * 2 = 40, transparent border 로 시각 점은 6px 유지) */
+  border: 17px solid transparent;
   padding: 0;
   cursor: pointer;
   transition: width var(--duration-transition) var(--ease-spring), background var(--duration-transition) ease;
   background-clip: padding-box;
   box-sizing: content-box;
 }
-.beans-dot.active { width: 20px; height: 2px; border-radius: 1px; background: var(--color-text-primary); background-clip: padding-box; }
+/* Session 43 — active 도 border 17 로 hit-area 40h 유지 (h 2 + border 17 * 2 = 36 → 수직 hit 충분) */
+.beans-dot.active { width: 20px; height: 6px; border-radius: 1px; background: var(--color-text-primary); background-clip: padding-box; }
 .beans-scroll.bounce-start { animation: beans-bounce-start var(--duration-fade) ease-out; }
 .beans-scroll.bounce-end   { animation: beans-bounce-end var(--duration-fade) ease-out; }
 
@@ -2892,7 +2921,11 @@ footer.blk {
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
   transition: text-decoration-color var(--duration-hover) ease;
-  margin-top: 8px;
+  /* Session 43 — tap-area 44h (text box 21 + padding 12 * 2 = 45) · margin-top 8 유지 */
+  display: inline-block;
+  padding: 12px 0;
+  margin-top: calc(8px - 12px);
+  margin-bottom: -12px;
 }
 #cart-drawer-panel .cd-shop-btn:hover { text-decoration-color: var(--color-accent-gold); }
 
@@ -3540,6 +3573,10 @@ footer.blk {
   transition: color var(--duration-hover) ease;
   user-select: none;
   flex-shrink: 0;
+  /* Session 43 — tap-area 40x40 (padding 8 * 2). inline-block padding 은 SVG width/height 를 유지하도록 box-sizing 은 content-box 유지 */
+  padding: 8px;
+  box-sizing: content-box;
+  margin: -8px;
 }
 .pd-qty-icon:hover { color: var(--color-icon-default); }
 #pd-qty-num {
@@ -5848,17 +5885,16 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .lp-guest-order-btn:hover { text-decoration-color: var(--color-accent-gold); }
 
-/* ── Session 41 · 모바일 tap-target 확장 (시각 변경 없음) ── */
-@media (max-width: 767px) {
-  .lp-switch-link,
-  .lp-forgot span,
-  .lp-guest-order-btn {
-    padding-top: 10px; padding-bottom: 10px;
-    margin-top: -10px; margin-bottom: -10px;
-  }
-  .lp-guest-order-btn { display: inline-block; }
-  .lp-forgot { margin-top: 0; }
+/* ── Session 43 · tap-target 확장 (Session 41 mobile-only → 전 BP 공통) ──
+   시각 변경 없음 · text 15~18 + padding 13 * 2 ≈ 41~44 hit-area */
+.lp-switch-link,
+.lp-forgot span,
+.lp-guest-order-btn {
+  padding-top: 13px; padding-bottom: 13px;
+  margin-top: -13px; margin-bottom: -13px;
 }
+.lp-guest-order-btn { display: inline-block; }
+/* .lp-forgot margin-top: -8 유지 (span 의 margin -13 이 위쪽 간격을 13 추가로 흡수하므로 원래 -8 로도 시각 동일) */
 
 /* 비회원 구매 박스 (체크아웃 진입) */
 .lp-guest-buy-box {
@@ -6663,7 +6699,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-underline-offset: 4px;
   letter-spacing: var(--link-cta-letter-spacing);
   transition: text-decoration-color var(--duration-hover) ease;
-  padding: 0;
+  /* Session 43 — tap-area 44h (text box 21 + padding 12 * 2 = 45) · display inline-block 로 padding 적용 */
+  display: inline-block;
+  padding: 12px 0;
+  margin-block: -12px;
 }
 .cp-continue-link:hover { text-decoration-color: var(--color-accent-gold); }
 .cp-order-btn {

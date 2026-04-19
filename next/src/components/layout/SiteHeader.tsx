@@ -216,7 +216,13 @@ export default function SiteHeader() {
                 <path d="M4,19h16" />
               </svg>
             </button>
-            <Link href="/" aria-label="Good Things Roasters 홈" onClick={handleLogoClick}>
+            <Link
+              href="/"
+              aria-label="Good Things Roasters 홈"
+              onClick={handleLogoClick}
+              /* Session 43 — 로고 anchor tap-area 30h → 40h (padding 5 * 2), 레이아웃 영향 없음 */
+              style={{ display: 'inline-flex', alignItems: 'center', padding: '5px 0', margin: '-5px 0' }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 id="logo-img"
