@@ -343,7 +343,7 @@ export default function OrderCompletePage() {
             </Link>
           </div>
         </div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 24, padding: '80px 60px' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', flexDirection: 'column', gap: 24, padding: '100px 60px 120px' }}>
           <p style={{ fontFamily: 'var(--font-kr)', fontSize: 'var(--type-body-l-size)', color: 'var(--color-text-secondary)' }}>
             주문 정보를 찾을 수 없습니다.
           </p>
@@ -537,8 +537,8 @@ export default function OrderCompletePage() {
           <div className="ocp-summary">
             {order.items.map((item, idx) => (
               <div key={idx} className="ocp-item">
-                <div className="ocp-item-img" style={{ background: item.image.bg }}>
-                  {item.image.src && (
+                <div className="ocp-item-img" style={{ background: item.image?.bg ?? 'transparent' }}>
+                  {item.image?.src && (
                     <Image src={item.image.src} alt={item.name} width={100} height={100} style={{ objectFit: 'contain' }} />
                   )}
                 </div>

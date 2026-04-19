@@ -351,7 +351,7 @@
   --search-panel-input-font-size: var(--type-body-l-size);
   --search-panel-input-font-weight: 300;
   --search-panel-input-letter-spacing: var(--ls-heading);
-  --search-panel-bg: rgba(251,248,243,.72);
+  --search-panel-bg: color-mix(in oklab, var(--color-background-primary) 72%, transparent);
   --search-panel-backdrop: blur(16px);
   --search-panel-divider-color: rgba(0,0,0,.1);
   --search-panel-border-bottom-color: rgba(0,0,0,.08);
@@ -381,6 +381,24 @@ body {
   background: var(--color-background-primary);
   color: var(--color-text-primary);
   word-break: keep-all;
+}
+
+/* Chrome 자동완성 파란 배경 제거 — background-color 는 브라우저가 덮어쓰므로
+   inset box-shadow 로 가리고, 텍스트는 -webkit-text-fill-color 로 유지.
+   5000s transition 은 배경 복귀 애니메이션을 무한 지연시키는 보험. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset;
+  box-shadow: 0 0 0 1000px transparent inset;
+  -webkit-text-fill-color: var(--color-text-primary);
+  caret-color: var(--color-text-primary);
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .root {
@@ -454,7 +472,7 @@ body {
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  background: rgba(251,248,243,.72);
+  background: color-mix(in oklab, var(--color-background-primary) 72%, transparent);
   /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 (Tailwind v4 Lightning CSS drop 이슈 회피) */
   border-left: .5px solid rgba(255,255,255,.4);
   border-right: .5px solid rgba(255,255,255,.4);
@@ -1201,7 +1219,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
   font-weight: 400;
-  color: var(--color-background-tertiary);
+  color: var(--on-dark-secondary);
   line-height: 1.6;
 }
 /* 배경 이미지 */
@@ -1469,7 +1487,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
   font-weight: 400;
-  color: #F5F3F0;
+  color: var(--on-dark-secondary);
   line-height: 1.6;
   margin-bottom: 5px;
 }
@@ -1755,7 +1773,7 @@ footer.blk {
   bottom: 48px;
   left: 0;
   right: 0;
-  background: rgba(250,250,248,.72);
+  background: color-mix(in oklab, var(--color-background-primary) 72%, transparent);
   /* backdrop-filter는 inline style로 주입 (Chrome GPU compositor layer 충돌 방지) */
   border: .5px solid var(--color-border-tertiary);
   border-bottom: none;
@@ -2423,6 +2441,7 @@ footer.blk {
   padding: 0 24px 0 28px;
   height: 64px;
   flex-shrink: 0;
+  border-bottom: .5px solid var(--color-border-secondary);
 }
 #cart-drawer-panel .cd-title-wrap { display: flex; align-items: center; gap: var(--gap-xs); }
 #cart-drawer-panel .cd-title {
@@ -2434,20 +2453,14 @@ footer.blk {
   line-height: var(--lh-tight);
 }
 #cart-drawer-panel .cd-count {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 6px;
-  border-radius: 50%;
-  background: var(--color-surface-stone);
-  color: var(--color-text-inverse);
   font-family: var(--font-en);
-  font-size: var(--type-body-ui-size);
-  font-weight: 600;
+  font-size: var(--type-body-l-size);
+  font-weight: var(--type-h3-weight);
+  color: var(--color-text-tertiary);
   line-height: 1;
 }
+#cart-drawer-panel .cd-count::before { content: '('; }
+#cart-drawer-panel .cd-count::after { content: ')'; }
 #cart-drawer-panel .cd-close {
   width: 40px;
   height: 40px;
@@ -2463,40 +2476,16 @@ footer.blk {
 }
 #cart-drawer-panel .cd-close:hover { opacity: .85; }
 
-/* 프로모 바 */
-#cart-drawer-panel .cd-promo {
-  display: flex;
-  align-items: center;
-  gap: var(--gap-xs);
-  padding: 0 28px;
-  height: 42px;
-  background: var(--color-background-tertiary);
-  font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
-  font-weight: 400;
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
-  border-top: 1px solid rgba(28, 27, 25, .06);
-  border-bottom: 1px solid rgba(28, 27, 25, .06);
-}
-#cart-drawer-panel .cd-promo-icon { width: 20px; height: 20px; opacity: .5; }
-#cart-drawer-panel .cd-promo-gauge {
-  flex: 1;
+/* 무료 배송 진행 게이지 (드로어·풀페이지 공용) */
+.shipping-gauge {
   height: 10px;
-  background: var(--color-background-primary);
-  border-radius: 0;
+  background: var(--color-background-tertiary);
   overflow: hidden;
-  min-width: 80px;
-  margin-left: 24px;
-  margin-right: -3px;
-  display: none;
 }
-#cart-drawer-panel .cd-promo-gauge.active { display: block; }
-#cart-drawer-panel .cd-promo-gauge-fill {
+.shipping-gauge-fill {
   height: 100%;
   width: 0%;
-  background: var(--color-accent-gold);
-  border-radius: 0;
+  background: var(--color-accent-gold-on-dark);
   transition: width var(--duration-drawer) ease;
 }
 
@@ -2539,26 +2528,6 @@ footer.blk {
 }
 #cart-drawer-panel .cd-item-img img { width: 100%; height: 100%; object-fit: contain; }
 #cart-drawer-panel .cd-item-img img.cd-item-img-empty { width: 24px; height: 24px; opacity: .3; object-fit: initial; }
-#cart-drawer-panel .cd-item-qty-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface-stone);
-  color: var(--color-text-inverse);
-  font-family: var(--font-en);
-  font-size: var(--type-caption-size);
-  font-weight: 600;
-  line-height: 1;
-  border-radius: 10px;
-  box-shadow: 0 0 0 2px var(--color-background-primary);
-  box-sizing: border-box;
-}
 #cart-drawer-panel .cd-item-category {
   position: absolute;
   left: 151px;
@@ -2742,6 +2711,14 @@ footer.blk {
   border-bottom: .5px solid var(--color-border-secondary);
   flex-shrink: 0;
 }
+#cart-drawer-panel .cd-si-main {
+  display: contents;
+}
+#cart-drawer-panel .cd-shipping-item .shipping-gauge {
+  width: 160px;
+  flex-shrink: 0;
+  order: 1;
+}
 #cart-drawer-panel .cd-si-label {
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
@@ -2764,7 +2741,8 @@ footer.blk {
   font-weight: 400;
   color: var(--color-text-primary);
   flex-shrink: 0;
-  margin-left: 16px;
+  margin-left: 28px;
+  order: 2;
 }
 #cart-drawer-panel .cd-si-price.free { color: var(--color-success); font-weight: 500; }
 
@@ -2804,7 +2782,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
   font-weight: 400;
-  color: var(--color-text-hint);
+  color: var(--color-text-tertiary);
   line-height: 1;
 }
 #cart-drawer-panel .cd-cta-row {
@@ -4314,7 +4292,7 @@ footer.blk {
 }
 #bi-page-note {
   font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
+  font-size: var(--type-body-ui-size);
   color: var(--color-text-caption);
   line-height: var(--lh-normal);
   margin: 4px 0 0;
@@ -4414,8 +4392,8 @@ footer.blk {
 }
 .bi-dropdown-arrow {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   margin-left: 8px;
   color: var(--color-text-caption);
   transition: transform var(--duration-hover) ease;
@@ -4445,8 +4423,8 @@ footer.blk {
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--color-background-primary);
-  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-input-box-bg);
+  border: 1px solid var(--color-input-box-border-hover);
   box-shadow: var(--shadow-dropdown);
   z-index: var(--z-float);
 }
@@ -4454,13 +4432,12 @@ footer.blk {
   display: block;
 }
 .bi-dropdown-title {
-  padding: 12px 16px 8px;
+  padding: 10px 16px;
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border-secondary);
-  margin-bottom: 4px;
+  font-weight: 400;
+  color: var(--color-text-caption);
+  border-bottom: 1px solid var(--color-input-box-border);
 }
 .bi-dropdown-option {
   padding: 12px 16px;
@@ -4858,7 +4835,7 @@ footer.blk {
 /* 결제 미니 헤더 */
 .chp-hdr-wrap {
   position: sticky; top: 0; z-index: var(--z-sticky);
-  background: rgba(251,248,243,.72);
+  background: color-mix(in oklab, var(--color-background-primary) 72%, transparent);
   flex-shrink: 0;
   transition: background var(--duration-normal) var(--ease-out-expo);
 }
@@ -5018,7 +4995,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-dropdown-field.open .chp-dropdown-trigger { border-bottom-color: var(--color-text-primary); }
 .chp-dropdown-value { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chp-dropdown-arrow {
-  flex-shrink: 0; width: 20px; height: 20px; margin-left: 8px;
+  flex-shrink: 0; width: 24px; height: 24px; margin-left: 8px;
   color: var(--color-text-caption);
   transition: transform var(--duration-hover) ease;
 }
@@ -5037,18 +5014,17 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* 드롭다운 목록 */
 .chp-dropdown-list {
   display: none; position: absolute; top: 100%; left: 0; right: 0;
-  background: var(--color-background-primary);
-  border: .5px solid var(--color-border-secondary);
+  background: var(--color-input-box-bg);
+  border: 1px solid var(--color-input-box-border-hover);
   box-shadow: var(--shadow-dropdown);
   z-index: var(--z-float);
 }
 .chp-dropdown-field.open .chp-dropdown-list { display: block; }
 .chp-dropdown-title {
-  padding: 12px 16px 8px;
-  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 500;
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border-secondary);
-  margin-bottom: 4px;
+  padding: 10px 16px;
+  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 400;
+  color: var(--color-text-caption);
+  border-bottom: 1px solid var(--color-input-box-border);
 }
 .chp-dropdown-option {
   padding: 12px 16px; cursor: pointer;
@@ -5337,14 +5313,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 .ocp-hdr-wrap {
   position: sticky; top: 0; z-index: var(--z-sticky);
-  background: rgba(250,250,248,.92);
-  border-bottom: 1px solid rgba(0,0,0,.04);
-  box-shadow: 0 1px 0 rgba(250,250,248,.08) inset;
+  background: color-mix(in oklab, var(--color-background-primary) 72%, transparent);
   flex-shrink: 0;
 }
 .ocp-body {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  padding: 80px 60px; min-height: 0;
+  flex: 1; display: flex; align-items: flex-start; justify-content: center;
+  padding: 100px 60px 120px; min-height: 0;
 }
 .ocp-inner {
   width: 100%; max-width: 440px;
@@ -5360,11 +5334,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   margin-top: 32px;
   font-family: var(--font-kr); font-size: var(--type-body-l-size); font-weight: 400;
   color: var(--color-text-secondary);
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: baseline; gap: 6px;
 }
 .ocp-order-num strong {
   font-family: var(--font-en); font-size: var(--type-body-l-size); font-weight: 500;
-  color: var(--color-text-primary); cursor: pointer; position: relative; top: .5px;
+  color: var(--color-text-primary); cursor: pointer;
 }
 /* 안내 */
 .ocp-subtitle {
@@ -5374,6 +5348,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .ocp-copy-btn {
   display: inline-flex; align-items: center; justify-content: center;
+  align-self: center;
   width: 24px; height: 24px; border: none; background: transparent;
   color: var(--color-text-caption); cursor: pointer; flex-shrink: 0;
   transition: color var(--duration-hover) linear;
@@ -5382,7 +5357,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 /* 주문 요약 리스트 */
 .ocp-summary {
-  width: 100%; margin-top: 48px; min-height: 352px;
+  width: 100%; margin-top: 48px; min-height: 264px;
   display: flex; flex-direction: column; gap: 0;
 }
 .ocp-item {
@@ -5947,6 +5922,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-align: center;
   animation: mp-modal-shake .45s cubic-bezier(.36, .07, .19, .97) both;
 }
+.mp-modal.mp-modal--calm { animation: none; }
 .mp-modal-title {
   font-family: var(--font-kr); font-size: var(--type-h3-size); font-weight: 500;
   color: var(--color-text-primary); margin: 0 0 12px;
@@ -5969,7 +5945,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   cursor: pointer;
   transition: background-color var(--duration-hover) ease, opacity var(--duration-hover) ease;
 }
-.mp-modal-cancel:hover { background-color: var(--color-background-secondary); }
 .mp-modal-confirm {
   flex: 1; height: 44px;
   font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
@@ -6152,6 +6127,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   width: 100%;
   margin: 0 auto;
   padding: 100px 60px 120px;
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity var(--duration-slide) ease-out,
+              transform var(--duration-slide) ease-out;
+}
+.cp-root.cp-anim {
+  opacity: 1;
+  transform: translateY(0);
 }
 .cp-page-header { margin-bottom: 32px; }
 .cp-title-text {
@@ -6182,8 +6165,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cp-th-delete {
   width: 26px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
+  background: transparent; border: none; padding: 0; cursor: pointer;
   color: var(--color-icon-default); opacity: .7;
+  transition: opacity var(--duration-hover) ease;
 }
+.cp-th-delete:hover { opacity: 1; }
 .cp-th-delete svg { width: 24px; height: 24px; }
 
 .cp-item {
@@ -6316,12 +6302,33 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cp-empty .cp-continue-link { margin-top: 8px; }
 
 .cp-shipping-row {
-  display: flex; align-items: center;
+  display: flex;
+  align-items: center;
   height: 42px;
   border-top: .5px solid var(--color-border-primary);
   border-bottom: .5px solid var(--color-border-primary);
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
+}
+.cp-shipping-main {
+  display: contents;
+}
+.cp-shipping-row .shipping-gauge {
+  width: 280px;
+  flex-shrink: 0;
+  order: 1;
+}
+@media (max-width: 1024px) {
+  .cp-shipping-row .shipping-gauge { width: 200px; }
+  #cart-drawer-panel .cd-shipping-item .shipping-gauge { width: 120px; }
+}
+@media (max-width: 768px) {
+  .cp-shipping-row .shipping-gauge { width: 140px; }
+  #cart-drawer-panel .cd-shipping-item .shipping-gauge { width: 96px; }
+}
+@media (max-width: 480px) {
+  .cp-shipping-row .shipping-gauge { width: 96px; }
+  #cart-drawer-panel .cd-shipping-item .shipping-gauge { width: 72px; }
 }
 .cp-shipping-label {
   font-weight: 400; color: var(--color-text-secondary);
@@ -6334,35 +6341,39 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-weight: 400;
   color: var(--color-text-primary);
   flex-shrink: 0; text-align: right;
-  margin-left: var(--gap-md);
+  margin-left: 32px;
+  order: 2;
 }
 .cp-shipping-price.free { color: var(--color-success); }
 
-.cp-footer { position: relative; height: 159px; }
+.cp-footer { position: relative; height: 176px; }
 .cp-subtotal-label {
   position: absolute; right: 229px; top: 55px;
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
   font-weight: 400;
+  letter-spacing: var(--ls-body);
   color: var(--color-text-tertiary);
+  line-height: 1;
 }
 .cp-subtotal-price {
-  position: absolute; right: 0; top: 31px;
+  position: absolute; right: 0; bottom: 112px;
   font-family: var(--font-en);
   font-size: var(--type-price-l-size);
   font-weight: var(--type-price-l-weight);
   color: var(--color-text-primary);
-  letter-spacing: var(--ls-display);
+  line-height: 1;
 }
 .cp-tax-note {
-  position: absolute; right: 0; top: 80px;
+  position: absolute; right: 0; bottom: 88px;
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
   font-weight: 400;
-  color: var(--color-text-hint);
+  color: var(--color-text-tertiary);
+  line-height: 1;
 }
 .cp-cta-area {
-  position: absolute; left: 0; right: 0; top: 111px;
+  position: absolute; left: 0; right: 0; bottom: 21px;
   display: flex; align-items: center; justify-content: space-between;
 }
 .cp-continue-link {

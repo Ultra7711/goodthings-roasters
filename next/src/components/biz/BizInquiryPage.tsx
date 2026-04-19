@@ -497,8 +497,8 @@ function BiDropdown({
         <span className="bi-dropdown-value">{selectedLabel}</span>
         <svg
           className="bi-dropdown-arrow"
-          width="20"
-          height="20"
+          width="24"
+          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -565,8 +565,8 @@ function BiMultiDropdown({
         <span className="bi-dropdown-value">{selectedLabels}</span>
         <svg
           className="bi-dropdown-arrow"
-          width="20"
-          height="20"
+          width="24"
+          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

@@ -14,7 +14,12 @@
 
 ## 오픈 이슈
 
-(없음)
+### BULK-CLEAR-RPC — 🟢 장바구니 전체 삭제 Bulk RPC 이관
+- **배경:** Session 35 에서 장바구니 풀페이지 휴지통 아이콘을 "전체 삭제" 버튼으로 승격. 구현은 옵션 A (개별 `removeItem.mutate` 반복) 로 단순 처리.
+- **한계:** 아이템 N개 → DELETE N회 · invalidate N회 · 트랜잭션 아님. 다품목 케이스에서 체감 지연 · 부분 실패 시 어정쩡한 상태.
+- **이관 계획:** Session 14 bulk RPC 패턴 재활용 → `cart_items_clear(p_user_id uuid)` RPC 신설. Repo/Service/API/hook 레이어 터치 필요. 게스트 카트(localStorage) 분기 유지.
+- **트리거:** 다음 백엔드 세션 (design-polish → master 머지 이후)
+- **발견:** 2026-04-19 Session 35
 
 ---
 

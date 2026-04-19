@@ -8,6 +8,8 @@
 
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -34,9 +36,27 @@ export default function CartPage() {
   const updateQty = useUpdateCartQty();
   const removeItem = useRemoveCartItem();
   const router = useRouter();
+  const [clearOpen, setClearOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    const el = rootRef.current;
+    if (!el) return;
+    el.classList.remove('cp-anim');
+    void el.offsetHeight;
+    el.classList.add('cp-anim');
+  }, []);
 
   const isEmpty = items.length === 0;
+
+  function handleClearAll() {
+    items.forEach((item) => removeItem.mutate(item.id));
+    setClearOpen(false);
+  }
   const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
+  const gaugePct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
   const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
   function handleCheckout() {
@@ -44,7 +64,8 @@ export default function CartPage() {
   }
 
   return (
-    <div className="cp-root">
+    <>
+    <div className="cp-root" ref={rootRef}>
       <div className="cp-page-header">
         <h1 className="cp-title-text">장바구니</h1>
       </div>
@@ -70,7 +91,13 @@ export default function CartPage() {
             <span className="cp-th-price">가격</span>
             <span className="cp-th-qty">수량</span>
             <span className="cp-th-total">합계</span>
-            <span className="cp-th-delete" aria-hidden="true">
+            <button
+              type="button"
+              className="cp-th-delete"
+              aria-label="장바구니 전체 삭제"
+              title="전체 삭제"
+              onClick={() => setClearOpen(true)}
+            >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10,11v6" />
                 <path d="M14,11v6" />
@@ -78,7 +105,7 @@ export default function CartPage() {
                 <path d="M3,6h18" />
                 <path d="M8,6v-2c0-1.1.9-2,2-2h4c1.1,0,2,.9,2,2v2" />
               </svg>
-            </span>
+            </button>
           </div>
 
           <div className="cp-items-list">
@@ -182,15 +209,25 @@ export default function CartPage() {
           </div>
 
           <div className="cp-shipping-row">
-            <span className="cp-shipping-label">배송비</span>
-            <span className="cp-shipping-notice">
-              {isFreeShipping
-                ? '무료 배송이 적용됩니다.'
-                : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하시면 무료 배송됩니다.`}
-            </span>
-            <span className={`cp-shipping-price${isFreeShipping ? ' free' : ''}`}>
-              {isFreeShipping ? '무료' : formatWon(SHIPPING_FEE)}
-            </span>
+            <div className="cp-shipping-main">
+              <span className="cp-shipping-label">배송비</span>
+              <span className="cp-shipping-notice">
+                {isFreeShipping
+                  ? '무료 배송이 적용됩니다.'
+                  : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하시면 무료 배송됩니다.`}
+              </span>
+              <span className={`cp-shipping-price${isFreeShipping ? ' free' : ''}`}>
+                {isFreeShipping ? '무료' : formatWon(SHIPPING_FEE)}
+              </span>
+            </div>
+            {!isFreeShipping && subtotal > 0 && (
+              <div className="shipping-gauge">
+                <div
+                  className="shipping-gauge-fill"
+                  style={{ width: `${gaugePct}%` }}
+                />
+              </div>
+            )}
           </div>
 
           <div className="cp-footer">
@@ -212,6 +249,32 @@ export default function CartPage() {
           </div>
         </>
       )}
+
     </div>
+    {mounted && clearOpen && createPortal(
+      <div
+        className="mp-modal-overlay"
+        style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+        onClick={() => setClearOpen(false)}
+      >
+        <div className="mp-modal mp-modal--calm" onClick={(e) => e.stopPropagation()}>
+          <p className="mp-modal-title">장바구니를 비우시겠어요?</p>
+          <p className="mp-modal-desc">
+            담으신 모든 상품이 삭제됩니다.<br />
+            이 작업은 되돌릴 수 없습니다.
+          </p>
+          <div className="mp-modal-actions">
+            <button className="mp-modal-confirm" type="button" onClick={handleClearAll}>
+              전체 삭제
+            </button>
+            <button className="mp-modal-cancel" type="button" onClick={() => setClearOpen(false)}>
+              취소
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body,
+    )}
+    </>
   );
 }

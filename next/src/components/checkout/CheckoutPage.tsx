@@ -56,7 +56,7 @@ const DELIVERY_OPTIONS = [
 const BANKS = ['국민은행', '신한은행', '우리은행', '하나은행', '기업은행', '농협은행', '카카오뱅크', '토스뱅크'] as const;
 
 /* ── SVG 아이콘 ── */
-function ChevronDown({ size = 20 }: { size?: number }) {
+function ChevronDown({ size = 24 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M6,9l6,6,6-6" />

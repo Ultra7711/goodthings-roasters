@@ -93,21 +93,6 @@ export default function CartDrawer() {
           </button>
         </div>
 
-        {/* 프로모 바 — 무료 배송 게이지 */}
-        <div className="cd-promo">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="cd-promo-icon"
-            src="/images/icons/notice_small.svg"
-            alt=""
-            aria-hidden="true"
-          />
-          <span>30,000원 이상 구매 시 무료 배송</span>
-          <div className={`cd-promo-gauge${subtotal > 0 ? ' active' : ''}`}>
-            <div className="cd-promo-gauge-fill" style={{ width: `${gaugePct}%` }} />
-          </div>
-        </div>
-
         {/* 바디 */}
         <div className="cd-body">
           {isEmpty ? (
@@ -164,7 +149,6 @@ export default function CartDrawer() {
                             />
                           )}
                         </Link>
-                        <span className="cd-item-qty-badge">{item.qty}</span>
                       </div>
                       <div className="cd-item-category">{item.category}</div>
                       <div className="cd-item-name">
@@ -226,17 +210,27 @@ export default function CartDrawer() {
                 })}
               </div>
 
-              {/* 배송비 */}
+              {/* 배송비 + 무료 배송 게이지 */}
               <div className="cd-shipping-item">
-                <span className="cd-si-label">배송비</span>
-                <span className="cd-si-notice">
-                  {isFreeShipping
-                    ? '무료 배송이 적용됩니다.'
-                    : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하시면 무료 배송됩니다.`}
-                </span>
-                <span className={`cd-si-price${isFreeShipping ? ' free' : ''}`}>
-                  {isFreeShipping ? '무료' : formatWon(SHIPPING_FEE)}
-                </span>
+                <div className="cd-si-main">
+                  <span className="cd-si-label">배송비</span>
+                  <span className="cd-si-notice">
+                    {isFreeShipping
+                      ? '무료 배송이 적용됩니다.'
+                      : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하시면 무료 배송됩니다.`}
+                  </span>
+                  <span className={`cd-si-price${isFreeShipping ? ' free' : ''}`}>
+                    {isFreeShipping ? '무료' : formatWon(SHIPPING_FEE)}
+                  </span>
+                </div>
+                {!isFreeShipping && subtotal > 0 && (
+                  <div className="shipping-gauge">
+                    <div
+                      className="shipping-gauge-fill"
+                      style={{ width: `${gaugePct}%` }}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* 푸터 */}
