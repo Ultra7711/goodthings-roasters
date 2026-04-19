@@ -14,6 +14,20 @@
 
 ## 오픈 이슈
 
+### UI-006 — 🟡 카트 드로어 우측 스크롤바 영역 잘림 재발
+- **재현:** 헤더 카트 아이콘 클릭 → 드로어 오픈 → 우측 가장자리 ~15px 흰 띠 또는 `.cd-remove` X 버튼이 스크롤바 밑에 깔림
+- **시도:**
+  1. `#cart-drawer` 를 `inset: 0` → `width: 100vw` 로 변경 · 패널 `position: absolute` 로 전환 → 변화 없음
+  2. `useDrawer` 에서 `html { overflow: hidden }` 동시 잠금 추가 → 변화 없음
+  3. `.cd-body { scrollbar-gutter: stable }` 추가 → 변화 없음
+  모두 원복. 근본 원인 미파악.
+- **가설 후보:**
+  - 브라우저 네이티브 스크롤바가 fixed 엘리먼트 위에 페인트 (OS/브라우저 별)
+  - `.cd-body` 내부 스크롤바가 `.cd-item` 우측 컨텐츠와 실제로 겹침 (scrollbar-gutter 적용 실패)
+  - UI-005 해결 시 전제였던 "backdrop 이 gutter 를 덮음" 조건이 깨짐
+- **발견:** 2026-04-19 Session 34 (UI-005 해결 이후 재발)
+- **상태:** 미해결 · Deferred
+
 ### UI-004 — 🟡 전체 버튼 hover 동작 규칙 전수 조사 · 정립 · 일괄 적용
 - **배경:** Step 3-A-4 에서 CTA 11종만 hover 규칙 통일. 아이콘/텍스트 버튼 등 나머지는 제각각.
 - **조사 범위 (유형별 분류):**

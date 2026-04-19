@@ -61,9 +61,9 @@ function extractKrName(name: string): string {
 /* ── 복사 아이콘 ── */
 function CopyIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="5" y="5" width="9" height="9" rx="1" />
-      <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="12" height="12" rx="2" ry="2" />
+      <path d="M5,15c-1.1,0-2-.9-2-2V5c0-1.1.9-2,2-2h8c1.1,0,2,.9,2,2" />
     </svg>
   );
 }

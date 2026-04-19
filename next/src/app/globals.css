@@ -4831,7 +4831,14 @@ footer.blk {
      프로토타입은 rgba(255,255,255,.5) 를 썼으나 foreground 알파 정책에 맞게
      icon-on-dark-muted(불투명 #7F7F7E) 로 교체. 시각적으로 거의 동일. */
   color: var(--icon-on-dark-muted) !important;
-  transition: color var(--duration-hover) ease;
+  opacity: 0;
+  transition: color var(--duration-hover) ease, opacity 400ms ease 600ms;
+}
+.gd-lightbox:has(#gd-lb-img:hover) .gd-lb-arrow,
+.gd-lb-arrow:hover,
+.gd-lb-arrow:focus-visible {
+  opacity: 1;
+  transition: color var(--duration-hover) ease, opacity 200ms ease 0ms;
 }
 .gd-lb-arrow:hover {
   color: var(--icon-on-dark-strong) !important;
@@ -5721,6 +5728,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-info-row-top { display: flex; align-items: baseline; justify-content: space-between; width: 100%; }
 .mp-info-addr-right { display: flex; align-items: baseline; gap: var(--gap-md); }
 .mp-info-row--action { align-items: center; border-bottom: .5px solid var(--color-border-hairline); }
+.mp-info-row--action:has(+ .mp-accordion.open) { border-bottom: none; }
 .mp-info-row.mp-info-row--withdraw { margin-top: 0; border-bottom: none; padding-top: 4px; }
 .mp-info-row--withdraw .mp-icon-btn { position: relative; top: 6px; }
 .mp-info-label {
@@ -5779,10 +5787,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   border: 1px solid var(--color-text-primary); cursor: pointer;
   font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing);
-  transition: background-color var(--duration-hover) ease, transform .5s var(--ease-spring), opacity var(--duration-transition) ease;
+  transition: box-shadow var(--duration-hover) ease, transform .5s var(--ease-spring), opacity var(--duration-transition) ease;
   will-change: transform; backface-visibility: hidden;
 }
-.mp-cancel-btn:hover { background-color: var(--color-background-secondary); }
 .mp-cancel-btn:active { opacity: .7; }
 
 /* 정기배송 아이템 */
@@ -5841,6 +5848,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   background: transparent; border: none; cursor: pointer;
   color: var(--color-icon-muted);
   transition: color var(--duration-hover) ease;
+  transform: translateY(-1px);
 }
 .mp-order-copy-btn:hover { color: var(--color-icon-default); }
 .mp-order-copy-btn svg { width: 18px; min-width: 18px; height: 18px; flex-shrink: 0; display: block; }
@@ -5972,8 +5980,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 /* 비밀번호 펼침 시 회원 탈퇴 구분선 (버튼~구분선 간격 확보) */
 .mp-info-row.mp-info-row--withdraw.mp-withdraw-divider {
-  border-top: 1px solid var(--color-border-secondary);
-  padding-top: 18px;
+  border-top: .5px solid var(--color-border-hairline);
+  padding-top: 4px;
   margin-top: 18px;
 }
 
