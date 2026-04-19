@@ -542,7 +542,7 @@ textarea:-webkit-autofill:active {
 .hdr {
   display: flex;
   align-items: center;
-  padding: 0 60px;
+  padding: 0 var(--layout-padding-x);
   height: var(--header-height); /* 60px */
 }
 .hdr-left { flex: 1; display: flex; align-items: center; }
@@ -713,7 +713,7 @@ footer.blk {
   padding: 0;
 }
 .f-inner {
-  padding: 80px 60px 0;
+  padding: 80px var(--layout-padding-x) 0;
   max-width: 1440px;
   margin: 0 auto;
 }
@@ -757,6 +757,12 @@ footer.blk {
   padding-top: 40px;
   border-top: .5px solid rgba(255,255,255,.08);
   margin-top: 48px;
+}
+@media (max-width: 767px) {
+  .f-cols {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
 }
 .f-col-title {
   font-family: var(--font-en);
