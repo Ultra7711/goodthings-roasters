@@ -39,10 +39,10 @@ export default function ProductDetailPage({ product }: Props) {
      수량에는 반응하지 않고 선택된 용량의 단가만 표시한다. */
   const [volIdx, setVolIdx] = useState(0);
   const hasVolumes = product.volumes.length > 0;
-  /* 상품 전체 매진 판정 — status === '매진' 이거나 모든 볼륨이 soldOut.
-     매진 상품에서는 가격 노출을 차단해 "구매 가능" 처럼 보이지 않게 한다. */
+  /* 상품 전체 품절 판정 — status === '품절' 이거나 모든 볼륨이 soldOut.
+     품절 상품에서는 가격 노출을 차단해 "구매 가능" 처럼 보이지 않게 한다. */
   const allSoldOut = hasVolumes && product.volumes.every((v) => v.soldOut);
-  const isSoldOut = product.status === '매진' || allSoldOut;
+  const isSoldOut = product.status === '품절' || allSoldOut;
 
   /* 진입 애니메이션 — ShopPage sp-anim 과 동일한 reflow 패턴.
      className remove → 강제 reflow(offsetHeight read) → add 순으로
@@ -55,8 +55,8 @@ export default function ProductDetailPage({ product }: Props) {
     el.classList.add('pd-anim');
   }, [product.slug]);
 
-  /* 상품 변경 시 용량 선택 초기화 — 첫 번째 가용(매진 아닌) 볼륨을 선택.
-     전체 매진이면 0 으로 고정 (상품 전체 disabled 상태).
+  /* 상품 변경 시 용량 선택 초기화 — 첫 번째 가용(품절 아닌) 볼륨을 선택.
+     전체 품절이면 0 으로 고정 (상품 전체 disabled 상태).
      product prop 변경 시 내부 파생 state 동기화 의도의 setState-in-effect. */
   useEffect(() => {
     const firstAvail = product.volumes.findIndex((v) => !v.soldOut);
@@ -66,7 +66,7 @@ export default function ProductDetailPage({ product }: Props) {
 
   const { kr, en } = splitName(product.name);
   const unitPrice = hasVolumes ? product.volumes[volIdx].price : 0;
-  /* 매진 상품은 가격 숨김 — 뱃지와 CTA 로만 상태 전달. */
+  /* 품절 상품은 가격 숨김 — 뱃지와 CTA 로만 상태 전달. */
   const showPrice = hasVolumes && !isSoldOut;
 
   return (

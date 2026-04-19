@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { PRODUCTS, type Product } from '@/lib/products';
 
-const FEATURED = PRODUCTS.filter((p) => p.status !== '매진').slice(0, 8);
+const FEATURED = PRODUCTS.filter((p) => p.status !== '품절').slice(0, 8);
 const FRICTION = 160;       // 관성 착지 마찰 계수 (프로토타입 동일)
 const EDGE_FACTOR = 0.25;   // 양 끝 드래그 저항 비율
 

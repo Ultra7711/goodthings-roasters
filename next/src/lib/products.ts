@@ -12,7 +12,7 @@ export type ProductImage = {
 export type ProductVolume = {
   label: string;
   price: number;
-  /** 품목(용량)별 매진 플래그 — 상품 전체 매진이 아닌 특정 옵션만 품절일 때 사용 */
+  /** 품목(용량)별 품절 플래그 — 상품 전체 품절이 아닌 특정 옵션만 품절일 때 사용 */
   soldOut?: boolean;
 };
 
@@ -39,7 +39,7 @@ export type ProductStatus =
   | '인기 NO.2'
   | '인기 NO.3'
   | '수량 한정'
-  | '매진'
+  | '품절'
   | null;
 
 /** 로스팅 단계 */
@@ -214,7 +214,7 @@ export const PRODUCTS: Product[] = [
       { label: '10개', price: 20000 },
     ],
     color: 'linear-gradient(135deg,#C4C0BA,#8A8680)',
-    status: '매진',
+    status: '품절',
     slug: 'kenya-kaganda-aa',
     subscription: false,
     images: [
@@ -258,7 +258,7 @@ export function getStatusBadgeClass(status: ProductStatus): string {
     case '인기 NO.2': return 'sp-card-badge badge-pop-2 badge-kr';
     case '인기 NO.3': return 'sp-card-badge badge-pop-3 badge-kr';
     case '수량 한정':  return 'sp-card-badge badge-ltd badge-kr';
-    case '매진':      return 'sp-card-badge badge-sold badge-kr';
+    case '품절':      return 'sp-card-badge badge-sold badge-kr';
     default:          return 'sp-card-badge';
   }
 }
