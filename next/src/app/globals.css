@@ -2628,7 +2628,7 @@ footer.blk {
   width: 104px;
   height: 32px;
   padding: 0 4px;
-  background: var(--color-input-box-bg);
+  background: transparent;
   border: 1px solid var(--color-input-box-border);
   display: flex;
   align-items: center;
@@ -3224,7 +3224,7 @@ footer.blk {
 .pd-input-box {
   position: relative;
   height: 48px;
-  background: var(--color-input-box-bg);
+  background: transparent;
   border: 1px solid var(--color-input-box-border);
   display: flex;
   align-items: center;

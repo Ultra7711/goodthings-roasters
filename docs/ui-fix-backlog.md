@@ -14,29 +14,18 @@
 
 ## 오픈 이슈
 
-### UI-004 — 🟡 전체 버튼 hover 동작 규칙 전수 조사 · 정립 · 일괄 적용
-- **배경:** Step 3-A-4 에서 CTA 11종만 hover 규칙 통일. 아이콘/텍스트 버튼 등 나머지는 제각각.
-- **조사 범위 (유형별 분류):**
-  - CTA 버튼 (primary conversion) — Step 3-A-4 로 opacity .85 + 2px gold 인셋 선 완료
-  - 아이콘 버튼 (hdr-icon-btn · mp-icon-btn · mp-addr-icon-btn · close-btn · arrow-btn 등)
-  - 텍스트 버튼 (lp-guest-order-btn · cd-shop-btn · f-biz-toggle · f-biz-lookup 등)
-  - 탭/필터 버튼 (sp-filter-tab · cm-filter-tab · sp-pg-btn 등)
-  - 아코디언 헤더 (pd-accordion-hd · mp-section-header 등)
-  - 수량 스텝퍼 (cd-qty-btn · cp-qty-btn)
-  - 서브 액션 (mp-save-btn · mp-cancel-btn · ocp-copy-btn · mp-order-copy-btn 등)
-- **진행 순서:**
-  1. grep 으로 `:hover` 전수 수집 → 유형 매핑 테이블 작성
-  2. 유형별 표준 동작 규칙 정립 (darken 강도 · gold 허용 여부 · transform 허용 여부)
-  3. 승인 후 일괄 적용 + computed value 검증
-- **원칙 시드:**
-  - gold = state signal (active/open) 전용, hover 에는 darken 만
-  - Exception: CTA 는 hover 에 gold 인셋 선 허용
-- **발견:** 2026-04-19 Session 29
-- **상태:** 미수정
+(없음)
 
 ---
 
 ## 완료 이슈
+
+### UI-004 — 🟡 전체 버튼 hover 동작 규칙 전수 조사 · 정립 · 일괄 적용
+- **배경:** Step 3-A-4 에서 CTA 11종만 hover 규칙 통일. 아이콘/텍스트 버튼 등 나머지는 제각각.
+- **해결 (Session 34):** 커밋 `4d46612d` — Group A/B CTA 통합 · Group D 아이콘 호버 색상 14곳 `--color-icon-default` 통일 · Group I (`cd-close` opacity 정상화 · `chp-logo-img` 호버 제거 · `lp-social-btn` scale 제거 · `footer-sns` opacity 토큰화) · `.chp-logo-img` 5곳 150x30 통일.
+- **원칙 확립:** gold = state signal (active/open) 전용 · hover 는 darken 만 · CTA 만 예외적으로 gold 인셋 선 허용.
+- **발견:** 2026-04-19 Session 29
+- **완료:** 2026-04-19 Session 34
 
 ### UI-006 — 🟡 카트 드로어 우측 스크롤바 영역 잘림 재발
 - **재현:** 헤더 카트 아이콘 클릭 → 드로어 오픈 → 우측 ~15px 흰 띠, `.cd-remove` X 버튼·프로모 배경·배송비 헤어라인이 스크롤바 gutter 안쪽에서 끝남
