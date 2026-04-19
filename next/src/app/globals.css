@@ -533,10 +533,11 @@ textarea:-webkit-autofill:active {
   color: var(--color-text-primary);
 }
 #site-hdr-wrap #logo-img {
-  transition: filter var(--duration-slide) ease;
+  color: var(--color-text-primary);
+  transition: color var(--duration-slide) ease;
 }
 #site-hdr-wrap.hdr-dark #logo-img {
-  filter: invert(1);
+  color: var(--color-text-inverse);
 }
 
 .hdr {
@@ -544,6 +545,9 @@ textarea:-webkit-autofill:active {
   align-items: center;
   padding: 0 var(--layout-padding-x);
   height: var(--header-height); /* 60px */
+}
+@media (max-width: 767px) {
+  .hdr { padding: 0 16px 0 24px; }
 }
 .hdr-left { flex: 1; display: flex; align-items: center; }
 .hdr-nav { display: flex; gap: 36px; }
@@ -896,9 +900,12 @@ footer.blk {
   margin-top: 48px;
 }
 @media (max-width: 767px) {
+  .f-inner { padding-top: 56px; }
   .f-cols {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 24px;
+    margin-top: 44px;
+    padding-top: 44px;
   }
 }
 .f-col-title {
@@ -936,6 +943,12 @@ footer.blk {
   flex-direction: column;
   gap: 0;
   margin-top: 48px;
+}
+@media (max-width: 767px) {
+  .f-bottom-wrap {
+    margin-top: 38px;
+    padding-top: 44px;
+  }
 }
 .f-bottom-row {
   display: flex;
@@ -989,6 +1002,12 @@ footer.blk {
   margin-top: 0;
 }
 .f-biz-inline.open { max-height: 240px; opacity: 1; margin-top: 8px; }
+
+/* 모바일: 1행 저작권 / 2행 사업자 정보·이용약관·개인정보 */
+@media (max-width: 767px) {
+  .f-bottom-row > .f-copyright { flex-basis: 100%; margin-bottom: 8px; }
+  .f-bottom-row > .f-copyright + .f-bottom-sep { display: none; }
+}
 .f-biz-sep { padding: 0 .3em; }
 .f-biz-lookup {
   color: inherit;
@@ -1156,6 +1175,10 @@ footer.blk {
   transition: opacity 0.9s ease-out, transform 0.9s ease-out;
 }
 .hero-slogan.hero--visible { opacity: 1; transform: translateY(0); }
+.hero-slogan-br { display: none; }
+@media (max-width: 480px) {
+  .hero-slogan-br { display: inline; }
+}
 .hero-scroll-mouse {
   width: 40px;
   height: 40px;
@@ -1285,7 +1308,7 @@ footer.blk {
     flex-direction: column;
     aspect-ratio: auto;
     gap: 32px;
-    padding: 0 24px;
+    padding: 64px 24px 80px;
   }
   .season-banner-img {
     flex: 0 0 auto;
@@ -1321,6 +1344,13 @@ footer.blk {
 .cat-grid .cat-card:nth-child(1) .cat-card-clip { transition-delay: 0ms; }
 .cat-grid .cat-card:nth-child(2) .cat-card-clip { transition-delay: 150ms; }
 .cat-grid .cat-card:nth-child(3) .cat-card-clip { transition-delay: 300ms; }
+
+/* 카페 메뉴 섹션 · 헤더 padding (기존 인라인 style 이관) */
+.cafe-menu-blk { padding-bottom: 120px; }
+.cafe-menu-header {
+  padding: 80px 60px 0;
+}
+
 .cat-img {
   width: 100%;
   aspect-ratio: 4/5;
@@ -1331,6 +1361,22 @@ footer.blk {
   line-height: 0;
   margin: 0;
   padding: 0;
+}
+/* <768: 카페 메뉴 카드 1열 스택 + 가로형 비율로 높이 축소 +
+   블록 헤더 좌우 padding 24px (시즌 배너와 좌측 라인 정렬) */
+@media (max-width: 767px) {
+  .cat-grid {
+    grid-template-columns: 1fr;
+    padding: 0 24px;
+    gap: 16px;
+  }
+  .cat-img {
+    aspect-ratio: 3/2;
+  }
+  .cafe-menu-header {
+    padding: 64px 24px 0;
+  }
+  .cafe-menu-blk { padding-bottom: 120px; }
 }
 .cat-img::before {
   content: '';
@@ -1471,10 +1517,44 @@ footer.blk {
   background: url('/images/sections/img_philosophy.webp') center/cover no-repeat;
 }
 
+/* <768: 스토리 섹션 세로 스택 (시즌 배너와 동일 패턴)
+   - 이미지 위 / 텍스트 아래
+   - 좌우 24px padding (시즌 배너와 좌측 라인 정렬)
+   - 상하 64/80px 여백으로 배경이 인접 섹션과 맞닿지 않도록 */
+@media (max-width: 767px) {
+  .phil-section { padding: 0; }
+  .phil {
+    flex-direction: column;
+    height: auto;
+    padding: 0 0 80px;
+    gap: 32px;
+  }
+  .phil-img {
+    flex: 0 0 auto;
+    width: 100%;
+    aspect-ratio: 4/5;
+  }
+  .phil-txt {
+    flex: 0 0 auto;
+    width: 100%;
+    order: 0;
+    padding: 0 24px;
+  }
+}
+
 /* ══ .blk-scroll (Featured Beans) ══ */
+.beans-blk { padding: 117px 0 120px; }
+@media (max-width: 767px) {
+  .beans-blk { padding: 64px 0 80px; }
+}
 /* overflow:visible — 카드가 섹션 경계에서 잘리지 않도록 (프로토타입 라인 536) */
 .blk-scroll { overflow: visible; }
 .beans-sec { padding: 0; }
+/* Featured Beans 블록 헤더 padding (기존 인라인 style 이관) */
+.beans-header { padding: 0 60px; }
+@media (max-width: 767px) {
+  .beans-header { padding: 0 24px; }
+}
 .beans-scroll {
   display: flex;
   gap: var(--gap-lg);
@@ -1493,7 +1573,9 @@ footer.blk {
   .beans-scroll .bean-card { width: 40vw; }
 }
 @media (max-width: 767px) {
-  .beans-scroll .bean-card { width: 72vw; max-width: 320px; }
+  /* 2.25장 가시: 360vw 기준 카드 폭 ≈ 44vw (≈158px) → 2.27장 */
+  .beans-scroll .bean-card { width: 44vw; max-width: 200px; }
+  .beans-scroll { padding: 0 24px; }
 }
 .beans-dots {
   display: flex;
@@ -1516,8 +1598,8 @@ footer.blk {
   background-clip: padding-box;
   box-sizing: content-box;
 }
-/* Session 43 — active 도 border 17 로 hit-area 40h 유지 (h 2 + border 17 * 2 = 36 → 수직 hit 충분) */
-.beans-dot.active { width: 20px; height: 6px; border-radius: 1px; background: var(--color-text-primary); background-clip: padding-box; }
+/* 선택 상태 2px 라인 (transparent border 17 로 hit-area 유지) */
+.beans-dot.active { width: 20px; height: 2px; border-radius: 1px; background: var(--color-text-primary); background-clip: padding-box; }
 .beans-scroll.bounce-start { animation: beans-bounce-start var(--duration-fade) ease-out; }
 .beans-scroll.bounce-end   { animation: beans-bounce-end var(--duration-fade) ease-out; }
 
@@ -1581,6 +1663,10 @@ footer.blk {
 .pkg { width: 50%; height: 70%; border-radius: 1px; }
 
 /* ══ .two-col (서비스 카드) ══ */
+.two-col-blk { padding: 120px 0; }
+@media (max-width: 767px) {
+  .two-col-blk { padding: 64px 0 96px; }
+}
 .two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1589,6 +1675,14 @@ footer.blk {
   max-width: 1440px;
   margin: 0 auto;
   width: 100%;
+}
+/* <768: 좌측 라인 24px (시즌 배너·카페 메뉴와 정렬) + 1열 스택 */
+@media (max-width: 767px) {
+  .two-col {
+    grid-template-columns: 1fr;
+    padding: 0 24px;
+    gap: 16px;
+  }
 }
 .tci { overflow: hidden; cursor: pointer; }
 .tci-img {
@@ -1768,6 +1862,36 @@ footer.blk {
   text-decoration: none;
 }
 
+/* ══ .roastery 모바일 — 풀블리드 + 하단 그라데이션 텍스트 오버레이 ══
+   라벨/타이틀은 다크 오버레이 위 on-dark 컬러 강제 */
+@media (max-width: 767px) {
+  .roastery {
+    min-height: 70svh;
+    padding: 0;
+    align-items: flex-end;
+  }
+  .roastery-bg {
+    top: 0;
+    left: 0;
+    background:
+      linear-gradient(to bottom, transparent 35%, rgba(0, 0, 0, 0.65) 85%, rgba(0, 0, 0, 0.78) 100%),
+      url('/images/sections/img_roastery.webp') center/cover no-repeat;
+  }
+  .roastery-c {
+    width: 100%;
+    padding: 0 24px 48px;
+  }
+  .roastery-lbl { color: var(--color-text-inverse); }
+  .roastery-h { color: var(--color-text-inverse); }
+  .roastery-body,
+  .roastery-hours { color: rgba(250, 250, 248, 0.82); }
+  .roastery-hours .emph-time { color: var(--color-text-inverse); }
+  .roastery-cta-btn {
+    color: var(--color-text-primary);
+    background: var(--color-background-primary);
+  }
+}
+
 /* ══ .gooddays-sec (홈 모먼트 그리드) ══ */
 .gooddays-sec { padding: 80px 60px 120px; }
 .moments-grid {
@@ -1802,6 +1926,7 @@ footer.blk {
 .moment-card:hover .moment-img { transform: scale(1.03); }
 .moment-card:hover::after { background: rgba(0,0,0,.06); }
 @media (max-width: 767px) {
+  .gooddays-sec { padding: 80px 24px 80px; }
   .moments-grid {
     grid-template-columns: 1fr;
     grid-template-rows: repeat(5, auto);

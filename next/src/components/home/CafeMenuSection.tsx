@@ -30,7 +30,7 @@ const CAT_CARDS = [
 
 export default function CafeMenuSection() {
   return (
-    <section className="blk blk--bg-secondary" id="cafe-menu-blk" data-header-theme="light" style={{ paddingBottom: '120px' }}>
+    <section className="blk blk--bg-secondary cafe-menu-blk" id="cafe-menu-blk" data-header-theme="light">
       {/* 시즌 배너 */}
       <div className="season-banner-section" data-sr-toggle>
         <div className="season-banner">
@@ -52,7 +52,7 @@ export default function CafeMenuSection() {
       </div>
 
       {/* 블록 헤더 */}
-      <div className="blk-header" data-sr-toggle style={{ padding: '80px 60px 0' }}>
+      <div className="blk-header cafe-menu-header" data-sr-toggle>
         <span className="blk-label sr-txt sr-txt--d1">CAFE MENU</span>
         <span className="blk-heading sr-txt sr-txt--d2">오늘, 매장에서.</span>
       </div>

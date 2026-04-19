@@ -28,7 +28,7 @@ function BeanCard({ product }: { product: Product }) {
     : (img?.bg ?? 'var(--color-background-secondary)');
 
   return (
-    <Link href={`/shop/${product.slug}`} className="bean-card" data-sr-toggle>
+    <Link href={`/shop/${product.slug}`} className="bean-card">
       <div className="bean-img sr-img" style={{ background: img?.bg ?? 'var(--color-background-secondary)' }}>
         <div className="bean-img-inner" style={{ background: innerBg }} />
       </div>
@@ -179,8 +179,8 @@ export default function BeansScrollSection() {
   }
 
   return (
-    <section className="blk blk-scroll" data-header-theme="light" style={{ padding: '117px 0 120px' }}>
-      <div className="blk-header" data-sr-toggle style={{ padding: '0 60px 0' }}>
+    <section className="blk blk-scroll beans-blk" data-header-theme="light">
+      <div className="blk-header beans-header" data-sr-toggle>
         <span className="blk-label sr-txt sr-txt--d1">FEATURED BEANS</span>
         <span className="blk-heading sr-txt sr-txt--d2">집에서도, 같은 맛을.</span>
       </div>
@@ -189,6 +189,7 @@ export default function BeansScrollSection() {
           className="beans-scroll"
           id="beans-track"
           ref={scrollRef}
+          data-sr-toggle
           onMouseDown={onMouseDown}
           /* capture 단계에서 클릭 차단 — 드래그 후 Link 내비게이션 방지 */
           onClickCapture={(e) => {
