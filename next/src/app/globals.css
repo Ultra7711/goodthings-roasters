@@ -845,7 +845,6 @@ footer.blk {
   white-space: nowrap;
   transition: opacity var(--duration-transition) ease;
 }
-.cta-btn:hover { opacity: .85; }
 .cta-btn:active { opacity: .7; }
 .cta-btn-dark-filled { background: var(--color-background-primary); color: var(--color-text-primary); }
 .cta-btn-dark-outline { background: transparent; color: var(--color-text-inverse); border: 1px solid var(--color-background-primary); }
@@ -2817,7 +2816,6 @@ footer.blk {
 }
 #cart-drawer-panel .cd-cta-secondary:hover { opacity: .6; }
 #cart-drawer-panel .cd-cta-secondary:active { opacity: .7; }
-#cart-drawer-panel .cd-cta-primary:hover { opacity: .85; }
 #cart-drawer-panel .cd-cta-primary:active { opacity: .7; }
 
 /* ══ PRODUCT DETAIL PAGE — RP-4a 뼈대 ══
@@ -4579,9 +4577,6 @@ footer.blk {
   transition: opacity var(--duration-transition) ease;
   margin-bottom: 36px;
 }
-.bi-submit-btn:hover {
-  opacity: 0.85;
-}
 .bi-submit-btn:active {
   opacity: 0.7;
 }
@@ -5108,7 +5103,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-decoration: none;
   transition: opacity var(--duration-transition) ease;
 }
-.chp-login-primary-btn:hover { opacity: .85; }
 .chp-login-primary-btn:active { opacity: .7; }
 .chp-login-benefit {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
@@ -5202,7 +5196,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   transition: transform .5s var(--ease-spring), opacity var(--duration-transition) ease;
   will-change: transform; backface-visibility: hidden;
 }
-.chp-submit-btn:hover { opacity: .85; }
 .chp-submit-btn:active { opacity: .7; }
 
 /* 법적 안내 */
@@ -5406,7 +5399,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   letter-spacing: var(--btn-letter-spacing); cursor: pointer;
   transition: opacity var(--duration-transition) ease;
 }
-.ocp-btn-primary:hover { opacity: .85; }
 .ocp-btn-primary:active { opacity: .7; }
 .ocp-btn-secondary {
   background: transparent; border: none; padding: 0;
@@ -5508,7 +5500,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   will-change: transform; backface-visibility: hidden;
   margin-bottom: 36px;
 }
-.lp-submit-btn:hover { opacity: .85; }
 .lp-submit-btn:active { opacity: .7; }
 .lp-submit-btn:disabled { opacity: .5; cursor: not-allowed; }
 
@@ -5599,7 +5590,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   transition: transform .5s var(--ease-spring), opacity var(--duration-transition) ease;
   will-change: transform; backface-visibility: hidden;
 }
-.lp-guest-buy-btn:hover { opacity: .85; }
 .lp-guest-buy-btn:active { opacity: .7; }
 
 /* ══════════════════════════════════════════
@@ -6358,7 +6348,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   cursor: pointer;
   transition: opacity var(--duration-transition) ease;
 }
-.cp-order-btn:hover:not(:disabled) { opacity: .85; }
 .cp-order-btn:active:not(:disabled) { opacity: .7; }
 .cp-order-btn:disabled { opacity: .35; cursor: not-allowed; }
 
@@ -6373,11 +6362,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .roastery-cta-btn {
   transition: opacity var(--duration-hover) ease, box-shadow var(--duration-hover) var(--ease-default);
 }
-.season-cta:hover,
-.roastery-cta-btn:hover {
-  opacity: .85;
-}
-
 /* 다크 bg + 라이트 텍스트 CTA → gold-on-dark */
 .cta-btn-light-filled:hover,
 .cta-btn-dark-outline:hover,
