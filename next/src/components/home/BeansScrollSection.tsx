@@ -179,7 +179,7 @@ export default function BeansScrollSection() {
   }
 
   return (
-    <section className="blk blk-scroll blk--bg-tertiary" data-header-theme="light" style={{ padding: '117px 0 120px' }}>
+    <section className="blk blk-scroll" data-header-theme="light" style={{ padding: '117px 0 120px' }}>
       <div className="blk-header" data-sr-toggle style={{ padding: '0 60px 0' }}>
         <span className="blk-label sr-txt sr-txt--d1">FEATURED BEANS</span>
         <span className="blk-heading sr-txt sr-txt--d2">집에서도, 같은 맛을.</span>

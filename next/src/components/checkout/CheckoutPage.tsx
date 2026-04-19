@@ -20,6 +20,7 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
+import { useAtTop } from '@/hooks/useAtTop';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
 import { openPostcode } from '@/lib/daumPostcode';
@@ -110,6 +111,7 @@ export default function CheckoutPage() {
   const { show: toast } = useToast();
   const { isLoggedIn, isLoading: sessionLoading, user } = useSupabaseSession();
   const { open: openDrawer } = useCartDrawer();
+  const atTop = useAtTop();
 
   /* ── 장바구니 (ADR-004 Step B: TanStack Query) ──
      isLoading: 최초 로드 중 — 스켈레톤 UI. BUG-003 근본 해결. */
@@ -361,7 +363,13 @@ export default function CheckoutPage() {
   if (cartLoading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
-        <div className="chp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+        <div
+          className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
+          style={{
+            backdropFilter: atTop ? 'none' : 'blur(16px)',
+            WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
+          }}
+        >
           <div className="chp-hdr-inner">
             <Link href="/">
               <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />
@@ -376,7 +384,13 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
-        <div className="chp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+        <div
+          className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
+          style={{
+            backdropFilter: atTop ? 'none' : 'blur(16px)',
+            WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
+          }}
+        >
           <div className="chp-hdr-inner">
             <Link href="/">
               <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />
@@ -398,7 +412,13 @@ export default function CheckoutPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
       {/* ── 미니 헤더 ── */}
-      <div className="chp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+      <div
+          className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
+          style={{
+            backdropFilter: atTop ? 'none' : 'blur(16px)',
+            WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
+          }}
+        >
         <div className="chp-hdr-inner">
           <Link href="/">
             <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />

@@ -38,7 +38,7 @@ export default function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const initialTheme = getInitialHeaderTheme(pathname);
-  const { isDark, skipTransition } = useHeaderTheme(headerRef, initialTheme, pathname);
+  const { isDark, skipTransition, atTop } = useHeaderTheme(headerRef, initialTheme, pathname);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -189,11 +189,12 @@ export default function SiteHeader() {
         className={
           (isDark ? 'blk hdr-dark' : 'blk') +
           (skipTransition ? ' hdr-instant' : '') +
-          (pathname === '/shop' && !isDark ? ' hdr-on-secondary' : '')
+          (pathname === '/shop' && !isDark ? ' hdr-on-secondary' : '') +
+          (atTop && !isDark ? ' hdr-at-top' : '')
         }
         style={{
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          backdropFilter: atTop && !isDark ? 'none' : 'blur(16px)',
+          WebkitBackdropFilter: atTop && !isDark ? 'none' : 'blur(16px)',
         }}
       >
         <div className="hdr">

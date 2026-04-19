@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
+import { useAtTop } from '@/hooks/useAtTop';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { supabase } from '@/lib/supabase';
 import type { UserAddress } from '@/types/address';
@@ -93,6 +94,9 @@ export default function MyPagePage() {
 
   /* ── 회원 탈퇴 모달 ── */
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+
+  /* ── 헤더 atTop 토글 (scrollY=0 → solid bg1, 스크롤 시 glass) ── */
+  const atTop = useAtTop();
 
   /* ── 주문 카드 열림 상태 ── */
   const [openOrders, setOpenOrders] = useState<Set<string>>(new Set());
@@ -270,7 +274,13 @@ export default function MyPagePage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
       {/* ── 미니 헤더 ── */}
-      <div className="chp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+      <div
+        className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
+        style={{
+          backdropFilter: atTop ? 'none' : 'blur(16px)',
+          WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
+        }}
+      >
         <div className="chp-hdr-inner">
           <Link href="/">
             <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />

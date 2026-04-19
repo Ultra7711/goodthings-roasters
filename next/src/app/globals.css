@@ -16,6 +16,10 @@
   --color-background-tertiary: #E4DACB;
   --color-background-inverse: #1E1B16;
 
+  /* 약한 강조용 표면 (bg1 대비 ~3% 델타, "있는 듯 없는 듯" 구분).
+     마이페이지 섹션 박스 · 체크아웃 요약 패널 등 subtle surface 에 재사용. */
+  --color-surface-subtle: #F5F1EA;
+
   /* ══ 컬러: Text — 5단계 semantic + legacy alias ══
      신규 체계는 의도 기반 이름(display / heading / body / support / caption)을 쓰고
      light / dark 접미사로 배경 대비를 명시.
@@ -53,7 +57,7 @@
 
   /* ── 컬러: Surface ── */
   --color-surface-stone: #4A4845;
-  --color-surface-warm: #E4DACB;
+  --color-surface-warm: #EADFD1;
 
   /* ── 컬러: Interactive (CTA) ── */
   --color-btn-primary-bg: #1C1B19;
@@ -343,7 +347,7 @@
   --search-panel-input-font-size: var(--type-body-l-size);
   --search-panel-input-font-weight: 300;
   --search-panel-input-letter-spacing: var(--ls-heading);
-  --search-panel-bg: rgba(255,255,255,.72);
+  --search-panel-bg: rgba(251,248,243,.72);
   --search-panel-backdrop: blur(16px);
   --search-panel-divider-color: rgba(0,0,0,.1);
   --search-panel-border-bottom-color: rgba(0,0,0,.08);
@@ -446,7 +450,7 @@ body {
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  background: rgba(250,250,248,.72);
+  background: rgba(251,248,243,.72);
   /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 (Tailwind v4 Lightning CSS drop 이슈 회피) */
   border-left: .5px solid rgba(255,255,255,.4);
   border-right: .5px solid rgba(255,255,255,.4);
@@ -463,6 +467,13 @@ body {
 /* 라이트 헤더가 secondary 배경 페이지 위에 올라갈 때 — Shop 등 */
 #site-hdr-wrap.hdr-on-secondary {
   background: rgba(245,243,240,.72);
+}
+/* 페이지 최상단(scrollY=0) + 라이트 모드: solid bg1 으로 전환해 blur 아티팩트 제거.
+   스크롤 시작하면 클래스 해제 → 기존 글라스모피즘 복원 (카드 이미지 블러 유지). */
+#site-hdr-wrap.hdr-at-top {
+  background: var(--color-background-primary);
+  border-left-color: transparent;
+  border-right-color: transparent;
 }
 /* 라우트 변경 직후 한 프레임 동안만 부여되는 클래스 — 네비게이션 애니메이션과
    겹쳐 보이는 테마 페이드를 제거하기 위해 transition 을 일시 비활성화.
@@ -678,7 +689,6 @@ footer.blk {
 .footer {
   background: var(--color-surface-stone);
   padding: 0;
-  margin-top: 20px;
 }
 .f-inner {
   padding: 80px 60px 0;
@@ -1018,7 +1028,7 @@ footer.blk {
 }
 
 /* ══ #cafe-menu-blk 시즌 배너 ══ */
-.season-banner-section { background: #E8E2DA; }
+.season-banner-section { background: var(--color-surface-warm); }
 .season-banner {
   position: relative;
   aspect-ratio: 18/7;
@@ -1484,7 +1494,9 @@ footer.blk {
 }
 .roastery-bg {
   position: absolute;
-  inset: 0;
+  top: 120px;
+  right: 0;
+  bottom: 0;
   left: var(--roastery-panel-edge);
   background:
     linear-gradient(to bottom, transparent 75%, var(--color-background-secondary) 100%),
@@ -1589,7 +1601,7 @@ footer.blk {
 
 /* ══ SHOP PAGE ══ */
 .sp-page-bg {
-  background: var(--color-background-secondary);
+  background: var(--color-background-primary);
   width: 100%;
 }
 #sp-body {
@@ -1597,8 +1609,9 @@ footer.blk {
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 100px 60px 80px;
+  padding: 100px 60px 120px;
 }
+#sp-body:has(#sp-pagination) { padding-bottom: 80px; }
 #sp-head { padding-top: 8px; }
 #sp-title-area { margin-bottom: 48px; }
 #sp-page-title {
@@ -1981,10 +1994,11 @@ footer.blk {
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 100px 60px 80px;
+  padding: 100px 60px 120px;
   /* Suspense fallback 시 빈 div 높이 0 → 푸터 flash 방지 */
   min-height: 100dvh;
 }
+#cm-body:has(#cm-pagination) { padding-bottom: 80px; }
 #cm-head { padding-top: 8px; }
 #cm-title-area {
   display: flex;
@@ -4265,7 +4279,7 @@ footer.blk {
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  padding: 48px 60px 80px;
+  padding: 48px 60px 120px;
   gap: 40px;
   align-items: start;
 }
@@ -4642,7 +4656,7 @@ footer.blk {
 #gd-inner {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 100px 60px 80px;
+  padding: 100px 60px 120px;
 }
 #gd-title {
   font-family: var(--font-kr);
@@ -4830,8 +4844,12 @@ footer.blk {
 /* 결제 미니 헤더 */
 .chp-hdr-wrap {
   position: sticky; top: 0; z-index: var(--z-sticky);
-  background: rgba(250,250,248,.92);
+  background: rgba(251,248,243,.72);
   flex-shrink: 0;
+  transition: background var(--duration-normal) var(--ease-out-expo);
+}
+.chp-hdr-wrap.hdr-at-top {
+  background: var(--color-background-primary);
 }
 .chp-hdr-inner {
   max-width: 1440px; margin: 0 auto;
@@ -5635,7 +5653,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-section:first-of-type { margin-top: 24px; }
 .mp-section--no-border { border-top: none; }
 .mp-section-body {
-  background: var(--color-background-tertiary);
+  background: var(--color-surface-subtle);
   margin: -2px -20px;
   padding: 2px 20px;
   border-radius: 16px;
@@ -6098,7 +6116,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  padding: 100px 60px 80px;
+  padding: 100px 60px 120px;
 }
 .cp-page-header { margin-bottom: 32px; }
 .cp-title-text {

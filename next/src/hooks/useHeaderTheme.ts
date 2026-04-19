@@ -46,6 +46,10 @@ export function useHeaderTheme(
   const [isDark, setIsDark] = useState(initialTheme === 'dark');
   /* 라우트 변경 직후 한 프레임 동안만 true — CSS transition 을 즉시 끄는 플래그 */
   const [skipTransition, setSkipTransition] = useState(false);
+  /* 페이지 최상단(scrollY === 0) 여부 — 라이트 모드에서 헤더를 solid bg1 으로 전환해
+     backdrop-filter blur 의 warm-tinted 팔레트 렌더링 아티팩트를 회피한다.
+     스크롤이 시작되면 글라스모피즘 복원. */
+  const [atTop, setAtTop] = useState(true);
   const rafPending = useRef(false);
 
   /* 페이지 이동마다 initialTheme이 바뀌므로 ref로 최신값을 update() 클로저에 전달.
@@ -130,6 +134,7 @@ export function useHeaderTheme(
         }
 
         setIsDark(theme === 'dark');
+        setAtTop(window.scrollY <= 0);
       });
     }
 
@@ -143,5 +148,5 @@ export function useHeaderTheme(
     };
   }, [headerRef]);
 
-  return { isDark, skipTransition };
+  return { isDark, skipTransition, atTop };
 }
