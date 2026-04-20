@@ -41,7 +41,11 @@ export default function CartPage() {
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
     el.classList.remove('cp-anim');

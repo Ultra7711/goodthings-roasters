@@ -68,7 +68,6 @@ export function useHeaderTheme(
   const fallbackThemeRef = useRef<HeaderTheme>(initialTheme);
   /* initialTheme prop 변경에 따른 헤더 테마 동기화 + transition 일시 차단 의도.
      route 전환 시 한 프레임 동안 transition 을 끊어야 헤더 배경 slow fade 이슈를 막을 수 있음. */
-  /* eslint-disable react-hooks/set-state-in-effect */
   /* useLayoutEffect 사용 이유: 라우트 변경 직후 stale isDark 로 인한 첫 프레임
      플래시 방지. useEffect 는 paint 이후 실행돼 Render 1 (이전 라우트의 isDark
      잔존) 이 화면에 그려진 뒤에야 보정되지만, useLayoutEffect 는 paint 전에
@@ -87,7 +86,6 @@ export function useHeaderTheme(
       cancelAnimationFrame(id2);
     };
   }, [initialTheme, pathname]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     const header = headerRef.current;

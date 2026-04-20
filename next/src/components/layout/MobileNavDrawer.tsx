@@ -83,6 +83,7 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
       >
         <div className="mn-header">
           <Link href="/" className="mn-logo" onClick={onClose} aria-label="Good Things Roasters 홈">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/icons/logo.svg" alt="good things" />
           </Link>
           <div className="mn-header-actions">

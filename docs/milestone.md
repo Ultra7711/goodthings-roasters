@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-04-18 · Backend Session 17 — ADR-004 Step D (Zustand 완전 제거) + 3병렬 리뷰 하드닝 완료.
+> **최종 업데이트:** 2026-04-20 · Sessions 18~49 디자인/팔레트/반응형 + PR#2·#3·#4 머지 + Session 50 반응형 1차 리뷰 완료.
 
 ---
 
@@ -23,13 +23,13 @@
 | Phase | 완료 | 진행 중 | 미착수 | 진행률 |
 |-------|------|---------|--------|--------|
 | Phase 1 — Design | 5 | 0 | 0 | 100% |
-| Phase 2 — Frontend | 2 | 2 | 0 | ~85% |
+| Phase 2 — Frontend | 3 | 1 | 0 | ~95% |
 | Phase 3 — Backend | 2 | 1 | 0 | ~55% |
 | Phase 4 — Infrastructure | 0 | 1 | 0 | ~20% |
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
 | User AI | 0 | 0 | 1 | 0% |
 
-**현재 위치:** Backend Session 17 완료 — ADR-004 Step D 이행으로 Zustand 의존성 완전 제거. `lib/store.ts` 삭제 · `useToast` 를 `toastStore` + 훅 분리 · `AuthSyncProvider` 하드닝 · `DEMO_*` 제거. **3병렬 리뷰 HIGH 4·MED 4·LOW 2 전량 하드닝 완료.** **다음: Phase 2-G 프로덕션 준비 (반응형 4BP · CSP · 환경변수 · 번들 감사).**
+**현재 위치:** Sessions 18~49 (디자인 폴리시 · 팔레트 · 반응형 4BP) 완료. **PR#2(`2170f795`) · PR#3(`d0d76835`) · PR#4(`bc72219e`) 모두 master 머지 완료.** Session 50 반응형 1차 리뷰: CRITICAL 0 · HIGH 4 (1건 빌드차단 즉시 수정) · MED 5 · LOW 3. **다음: H3 사업자 정보 환경변수 + M7 CSP 헤더 → Phase 4 인프라(Vercel + Supabase staging/prod).**
 
 ---
 
@@ -43,7 +43,9 @@
 |------|------|------|
 | 2-F 콘텐츠 채우기 | ⬜ | GoodDays / Story / MyPage — 검색 엔진/SRP 는 완료 |
 | 2-F2 상태관리 단일화 (ADR-004) | ✅ | Step A~D 완료 (Session 14~17) · Zustand 제거 · TanStack Query + useSupabaseSession 단일 소스 |
-| 2-G 반응형 + 프로덕션 | ⬜ | 4 브레이크포인트(360/768/1024/1440) + CSP·환경변수·빌드 최종화 |
+| 2-G1 디자인 폴리시 (Phase 1~3) | ✅ | Sessions 18~36 — 카트 풀페이지 · 게이지/레이더 통일 · 팔레트(gold accent + 섹션 로테이션) · CTA hover gold |
+| 2-G2 반응형 4BP | ✅ | Sessions 37~49 — clamp 토큰화 · container queries · 햄버거 드로어 · tap-area sweep · 360/768/1024/1440 전 페이지 QA |
+| 2-G3 프로덕션 마감 | ⬜ | H3 환경변수 + M7 CSP 헤더 + 번들 감사 (다음 세션) |
 
 #### 7. Content & Asset
 
@@ -57,16 +59,16 @@
 | ID | 이슈 | 처리 시점 |
 |----|------|-----------|
 | A1 | ADR-004 Zustand 제거 이행 완료 확인 (`rg "from 'zustand'"` 0건) | ✅ Session 17 완료 (2026-04-18, `bc6e2258`) |
-| H3 | 사업자 정보 소스코드 하드코딩 → 환경변수/DB 이관 | Phase 2-G |
-| M7 | CSP 등 보안 응답 헤더 최종 점검 → `next.config.ts headers()` | Phase 2-G |
+| H3 | 사업자 정보 소스코드 하드코딩 → 환경변수/DB 이관 | **다음 세션 (2-G3)** |
+| M7 | CSP 등 보안 응답 헤더 최종 점검 → `next.config.ts headers()` | **다음 세션 (2-G3)** |
 
 #### 코드 리뷰 잔여
 
 | 순서 | 대상 | 상태 |
 |------|------|------|
 | R-5 | 2-E 플로우 복구 + `/biz-inquiry` | ⬜ (RP 재이식 이후 필요 시) |
-| R-7 | 2-G 반응형 + 프로덕션 | ⬜ |
-| RP-11 | 반응형 4BP + 프로덕션(CSP·env·빌드) | ⬜ |
+| Session 50 | 반응형 1차 리뷰 (Sessions 37~49) | ✅ 2026-04-20 — `memory/review_session37_49_responsive.md` (HIGH 4·MED 5·LOW 3 · HIGH-1 즉시 수정) |
+| R-7 | 2-G3 프로덕션 마감 (CSP·env·빌드) | ⬜ |
 
 ---
 
