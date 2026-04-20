@@ -3537,6 +3537,11 @@ footer.blk {
 #pd-content {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* 데스크탑: 좌측 컬럼(#pd-img-col) 이 sticky 이미지 + 아코디언을 세로 스택.
+     sticky 컨테이닝 블록이 좌측 컬럼으로 제한되어 아코디언과 겹치지 않고,
+     아코디언은 이미지 썸네일 바로 아래에 붙는다.
+     모바일(≤1023px): #pd-img-col 이 display:contents 로 해제되어
+     image → info → accordion 순서로 stack (order 프로퍼티). */
   align-items: flex-start;
 }
 
@@ -3545,6 +3550,11 @@ footer.blk {
 /* RP-4d: 좌측 이미지 스티키로 전환 —
    프로토타입은 우측 #pd-info 스티키였으나, Next 이식 단계에서 좌측 이미지 스티키로 변경.
    이미지가 화면에 고정된 채 우측 정보(#pd-info)가 스크롤되는 형태. */
+/* #pd-img-col: 이미지 grid 래퍼. sticky 자식(#pd-img-wrap) 의 컨테이닝 블록 역할.
+   grid-column/row 는 이 래퍼가 담당. 기본 align-self: stretch 로 row 1 전체 높이 점유. */
+#pd-img-col {
+  grid-column: 1;
+}
 #pd-img-wrap {
   opacity: 0;
   transform: translateY(32px);
@@ -3553,11 +3563,7 @@ footer.blk {
   display: flex;
   flex-direction: column;
   gap: var(--gap-sm);
-  padding: 0 20px 80px 60px;
-  position: sticky;
-  top: 80px;
-  align-self: start;
-  grid-column: 1;
+  padding: 0 20px 0 60px;
 }
 #pd-info {
   opacity: 0;
@@ -3580,15 +3586,19 @@ footer.blk {
 }
 @media (max-width: 1023px) {
   #pd-content { grid-template-columns: minmax(0, 1fr); }
+  /* display:contents 로 래퍼 해제 — 자식이 직접 grid item 이 되어 order 적용 가능 */
+  #pd-img-col { display: contents; }
   #pd-img-wrap {
     position: static;
-    grid-column: 1;
     padding: 0 var(--layout-padding-x);
+    order: 1;
   }
   #pd-info {
     grid-column: 1;
     padding: 48px var(--layout-padding-x) 80px;
+    order: 2;
   }
+  #pd-accordions { order: 3; }
 }
 
 /* 좌: 이미지 */
@@ -4626,17 +4636,18 @@ footer.blk {
 /* ── 아코디언 ── */
 #pd-accordions {
   width: 100%;
-  border-bottom: .5px solid var(--color-border-tertiary);
   margin-top: 48px;
-  /* 데스크탑: #pd-content grid 좌측 컬럼 하단(gallery 아래) 배치.
-     모바일(≤1024px) 에서는 grid 가 1fr 단일 컬럼으로 전환되어 자연스럽게 최하단 stack. */
-  grid-column: 1;
+  /* 데스크탑: 좌측 컬럼(#pd-img-col) 내부에서 이미지 바로 아래 stack.
+     이미지 sticky 제거로 겹침 없음.
+     모바일(≤1023px): #pd-img-col display:contents 해제 후 order:3 으로 최하단. */
   padding: 0 20px 80px 60px;
 }
 @media (max-width: 1024px) {
   #pd-accordions {
     padding: 0 var(--layout-padding-x) 80px;
     margin-top: 0;
+    /* 모바일은 페이지 최하단 요소 — 하단 구분선 유지 */
+    border-bottom: .5px solid var(--color-border-tertiary);
   }
   /* 1컬럼 전환 시 아코디언을 본문 바로 아래로 붙이기 */
   #pd-info { padding-bottom: 0; }
@@ -4795,6 +4806,15 @@ footer.blk {
      (사이즈는 데스크탑과 동일 — Roasting pill 과 동일 스펙) */
   #pd-note-tags {
     gap: var(--gap-xs);
+  }
+}
+
+/* 레시피 카드 — 360 구간 좌/우 padding 하이브리드 축소
+   767 블록(padding: 20px 20px 22px) 이후 선언되어 캐스케이드 우선 보장.
+   좌 20→8 (이미지 좌측 이동), 우 20→14 (텍스트 추가 확보). */
+@media (max-width: 480px) {
+  .pd-recipe-card {
+    padding: 20px 14px 22px 8px;
   }
 }
 

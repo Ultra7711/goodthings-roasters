@@ -73,9 +73,17 @@ export default function ProductDetailPage({ product }: Props) {
     <div id="pd-body" ref={pageRef}>
       <div id="pd-inner">
         <div id="pd-content">
-          {/* ── 좌: 이미지 갤러리 (아코디언은 하단으로 분리) ── */}
-          <div id="pd-img-wrap">
-            <ProductGallery images={product.images} />
+          {/* ── 좌: 이미지 갤러리 (아코디언은 하단으로 분리) ──
+              #pd-img-col 래퍼: sticky 의 컨테이닝 블록을 row 1 범위로 제한.
+              래퍼가 없으면 sticky 가 grid 컨테이너(#pd-content) 전체 높이까지 유지되어
+              row 2 에 배치된 아코디언과 시각적으로 겹침. */}
+          <div id="pd-img-col">
+            <div id="pd-img-wrap">
+              <ProductGallery images={product.images} />
+            </div>
+            {/* 데스크탑: 아코디언을 이미지 바로 아래 배치 (sticky 컨테이닝 블록 = 좌측 컬럼).
+                모바일(≤1023px): #pd-img-col 이 display:contents 로 해제되어 order 로 재배치. */}
+            <ProductAccordions category={product.category} slug={product.slug} />
           </div>
 
           {/* ── 우: 상품 정보 (RP-4c~e 에서 구매행/로스팅/노트/아코디언 추가) ── */}
@@ -111,10 +119,6 @@ export default function ProductDetailPage({ product }: Props) {
             />
             <ProductRecipeGuide product={product} />
           </div>
-
-          {/* 아코디언: 데스크탑 좌측 하단(gallery 아래) · 모바일 최하단
-              CSS grid-column/row 로 배치 — JSX 순서는 모바일 stack 순서 기준 */}
-          <ProductAccordions category={product.category} slug={product.slug} />
         </div>
 
         {/* Story section 은 RP-4e 에서 구현 */}

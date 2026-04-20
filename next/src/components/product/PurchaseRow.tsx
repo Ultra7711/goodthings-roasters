@@ -68,17 +68,29 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
     return () => document.removeEventListener('click', onDocClick);
   }, []);
 
-  /* 탭 인디케이터 위치 동기화 */
+  /* 탭 인디케이터 위치 동기화 — 뷰포트/컨테이너 리사이즈에도 재측정.
+     resize 미동기 시 넓은 뷰에서 측정된 px width 가 좁은 뷰에서 잔존하며
+     document overflow(가로 스크롤) 를 유발. */
   useEffect(() => {
     if (!product.subscription) return;
-    const ind = indicatorRef.current;
     const tabs = tabsRef.current;
-    const activeTab = orderType === 'subscription' ? tabSubRef.current : tabNormalRef.current;
-    if (!ind || !tabs || !activeTab) return;
-    const tabsRect = tabs.getBoundingClientRect();
-    const tabRect = activeTab.getBoundingClientRect();
-    ind.style.left = `${tabRect.left - tabsRect.left}px`;
-    ind.style.width = `${Math.round(tabRect.width)}px`;
+    if (!tabs) return;
+
+    function sync() {
+      const ind = indicatorRef.current;
+      const tabsEl = tabsRef.current;
+      const activeTab = orderType === 'subscription' ? tabSubRef.current : tabNormalRef.current;
+      if (!ind || !tabsEl || !activeTab) return;
+      const tabsRect = tabsEl.getBoundingClientRect();
+      const tabRect = activeTab.getBoundingClientRect();
+      ind.style.left = `${tabRect.left - tabsRect.left}px`;
+      ind.style.width = `${Math.round(tabRect.width)}px`;
+    }
+
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(tabs);
+    return () => ro.disconnect();
   }, [orderType, product.subscription, product.slug]);
 
   /* 상품 / 구독 토글 진입 시 인디케이터는 transition 없이 즉시 배치 */

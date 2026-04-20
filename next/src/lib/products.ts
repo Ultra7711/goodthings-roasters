@@ -98,7 +98,7 @@ export const PRODUCTS: Product[] = [
       { method: '에어로프레스', dose: '15g', temp: '85~90°C', time: '1분~1분 30초', water: '120g' },
       { method: '에스프레소', dose: '18~20g', temp: '90~93°C', time: '25~30초', water: '34~40g' },
       { method: '모카포트', dose: '12g', temp: '100°C 이상', time: '4분 내외', water: '110g' },
-      { method: '브루잉', dose: '18~20g', temp: '88~92°C', time: '2분 이내(뜸 30초)', water: '270~360g' },
+      { method: '브루잉', dose: '18~20g', temp: '88~92°C', time: '2분 이내 (뜸\u00A030초)', water: '270~360g' },
     ],
   },
   {
@@ -125,7 +125,7 @@ export const PRODUCTS: Product[] = [
       { method: '에어로프레스', dose: '15g', temp: '85~90°C', time: '1분~1분 30초', water: '120g' },
       { method: '에스프레소', dose: '18~20g', temp: '90~93°C', time: '25~30초', water: '34~40g' },
       { method: '모카포트', dose: '12g', temp: '100°C 이상', time: '4분 내외', water: '110g' },
-      { method: '브루잉', dose: '18~20g', temp: '88~92°C', time: '2분 이내(뜸 30초)', water: '270~360g' },
+      { method: '브루잉', dose: '18~20g', temp: '88~92°C', time: '2분 이내 (뜸\u00A030초)', water: '270~360g' },
     ],
   },
   {
