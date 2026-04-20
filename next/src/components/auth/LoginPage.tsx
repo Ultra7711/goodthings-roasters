@@ -17,6 +17,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLoginForm } from '@/hooks/useLoginForm';
+import { useAtTop } from '@/hooks/useAtTop';
 import { useRegisterForm } from '@/hooks/useRegisterForm';
 import { useInputNav } from '@/hooks/useInputNav';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
@@ -100,6 +101,7 @@ export default function LoginPage() {
   const router = useRouter();
   const params = useSearchParams();
   const { show: toast } = useToast();
+  const atTop = useAtTop();
 
   /** 체크아웃에서 진입한 경우 */
   const fromCheckout = params.get('from') === 'checkout';
@@ -313,12 +315,18 @@ export default function LoginPage() {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+    <div style={{ minHeight: '100dvh' }}>
       {/* ── 미니 헤더 ── */}
-      <div className="chp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+      <div
+        className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
+        style={{
+          backdropFilter: atTop ? 'none' : 'blur(16px)',
+          WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
+        }}
+      >
         <div className="chp-hdr-inner">
           <Link href="/">
-            <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />
+            <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={150} height={30} className="chp-logo-img" />
           </Link>
         </div>
       </div>

@@ -7,18 +7,17 @@
    - "VISIT" 섹션 의도(방문 유도)에 맞춰 4-state 라벨링
    ══════════════════════════════════════════ */
 
+import Link from 'next/link';
 import { useShopStatus } from '@/hooks/useShopStatus';
-import { STORY_LOCATION } from '@/lib/story';
-
-const KAKAO_DIRECTIONS_HREF = `https://map.kakao.com/link/to/${encodeURIComponent(
-  STORY_LOCATION.kakaoPlaceName,
-)},${STORY_LOCATION.lat},${STORY_LOCATION.lng}`;
+import { emphasizeHours } from '@/lib/emphasizeHours';
 
 function HoursLabel() {
   const status = useShopStatus();
   // SSR/첫 렌더링: 공백 placeholder (hydration 안전, 레이아웃 흔들림 방지)
   return (
-    <span className="roastery-hours">{status?.label ?? '\u00A0'}</span>
+    <span className="roastery-hours">
+      {status?.label ? emphasizeHours(status.label) : '\u00A0'}
+    </span>
   );
 }
 
@@ -34,14 +33,12 @@ export default function RoasterySection() {
             경북 구미시 인동21길 22-11
             <HoursLabel />
           </span>
-          <a
+          <Link
             className="roastery-cta-btn sr-txt sr-txt--d4"
-            href={KAKAO_DIRECTIONS_HREF}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/story#location"
           >
-            오시는 길
-          </a>
+            매장 정보
+          </Link>
         </div>
       </div>
     </section>

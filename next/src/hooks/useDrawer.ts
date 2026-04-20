@@ -35,20 +35,42 @@ export function useDrawer({ open, onClose }: UseDrawerArgs): void {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  // body scroll lock — 드로어 오픈 동안 + scrollbar-gutter 일시 해제
+  // body scroll lock + scrollbar gutter 토글.
+  //
+  // 기본 상태: html { scrollbar-gutter: stable } 로 15px 예약 → ICB=1072.
+  //   이 상태로 드로어를 열면 fixed 패널이 ICB 에 페인트 클리핑되어 우측 15px 잘림.
+  //
+  // 드로어 오픈 동안:
+  //   1) html.scrollbarGutter='auto' → ICB 가 1087 로 확장 → 패널이 true viewport 에 도달
+  //   2) body.paddingRight=<measured> → body content-box 1072 유지 → sticky 헤더·
+  //      페이지 레이아웃이 시프트하지 않음 (UI-005 회귀 방지)
+  //   3) body.overflow='hidden' → 페이지 스크롤 잠금
   useEffect(() => {
     if (!open) return;
     const html = document.documentElement;
-    const prevOverflow = document.body.style.overflow;
+    const body = document.body;
+
+    // scrollbar-gutter: stable 이 활성화된 상태에서 clientWidth 는 innerWidth 와 동일하게
+    // 보고되므로, 100vw 기반 프로브로 ICB 폭을 측정해 gutter 를 역산한다.
+    const probe = document.createElement('div');
+    probe.style.cssText =
+      'position:fixed;top:0;left:0;width:100vw;visibility:hidden;pointer-events:none';
+    body.appendChild(probe);
+    const sbWidth = Math.max(0, window.innerWidth - probe.offsetWidth);
+    body.removeChild(probe);
+
     const prevGutter = html.style.scrollbarGutter;
-    // html { scrollbar-gutter: stable } 를 auto 로 해제 → ICB 가 전체 viewport 로 확장,
-    // fixed 드로어 패널의 right:0 이 true viewport 우측 끝에 정렬됨.
-    // 뒤쪽 콘텐츠는 backdrop 으로 덮이므로 gutter 해제로 인한 시프트가 보이지 않음.
+    const prevPaddingRight = body.style.paddingRight;
+    const prevOverflow = body.style.overflow;
+
     html.style.scrollbarGutter = 'auto';
-    document.body.style.overflow = 'hidden';
+    body.style.paddingRight = `${sbWidth}px`;
+    body.style.overflow = 'hidden';
+
     return () => {
-      document.body.style.overflow = prevOverflow;
       html.style.scrollbarGutter = prevGutter;
+      body.style.paddingRight = prevPaddingRight;
+      body.style.overflow = prevOverflow;
     };
   }, [open]);
 }

@@ -36,7 +36,7 @@ export function useProductPurchase(product: Product) {
   const basePrice = selectedVolume?.price ?? 0;
   const totalPrice = basePrice * qty;
   const formattedTotal = formatPrice(totalPrice);
-  const isSoldOut = product.status === '매진';
+  const isSoldOut = product.status === '품절';
 
   const cycleLabel = useMemo(
     () => SUB_CYCLES.find((c) => c.value === cycleValue)?.label ?? '2주마다 배송',

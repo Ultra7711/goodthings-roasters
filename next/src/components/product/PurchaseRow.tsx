@@ -68,17 +68,29 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
     return () => document.removeEventListener('click', onDocClick);
   }, []);
 
-  /* 탭 인디케이터 위치 동기화 */
+  /* 탭 인디케이터 위치 동기화 — 뷰포트/컨테이너 리사이즈에도 재측정.
+     resize 미동기 시 넓은 뷰에서 측정된 px width 가 좁은 뷰에서 잔존하며
+     document overflow(가로 스크롤) 를 유발. */
   useEffect(() => {
     if (!product.subscription) return;
-    const ind = indicatorRef.current;
     const tabs = tabsRef.current;
-    const activeTab = orderType === 'subscription' ? tabSubRef.current : tabNormalRef.current;
-    if (!ind || !tabs || !activeTab) return;
-    const tabsRect = tabs.getBoundingClientRect();
-    const tabRect = activeTab.getBoundingClientRect();
-    ind.style.left = `${tabRect.left - tabsRect.left}px`;
-    ind.style.width = `${Math.round(tabRect.width)}px`;
+    if (!tabs) return;
+
+    function sync() {
+      const ind = indicatorRef.current;
+      const tabsEl = tabsRef.current;
+      const activeTab = orderType === 'subscription' ? tabSubRef.current : tabNormalRef.current;
+      if (!ind || !tabsEl || !activeTab) return;
+      const tabsRect = tabsEl.getBoundingClientRect();
+      const tabRect = activeTab.getBoundingClientRect();
+      ind.style.left = `${tabRect.left - tabsRect.left}px`;
+      ind.style.width = `${Math.round(tabRect.width)}px`;
+    }
+
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(tabs);
+    return () => ro.disconnect();
   }, [orderType, product.subscription, product.slug]);
 
   /* 상품 / 구독 토글 진입 시 인디케이터는 transition 없이 즉시 배치 */
@@ -92,12 +104,12 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
     return () => cancelAnimationFrame(id);
   }, [product.slug, product.subscription]);
 
-  /* 전체 매진 판정 — status 가 '매진' 이거나, 모든 볼륨이 soldOut 인 경우.
+  /* 전체 품절 판정 — status 가 '품절' 이거나, 모든 볼륨이 soldOut 인 경우.
      ProductDetailPage 의 isSoldOut 과 동일한 규칙을 PurchaseRow 에도 적용하여
-     "모든 옵션 매진이지만 status 는 null" 인 엣지 케이스에서도 CTA 를 차단한다. */
+     "모든 옵션 품절이지만 status 는 null" 인 엣지 케이스에서도 CTA 를 차단한다. */
   const allSoldOut = hasVolumes && product.volumes.every((v) => v.soldOut);
-  const disabled = product.status === '매진' || allSoldOut;
-  const cartLabel = disabled ? (product.status ?? '매진') : '장바구니에 담기';
+  const disabled = product.status === '품절' || allSoldOut;
+  const cartLabel = disabled ? (product.status ?? '품절') : '장바구니에 담기';
 
   /* 드립백은 라벨이 "품목" */
   const volLabelText = product.category === 'Drip Bag' ? '품목' : '용량';
@@ -227,7 +239,7 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
                   >
                     <span>{v.label}</span>
                     {v.soldOut && (
-                      <span className="pd-dropdown-option-soldout">매진</span>
+                      <span className="pd-dropdown-option-soldout">품절</span>
                     )}
                   </div>
                 ))}

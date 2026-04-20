@@ -1,0 +1,749 @@
+{
+  "01-home": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "a.bean-card",
+        "right": 1436,
+        "overflow": 1076
+      },
+      {
+        "selector": "div.bean-img.sr-img",
+        "right": 1436,
+        "overflow": 1076
+      },
+      {
+        "selector": "div.bean-img-inner",
+        "right": 1436,
+        "overflow": 1076
+      },
+      {
+        "selector": "div.bean-info",
+        "right": 1436,
+        "overflow": 1076
+      },
+      {
+        "selector": "span.bean-info-name",
+        "right": 1344,
+        "overflow": 984
+      },
+      {
+        "selector": "span.bean-info-cat",
+        "right": 1341,
+        "overflow": 981
+      },
+      {
+        "selector": "a.bean-card",
+        "right": 1157,
+        "overflow": 797
+      },
+      {
+        "selector": "div.bean-img.sr-img",
+        "right": 1157,
+        "overflow": 797
+      },
+      {
+        "selector": "div.bean-img-inner",
+        "right": 1157,
+        "overflow": 797
+      },
+      {
+        "selector": "div.bean-info",
+        "right": 1157,
+        "overflow": 797
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "width": 31,
+        "height": 40
+      },
+      {
+        "selector": "a.season-cta.sr-txt.sr-txt--d4",
+        "width": 148,
+        "height": 21
+      }
+    ],
+    "overflowScrollX": [
+      {
+        "selector": "div#beans-track.beans-scroll",
+        "scrollWidth": 1496,
+        "clientWidth": 345
+      }
+    ]
+  },
+  "01b-home-scrolled": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "a.bean-card",
+        "right": 1436,
+        "overflow": 1076
+      },
+      {
+        "selector": "div.bean-img.sr-img",
+        "right": 1436,
+        "overflow": 1076
+      },
+      {
+        "selector": "div.bean-img-inner",
+        "right": 1436,
+        "overflow": 1076
+      },
+      {
+        "selector": "div.bean-info",
+        "right": 1436,
+        "overflow": 1076
+      },
+      {
+        "selector": "span.bean-info-name",
+        "right": 1344,
+        "overflow": 984
+      },
+      {
+        "selector": "span.bean-info-cat",
+        "right": 1341,
+        "overflow": 981
+      },
+      {
+        "selector": "a.bean-card",
+        "right": 1157,
+        "overflow": 797
+      },
+      {
+        "selector": "div.bean-img.sr-img",
+        "right": 1157,
+        "overflow": 797
+      },
+      {
+        "selector": "div.bean-img-inner",
+        "right": 1157,
+        "overflow": 797
+      },
+      {
+        "selector": "div.bean-info",
+        "right": 1157,
+        "overflow": 797
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "width": 31,
+        "height": 40
+      },
+      {
+        "selector": "a.season-cta.sr-txt.sr-txt--d4",
+        "width": 148,
+        "height": 21
+      }
+    ],
+    "overflowScrollX": [
+      {
+        "selector": "div#beans-track.beans-scroll",
+        "scrollWidth": 1496,
+        "clientWidth": 345
+      }
+    ]
+  },
+  "02-story": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 685,
+        "overflow": 325
+      },
+      {
+        "selector": "svg",
+        "right": 677,
+        "overflow": 317
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 607,
+        "overflow": 247
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 565,
+        "overflow": 205
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "width": 31,
+        "height": 40
+      }
+    ],
+    "overflowScrollX": []
+  },
+  "03-shop": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.mn-header",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "nav.mn-nav",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.mn-footer",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 685,
+        "overflow": 325
+      },
+      {
+        "selector": "button.mn-close",
+        "right": 685,
+        "overflow": 325
+      },
+      {
+        "selector": "svg",
+        "right": 677,
+        "overflow": 317
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "width": 31,
+        "height": 40
+      },
+      {
+        "selector": "button.sp-qa-vol-btn.active",
+        "width": 38,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn",
+        "width": 37,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn",
+        "width": 24,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn.active",
+        "width": 38,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn",
+        "width": 37,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn",
+        "width": 24,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn.active",
+        "width": 22,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn",
+        "width": 24,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn",
+        "width": 31,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn.active",
+        "width": 22,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn",
+        "width": 24,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn",
+        "width": 31,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn.active",
+        "width": 22,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn",
+        "width": 24,
+        "height": 48
+      },
+      {
+        "selector": "button.sp-qa-vol-btn.sold-out",
+        "width": 31,
+        "height": 48
+      },
+      {
+        "selector": "input#search-input",
+        "width": 229,
+        "height": 24
+      }
+    ],
+    "overflowScrollX": [
+      {
+        "selector": "div#sp-filter-tabs",
+        "scrollWidth": 408,
+        "clientWidth": 283
+      }
+    ]
+  },
+  "04-product-detail": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 685,
+        "overflow": 325
+      },
+      {
+        "selector": "svg",
+        "right": 677,
+        "overflow": 317
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 607,
+        "overflow": 247
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 565,
+        "overflow": 205
+      }
+    ],
+    "hiddenInteractive": [
+      {
+        "selector": "button#pd-img-prev.pd-img-arrow.arrow-btn.arrow-btn-primary",
+        "reason": "display:none"
+      },
+      {
+        "selector": "button#pd-img-next.pd-img-arrow.arrow-btn.arrow-btn-primary",
+        "reason": "display:none"
+      },
+      {
+        "selector": "button#pd-thumb-prev.pd-thumb-arrow.arrow-btn.arrow-btn-secondary",
+        "reason": "display:none"
+      },
+      {
+        "selector": "button#pd-thumb-next.pd-thumb-arrow.arrow-btn.arrow-btn-secondary",
+        "reason": "display:none"
+      }
+    ],
+    "smallTapTargets": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "width": 31,
+        "height": 40
+      }
+    ],
+    "overflowScrollX": []
+  },
+  "05-cart": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 685,
+        "overflow": 325
+      },
+      {
+        "selector": "svg",
+        "right": 677,
+        "overflow": 317
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 607,
+        "overflow": 247
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 565,
+        "overflow": 205
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "width": 31,
+        "height": 40
+      }
+    ],
+    "overflowScrollX": []
+  },
+  "06-menu": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 685,
+        "overflow": 325
+      },
+      {
+        "selector": "svg",
+        "right": 677,
+        "overflow": 317
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 607,
+        "overflow": 247
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 565,
+        "overflow": 205
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "width": 31,
+        "height": 40
+      }
+    ],
+    "overflowScrollX": []
+  },
+  "07-login": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 685,
+        "overflow": 325
+      },
+      {
+        "selector": "svg",
+        "right": 677,
+        "overflow": 317
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 607,
+        "overflow": 247
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 565,
+        "overflow": 205
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [],
+    "overflowScrollX": []
+  },
+  "08-register": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 685,
+        "overflow": 325
+      },
+      {
+        "selector": "svg",
+        "right": 677,
+        "overflow": 317
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 607,
+        "overflow": 247
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 565,
+        "overflow": 205
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [],
+    "overflowScrollX": []
+  },
+  "09-good-days": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 705,
+        "overflow": 345
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 685,
+        "overflow": 325
+      },
+      {
+        "selector": "svg",
+        "right": 677,
+        "overflow": 317
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "path",
+        "right": 671,
+        "overflow": 311
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 607,
+        "overflow": 247
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 565,
+        "overflow": 205
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [],
+    "overflowScrollX": []
+  }
+}

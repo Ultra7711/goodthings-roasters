@@ -30,7 +30,7 @@ export default function HeroSection() {
         <div className="hero-bg-overlay" />
         <div className="hero-c">
           <span className="hero-slogan" ref={sloganRef}>
-            good things, take time
+            good things,<br className="hero-slogan-br" /> take time
           </span>
           <svg
             ref={mouseRef}

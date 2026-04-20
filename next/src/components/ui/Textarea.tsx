@@ -12,7 +12,7 @@
 
 'use client';
 
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import type {
   CSSProperties,
   ClipboardEventHandler,
@@ -93,8 +93,9 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
   },
   ref,
 ) {
+  const [isFocused, setIsFocused] = useState(false);
   const hasError = Boolean(error);
-  const showClearIcon = !hideClear && value.length > 0 && !disabled && !readOnly;
+  const showClearIcon = !hideClear && value.length > 0 && !disabled && !readOnly && isFocused;
 
   const wrapperClassName = [
     'chp-field',
@@ -124,8 +125,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         style={style}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onBlur={onBlur}
-        onFocus={onFocus}
+        onBlur={(e) => { setIsFocused(false); onBlur?.(e); }}
+        onFocus={(e) => { setIsFocused(true); onFocus?.(e); }}
         onPaste={onPaste}
         onKeyDown={onKeyDown}
       />

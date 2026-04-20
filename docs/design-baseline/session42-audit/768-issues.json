@@ -1,0 +1,1365 @@
+{
+  "01-home": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "a.bean-card.sr--visible",
+        "right": 1676,
+        "overflow": 908
+      },
+      {
+        "selector": "div.bean-img.sr-img",
+        "right": 1676,
+        "overflow": 908
+      },
+      {
+        "selector": "div.bean-img-inner",
+        "right": 1676,
+        "overflow": 908
+      },
+      {
+        "selector": "div.bean-info",
+        "right": 1676,
+        "overflow": 908
+      },
+      {
+        "selector": "span.bean-info-name",
+        "right": 1562,
+        "overflow": 794
+      },
+      {
+        "selector": "span.bean-info-cat",
+        "right": 1557,
+        "overflow": 789
+      },
+      {
+        "selector": "div.cd-header",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 1417,
+        "overflow": 649
+      }
+    ],
+    "hiddenInteractive": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "reason": "display:none"
+      }
+    ],
+    "smallTapTargets": [
+      {
+        "selector": "a",
+        "width": 150,
+        "height": 30
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 79,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 45,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 41,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 88,
+        "height": 19
+      },
+      {
+        "selector": "button#search-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button#main-cart-icon-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.season-cta.sr-txt.sr-txt--d4",
+        "width": 148,
+        "height": 40
+      },
+      {
+        "selector": "button.beans-dot.active",
+        "width": 38,
+        "height": 20
+      },
+      {
+        "selector": "button.beans-dot",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button.beans-dot",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button.beans-dot",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button.beans-dot",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-sns-link",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      }
+    ],
+    "overflowScrollX": [
+      {
+        "selector": "div#beans-track.beans-scroll",
+        "scrollWidth": 1736,
+        "clientWidth": 753
+      }
+    ]
+  },
+  "01b-home-scrolled": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "a.bean-card.sr--visible",
+        "right": 1676,
+        "overflow": 908
+      },
+      {
+        "selector": "div.bean-img.sr-img",
+        "right": 1676,
+        "overflow": 908
+      },
+      {
+        "selector": "div.bean-img-inner",
+        "right": 1676,
+        "overflow": 908
+      },
+      {
+        "selector": "div.bean-info",
+        "right": 1676,
+        "overflow": 908
+      },
+      {
+        "selector": "span.bean-info-name",
+        "right": 1562,
+        "overflow": 794
+      },
+      {
+        "selector": "span.bean-info-cat",
+        "right": 1557,
+        "overflow": 789
+      },
+      {
+        "selector": "div.cd-header",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 1417,
+        "overflow": 649
+      }
+    ],
+    "hiddenInteractive": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "reason": "display:none"
+      }
+    ],
+    "smallTapTargets": [
+      {
+        "selector": "a",
+        "width": 150,
+        "height": 30
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 79,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 45,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 41,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 88,
+        "height": 19
+      },
+      {
+        "selector": "button#search-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button#main-cart-icon-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.season-cta.sr-txt.sr-txt--d4",
+        "width": 148,
+        "height": 40
+      },
+      {
+        "selector": "button.beans-dot.active",
+        "width": 38,
+        "height": 20
+      },
+      {
+        "selector": "button.beans-dot",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button.beans-dot",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button.beans-dot",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button.beans-dot",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-sns-link",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      }
+    ],
+    "overflowScrollX": [
+      {
+        "selector": "div#beans-track.beans-scroll",
+        "scrollWidth": 1736,
+        "clientWidth": 753
+      }
+    ]
+  },
+  "02-story": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 1397,
+        "overflow": 629
+      },
+      {
+        "selector": "svg",
+        "right": 1389,
+        "overflow": 621
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 1171,
+        "overflow": 403
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 1125,
+        "overflow": 357
+      }
+    ],
+    "hiddenInteractive": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "reason": "display:none"
+      }
+    ],
+    "smallTapTargets": [
+      {
+        "selector": "a",
+        "width": 150,
+        "height": 30
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 79,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 45,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 41,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 88,
+        "height": 19
+      },
+      {
+        "selector": "button#search-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button#main-cart-icon-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-sns-link",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "button.f-biz-toggle",
+        "width": 77,
+        "height": 18
+      },
+      {
+        "selector": "a.f-biz-lookup",
+        "width": 96,
+        "height": 15
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "width": 80,
+        "height": 21
+      },
+      {
+        "selector": "input#search-input",
+        "width": 637,
+        "height": 25
+      }
+    ],
+    "overflowScrollX": []
+  },
+  "03-shop": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 1397,
+        "overflow": 629
+      },
+      {
+        "selector": "svg",
+        "right": 1389,
+        "overflow": 621
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 1171,
+        "overflow": 403
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 1125,
+        "overflow": 357
+      }
+    ],
+    "hiddenInteractive": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "reason": "display:none"
+      }
+    ],
+    "smallTapTargets": [
+      {
+        "selector": "a",
+        "width": 150,
+        "height": 30
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 79,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 45,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 41,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 88,
+        "height": 19
+      },
+      {
+        "selector": "button#search-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button#main-cart-icon-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-sns-link",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "button.f-biz-toggle",
+        "width": 77,
+        "height": 18
+      },
+      {
+        "selector": "a.f-biz-lookup",
+        "width": 96,
+        "height": 15
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "width": 80,
+        "height": 21
+      },
+      {
+        "selector": "input#search-input",
+        "width": 637,
+        "height": 25
+      }
+    ],
+    "overflowScrollX": []
+  },
+  "04-product-detail": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 1397,
+        "overflow": 629
+      },
+      {
+        "selector": "svg",
+        "right": 1389,
+        "overflow": 621
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 1171,
+        "overflow": 403
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 1125,
+        "overflow": 357
+      }
+    ],
+    "hiddenInteractive": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "reason": "display:none"
+      },
+      {
+        "selector": "button#pd-img-prev.pd-img-arrow.arrow-btn.arrow-btn-primary",
+        "reason": "display:none"
+      },
+      {
+        "selector": "button#pd-img-next.pd-img-arrow.arrow-btn.arrow-btn-primary",
+        "reason": "display:none"
+      },
+      {
+        "selector": "button#pd-thumb-prev.pd-thumb-arrow.arrow-btn.arrow-btn-secondary",
+        "reason": "display:none"
+      },
+      {
+        "selector": "button#pd-thumb-next.pd-thumb-arrow.arrow-btn.arrow-btn-secondary",
+        "reason": "display:none"
+      }
+    ],
+    "smallTapTargets": [
+      {
+        "selector": "a",
+        "width": 150,
+        "height": 30
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 79,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 45,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 41,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 88,
+        "height": 19
+      },
+      {
+        "selector": "button#search-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button#main-cart-icon-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "svg#pd-qty-minus",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "svg#pd-qty-plus",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-sns-link",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "button.f-biz-toggle",
+        "width": 77,
+        "height": 18
+      },
+      {
+        "selector": "a.f-biz-lookup",
+        "width": 96,
+        "height": 15
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "width": 80,
+        "height": 21
+      },
+      {
+        "selector": "input#search-input",
+        "width": 637,
+        "height": 25
+      }
+    ],
+    "overflowScrollX": []
+  },
+  "05-cart": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 1397,
+        "overflow": 629
+      },
+      {
+        "selector": "svg",
+        "right": 1389,
+        "overflow": 621
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 1171,
+        "overflow": 403
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 1125,
+        "overflow": 357
+      }
+    ],
+    "hiddenInteractive": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "reason": "display:none"
+      }
+    ],
+    "smallTapTargets": [
+      {
+        "selector": "a",
+        "width": 150,
+        "height": 30
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 79,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 45,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 41,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 88,
+        "height": 19
+      },
+      {
+        "selector": "button#search-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button#main-cart-icon-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.cp-continue-link",
+        "width": 80,
+        "height": 21
+      },
+      {
+        "selector": "a.footer-sns-link",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "button.f-biz-toggle",
+        "width": 77,
+        "height": 18
+      },
+      {
+        "selector": "a.f-biz-lookup",
+        "width": 96,
+        "height": 15
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "width": 80,
+        "height": 21
+      },
+      {
+        "selector": "input#search-input",
+        "width": 637,
+        "height": 25
+      }
+    ],
+    "overflowScrollX": []
+  },
+  "06-menu": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 1397,
+        "overflow": 629
+      },
+      {
+        "selector": "svg",
+        "right": 1389,
+        "overflow": 621
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "svg",
+        "right": 1273,
+        "overflow": 505
+      },
+      {
+        "selector": "path",
+        "right": 1267,
+        "overflow": 499
+      }
+    ],
+    "hiddenInteractive": [
+      {
+        "selector": "button.hdr-menu-toggle",
+        "reason": "display:none"
+      }
+    ],
+    "smallTapTargets": [
+      {
+        "selector": "a",
+        "width": 150,
+        "height": 30
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 79,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 45,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 41,
+        "height": 19
+      },
+      {
+        "selector": "a.nav-link",
+        "width": 88,
+        "height": 19
+      },
+      {
+        "selector": "button#search-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button#main-cart-icon-btn.hdr-icon-btn",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "button.sp-pg-arrow",
+        "width": 32,
+        "height": 32
+      },
+      {
+        "selector": "button.sp-pg-btn.active",
+        "width": 32,
+        "height": 32
+      },
+      {
+        "selector": "button.sp-pg-btn",
+        "width": 32,
+        "height": 32
+      },
+      {
+        "selector": "button.sp-pg-arrow",
+        "width": 32,
+        "height": 32
+      },
+      {
+        "selector": "a.footer-sns-link",
+        "width": 24,
+        "height": 24
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "a.footer-col-link",
+        "width": 214,
+        "height": 22
+      },
+      {
+        "selector": "button.f-biz-toggle",
+        "width": 77,
+        "height": 18
+      },
+      {
+        "selector": "a.f-biz-lookup",
+        "width": 96,
+        "height": 15
+      }
+    ],
+    "overflowScrollX": []
+  },
+  "07-login": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 1397,
+        "overflow": 629
+      },
+      {
+        "selector": "svg",
+        "right": 1389,
+        "overflow": 621
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 1171,
+        "overflow": 403
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 1125,
+        "overflow": 357
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [
+      {
+        "selector": "a",
+        "width": 150,
+        "height": 30
+      },
+      {
+        "selector": "span.lp-switch-link",
+        "width": 54,
+        "height": 15
+      },
+      {
+        "selector": "span",
+        "width": 148,
+        "height": 18
+      },
+      {
+        "selector": "button.lp-guest-order-btn",
+        "width": 131,
+        "height": 15
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "width": 80,
+        "height": 21
+      }
+    ],
+    "overflowScrollX": []
+  },
+  "08-register": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 1397,
+        "overflow": 629
+      },
+      {
+        "selector": "svg",
+        "right": 1389,
+        "overflow": 621
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 1171,
+        "overflow": 403
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 1125,
+        "overflow": 357
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [
+      {
+        "selector": "button.cd-shop-btn",
+        "width": 80,
+        "height": 21
+      }
+    ],
+    "overflowScrollX": []
+  },
+  "09-good-days": {
+    "documentOverflow": null,
+    "clipping": [
+      {
+        "selector": "div.cd-header",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-body",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-items",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "div.cd-empty",
+        "right": 1417,
+        "overflow": 649
+      },
+      {
+        "selector": "button.cd-close",
+        "right": 1397,
+        "overflow": 629
+      },
+      {
+        "selector": "svg",
+        "right": 1389,
+        "overflow": 621
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "path",
+        "right": 1383,
+        "overflow": 615
+      },
+      {
+        "selector": "p.cd-empty-msg",
+        "right": 1171,
+        "overflow": 403
+      },
+      {
+        "selector": "button.cd-shop-btn",
+        "right": 1125,
+        "overflow": 357
+      }
+    ],
+    "hiddenInteractive": [],
+    "smallTapTargets": [
+      {
+        "selector": "button.cd-shop-btn",
+        "width": 80,
+        "height": 21
+      }
+    ],
+    "overflowScrollX": []
+  }
+}

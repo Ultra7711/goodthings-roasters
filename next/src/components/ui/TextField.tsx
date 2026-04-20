@@ -111,11 +111,12 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   ref
 ) {
   const [showPw, setShowPw] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const isPassword = type === 'password';
   const effectiveType = isPassword && showPw ? 'text' : type;
 
   const hasError = Boolean(error);
-  const showClearIcon = !hideClear && value.length > 0 && !disabled && !readOnly;
+  const showClearIcon = !hideClear && value.length > 0 && !disabled && !readOnly && isFocused;
   const showEyeIcon = showPasswordToggle && isPassword && value.length > 0;
 
   /** 두 개 이상의 액션 아이콘 래퍼가 필요한지 */
@@ -148,8 +149,8 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
         style={style}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onBlur={onBlur}
-        onFocus={onFocus}
+        onBlur={(e) => { setIsFocused(false); onBlur?.(e); }}
+        onFocus={(e) => { setIsFocused(true); onFocus?.(e); }}
         onPaste={onPaste}
         onKeyDown={onKeyDown}
         onClick={onClick}

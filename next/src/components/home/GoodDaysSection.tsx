@@ -29,15 +29,15 @@ const PICKS = [
 
 export default function GoodDaysSection() {
   return (
-    <section className="blk" data-header-theme="light" data-sr-toggle>
+    <section className="blk blk--bg-secondary" data-header-theme="light">
       <div className="gooddays-sec">
         <div className="moments-grid" id="main-gd-grid">
-          {PICKS.map((img, i) => (
+          {PICKS.map((img) => (
             <Link
               key={img.src}
               href={`/gooddays?img=${encodeURIComponent(img.src)}`}
               className="moment-card sr-img"
-              style={{ transitionDelay: `${i * 150}ms` }}
+              data-sr-toggle
             >
               <div
                 className="moment-img"

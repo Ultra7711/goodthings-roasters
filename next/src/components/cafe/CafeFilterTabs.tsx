@@ -28,10 +28,10 @@ export default function CafeFilterTabs({ active, onChange }: Props) {
     const activeTab = tabs.querySelector<HTMLButtonElement>('.cm-filter-tab.active');
     if (!activeTab) return;
 
-    const tabsRect = tabs.getBoundingClientRect();
-    const tabRect = activeTab.getBoundingClientRect();
-    const left = tabRect.left - tabsRect.left;
-    const width = Math.round(tabRect.width);
+    /* offsetLeft/Width 는 스크롤 컨테이너의 padding-box(스크롤 콘텐츠) 좌표계 —
+       absolute positioned indicator 가 같은 좌표계이므로 스크롤과 무관하게 정확 */
+    const left = activeTab.offsetLeft;
+    const width = activeTab.offsetWidth;
 
     if (!animate) {
       indicator.style.transition = 'none';
@@ -45,6 +45,23 @@ export default function CafeFilterTabs({ active, onChange }: Props) {
     }
   }
 
+  /* 모바일 수평 스크롤 페이드 상태 — start / middle / end */
+  function updateScrollState() {
+    const tabs = tabsRef.current;
+    if (!tabs) return;
+    const { scrollLeft, scrollWidth, clientWidth } = tabs;
+    const maxScroll = scrollWidth - clientWidth;
+    if (maxScroll <= 1) {
+      tabs.dataset.scroll = 'none';
+    } else if (scrollLeft <= 1) {
+      tabs.dataset.scroll = 'start';
+    } else if (scrollLeft >= maxScroll - 1) {
+      tabs.dataset.scroll = 'end';
+    } else {
+      tabs.dataset.scroll = 'middle';
+    }
+  }
+
   useEffect(() => {
     if (!isMounted.current) {
       isMounted.current = true;
@@ -52,21 +69,44 @@ export default function CafeFilterTabs({ active, onChange }: Props) {
     } else {
       positionIndicator(true);
     }
+    /* 활성 탭을 뷰포트 중앙으로 스크롤 (모바일 수평 스크롤) */
+    const tabs = tabsRef.current;
+    const activeTab = tabs?.querySelector<HTMLButtonElement>('.cm-filter-tab.active');
+    activeTab?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    updateScrollState();
   }, [active]);
 
+  /* 스크롤·리사이즈 → indicator 재배치 + 페이드 상태 갱신 */
+  useEffect(() => {
+    const tabs = tabsRef.current;
+    if (!tabs) return;
+    const onScroll = () => {
+      updateScrollState();
+    };
+    tabs.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    updateScrollState();
+    return () => {
+      tabs.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
+
   return (
-    <div id="cm-filter-tabs" ref={tabsRef}>
-      <div id="cm-filter-indicator" ref={indicatorRef} />
-      {CAFE_FILTER_TABS.map((tab) => (
-        <button
-          key={tab.key}
-          className={`cm-filter-tab${active === tab.key ? ' active' : ''}`}
-          onClick={() => onChange(tab.key)}
-          type="button"
-        >
-          <span className="cm-tab-label">{tab.label}</span>
-        </button>
-      ))}
+    <div id="cm-filter-wrap">
+      <div id="cm-filter-tabs" ref={tabsRef}>
+        <div id="cm-filter-indicator" ref={indicatorRef} />
+        {CAFE_FILTER_TABS.map((tab) => (
+          <button
+            key={tab.key}
+            className={`cm-filter-tab${active === tab.key ? ' active' : ''}`}
+            onClick={() => onChange(tab.key)}
+            type="button"
+          >
+            <span className="cm-tab-label">{tab.label}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

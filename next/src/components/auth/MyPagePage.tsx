@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
+import { useAtTop } from '@/hooks/useAtTop';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { supabase } from '@/lib/supabase';
 import type { UserAddress } from '@/types/address';
@@ -54,7 +55,7 @@ function ChevronRight() {
 function CopyIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+      <rect x="9" y="9" width="12" height="12" rx="2" ry="2" /><path d="M5,15c-1.1,0-2-.9-2-2V5c0-1.1.9-2,2-2h8c1.1,0,2,.9,2,2" />
     </svg>
   );
 }
@@ -93,6 +94,9 @@ export default function MyPagePage() {
 
   /* ── 회원 탈퇴 모달 ── */
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+
+  /* ── 헤더 atTop 토글 (scrollY=0 → solid bg1, 스크롤 시 glass) ── */
+  const atTop = useAtTop();
 
   /* ── 주문 카드 열림 상태 ── */
   const [openOrders, setOpenOrders] = useState<Set<string>>(new Set());
@@ -270,11 +274,29 @@ export default function MyPagePage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
       {/* ── 미니 헤더 ── */}
-      <div className="chp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+      <div
+        className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
+        style={{
+          backdropFilter: atTop ? 'none' : 'blur(16px)',
+          WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
+        }}
+      >
         <div className="chp-hdr-inner">
           <Link href="/">
-            <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} className="chp-logo-img" />
+            <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={150} height={30} className="chp-logo-img" />
           </Link>
+          <button
+            type="button"
+            className="hdr-icon-btn"
+            aria-label="로그아웃"
+            onClick={() => void handleLogout()}
+          >
+            <svg className="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -642,17 +664,22 @@ export default function MyPagePage() {
                   <div className="mp-order-items">
                     <div className="mp-order-items-inner">
                       {order.items.map((item, idx) => (
-                        <div key={idx} className="ocp-item" style={{ minWidth: 0, height: 'auto', padding: '16px 0' }}>
+                        <div key={idx} className="ocp-item">
                           <div
                             className="ocp-item-img"
-                            style={{ width: 80, height: 80, cursor: 'pointer', background: item.image.bg, position: 'relative', flexShrink: 0 }}
+                            style={{ background: item.image.bg, position: 'relative' }}
                             onClick={(e) => { e.stopPropagation(); router.push(`/shop/${item.slug}`); }}
                           >
                             <Image src={item.image.src} alt={item.name} fill style={{ objectFit: 'cover' }} sizes="80px" />
                           </div>
                           <div className="ocp-item-info">
                             <div className="ocp-item-category">{item.category}</div>
-                            <div className="ocp-item-name">{extractKrName(item.name)}</div>
+                            <div className="ocp-item-name">
+                              <span className="ocp-item-name-kr">{extractKrName(item.name)}</span>
+                              <span className="ocp-item-meta-inline">
+                                {` · ${item.volume}`}
+                              </span>
+                            </div>
                             <div className="ocp-item-badges">
                               <span className="ocp-item-badge">{item.volume}</span>
                               <span className="ocp-item-qty">수량 {item.qty}개</span>

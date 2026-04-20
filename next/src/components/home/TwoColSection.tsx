@@ -7,10 +7,10 @@ import Link from 'next/link';
 
 export default function TwoColSection() {
   return (
-    <section className="blk" data-header-theme="light" style={{ marginTop: '120px' }}>
+    <section className="blk blk--bg-tertiary two-col-blk" data-header-theme="light">
       <div className="two-col">
         {/* Subscription */}
-        <Link href="/shop?filter=subscription" className="tci" id="svc-subscription" data-sr-toggle>
+        <Link href="/shop?filter=sub" className="tci" id="svc-subscription" data-sr-toggle>
           <div className="tci-img">
             <div className="tci-img-inner img-subscription" />
             <div className="tci-overlay">

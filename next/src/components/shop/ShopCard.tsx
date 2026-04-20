@@ -9,7 +9,7 @@ const HOVER_DELAY_MS = 400;
 const QA_TEXT_DELAY_MS = 150;
 const SCROLL_REVEAL_THRESHOLD = 0.15;
 
-/** 첫 번째 가용(매진 아닌) 볼륨 인덱스 — 전부 매진이면 0 */
+/** 첫 번째 가용(품절 아닌) 볼륨 인덱스 — 전부 품절이면 0 */
 function findFirstAvailVolIdx(p: Product): number {
   const idx = p.volumes.findIndex((v) => !v.soldOut);
   return idx >= 0 ? idx : 0;
@@ -98,7 +98,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   }, []);
 
   const img = p.images[0];
-  const isSoldOut = p.status === '매진';
+  const isSoldOut = p.status === '품절';
   const isDripBag = p.category === 'Drip Bag';
   const showQaBar = !isSubFilter;
   const thumbStyle = `${img?.bg ?? '#f5f5f3'}${img?.src ? ` url('${img.src}') center/contain no-repeat` : ''}`;
@@ -121,8 +121,8 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   }
 
   function handleMouseEnter() {
-    // 매진 카드도 hover 시 바가 등장하도록 isSoldOut 분기 제거.
-    // 매진 상태에서는 빠른 추가 기능(openQa) 만 동작하지 않으며,
+    // 품절 카드도 hover 시 바가 등장하도록 isSoldOut 분기 제거.
+    // 품절 상태에서는 빠른 추가 기능(openQa) 만 동작하지 않으며,
     // 바 자체의 등장/퇴장 모션은 일반 카드와 동일하게 유지한다.
     if (qaOpen || !showQaBar) return;
     hoverTimerRef.current = setTimeout(() => {
@@ -193,8 +193,8 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
           <div className="sp-card-img" style={{ background: thumbStyle }} />
         </div>
 
-        {/* 매진 카드도 뱃지를 표시한다. 매진 바는 hover 시에만 등장하므로
-            상시 표시되는 뱃지가 필요함 (매진 상태를 즉시 인지 가능하도록). */}
+        {/* 품절 카드도 뱃지를 표시한다. 품절 바는 hover 시에만 등장하므로
+            상시 표시되는 뱃지가 필요함 (품절 상태를 즉시 인지 가능하도록). */}
         {p.status && (
           <span className={getStatusBadgeClass(p.status)}>
             {p.status === 'NEW' ? 'NEW' : p.status}
@@ -245,7 +245,14 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
               tabIndex={0}
               onClick={handleBarClick}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleBarClick(e as unknown as React.MouseEvent); }}
+              aria-label="빠른 추가"
             >
+              <span className="sp-qa-bar-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+              </span>
               <span className="sp-qa-bar-text">{qaBarText}</span>
               <button
                 className="sp-qa-close"
@@ -265,9 +272,9 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
           <div
             className="sp-qa-bar sp-qa-bar--disabled"
             role="status"
-            aria-label="매진"
+            aria-label="품절"
           >
-            <span className="sp-qa-bar-text">매진</span>
+            <span className="sp-qa-bar-text">품절</span>
           </div>
         )}
       </div>

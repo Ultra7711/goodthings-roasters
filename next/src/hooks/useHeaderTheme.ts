@@ -6,8 +6,12 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { HeaderTheme } from '@/types/navigation';
+
+/* SSR 환경에서 useLayoutEffect 경고 회피 — 브라우저에선 layout, 서버에선 no-op. */
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 /** dataset 값이 유효한 HeaderTheme인지 런타임 검증 */
 function isValidTheme(value: string | undefined): value is HeaderTheme {
@@ -30,6 +34,11 @@ function isValidTheme(value: string | undefined): value is HeaderTheme {
 export function useHeaderTheme(
   headerRef: React.RefObject<HTMLElement | null>,
   initialTheme: HeaderTheme = 'dark',
+  /* pathname 포함 시 light ↔ light 라우트 전환(예: /shop ↔ /menu)에서도
+     hdr-on-secondary 등 pathname 기반 클래스 변경 전에 transition 을 차단.
+     initialTheme 만 deps 로 두면 light-to-light 는 skipTransition 이 발동하지
+     않아 배경 fade 가 보이는 이슈가 있음. */
+  pathname?: string,
 ) {
   /* SSR/hydration 초기값은 페이지별 설정을 따른다.
      틀린 값으로 시작하면 페이지 로드 직후 light ↔ dark 플래시가 발생함.
@@ -37,6 +46,10 @@ export function useHeaderTheme(
   const [isDark, setIsDark] = useState(initialTheme === 'dark');
   /* 라우트 변경 직후 한 프레임 동안만 true — CSS transition 을 즉시 끄는 플래그 */
   const [skipTransition, setSkipTransition] = useState(false);
+  /* 페이지 최상단(scrollY === 0) 여부 — 라이트 모드에서 헤더를 solid bg1 으로 전환해
+     backdrop-filter blur 의 warm-tinted 팔레트 렌더링 아티팩트를 회피한다.
+     스크롤이 시작되면 글라스모피즘 복원. */
+  const [atTop, setAtTop] = useState(true);
   const rafPending = useRef(false);
 
   /* 페이지 이동마다 initialTheme이 바뀌므로 ref로 최신값을 update() 클로저에 전달.
@@ -56,7 +69,12 @@ export function useHeaderTheme(
   /* initialTheme prop 변경에 따른 헤더 테마 동기화 + transition 일시 차단 의도.
      route 전환 시 한 프레임 동안 transition 을 끊어야 헤더 배경 slow fade 이슈를 막을 수 있음. */
   /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
+  /* useLayoutEffect 사용 이유: 라우트 변경 직후 stale isDark 로 인한 첫 프레임
+     플래시 방지. useEffect 는 paint 이후 실행돼 Render 1 (이전 라우트의 isDark
+     잔존) 이 화면에 그려진 뒤에야 보정되지만, useLayoutEffect 는 paint 전에
+     동기 실행되므로 보정된 Render 2 가 첫 paint 가 된다.
+     예: Home(dark) → /shop(light) 진입 시 headerbg warm-white 번쩍임 제거. */
+  useIsomorphicLayoutEffect(() => {
     fallbackThemeRef.current = initialTheme;
     setIsDark(initialTheme === 'dark');
     setSkipTransition(true);
@@ -68,7 +86,7 @@ export function useHeaderTheme(
       cancelAnimationFrame(id1);
       cancelAnimationFrame(id2);
     };
-  }, [initialTheme]);
+  }, [initialTheme, pathname]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
@@ -116,6 +134,7 @@ export function useHeaderTheme(
         }
 
         setIsDark(theme === 'dark');
+        setAtTop(window.scrollY <= 0);
       });
     }
 
@@ -129,5 +148,5 @@ export function useHeaderTheme(
     };
   }, [headerRef]);
 
-  return { isDark, skipTransition };
+  return { isDark, skipTransition, atTop };
 }

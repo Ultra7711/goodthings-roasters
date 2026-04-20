@@ -90,8 +90,17 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
 
             <div className="cns-content">
               <div className="cns-head">
-                <p className="cns-category-label">{categoryLabel}</p>
-                <h2 className="cns-item-name">{item.name}</h2>
+                <div className="cns-head-top">
+                  <div className="cns-title-col">
+                    <p className="cns-category-label">{categoryLabel}</p>
+                    <h2 className="cns-item-name">{item.name}</h2>
+                  </div>
+                  {tempBadge && (
+                    <span className={`cns-title-badge cm-badge-temp ${tempBadge.cls}`}>
+                      {tempBadge.txt}
+                    </span>
+                  )}
+                </div>
                 {item.menuDesc && (
                   <p className="cns-item-desc">{item.menuDesc}</p>
                 )}

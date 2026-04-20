@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright auth state (Session 33 baseline capture)
+scripts/.auth-state.json

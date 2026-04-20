@@ -32,6 +32,7 @@ import {
   type StoryTwoColItem,
 } from '@/lib/story';
 import KakaoMap from './KakaoMap';
+import { emphasizeHours } from '@/lib/emphasizeHours';
 
 /* 본문 \n\n → <br><br> 단락 분리 */
 function paragraphs(body: string) {
@@ -119,12 +120,12 @@ export default function StoryPage() {
       </section>
 
       {/* ── COFFEE / BREWING / BAKERY ── */}
-      {STORY_TWO_COL.map((item) => (
-        <StoryTwoColSection key={item.label} item={item} />
+      {STORY_TWO_COL.map((item, idx) => (
+        <StoryTwoColSection key={item.label} item={item} bgVariant={idx % 2 === 1 ? 'secondary' : null} />
       ))}
 
       {/* ── PROMISE ── */}
-      <section className="st-promise" data-header-theme="light" data-sr-story>
+      <section className="st-promise blk--bg-tertiary" data-header-theme="light" data-sr-story>
         <div className="st-promise-inner">
           <span className="st-label sr-txt sr-txt--d1">{STORY_PROMISE.label}</span>
           <h2 className="st-promise-heading sr-txt sr-txt--d2">{STORY_PROMISE.heading}</h2>
@@ -161,11 +162,11 @@ export default function StoryPage() {
               <span className="st-label sr-txt sr-txt--d1">{STORY_LOCATION.label}</span>
               <p className="st-location-name sr-txt sr-txt--d2">{STORY_LOCATION.name}</p>
             </div>
-            <p className="st-location-notice sr-txt sr-txt--d2">{STORY_LOCATION.notice}</p>
+            <p className="st-location-notice sr-txt sr-txt--d2">{emphasizeHours(STORY_LOCATION.notice)}</p>
             <p className="st-location-hours sr-txt sr-txt--d3">
               {STORY_LOCATION.hours.split('\n').map((line, i, arr) => (
                 <span key={i}>
-                  {line}
+                  {emphasizeHours(line)}
                   {i < arr.length - 1 && <br />}
                 </span>
               ))}
@@ -178,8 +179,8 @@ export default function StoryPage() {
 }
 
 /* ── 좌우 교차 섹션 ── */
-function StoryTwoColSection({ item }: { item: StoryTwoColItem }) {
-  const cls = `st-two-col${item.reverse ? ' st-two-col--reverse' : ''}`;
+function StoryTwoColSection({ item, bgVariant }: { item: StoryTwoColItem; bgVariant?: 'secondary' | null }) {
+  const cls = `st-two-col${item.reverse ? ' st-two-col--reverse' : ''}${bgVariant === 'secondary' ? ' blk--bg-secondary' : ''}`;
   return (
     <section className={cls} data-header-theme="light" data-sr-story>
       <div className="st-two-col-inner">

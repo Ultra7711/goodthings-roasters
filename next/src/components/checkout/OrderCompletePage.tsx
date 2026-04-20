@@ -61,9 +61,9 @@ function extractKrName(name: string): string {
 /* ── 복사 아이콘 ── */
 function CopyIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="5" y="5" width="9" height="9" rx="1" />
-      <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="12" height="12" rx="2" ry="2" />
+      <path d="M5,15c-1.1,0-2-.9-2-2V5c0-1.1.9-2,2-2h8c1.1,0,2,.9,2,2" />
     </svg>
   );
 }
@@ -343,13 +343,19 @@ export default function OrderCompletePage() {
             </Link>
           </div>
         </div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 24, padding: '80px 60px' }}>
-          <p style={{ fontFamily: 'var(--font-kr)', fontSize: 'var(--type-body-l-size)', color: 'var(--color-text-secondary)' }}>
-            주문 정보를 찾을 수 없습니다.
-          </p>
-          <Link href="/" className="ocp-btn-primary" style={{ maxWidth: 280, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            홈으로 돌아가기
-          </Link>
+        <div className="ocp-body" style={{ padding: '0 24px 120px', alignItems: 'stretch' }}>
+          <div className="ocp-inner" style={{ flex: 1 }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+              <p style={{ fontFamily: 'var(--font-kr)', fontSize: 'var(--type-body-l-size)', color: 'var(--color-text-secondary)', margin: 0, textAlign: 'center' }}>
+                주문 정보를 찾을 수 없습니다.
+              </p>
+            </div>
+            <div className="ocp-actions">
+              <Link href="/" className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                홈으로 돌아가기
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -537,8 +543,8 @@ export default function OrderCompletePage() {
           <div className="ocp-summary">
             {order.items.map((item, idx) => (
               <div key={idx} className="ocp-item">
-                <div className="ocp-item-img" style={{ background: item.image.bg }}>
-                  {item.image.src && (
+                <div className="ocp-item-img" style={{ background: item.image?.bg ?? 'transparent' }}>
+                  {item.image?.src && (
                     <Image src={item.image.src} alt={item.name} width={100} height={100} style={{ objectFit: 'contain' }} />
                   )}
                 </div>

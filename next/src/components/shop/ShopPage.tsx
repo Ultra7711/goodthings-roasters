@@ -8,14 +8,16 @@ import {
   FILTER_TABS,
   filterProducts,
   SP_PER_PAGE,
+  SP_PER_PAGE_MOBILE,
   type FilterKey,
 } from '@/lib/products';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const COLS = 3;
 const CARD_BASE_DELAY_INIT = 420; // 초기 로드: 탭(0.3s) 등장 후 카드 시작 (ms)
 
-export default function ShopPage() {
-  const [filter, setFilter] = useState<FilterKey>('all');
+export default function ShopPage({ initialFilter = 'all' }: { initialFilter?: FilterKey }) {
+  const [filter, setFilter] = useState<FilterKey>(initialFilter);
   const [page, setPage] = useState(1);
   // body element — callback ref 로 받아 scrollRoot 전달 시 리렌더 트리거 보장
   const [bodyEl, setBodyEl] = useState<HTMLDivElement | null>(null);
@@ -68,11 +70,13 @@ export default function ShopPage() {
     return () => window.removeEventListener('gtr:shop-reset', onReset);
   }, [bodyEl]);
 
+  const isMobile = useMediaQuery('(max-width: 479px)');
+  const perPage = isMobile ? SP_PER_PAGE_MOBILE : SP_PER_PAGE;
   const filtered = filterProducts(PRODUCTS, filter);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / SP_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const currentPage = Math.min(page, totalPages);
-  const start = (currentPage - 1) * SP_PER_PAGE;
-  const items = filtered.slice(start, start + SP_PER_PAGE);
+  const start = (currentPage - 1) * perPage;
+  const items = filtered.slice(start, start + perPage);
 
   const activeTab = FILTER_TABS.find((t) => t.key === filter) ?? FILTER_TABS[0];
 
@@ -87,6 +91,7 @@ export default function ShopPage() {
   }
 
   return (
+    <div className="sp-page-bg">
     <div id="sp-body" ref={setBodyEl}>
       <div id="sp-head">
         <div id="sp-title-area">
@@ -155,6 +160,7 @@ export default function ShopPage() {
           </button>
         </div>
       )}
+    </div>
     </div>
   );
 }

@@ -39,10 +39,10 @@ export default function ProductDetailPage({ product }: Props) {
      수량에는 반응하지 않고 선택된 용량의 단가만 표시한다. */
   const [volIdx, setVolIdx] = useState(0);
   const hasVolumes = product.volumes.length > 0;
-  /* 상품 전체 매진 판정 — status === '매진' 이거나 모든 볼륨이 soldOut.
-     매진 상품에서는 가격 노출을 차단해 "구매 가능" 처럼 보이지 않게 한다. */
+  /* 상품 전체 품절 판정 — status === '품절' 이거나 모든 볼륨이 soldOut.
+     품절 상품에서는 가격 노출을 차단해 "구매 가능" 처럼 보이지 않게 한다. */
   const allSoldOut = hasVolumes && product.volumes.every((v) => v.soldOut);
-  const isSoldOut = product.status === '매진' || allSoldOut;
+  const isSoldOut = product.status === '품절' || allSoldOut;
 
   /* 진입 애니메이션 — ShopPage sp-anim 과 동일한 reflow 패턴.
      className remove → 강제 reflow(offsetHeight read) → add 순으로
@@ -55,8 +55,8 @@ export default function ProductDetailPage({ product }: Props) {
     el.classList.add('pd-anim');
   }, [product.slug]);
 
-  /* 상품 변경 시 용량 선택 초기화 — 첫 번째 가용(매진 아닌) 볼륨을 선택.
-     전체 매진이면 0 으로 고정 (상품 전체 disabled 상태).
+  /* 상품 변경 시 용량 선택 초기화 — 첫 번째 가용(품절 아닌) 볼륨을 선택.
+     전체 품절이면 0 으로 고정 (상품 전체 disabled 상태).
      product prop 변경 시 내부 파생 state 동기화 의도의 setState-in-effect. */
   useEffect(() => {
     const firstAvail = product.volumes.findIndex((v) => !v.soldOut);
@@ -66,16 +66,23 @@ export default function ProductDetailPage({ product }: Props) {
 
   const { kr, en } = splitName(product.name);
   const unitPrice = hasVolumes ? product.volumes[volIdx].price : 0;
-  /* 매진 상품은 가격 숨김 — 뱃지와 CTA 로만 상태 전달. */
+  /* 품절 상품은 가격 숨김 — 뱃지와 CTA 로만 상태 전달. */
   const showPrice = hasVolumes && !isSoldOut;
 
   return (
     <div id="pd-body" ref={pageRef}>
       <div id="pd-inner">
         <div id="pd-content">
-          {/* ── 좌: 이미지 갤러리 + 배송/교환반품 아코디언 ── */}
-          <div id="pd-img-wrap">
-            <ProductGallery images={product.images} />
+          {/* ── 좌: 이미지 갤러리 (아코디언은 하단으로 분리) ──
+              #pd-img-col 래퍼: sticky 의 컨테이닝 블록을 row 1 범위로 제한.
+              래퍼가 없으면 sticky 가 grid 컨테이너(#pd-content) 전체 높이까지 유지되어
+              row 2 에 배치된 아코디언과 시각적으로 겹침. */}
+          <div id="pd-img-col">
+            <div id="pd-img-wrap">
+              <ProductGallery images={product.images} />
+            </div>
+            {/* 데스크탑: 아코디언을 이미지 바로 아래 배치 (sticky 컨테이닝 블록 = 좌측 컬럼).
+                모바일(≤1023px): #pd-img-col 이 display:contents 로 해제되어 order 로 재배치. */}
             <ProductAccordions category={product.category} slug={product.slug} />
           </div>
 

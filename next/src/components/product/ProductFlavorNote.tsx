@@ -44,11 +44,28 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const W = canvas.width;
-    const H = canvas.height;
-    const cx = W / 2;
-    const cy = H / 2 - 4;
-    const R = W * 0.34;
+    /* DPR 대응: backing store 는 CSS 크기 × devicePixelRatio,
+       drawing context 는 CSS 픽셀 단위로 조작하도록 scale(dpr) 적용.
+       → 내부 fillText/stroke 가 BP 별 canvas 스케일과 무관하게
+       CSS px 값 그대로 렌더된다 (Roasting 게이지 DOM 텍스트와 동일 원리). */
+    let W = 0;
+    let H = 0;
+    let cx = 0;
+    let cy = 0;
+    let R = 0;
+    const setupCanvas = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = rect.width;
+      H = rect.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cx = W / 2;
+      cy = H / 2 - 4;
+      R = W * 0.34;
+    };
+    setupCanvas();
     const angleOff = -Math.PI / 2;
     const vals = KEYS.map((k) => note[k] || 0);
 
@@ -110,10 +127,11 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
         ctx.stroke();
       }
       ctx.setLineDash([]);
-      /* 라벨 */
+      /* 라벨 — 모바일(<480) 에서 차트와의 간격을 좁혀 밀도 높임 */
+      const labelOffset = W < 480 ? 18 : 32;
       for (let i = 0; i < N; i++) {
         const a = angleOff + (2 * Math.PI * i) / N;
-        const lr = R + 32;
+        const lr = R + labelOffset;
         const lx = cx + lr * Math.cos(a);
         const ly = cy + lr * Math.sin(a);
         ctx.font = '500 13px "Pretendard Variable","Pretendard",sans-serif';
@@ -133,10 +151,13 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
         else ctx.lineTo(p.x, p.y);
       }
       ctx.closePath();
+      /* Step 3-A-2: 과포화 그라디언트 → subtle gold tint.
+         중심 0.06 → 가장자리 0.14 로 낮춰 stroke 라인이 데이터 실루엣을
+         주도하고 fill 은 warm wash 만 얹도록 변경. */
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
-      grad.addColorStop(0, hexToRgba(color, 0.35));
-      grad.addColorStop(0.5, hexToRgba(color, 0.6));
-      grad.addColorStop(1, hexToRgba(color, 0.8));
+      grad.addColorStop(0, hexToRgba(color, 0.06));
+      grad.addColorStop(0.5, hexToRgba(color, 0.1));
+      grad.addColorStop(1, hexToRgba(color, 0.14));
       ctx.fillStyle = grad;
       ctx.fill();
       ctx.strokeStyle = hexToRgba(color, 1);
@@ -251,6 +272,16 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
       rafId = requestAnimationFrame(animFrame);
     };
 
+    /* ResizeObserver — 뷰포트/컨테이너 변화 시 backing store 재산정 + 재렌더 */
+    const ro = new ResizeObserver(() => {
+      setupCanvas();
+      if (animDone) {
+        drawStatic(hoverT);
+      }
+      /* 애니메이션 진행 중이면 다음 frame 에서 자동으로 갱신된 W/H 사용 */
+    });
+    ro.observe(canvas);
+
     /* IntersectionObserver — 재진입 시 재생 */
     const io = new IntersectionObserver(
       (entries) => {
@@ -274,6 +305,7 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
 
     return () => {
       io.disconnect();
+      ro.disconnect();
       if (rafId) cancelAnimationFrame(rafId);
       if (hoverRaf) cancelAnimationFrame(hoverRaf);
       canvas.removeEventListener('mouseenter', onEnter);

@@ -12,7 +12,7 @@ export type ProductImage = {
 export type ProductVolume = {
   label: string;
   price: number;
-  /** 품목(용량)별 매진 플래그 — 상품 전체 매진이 아닌 특정 옵션만 품절일 때 사용 */
+  /** 품목(용량)별 품절 플래그 — 상품 전체 품절이 아닌 특정 옵션만 품절일 때 사용 */
   soldOut?: boolean;
 };
 
@@ -39,7 +39,7 @@ export type ProductStatus =
   | '인기 NO.2'
   | '인기 NO.3'
   | '수량 한정'
-  | '매진'
+  | '품절'
   | null;
 
 /** 로스팅 단계 */
@@ -98,7 +98,7 @@ export const PRODUCTS: Product[] = [
       { method: '에어로프레스', dose: '15g', temp: '85~90°C', time: '1분~1분 30초', water: '120g' },
       { method: '에스프레소', dose: '18~20g', temp: '90~93°C', time: '25~30초', water: '34~40g' },
       { method: '모카포트', dose: '12g', temp: '100°C 이상', time: '4분 내외', water: '110g' },
-      { method: '브루잉', dose: '18~20g', temp: '88~92°C', time: '2분 이내(뜸 30초)', water: '270~360g' },
+      { method: '브루잉', dose: '18~20g', temp: '88~92°C', time: '2분 이내 (뜸\u00A030초)', water: '270~360g' },
     ],
   },
   {
@@ -125,7 +125,7 @@ export const PRODUCTS: Product[] = [
       { method: '에어로프레스', dose: '15g', temp: '85~90°C', time: '1분~1분 30초', water: '120g' },
       { method: '에스프레소', dose: '18~20g', temp: '90~93°C', time: '25~30초', water: '34~40g' },
       { method: '모카포트', dose: '12g', temp: '100°C 이상', time: '4분 내외', water: '110g' },
-      { method: '브루잉', dose: '18~20g', temp: '88~92°C', time: '2분 이내(뜸 30초)', water: '270~360g' },
+      { method: '브루잉', dose: '18~20g', temp: '88~92°C', time: '2분 이내 (뜸\u00A030초)', water: '270~360g' },
     ],
   },
   {
@@ -214,7 +214,7 @@ export const PRODUCTS: Product[] = [
       { label: '10개', price: 20000 },
     ],
     color: 'linear-gradient(135deg,#C4C0BA,#8A8680)',
-    status: '매진',
+    status: '품절',
     slug: 'kenya-kaganda-aa',
     subscription: false,
     images: [
@@ -258,7 +258,7 @@ export function getStatusBadgeClass(status: ProductStatus): string {
     case '인기 NO.2': return 'sp-card-badge badge-pop-2 badge-kr';
     case '인기 NO.3': return 'sp-card-badge badge-pop-3 badge-kr';
     case '수량 한정':  return 'sp-card-badge badge-ltd badge-kr';
-    case '매진':      return 'sp-card-badge badge-sold badge-kr';
+    case '품절':      return 'sp-card-badge badge-sold badge-kr';
     default:          return 'sp-card-badge';
   }
 }
@@ -283,6 +283,7 @@ export const FILTER_TABS: { key: FilterKey; label: string; titleKr: string; subt
 ];
 
 export const SP_PER_PAGE = 20;
+export const SP_PER_PAGE_MOBILE = 10;
 
 export function filterProducts(products: Product[], filter: FilterKey): Product[] {
   switch (filter) {
