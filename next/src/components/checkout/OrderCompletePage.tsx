@@ -343,13 +343,19 @@ export default function OrderCompletePage() {
             </Link>
           </div>
         </div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', flexDirection: 'column', gap: 24, padding: '100px 60px 120px' }}>
-          <p style={{ fontFamily: 'var(--font-kr)', fontSize: 'var(--type-body-l-size)', color: 'var(--color-text-secondary)' }}>
-            주문 정보를 찾을 수 없습니다.
-          </p>
-          <Link href="/" className="ocp-btn-primary" style={{ maxWidth: 280, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            홈으로 돌아가기
-          </Link>
+        <div className="ocp-body" style={{ padding: '0 24px 120px', alignItems: 'stretch' }}>
+          <div className="ocp-inner" style={{ flex: 1 }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+              <p style={{ fontFamily: 'var(--font-kr)', fontSize: 'var(--type-body-l-size)', color: 'var(--color-text-secondary)', margin: 0, textAlign: 'center' }}>
+                주문 정보를 찾을 수 없습니다.
+              </p>
+            </div>
+            <div className="ocp-actions">
+              <Link href="/" className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                홈으로 돌아가기
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     );

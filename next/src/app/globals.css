@@ -5186,7 +5186,7 @@ footer.blk {
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  padding: 48px 60px 120px;
+  padding: 100px 60px 120px;
   gap: 40px;
   align-items: start;
 }
@@ -5522,25 +5522,23 @@ footer.blk {
   text-decoration-color: var(--color-accent-gold);
 }
 
-/* ══ BizInquiry — Tablet (≤1023) + Mobile (≤767) 정규화 ══
-   Tablet: 2단(5fr 7fr) → 1단 스택 · bi-left sticky 해제
+/* ══ BizInquiry — Laptop/Tablet (≤1024) + Mobile (≤767) 정규화 ══
+   ≤1024: 2단(5fr 7fr) → 1단 스택 · bi-left sticky 해제
    Mobile: 패딩·gap 추가 축소 · H1→H2 다운 · bi-form-section 1단 스택 */
-@media (max-width: 1023px) {
+@media (max-width: 1024px) {
   #bi-body {
     grid-template-columns: 1fr;
     gap: 32px;
-    padding-top: 40px;
+    padding-top: 100px;
     padding-bottom: 80px;
   }
   #bi-left { position: static; top: auto; }
 }
 @media (max-width: 767px) {
   #bi-body {
-    padding-top: 32px;
     padding-bottom: 64px;
-    gap: 24px;
+    gap: 64px;
   }
-  #bi-page-title { font-size: var(--type-h2-size); }
   .bi-form-section {
     grid-template-columns: 1fr;
     gap: 0;
