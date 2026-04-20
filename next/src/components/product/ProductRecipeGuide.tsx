@@ -78,31 +78,33 @@ export default function ProductRecipeGuide({ product }: Props) {
         {product.recipe.map((r) => {
           const slug = COFFEE_METHOD_SLUG[r.method];
           return (
-            <div key={r.method} className="pd-recipe-card">
-              {slug && (
-                <div className="pd-recipe-illust">
-                  {/* SVG 일러스트 — 정적 width/height + lazy 로딩, next/image 의 추가 최적화 불필요 */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/images/icons/recipe_${slug}_large.svg`}
-                    alt={`${r.method} 추출 기구 일러스트`}
-                    width={ILLUST_SIZE}
-                    height={ILLUST_SIZE}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
-              )}
+            <div key={r.method} className="pd-recipe-card pd-recipe-card--split">
               <div className="pd-recipe-method">{r.method}</div>
-              <div className="pd-recipe-table">
-                <span className="pd-recipe-dt"><span>원두량</span></span>
-                <span className="pd-recipe-dd">{r.dose}</span>
-                <span className="pd-recipe-dt"><span>추출시간</span></span>
-                <span className="pd-recipe-dd">{r.time}</span>
-                <span className="pd-recipe-dt"><span>온도</span></span>
-                <span className="pd-recipe-dd">{r.temp}</span>
-                <span className="pd-recipe-dt"><span>물량</span></span>
-                <span className="pd-recipe-dd">{r.water}</span>
+              <div className="pd-recipe-body">
+                {slug && (
+                  <div className="pd-recipe-illust">
+                    {/* SVG 일러스트 — 정적 width/height + lazy 로딩, next/image 의 추가 최적화 불필요 */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/images/icons/recipe_${slug}_large.svg`}
+                      alt={`${r.method} 추출 기구 일러스트`}
+                      width={ILLUST_SIZE}
+                      height={ILLUST_SIZE}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                )}
+                <div className="pd-recipe-table">
+                  <span className="pd-recipe-dt"><span>원두량</span></span>
+                  <span className="pd-recipe-dd">{r.dose}</span>
+                  <span className="pd-recipe-dt"><span>추출시간</span></span>
+                  <span className="pd-recipe-dd">{r.time}</span>
+                  <span className="pd-recipe-dt"><span>온도</span></span>
+                  <span className="pd-recipe-dd">{r.temp}</span>
+                  <span className="pd-recipe-dt"><span>물량</span></span>
+                  <span className="pd-recipe-dd">{r.water}</span>
+                </div>
               </div>
             </div>
           );

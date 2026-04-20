@@ -345,7 +345,7 @@
 
   /* ── 검색 패널 ── */
   --search-panel-height: 60px;
-  --search-panel-padding-x: 40px;
+  --search-panel-padding-x: 60px;
   --search-panel-icon-size: 18px;
   --search-panel-icon-opacity: .35;
   --search-panel-input-font-size: var(--type-body-l-size);
@@ -543,13 +543,20 @@ textarea:-webkit-autofill:active {
 .hdr {
   display: flex;
   align-items: center;
-  padding: 0 var(--layout-padding-x);
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 60px;
   height: var(--header-height); /* 60px */
 }
 @media (max-width: 767px) {
+  /* 모바일: 본문 24px + 아이콘 버튼 inner padding 8 = 시각 우측 24 에 맞춤 (비대칭 유지) */
   .hdr { padding: 0 16px 0 24px; }
 }
-.hdr-left { flex: 1; display: flex; align-items: center; }
+.hdr-left { flex: 1; display: flex; align-items: center; margin-left: -4px; }
+/* 모바일도 동일하게 로고는 -4px, 아이콘 버튼은 +4px 바깥으로 이동 */
+@media (max-width: 767px) {
+  .hdr-icons { margin-right: -4px; }
+}
 .hdr-nav { display: flex; gap: 36px; }
 .hdr-icons {
   flex: 1;
@@ -693,10 +700,75 @@ button.hdr-icon-btn { background: none; border: none; }
 .mn-header {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   height: var(--header-height);
   padding: 0 20px;
 }
+.mn-logo {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-primary);
+  margin-left: -4px; /* 로고 SVG 좌측 여백 보정 */
+}
+.mn-logo img {
+  height: 30px;
+  width: auto;
+  display: block;
+}
+.mn-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.mn-cart {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  opacity: .85;
+  transition: opacity var(--duration-hover) ease;
+}
+.mn-cart:hover { opacity: 1; }
+.mn-cart .cart-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--color-text-primary);
+  color: var(--color-background-primary);
+  font-size: 10px;
+  font-weight: 500;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.mn-account-link {
+  font-family: var(--font-en);
+  font-size: var(--type-h3-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-nav);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding: 16px 0;
+  margin-top: 32px;
+  opacity: .75;
+  transition: opacity var(--duration-hover) ease;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.mn-account-link:hover { opacity: 1; }
 .mn-close {
   width: 40px;
   height: 40px;
@@ -734,21 +806,16 @@ button.hdr-icon-btn { background: none; border: none; }
 }
 .mn-link:hover,
 .mn-link.is-active { opacity: 1; }
-.mn-footer {
-  margin-top: auto;
-  padding: 24px 28px 40px;
-  border-top: .5px solid var(--color-border-hairline);
+.mn-link-text { display: inline-block; position: relative; padding-bottom: 4px; }
+.mn-link.is-active .mn-link-text::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--color-accent-gold);
 }
-.mn-sub-link {
-  font-family: var(--font-en);
-  font-size: var(--type-body-m-size);
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-}
-.mn-sub-link:hover { color: var(--color-text-primary); }
 
 /* ══ 검색 드롭 패널 ══ */
 #search-drop {
@@ -817,6 +884,13 @@ button.hdr-icon-btn { background: none; border: none; }
 }
 #search-clear:hover { color: var(--color-icon-default); }
 
+/* 모바일 — 좌측 검색 아이콘 숨김 + 본문·헤더 시각 라인(좌 24 / 우 24)에 정렬
+   헤더의 우측 16px 은 아이콘 버튼 outer padding 이고 시각 edge 는 24px 지점(16 + 내부 8) */
+@media (max-width: 767px) {
+  #search-drop-inner { padding: 0 24px; }
+  #search-icon { display: none; }
+}
+
 /* ══ 검색 딤 ══ */
 #search-dim {
   position: fixed;
@@ -864,6 +938,8 @@ footer.blk {
   display: block;
   filter: invert(1);
 }
+/* 푸터 로고 SVG 내부 좌측 여백 보정 — 본문 라인 시각 정렬 */
+.f-logo { margin-left: -3px; }
 .footer-sns-link {
   opacity: var(--opacity-footer-sns-rest);
   display: flex;
@@ -2916,7 +2992,7 @@ footer.blk {
 #cart-drawer {
   position: fixed;
   inset: 0;
-  z-index: var(--z-drawer);
+  z-index: calc(var(--z-drawer) + 10);
   pointer-events: none;
 }
 #cart-drawer.open { pointer-events: auto; }
@@ -2925,7 +3001,7 @@ footer.blk {
   inset: 0;
   background: var(--overlay-dim-bg);
   opacity: 0;
-  transition: opacity var(--drawer-dim-fade-duration) ease var(--drawer-dim-fade-delay);
+  transition: opacity 180ms ease 0ms;
   pointer-events: none;
 }
 #cart-drawer.open #cart-drawer-bg {
@@ -2941,11 +3017,11 @@ footer.blk {
   max-width: 100vw;
   background: var(--drawer-bg);
   box-shadow: var(--drawer-shadow);
-  z-index: calc(var(--z-drawer) + 1);
+  z-index: calc(var(--z-drawer) + 11);
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
-  transition: transform var(--drawer-transition-duration) var(--drawer-transition-easing);
+  transition: transform var(--drawer-transition-duration) var(--drawer-transition-easing) 120ms;
 }
 #cart-drawer.open #cart-drawer-panel { transform: translateX(0); }
 /* 모바일: <768 풀스크린 (Session 38 Step C) */
@@ -4093,7 +4169,10 @@ footer.blk {
 #pd-radar-canvas {
   max-width: 500px;
   width: 100%;
-  height: auto;
+  aspect-ratio: 1 / 1;
+  display: block;
+  /* backing store 는 JS setupCanvas 에서 CSS 크기 × DPR 로 동적 설정.
+     내부 fillText 폰트가 BP 전환 시 축소되지 않고 CSS px 그대로 렌더된다. */
 }
 #pd-note-tags {
   /* 레이더 캔버스 하단 여백을 보정 — 태그와 이하 섹션을
@@ -4164,9 +4243,71 @@ footer.blk {
   gap: 14px;
   padding: 24px 24px 26px;
   background: var(--color-background-secondary);
-  border: 1px solid var(--color-border-tertiary);
   border-radius: 10px;
 }
+/* ── Coffee Bean 카드: 타이틀(위) + 일러스트 플로팅(좌) + 표(우 풀폭)
+   일러스트를 absolute 로 띄워 박스 공간에서 제외 → 표는 카드 풀폭 사용,
+   이미지는 flex 제약 없이 키울 수 있음. Drip Bag step 카드는 기존 컬럼 유지. */
+.pd-recipe-card--split {
+  position: relative;
+  align-items: stretch;
+  gap: 12px;
+}
+.pd-recipe-card--split .pd-recipe-method {
+  align-self: center;
+}
+.pd-recipe-body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+  /* 일러스트가 차지하는 좌측 시각 영역 확보 (실제로 flex 흐름 밖).
+     모든 카드의 표가 동일한 left 에서 시작되어 세로 정렬이 통일된다. */
+  padding-left: 148px;
+  min-height: 160px;
+}
+.pd-recipe-card--split .pd-recipe-illust {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 160px;
+  height: 160px;
+  pointer-events: none;
+}
+.pd-recipe-card--split .pd-recipe-illust img {
+  width: 160px;
+  height: 160px;
+}
+.pd-recipe-card--split .pd-recipe-table {
+  min-width: 0;
+  /* 기본 .pd-recipe-table 의 margin:0 auto 를 무효화 — 카드별 내용 폭과
+     무관하게 모든 split 카드의 표가 동일한 left(=padding-left) 에서 시작 */
+  margin: 0;
+}
+@media (max-width: 768px) {
+  .pd-recipe-card--split {
+    padding: 20px 16px 22px;
+  }
+  .pd-recipe-body {
+    padding-left: 112px;
+    min-height: 128px;
+  }
+  .pd-recipe-card--split .pd-recipe-illust,
+  .pd-recipe-card--split .pd-recipe-illust img {
+    width: 120px;
+    height: 120px;
+  }
+  .pd-recipe-card--split .pd-recipe-illust {
+    left: -4px;
+  }
+  .pd-recipe-card--split .pd-recipe-table {
+    column-gap: var(--gap-md);
+  }
+}
+
 .pd-recipe-illust {
   width: 196px;
   height: 196px;
@@ -4308,6 +4449,20 @@ footer.blk {
   width: 100%;
   border-bottom: .5px solid var(--color-border-tertiary);
   margin-top: 48px;
+  /* 데스크탑: #pd-content grid 좌측 컬럼 하단(gallery 아래) 배치.
+     모바일(≤1024px) 에서는 grid 가 1fr 단일 컬럼으로 전환되어 자연스럽게 최하단 stack. */
+  grid-column: 1;
+  padding: 0 20px 80px 60px;
+}
+@media (max-width: 1024px) {
+  #pd-accordions {
+    padding: 0 var(--layout-padding-x) 80px;
+  }
+}
+@media (max-width: 768px) {
+  #pd-accordions {
+    padding: 0 20px 64px;
+  }
 }
 .pd-accordion {
   border-top: .5px solid var(--color-border-tertiary);
@@ -4432,10 +4587,12 @@ footer.blk {
     position: static;
     padding: 0 40px 40px;
     grid-column: 1;
+    min-width: 0;
   }
   #pd-info {
     padding: 0 40px 80px;
     grid-column: 1;
+    min-width: 0;
   }
 }
 @media (max-width: 768px) {
@@ -5276,11 +5433,18 @@ footer.blk {
   grid-template-rows: 560px;
 }
 
-/* 모바일: 전 row 2컬럼 + aspect-ratio (Session 41) */
+/* 모바일: row 별 리듬 복원 (Session 46)
+   - a/c: span 셀을 풀폭 와이드(4:3) + 나머지 4셀 2-col 1:1
+   - b: 첫 셀 풀폭 와이드(16:9) + 나머지 2셀 2-col 1:1
+   - d: 2-col 포트레이트(4:5) — 직전 정사각과 비율 차별
+   - e: 풀폭 와이드(16:10) */
 @media (max-width: 767px) {
   .gd-row--a,
   .gd-row--b,
-  .gd-row--c,
+  .gd-row--c {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto;
+  }
   .gd-row--d {
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: auto;
@@ -5289,14 +5453,46 @@ footer.blk {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
   }
-  .gd-cell {
-    aspect-ratio: 3 / 2;
+  /* 기본 정사각 */
+  .gd-row--a .gd-cell,
+  .gd-row--c .gd-cell {
+    aspect-ratio: 1 / 1;
   }
-  .gd-cell--span {
-    grid-row: auto;
+  /* row-b: 첫 셀은 span 처리(아래), 나머지 1:1 */
+  .gd-row--b .gd-cell {
+    aspect-ratio: 1 / 1;
   }
+  .gd-row--b .gd-cell:first-child {
+    grid-column: 1 / -1;
+    aspect-ratio: 16 / 9;
+  }
+  /* row-d: 포트레이트 페어 */
+  .gd-row--d .gd-cell {
+    aspect-ratio: 4 / 5;
+  }
+  /* row-e: 풀폭 히어로 */
   .gd-row--e .gd-cell {
     aspect-ratio: 16 / 10;
+  }
+  /* span 셀은 row-a/c 에서 풀폭 와이드 */
+  .gd-cell--span {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  /* 모바일 플레이스홀더 보정
+     - row-a/c 의 span 이 플레이스홀더면 상단 대형 빈 블록이 되므로 숨김
+     - 마지막 셀이 플레이스홀더면(2-col 짝 끊김) 숨기고 직전 이미지를 풀폭으로 확장 */
+  .gd-cell--span.gd-cell--placeholder {
+    display: none;
+  }
+  .gd-row > .gd-cell:not(.gd-cell--placeholder):has(+ .gd-cell--placeholder:last-child) {
+    grid-column: 1 / -1;
+    aspect-ratio: 16 / 10;
+  }
+  .gd-row > .gd-cell--placeholder:last-child {
+    display: none;
   }
 }
 
@@ -5436,7 +5632,7 @@ footer.blk {
 .chp-hdr-inner {
   max-width: 1440px; margin: 0 auto;
   display: flex; align-items: center; justify-content: space-between;
-  height: 64px; padding: 0 60px;
+  height: 64px; padding: 0 var(--search-panel-padding-x);
 }
 .chp-logo-img { cursor: pointer; }
 

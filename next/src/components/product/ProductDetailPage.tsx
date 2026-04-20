@@ -73,10 +73,9 @@ export default function ProductDetailPage({ product }: Props) {
     <div id="pd-body" ref={pageRef}>
       <div id="pd-inner">
         <div id="pd-content">
-          {/* ── 좌: 이미지 갤러리 + 배송/교환반품 아코디언 ── */}
+          {/* ── 좌: 이미지 갤러리 (아코디언은 하단으로 분리) ── */}
           <div id="pd-img-wrap">
             <ProductGallery images={product.images} />
-            <ProductAccordions category={product.category} slug={product.slug} />
           </div>
 
           {/* ── 우: 상품 정보 (RP-4c~e 에서 구매행/로스팅/노트/아코디언 추가) ── */}
@@ -112,6 +111,10 @@ export default function ProductDetailPage({ product }: Props) {
             />
             <ProductRecipeGuide product={product} />
           </div>
+
+          {/* 아코디언: 데스크탑 좌측 하단(gallery 아래) · 모바일 최하단
+              CSS grid-column/row 로 배치 — JSX 순서는 모바일 stack 순서 기준 */}
+          <ProductAccordions category={product.category} slug={product.slug} />
         </div>
 
         {/* Story section 은 RP-4e 에서 구현 */}

@@ -2,9 +2,11 @@
    MobileNavDrawer — Session 41
    모바일(<768) 햄버거 네비 드로어.
    - 우측 슬라이드인 (기존 드로어 패턴 재사용)
-   - 링크: The Story / Menu / Shop / Good Days + 로그인 / 장바구니
-   - same-path 클릭 시 기존 reset 이벤트 재사용 (SiteHeader 와 동일 시맨틱)
-   - 네비게이션 후 자동 닫힘
+   - 상단: 로고 + 장바구니 + X
+   - 네비: The Story / Menu / Shop / Good Days
+   - 하단: 로그인 / 마이페이지 (텍스트 링크)
+   - 장바구니 클릭: 드로어 닫고 카트 드로어 오픈
+   - same-path 클릭 시 기존 reset 이벤트 재사용
    ══════════════════════════════════════════ */
 
 'use client';
@@ -14,6 +16,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useDrawer } from '@/hooks/useDrawer';
+import { useCartDrawer } from '@/contexts/CartDrawerContext';
+import { useCartQuery } from '@/hooks/useCart';
 
 type Props = {
   open: boolean;
@@ -36,6 +40,8 @@ const NAV_ITEMS: NavItem[] = [
 
 export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
   const pathname = usePathname();
+  const cartDrawer = useCartDrawer();
+  const { totalQty } = useCartQuery();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -45,11 +51,16 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
   useDrawer({ open, onClose });
 
   function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>, item: NavItem) {
-    if (pathname === item.href || pathname.startsWith(`${item.href}/`)) {
+    if (pathname === item.href) {
       e.preventDefault();
       window.dispatchEvent(new Event(item.resetEvent));
     }
     onClose();
+  }
+
+  function handleCartClick() {
+    onClose();
+    cartDrawer.open();
   }
 
   if (!mounted) return null;
@@ -71,17 +82,37 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
         aria-label="메인 메뉴"
       >
         <div className="mn-header">
-          <button
-            type="button"
-            className="mn-close"
-            aria-label="메뉴 닫기"
-            onClick={onClose}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="6" y1="6" x2="18" y2="18" />
-              <line x1="18" y1="6" x2="6" y2="18" />
-            </svg>
-          </button>
+          <Link href="/" className="mn-logo" onClick={onClose} aria-label="Good Things Roasters 홈">
+            <img src="/images/icons/logo.svg" alt="good things" />
+          </Link>
+          <div className="mn-header-actions">
+            <button
+              type="button"
+              className="mn-cart"
+              aria-label="장바구니"
+              onClick={handleCartClick}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="8" cy="21" r="1" />
+                <circle cx="19" cy="21" r="1" />
+                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+              </svg>
+              {totalQty > 0 && (
+                <span className="cart-badge visible">{totalQty}</span>
+              )}
+            </button>
+            <button
+              type="button"
+              className="mn-close"
+              aria-label="메뉴 닫기"
+              onClick={onClose}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19,5l-14,14" />
+                <path d="M5,5l14,14" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <nav className="mn-nav" aria-label="모바일 내비게이션">
@@ -96,28 +127,20 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
                 aria-current={isActive ? 'page' : undefined}
                 onClick={(e) => handleNavClick(e, item)}
               >
-                {item.label}
+                <span className="mn-link-text">{item.label}</span>
               </Link>
             );
           })}
+
+          <Link
+            href={isLoggedIn ? '/mypage' : '/login'}
+            className="mn-account-link"
+            onClick={onClose}
+          >
+            {isLoggedIn ? '마이페이지' : '로그인'}
+          </Link>
         </nav>
 
-        <div className="mn-footer">
-          {isLoggedIn ? (
-            <Link href="/mypage" className="mn-sub-link" onClick={onClose}>
-              마이페이지
-            </Link>
-          ) : (
-            <>
-              <Link href="/login" className="mn-sub-link" onClick={onClose}>
-                로그인
-              </Link>
-              <Link href="/register" className="mn-sub-link" onClick={onClose}>
-                회원가입
-              </Link>
-            </>
-          )}
-        </div>
       </aside>
     </div>,
     document.body
