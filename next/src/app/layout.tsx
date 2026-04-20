@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import localFont from 'next/font/local';
 import { Inter } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import AuthSyncProvider from '@/components/auth/AuthSyncProvider';
 import Providers from '@/components/providers/Providers';
 import './globals.css';
@@ -45,6 +47,8 @@ export default async function RootLayout({
         <Providers>
           <AuthSyncProvider>{children}</AuthSyncProvider>
         </Providers>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

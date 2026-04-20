@@ -68,13 +68,13 @@ function buildContentSecurityPolicy(nonce: string, isDev: boolean): string {
   //   inline 은 XSS 영향 제한적).
   const directives = [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://pay.toss.im https://dapi.kakao.com https://t1.daumcdn.net`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://pay.toss.im https://dapi.kakao.com https://t1.daumcdn.net https://va.vercel-scripts.com`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://t1.daumcdn.net`,
     `img-src 'self' blob: data: https://*.supabase.co https://*.tosspayments.com https://*.daumcdn.net https://postfiles.pstatic.net`,
     `font-src 'self' https://fonts.gstatic.com data:`,
     // Supabase: HTTPS REST + WSS Realtime / TossPayments: 결제 API / Resend: 메일 트리거
     // OAuth providers: kakao/naver/google 토큰 교환
-    `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.tosspayments.com https://pay.toss.im https://api.resend.com https://dapi.kakao.com https://openapi.naver.com https://accounts.google.com`,
+    `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.tosspayments.com https://pay.toss.im https://api.resend.com https://dapi.kakao.com https://openapi.naver.com https://accounts.google.com https://vitals.vercel-insights.com https://va.vercel-scripts.com`,
     `frame-src 'self' https://*.tosspayments.com https://pay.toss.im https://t1.daumcdn.net https://postcode.map.daum.net https://postcode.map.kakao.com`,
     `worker-src 'self' blob:`,
     `object-src 'none'`,
