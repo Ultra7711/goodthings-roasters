@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-04-20 · Sessions 18~49 디자인/팔레트/반응형 + PR#2·#3·#4 머지 + Session 50 반응형 1차 리뷰 완료.
+> **최종 업데이트:** 2026-04-21 · Session 52 — Vercel 프로덕션 배포 + CSP nonce 해결 + OAuth/Maps 콜백 등록 + 스모크 테스트 4/4 통과.
 
 ---
 
@@ -25,7 +25,7 @@
 | Phase 1 — Design | 5 | 0 | 0 | 100% |
 | Phase 2 — Frontend | 3 | 1 | 0 | ~95% |
 | Phase 3 — Backend | 2 | 1 | 0 | ~55% |
-| Phase 4 — Infrastructure | 0 | 1 | 0 | ~20% |
+| Phase 4 — Infrastructure | 2 | 1 | 0 | ~60% |
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
 | User AI | 0 | 0 | 1 | 0% |
 
@@ -128,9 +128,10 @@
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| Vercel 프로젝트 설정 | ⬜ | Next.js 프로젝트 생성 후 연결 |
+| Vercel 프로젝트 설정 | ✅ | Session 52 — `goodthings-roasters.vercel.app` 배포 + 환경변수 18종 Import + CSP nonce 동적 렌더링 해결 |
+| 외부 서비스 콜백 등록 | ✅ | Session 52 — Supabase Auth / Kakao Maps / Kakao OAuth / Naver OAuth (Toss 라이브 전환 시 추가) |
 | Supabase 프로젝트 설정 | 🔄 | dev(`ceqewbbjuhtnarzgkzmx`) 완료 · staging/prod 분리 남음 |
-| CI/CD 파이프라인 | ⬜ | Vercel 자동 배포 |
+| CI/CD 파이프라인 | ✅ | GitHub → Vercel 자동 배포 (master push 시 prod) |
 | 모니터링 / 에러 트래킹 | ⬜ | Sentry · Vercel Analytics |
 
 ---
