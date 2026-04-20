@@ -1,0 +1,18 @@
+# gitleaks 커스텀 설정 — 기본 룰 확장 + 테스트 픽스처 false positive 제외
+# 참조: https://github.com/gitleaks/gitleaks#configuration
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "테스트 파일 내 더미 시크릿 (실제 자격 증명 아님)"
+paths = [
+  '''.*\.test\.ts$''',
+  '''.*\.test\.tsx$''',
+  '''.*\.spec\.ts$''',
+  '''.*\.spec\.tsx$''',
+  '''.*/__tests__/.*''',
+  '''.*/__fixtures__/.*''',
+  '''.*\.example$''',
+  '''\.env\.example$''',
+]
