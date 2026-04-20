@@ -904,8 +904,8 @@ footer.blk {
   .f-cols {
     grid-template-columns: 1fr;
     gap: 24px;
-    margin-top: 44px;
-    padding-top: 44px;
+    margin-top: 40px;
+    padding-top: 40px;
   }
 }
 .f-col-title {
@@ -946,8 +946,8 @@ footer.blk {
 }
 @media (max-width: 767px) {
   .f-bottom-wrap {
-    margin-top: 38px;
-    padding-top: 44px;
+    margin-top: 32px;
+    padding-top: 40px;
   }
 }
 .f-bottom-row {
@@ -1182,7 +1182,7 @@ footer.blk {
 .hero-scroll-mouse {
   width: 40px;
   height: 40px;
-  color: var(--icon-on-dark-muted);
+  color: rgba(250,250,248,.5);
   flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.9s ease-out;
@@ -1308,7 +1308,7 @@ footer.blk {
     flex-direction: column;
     aspect-ratio: auto;
     gap: 32px;
-    padding: 64px 24px 80px;
+    padding: 80px 24px 80px;
   }
   .season-banner-img {
     flex: 0 0 auto;
@@ -1545,7 +1545,7 @@ footer.blk {
 /* ══ .blk-scroll (Featured Beans) ══ */
 .beans-blk { padding: 117px 0 120px; }
 @media (max-width: 767px) {
-  .beans-blk { padding: 64px 0 80px; }
+  .beans-blk { padding: 64px 0 64px; }
 }
 /* overflow:visible — 카드가 섹션 경계에서 잘리지 않도록 (프로토타입 라인 536) */
 .blk-scroll { overflow: visible; }
@@ -1665,7 +1665,7 @@ footer.blk {
 /* ══ .two-col (서비스 카드) ══ */
 .two-col-blk { padding: 120px 0; }
 @media (max-width: 767px) {
-  .two-col-blk { padding: 64px 0 96px; }
+  .two-col-blk { padding: 80px 0 96px; }
 }
 .two-col {
   display: grid;
@@ -1986,22 +1986,20 @@ footer.blk {
   transition-delay: .3s;
 }
 
-/* 필터 탭 */
-#sp-filter-tabs {
-  display: flex;
+/* 필터 탭 — 베이스라인은 래퍼(#sp-filter-wrap)에 두어 스크롤 컨테이너 scrollWidth 영향을 배제 */
+#sp-filter-wrap {
   position: relative;
   margin-bottom: 48px;
   opacity: 0;
   transform: translateY(16px);
   transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) ease-out;
 }
-#sp-body.sp-anim #sp-filter-tabs {
-  /* 서브타이틀(0.3s) 보다 0.1s 뒤에 등장 — 살짝 시간차 리듬 */
+#sp-body.sp-anim #sp-filter-wrap {
   opacity: 1;
   transform: translateY(0);
   transition-delay: .4s;
 }
-#sp-filter-tabs::after {
+#sp-filter-wrap::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -2009,6 +2007,11 @@ footer.blk {
   right: 0;
   height: 2px;
   background: var(--color-border-secondary);
+  z-index: 0;
+}
+#sp-filter-tabs {
+  display: flex;
+  position: relative;
 }
 #sp-filter-indicator {
   position: absolute;
@@ -2038,19 +2041,32 @@ footer.blk {
 }
 .sp-filter-tab:hover { color: var(--tab-color-active); }
 .sp-filter-tab.active { font-weight: 500; color: var(--tab-color-active); }
+.sp-filter-tab:focus { outline: none; }
+.sp-filter-tab:focus-visible { outline: 2px solid var(--color-accent-gold); outline-offset: 2px; }
 .sp-tab-label { pointer-events: none; }
 
-/* 모바일 반응형 — 탭 수평 스크롤 (Session 41) */
+/* 모바일 반응형 — 탭 수평 스크롤 + 좌우 페이드 마스크 */
 @media (max-width: 767px) {
   #sp-filter-tabs {
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    margin-left: calc(-1 * var(--layout-padding-x));
-    margin-right: calc(-1 * var(--layout-padding-x));
-    padding-left: var(--layout-padding-x);
-    padding-right: var(--layout-padding-x);
+    --sp-fade: 24px;
+    mask-image: linear-gradient(to right, #000 0, #000 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 100%);
+  }
+  #sp-filter-tabs[data-scroll="start"] {
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - var(--sp-fade)), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - var(--sp-fade)), transparent 100%);
+  }
+  #sp-filter-tabs[data-scroll="middle"] {
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--sp-fade), #000 calc(100% - var(--sp-fade)), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--sp-fade), #000 calc(100% - var(--sp-fade)), transparent 100%);
+  }
+  #sp-filter-tabs[data-scroll="end"] {
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--sp-fade), #000 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--sp-fade), #000 100%);
   }
   #sp-filter-tabs::-webkit-scrollbar { display: none; }
   .sp-filter-tab {
@@ -2068,6 +2084,9 @@ footer.blk {
 }
 @media (max-width: 1023px) {
   #sp-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 479px) {
+  #sp-grid { grid-template-columns: 1fr; gap: 20px; }
 }
 .sp-card {
   cursor: pointer;
@@ -2246,6 +2265,57 @@ footer.blk {
 .sp-qa-close svg { opacity: 0; transition: opacity .15s; }
 .sp-card--qa-open .sp-qa-close svg { opacity: 1; transition: opacity var(--duration-transition) ease; }
 
+/* 빠른 추가 바 — 데스크탑 기본: 아이콘 숨김 */
+.sp-qa-bar-icon { display: none; }
+
+/* 터치 기기 — hover 불가이므로 "빠른 추가" 바를 상시 노출 */
+@media (hover: none) {
+  .sp-qa-bar { opacity: 1; pointer-events: auto; }
+  .sp-qa-bar--disabled { opacity: 1; }
+}
+
+/* 모바일(<480) — 우하단 정사각형 아이콘 버튼 · 오픈 시 풀바 확장 */
+@media (max-width: 479px) {
+  .sp-qa-bar {
+    left: auto;
+    right: 0;
+    bottom: 0;
+    width: 48px;
+    height: 48px;
+    margin: 0;
+    border-radius: 0;
+    opacity: 1;
+    pointer-events: auto;
+    transition: width var(--duration-hover) ease,
+                opacity var(--duration-transition);
+  }
+  .sp-qa-bar--disabled { opacity: 1; }
+  .sp-qa-bar-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .sp-qa-bar-text { display: none; }
+  .sp-qa-close { display: none; }
+
+  /* 오픈 상태 — 우측 앵커 유지하며 좌측으로 풀바 확장 */
+  .sp-card--qa-open .sp-qa-bar {
+    left: auto;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 48px;
+    border-radius: 0;
+  }
+  .sp-card--qa-open .sp-qa-bar-icon { display: none; }
+  .sp-card--qa-open .sp-qa-bar-text { display: inline; }
+  .sp-card--qa-open .sp-qa-close { display: flex; }
+
+  /* 품절 바 — 모바일에서는 뱃지로 상태 표시 충분하므로 숨김 */
+  .sp-qa-bar--disabled { display: none; }
+}
+
 /* 배지 */
 .sp-card-badge {
   position: absolute;
@@ -2402,21 +2472,21 @@ footer.blk {
   transition-delay: .3s;
 }
 
-/* 필터 탭 — 프로토타입 동일, 전용 클래스(.cm-filter-tab) */
-#cm-filter-tabs {
-  display: flex;
+/* 필터 탭 — 프로토타입 동일, 전용 클래스(.cm-filter-tab)
+   베이스라인은 래퍼(#cm-filter-wrap)에 두어 스크롤 컨테이너 scrollWidth 영향을 배제 */
+#cm-filter-wrap {
   position: relative;
   margin-bottom: 48px;
   opacity: 0;
   transform: translateY(16px);
   transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) ease-out;
 }
-#cm-body.cm-anim #cm-filter-tabs {
+#cm-body.cm-anim #cm-filter-wrap {
   opacity: 1;
   transform: translateY(0);
   transition-delay: .45s;
 }
-#cm-filter-tabs::after {
+#cm-filter-wrap::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -2424,6 +2494,11 @@ footer.blk {
   right: 0;
   height: 2px;
   background: var(--color-border-secondary);
+  z-index: 0;
+}
+#cm-filter-tabs {
+  display: flex;
+  position: relative;
 }
 #cm-filter-indicator {
   position: absolute;
@@ -2453,19 +2528,34 @@ footer.blk {
 }
 .cm-filter-tab:hover { color: var(--tab-color-active); }
 .cm-filter-tab.active { font-weight: 500; color: var(--tab-color-active); }
+.cm-filter-tab:focus { outline: none; }
+.cm-filter-tab:focus-visible { outline: 2px solid var(--color-accent-gold); outline-offset: 2px; }
 .cm-tab-label { pointer-events: none; }
 
 /* 모바일 반응형 — 탭 수평 스크롤 · 그리드 BP 분기 */
 @media (max-width: 767px) {
+  /* 베이스라인은 콘텐츠 컬럼(24px 인셋)과 정렬 — wrap 은 cm-body 패딩 안쪽 */
   #cm-filter-tabs {
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    margin-left: calc(-1 * var(--layout-padding-x));
-    margin-right: calc(-1 * var(--layout-padding-x));
-    padding-left: var(--layout-padding-x);
-    padding-right: var(--layout-padding-x);
+    /* 좌우 페이드 마스크 — 스크롤 위치에 따라 동적 전환 */
+    --cm-fade: 24px;
+    mask-image: linear-gradient(to right, #000 0, #000 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 100%);
+  }
+  #cm-filter-tabs[data-scroll="start"] {
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - var(--cm-fade)), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - var(--cm-fade)), transparent 100%);
+  }
+  #cm-filter-tabs[data-scroll="middle"] {
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--cm-fade), #000 calc(100% - var(--cm-fade)), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--cm-fade), #000 calc(100% - var(--cm-fade)), transparent 100%);
+  }
+  #cm-filter-tabs[data-scroll="end"] {
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--cm-fade), #000 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--cm-fade), #000 100%);
   }
   #cm-filter-tabs::-webkit-scrollbar { display: none; }
   .cm-filter-tab {
@@ -2483,6 +2573,9 @@ footer.blk {
 }
 @media (max-width: 1023px) {
   #cm-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 479px) {
+  #cm-grid { grid-template-columns: 1fr; gap: 20px; }
 }
 .cm-card {
   cursor: pointer;
@@ -2750,6 +2843,62 @@ footer.blk {
   color: var(--color-text-primary);
   letter-spacing: -0.01em;
   white-space: nowrap;
+}
+
+/* 타이틀 행 — 데스크탑은 단일 컬럼(기존), 모바일은 flex row + 우측 뱃지 */
+.cns-head-top {
+  display: flex;
+  flex-direction: column;
+}
+.cns-title-col { min-width: 0; }
+.cns-title-badge { display: none; }
+
+/* 모바일(<480) — 바텀시트 전환 + 이미지 제거 + 타이틀 행 인라인 뱃지 */
+@media (max-width: 479px) {
+  #cns-panel {
+    top: auto;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: auto;
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(100%);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* 드래그 핸들 — 시각적 힌트만, 실제 드래그 기능은 아님 */
+  #cns-panel::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(28, 27, 25, 0.2);
+    z-index: 3;
+    pointer-events: none;
+  }
+  #cafe-nutrition-sheet.open #cns-panel { transform: translateY(0); }
+  .cns-image-wrap { display: none; }
+  #cns-close { display: none; }
+  .cns-content { padding: 32px 24px 32px; }
+  .cns-head-top {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  .cns-title-col { flex: 1; }
+  .cns-title-badge {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    margin-left: auto;
+    transform: translateY(-5px);
+  }
 }
 
 /* 페이지네이션 — shop 의 .sp-pg-* 재사용 (프로토타입 동일 패턴) */
@@ -4648,6 +4797,24 @@ footer.blk {
   margin: 0;
   padding-left: 12px;
   border-left: 2px solid var(--color-label-on-white);
+}
+/* Mobile: 세로 스택 — 맵 4:3, 정보 자연 높이 */
+@media (max-width: 767px) {
+  .st-location {
+    margin-top: 80px;
+    margin-bottom: 64px;
+  }
+  .st-location-inner {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: 32px;
+  }
+  .st-location-map {
+    aspect-ratio: 1 / 1;
+  }
+  .st-location-info {
+    padding: 0;
+  }
 }
 
 /* ════════════════════════════════════════════════
@@ -6958,4 +7125,34 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .st-location-hours .emph-closed,
 .st-location-notice .emph-closed {
   font-weight: inherit;
+}
+
+/* ══════════════════════════════════════════
+   Mobile 좌우 패딩 일괄 정렬 (24px)
+   hardcoded 60px → 24px · 기존 vertical padding 유지
+   ══════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .hero-c,
+  .cat-grid,
+  .beans-header,
+  .two-col,
+  #sp-body,
+  #cm-body,
+  .cns-content,
+  #pd-img-wrap,
+  #pd-info,
+  .st-promise,
+  .st-location-info,
+  #bi-body,
+  #gd-inner,
+  .chp-hdr-inner,
+  .chp-body,
+  .ocp-body,
+  .mp-body,
+  .cp-root {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  /* beans-scroll: 카드 레일 시작 gutter 만 24px (max() 계산 불필요) */
+  .beans-scroll { padding: 0 24px; }
 }

@@ -19,12 +19,14 @@ import {
   CAFE_MENU,
   CAFE_FILTER_TABS,
   CM_PER_PAGE,
+  CM_PER_PAGE_MOBILE,
   filterCafeMenu,
   isCafeFilterKey,
   sortCafeMenu,
   type CafeFilterKey,
   type CafeMenuItem,
 } from '@/lib/cafeMenu';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const HIGHLIGHT_MS = 1500;
 // ShopPage 와 동일 — 탭(0.3s) 등장 후 카드 시작, 진입 후엔 0
@@ -53,6 +55,9 @@ export default function CafeMenuPage() {
   // 초기 진입 플래그 — ShopPage 와 동일. 최초 마운트에만 true 여서 첫 카드 stagger 에
   // 420ms baseDelay 부여 (탭 0.3s 등장 직후 카드 따라옴). 이후 필터 전환에서는 0.
   const isInitRef = useRef(true);
+
+  const isMobile = useMediaQuery('(max-width: 479px)');
+  const perPage = isMobile ? CM_PER_PAGE_MOBILE : CM_PER_PAGE;
 
   // ───────────────────────────────────────────
   // Adjusting state during render — urlFilter / searchParams prop 동기화
@@ -88,11 +93,11 @@ export default function CafeMenuPage() {
           idx = listAll.findIndex((i) => i.id === targetId);
           if (idx >= 0) {
             setFilter('all');
-            setPage(Math.floor(idx / CM_PER_PAGE) + 1);
+            setPage(Math.floor(idx / perPage) + 1);
             setHighlightId(targetId);
           }
         } else {
-          setPage(Math.floor(idx / CM_PER_PAGE) + 1);
+          setPage(Math.floor(idx / perPage) + 1);
           setHighlightId(targetId);
         }
       }
@@ -167,10 +172,10 @@ export default function CafeMenuPage() {
     [filter],
   );
   const total = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(total / CM_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
   const currentPage = Math.min(page, totalPages);
-  const start = (currentPage - 1) * CM_PER_PAGE;
-  const items = filtered.slice(start, start + CM_PER_PAGE);
+  const start = (currentPage - 1) * perPage;
+  const items = filtered.slice(start, start + perPage);
 
   const activeTab =
     CAFE_FILTER_TABS.find((t) => t.key === filter) ?? CAFE_FILTER_TABS[0];

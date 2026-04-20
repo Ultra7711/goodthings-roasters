@@ -245,7 +245,14 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
               tabIndex={0}
               onClick={handleBarClick}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleBarClick(e as unknown as React.MouseEvent); }}
+              aria-label="빠른 추가"
             >
+              <span className="sp-qa-bar-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+              </span>
               <span className="sp-qa-bar-text">{qaBarText}</span>
               <button
                 className="sp-qa-close"

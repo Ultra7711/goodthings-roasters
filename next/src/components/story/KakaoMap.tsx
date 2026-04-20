@@ -24,7 +24,11 @@ declare global {
           size: unknown,
           options?: { offset?: unknown },
         ) => unknown;
-        Map: new (container: HTMLElement, opts: { center: unknown; level: number }) => unknown;
+        Map: new (container: HTMLElement, opts: { center: unknown; level: number }) => {
+          addControl: (control: unknown, position: unknown) => void;
+          relayout: () => void;
+          setCenter: (latlng: unknown) => void;
+        };
         Marker: new (opts: { position: unknown; map?: unknown; image?: unknown }) => {
           setMap: (map: unknown) => void;
         };
@@ -141,6 +145,7 @@ export default function KakaoMap({
       return;
     }
     let cancelled = false;
+    let ro: ResizeObserver | null = null;
 
     loadSdk(appkey)
       .then(() => {
@@ -149,11 +154,15 @@ export default function KakaoMap({
           if (cancelled || !containerRef.current) return;
           const kakao = window.kakao.maps;
           const center = new kakao.LatLng(lat, lng);
-          const map = new kakao.Map(containerRef.current, { center, level }) as {
-            addControl: (control: unknown, position: unknown) => void;
-          };
-          /* 확대/축소 게이지 컨트롤 — 우측 중앙 */
-          map.addControl(new kakao.ZoomControl(), kakao.ControlPosition.RIGHT);
+          const map = new kakao.Map(containerRef.current, { center, level });
+          /* 확대/축소 게이지 컨트롤 — 우상단 */
+          map.addControl(new kakao.ZoomControl(), kakao.ControlPosition.TOPRIGHT);
+          /* 컨테이너 리사이즈 시 relayout + 중심 재설정 (BP 전환·회전 대응) */
+          ro = new ResizeObserver(() => {
+            map.relayout();
+            map.setCenter(center);
+          });
+          ro.observe(containerRef.current);
           /* 브랜드 커스텀 마커 — 28×36 티어드롭, 바닥 중앙 앵커 */
           const markerImage = new kakao.MarkerImage(
             '/images/icons/map_marker.svg',
@@ -182,6 +191,7 @@ export default function KakaoMap({
 
     return () => {
       cancelled = true;
+      ro?.disconnect();
     };
   }, [lat, lng, level, placeName, placeId]);
 

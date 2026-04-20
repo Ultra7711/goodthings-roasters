@@ -60,6 +60,7 @@ export const CAFE_FILTER_TABS: { key: CafeFilterKey; label: string; titleKr: str
 ];
 
 export const CM_PER_PAGE = 20;
+export const CM_PER_PAGE_MOBILE = 10;
 
 /** 카테고리 라벨 (영양 시트 헤더용) */
 export const CAFE_CATEGORY_LABEL: Record<CafeMenuItem['cat'], string> = {
