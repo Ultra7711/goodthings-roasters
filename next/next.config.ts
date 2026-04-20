@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import path from "node:path";
+import { withSentryConfig } from "@sentry/nextjs";
 
 /**
  * 정적 보안 헤더 — 모든 응답에 자동 첨부.
@@ -53,4 +54,18 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/* Sentry 래핑 — source map 업로드 + tunnelRoute 로 ad-blocker 우회.
+   tunnelRoute 는 브라우저 요청이 /monitoring 로 갔다가 Next.js 서버가
+   Sentry ingest 로 프록시 → CSP connect-src 에 Sentry 도메인 추가 불필요. */
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG ?? "goodthings-roasters",
+  project: process.env.SENTRY_PROJECT ?? "javascript-nextjs",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  /* CI 외 환경에서는 업로드 로그 억제 */
+  silent: !process.env.CI,
+  tunnelRoute: "/monitoring",
+  /* source map 은 Sentry 에 업로드 후 브라우저에서 숨김 (public → hidden) */
+  sourcemaps: {
+    disable: false,
+  },
+});

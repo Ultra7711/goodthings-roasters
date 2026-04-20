@@ -166,6 +166,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
  */
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    /* _next 자산 · favicon · 정적 이미지 · Sentry tunnelRoute(/monitoring) 제외.
+       Sentry tunnel 은 브라우저 → Next.js → Sentry ingest 로 프록시하는 전용 경로로
+       Supabase 세션 갱신·CSP 주입이 불필요하다. */
+    '/((?!_next/static|_next/image|favicon\\.ico|monitoring|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };
