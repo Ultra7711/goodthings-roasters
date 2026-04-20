@@ -36,15 +36,18 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
   },
 ];
 
-/* ── 사업자 정보 ── */
+/* ── 사업자 정보 ──
+   환경변수에서 주입 (전자상거래법 §13 의무 표시).
+   .env.local 미설정 시 빈 문자열 — 푸터 렌더 시 시각적 누락 → 누락 즉시 인지.
+   build-time 인라인되므로 NEXT_PUBLIC_ 변경 시 재빌드 필요. */
 export const BUSINESS_INFO = {
-  companyName: '주식회사 브이티이코프',
-  ceo: '김주호',
-  registrationNumber: '510-81-30238',
-  onlineBusinessNumber: '2023-경북구미-0508',
-  address: '경북 구미시 인동21길 22-11',
-  phone: '010-9062-9910',
-  email: 'jung6419@naver.com',
+  companyName: process.env.NEXT_PUBLIC_BUSINESS_COMPANY_NAME ?? '',
+  ceo: process.env.NEXT_PUBLIC_BUSINESS_CEO ?? '',
+  registrationNumber: process.env.NEXT_PUBLIC_BUSINESS_REG_NUMBER ?? '',
+  onlineBusinessNumber: process.env.NEXT_PUBLIC_BUSINESS_ONLINE_NUMBER ?? '',
+  address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS ?? '',
+  phone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? '',
+  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? '',
 } as const;
 
 /* ── 어나운스 바 ── */

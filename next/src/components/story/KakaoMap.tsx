@@ -117,13 +117,30 @@ function buildOverlayContent({
     : `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${lat},${lng}`;
   const toHref = `https://map.kakao.com/link/to/${encodeURIComponent(placeName)},${lat},${lng}`;
 
-  wrap.innerHTML = `
-    <div class="st-map-overlay-name">${placeName}</div>
-    <div class="st-map-overlay-actions">
-      <a class="st-map-overlay-btn" href="${toHref}" target="_blank" rel="noopener noreferrer">길찾기</a>
-      <a class="st-map-overlay-btn st-map-overlay-btn--primary" href="${detailHref}" target="_blank" rel="noopener noreferrer">카카오맵 상세</a>
-    </div>
-  `;
+  // textContent / setAttribute 만 사용 — placeName 이 외부 입력으로 확장돼도 XSS 차단.
+  const nameEl = document.createElement('div');
+  nameEl.className = 'st-map-overlay-name';
+  nameEl.textContent = placeName;
+
+  const actionsEl = document.createElement('div');
+  actionsEl.className = 'st-map-overlay-actions';
+
+  const toLink = document.createElement('a');
+  toLink.className = 'st-map-overlay-btn';
+  toLink.href = toHref;
+  toLink.target = '_blank';
+  toLink.rel = 'noopener noreferrer';
+  toLink.textContent = '길찾기';
+
+  const detailLink = document.createElement('a');
+  detailLink.className = 'st-map-overlay-btn st-map-overlay-btn--primary';
+  detailLink.href = detailHref;
+  detailLink.target = '_blank';
+  detailLink.rel = 'noopener noreferrer';
+  detailLink.textContent = '카카오맵 상세';
+
+  actionsEl.append(toLink, detailLink);
+  wrap.append(nameEl, actionsEl);
 
   return wrap;
 }

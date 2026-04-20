@@ -618,6 +618,13 @@ button.hdr-icon-btn { background: none; border: none; }
 }
 .hdr-icon-btn .hi { opacity: .5; transition: opacity var(--duration-hover) var(--ease-default); }
 .hdr-icon-btn:hover .hi { opacity: 1; }
+/* a11y: 키보드 포커스 가시화 (WCAG 2.4.7) — Session 51 */
+.hdr-icon-btn:focus-visible,
+.hdr-menu-toggle:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 
 /* 장바구니 배지 */
 .cart-badge {
@@ -2351,6 +2358,12 @@ footer.blk {
 /* 빠른 추가 바 — 데스크탑 기본: 아이콘 숨김 */
 .sp-qa-bar-icon { display: none; }
 
+/* a11y: 빠른 추가 바 키보드 포커스 가시화 (role="button" + tabIndex=0) — Session 51 */
+.sp-card--qa-open .sp-qa-bar:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: -2px;
+}
+
 /* 터치 기기 — hover 불가이므로 "빠른 추가" 바를 상시 노출 */
 @media (hover: none) {
   .sp-qa-bar { opacity: 1; pointer-events: auto; }
@@ -4078,6 +4091,11 @@ footer.blk {
 }
 #pd-cart-btn:active { opacity: .7; }
 #pd-cart-btn.disabled { opacity: .3; pointer-events: none; }
+/* a11y: 키보드 포커스 가시화 — Session 51 */
+#pd-cart-btn:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
+}
 
 /* 반응형 — 1440 한줄 1:1:2 / 1024↓ 2줄 / 768↓ 1열 */
 @media (max-width: 1024px) {

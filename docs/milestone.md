@@ -45,7 +45,7 @@
 | 2-F2 상태관리 단일화 (ADR-004) | ✅ | Step A~D 완료 (Session 14~17) · Zustand 제거 · TanStack Query + useSupabaseSession 단일 소스 |
 | 2-G1 디자인 폴리시 (Phase 1~3) | ✅ | Sessions 18~36 — 카트 풀페이지 · 게이지/레이더 통일 · 팔레트(gold accent + 섹션 로테이션) · CTA hover gold |
 | 2-G2 반응형 4BP | ✅ | Sessions 37~49 — clamp 토큰화 · container queries · 햄버거 드로어 · tap-area sweep · 360/768/1024/1440 전 페이지 QA |
-| 2-G3 프로덕션 마감 | ⬜ | H3 환경변수 + M7 CSP 헤더 + 번들 감사 (다음 세션) |
+| 2-G3 프로덕션 마감 | 🔄 | H3 ✅ · M7 ✅ (proxy.ts nonce CSP) · 번들 감사 + Vercel 배포 잔여 |
 
 #### 7. Content & Asset
 
@@ -59,8 +59,8 @@
 | ID | 이슈 | 처리 시점 |
 |----|------|-----------|
 | A1 | ADR-004 Zustand 제거 이행 완료 확인 (`rg "from 'zustand'"` 0건) | ✅ Session 17 완료 (2026-04-18, `bc6e2258`) |
-| H3 | 사업자 정보 소스코드 하드코딩 → 환경변수/DB 이관 | **다음 세션 (2-G3)** |
-| M7 | CSP 등 보안 응답 헤더 최종 점검 → `next.config.ts headers()` | **다음 세션 (2-G3)** |
+| H3 | 사업자 정보 소스코드 하드코딩 → 환경변수/DB 이관 | ✅ Session 51 — `NEXT_PUBLIC_BUSINESS_*` 5종 + `.env.example` 동기화 |
+| M7 | CSP 등 보안 응답 헤더 최종 점검 → `next.config.ts headers()` | ✅ Session 51 검증 — `proxy.ts` nonce 기반 CSP + 정적 헤더 (HSTS/COOP/CORP/Permissions) 완비 |
 
 #### 코드 리뷰 잔여
 
