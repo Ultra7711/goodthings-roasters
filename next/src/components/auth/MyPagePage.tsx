@@ -664,17 +664,22 @@ export default function MyPagePage() {
                   <div className="mp-order-items">
                     <div className="mp-order-items-inner">
                       {order.items.map((item, idx) => (
-                        <div key={idx} className="ocp-item" style={{ minWidth: 0, height: 'auto', padding: '16px 0' }}>
+                        <div key={idx} className="ocp-item">
                           <div
                             className="ocp-item-img"
-                            style={{ width: 80, height: 80, cursor: 'pointer', background: item.image.bg, position: 'relative', flexShrink: 0 }}
+                            style={{ background: item.image.bg, position: 'relative' }}
                             onClick={(e) => { e.stopPropagation(); router.push(`/shop/${item.slug}`); }}
                           >
                             <Image src={item.image.src} alt={item.name} fill style={{ objectFit: 'cover' }} sizes="80px" />
                           </div>
                           <div className="ocp-item-info">
                             <div className="ocp-item-category">{item.category}</div>
-                            <div className="ocp-item-name">{extractKrName(item.name)}</div>
+                            <div className="ocp-item-name">
+                              <span className="ocp-item-name-kr">{extractKrName(item.name)}</span>
+                              <span className="ocp-item-meta-inline">
+                                {` · ${item.volume}`}
+                              </span>
+                            </div>
                             <div className="ocp-item-badges">
                               <span className="ocp-item-badge">{item.volume}</span>
                               <span className="ocp-item-qty">수량 {item.qty}개</span>

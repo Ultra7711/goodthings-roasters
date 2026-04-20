@@ -372,8 +372,15 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* 스크롤바 공간 항상 예약 → body overflow 토글 시 레이아웃 시프트 방지 */
+/* 데스크탑: 드로어/모달 열 때 body overflow 토글 시 레이아웃 시프트 방지용 예약.
+   모바일: overlay scrollbar 라 시프트 없음 + 24px 좌우 대칭 위해 auto 로 해제. */
 html {
   scrollbar-gutter: stable;
+}
+@media (max-width: 767px) {
+  html {
+    scrollbar-gutter: auto;
+  }
 }
 
 body {
@@ -3039,6 +3046,7 @@ footer.blk {
   flex-shrink: 0;
   border-bottom: .5px solid var(--color-border-secondary);
 }
+#cart-drawer-panel .cd-header.cd-header--empty { border-bottom: none; }
 #cart-drawer-panel .cd-title-wrap { display: flex; align-items: center; gap: var(--gap-xs); }
 #cart-drawer-panel .cd-title {
   font-family: var(--font-kr);
@@ -3068,7 +3076,9 @@ footer.blk {
   cursor: pointer;
   color: var(--color-text-primary);
   transition: opacity var(--duration-hover) ease;
-  margin-right: -4px;
+  /* tap-area 40×40 안쪽 24×24 아이콘 → 8px 여백 음수 margin 으로 보정,
+     아이콘 시각 stroke edge 를 헤더 padding-right 라인에 정렬 */
+  margin-right: -8px;
 }
 #cart-drawer-panel .cd-close:hover { opacity: .85; }
 
@@ -3151,6 +3161,7 @@ footer.blk {
   color: var(--color-text-primary);
   white-space: nowrap;
 }
+#cart-drawer-panel .cd-item-meta-inline { display: none; }
 #cart-drawer-panel .cd-item-bottom {
   position: absolute;
   left: 151px;
@@ -3260,6 +3271,101 @@ footer.blk {
 }
 #cart-drawer-panel .cd-remove:hover { opacity: 1; }
 
+/* ══ Cart Drawer — Mobile (≤767) 3-row 카드 레이아웃 ══
+   /cart 모바일 레이아웃과 동일 스펙 이식.
+   absolute 좌표 → grid 3행으로 재배치, 썸네일 96×96. */
+@media (max-width: 767px) {
+  /* 헤더 좌측 28→20 · 아이템/배송 행 좌측(20px)과 동일 라인 정렬 */
+  #cart-drawer-panel .cd-header { padding-left: 20px; padding-right: 20px; }
+  #cart-drawer-panel .cd-items { padding: 0 20px; }
+  #cart-drawer-panel .cd-item {
+    position: relative;
+    height: auto;
+    padding: 20px 0;
+    display: grid;
+    grid-template-columns: 96px 1fr auto;
+    grid-template-rows: auto auto auto;
+    column-gap: 16px;
+    row-gap: 4px;
+    align-items: center;
+  }
+  #cart-drawer-panel .cd-item::after { left: 0; right: 0; }
+  #cart-drawer-panel .cd-item-thumb {
+    position: static;
+    grid-row: 1 / 4;
+    grid-column: 1;
+    width: 96px;
+    height: 96px;
+    align-self: center;
+  }
+  #cart-drawer-panel .cd-item-category {
+    position: static;
+    grid-row: 1;
+    grid-column: 2;
+    left: auto; top: auto;
+    align-self: center;
+    font-size: 12px;
+    line-height: 1;
+  }
+  #cart-drawer-panel .cd-remove {
+    position: static;
+    grid-row: 1;
+    grid-column: 3;
+    top: auto; right: auto;
+    align-self: center;
+    justify-self: end;
+  }
+  #cart-drawer-panel .cd-item-name {
+    position: static;
+    grid-row: 2;
+    grid-column: 2 / 4;
+    left: auto; right: auto; top: auto;
+    gap: 0;
+    min-width: 0;
+    overflow: hidden;
+    line-height: 1.4;
+    margin-top: 2px;
+    margin-bottom: 8px;
+  }
+  #cart-drawer-panel .cd-item-name-kr {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  #cart-drawer-panel .cd-item-meta-inline {
+    display: inline;
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--type-body-s-size);
+    white-space: nowrap;
+  }
+  #cart-drawer-panel .cd-item-bottom {
+    position: static;
+    grid-row: 3;
+    grid-column: 2 / 4;
+    left: auto; right: auto; top: auto;
+    height: auto;
+    gap: 12px;
+    justify-content: space-between;
+  }
+  #cart-drawer-panel .cd-item-sub-badge { display: none; }
+  #cart-drawer-panel .cd-item-unit-price { display: none; }
+  #cart-drawer-panel .cd-qty {
+    position: static;
+    right: auto;
+    top: auto;
+  }
+  #cart-drawer-panel .cd-item-price {
+    position: static;
+    right: auto;
+    top: auto;
+    margin-left: auto;
+  }
+}
+
 /* 빈 상태 */
 #cart-drawer-panel .cd-empty {
   flex: 1;
@@ -3267,7 +3373,9 @@ footer.blk {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 28px;
+  /* 헤더(64px) 가 드로어 상단에 있어 body 중앙=드로어 중앙+32px 로 밀려 보임.
+     padding-bottom 을 top 보다 크게 주어 시각적 중심을 위로 끌어올림 */
+  padding: 40px 28px 104px;
   gap: var(--gap-md);
 }
 #cart-drawer-panel .cd-empty-icon { width: 64px; height: 64px; opacity: .25; margin-bottom: 8px; }
@@ -3428,7 +3536,7 @@ footer.blk {
 /* 메인 2단 그리드 */
 #pd-content {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: flex-start;
 }
 
@@ -3471,7 +3579,7 @@ footer.blk {
   transform: translateY(0);
 }
 @media (max-width: 1023px) {
-  #pd-content { grid-template-columns: 1fr; }
+  #pd-content { grid-template-columns: minmax(0, 1fr); }
   #pd-img-wrap {
     position: static;
     grid-column: 1;
@@ -3654,67 +3762,45 @@ footer.blk {
 .pd-img-arrow:not(:disabled):hover { opacity: 1 !important; }
 #pd-img-prev { left: -26px; }
 #pd-img-next { right: -26px; }
-.pd-img-arrow.hidden,
-.pd-thumb-arrow.hidden { display: none; }
+.pd-img-arrow.hidden { display: none; }
 
-/* 터치 환경: 메인 이미지 화살표 숨김 */
-@media (pointer: coarse) {
+/* 터치 환경 · 모바일 뷰포트: 메인 이미지 화살표 숨김 (스와이프로 대체) */
+@media (pointer: coarse), (max-width: 767px) {
   .pd-img-arrow { display: none; }
 }
 
-/* ══ PD 썸네일 스트립 (RP-4b) ══ */
-#pd-img-bottom {
+/* ══ PD 이미지 페이지네이션 도트 — .beans-dot 스타일 차용 ══ */
+#pd-pagination.pd-dots {
   display: flex;
+  justify-content: center;
   align-items: center;
+  gap: 0;
+  padding: 12px 0 0;
 }
-#pd-thumbs-wrap {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  overflow: hidden;
-  position: relative;
-}
-#pd-thumbs {
-  display: flex;
-  gap: var(--gap-xs);
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
-  flex: 1;
-}
-#pd-thumbs::-webkit-scrollbar { display: none; }
-
-.pd-thumb-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 2;
-  transition: opacity var(--duration-hover) linear, color var(--duration-hover) linear;
-}
-#pd-thumb-prev { left: 0; }
-#pd-thumb-next { right: 0; }
-@media (pointer: fine) {
-  #pd-thumbs-wrap:hover .pd-thumb-arrow:not(:disabled) { opacity: 1; pointer-events: all; }
-  #pd-thumbs-wrap:hover .pd-thumb-arrow:disabled { opacity: .2; }
-  #pd-img-main-wrap.no-nav:hover .pd-img-arrow { opacity: 0 !important; pointer-events: none; }
-  #pd-thumbs-wrap.no-nav { pointer-events: none; }
-}
-
-.pd-thumb {
-  width: 72px;
-  height: 72px;
-  background: var(--color-background-secondary);
+.pd-dot {
+  height: 6px;
+  width: 6px;
+  border-radius: 3px;
+  background: var(--color-border-primary);
+  border: 17px solid transparent;
+  padding: 0;
   cursor: pointer;
-  overflow: hidden;
-  border: 2px solid transparent;
-  transition: border-color var(--duration-hover) linear;
-  flex-shrink: 0;
+  transition: width var(--duration-transition) var(--ease-spring), background var(--duration-transition) ease;
+  background-clip: padding-box;
+  box-sizing: content-box;
 }
-.pd-thumb:hover { border-color: rgba(0,0,0,.3); }
-.pd-thumb.active,
-.pd-thumb.active:hover { border-color: var(--color-text-primary); }
+.pd-dot.active {
+  width: 20px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-text-primary);
+  background-clip: padding-box;
+}
+
+/* 단일 이미지(no-nav) 시 호버해도 화살표 노출되지 않도록 */
+@media (pointer: fine) {
+  #pd-img-main-wrap.no-nav:hover .pd-img-arrow { opacity: 0 !important; pointer-events: none; }
+}
 
 /* ══════════════════════════════════════════
    RP-4c — Purchase Options (2026-04-11 개편)
@@ -3996,7 +4082,7 @@ footer.blk {
     grid-template-columns: 1fr;
   }
 }
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   #pd-purchase-row[data-layout="vqc"],
   #pd-purchase-row[data-layout="vq"] {
     grid-template-columns: 1fr;
@@ -4216,26 +4302,46 @@ footer.blk {
 }
 
 /* ── 레시피 가이드 (Coffee Bean) ── */
+/* ══════════════════════════════════════════════════════════════
+   설계: Container Queries (cqi 단위 illust 크기) + 뷰포트 MQ (레이아웃 방향)
+   ─ 레이아웃 방향: >=1024px 스택(상하) / <1024px 사이드바이사이드(좌우)
+   ─ illust 크기: clamp(100px, 35cqi, 150px) — 카드 폭 기준 연속 조정
+   ─ pd-recipe-table: max-content minmax(0,1fr) — dd 오버플로 원천 차단
+   ─ 실패 이력: transform:scale 금지, max-content max-content 금지,
+                MQ는 베이스 뒤 선언, flex:1 1 0 illust 금지
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 카드 그리드 컨테이너 ── */
 #pd-recipe-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* 기본: 2열 (데스크탑 >=1024px) */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--gap-md);
+  /* CQ: 카드 폭 기준 illust 크기 조정을 위해 container 선언 */
+  container-type: inline-size;
 }
-/* Drip Bag 레시피: 3단계 → 3열 그리드 (임시 적용).
-   minmax(0, 1fr) 로 min-content 전파를 끊어 #pd-info 컬럼이 카드 min-content 만큼
-   부풀어 오르는 현상 차단 (드립백 상세에서 좌/우 590/850 비대칭 버그 수정). */
+
+/* ── 드립백 레시피: 3열 오버라이드 ── */
 #pd-recipe-cards.is-drip {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.pd-drip-step-body {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: 400;
-  color: var(--color-text-secondary);
-  line-height: 1.7;
-  margin: 0;
-  align-self: stretch;
+/* <1024px: 1열 전환 (pd-content가 1col이 되므로 카드도 1열로) */
+@media (max-width: 1023px) {
+  #pd-recipe-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #pd-recipe-cards.is-drip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
+/* <=480px: 드립백도 1열 (카드 너무 좁음) */
+@media (max-width: 480px) {
+  #pd-recipe-cards.is-drip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── 공통 카드 기반 (드립백 + 커피빈 공통) ── */
 .pd-recipe-card {
   display: flex;
   flex-direction: column;
@@ -4244,70 +4350,126 @@ footer.blk {
   padding: 24px 24px 26px;
   background: var(--color-background-secondary);
   border-radius: 10px;
+  min-width: 0;
 }
-/* ── Coffee Bean 카드: 타이틀(위) + 일러스트 플로팅(좌) + 표(우 풀폭)
-   일러스트를 absolute 로 띄워 박스 공간에서 제외 → 표는 카드 풀폭 사용,
-   이미지는 flex 제약 없이 키울 수 있음. Drip Bag step 카드는 기존 컬럼 유지. */
+
+/* ── Coffee Bean split 카드 베이스 ── */
 .pd-recipe-card--split {
-  position: relative;
   align-items: stretch;
   gap: 12px;
 }
-.pd-recipe-card--split .pd-recipe-method {
-  align-self: center;
-}
-.pd-recipe-body {
-  position: relative;
-  display: flex;
+
+/* ── split 카드 내부 body: grid로 illust|text 2열 ── */
+/* 기본(모바일, <1024px): 사이드바이사이드 — illust 좌(고정) + text 우(flex) */
+.pd-recipe-card--split .pd-recipe-body {
+  display: grid;
+  /* illust 컬럼: clamp(100px, 35cqi, 150px) — CQ 기준 카드 폭의 35%, 100-150px 사이 */
+  /* cqi = container inline-size 의 1% (#pd-recipe-cards 기준) */
+  grid-template-columns: clamp(130px, 40cqi, 150px) minmax(0, 1fr);
+  gap: 14px;
   align-items: center;
-  justify-content: flex-start;
   width: 100%;
   min-width: 0;
-  /* 일러스트가 차지하는 좌측 시각 영역 확보 (실제로 flex 흐름 밖).
-     모든 카드의 표가 동일한 left 에서 시작되어 세로 정렬이 통일된다. */
-  padding-left: 148px;
-  min-height: 160px;
 }
+
+/* ── illust 영역 ── */
 .pd-recipe-card--split .pd-recipe-illust {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 160px;
-  height: 160px;
-  pointer-events: none;
-}
-.pd-recipe-card--split .pd-recipe-illust img {
-  width: 160px;
-  height: 160px;
-}
-.pd-recipe-card--split .pd-recipe-table {
+  /* grid 컬럼이 크기를 결정 — 공통 .pd-recipe-illust 의 196px 고정값을 해제 */
+  width: auto;
+  height: auto;
   min-width: 0;
-  /* 기본 .pd-recipe-table 의 margin:0 auto 를 무효화 — 카드별 내용 폭과
-     무관하게 모든 split 카드의 표가 동일한 left(=padding-left) 에서 시작 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* illust img: 컨테이너 폭에 맞게 축소, aspect-ratio 유지 */
+.pd-recipe-card--split .pd-recipe-illust img {
+  /* grid 컬럼 폭과 일치 — clamp(100px, 35cqi, 150px) */
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  display: block;
+}
+
+/* ── text 영역 (모바일: 상단부터 시작) ── */
+.pd-recipe-card--split .pd-recipe-text {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  align-self: start;
+  padding-top: 2px;
+}
+
+/* 메서드명: 모바일에서 좌측 정렬 */
+.pd-recipe-card--split .pd-recipe-text .pd-recipe-method {
+  text-align: left;
+}
+
+/* 표: split 카드에서는 margin auto 해제 */
+.pd-recipe-card--split .pd-recipe-text .pd-recipe-table {
   margin: 0;
 }
-@media (max-width: 768px) {
-  .pd-recipe-card--split {
-    padding: 20px 16px 22px;
-  }
-  .pd-recipe-body {
-    padding-left: 112px;
-    min-height: 128px;
-  }
-  .pd-recipe-card--split .pd-recipe-illust,
-  .pd-recipe-card--split .pd-recipe-illust img {
-    width: 120px;
-    height: 120px;
-  }
-  .pd-recipe-card--split .pd-recipe-illust {
-    left: -4px;
-  }
-  .pd-recipe-card--split .pd-recipe-table {
-    column-gap: var(--gap-md);
+.pd-recipe-card--split .pd-recipe-table {
+  margin: 0;
+  /* minmax(0,1fr) 가 작동하려면 테이블이 text 영역 풀폭 차지해야 함 */
+  width: 100%;
+}
+
+/* ── 태블릿 구간 (481~1023px): 카드 폭이 과도하게 넓으므로 body 중앙 정렬 ── */
+/* pd-content 1col + recipe 1col 이면 카드 폭 ~690px 까지 커지는데 */
+/* illust(150) + text 실사용(~250) 합쳐도 우측 공간이 과도하게 남음 */
+/* body max-width 제약으로 콘텐츠를 카드 중앙에 모아 시각 밸런스 확보 */
+@media (min-width: 481px) and (max-width: 1023px) {
+  .pd-recipe-card--split .pd-recipe-body {
+    max-width: 460px;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 20px;
   }
 }
 
+/* ── 데스크탑 스택 레이아웃 (vp >= 1024px) ── */
+/* pd-content가 2col이므로 카드폭 208~312px — 스택(상하)이 자연스러움 */
+@media (min-width: 1024px) {
+  .pd-recipe-card--split .pd-recipe-body {
+    /* 스택: 단일 컬럼, illust 위 · text 아래 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* illust: 카드 풀폭, 최대 200px, 중앙 정렬 */
+  .pd-recipe-card--split .pd-recipe-illust {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .pd-recipe-card--split .pd-recipe-illust img {
+    width: min(200px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  /* text: 카드 풀폭, 중앙 정렬 */
+  .pd-recipe-card--split .pd-recipe-text {
+    width: 100%;
+    align-self: unset;
+    padding-top: 0;
+  }
+
+  /* 메서드명: 데스크탑에서 중앙 정렬 */
+  .pd-recipe-card--split .pd-recipe-text .pd-recipe-method {
+    text-align: center;
+  }
+}
+
+/* ── 공통 공유 룰 (드립백 포함) ── */
+/* Drip Bag 일러스트 컨테이너 */
 .pd-recipe-illust {
   width: 196px;
   height: 196px;
@@ -4321,6 +4483,8 @@ footer.blk {
   height: 196px;
   display: block;
 }
+
+/* 메서드명 */
 .pd-recipe-method {
   font-family: var(--font-kr);
   font-size: var(--type-body-l-size);
@@ -4328,43 +4492,51 @@ footer.blk {
   color: var(--color-text-primary);
   line-height: 1.2;
   text-align: center;
-  /* 메서드와 표 사이 구분선 */
   padding-bottom: 14px;
   border-bottom: 1px solid var(--color-border-tertiary);
   align-self: stretch;
 }
+
+/* 추출 데이터 표 ── */
+/* max-content minmax(0,1fr): dt는 자연 폭, dd는 남은 공간 전부 차지하며 오버플로 없음 */
+/* 기존 max-content max-content 는 긴 dd("2분 이내(뜸 30초)")가 카드 밖으로 넘치는 원인이었음 */
 .pd-recipe-table {
-  /* 가장 긴 값을 기준으로 박스 폭 자동 결정 후 카드 내 중앙 정렬 */
   display: grid;
-  grid-template-columns: max-content max-content;
+  grid-template-columns: max-content minmax(0, 1fr);
   row-gap: 6px;
-  column-gap: var(--gap-lg);
+  column-gap: var(--gap-sm);
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
-  align-items: center;
+  align-items: baseline;
+  /* split 카드에서는 margin:0 (위 .pd-recipe-card--split .pd-recipe-table 으로 덮임) */
+  /* 드립백 카드에서는 width:fit-content + margin:0 auto (중앙 정렬) */
   width: fit-content;
   margin: 0 auto;
 }
+
 .pd-recipe-dt {
   font-weight: 500;
   color: var(--color-text-primary);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--gap-sm);
-  min-width: 3.5em;
+  gap: var(--gap-xs);
+  min-width: 3em;
 }
 .pd-recipe-dt > span {
   display: inline-flex;
   justify-content: space-between;
   width: 100%;
-  /* '원 두 량' 처럼 자간 균등 정렬 */
   text-align: justify;
   text-align-last: justify;
 }
+
 .pd-recipe-dd {
   color: var(--color-text-secondary);
   font-weight: 400;
+  /* minmax(0,1fr) 와 함께 줄바꿈 허용, 오버플로 금지 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* ── 레시피 가이드 (Drip Bag) ── */
@@ -4443,6 +4615,13 @@ footer.blk {
   line-height: 1.8;
   font-weight: 400;
 }
+@media (max-width: 767px) {
+  .pd-drip-step-num,
+  .pd-drip-tip-label {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+}
 
 /* ── 아코디언 ── */
 #pd-accordions {
@@ -4457,9 +4636,16 @@ footer.blk {
 @media (max-width: 1024px) {
   #pd-accordions {
     padding: 0 var(--layout-padding-x) 80px;
+    margin-top: 0;
   }
+  /* 1컬럼 전환 시 아코디언을 본문 바로 아래로 붙이기 */
+  #pd-info { padding-bottom: 0; }
+  /* 드립백 TIP 케이스: 하단 라인 제거 + 마지막 섹션 margin 제거로 단일 구분선 */
+  #pd-info:has(.pd-drip-tip) > .pd-info-section:last-of-type { margin-bottom: 0; }
+  .pd-drip-tip { border-bottom: none; }
+  /* 원두 카드 케이스: 카드 배경이 있어 아코디언과 간격 필요 — 기본 48px margin 유지 */
 }
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   #pd-accordions {
     padding: 0 20px 64px;
   }
@@ -4581,7 +4767,7 @@ footer.blk {
 /* ── 반응형: 1024↓ 좌 스티키 해제 · 1열 스택 ── */
 @media (max-width: 1024px) {
   #pd-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   #pd-img-wrap {
     position: static;
@@ -4590,23 +4776,17 @@ footer.blk {
     min-width: 0;
   }
   #pd-info {
-    padding: 0 40px 80px;
+    padding: 0 40px;
     grid-column: 1;
     min-width: 0;
   }
 }
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   #pd-img-wrap {
     padding: 0 20px 32px;
   }
   #pd-info {
-    padding: 0 20px 64px;
-  }
-  /* Recipe Guide 모바일: 2열/3열 → 1열 스택 */
-  #pd-recipe-cards,
-  #pd-recipe-cards.is-drip {
-    grid-template-columns: 1fr;
-    gap: var(--gap-sm);
+    padding: 0 20px;
   }
   .pd-recipe-card {
     padding: 20px 20px 22px;
@@ -5634,6 +5814,10 @@ footer.blk {
   display: flex; align-items: center; justify-content: space-between;
   height: 64px; padding: 0 var(--search-panel-padding-x);
 }
+/* 우측 아이콘 버튼은 tap-area 40×40 (padding 8) 이라 시각 stroke edge 가
+   container padding 안쪽으로 8px 들어옴 → 음수 margin 으로 보정하여
+   아이콘 시각 edge 를 페이지 gutter line 에 정렬 */
+.chp-hdr-inner > .hdr-icon-btn { margin-right: -8px; }
 .chp-logo-img { cursor: pointer; }
 
 /* 2열 바디 */
@@ -6237,10 +6421,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    프로토타입 #login-page 이식 (RP-8)
    ══════════════════════════════════════════ */
 
-/* 본문: 단일 컬럼 중앙 정렬 */
+/* 본문: 단일 컬럼 · 블록 흐름 중앙 정렬
+   max-width + margin: 0 auto 만으로 가로 중앙. 플렉스 중첩 없음. */
 .lp-body {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  max-width: 440px; width: 100%; margin: 0 auto;
+  box-sizing: border-box;
+  max-width: 440px;
+  margin: 0 auto;
   padding: 80px 20px 120px;
 }
 
@@ -6426,6 +6612,56 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   will-change: transform; backface-visibility: hidden;
 }
 .lp-guest-buy-btn:active { opacity: .7; }
+
+/* ══ LoginPage — Mobile (≤768) 정규화 (P0 + P1 + P2) ══
+   기존 데스크탑 스펙이 모바일 분기 없이 적용되던 것을 BP 분기.
+   - P0 상/하 패딩 축소 · max-width 해제 · 타이틀 블록 margin 축소 · 소셜 wrap
+   - P1 helper/switch 텍스트 15px → 14px 다운 (가독성 + 2줄 꺾임 방지)
+   - P1 reset shake 애니메이션 containment (필드 초과 방지)
+   - P2 submit 버튼 하단 gap 축소 · guest-buy-desc line-height 완화 */
+@media (max-width: 767px) {
+  .lp-body {
+    max-width: 100%;
+    padding: 48px 24px 80px;
+    overflow-x: clip;
+  }
+  .lp-left {
+    margin-bottom: 32px;
+    gap: 12px;
+  }
+  .lp-social {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  /* 15px → 14px 다운 · 모바일에서 2줄 꺾임 방지 + 터치 가독성 */
+  .lp-switch-txt,
+  .lp-switch-link,
+  .lp-forgot span,
+  .lp-guest-order-btn {
+    font-size: 14px;
+  }
+  /* 비회원 박스 본문 line-height 완화 (1.7 → 1.55) · 3줄 꺾임 방지 */
+  .lp-guest-buy-desc {
+    line-height: 1.55;
+  }
+  /* submit 버튼 아래 공간 · 소셜 divider 와의 간격 축소 */
+  .lp-submit-btn {
+    margin-bottom: 24px;
+  }
+  /* 데모 채우기 버튼 margin 정리 */
+  .lp-demo-fill-btn {
+    margin-bottom: 24px;
+  }
+  /* 비회원 주문 조회 섹션 상단 여백 축소 */
+  .lp-guest-order-wrap {
+    margin-top: 24px;
+  }
+  /* 비회원 구매 박스 패딩 축소 (좁은 폭 대비) */
+  .lp-guest-buy-box {
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+}
 
 /* ══════════════════════════════════════════
    MY PAGE — mp-*
@@ -6779,6 +7015,175 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   margin-top: 18px;
 }
 
+/* ══ MyPage — Mobile (≤767) 정규화 ══
+   데스크탑 2단(7fr 5fr) → 1단 스택 · 주문 내역 sticky 해제
+   · 타이틀 H1→H2 · 아코디언 액션 세로 · 주문 카드 min-width 해제 · 모달 폭 축소 */
+@media (max-width: 767px) {
+  /* P0 레이아웃: 1단 스택 + padding 축소 (gutter 24px 는 전역 블록 적용) */
+  .mp-body {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding-top: 32px;
+    padding-bottom: 64px;
+  }
+  .mp-left { padding-top: 0; }
+  .mp-right {
+    position: static;
+    top: auto;
+    padding-top: 0;
+  }
+
+  /* P0 타이포: H1 → H2 다운 · welcome gap 축소 */
+  .mp-page-title { font-size: var(--type-h2-size); }
+  .mp-welcome-wrap { gap: var(--gap-sm); margin-top: 12px; }
+
+  /* P1 섹션 · 흰 박스 bleed 를 page gutter(24px)와 동일하게 맞춰
+     viewport edge 까지 풀-bleed · 내부 content 는 24px 유지
+     → 박스 left/right 대칭 · 제목(24px) 과 내부 content(24px) 동일 indent */
+  .mp-section { margin-top: 24px; }
+  .mp-section-body {
+    margin-left: -24px;
+    margin-right: -24px;
+    padding-left: 24px;
+    padding-right: 24px;
+    border-radius: 0;
+  }
+
+  /* P1 인포 행 · 주소 값 2줄 허용 */
+  .mp-info-label { min-width: 0; }
+  .mp-info-addr-text {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  /* P1 아코디언 액션 가로 1줄 배치 (저장 · 취소 50/50)
+     · 정기배송 '구독 해지' 링크는 줄바꿈되어 우측 정렬 */
+  .mp-accordion-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .mp-save-btn,
+  .mp-cancel-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    padding: 0;
+  }
+  /* 파괴적 액션 · 좌측 + hairline divider 로 저장/취소와 시각 분리
+     "일부러 찾아가는" UX — 오른손 엄지 사정권에서 벗어난 좌측 배치 */
+  .mp-sub-unsubscribe {
+    flex-basis: 100%;
+    align-self: flex-start;
+    text-align: left;
+    margin-left: 0;
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: .5px solid var(--color-border-hairline);
+  }
+
+  /* P1 주문 카드 · overflow 해제 */
+  .mp-order-card { min-width: 0; }
+
+  /* 주문 확장 아이템 · 장바구니 모바일 3-row 그리드와 동일 패턴
+     row1: category · row2: name + inline meta (volume · qty)
+     row3: price (우측 정렬) — 하단은 가격만 */
+  .mp-order-items .ocp-item {
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    grid-template-rows: auto auto auto;
+    column-gap: 12px;
+    row-gap: 4px;
+    align-items: center;
+    min-width: 0;
+  }
+  .mp-order-items .ocp-item-img {
+    width: 64px;
+    height: 64px;
+    grid-row: 1 / 4;
+    grid-column: 1;
+    align-self: center;
+    margin-right: 0;
+  }
+  .mp-order-items .ocp-item-info {
+    display: contents;
+  }
+  .mp-order-items .ocp-item-category {
+    grid-row: 1;
+    grid-column: 2 / 4;
+    align-self: center;
+    font-size: 12px;
+    line-height: 1;
+  }
+  .mp-order-items .ocp-item-name {
+    grid-row: 2;
+    grid-column: 2 / 4;
+    min-width: 0;
+    overflow: hidden;
+    line-height: 1.4;
+    margin: 2px 0 4px;
+    font-size: 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+  }
+  .mp-order-items .ocp-item-name-kr {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+  }
+  .mp-order-items .ocp-item-meta-inline {
+    display: inline;
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--type-body-s-size);
+    white-space: nowrap;
+  }
+  /* 기존 badge 행 재활용 → 수량(좌) + 가격(우) 배치
+     장바구니 하단 스텝퍼 자리를 수량 텍스트로 대체 */
+  .mp-order-items .ocp-item-badges {
+    grid-row: 3;
+    grid-column: 2 / 4;
+    margin-top: 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .mp-order-items .ocp-item-badge {
+    display: none;
+  }
+  .mp-order-items .ocp-item-qty {
+    display: inline;
+    margin: 0;
+  }
+  .mp-order-items .ocp-item-price {
+    margin-left: 0;
+    text-align: right;
+  }
+
+  /* P2 모달 · 세로 스택 (confirm 위 · cancel 아래) */
+  .mp-modal {
+    width: calc(100% - 40px);
+    max-width: 360px;
+    padding: 28px 24px 24px;
+  }
+  .mp-modal-actions {
+    flex-direction: row;
+    gap: 12px;
+  }
+  .mp-modal-actions .mp-modal-cancel,
+  .mp-modal-actions .mp-modal-confirm {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 44px;
+  }
+}
+
 /* ══════════════════════════════════════════
    Search Result Page — Phase 2-F-2
    프로토타입 #srp-* 스타일 이식 (.search-* prefix 로 통일)
@@ -6955,7 +7360,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   opacity: 1;
   transform: translateY(0);
 }
-.cp-page-header { margin-bottom: 32px; }
+.cp-page-header {
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.cp-title-delete { display: none; }
 .cp-title-text {
   font-family: var(--font-kr);
   font-size: var(--type-h1-size);
@@ -7035,6 +7447,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   white-space: nowrap;
 }
 .cp-item-badges { display: flex; align-items: center; gap: var(--gap-xs); margin-top: 8px; }
+.cp-item-meta-inline { display: none; }
 .cp-item-badge {
   display: inline-flex;
   align-items: center;
@@ -7141,9 +7554,44 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cp-shipping-row .shipping-gauge { width: 200px; }
   #cart-drawer-panel .cd-shipping-item .shipping-gauge { width: 120px; }
 }
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .cp-shipping-row .shipping-gauge { width: 140px; }
-  #cart-drawer-panel .cd-shipping-item .shipping-gauge { width: 96px; }
+  /* 카트 드로어 배송비 안내 2단 — /cart 와 동일 grid 스펙
+     Row1: label(좌) · price(우)   Row2: notice(좌, flex) · gauge96(우) */
+  #cart-drawer-panel .cd-shipping-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    height: auto;
+    padding: 12px 20px;
+    row-gap: 6px;
+    column-gap: 12px;
+    align-items: center;
+  }
+  #cart-drawer-panel .cd-si-main { display: contents; }
+  #cart-drawer-panel .cd-si-label {
+    grid-row: 1;
+    grid-column: 1;
+    margin-right: 0;
+  }
+  #cart-drawer-panel .cd-si-price {
+    grid-row: 1;
+    grid-column: 2;
+    margin-left: 0;
+    order: 0;
+    text-align: right;
+  }
+  #cart-drawer-panel .cd-si-notice {
+    grid-row: 2;
+    grid-column: 1;
+    line-height: 1.5;
+  }
+  #cart-drawer-panel .cd-shipping-item .shipping-gauge {
+    grid-row: 2;
+    grid-column: 2;
+    width: 96px;
+    order: 0;
+  }
 }
 @media (max-width: 480px) {
   .cp-shipping-row .shipping-gauge { width: 96px; }
@@ -7228,6 +7676,189 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .cp-order-btn:active:not(:disabled) { opacity: .7; }
 .cp-order-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ══ Cart Page — Mobile (≤767) 3-row 카드 레이아웃 ══
+   데스크탑 테이블 (상품/가격/수량/합계) → 모바일 카드 그리드로 전환.
+   Row1: 카테고리 + 닫기 · Row2: 상품명·용량·수량 inline · Row3: 스텝퍼 + 합계.
+   썸네일 96×96 (드로어 120 vs 데스크탑 100 사이 타협치). */
+@media (max-width: 767px) {
+  .cp-table-hdr { display: none; }
+
+  /* 모바일: 타이틀 우측 전체 삭제 아이콘 버튼 노출 */
+  .cp-title-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: -10px -10px -10px 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--color-icon-default);
+    opacity: .7;
+    transition: opacity var(--duration-hover) ease;
+  }
+  .cp-title-delete:hover { opacity: 1; }
+  .cp-title-delete svg { width: 24px; height: 24px; }
+  .cp-item {
+    display: grid;
+    grid-template-columns: 96px 1fr auto;
+    grid-template-rows: auto auto auto;
+    column-gap: 16px;
+    row-gap: 4px;
+    align-items: center;
+    height: auto;
+    padding: 20px 0;
+  }
+  .cp-item-product { display: contents; }
+  .cp-item-info { display: contents; }
+  .cp-item-thumb {
+    grid-row: 1 / 4;
+    grid-column: 1;
+    width: 96px; height: 96px;
+    margin-right: 0;
+    align-self: center;
+  }
+  .cp-item-category {
+    grid-row: 1;
+    grid-column: 2;
+    align-self: center;
+    font-size: 12px;
+    line-height: 1;
+  }
+  .cp-remove {
+    grid-row: 1;
+    grid-column: 3;
+    align-self: center;
+    justify-self: end;
+  }
+  .cp-item-name {
+    grid-row: 2;
+    grid-column: 2 / 4;
+    min-width: 0;
+    overflow: hidden;
+    gap: 0;
+    line-height: 1.4;
+    margin-top: 2px;
+    margin-bottom: 8px;
+  }
+  .cp-item-name-kr {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+  }
+  .cp-item-meta-inline {
+    display: inline;
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--type-body-s-size);
+    white-space: nowrap;
+  }
+  .cp-item-badges { display: none; }
+  .cp-item-price { display: none; }
+  .cp-item-qty {
+    grid-row: 3;
+    grid-column: 2;
+    width: auto;
+    margin-right: 0;
+    justify-content: flex-start;
+  }
+  .cp-item-total {
+    grid-row: 3;
+    grid-column: 3;
+    width: auto;
+    margin-right: 0;
+    text-align: right;
+  }
+
+  /* 배송비 행: 1행(라벨·가격) + 2행(안내문·게이지) 로 재배치 */
+  .cp-shipping-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    height: auto;
+    padding: 12px 0;
+    row-gap: 6px;
+    column-gap: 12px;
+    align-items: center;
+  }
+  .cp-shipping-label {
+    grid-row: 1;
+    grid-column: 1;
+    margin-right: 0;
+  }
+  .cp-shipping-price {
+    grid-row: 1;
+    grid-column: 2;
+    margin-left: 0;
+  }
+  .cp-shipping-notice {
+    grid-row: 2;
+    grid-column: 1;
+    line-height: 1.5;
+  }
+  .cp-shipping-row .shipping-gauge {
+    grid-row: 2;
+    grid-column: 2;
+    width: 96px;
+  }
+
+  /* Footer 전체: absolute 해제 후 flow 로 재배치
+     1행: 결제예정금액 라벨(좌) · 가격+부가세(우)  → grid 2열
+     2행: 주문하기 풀폭
+     3행: 쇼핑 계속하기 */
+  .cp-footer {
+    position: static;
+    height: auto;
+    padding: 24px 0 40px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto auto;
+    row-gap: 20px;
+    column-gap: 16px;
+    align-items: center;
+  }
+  .cp-subtotal-label {
+    position: static;
+    grid-row: 1;
+    grid-column: 1;
+    align-self: baseline;
+  }
+  .cp-subtotal-price {
+    position: static;
+    grid-row: 1;
+    grid-column: 2;
+    text-align: right;
+    align-self: baseline;
+  }
+  .cp-tax-note {
+    position: static;
+    grid-row: 2;
+    grid-column: 1 / 3;
+    text-align: right;
+    margin-top: -12px;
+  }
+  .cp-cta-area {
+    position: static;
+    grid-row: 3;
+    grid-column: 1 / 3;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .cp-order-btn {
+    order: 1;
+    width: 100%;
+  }
+  .cp-cta-area .cp-continue-link {
+    order: 2;
+  }
+}
 
 /* ══ Step 3-A-4: Primary CTA hover gold rule ══
    호버 시 하단 2px gold 인셋 선으로 state 시그널.

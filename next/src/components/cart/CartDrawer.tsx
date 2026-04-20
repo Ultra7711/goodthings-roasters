@@ -75,7 +75,7 @@ export default function CartDrawer() {
       />
       <div id="cart-drawer-panel" role="dialog" aria-label="장바구니">
         {/* 헤더 */}
-        <div className="cd-header">
+        <div className={`cd-header${isEmpty ? ' cd-header--empty' : ''}`}>
           <div className="cd-title-wrap">
             <span className="cd-title">장바구니</span>
             <span className="cd-count">{totalQty}</span>
@@ -153,6 +153,9 @@ export default function CartDrawer() {
                       <div className="cd-item-category">{item.category}</div>
                       <div className="cd-item-name">
                         <span className="cd-item-name-kr">{krName}</span>
+                        <span className="cd-item-meta-inline">
+                          {` · ${[item.volume, subBadge, `${item.qty}개`].filter(Boolean).join(' · ')}`}
+                        </span>
                       </div>
                       <div className="cd-item-bottom">
                         {item.volume && (

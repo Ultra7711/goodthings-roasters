@@ -79,7 +79,6 @@ export default function ProductRecipeGuide({ product }: Props) {
           const slug = COFFEE_METHOD_SLUG[r.method];
           return (
             <div key={r.method} className="pd-recipe-card pd-recipe-card--split">
-              <div className="pd-recipe-method">{r.method}</div>
               <div className="pd-recipe-body">
                 {slug && (
                   <div className="pd-recipe-illust">
@@ -95,15 +94,18 @@ export default function ProductRecipeGuide({ product }: Props) {
                     />
                   </div>
                 )}
-                <div className="pd-recipe-table">
-                  <span className="pd-recipe-dt"><span>원두량</span></span>
-                  <span className="pd-recipe-dd">{r.dose}</span>
-                  <span className="pd-recipe-dt"><span>추출시간</span></span>
-                  <span className="pd-recipe-dd">{r.time}</span>
-                  <span className="pd-recipe-dt"><span>온도</span></span>
-                  <span className="pd-recipe-dd">{r.temp}</span>
-                  <span className="pd-recipe-dt"><span>물량</span></span>
-                  <span className="pd-recipe-dd">{r.water}</span>
+                <div className="pd-recipe-text">
+                  <div className="pd-recipe-method">{r.method}</div>
+                  <div className="pd-recipe-table">
+                    <span className="pd-recipe-dt"><span>원두량</span></span>
+                    <span className="pd-recipe-dd">{r.dose}</span>
+                    <span className="pd-recipe-dt"><span>추출시간</span></span>
+                    <span className="pd-recipe-dd">{r.time}</span>
+                    <span className="pd-recipe-dt"><span>온도</span></span>
+                    <span className="pd-recipe-dd">{r.temp}</span>
+                    <span className="pd-recipe-dt"><span>물량</span></span>
+                    <span className="pd-recipe-dd">{r.water}</span>
+                  </div>
                 </div>
               </div>
             </div>

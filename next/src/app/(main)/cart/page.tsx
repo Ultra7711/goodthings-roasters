@@ -68,6 +68,23 @@ export default function CartPage() {
     <div className="cp-root" ref={rootRef}>
       <div className="cp-page-header">
         <h1 className="cp-title-text">장바구니</h1>
+        {!isEmpty && (
+          <button
+            type="button"
+            className="cp-title-delete"
+            aria-label="장바구니 전체 삭제"
+            title="전체 삭제"
+            onClick={() => setClearOpen(true)}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10,11v6" />
+              <path d="M14,11v6" />
+              <path d="M19,6v14c0,1.1-.9,2-2,2H7c-1.1,0-2-.9-2-2V6" />
+              <path d="M3,6h18" />
+              <path d="M8,6v-2c0-1.1.9-2,2-2h4c1.1,0,2,.9,2,2v2" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {isEmpty ? (
@@ -145,6 +162,9 @@ export default function CartPage() {
                       <div className="cp-item-category">{item.category}</div>
                       <div className="cp-item-name">
                         <span className="cp-item-name-kr">{krName}</span>
+                        <span className="cp-item-meta-inline">
+                          {` · ${[item.volume, subBadge, `${item.qty}개`].filter(Boolean).join(' · ')}`}
+                        </span>
                       </div>
                       {(item.volume || subBadge) && (
                         <div className="cp-item-badges">

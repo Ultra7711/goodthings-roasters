@@ -315,7 +315,7 @@ export default function LoginPage() {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+    <div style={{ minHeight: '100dvh' }}>
       {/* ── 미니 헤더 ── */}
       <div
         className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
