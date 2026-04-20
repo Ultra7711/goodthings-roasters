@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-04-21 · Session 52 — Vercel 프로덕션 배포 + CSP nonce 해결 + OAuth/Maps 콜백 등록 + 스모크 테스트 4/4 통과.
+> **최종 업데이트:** 2026-04-21 · Session 53 — Vercel Analytics + Speed Insights 도입 (Phase 4 모니터링 1단계).
 
 ---
 
@@ -132,7 +132,7 @@
 | 외부 서비스 콜백 등록 | ✅ | Session 52 — Supabase Auth / Kakao Maps / Kakao OAuth / Naver OAuth (Toss 라이브 전환 시 추가) |
 | Supabase 프로젝트 설정 | 🔄 | dev(`ceqewbbjuhtnarzgkzmx`) 완료 · staging/prod 분리 남음 |
 | CI/CD 파이프라인 | ✅ | GitHub → Vercel 자동 배포 (master push 시 prod) |
-| 모니터링 / 에러 트래킹 | ⬜ | Sentry · Vercel Analytics |
+| 모니터링 / 에러 트래킹 | 🔄 | Vercel Analytics + Speed Insights ✅ Session 53 (`609d3293`) · Sentry 잔여 (DSN 준비 시 착수) |
 
 ---
 
