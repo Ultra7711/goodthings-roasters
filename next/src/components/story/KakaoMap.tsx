@@ -131,6 +131,7 @@ function buildOverlayContent({
   toLink.target = '_blank';
   toLink.rel = 'noopener noreferrer';
   toLink.textContent = '길찾기';
+  toLink.addEventListener('click', (e) => e.stopPropagation());
 
   const detailLink = document.createElement('a');
   detailLink.className = 'st-map-overlay-btn st-map-overlay-btn--primary';
@@ -138,6 +139,7 @@ function buildOverlayContent({
   detailLink.target = '_blank';
   detailLink.rel = 'noopener noreferrer';
   detailLink.textContent = '카카오맵 상세';
+  detailLink.addEventListener('click', (e) => e.stopPropagation());
 
   actionsEl.append(toLink, detailLink);
   wrap.append(nameEl, actionsEl);
