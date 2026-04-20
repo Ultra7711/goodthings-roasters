@@ -111,6 +111,10 @@ function buildOverlayContent({
 }): HTMLElement {
   const wrap = document.createElement('div');
   wrap.className = 'st-map-overlay';
+  /* Kakao 지도 click 핸들러로 버블링되면 overlay 가 닫히면서 anchor navigation 이
+     취소된다. wrap 레벨에서 mousedown/click 을 모두 차단해야 링크가 정상 동작. */
+  wrap.addEventListener('mousedown', (e) => e.stopPropagation());
+  wrap.addEventListener('click', (e) => e.stopPropagation());
 
   const detailHref = placeId
     ? `https://place.map.kakao.com/${placeId}`
