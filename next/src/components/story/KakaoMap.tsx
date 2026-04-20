@@ -204,10 +204,9 @@ export default function KakaoMap({
             if (overlay.getMap()) overlay.setMap(null);
             else overlay.setMap(map);
           });
-          /* 지도 빈 영역 클릭 → 말풍선 닫기 */
-          kakao.event.addListener(map, 'click', () => {
-            if (overlay.getMap()) overlay.setMap(null);
-          });
+          /* 주의: map 'click' 핸들러로 overlay 를 닫으면 overlay 내부 링크 클릭도
+             좌표 기반으로 감지되어 DOM 이 제거 → anchor navigation 이 취소된다.
+             닫기는 마커 재클릭으로만 제공. */
         });
       })
       .catch((err) => console.warn('[KakaoMap]', err));
