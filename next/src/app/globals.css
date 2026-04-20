@@ -5522,6 +5522,35 @@ footer.blk {
   text-decoration-color: var(--color-accent-gold);
 }
 
+/* ══ BizInquiry — Tablet (≤1023) + Mobile (≤767) 정규화 ══
+   Tablet: 2단(5fr 7fr) → 1단 스택 · bi-left sticky 해제
+   Mobile: 패딩·gap 추가 축소 · H1→H2 다운 · bi-form-section 1단 스택 */
+@media (max-width: 1023px) {
+  #bi-body {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding-top: 40px;
+    padding-bottom: 80px;
+  }
+  #bi-left { position: static; top: auto; }
+}
+@media (max-width: 767px) {
+  #bi-body {
+    padding-top: 32px;
+    padding-bottom: 64px;
+    gap: 24px;
+  }
+  #bi-page-title { font-size: var(--type-h2-size); }
+  .bi-form-section {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .bi-section-label {
+    padding-top: 0;
+    margin-bottom: 12px;
+  }
+}
+
 /* ══════════════════════════════════════════
    GLOBAL TOAST  ── #global-toast
    프로토타입 #global-toast 이식 (L2937~2948).
@@ -6435,6 +6464,20 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .ocp-enter .ocp-subtitle { animation: staggerUp .5s var(--ease-spring) .25s both; }
 .ocp-enter .ocp-summary { animation: staggerUp .5s var(--ease-spring) .35s both; }
 .ocp-enter .ocp-actions { animation: staggerUp .5s var(--ease-spring) .45s both; }
+
+/* ══ OrderComplete — Mobile (≤767) 정규화 ══
+   - ocp-item min-width:440px·height:176px 제거 → 360px 가로 스크롤 방지
+   - ocp-body 상/하 패딩 축소 · ocp-inner max-width 해제
+   - ocp-item-img 80×80 · ocp-item-badges flex-wrap 허용 */
+@media (max-width: 767px) {
+  .ocp-body { padding-top: 60px; padding-bottom: 80px; }
+  .ocp-inner { max-width: 100%; }
+  .ocp-summary { min-height: 0; }
+  .ocp-item { min-width: 0; height: auto; padding: 20px 0; }
+  .ocp-item-img { width: 80px; height: 80px; margin-right: 16px; }
+  .ocp-item-badges { flex-wrap: wrap; }
+  .ocp-order-num { flex-wrap: wrap; }
+}
 
 /* ══════════════════════════════════════════
    LOGIN PAGE — lp-*
