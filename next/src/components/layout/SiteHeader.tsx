@@ -26,8 +26,6 @@ import MobileNavDrawer from '@/components/layout/MobileNavDrawer';
 const SEARCH_PANEL_HEIGHT = 60;
 /** 헤더 높이 기본값 — getBoundingClientRect 실패 시 fallback (CSS 헤더 높이와 동기화) */
 const HEADER_HEIGHT_FALLBACK = 60;
-/** 검색 패널 렌더 완료 후 포커스 지연 ms (CSS transition 종료 타이밍) */
-const SEARCH_FOCUS_DELAY_MS = 20;
 /** 검색 쿼리 최대 길이 — DoS 가드 (브라우저 메인 스레드 정지 방지) */
 const SEARCH_QUERY_MAX_LENGTH = 100;
 
@@ -162,7 +160,9 @@ export default function SiteHeader() {
     document.documentElement.style.setProperty('--dim-top', `${headerBottom + SEARCH_PANEL_HEIGHT}px`);
     document.body.style.overflow = 'hidden';
     setIsSearchOpen(true);
-    setTimeout(() => searchInputRef.current?.focus(), SEARCH_FOCUS_DELAY_MS);
+    // 모바일 가상 키보드 활성화: focus()는 사용자 제스처 컨텍스트(click 핸들러) 내에서
+    // 동기 호출해야 iOS/Android가 키보드를 띄운다. setTimeout으로 감싸면 체인이 끊김.
+    searchInputRef.current?.focus();
   }
 
   /* 언마운트 시 body.overflow 강제 해제 */
