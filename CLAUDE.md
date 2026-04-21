@@ -298,3 +298,27 @@ const refHdr=activeSubHdr||document.getElementById('site-hdr-wrap');
 - Layer 3 정규화(ㅌ→ㄷ 등 거센소리→평음 변환)도 단일 음절 시 적용하지 않음
 - 이유: 단음절은 긴 설명문에서 무관한 단어 내 substring으로 오매칭 발생 빈도가 높음
   (예: "티" → 퀄리**티**, 스페셜**티**, 바**디**감 등)
+
+---
+
+## 핸드오버 메모리 작성 규칙
+
+> 상세 규칙: `docs/handover-memory-rule.md`
+
+세션 경계(페이즈 완료·도메인 전환·컨텍스트 리셋 직전)에 다음 세션이 즉시 복귀할 수 있도록
+`memory/project_*_complete.md` 또는 `memory/session_handover_*.md` 를 작성한다.
+**이 문서는 git 저장소에 영구 보관**되므로 Claude Desktop 재설치·설정 초기화 후에도 유효하다.
+
+### 자동 트리거 3종 (명시적 요청 없이 실행)
+
+1. **페이즈·RP 완료 커밋 + 푸시 직후** — `project_pixel_port_rp{N}_handover.md`
+2. **세션 리셋·`/clear` 직전** — `session_handover_{YYYY_MM_DD}.md`
+3. **Compaction 3회 이상 + 클린 커밋 경계** — `project_session{N}_complete.md`
+
+### 핵심 원칙
+
+- **7섹션 필수:** frontmatter → 완료 내용 → Deferred → 결과 문서 포인터 → 진입 컨텍스트 → 영구 원칙 → 다음 첫 단계
+- **결과 문서 포인터 원칙:** handover 메모리 하나만 읽으면 모든 관련 문서 위치를 알 수 있어야 한다. 경로 추측 금지.
+- **체인 유지:** 섹션 4에 이전 핸드오버 메모리 링크 포함 (N-1 → N → N+1 추적 가능)
+- **커밋 후 작성:** 먼저 커밋·푸시 → 해시 확인 → 메모리 작성 순서 준수
+- **MEMORY.md 인덱스 동시 등록** 필수
