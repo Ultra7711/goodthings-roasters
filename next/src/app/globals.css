@@ -376,7 +376,12 @@
    모바일: overlay scrollbar 라 시프트 없음 + 24px 좌우 대칭 위해 auto 로 해제. */
 html {
   scrollbar-gutter: stable;
+  background: #1E1B16;
+}
+
+.page-bg {
   background: var(--color-background-primary);
+  min-height: 100svh;
 }
 @media (max-width: 767px) {
   html {
@@ -386,7 +391,7 @@ html {
 
 body {
   font-family: var(--font-en);
-  background: var(--color-background-primary);
+  background: transparent;
   color: var(--color-text-primary);
   word-break: keep-all;
 }

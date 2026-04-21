@@ -44,9 +44,11 @@ export default async function RootLayout({
           AuthSyncProvider: Supabase 세션 → Zustand 동기화 브리지 (P0-2) +
           로그인/로그아웃 시 ['cart'] 캐시 invalidate. */}
       <body>
-        <Providers>
-          <AuthSyncProvider>{children}</AuthSyncProvider>
-        </Providers>
+        <div className="page-bg">
+          <Providers>
+            <AuthSyncProvider>{children}</AuthSyncProvider>
+          </Providers>
+        </div>
         <Analytics />
         <SpeedInsights />
       </body>
