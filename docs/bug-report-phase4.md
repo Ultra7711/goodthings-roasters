@@ -40,7 +40,7 @@
 - **실제:** PC 정상 · iOS 모바일에서 헤어라인 불가시
 - **추정 범위:** `border: 1px solid var(--color-line-light)` 가 iOS 고DPR 에서 sub-pixel rendering 으로 사라짐. `0.5px` · `hairline` 토큰 도입 또는 `box-shadow: inset 0 0 0 1px` 대체 검토.
 
-### BUG-104 — 카페 메뉴 바텀시트 하단 세이프티 에리어 iOS 잘림 (흰색) 🟡
+### BUG-104 — ✅ 카페 메뉴 바텀시트 하단 세이프티 에리어 iOS 잘림 (흰색)
 
 - **발견:** 2026-04-21 / iOS
 - **재현 경로:** 카페 메뉴 → 상품 탭 → 바텀시트 오픈
@@ -69,7 +69,7 @@
 - **실제:** 좌우 스크롤 버튼이 계속 보이고, 기본 회색이 탁함. 크기도 모바일에선 크거나 어색
 - **개선 제안:** 크기 조정 + `opacity` 활용 반투명 + 호버/탭 시에만 강조 (idle 시 흐리게)
 
-### BUG-108 — 카페 메뉴 바텀시트 터치 이벤트 통과 (배경 스크롤) 🟠
+### BUG-108 — ✅ 카페 메뉴 바텀시트 터치 이벤트 통과 (배경 스크롤)
 
 - **발견:** 2026-04-21 / 모바일
 - **재현 경로:** 카페 메뉴 → 상품 탭 → 바텀시트 오픈 → 바텀시트 영역 터치/스크롤
@@ -85,6 +85,18 @@
 - **해결:** 2026-04-21
 - **방법:** `HeroSection` height `100vh` → `100svh` 전환으로 모바일 브라우저 UI 영역 제외. 오버스크롤 배경색 시스템(OverscrollColor + OverscrollTop) 도입으로 상단 흰 배경 노출 문제도 동시 해결.
 - **커밋:** `2d4d59f5` (Session 53)
+
+### BUG-108 — 카페 메뉴 바텀시트 터치 이벤트 통과 (배경 스크롤) ✅
+
+- **해결:** 2026-04-21
+- **방법:** `overscroll-behavior:contain` + `touch-action:pan-y`(CSS), `#cns-bg` touchmove preventDefault(JS), 모바일 드래그-닫기 80px 스와이프 제스처 추가(JS).
+- **커밋:** `4cc1bca2` (Session 53)
+
+### BUG-104 — 카페 메뉴 바텀시트 하단 세이프티 에리어 iOS 잘림 (흰색) ✅
+
+- **해결:** 2026-04-21
+- **방법:** `overflow-y:auto` 컨테이너의 `padding-bottom` 배경 미채움 quirk 해소. panel `padding-bottom` 제거 → `.cns-content`에 `calc(32px + env(safe-area-inset-bottom))` 적용.
+- **커밋:** `e9d3ed8f` (Session 53)
 
 ---
 
