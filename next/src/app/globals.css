@@ -1217,8 +1217,8 @@ footer.blk {
 }
 
 /* ══ #hero-blk ══ */
-/* 어나운스(36px) + 헤더(60px) 뒤로 히어로가 확장됨 — 프로토타입 라인 468 */
-#hero-blk { margin-top: -96px; }
+/* 어나운스 + 헤더 높이만큼 위로 당겨 전체화면 덮음 — clamp 값이 뷰포트마다 달라 고정값 대신 변수 사용 */
+#hero-blk { margin-top: calc(-1 * (var(--ann-bar-height) + var(--header-height))); }
 .hero {
   position: relative;
   min-height: 100svh;
