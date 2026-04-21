@@ -16,15 +16,15 @@ export default function TwoColSection() {
             <div className="tci-overlay">
               <svg
                 className="tci-arrow"
-                viewBox="0 0 24 24"
+                viewBox="0 0 48 48"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="1"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <path d="M5,12h14" />
-                <path d="M12,5l7,7-7,7" />
+                <path d="M10,24h28" />
+                <path d="M24,10l14,14-14,14" />
               </svg>
               <div className="tci-lbl sr-txt sr-txt--d1">Subscription</div>
               <div className="tci-h sr-txt sr-txt--d2">매달, 문 앞까지.</div>
@@ -40,15 +40,15 @@ export default function TwoColSection() {
             <div className="tci-overlay">
               <svg
                 className="tci-arrow"
-                viewBox="0 0 24 24"
+                viewBox="0 0 48 48"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="1"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <path d="M5,12h14" />
-                <path d="M12,5l7,7-7,7" />
+                <path d="M10,24h28" />
+                <path d="M24,10l14,14-14,14" />
               </svg>
               <div className="tci-lbl sr-txt sr-txt--d1">Business</div>
               <div className="tci-h sr-txt sr-txt--d2">좋은 원두를, 좋은 공간에.</div>

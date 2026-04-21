@@ -73,15 +73,15 @@ export default function CafeMenuSection() {
                 <div className="cat-overlay">
                   <svg
                     className="cat-arrow"
-                    viewBox="0 0 24 24"
+                    viewBox="0 0 48 48"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="2"
+                    strokeWidth="1"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <path d="M5,12h14" />
-                    <path d="M12,5l7,7-7,7" />
+                    <path d="M10,24h28" />
+                    <path d="M24,10l14,14-14,14" />
                   </svg>
                   <div className="cat-title">{title}</div>
                   <div className="cat-desc">{desc}</div>
