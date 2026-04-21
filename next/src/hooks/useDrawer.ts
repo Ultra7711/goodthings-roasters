@@ -6,7 +6,7 @@
    상세 드로어 패턴: memory/feedback_drawer_pattern.md
    ══════════════════════════════════════════ */
 
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 
 type UseDrawerArgs = {
   /** 드로어 오픈 상태 */
@@ -45,7 +45,10 @@ export function useDrawer({ open, onClose }: UseDrawerArgs): void {
   //   2) body.paddingRight=<measured> → body content-box 1072 유지 → sticky 헤더·
   //      페이지 레이아웃이 시프트하지 않음 (UI-005 회귀 방지)
   //   3) body.overflow='hidden' → 페이지 스크롤 잠금
-  useEffect(() => {
+  //
+  // useLayoutEffect: DOM 업데이트 직후·페인트 전 동기 실행.
+  // useEffect 사용 시 첫 터치가 scroll lock 이전에 발생해 이벤트가 뚫리는 타이밍 버그 방지.
+  useLayoutEffect(() => {
     if (!open) return;
     const html = document.documentElement;
     const body = document.body;
