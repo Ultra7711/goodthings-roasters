@@ -6689,7 +6689,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* 네이버 */
 .lp-social-btn--naver { background: #03C75A; }
 /* Google */
-.lp-social-btn--google { background: #FFFFFF; border: 1px solid #747775; }
+.lp-social-btn--google { background: #FFFFFF; border: 1px solid #DADCE0; }
 
 /* 비회원 주문 조회 */
 .lp-guest-order-wrap { margin-top: 32px; text-align: center; }
