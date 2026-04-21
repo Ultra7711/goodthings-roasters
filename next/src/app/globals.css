@@ -412,8 +412,8 @@ textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
 textarea:-webkit-autofill:focus,
 textarea:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px transparent inset;
-  box-shadow: 0 0 0 1000px transparent inset;
+  -webkit-box-shadow: 0 0 0 1000px var(--color-background-primary) inset;
+  box-shadow: 0 0 0 1000px var(--color-background-primary) inset;
   -webkit-text-fill-color: var(--color-text-primary);
   caret-color: var(--color-text-primary);
   transition: background-color 5000s ease-in-out 0s;
@@ -5898,6 +5898,19 @@ footer.blk {
 }
 .gd-lb-next {
   right: 24px;
+}
+/* 모바일: 버튼 축소 + 항상 반투명 노출 (hover 없으므로 opacity:0 해제) */
+@media (max-width: 767px) {
+  .gd-lb-arrow {
+    opacity: 0.45;
+    transition: opacity 150ms ease;
+  }
+  .gd-lb-arrow:active { opacity: 1; }
+  .gd-lb-prev { left: 8px; }
+  .gd-lb-next { right: 8px; }
+  /* arrow-btn-primary 100px → 44px (탭 영역 최소치 확보) */
+  .gd-lb-arrow.arrow-btn-primary { padding: 4px; }
+  .gd-lb-arrow.arrow-btn-primary svg { width: 44px; height: 44px; }
 }
 
 /* ══════════════════════════════════════════
