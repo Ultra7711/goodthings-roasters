@@ -4785,18 +4785,21 @@ footer.blk {
   border-collapse: collapse;
   font-size: var(--type-body-s-size);
   line-height: 1.7;
+  table-layout: fixed;
 }
 .pd-info-table td {
   padding: 6px 8px;
   border: .5px solid var(--color-border-tertiary);
   color: var(--color-text-secondary);
   vertical-align: top;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 .pd-info-table .pd-info-label {
   font-weight: 500;
   color: var(--color-text-primary);
   white-space: nowrap;
-  width: auto;
+  width: 7em;
 }
 
 /* ── 반응형: 1024↓ 좌 스티키 해제 · 1열 스택 ── */

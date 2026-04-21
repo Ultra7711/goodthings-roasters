@@ -95,36 +95,19 @@ export default function ProductAccordions({ category, slug }: Props) {
           <div className="pd-accordion-body pd-product-info-body">
             <table className="pd-info-table">
               <tbody>
-                <tr>
-                  <td className="pd-info-label">제품명</td><td>크리에이티브커피빈</td>
-                  <td className="pd-info-label">식품유형</td><td>볶은커피</td>
-                  <td className="pd-info-label">원재료명</td><td>커피 100%</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">제조원</td><td>(주)크리에이티브커피</td>
-                  <td className="pd-info-label">내용량</td><td>12g</td>
-                  <td className="pd-info-label">반품 및 교환</td><td>구입처</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">포장재질</td>
-                  <td colSpan={5}>봉투[ECO PAPER] / 여과지[페트(PET), 폴리프로필렌(PP)]</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">판매원</td>
-                  <td colSpan={5}>(주)브이티이코프 | 경북 구미시 인동21길 22-11 1층</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">소비기한</td><td>제조일로부터 6개월</td>
-                  <td className="pd-info-label">소비자상담</td><td colSpan={3}>054-451-4568</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">품목보고번호</td><td>201803553661</td>
-                  <td className="pd-info-label">보관방법</td><td colSpan={3}>직사광선을 피하고 서늘한 곳에 보관</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">부정/불량식품</td>
-                  <td colSpan={5}>신고는 국번없이 1399</td>
-                </tr>
+                <tr><td className="pd-info-label">제품명</td><td>크리에이티브커피빈</td></tr>
+                <tr><td className="pd-info-label">식품유형</td><td>볶은커피</td></tr>
+                <tr><td className="pd-info-label">원재료명</td><td>커피 100%</td></tr>
+                <tr><td className="pd-info-label">제조원</td><td>(주)크리에이티브커피</td></tr>
+                <tr><td className="pd-info-label">내용량</td><td>12g</td></tr>
+                <tr><td className="pd-info-label">반품 및 교환</td><td>구입처</td></tr>
+                <tr><td className="pd-info-label">포장재질</td><td>봉투[ECO PAPER] / 여과지[페트(PET), 폴리프로필렌(PP)]</td></tr>
+                <tr><td className="pd-info-label">판매원</td><td>(주)브이티이코프 | 경북 구미시 인동21길 22-11 1층</td></tr>
+                <tr><td className="pd-info-label">소비기한</td><td>제조일로부터 6개월</td></tr>
+                <tr><td className="pd-info-label">소비자상담</td><td>054-451-4568</td></tr>
+                <tr><td className="pd-info-label">품목보고번호</td><td>201803553661</td></tr>
+                <tr><td className="pd-info-label">보관방법</td><td>직사광선을 피하고 서늘한 곳에 보관</td></tr>
+                <tr><td className="pd-info-label">부정/불량식품</td><td>신고는 국번없이 1399</td></tr>
               </tbody>
             </table>
           </div>
