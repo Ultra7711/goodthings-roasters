@@ -13,7 +13,7 @@ export const metadata = { title: '카페 메뉴 — good things' };
 
 export default function CafeMenuRoute() {
   return (
-    <Suspense fallback={<div id="cm-body" />}>
+    <Suspense fallback={<div id="cm-body" style={{ minHeight: '100dvh' }} />}>
       <CafeMenuPage />
     </Suspense>
   );
