@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-04-21 · Session 53 — Phase 4 모니터링 완료 (Vercel Analytics + Speed Insights + Sentry 에러/트레이싱).
+> **최종 업데이트:** 2026-04-22 · Session 54 — 검색결과·카페하이라이트·드로어 모바일 폴리시 버그 수정 (BUG-109·110) + 검색 모바일 UX(간격·헤어라인·페이지네이션).
 
 ---
 
