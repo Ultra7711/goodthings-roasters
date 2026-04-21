@@ -473,8 +473,8 @@ textarea:-webkit-autofill:active {
   background: var(--color-background-inverse);
   color: var(--color-text-inverse);
   text-align: center;
-  height: 36px;
-  line-height: 36px;
+  height: var(--ann-bar-height);
+  line-height: var(--ann-bar-height);
   font-size: var(--type-body-s-size);
   font-weight: 400;
   letter-spacing: var(--ls-button);
