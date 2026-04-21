@@ -39,6 +39,7 @@ type: project
 **브랜치:** `{branch-name}`
 **마지막 커밋:** `{short-hash} {커밋 메시지 한 줄}`
 **원격:** 푸시 완료 / 미푸시
+**추천 모델:** `{claude-sonnet-4-6 | claude-opus-4-7}` — {선택 이유 한 줄}
 ```
 
 ### 섹션 2 — 완료 내용
@@ -117,6 +118,7 @@ type: project
 **브랜치:** `{branch}`
 **마지막 커밋:** `{hash} {message}`
 **원격:** {푸시 완료 | 미푸시}
+**추천 모델:** `{claude-sonnet-4-6 | claude-opus-4-7}` — {선택 이유 한 줄}
 
 ## {작업단위} 완료 내용
 
