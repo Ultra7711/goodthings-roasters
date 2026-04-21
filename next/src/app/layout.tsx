@@ -8,6 +8,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import AuthSyncProvider from '@/components/auth/AuthSyncProvider';
 import Providers from '@/components/providers/Providers';
 import OverscrollColor from '@/components/ui/OverscrollColor';
+import TouchHoverGuard from '@/components/ui/TouchHoverGuard';
 import './globals.css';
 
 const inter = Inter({
@@ -46,6 +47,7 @@ export default async function RootLayout({
           로그인/로그아웃 시 ['cart'] 캐시 invalidate. */}
       <body>
         <OverscrollColor />
+        <TouchHoverGuard />
         <div className="page-bg">
           <Providers>
             <AuthSyncProvider>{children}</AuthSyncProvider>

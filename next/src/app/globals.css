@@ -378,6 +378,10 @@ html {
   scrollbar-gutter: stable;
   background: #1E1B16;
 }
+/* 모바일 스크롤(드래그) 중 :hover transition 발동 차단 — TouchHoverGuard.tsx 에서 주입 */
+html.is-touching *:hover {
+  transition: none !important;
+}
 
 .page-bg {
   background: var(--color-background-primary);
