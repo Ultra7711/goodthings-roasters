@@ -1221,7 +1221,7 @@ footer.blk {
 #hero-blk { margin-top: -96px; }
 .hero {
   position: relative;
-  min-height: 100dvh;
+  min-height: 100svh;
   background: var(--color-background-inverse);
   display: flex;
   flex-direction: column;
