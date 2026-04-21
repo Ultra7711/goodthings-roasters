@@ -401,9 +401,10 @@ body {
   word-break: keep-all;
 }
 
-/* Chrome 자동완성 파란 배경 제거 — background-color 는 브라우저가 덮어쓰므로
-   inset box-shadow 로 가리고, 텍스트는 -webkit-text-fill-color 로 유지.
-   5000s transition 은 배경 복귀 애니메이션을 무한 지연시키는 보험. */
+/* Chrome 자동완성 파란 배경 제거 — 2-레이어 방어:
+   ① inset box-shadow(!important) 로 배경색 덮기 (hex 직접 지정, iOS CSS변수 미지원 대응)
+   ② transition: step-end + 사실상 무한 duration 으로 UA !important 스타일을 시간축 차단
+      (noahliebman.net/2024/08 기법: transitions take precedence over !important UA styles) */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -412,12 +413,13 @@ textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
 textarea:-webkit-autofill:focus,
 textarea:-webkit-autofill:active {
-  /* iOS Chrome 은 -webkit-autofill 컨텍스트에서 CSS 변수를 해석하지 못함 — hex 직접 지정 */
-  -webkit-box-shadow: 0 0 0 1000px #FBF8F3 inset;
-  box-shadow: 0 0 0 1000px #FBF8F3 inset;
-  -webkit-text-fill-color: var(--color-text-primary);
-  caret-color: var(--color-text-primary);
-  transition: background-color 5000s ease-in-out 0s;
+  -webkit-box-shadow: 0 0 0 1000px #FBF8F3 inset !important;
+  box-shadow: 0 0 0 1000px #FBF8F3 inset !important;
+  -webkit-text-fill-color: #1C1B19 !important;
+  caret-color: #1C1B19;
+  transition:
+    background-color calc(infinity * 1s) step-end,
+    color calc(infinity * 1s) step-end;
 }
 
 .root {
