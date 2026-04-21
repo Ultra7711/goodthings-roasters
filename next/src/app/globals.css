@@ -4765,11 +4765,10 @@ footer.blk {
 /* + → − 회전 애니메이션 제거: 열림 시 v 획을 즉시 숨겨 + → − 로 전환 */
 .pd-accordion.open .pd-icon-v { display: none; }
 .pd-accordion-body {
-  /* 본문 사이즈(15px) 유지, 위계는 컬러(tertiary)로만 형성 */
   font-family: var(--font-kr);
   font-size: 15px;
   font-weight: 400;
-  color: var(--color-text-caption);
+  color: var(--color-text-secondary);
   line-height: 1.9;
   max-height: 0;
   overflow: hidden;
@@ -4781,11 +4780,8 @@ footer.blk {
   padding: 0;
 }
 .pd-accordion-body p { margin-bottom: 4px; }
-.pd-accordion-body strong {
-  /* 본문이 tertiary 톤이므로 강조는 secondary 로 한 단계 위 */
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
+.pd-accordion-body strong { font-weight: 500; }
+.pd-accordion-li { padding-left: 0.875em; }
 .pd-accordion.open .pd-accordion-body {
   max-height: 600px;
   opacity: 1;

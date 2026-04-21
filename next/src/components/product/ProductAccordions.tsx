@@ -64,9 +64,9 @@ export default function ProductAccordions({ category, slug }: Props) {
           <p><strong>평일 오후 2시 이전 주문 시 당일 발송</strong></p>
           <br />
           <p><strong>[ 국내 배송 안내 ]</strong></p>
-          <p>· 기본 배송비 3,000원 / 15,000원 이상 구매 시 무료 배송</p>
-          <p>· 주문 후 평균 1–3 영업일 이내 출고됩니다.</p>
-          <p>· 토·일·공휴일은 발송이 이루어지지 않으며, 다음 영업일에 순차 발송됩니다.</p>
+          <p className="pd-accordion-li">기본 배송비 3,000원 / 15,000원 이상 구매 시 무료 배송</p>
+          <p className="pd-accordion-li">주문 후 평균 1–3 영업일 이내 출고됩니다.</p>
+          <p className="pd-accordion-li">토·일·공휴일은 발송이 이루어지지 않으며, 다음 영업일에 순차 발송됩니다.</p>
           <br />
           <p>문의사항은 언제든지 편하게 연락해 주세요.</p>
         </div>
@@ -79,9 +79,9 @@ export default function ProductAccordions({ category, slug }: Props) {
           <AccordionIcon />
         </button>
         <div className="pd-accordion-body">
-          <p>· 원두 특성상 개봉 후에는 교환 및 반품이 불가합니다.</p>
-          <p>· 상품 불량 또는 오배송의 경우 수령일로부터 7일 이내 연락 주시면 처리해 드립니다.</p>
-          <p>· 단순 변심에 의한 반품은 미개봉 상태에서만 가능하며, 왕복 배송비는 고객 부담입니다.</p>
+          <p className="pd-accordion-li">원두 특성상 개봉 후에는 교환 및 반품이 불가합니다.</p>
+          <p className="pd-accordion-li">상품 불량 또는 오배송의 경우 수령일로부터 7일 이내 연락 주시면 처리해 드립니다.</p>
+          <p className="pd-accordion-li">단순 변심에 의한 반품은 미개봉 상태에서만 가능하며, 왕복 배송비는 고객 부담입니다.</p>
         </div>
       </div>
 
