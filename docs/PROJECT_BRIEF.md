@@ -150,12 +150,11 @@ next/src/app/
 
 ## 설계 원칙 (코드 작성 시 반드시 준수)
 
-1. **프로토타입 = ground truth** — `goodthings_v1.0.html` 수치 그대로 이식, 재해석 금지
-2. **CSS 수정 전 grep 전수조사** — 변경 속성을 전체 파일에서 먼저 검색 후 수정
-3. **body overflow는 `_restoreOverflow()` 경유** — 직접 `''` 해제 금지
-4. **새 서브 페이지 추가 시 DEV 패널 등록 필수**
-5. **아이콘 인라인 SVG 추가 시 `images/icons/` 폴더 동기화**
-6. **브랜드명: "굳띵즈"** (굿띵스·good things 사용 금지)
+1. **CSS 수정 전 grep 전수조사** — 변경 속성을 전체 파일에서 먼저 검색 후 수정
+2. **body overflow는 `_restoreOverflow()` 경유** — 직접 `''` 해제 금지
+3. **새 서브 페이지 추가 시 DEV 패널 등록 필수**
+4. **아이콘 인라인 SVG 추가 시 `images/icons/` 폴더 동기화**
+5. **브랜드명: "굳띵즈"** (굿띵스·good things 사용 금지)
 
 ---
 
