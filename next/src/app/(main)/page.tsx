@@ -14,7 +14,7 @@ import GoodDaysSection from '@/components/home/GoodDaysSection';
 export default function HomePage() {
   return (
     <>
-      <OverscrollTop color="#1E1B16" />
+      <OverscrollTop top="#1E1B16" />
       {/* #hero-blk margin-top:-96px는 globals.css에서 적용 */}
       <HeroSection />
       <CafeMenuSection />

@@ -7,12 +7,14 @@
 
 import { Suspense } from 'react';
 import LoginPage from '@/components/auth/LoginPage';
+import OverscrollTop from '@/components/ui/OverscrollTop';
 
 export const metadata = { title: '로그인 — good things' };
 
 export default function LoginRoute() {
   return (
     <Suspense>
+      <OverscrollTop top="#FBF8F3" bottom="#FBF8F3" />
       <LoginPage />
     </Suspense>
   );

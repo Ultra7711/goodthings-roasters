@@ -1,21 +1,24 @@
 'use client';
 
 import { useEffect } from 'react';
-import { setTopColor, resetTopColor, TOP_DEFAULT } from './overscrollState';
+import { setTopColor, setBottomColor, resetColors, TOP_DEFAULT } from './overscrollState';
 
 interface OverscrollTopProps {
-  color: string;
+  top: string;
+  bottom?: string; // 미지정 시 BOTTOM_DEFAULT(#4A4845) 유지
 }
 
-export default function OverscrollTop({ color }: OverscrollTopProps) {
+export default function OverscrollTop({ top, bottom }: OverscrollTopProps) {
   useEffect(() => {
-    setTopColor(color);
-    document.documentElement.style.backgroundColor = color;
+    setTopColor(top);
+    if (bottom) setBottomColor(bottom);
+    document.documentElement.style.backgroundColor = top;
+
     return () => {
-      resetTopColor();
+      resetColors();
       document.documentElement.style.backgroundColor = TOP_DEFAULT;
     };
-  }, [color]);
+  }, [top, bottom]);
 
   return null;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { getTopColor, BOTTOM_COLOR } from './overscrollState';
+import { getTopColor, getBottomColor } from './overscrollState';
 
 const BOTTOM_THRESHOLD = 50;
 
@@ -12,7 +12,7 @@ export default function OverscrollColor() {
     const update = () => {
       const atBottom =
         window.scrollY + window.innerHeight >= el.scrollHeight - BOTTOM_THRESHOLD;
-      el.style.backgroundColor = atBottom ? BOTTOM_COLOR : getTopColor();
+      el.style.backgroundColor = atBottom ? getBottomColor() : getTopColor();
     };
 
     update();
