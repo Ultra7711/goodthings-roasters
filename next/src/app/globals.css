@@ -4908,8 +4908,8 @@ footer.blk {
 /* ── Hero (100svh, 센터 정렬, 헤더 뒤로 확장) ── */
 .st-hero {
   position: relative;
-  margin-top: -96px;
-  height: 100svh;
+  margin-top: calc(-1 * (var(--ann-bar-height) + var(--header-height)));
+  min-height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
