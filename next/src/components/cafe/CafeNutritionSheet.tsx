@@ -70,10 +70,13 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
 
     function onMove(e: TouchEvent) {
       if (!dragging) return;
-      const dy = Math.max(0, e.touches[0].clientY - startY);
+      const dy = e.touches[0].clientY - startY;
       if (dy > 0) {
+        e.preventDefault(); // Chrome: passive:false + preventDefault로 body scroll 차단
         panel!.style.transition = 'none';
         panel!.style.transform = `translateY(${dy}px)`;
+      } else {
+        panel!.style.transform = ''; // 반대 방향 → 패널 원위치
       }
     }
 
@@ -90,7 +93,7 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
     }
 
     panel.addEventListener('touchstart', onStart, { passive: true });
-    panel.addEventListener('touchmove', onMove, { passive: true });
+    panel.addEventListener('touchmove', onMove, { passive: false });
     panel.addEventListener('touchend', onEnd, { passive: true });
 
     return () => {
