@@ -43,6 +43,9 @@ export default async function RootLayout({
 
   return (
     <html lang="ko" className={`${inter.variable} ${pretendard.variable} antialiased`}>
+      <head>
+        <link rel="preload" as="image" href="/images/hero/hero-poster.jpg" fetchPriority="high" />
+      </head>
       {/* Providers: QueryClientProvider + CartDrawerProvider (ADR-004 Step B).
           AuthSyncProvider: Supabase 세션 → Zustand 동기화 브리지 (P0-2) +
           로그인/로그아웃 시 ['cart'] 캐시 invalidate. */}

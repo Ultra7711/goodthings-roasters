@@ -7,6 +7,8 @@ export default function HeroSection() {
   return (
     <section className="blk" id="hero-blk" data-header-theme="dark">
       <div className="hero">
+        {/* 포스터 로드 전 gradient placeholder — 순수 다크에서 이미지로 전환 시 충격 완화 */}
+        <div className="hero-bg-placeholder" aria-hidden="true" />
         <video
           className="hero-bg"
           autoPlay muted loop playsInline
