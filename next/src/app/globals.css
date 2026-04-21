@@ -376,7 +376,7 @@
    모바일: overlay scrollbar 라 시프트 없음 + 24px 좌우 대칭 위해 auto 로 해제. */
 html {
   scrollbar-gutter: stable;
-  background: #1E1B16;
+  background: #F5F3F0;
 }
 
 .page-bg {

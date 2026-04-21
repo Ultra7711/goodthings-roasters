@@ -4,6 +4,7 @@
    ══════════════════════════════════════════ */
 
 import HeroSection from '@/components/home/HeroSection';
+import OverscrollTop from '@/components/ui/OverscrollTop';
 import CafeMenuSection from '@/components/home/CafeMenuSection';
 import PhilSection from '@/components/home/PhilSection';
 import BeansScrollSection from '@/components/home/BeansScrollSection';
@@ -13,6 +14,7 @@ import GoodDaysSection from '@/components/home/GoodDaysSection';
 export default function HomePage() {
   return (
     <>
+      <OverscrollTop color="#1E1B16" />
       {/* #hero-blk margin-top:-96px는 globals.css에서 적용 */}
       <HeroSection />
       <CafeMenuSection />

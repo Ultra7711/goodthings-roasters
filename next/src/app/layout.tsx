@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import AuthSyncProvider from '@/components/auth/AuthSyncProvider';
 import Providers from '@/components/providers/Providers';
+import OverscrollColor from '@/components/ui/OverscrollColor';
 import './globals.css';
 
 const inter = Inter({
@@ -44,6 +45,7 @@ export default async function RootLayout({
           AuthSyncProvider: Supabase 세션 → Zustand 동기화 브리지 (P0-2) +
           로그인/로그아웃 시 ['cart'] 캐시 invalidate. */}
       <body>
+        <OverscrollColor />
         <div className="page-bg">
           <Providers>
             <AuthSyncProvider>{children}</AuthSyncProvider>
