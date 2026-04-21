@@ -1174,22 +1174,37 @@ footer.blk {
   opacity: 0;
   filter: blur(12px);
   transition: opacity 0.9s ease-out, filter 0.9s ease-out;
+  /* JS 로딩 실패 시 5s 후 자동 표시 — sr--visible 붙으면 animation: none 으로 취소 */
+  animation: sr-img-fallback 0.9s ease-out 5s forwards;
 }
 .sr-txt {
   opacity: 0;
   transform: translateY(20px);
   transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
+  animation: sr-txt-fallback var(--duration-slide) ease-out 5s forwards;
 }
 .sr-txt--d1 { transition-delay: 0ms; }
 .sr-txt--d2 { transition-delay: 150ms; }
 .sr-txt--d3 { transition-delay: 300ms; }
 .sr-txt--d4 { transition-delay: 450ms; }
 .sr--visible .sr-img,
-.sr-img.sr--visible { opacity: 1; filter: blur(0); }
+.sr-img.sr--visible { opacity: 1; filter: blur(0); animation: none; }
 .sr--visible .sr-txt,
-.sr-txt.sr--visible { opacity: 1; transform: translateY(0); }
+.sr-txt.sr--visible { opacity: 1; transform: translateY(0); animation: none; }
 
 /* ══ 키프레임 ══ */
+@keyframes sr-img-fallback {
+  to { opacity: 1; filter: blur(0); }
+}
+@keyframes sr-txt-fallback {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes heroSloganIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes heroMouseIn {
+  to { opacity: 1; }
+}
 @keyframes scrollWheel {
   0%   { opacity: .3; transform: translateY(0); }
   50%  { opacity: 1;  transform: translateY(4px); }
@@ -1275,9 +1290,8 @@ footer.blk {
   line-height: 1.1;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.9s ease-out, transform 0.9s ease-out;
+  animation: heroSloganIn 0.9s ease-out 0.8s forwards;
 }
-.hero-slogan.hero--visible { opacity: 1; transform: translateY(0); }
 .hero-slogan-br { display: none; }
 @media (max-width: 480px) {
   .hero-slogan-br { display: inline; }
@@ -1288,11 +1302,10 @@ footer.blk {
   color: rgba(250,250,248,.5);
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity 0.9s ease-out;
+  animation: heroMouseIn 0.9s ease-out 1.4s forwards;
   position: relative;
   top: -3px;
 }
-.hero-scroll-mouse.hero--visible { opacity: 1; }
 .hero-scroll-mouse .mouse-wheel {
   transform-origin: center;
   animation: scrollWheel 1.8s ease-in-out infinite;
@@ -6831,6 +6844,34 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .page-loading-shell {
   min-height: 100dvh;
   background: var(--color-bg-primary);
+}
+.error-page {
+  min-height: 100dvh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 24px;
+  background: var(--color-background-primary);
+  font-family: var(--font-kr);
+}
+.error-page-msg {
+  font-size: var(--type-body-m-size);
+  color: var(--color-text-secondary);
+}
+.error-page-actions {
+  display: flex; gap: 12px; align-items: center;
+}
+.error-page-retry {
+  padding: 10px 20px;
+  background: var(--color-text-primary);
+  color: var(--color-background-primary);
+  border: none; border-radius: 4px;
+  font-family: var(--font-kr); font-size: var(--type-body-s-size);
+  cursor: pointer;
+}
+.error-page-home {
+  font-size: var(--type-body-s-size);
+  color: var(--color-text-tertiary);
+  text-decoration: underline;
 }
 
 /* ══════════════════════════════════════════
