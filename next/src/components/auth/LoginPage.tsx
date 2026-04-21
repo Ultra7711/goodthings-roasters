@@ -80,7 +80,7 @@ function KakaoIcon() {
 function NaverIcon() {
   return (
     <svg width="18" height="16" viewBox="0 0 22 20" fill="none">
-      <polygon points="22,0 22,20 14.6,20 7.3,9.9 7.3,20 0,20 0,0 7.3,0 14.6,10.4 14.6,0 22,0" fill="#FAFAF8" />
+      <polygon points="22,0 22,20 14.6,20 7.3,9.9 7.3,20 0,20 0,0 7.3,0 14.6,10.4 14.6,0 22,0" fill="#FFFFFF" />
     </svg>
   );
 }
