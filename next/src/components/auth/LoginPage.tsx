@@ -314,6 +314,10 @@ export default function LoginPage() {
     [guestEmail, guestOrderNum, toast],
   );
 
+  const socialProviderLabel =
+    socialLoading === 'kakao' ? '카카오' :
+    socialLoading === 'naver' ? '네이버' : 'Google';
+
   return (
     <div style={{ minHeight: '100dvh' }}>
       {/* ── 미니 헤더 ── */}
@@ -604,6 +608,14 @@ export default function LoginPage() {
           )}
         </div>
       </div>
+
+      {/* SNS 로그인 중 전체 화면 오버레이 */}
+      {socialLoading !== null && (
+        <div className="auth-overlay" role="status" aria-live="polite">
+          <div className="auth-spinner" aria-hidden="true" />
+          <p className="auth-overlay-txt">{socialProviderLabel} 로그인 중...</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import localFont from 'next/font/local';
 import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import NextTopLoader from 'nextjs-toploader';
 import AuthSyncProvider from '@/components/auth/AuthSyncProvider';
 import Providers from '@/components/providers/Providers';
 import OverscrollColor from '@/components/ui/OverscrollColor';
@@ -46,6 +47,7 @@ export default async function RootLayout({
           AuthSyncProvider: Supabase 세션 → Zustand 동기화 브리지 (P0-2) +
           로그인/로그아웃 시 ['cart'] 캐시 invalidate. */}
       <body>
+        <NextTopLoader color="#7A6B52" height={2} showSpinner={false} />
         <OverscrollColor />
         <TouchHoverGuard />
         <div className="page-bg">

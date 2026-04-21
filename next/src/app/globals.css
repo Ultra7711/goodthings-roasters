@@ -6765,6 +6765,44 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   }
 }
 
+/* ══ SNS 로그인 / 인증 로딩 오버레이 ══ */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(250, 250, 248, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
+.auth-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--color-line-light);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: auth-spin 0.65s linear infinite;
+}
+.auth-overlay-txt {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.04em;
+}
+
+/* ══ 페이지 전환 로딩 셸 ══ */
+.page-loading-shell {
+  min-height: 100dvh;
+  background: var(--color-bg-primary);
+}
+
 /* ══════════════════════════════════════════
    MY PAGE — mp-*
    프로토타입 #my-page 이식 (RP-8)
