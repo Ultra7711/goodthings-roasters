@@ -4872,11 +4872,11 @@ footer.blk {
   z-index: 1;
 }
 
-/* ── Hero (100vh, 센터 정렬, 헤더 뒤로 확장) ── */
+/* ── Hero (100svh, 센터 정렬, 헤더 뒤로 확장) ── */
 .st-hero {
   position: relative;
   margin-top: -96px;
-  height: 100vh;
+  height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
