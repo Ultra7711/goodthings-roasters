@@ -85,6 +85,12 @@ export default function CafeMenuPage() {
     if (targetId) {
       const matched = CAFE_MENU.find((i) => i.id === targetId);
       if (matched) {
+        /* useMediaQuery 는 초기값 false → 첫 렌더에서 perPage 가 항상 데스크탑 값.
+           window.matchMedia 를 직접 읽어 실제 뷰포트 기준으로 페이지를 계산한다.
+           SSR(window 미정의) 에서는 데스크탑 fallback 사용 — 어차피 서버엔 스크롤 없음. */
+        const perPageNow = typeof window !== 'undefined' && window.matchMedia('(max-width: 479px)').matches
+          ? CM_PER_PAGE_MOBILE
+          : CM_PER_PAGE;
         const listWithinFilter = sortCafeMenu(filterCafeMenu(CAFE_MENU, urlFilter));
         let idx = listWithinFilter.findIndex((i) => i.id === targetId);
         if (idx < 0) {
@@ -93,11 +99,11 @@ export default function CafeMenuPage() {
           idx = listAll.findIndex((i) => i.id === targetId);
           if (idx >= 0) {
             setFilter('all');
-            setPage(Math.floor(idx / perPage) + 1);
+            setPage(Math.floor(idx / perPageNow) + 1);
             setHighlightId(targetId);
           }
         } else {
-          setPage(Math.floor(idx / perPage) + 1);
+          setPage(Math.floor(idx / perPageNow) + 1);
           setHighlightId(targetId);
         }
       }
