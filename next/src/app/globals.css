@@ -2062,6 +2062,7 @@ footer.blk {
 .sp-page-bg {
   background: var(--color-background-primary);
   width: 100%;
+  min-height: 100dvh;
 }
 #sp-body {
   flex: 1;
@@ -3145,6 +3146,8 @@ footer.blk {
 #cart-drawer-panel .cd-body {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   display: flex;
   flex-direction: column;
 }
