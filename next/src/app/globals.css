@@ -4779,9 +4779,8 @@ footer.blk {
     padding var(--duration-drawer) ease;
   padding: 0;
 }
-.pd-accordion-body p { margin-bottom: 4px; }
+.pd-accordion-body p { margin-bottom: 4px; padding-left: 0.5em; }
 .pd-accordion-body strong { font-weight: 500; }
-.pd-accordion-li { padding-left: 0.875em; }
 .pd-accordion.open .pd-accordion-body {
   max-height: 600px;
   opacity: 1;
