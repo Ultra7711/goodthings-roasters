@@ -7476,6 +7476,42 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-tertiary);
 }
 
+/* 검색 페이지네이션 */
+#srp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 48px 0 0;
+}
+
+/* 모바일 검색 결과 */
+@media (max-width: 767px) {
+  .search-page-inner {
+    padding: 0 24px;
+  }
+  .search-query-label {
+    padding: 32px 0 24px;
+  }
+  .search-result-item {
+    height: auto;
+    min-height: 96px;
+    gap: 16px;
+    padding: 20px 0 20px 0;
+  }
+  .search-result-item::after {
+    left: 0;
+    height: 1px;
+  }
+  .search-result-thumb {
+    width: 72px;
+    height: 72px;
+  }
+  .search-result-name {
+    font-size: var(--type-body-m-size);
+  }
+}
+
 /* ══════════════════════════════════════════
    Cart Page (/cart) — Session 22 BUG-003
    프로토타입 #cart-page 구조 이식.
