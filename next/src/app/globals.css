@@ -4796,7 +4796,6 @@ footer.blk {
   border-collapse: collapse;
   font-size: var(--type-body-s-size);
   line-height: 1.7;
-  table-layout: fixed;
 }
 .pd-info-table td {
   padding: 6px 8px;
@@ -4810,7 +4809,13 @@ footer.blk {
   font-weight: 500;
   color: var(--color-text-primary);
   white-space: nowrap;
-  width: 7em;
+  width: 6.5em;
+}
+.pd-info-note {
+  color: var(--color-text-tertiary);
+  font-size: var(--type-body-s-size);
+  padding: 6px 8px;
+  border: 1px solid var(--color-border-tertiary);
 }
 
 /* ── 반응형: 1024↓ 좌 스티키 해제 · 1열 스택 ── */
@@ -4845,6 +4850,22 @@ footer.blk {
   #pd-note-tags {
     gap: var(--gap-xs);
   }
+  /* pd-info-table: 4컬럼 → 2컬럼 그리드 변환 */
+  .pd-info-table,
+  .pd-info-table tbody { display: block; }
+  .pd-info-table tr {
+    display: grid;
+    grid-template-columns: 6.5em 1fr;
+    border-top: 1px solid var(--color-border-tertiary);
+  }
+  .pd-info-table tr:last-child { border-bottom: 1px solid var(--color-border-tertiary); }
+  .pd-info-table td { border: none; padding: 4px 8px; }
+  .pd-info-table .pd-info-label { border-right: 1px solid var(--color-border-tertiary); }
+  /* 4컬럼 행의 두 번째 쌍(3·4번째 셀) 구분선 */
+  .pd-info-table td:nth-child(3),
+  .pd-info-table td:nth-child(4) { border-top: 1px solid var(--color-border-tertiary); }
+  /* note 행 전체폭 */
+  .pd-info-note { grid-column: 1 / -1; border: none; padding: 6px 8px; }
 }
 
 /* 레시피 카드 — 360 구간 좌/우 padding 하이브리드 축소
