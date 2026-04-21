@@ -16,7 +16,7 @@ export default function HomePage() {
   return (
     <>
       {/* pull-to-refresh overscroll 시 히어로 다크 배경색 노출 */}
-      <HtmlBackground color="var(--color-background-inverse)" />
+      <HtmlBackground color="#1E1B16" />
       {/* #hero-blk margin-top:-96px는 globals.css에서 적용 */}
       <HeroSection />
       <CafeMenuSection />
