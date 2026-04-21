@@ -1458,8 +1458,9 @@ footer.blk {
   opacity: 0;
   filter: blur(12px);
   transition: opacity 0.9s ease-out, filter 0.9s ease-out;
+  animation: sr-img-fallback 0.9s ease-out 5s forwards;
 }
-.cat-card.sr--visible .cat-card-clip { opacity: 1; filter: blur(0); }
+.cat-card.sr--visible .cat-card-clip { opacity: 1; filter: blur(0); animation: none; }
 .cat-grid .cat-card:nth-child(1) .cat-card-clip { transition-delay: 0ms; }
 .cat-grid .cat-card:nth-child(2) .cat-card-clip { transition-delay: 150ms; }
 .cat-grid .cat-card:nth-child(3) .cat-card-clip { transition-delay: 300ms; }
@@ -1827,9 +1828,10 @@ footer.blk {
   opacity: 0;
   filter: blur(12px);
   transition: transform 1.2s cubic-bezier(.25,.1,.25,1), opacity 0.9s ease-out, filter 0.9s ease-out;
+  animation: sr-img-fallback 0.9s ease-out 5s forwards;
 }
 .sr--visible .tci-img-inner,
-.tci-img-inner.sr--visible { opacity: 1; filter: blur(0); }
+.tci-img-inner.sr--visible { opacity: 1; filter: blur(0); animation: none; }
 .tci:hover .tci-img-inner { transform: scale(1.03); }
 .tci:hover .tci-img::before { opacity: .82; }
 .tci-overlay {

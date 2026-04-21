@@ -58,16 +58,14 @@ export default function SRInitializer() {
       document.querySelectorAll<HTMLElement>(toggleSel).forEach((el) => ioToggle!.observe(el));
     };
 
-    /* rAF → queueMicrotask 체이닝:
-       React의 클라이언트 컴포넌트 hydration 완료 후 초기화.
-       hydration 전에 querySelectorAll 이 실행되면 일부 [data-sr-toggle] 요소를
-       미발견하여 IntersectionObserver 관찰 대상에서 누락되는 레이스 방어. */
-    let rafId = requestAnimationFrame(() => {
-      queueMicrotask(init);
-    });
+    /* setTimeout 150ms:
+       느린 모바일에서 React 클라이언트 컴포넌트 hydration 완료 후
+       querySelectorAll 이 모든 [data-sr] 요소를 찾을 수 있도록 대기.
+       rAF → queueMicrotask 는 hydration 완료 전에 실행될 수 있어 불충분. */
+    const timerId = setTimeout(init, 150);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      clearTimeout(timerId);
       ioOneShot?.disconnect();
       ioToggle?.disconnect();
     };
