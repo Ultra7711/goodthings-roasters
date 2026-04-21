@@ -13,7 +13,7 @@ export const metadata = {
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="search-page-wrap" />}>
+    <Suspense fallback={<div className="search-page-wrap" style={{ minHeight: '100dvh' }} />}>
       <SearchPage />
     </Suspense>
   );
