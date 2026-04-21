@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -51,8 +51,8 @@ export default function SiteHeader() {
   const { isLoggedIn } = useSupabaseSession();
   const { open: openDrawer } = useCartDrawer();
 
-  useEffect(() => {
-    // SSR hydration 이후 mount flag 세팅 — 의도적 1회성 setState-in-effect.
+  useLayoutEffect(() => {
+    // SSR hydration 이후 mount flag 세팅 — 페인트 전 동기 실행으로 헤더 flash 방지.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);

@@ -1627,7 +1627,7 @@ footer.blk {
     flex-direction: column;
     height: auto;
     padding: 0 0 80px;
-    gap: 32px;
+    gap: 48px;
   }
   .phil-img {
     flex: 0 0 auto;
@@ -2263,7 +2263,7 @@ footer.blk {
 .sp-card--qa-open .sp-qa-label {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity .2s ease .22s, transform .2s ease .22s;
+  transition: opacity .2s ease .08s, transform .2s ease .08s;
 }
 .sp-qa-vols { display: flex; gap: 6px; }
 .sp-qa-vol-btn {
@@ -2285,7 +2285,7 @@ footer.blk {
 }
 .sp-card--qa-open .sp-qa-vol-btn {
   opacity: 1; transform: translateY(0);
-  transition: opacity .18s ease .29s, transform .18s ease .29s;
+  transition: opacity .18s ease .12s, transform .18s ease .12s;
 }
 .sp-qa-vol-btn.active { border-color: var(--color-text-primary); font-weight: 600; }
 /* 품목별 품절 — 선택 불가, 텍스트 취소선 + 흐리게 */
@@ -3932,6 +3932,10 @@ footer.blk {
 }
 
 /* 입력 박스 (드롭다운 트리거 + 수량 스테퍼 공용) */
+@keyframes pd-box-flash {
+  0% { background: var(--color-background-secondary); }
+  100% { background: transparent; }
+}
 .pd-input-box {
   position: relative;
   height: 48px;
@@ -3940,6 +3944,9 @@ footer.blk {
   display: flex;
   align-items: center;
   transition: border-color var(--duration-hover) ease;
+}
+.pd-input-box.flash {
+  animation: pd-box-flash 320ms ease-out;
 }
 .pd-input-box:focus-within {
   border-color: var(--color-input-box-border-hover);

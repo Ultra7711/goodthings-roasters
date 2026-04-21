@@ -39,6 +39,15 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
 
   const volBoxRef = useRef<HTMLDivElement>(null);
   const cycleBoxRef = useRef<HTMLDivElement>(null);
+  const qtyBoxRef = useRef<HTMLDivElement>(null);
+
+  function flashBox(ref: React.RefObject<HTMLDivElement | null>) {
+    const el = ref.current;
+    if (!el) return;
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+  }
 
   const tabsRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
@@ -124,10 +133,11 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
     (hasVolumes ? 'v' : '') + 'q' + (showCycle ? 'c' : '');
 
   function decQty() {
-    if (qty > 1) setQty(qty - 1);
+    if (qty > 1) { setQty(qty - 1); flashBox(qtyBoxRef); }
   }
   function incQty() {
     setQty(qty + 1);
+    flashBox(qtyBoxRef);
   }
 
   function handleCart() {
@@ -235,6 +245,7 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
                       if (v.soldOut) return;
                       onVolChange(i);
                       setVolOpen(false);
+                      flashBox(volBoxRef);
                     }}
                   >
                     <span>{v.label}</span>
@@ -251,7 +262,7 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
         {/* 수량 */}
         <div className="pd-field" id="pd-qty-wrap">
           <div className="pd-field-label">수량</div>
-          <div className="pd-input-box">
+          <div className="pd-input-box" ref={qtyBoxRef}>
             <div className="pd-qty-stepper">
               <svg
                 id="pd-qty-minus"
@@ -338,6 +349,7 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
                     onClick={() => {
                       setCycle(c.value);
                       setCycleOpen(false);
+                      flashBox(cycleBoxRef);
                     }}
                   >
                     {c.label}
