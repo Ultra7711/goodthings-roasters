@@ -8,6 +8,7 @@
 
 'use client';
 
+import { useEffect } from 'react';
 import { useDrawer } from '@/hooks/useDrawer';
 import {
   CAFE_CATEGORY_LABEL,
@@ -37,8 +38,69 @@ function getTempBadge(temp: CafeMenuTemp): { cls: string; txt: string } | null {
 export default function CafeNutritionSheet({ item, onClose }: Props) {
   const open = item !== null;
 
-  // ESC 닫기 + body scroll lock — 공통 드로어 훅 (장바구니 드로어도 동일 사용 예정)
+  // ESC 닫기 + body scroll lock — 공통 드로어 훅
   useDrawer({ open, onClose });
+
+  // 배경 터치무브 차단 — iOS에서 body.overflow:hidden 우회 방지
+  useEffect(() => {
+    if (!open) return;
+    const bg = document.getElementById('cns-bg');
+    if (!bg) return;
+    const prevent = (e: TouchEvent) => e.preventDefault();
+    bg.addEventListener('touchmove', prevent, { passive: false });
+    return () => bg.removeEventListener('touchmove', prevent);
+  }, [open]);
+
+  // 모바일 바텀시트 드래그-닫기 (≤479px)
+  // 패널 최상단에서 아래로 80px 이상 스와이프 시 onClose 호출
+  useEffect(() => {
+    if (!open) return;
+    const panel = document.getElementById('cns-panel');
+    if (!panel) return;
+
+    let startY = 0;
+    let dragging = false;
+
+    function onStart(e: TouchEvent) {
+      if (window.innerWidth > 479) return;
+      if (panel!.scrollTop > 0) return;
+      startY = e.touches[0].clientY;
+      dragging = true;
+    }
+
+    function onMove(e: TouchEvent) {
+      if (!dragging) return;
+      const dy = Math.max(0, e.touches[0].clientY - startY);
+      if (dy > 0) {
+        panel!.style.transition = 'none';
+        panel!.style.transform = `translateY(${dy}px)`;
+      }
+    }
+
+    function onEnd(e: TouchEvent) {
+      if (!dragging) return;
+      dragging = false;
+      const dy = e.changedTouches[0].clientY - startY;
+      panel!.style.transition = '';
+      if (dy > 80) {
+        onClose();
+      } else {
+        panel!.style.transform = '';
+      }
+    }
+
+    panel.addEventListener('touchstart', onStart, { passive: true });
+    panel.addEventListener('touchmove', onMove, { passive: true });
+    panel.addEventListener('touchend', onEnd, { passive: true });
+
+    return () => {
+      panel.removeEventListener('touchstart', onStart);
+      panel.removeEventListener('touchmove', onMove);
+      panel.removeEventListener('touchend', onEnd);
+      panel.style.transition = '';
+      panel.style.transform = '';
+    };
+  }, [open, onClose]);
 
   const tempBadge = item ? getTempBadge(item.temp) : null;
   const categoryLabel = item ? CAFE_CATEGORY_LABEL[item.cat] ?? item.cat.toUpperCase() : '';

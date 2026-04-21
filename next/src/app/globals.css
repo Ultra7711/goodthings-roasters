@@ -2811,6 +2811,8 @@ footer.blk {
   transform: translateX(100%);
   transition: transform var(--drawer-transition-duration) var(--drawer-transition-easing);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 #cafe-nutrition-sheet.open #cns-panel { transform: translateX(0); }
 /* 모바일: <768 풀스크린 (Session 38 Step C) */
