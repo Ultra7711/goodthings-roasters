@@ -56,6 +56,7 @@ export default function SiteHeader() {
   }, []);
 
   const closeSearch = useCallback(() => {
+    searchInputRef.current?.blur();
     setIsSearchOpen(false);
     setSearchValue('');
     document.body.style.overflow = '';
