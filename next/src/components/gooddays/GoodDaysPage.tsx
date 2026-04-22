@@ -57,6 +57,8 @@ export default function GoodDaysPage() {
   /* instant 모드 — 메인 페이지 갤러리에서 진입 시 transition 없이 즉시 표시.
      프로토타입 L2463 gd-lb-instant 클래스 동일. 화이트 flash 차단. */
   const [lbInstant, setLbInstant] = useState(false);
+  /* 화살표 클릭 직후 즉시 숨김 — pointerMove 로 복원 */
+  const [arrowsHidden, setArrowsHidden] = useState(false);
   /* 라이트박스 settled 타이머 ref — 빠른 열기/닫기 시 stale state update 방지 */
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /* ?img= query 처리 완료 플래그 — 중복 실행 방지 */
@@ -164,6 +166,7 @@ export default function GoodDaysPage() {
     setLightboxIdx(null);
     setLbSettled(false);
     setLbInstant(false);
+    setArrowsHidden(false);
     /* ?img= 파라미터가 남아 있으면 제거 — 새로고침 시 라이트박스 재오픈 방지 */
     if (searchParams.get('img')) {
       router.replace('/gooddays', { scroll: false });
@@ -220,6 +223,8 @@ export default function GoodDaysPage() {
   /* 라이트박스 — 프로토타입 L4193 처럼 body 직계로 렌더해야
      #gd-page 의 pageEnter transform 이 만드는 stacking context 에 갇히지 않음
      (헤더/어나운스 바 위로 정상 노출). architect M2 권고. */
+  const arrowCls = arrowsHidden ? ' gd-lb-arrow--hidden' : '';
+
   const lightbox = (
     <div
       id="gd-lightbox"
@@ -229,7 +234,19 @@ export default function GoodDaysPage() {
       onClick={(e) => {
         if (e.target === e.currentTarget) closeLightbox();
       }}
+      onPointerMove={() => { if (arrowsHidden) setArrowsHidden(false); }}
     >
+      {/* 좌우 탭존 — 이미지 세로 전체 범위에서 prev/next 탭 허용 */}
+      <div
+        className="gd-lb-zone gd-lb-zone--prev"
+        aria-hidden="true"
+        onClick={(e) => { e.stopPropagation(); setArrowsHidden(true); navLightbox(-1); }}
+      />
+      <div
+        className="gd-lb-zone gd-lb-zone--next"
+        aria-hidden="true"
+        onClick={(e) => { e.stopPropagation(); setArrowsHidden(true); navLightbox(1); }}
+      />
       <button
         type="button"
         className="gd-lb-close close-btn close-btn-secondary-dark"
@@ -253,11 +270,12 @@ export default function GoodDaysPage() {
       </button>
       <button
         type="button"
-        className="gd-lb-arrow gd-lb-prev arrow-btn arrow-btn-primary arrow-btn-dark"
+        className={`gd-lb-arrow gd-lb-prev arrow-btn arrow-btn-primary arrow-btn-dark${arrowCls}`}
         id="gd-lb-prev"
         aria-label="이전 이미지"
         onClick={(e) => {
           e.stopPropagation();
+          setArrowsHidden(true);
           navLightbox(-1);
         }}
       >
@@ -282,11 +300,12 @@ export default function GoodDaysPage() {
       )}
       <button
         type="button"
-        className="gd-lb-arrow gd-lb-next arrow-btn arrow-btn-primary arrow-btn-dark"
+        className={`gd-lb-arrow gd-lb-next arrow-btn arrow-btn-primary arrow-btn-dark${arrowCls}`}
         id="gd-lb-next"
         aria-label="다음 이미지"
         onClick={(e) => {
           e.stopPropagation();
+          setArrowsHidden(true);
           navLightbox(1);
         }}
       >

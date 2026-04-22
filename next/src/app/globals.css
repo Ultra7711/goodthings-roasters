@@ -6100,11 +6100,9 @@ footer.blk {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  /* !important — .arrow-btn-dark 의 strong(#FAFAF8) 기본값을 라이트박스용 muted 로 override.
-     프로토타입은 rgba(255,255,255,.5) 를 썼으나 foreground 알파 정책에 맞게
-     icon-on-dark-muted(불투명 #7F7F7E) 로 교체. 시각적으로 거의 동일. */
-  color: var(--icon-on-dark-muted) !important;
+  color: rgba(255,255,255,0.75);
   opacity: 0;
+  z-index: 1;
   transition: color var(--duration-hover) ease, opacity 400ms ease 600ms;
 }
 .gd-lightbox:has(#gd-lb-img:hover) .gd-lb-arrow,
@@ -6113,22 +6111,36 @@ footer.blk {
   opacity: 1;
   transition: color var(--duration-hover) ease, opacity 200ms ease 0ms;
 }
-.gd-lb-arrow:hover {
-  color: var(--icon-on-dark-strong) !important;
+.gd-lb-arrow:hover { color: #fff; }
+.gd-lb-arrow:active { color: rgba(255,255,255,0.4); }
+/* 시각적 1.5px 선 — 100px 렌더 / 24 viewBox → 1.5 / (100/24) ≈ 0.36 */
+.gd-lb-arrow svg { stroke-width: 0.36; }
+/* 클릭 직후 즉시 숨김 — JS 에서 gd-lb-arrow--hidden 클래스 토글 */
+.gd-lb-arrow--hidden {
+  opacity: 0 !important;
+  transition: opacity 80ms ease !important;
 }
-.gd-lb-prev {
-  left: 24px;
+.gd-lb-prev { left: 10px; }
+.gd-lb-next { right: 10px; }
+/* 좌우 탭존 — 버튼 영역 외 이미지 세로 전체 범위 탭으로도 prev/next 허용 */
+.gd-lb-zone {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 35%;
+  cursor: pointer;
+  touch-action: pan-y;
 }
-.gd-lb-next {
-  right: 24px;
-}
+.gd-lb-zone--prev { left: 0; }
+.gd-lb-zone--next { right: 0; }
+/* 좌우 영역 수직 스크롤 투과 — 수직 스와이프는 페이지 스크롤 허용 */
+.gd-lightbox.open { touch-action: pan-y; }
 /* 모바일: 버튼 축소 + 항상 반투명 노출 (hover 없으므로 opacity:0 해제) */
 @media (max-width: 767px) {
   .gd-lb-arrow {
     opacity: 0.45;
     transition: opacity 150ms ease;
   }
-  .gd-lb-arrow:active { opacity: 1; }
+  .gd-lb-arrow:active { color: #fff; opacity: 1; }
   .gd-lb-prev { left: 8px; }
   .gd-lb-next { right: 8px; }
   /* arrow-btn-primary 100px → 44px (탭 영역 최소치 확보) */
