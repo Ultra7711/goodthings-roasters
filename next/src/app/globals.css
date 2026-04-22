@@ -620,6 +620,16 @@ textarea:-webkit-autofill:active {
   .hdr-icons { margin-right: -4px; }
 }
 .hdr-nav { display: flex; gap: 36px; }
+/* 랩탑(≤1023): padding + gap 1차 축소 */
+@media (max-width: 1023px) {
+  .hdr { padding: 0 40px; }
+  .hdr-nav { gap: 24px; }
+}
+/* 태블릿 진입 직전(≤899px): 공간 압박 해소 */
+@media (max-width: 899px) {
+  .hdr { padding: 0 28px; }
+  .hdr-nav { gap: 16px; }
+}
 .hdr-icons {
   flex: 1;
   display: flex;
@@ -2185,6 +2195,7 @@ footer.blk {
     padding: 0 24px 48px;
   }
   .roastery-lbl { color: var(--color-text-inverse); }
+  .roastery-lbl::before { background: var(--color-accent-gold-on-dark); }
   .roastery-h { color: var(--color-text-inverse); }
   .roastery-body,
   .roastery-hours { color: rgba(250, 250, 248, 0.82); }
