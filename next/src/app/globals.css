@@ -2452,16 +2452,17 @@ footer.blk {
   height: 48px;
   background: none;
   border: none;
-  color: #9C9890;
+  color: var(--color-text-inverse);
+  opacity: .6;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  transition: color var(--duration-hover) linear;
+  transition: opacity var(--duration-hover) linear;
 }
 .sp-card--qa-open .sp-qa-close { pointer-events: auto; }
-.sp-qa-close:hover { color: #FAFAF8; }
+.sp-qa-close:hover { opacity: 1; }
 .sp-qa-close svg { opacity: 0; transition: opacity .15s; }
 .sp-card--qa-open .sp-qa-close svg { opacity: 1; transition: opacity var(--duration-transition) ease; }
 
