@@ -145,7 +145,8 @@ export default function FooterBottom() {
           aria-controls="f-biz-detail"
           onClick={toggle}
         >
-          사업자 정보 {open ? '▴' : '▾'}
+          사업자 정보{' '}
+          <span style={{ display: 'inline-block', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 300ms ease' }}>▾</span>
         </button>
         <span className="f-bottom-sep">·</span>
         <span className="f-legal-link">이용약관</span>

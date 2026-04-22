@@ -185,7 +185,8 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
               aria-expanded={bizOpen}
               onClick={() => setBizOpen((p) => !p)}
             >
-              사업자 정보 {bizOpen ? '▴' : '▾'}
+              사업자 정보{' '}
+              <span style={{ display: 'inline-block', transform: bizOpen ? 'rotate(180deg)' : 'none', transition: 'transform 300ms ease' }}>▾</span>
             </button>
             <span className="mn-f-sep">·</span>
             <span className="mn-f-legal">이용약관</span>
