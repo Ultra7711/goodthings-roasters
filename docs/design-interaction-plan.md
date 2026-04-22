@@ -145,59 +145,94 @@ LABELS
 
 ---
 
-### ⑧ Animated Hairline Divider
+### ⑧ Eyebrow Slide-in (최종안)
 
-**목표:** 섹션 진입 시 1px 가로선이 좌→우로 그려지며 "장이 열리는" 리듬. sr-txt 페이드인 직전에 배치.
+**목표:** 섹션 진입 시 **기존 32×2px gold eyebrow 가 label 박스 좌측 외부에서 슬라이드 인** 하며 텍스트를 우측으로 밀어내는 매거진 오프닝 연출.
+
+#### 진행 타임라인 (설계 변경 이력)
+
+| 단계 | 안 | 결과 |
+|------|----|----|
+| 1 | **A · 라벨 위 full-width hairline** (최초 계획) | ❌ 사용자 거부 — 섹션 여백 호흡을 "2~3 구간으로 분할" 느낌 |
+| 2 | **B · eyebrow draw-in** (기존 gold eyebrow 에 scaleX 애니메이션 추가) | ❌ 32px 짜리가 순식간에 그려져 시각적 인지 실패 |
+| 3 | **C · eyebrow + 라벨 + 우측 rule (flex:1)** | ❌ 공수 과다. label 컨테이너 `width: 100%` 강제로 기존 레이아웃 들쑥날쑥 |
+| 4 | **최종 · Eyebrow Slide-in** (사용자 제안) | ✅ 공수 최소, 효과 검증됨 |
+
+#### 최종 스펙
+
+**시퀀스:**
+```
+① [라벨 박스]  "2026 · SPRING"                  sr--visible 전: eyebrow margin-left -44px, overflow hidden 으로 마스킹
+② [라벨 박스]  "─ 2026 · SPRING"                진입 중: eyebrow 가 좌측 외부에서 슬라이드, 텍스트 밀림
+③ [라벨 박스]  "── 2026 · SPRING"               완료: eyebrow margin-left 0, 정상 위치
+```
 
 **신규 토큰:**
 ```css
---hairline-thickness: 1px;
---hairline-color: var(--color-line-light);     /* light 섹션 */
---hairline-color-dark: rgba(250,250,248,.2);   /* dark 섹션 */
---hairline-duration: 600ms;
---hairline-easing: cubic-bezier(0.22, 1, 0.36, 1);  /* out-expo */
+--eyebrow-slide-distance: -44px;         /* 32px eyebrow + 12px gap */
+--eyebrow-slide-duration: 900ms;
+--eyebrow-slide-delay: 450ms;            /* label 페이드인 중반부 */
+--eyebrow-slide-easing: cubic-bezier(0.22, 1, 0.36, 1);  /* out-expo */
 ```
 
-**유틸 클래스:**
+**핵심 CSS:**
 ```css
-.hairline {
-  height: var(--hairline-thickness);
-  background: var(--hairline-color);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform var(--hairline-duration) var(--hairline-easing);
-}
-.sr--visible .hairline,
-.hairline.sr--visible { transform: scaleX(1); }
+/* 기존 ::before gold eyebrow 정적 구조 유지 (32×2px) */
 
-/* 다크 섹션 오버라이드 */
-[data-header-theme="dark"] .hairline { background: var(--hairline-color-dark); }
+/* sr-txt 붙은 label 만 박스 좌측 마스킹 + 초기 margin 음수 */
+.blk-label.sr-txt,
+.phil-lbl.sr-txt,
+.roastery-lbl.sr-txt,
+.tci-lbl.sr-txt,
+.st-label.sr-txt,
+.season-tag.sr-txt {
+  overflow: hidden;
+}
+.blk-label.sr-txt::before, ... {
+  margin-left: var(--eyebrow-slide-distance);
+  /* transition 없음 — 리셋 즉시 */
+}
+.sr--visible .blk-label.sr-txt::before,
+.blk-label.sr-txt.sr--visible::before, ... {
+  margin-left: 0;
+  transition: margin-left var(--eyebrow-slide-duration) var(--eyebrow-slide-easing) var(--eyebrow-slide-delay);
+}
 ```
 
-**적용 방식:** 기존 `sr--visible` 클래스 승계. sr-txt 와 같은 트리거로 동작 → SRInitializer 수정 불필요. 단, 자체 transition-delay 0ms 로 **sr-txt d1 보다 먼저 완료**.
+**단방향 재생 보장 (핵심 트릭):**
+- 기본 규칙에는 **`transition` 없음** → sr--visible 제거 시 즉시 `-44px` 복귀
+- 노출 규칙에만 `transition` 정의 → sr--visible 추가 시 `-44 → 0` 보간
+- 결과: 스크롤 왔다갔다 → 중간 위치에 멈춘 상태 없이 **항상 0 부터 처음부터** 재생
 
-**배치 위치:**
-- 섹션 헤더 상단 (블록 라벨 위 12~16px)
-- `.blk-header` 내부 첫 자식으로 삽입 권장
-- 푸터 경계 (옵션)
+**적용 셀렉터 (기존 Step 3-A-5 gold eyebrow rule 재활용):**
+- `.blk-label` · `.phil-lbl` · `.roastery-lbl` · `.tci-lbl` · `.st-label` · `.season-tag` (6종)
+- 마크업 변경 없음 — 기존 `::before` pseudo 에 margin-left 만 제어
 
-**적용 셀렉터 대상:**
-- 홈: `.blk-header` (CafeMenu, Beans, TwoCol), `.phil`, `.roastery-c`, Good Days 섹션 헤더
-- 스토리: Promise / Location / 각 TwoCol 섹션 헤더
-- 카페메뉴: `.season-banner` 상단
-
-**수치 근거:**
-- duration 600ms: 기존 sr-txt 700ms 보다 살짝 짧게 → 선 먼저 완료 → 텍스트 등장이 "선 밑에서 나타나는" 서사
-- out-expo easing: 초반 빠르고 끝에 감속 → "그어지는" 감각
+**타이밍 다이어그램:**
+```
+0ms      450ms       700ms                   1350ms
+│         │           │                        │
+│ label page fade (0→1, opacity/translateY)   │
+│         └─ eyebrow slide start              │
+│                     └─ label 페이드인 완료  │
+│                                              └─ eyebrow slide 완료
+```
 
 **prefers-reduced-motion:**
 ```css
 @media (prefers-reduced-motion: reduce) {
-  .hairline { transform: scaleX(1); transition: none; }
+  .blk-label.sr-txt::before, ... {
+    margin-left: 0;
+    transition: none;
+  }
 }
 ```
 
-**리스크:** 없음 (CSS transform — 모든 브라우저 완벽 지원).
+**보너스 자동 적용 (기존 eyebrow 시스템 재활용 이점):**
+- 시즌 배너 `.season-tag` · TwoCol `.tci-lbl` · 스토리 `.st-label` 전부 자동 적용
+- Step 1.6 스코프 대폭 축소 가능 (추가 작업 거의 없음)
+
+**리스크:** 없음 (CSS margin-left + overflow hidden — 모든 브라우저 완벽 지원). label 컨테이너 width 강제도 없어 기존 레이아웃 영향 0.
 
 ---
 

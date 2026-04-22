@@ -194,13 +194,14 @@
   --type-h1-editorial-size: clamp(2rem, 1.5rem + 2.5vw, 3.25rem);    /* 32→52px */
   --type-h2-editorial-size: clamp(1.75rem, 1.25rem + 2vw, 2.75rem);  /* 28→44px */
 
-  /* ── Animated Hairline Divider (design-interaction-plan §4 ⑧) ──
-     섹션 진입 시 1px 가로선 좌→우 draw-in. 기존 --color-border-hairline
-     (.06) 은 애니메이션 되는 선에 너무 흐려 전용 색 토큰 신설. */
-  --hairline-color: rgba(28,27,25,.18);
-  --hairline-color-on-dark: rgba(250,250,248,.22);
-  --hairline-duration: 600ms;
-  --hairline-easing: cubic-bezier(0.22, 1, 0.36, 1);  /* out-expo */
+  /* ── Eyebrow Slide-in (design-interaction-plan §4 ⑧ 최종안) ──
+     섹션 진입 시 eyebrow 가 label 박스 좌측 외부에서 슬라이드 인.
+     label `overflow: hidden` 으로 박스 경계 마스킹 → 밖에서 진입하는 효과.
+     eyebrow 32px + gap 12px = 44px 을 margin-left 로 밀어낸 뒤 0 으로 복귀. */
+  --eyebrow-slide-distance: -44px;
+  --eyebrow-slide-duration: 900ms;
+  --eyebrow-slide-delay: 450ms;        /* label 페이드인 중반부에 시작 */
+  --eyebrow-slide-easing: cubic-bezier(0.22, 1, 0.36, 1);  /* out-expo */
 
   /* ── Lines & Borders ── */
   --color-border-hairline: rgba(28,27,25,.06);
@@ -1295,28 +1296,6 @@ footer.blk {
 .sr--visible .sr-txt,
 .sr-txt.sr--visible { opacity: 1; transform: translateY(0); }
 
-/* ══ Hairline Divider ══
-   섹션 진입 시 1px 가로선이 좌→우로 그어지는 에디토리얼 리듬.
-   sr--visible 클래스로 트리거 (SRInitializer 와 동일 타이밍).
-   선이 먼저 완료(600ms) → 이어서 sr-txt 페이드인(700ms+). */
-.hairline {
-  display: block;
-  height: 1px;
-  width: 100%;
-  background: var(--hairline-color);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform var(--hairline-duration) var(--hairline-easing);
-}
-.sr--visible .hairline,
-.hairline.sr--visible { transform: scaleX(1); }
-
-/* 다크 섹션 오버라이드 — data-header-theme="dark" 섹션 */
-[data-header-theme="dark"] .hairline { background: var(--hairline-color-on-dark); }
-
-@media (prefers-reduced-motion: reduce) {
-  .hairline { transform: scaleX(1); transition: none; }
-}
 
 /* ══ 키프레임 ══ */
 @keyframes heroSloganIn {
@@ -8345,6 +8324,57 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* 다크 bg 위 eyebrow → on-dark variant */
 .tci-lbl::before {
   background: var(--color-accent-gold-on-dark);
+}
+
+/* ══ Eyebrow Slide-in (design-interaction-plan §4 ⑧ 최종안) ══
+   sr-txt 가 붙은 label 은 eyebrow 가 박스 좌측 외부에서 진입.
+   초기: margin-left -44px → label 박스 밖 (overflow: hidden 마스킹).
+   sr--visible: margin-left 0 → eyebrow 가 들어오며 텍스트를 우측으로 밀어냄. */
+.blk-label.sr-txt,
+.phil-lbl.sr-txt,
+.roastery-lbl.sr-txt,
+.tci-lbl.sr-txt,
+.st-label.sr-txt,
+.season-tag.sr-txt {
+  overflow: hidden;
+}
+/* 초기·리셋 상태: transition 없음 → sr--visible 제거 시 즉시 -44px 복귀
+   (섹션 벗어났다 재진입하면 항상 처음부터 슬라이드 재생) */
+.blk-label.sr-txt::before,
+.phil-lbl.sr-txt::before,
+.roastery-lbl.sr-txt::before,
+.tci-lbl.sr-txt::before,
+.st-label.sr-txt::before,
+.season-tag.sr-txt::before {
+  margin-left: var(--eyebrow-slide-distance);
+}
+/* 노출: transition 정의 + margin 0 → 보간 발화 (단방향 재생) */
+.sr--visible .blk-label.sr-txt::before,
+.blk-label.sr-txt.sr--visible::before,
+.sr--visible .phil-lbl.sr-txt::before,
+.phil-lbl.sr-txt.sr--visible::before,
+.sr--visible .roastery-lbl.sr-txt::before,
+.roastery-lbl.sr-txt.sr--visible::before,
+.sr--visible .tci-lbl.sr-txt::before,
+.tci-lbl.sr-txt.sr--visible::before,
+.sr--visible .st-label.sr-txt::before,
+.st-label.sr-txt.sr--visible::before,
+.sr--visible .season-tag.sr-txt::before,
+.season-tag.sr-txt.sr--visible::before {
+  margin-left: 0;
+  transition: margin-left var(--eyebrow-slide-duration) var(--eyebrow-slide-easing) var(--eyebrow-slide-delay);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blk-label.sr-txt::before,
+  .phil-lbl.sr-txt::before,
+  .roastery-lbl.sr-txt::before,
+  .tci-lbl.sr-txt::before,
+  .st-label.sr-txt::before,
+  .season-tag.sr-txt::before {
+    margin-left: 0;
+    transition: none;
+  }
 }
 
 /* ══ 영업시간 부분 강조 (emphasizeHours 유틸) ══
