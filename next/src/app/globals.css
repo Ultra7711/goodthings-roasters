@@ -647,7 +647,7 @@ button.hdr-icon-btn { background: none; border: none; }
   opacity: 1 !important;
   position: absolute;
   /* Session 43 — hdr-icon-btn 40x40 화장 (padding 8) 후 시각 위치 보정: top -6 → 2, right -7 → 1 */
-  top: 1px;
+  top: 2px;
   right: 1px;
   min-width: 20px;
   height: 20px;
@@ -770,7 +770,7 @@ button.hdr-icon-btn { background: none; border: none; }
 .mn-cart:hover { opacity: 1; }
 .mn-cart .cart-badge {
   position: absolute;
-  top: 5px;
+  top: 6px;
   right: 6px;
   background: var(--color-text-primary);
   color: var(--color-background-primary);
