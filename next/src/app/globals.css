@@ -1149,6 +1149,7 @@ footer.blk {
 }
 .footer-col-link {
   display: block;
+  position: relative;
   font-family: var(--font-kr);
   font-size: var(--type-caption-size);
   font-weight: 300;
@@ -1164,7 +1165,29 @@ footer.blk {
   text-align: left;
   text-decoration: none;
 }
+/* ⑩ Directional Link Underline
+   호버 진입: 좌→우 draw-in (transform-origin: left)
+   호버 이탈: 우→좌 retract (transform-origin: right, 기본 상태) */
+.footer-col-link::after {
+  content: '';
+  position: absolute;
+  bottom: 15px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 350ms var(--sr-easing);
+}
 .footer-col-link:hover { color: var(--on-dark-primary); }
+.footer-col-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer-col-link::after { transition: none; }
+}
 .f-bottom-wrap {
   padding: 32px 0 40px;
   box-shadow: inset 0 1px 0 0 var(--color-border-hairline-on-dark);
