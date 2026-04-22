@@ -829,28 +829,24 @@ button.hdr-icon-btn { background: none; border: none; }
   font-size: var(--type-h3-size);
   font-weight: 400;
   letter-spacing: var(--ls-nav);
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
   text-decoration: none;
   padding: 16px 0;
-  opacity: .75;
-  transition: opacity var(--duration-hover) ease;
   min-height: 44px;
   display: flex;
   align-items: center;
   gap: 12px;
 }
-.mn-link:hover { opacity: 1; }
 .mn-link-text { display: inline-block; }
 .mn-link-arrow {
-  width: 40px;
-  height: 40px;
+  width: 24px;
+  height: 24px;
   color: var(--color-accent-gold);
   opacity: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-left: auto;
   transition: opacity 350ms ease;
 }
 .mn-link:hover .mn-link-arrow {

@@ -151,7 +151,7 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
               >
                 <span className="mn-link-text">{item.label}</span>
                 <span className="mn-link-arrow" aria-hidden="true">
-                  <svg width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4,24h34"/>
                     <path d="M24,10l14,14-14,14"/>
                   </svg>
