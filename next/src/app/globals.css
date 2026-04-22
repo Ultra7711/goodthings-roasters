@@ -2352,7 +2352,7 @@ footer.blk {
   font-size: var(--type-body-m-size);
   font-weight: 400;
   letter-spacing: var(--ls-button);
-  color: rgba(28,27,25,.8); /* 웜블랙 80% — 디자인 토큰에 대응 variant 없음 */
+  color: var(--color-text-primary);
   margin-top: -2px; /* 패널 상단에서 2px 위로 이동 */
   margin-bottom: 10px;
   text-align: center;
