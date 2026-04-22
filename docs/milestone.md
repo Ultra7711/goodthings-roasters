@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-04-22 · Session 54 — 검색결과·카페하이라이트·드로어 모바일 폴리시 버그 수정 (BUG-109·110) + 검색 모바일 UX(간격·헤어라인·페이지네이션).
+> **최종 업데이트:** 2026-04-23 · BUG-006 Phase 2A 리서치 완료 — Tier 3 (cacheComponents + experimental.sri + unstable_instant + Activity cleanup) 8단계 권장 순서 + 결정 4건 확정. 다음 세션 Phase 2B 단계 1~2 진입.
 
 ---
 
@@ -29,7 +29,7 @@
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
 | User AI | 0 | 0 | 1 | 0% |
 
-**현재 위치:** Sessions 18~49 (디자인 폴리시 · 팔레트 · 반응형 4BP) 완료. **PR#2(`2170f795`) · PR#3(`d0d76835`) · PR#4(`bc72219e`) 모두 master 머지 완료.** Session 50 반응형 1차 리뷰: CRITICAL 0 · HIGH 4 (1건 빌드차단 즉시 수정) · MED 5 · LOW 3. **다음: H3 사업자 정보 환경변수 + M7 CSP 헤더 → Phase 4 인프라(Vercel + Supabase staging/prod).**
+**현재 위치:** Sessions 18~49 (디자인 폴리시 · 팔레트 · 반응형 4BP) 완료. **PR#2(`2170f795`) · PR#3(`d0d76835`) · PR#4(`bc72219e`) 모두 master 머지 완료.** Session 50 반응형 1차 리뷰: CRITICAL 0 · HIGH 4 (1건 빌드차단 즉시 수정) · MED 5 · LOW 3. Sessions 51~60 — H3·M7 + Phase 4 인프라(Vercel/Supabase/Sentry) + Phase 1 디자인 인터랙션 ②⑤⑧ 완료. **현재 진행 중: BUG-006 Tier 3 (instant navigation 아키텍처 교체) · Phase 2A 리서치 완료, Phase 2B 단계 1~2 (cacheComponents + experimental.sri) 대기.**
 
 ---
 
@@ -46,6 +46,7 @@
 | 2-G1 디자인 폴리시 (Phase 1~3) | ✅ | Sessions 18~36 — 카트 풀페이지 · 게이지/레이더 통일 · 팔레트(gold accent + 섹션 로테이션) · CTA hover gold |
 | 2-G2 반응형 4BP | ✅ | Sessions 37~49 — clamp 토큰화 · container queries · 햄버거 드로어 · tap-area sweep · 360/768/1024/1440 전 페이지 QA |
 | 2-G3 프로덕션 마감 | 🔄 | H3 ✅ · M7 ✅ (proxy.ts nonce CSP) · 번들 감사 + Vercel 배포 잔여 |
+| 2-H BUG-006 Tier 3 (instant navigation) | 🔄 | Phase 1 진단 ✅ (root cause: `await headers()` dynamic 강제) · Phase 2A 리서치·결정 ✅ (2026-04-23) · Phase 2B 단계 1~2 (cacheComponents + experimental.sri) 대기 · 단계 3~8 후속 · 브랜치 `feature/bug006-instant-nav` · 안전 태그 `safety/pre-bug006-tier3-2026-04-23` · 단일 진입점 `memory/project_bug006_phase2a_research.md` |
 
 #### 7. Content & Asset
 
@@ -173,3 +174,6 @@
 | `docs/adr/ADR-004-state-management-simplification.md` | Zustand 제거 · TanStack Query 이행 로드맵 |
 | `docs/security-research-2026-04-16.md` | Session 6 폴리시 — 업계 표준 리서치 근거 |
 | `memory/project_backend_p2_session_plan.md` | 세션별 모델·에이전트 계획 |
+| `memory/project_bug006_phase2a_research.md` | BUG-006 Tier 3 단일 진입점 — 결정 4건·8단계 순서·위험 매트릭스·추가조사 결과 |
+| `memory/project_bug006_safety_net.md` | BUG-006 Tier 3 안전 태그·롤백 시나리오 4종 |
+| `memory/project_flash_debugging_failure_catalog.md` | Flash 디버깅 25커밋 실패 카탈로그 + X1~X8 금지 패턴 |
