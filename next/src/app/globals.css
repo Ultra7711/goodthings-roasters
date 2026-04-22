@@ -67,6 +67,7 @@
   /* ── 컬러: Accent & Feedback ── */
   --color-accent-gold: #A5693A;
   --color-accent-gold-on-dark: #D9A36A;
+  --color-accent-gold-on-image: #F0C89C;   /* 복잡한 이미지 배경 위 eyebrow 전용 (TwoCol) */
   --color-label-on-white: #9A7E54;
   --color-label-on-warm: #857052;
   --color-label-on-dark: #C8BFB1;
@@ -8321,9 +8322,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   height: 2px;
   background: var(--color-accent-gold);
 }
-/* 다크 bg 위 eyebrow → on-dark variant */
+/* 이미지 배경 위 eyebrow → on-image variant (더 밝게 · 복잡한 이미지 대비 확보) */
 .tci-lbl::before {
-  background: var(--color-accent-gold-on-dark);
+  background: var(--color-accent-gold-on-image);
 }
 
 /* ══ Eyebrow Slide-in (design-interaction-plan §4 ⑧ 최종안) ══
