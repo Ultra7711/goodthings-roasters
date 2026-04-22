@@ -6083,8 +6083,10 @@ footer.blk {
   background: var(--overlay-lightbox-bg);
 }
 .gd-lightbox img {
-  max-width: 90vw;
-  max-height: 90vh;
+  width: 100vw;
+  height: 100svh;
+  max-width: 100vw;
+  max-height: 100svh;
   object-fit: contain;
   cursor: default;
 }
