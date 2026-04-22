@@ -3435,7 +3435,13 @@ footer.blk {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-#cart-drawer-panel .cd-item-meta-inline { display: none; }
+#cart-drawer-panel .cd-item-meta-inline {
+  display: inline;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--type-body-s-size);
+  white-space: nowrap;
+}
 #cart-drawer-panel .cd-item-bottom {
   position: static;
   grid-row: 3;
@@ -3447,7 +3453,7 @@ footer.blk {
   margin-top: 8px;
 }
 #cart-drawer-panel .cd-item-sub-badge {
-  display: inline-flex;
+  display: none;
   align-items: center;
   justify-content: center;
   font-family: var(--font-en);
@@ -3462,18 +3468,10 @@ footer.blk {
   line-height: 1;
   border-radius: 3px;
 }
-#cart-drawer-panel .cd-item-unit-price {
-  font-family: var(--font-en);
-  font-size: var(--type-heading-s-size);
-  font-weight: 400;
-  color: var(--color-text-secondary);
-  letter-spacing: var(--ls-display);
-  position: relative;
-  top: -1px;
-}
+#cart-drawer-panel .cd-item-unit-price { display: none; }
 #cart-drawer-panel .cd-qty {
   position: static;
-  margin-left: auto;
+  margin-left: 0;
   width: 104px;
   height: 32px;
   padding: 0 4px;
@@ -3513,6 +3511,7 @@ footer.blk {
 }
 #cart-drawer-panel .cd-item-price {
   position: static;
+  margin-left: auto;
   height: 24px;
   display: flex;
   align-items: center;
@@ -3564,18 +3563,7 @@ footer.blk {
     margin-bottom: 8px;
   }
   #cart-drawer-panel .cd-item-name-kr { font-size: 16px; line-height: 1.4; }
-  #cart-drawer-panel .cd-item-meta-inline {
-    display: inline;
-    flex-shrink: 0;
-    color: var(--color-text-secondary);
-    font-size: var(--type-body-s-size);
-    white-space: nowrap;
-  }
   #cart-drawer-panel .cd-item-bottom { gap: 12px; margin-top: 0; }
-  #cart-drawer-panel .cd-item-sub-badge { display: none; }
-  #cart-drawer-panel .cd-item-unit-price { display: none; }
-  #cart-drawer-panel .cd-qty { margin-left: 0; }
-  #cart-drawer-panel .cd-item-price { margin-left: auto; }
 }
 
 /* 빈 상태 */
