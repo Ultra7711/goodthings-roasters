@@ -717,7 +717,7 @@ button.hdr-icon-btn { background: none; border: none; }
   position: fixed;
   top: 0;
   right: 0;
-  height: 100%;
+  height: 100dvh;
   width: var(--drawer-width);
   background: var(--drawer-bg);
   z-index: calc(var(--z-drawer) + 1);
@@ -725,6 +725,7 @@ button.hdr-icon-btn { background: none; border: none; }
   flex-direction: column;
   transform: translateX(100%);
   transition: transform var(--drawer-transition-duration) var(--drawer-transition-easing);
+  will-change: transform;
 }
 #mobile-nav.open #mobile-nav-panel { transform: translateX(0); }
 .mn-header {
@@ -749,6 +750,7 @@ button.hdr-icon-btn { background: none; border: none; }
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  margin-right: -8px; /* hdr-icons margin-right:-4px + icon padding 8px 에 맞춤 */
 }
 .mn-cart {
   position: relative;
@@ -817,8 +819,10 @@ button.hdr-icon-btn { background: none; border: none; }
 .mn-nav {
   display: flex;
   flex-direction: column;
-  padding: 24px 28px 40px;
+  padding: 24px 28px 16px;
   gap: 4px;
+  flex: 1;
+  overflow-y: auto;
 }
 .mn-link {
   font-family: var(--font-en);
@@ -833,19 +837,98 @@ button.hdr-icon-btn { background: none; border: none; }
   min-height: 44px;
   display: flex;
   align-items: center;
+  gap: 12px;
 }
-.mn-link:hover,
-.mn-link.is-active { opacity: 1; }
-.mn-link-text { display: inline-block; position: relative; padding-bottom: 4px; }
-.mn-link.is-active .mn-link-text::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  background: var(--color-accent-gold);
+.mn-link:hover { opacity: 1; }
+.mn-link-text { display: inline-block; }
+.mn-link-arrow {
+  width: 40px;
+  height: 40px;
+  color: var(--color-accent-gold);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: opacity 350ms ease;
 }
+.mn-link:hover .mn-link-arrow {
+  opacity: 1;
+  transition: opacity var(--duration-fade) ease-out;
+  animation: cat-arrow-slide var(--duration-fade) ease-out;
+}
+.mn-footer {
+  flex-shrink: 0;
+  padding: 20px 28px 32px;
+  border-top: 1px solid var(--color-line-light);
+  display: flex;
+  flex-direction: column;
+}
+.mn-slogan {
+  font-family: var(--font-en);
+  font-size: var(--type-caption-size);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+  margin: 0 0 10px;
+}
+.mn-f-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+}
+.mn-f-sep {
+  font-size: var(--type-caption-size);
+  color: var(--color-text-tertiary);
+  padding: 0 6px;
+}
+.mn-f-copyright {
+  font-family: var(--font-en);
+  font-size: var(--type-caption-size);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+.mn-f-biz-toggle {
+  font-size: var(--type-caption-size);
+  color: var(--color-text-tertiary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color var(--duration-hover) ease;
+}
+.mn-f-biz-toggle:hover { color: var(--color-text-primary); }
+.mn-f-legal {
+  font-size: var(--type-caption-size);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: color var(--duration-hover) ease;
+}
+.mn-f-legal:hover { color: var(--color-text-primary); }
+.mn-f-biz-detail {
+  font-size: var(--type-caption-size);
+  color: var(--color-text-tertiary);
+  line-height: 1.6;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height var(--duration-drawer) ease,
+    opacity var(--duration-transition) ease,
+    margin var(--duration-drawer) ease;
+  margin-top: 0;
+}
+.mn-f-biz-detail.open { max-height: 200px; opacity: 1; margin-top: 8px; }
+.mn-f-biz-sep { padding: 0 .3em; }
+.mn-f-biz-lookup {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--duration-hover) ease;
+}
+.mn-f-biz-lookup:hover { color: var(--color-text-primary); }
 
 /* ══ 검색 드롭 패널 ══ */
 #search-drop {
@@ -3062,7 +3145,7 @@ footer.blk {
   position: fixed;
   top: 0;
   right: 0;
-  height: 100%;
+  height: 100dvh;
   width: 664px;
   max-width: 100vw;
   background: var(--drawer-bg);
@@ -3072,6 +3155,7 @@ footer.blk {
   flex-direction: column;
   transform: translateX(100%);
   transition: transform var(--drawer-transition-duration) var(--drawer-transition-easing) 120ms;
+  will-change: transform;
 }
 #cart-drawer.open #cart-drawer-panel { transform: translateX(0); }
 /* 모바일: <768 풀스크린 (Session 38 Step C) */

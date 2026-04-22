@@ -18,6 +18,9 @@ import { useEffect, useState } from 'react';
 import { useDrawer } from '@/hooks/useDrawer';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useCartQuery } from '@/hooks/useCart';
+import { BUSINESS_INFO } from '@/lib/constants';
+
+const FTC_BIZ_LOOKUP_URL = `https://www.ftc.go.kr/bizCommPop.do?wrkr_no=${BUSINESS_INFO.registrationNumber.replace(/-/g, '')}`;
 
 type Props = {
   open: boolean;
@@ -43,6 +46,7 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
   const cartDrawer = useCartDrawer();
   const { totalQty } = useCartQuery();
   const [mounted, setMounted] = useState(false);
+  const [bizOpen, setBizOpen] = useState(false);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
@@ -141,11 +145,17 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={'mn-link' + (isActive ? ' is-active' : '')}
+                className="mn-link"
                 aria-current={isActive ? 'page' : undefined}
                 onClick={(e) => handleNavClick(e, item)}
               >
                 <span className="mn-link-text">{item.label}</span>
+                <span className="mn-link-arrow" aria-hidden="true">
+                  <svg width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4,24h34"/>
+                    <path d="M24,10l14,14-14,14"/>
+                  </svg>
+                </span>
               </Link>
             );
           })}
@@ -158,6 +168,47 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
             {isLoggedIn ? '마이페이지' : '로그인'}
           </Link>
         </nav>
+
+        <footer className="mn-footer">
+          <p className="mn-slogan">good things, simply roasted.</p>
+          <div className="mn-f-row">
+            <span className="mn-f-copyright">© 2026 Good Things Roasters</span>
+            <span className="mn-f-sep">·</span>
+            <button
+              type="button"
+              className="mn-f-biz-toggle"
+              aria-expanded={bizOpen}
+              onClick={() => setBizOpen((p) => !p)}
+            >
+              사업자 정보 {bizOpen ? '▴' : '▾'}
+            </button>
+            <span className="mn-f-sep">·</span>
+            <span className="mn-f-legal">이용약관</span>
+            <span className="mn-f-sep">·</span>
+            <span className="mn-f-legal">개인정보처리방침</span>
+          </div>
+          <div
+            className={`mn-f-biz-detail${bizOpen ? ' open' : ''}`}
+            aria-hidden={!bizOpen}
+          >
+            {BUSINESS_INFO.companyName}<span className="mn-f-biz-sep">·</span>
+            대표 {BUSINESS_INFO.ceo}<span className="mn-f-biz-sep">·</span>
+            사업자 등록번호 {BUSINESS_INFO.registrationNumber}<span className="mn-f-biz-sep">·</span>
+            통신판매업 신고번호 {BUSINESS_INFO.onlineBusinessNumber}{' '}
+            <a
+              className="mn-f-biz-lookup"
+              href={FTC_BIZ_LOOKUP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              [사업자정보 확인]
+            </a>
+            <span className="mn-f-biz-sep">·</span>
+            주소 {BUSINESS_INFO.address}<span className="mn-f-biz-sep">·</span>
+            전화번호 {process.env.NEXT_PUBLIC_CONTACT_PHONE ?? '—'}<span className="mn-f-biz-sep">·</span>
+            이메일 {process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? '—'}
+          </div>
+        </footer>
 
       </aside>
     </div>,
