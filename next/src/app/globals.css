@@ -2370,7 +2370,7 @@ footer.blk {
   flex: 1;
   min-width: 40px;
   height: 48px;
-  box-shadow: 0 0 0 1px var(--color-border-secondary);
+  box-shadow: 0 0 0 1px var(--color-text-tertiary);
   background: var(--color-background-primary);
   font-family: var(--font-en);
   font-size: var(--type-body-ui-size);
