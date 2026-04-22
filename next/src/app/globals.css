@@ -7220,7 +7220,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   transition: transform .5s var(--ease-spring), opacity var(--duration-transition) ease;
   will-change: transform; backface-visibility: hidden;
 }
-.mp-save-btn:hover { opacity: .85; }
+.mp-save-btn:hover { opacity: 1; }
 .mp-save-btn:active { opacity: .7; }
 .mp-cancel-btn {
   display: inline-flex; align-items: center; justify-content: center;
@@ -7417,7 +7417,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing);
   color: var(--color-text-inverse); background-color: var(--color-background-inverse);
-  border: none; cursor: pointer; transition: box-shadow var(--duration-hover) ease;
+  border: none; cursor: pointer; transition: opacity var(--duration-hover) ease;
 }
 
 /* 비밀번호 펼침 시 회원 탈퇴 구분선 (버튼~구분선 간격 확보) */
@@ -8342,12 +8342,102 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 @media (prefers-reduced-motion: reduce) {
   .season-cta::after, .roastery-cta-btn::after { transition: none; }
 }
-/* 다크 bg + 라이트 텍스트 CTA → gold-on-dark
-   2중 인셋: 하단 1px bg 스트립(위 레이어) + 그 아래 3px gold
-   → box-shadow 는 먼저 선언된 것이 위에 그려지므로 bg 스트립을 먼저 선언.
-     결과: 바닥 1px 은 bg, 그 위 2px 만 gold 노출 → 라인이 1px 떠 보이는 효과. */
+/* ── 전체 CTA: position/overflow 기반 준비 ── */
+.cta-btn-light-filled,
+.cta-btn-dark-outline,
+.cta-btn-dark-filled,
+.cta-btn-light-outline,
+.lp-submit-btn,
+.lp-guest-buy-btn,
+.chp-submit-btn,
+.chp-login-primary-btn,
+.ocp-btn-primary,
+.cp-order-btn,
+.bi-submit-btn,
+#pd-cart-btn,
+.mp-save-btn,
+.mp-cancel-btn,
+.mp-modal-confirm,
+.mp-modal-cancel,
+.st-map-overlay-btn,
+.st-map-overlay-btn--primary {
+  position: relative;
+  overflow: hidden;
+}
+
+/* 다크 bg 버튼 → gold-on-dark */
+.cta-btn-light-filled::after,
+.cta-btn-dark-outline::after,
+.lp-submit-btn::after,
+.lp-guest-buy-btn::after,
+.chp-submit-btn::after,
+.chp-login-primary-btn::after,
+.ocp-btn-primary::after,
+.cp-order-btn::after,
+.bi-submit-btn::after,
+#pd-cart-btn::after,
+.mp-save-btn::after,
+.mp-modal-confirm::after,
+.st-map-overlay-btn--primary::after {
+  content: '';
+  position: absolute;
+  bottom: 1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-accent-gold-on-dark);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 350ms var(--sr-easing);
+}
+.cta-btn-light-filled:hover::after,
+.cta-btn-dark-outline:hover::after,
+.lp-submit-btn:hover::after,
+.lp-guest-buy-btn:hover::after,
+.chp-submit-btn:hover::after,
+.chp-login-primary-btn:hover::after,
+.ocp-btn-primary:hover::after,
+.cp-order-btn:hover:not(:disabled)::after,
+.bi-submit-btn:hover::after,
+#pd-cart-btn:hover:not(.disabled)::after,
+.mp-save-btn:hover::after,
+.mp-modal-confirm:hover::after,
+.st-map-overlay-btn--primary:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* 라이트 bg 버튼 → gold */
+.cta-btn-dark-filled::after,
+.cta-btn-light-outline::after,
+.mp-cancel-btn::after,
+.mp-modal-cancel::after,
+.st-map-overlay-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-accent-gold);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 350ms var(--sr-easing);
+}
+.cta-btn-dark-filled:hover::after,
+.cta-btn-light-outline:hover::after,
+.mp-cancel-btn:hover::after,
+.mp-modal-cancel:hover::after,
+.st-map-overlay-btn:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* hover 시 opacity 고정 (전역 darken 방지) */
 .cta-btn-light-filled:hover,
 .cta-btn-dark-outline:hover,
+.cta-btn-dark-filled:hover,
+.cta-btn-light-outline:hover,
 .lp-submit-btn:hover,
 .lp-guest-buy-btn:hover,
 .chp-submit-btn:hover,
@@ -8357,22 +8447,24 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .bi-submit-btn:hover,
 #pd-cart-btn:hover:not(.disabled),
 .mp-save-btn:hover,
+.mp-cancel-btn:hover,
 .mp-modal-confirm:hover,
+.mp-modal-cancel:hover,
+.st-map-overlay-btn:hover,
 .st-map-overlay-btn--primary:hover {
-  box-shadow:
-    inset 0 -1px 0 var(--color-btn-primary-bg),
-    inset 0 -3px 0 var(--color-accent-gold-on-dark);
   opacity: 1;
 }
 
-/* 라이트 bg 버튼 → 기본 gold */
-.cta-btn-dark-filled:hover,
-.cta-btn-light-outline:hover,
-.mp-cancel-btn:hover,
-.mp-modal-cancel:hover,
-.st-map-overlay-btn:hover {
-  box-shadow: inset 0 -2px 0 var(--color-accent-gold);
-  opacity: 1;
+@media (prefers-reduced-motion: reduce) {
+  .cta-btn-light-filled::after, .cta-btn-dark-outline::after,
+  .cta-btn-dark-filled::after, .cta-btn-light-outline::after,
+  .lp-submit-btn::after, .lp-guest-buy-btn::after,
+  .chp-submit-btn::after, .chp-login-primary-btn::after,
+  .ocp-btn-primary::after, .cp-order-btn::after,
+  .bi-submit-btn::after, #pd-cart-btn::after,
+  .mp-save-btn::after, .mp-cancel-btn::after,
+  .mp-modal-confirm::after, .mp-modal-cancel::after,
+  .st-map-overlay-btn::after, .st-map-overlay-btn--primary::after { transition: none; }
 }
 
 /* ══ Step 3-A-5: 섹션 eyebrow gold rule ══
