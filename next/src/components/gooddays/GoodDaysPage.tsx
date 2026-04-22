@@ -242,8 +242,8 @@ export default function GoodDaysPage() {
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <path d="M18,6l-12,12" />
-          <path d="M6,6l12,12" />
+          <path d="M19,5l-14,14" />
+          <path d="M5,5l14,14" />
         </svg>
       </button>
       <button

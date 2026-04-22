@@ -130,8 +130,8 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
               onClick={onClose}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18,6l-12,12" />
-                <path d="M6,6l12,12" />
+                <path d="M19,5l-14,14" />
+                <path d="M5,5l14,14" />
               </svg>
             </button>
           </div>
