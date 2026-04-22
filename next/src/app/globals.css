@@ -3362,7 +3362,17 @@ footer.blk {
 }
 
 /* 아이템 — 664 x 176 절대좌표 레이아웃 */
-#cart-drawer-panel .cd-item { height: 176px; position: relative; cursor: default; }
+#cart-drawer-panel .cd-item {
+  height: auto;
+  position: relative;
+  cursor: default;
+  padding: 24px 28px;
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  grid-template-rows: auto auto auto;
+  column-gap: 20px;
+  row-gap: 4px;
+}
 #cart-drawer-panel .cd-item::after {
   content: '';
   position: absolute;
@@ -3373,7 +3383,14 @@ footer.blk {
   background: var(--color-border-tertiary);
 }
 #cart-drawer-panel .cd-item:last-child::after { display: none; }
-#cart-drawer-panel .cd-item-thumb { position: absolute; left: 28px; top: 38px; width: 100px; height: 100px; }
+#cart-drawer-panel .cd-item-thumb {
+  position: static;
+  grid-row: 1 / 4;
+  grid-column: 1;
+  width: 100px;
+  height: 100px;
+  align-self: center;
+}
 #cart-drawer-panel .cd-item-img {
   width: 100%;
   height: 100%;
@@ -3388,9 +3405,10 @@ footer.blk {
 #cart-drawer-panel .cd-item-img img { width: 100%; height: 100%; object-fit: contain; }
 #cart-drawer-panel .cd-item-img img.cd-item-img-empty { width: 24px; height: 24px; opacity: .3; object-fit: initial; }
 #cart-drawer-panel .cd-item-category {
-  position: absolute;
-  left: 151px;
-  top: 47px;
+  position: static;
+  grid-row: 1;
+  grid-column: 2;
+  align-self: center;
   font-family: var(--font-en);
   font-size: var(--type-body-ui-size);
   font-weight: 400;
@@ -3399,13 +3417,14 @@ footer.blk {
   color: var(--color-text-tertiary);
 }
 #cart-drawer-panel .cd-item-name {
-  position: absolute;
-  left: 151px;
-  top: 73px;
+  position: static;
+  grid-row: 2;
+  grid-column: 2 / 4;
   display: flex;
   align-items: baseline;
   gap: var(--gap-xs);
-  right: 52px;
+  min-width: 0;
+  overflow: hidden;
 }
 #cart-drawer-panel .cd-item-name-kr {
   font-family: var(--font-kr);
@@ -3413,17 +3432,19 @@ footer.blk {
   font-weight: 500;
   color: var(--color-text-primary);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 #cart-drawer-panel .cd-item-meta-inline { display: none; }
 #cart-drawer-panel .cd-item-bottom {
-  position: absolute;
-  left: 151px;
-  top: 104px;
-  right: 28px;
-  height: 24px;
+  position: static;
+  grid-row: 3;
+  grid-column: 2 / 4;
+  height: auto;
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-top: 8px;
 }
 #cart-drawer-panel .cd-item-sub-badge {
   display: inline-flex;
@@ -3451,9 +3472,8 @@ footer.blk {
   top: -1px;
 }
 #cart-drawer-panel .cd-qty {
-  position: absolute;
-  right: 142px;
-  top: -4px;
+  position: static;
+  margin-left: auto;
   width: 104px;
   height: 32px;
   padding: 0 4px;
@@ -3492,9 +3512,7 @@ footer.blk {
   color: var(--color-text-primary);
 }
 #cart-drawer-panel .cd-item-price {
-  position: absolute;
-  right: 0;
-  top: -1px;
+  position: static;
   height: 24px;
   display: flex;
   align-items: center;
@@ -3506,9 +3524,11 @@ footer.blk {
   white-space: nowrap;
 }
 #cart-drawer-panel .cd-remove {
-  position: absolute;
-  top: 44px;
-  right: 28px;
+  position: static;
+  grid-row: 1;
+  grid-column: 3;
+  align-self: center;
+  justify-self: end;
   width: 24px;
   height: 24px;
   display: flex;
@@ -3524,70 +3544,26 @@ footer.blk {
 }
 #cart-drawer-panel .cd-remove:hover { opacity: 1; }
 
-/* ══ Cart Drawer — Mobile (≤767) 3-row 카드 레이아웃 ══
-   /cart 모바일 레이아웃과 동일 스펙 이식.
-   absolute 좌표 → grid 3행으로 재배치, 썸네일 96×96. */
+/* ══ Cart Drawer — Mobile (≤767) ══
+   기본 grid 를 유지하고 크기·간격만 모바일용으로 조정. */
 @media (max-width: 767px) {
-  /* 헤더 좌측 28→20 · 아이템/배송 행 좌측(20px)과 동일 라인 정렬 */
   #cart-drawer-panel .cd-header { padding-left: 20px; padding-right: 20px; }
   #cart-drawer-panel .cd-items { padding: 0 20px; }
   #cart-drawer-panel .cd-item {
-    position: relative;
-    height: auto;
     padding: 20px 0;
-    display: grid;
     grid-template-columns: 96px 1fr auto;
-    grid-template-rows: auto auto auto;
     column-gap: 16px;
-    row-gap: 4px;
-    align-items: center;
   }
   #cart-drawer-panel .cd-item::after { left: 0; right: 0; }
-  #cart-drawer-panel .cd-item-thumb {
-    position: static;
-    grid-row: 1 / 4;
-    grid-column: 1;
-    width: 96px;
-    height: 96px;
-    align-self: center;
-  }
-  #cart-drawer-panel .cd-item-category {
-    position: static;
-    grid-row: 1;
-    grid-column: 2;
-    left: auto; top: auto;
-    align-self: center;
-    font-size: 12px;
-    line-height: 1;
-  }
-  #cart-drawer-panel .cd-remove {
-    position: static;
-    grid-row: 1;
-    grid-column: 3;
-    top: auto; right: auto;
-    align-self: center;
-    justify-self: end;
-  }
+  #cart-drawer-panel .cd-item-thumb { width: 96px; height: 96px; }
+  #cart-drawer-panel .cd-item-category { font-size: 12px; line-height: 1; }
   #cart-drawer-panel .cd-item-name {
-    position: static;
-    grid-row: 2;
-    grid-column: 2 / 4;
-    left: auto; right: auto; top: auto;
     gap: 0;
-    min-width: 0;
-    overflow: hidden;
     line-height: 1.4;
     margin-top: 2px;
     margin-bottom: 8px;
   }
-  #cart-drawer-panel .cd-item-name-kr {
-    flex: 0 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 16px;
-    line-height: 1.4;
-  }
+  #cart-drawer-panel .cd-item-name-kr { font-size: 16px; line-height: 1.4; }
   #cart-drawer-panel .cd-item-meta-inline {
     display: inline;
     flex-shrink: 0;
@@ -3595,28 +3571,11 @@ footer.blk {
     font-size: var(--type-body-s-size);
     white-space: nowrap;
   }
-  #cart-drawer-panel .cd-item-bottom {
-    position: static;
-    grid-row: 3;
-    grid-column: 2 / 4;
-    left: auto; right: auto; top: auto;
-    height: auto;
-    gap: 12px;
-    justify-content: space-between;
-  }
+  #cart-drawer-panel .cd-item-bottom { gap: 12px; margin-top: 0; }
   #cart-drawer-panel .cd-item-sub-badge { display: none; }
   #cart-drawer-panel .cd-item-unit-price { display: none; }
-  #cart-drawer-panel .cd-qty {
-    position: static;
-    right: auto;
-    top: auto;
-  }
-  #cart-drawer-panel .cd-item-price {
-    position: static;
-    right: auto;
-    top: auto;
-    margin-left: auto;
-  }
+  #cart-drawer-panel .cd-qty { margin-left: 0; }
+  #cart-drawer-panel .cd-item-price { margin-left: auto; }
 }
 
 /* 빈 상태 */

@@ -173,6 +173,19 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
               </svg>
             </span>
           </Link>
+          <Link
+            href="/biz-inquiry"
+            className="mn-account-link"
+            onClick={onClose}
+          >
+            Wholesale
+            <span className="mn-link-arrow" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4,24h34"/>
+                <path d="M24,10l14,14-14,14"/>
+              </svg>
+            </span>
+          </Link>
         </nav>
 
         <footer className="mn-footer">
