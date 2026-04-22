@@ -1780,7 +1780,7 @@ footer.blk {
   display: block;  /* 부모 flex 미적용 상황 방어 */
 }
 .phil-h-line--2 {
-  font-weight: 600;
+  font-weight: 500;
 }
 .phil-body {
   font-family: var(--font-kr);
