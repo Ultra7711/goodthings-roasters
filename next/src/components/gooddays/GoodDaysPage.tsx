@@ -28,10 +28,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { buildGoodDaysGrid } from '@/lib/gooddays';
 
 export default function GoodDaysPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   /* 그리드 데이터는 렌더링 순수 함수 — useMemo 로 한 번만 계산 */
@@ -163,7 +164,11 @@ export default function GoodDaysPage() {
     setLightboxIdx(null);
     setLbSettled(false);
     setLbInstant(false);
-  }, []);
+    /* ?img= 파라미터가 남아 있으면 제거 — 새로고침 시 라이트박스 재오픈 방지 */
+    if (searchParams.get('img')) {
+      router.replace('/gooddays', { scroll: false });
+    }
+  }, [router, searchParams]);
 
   /* 언마운트 시 settled 타이머 정리 */
   useEffect(() => {
