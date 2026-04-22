@@ -261,7 +261,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
                 type="button"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16,8l-8,8" /><path d="M8,8l8,8" />
+                  <path d="M18,6l-12,12" /><path d="M6,6l12,12" />
                 </svg>
               </button>
             </div>
