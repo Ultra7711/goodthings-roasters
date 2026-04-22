@@ -1149,7 +1149,6 @@ footer.blk {
 }
 .footer-col-link {
   display: block;
-  position: relative;
   font-family: var(--font-kr);
   font-size: var(--type-caption-size);
   font-weight: 300;
@@ -1165,29 +1164,7 @@ footer.blk {
   text-align: left;
   text-decoration: none;
 }
-/* ⑩ Directional Link Underline
-   호버 진입: 좌→우 draw-in (transform-origin: left)
-   호버 이탈: 우→좌 retract (transform-origin: right, 기본 상태) */
-.footer-col-link::after {
-  content: '';
-  position: absolute;
-  bottom: 15px;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 350ms var(--sr-easing);
-}
 .footer-col-link:hover { color: var(--on-dark-primary); }
-.footer-col-link:hover::after {
-  transform: scaleX(1);
-  transform-origin: left;
-}
-@media (prefers-reduced-motion: reduce) {
-  .footer-col-link::after { transition: none; }
-}
 .f-bottom-wrap {
   padding: 32px 0 40px;
   box-shadow: inset 0 1px 0 0 var(--color-border-hairline-on-dark);
@@ -8339,7 +8316,31 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* hover 미정의 CTA에 darken 통일 */
 .season-cta,
 .roastery-cta-btn {
-  transition: opacity var(--duration-hover) ease, box-shadow var(--duration-hover) var(--ease-default);
+  position: relative;
+  overflow: hidden;
+  transition: opacity var(--duration-hover) ease;
+}
+/* ⑩ Directional Gold Fill — 호버 진입: 좌→우 fill, 호버 이탈: 우→shrink */
+.season-cta::after,
+.roastery-cta-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-accent-gold-on-dark);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 350ms var(--sr-easing);
+}
+.season-cta:hover::after,
+.roastery-cta-btn:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+@media (prefers-reduced-motion: reduce) {
+  .season-cta::after, .roastery-cta-btn::after { transition: none; }
 }
 /* 다크 bg + 라이트 텍스트 CTA → gold-on-dark
    2중 인셋: 하단 1px bg 스트립(위 레이어) + 그 아래 3px gold
@@ -8347,8 +8348,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
      결과: 바닥 1px 은 bg, 그 위 2px 만 gold 노출 → 라인이 1px 떠 보이는 효과. */
 .cta-btn-light-filled:hover,
 .cta-btn-dark-outline:hover,
-.season-cta:hover,
-.roastery-cta-btn:hover,
 .lp-submit-btn:hover,
 .lp-guest-buy-btn:hover,
 .chp-submit-btn:hover,
