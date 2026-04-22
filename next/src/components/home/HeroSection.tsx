@@ -20,7 +20,8 @@ export default function HeroSection() {
         <div className="hero-bg-overlay" />
         <div className="hero-c">
           <span className="hero-slogan">
-            good things,<br className="hero-slogan-br" /> take time
+            <span className="hero-slogan-line hero-slogan-line--1">good things,</span>
+            <span className="hero-slogan-line hero-slogan-line--2">take time</span>
           </span>
           <svg
             className="hero-scroll-mouse"

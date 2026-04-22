@@ -183,6 +183,17 @@
   --type-body-ui-size: 14px;       --type-body-ui-weight: 400;
   --font-kr-align-fix: 0px;
 
+  /* ── Editorial Typography Scale (Session 60 · design-interaction-plan §4 ②) ──
+     히어로·주요 섹션 헤딩의 매거진급 임팩트 스케일. 기존 --type-display/h1/h2 와 병존. */
+  --type-hero-editorial-size: clamp(2.5rem, 1.5rem + 5.5vw, 7rem);   /* 40→112px */
+  --type-hero-editorial-weight: 300;                                 /* 기본 (단일 라인용) */
+  --type-hero-editorial-weight-soft: 200;                            /* A안: 1라인 (보조) */
+  --type-hero-editorial-weight-strong: 500;                          /* A안: 2라인 (강조) */
+  --type-hero-editorial-tracking: -0.025em;
+  --type-hero-editorial-leading: 1.05;
+  --type-h1-editorial-size: clamp(2rem, 1.5rem + 2.5vw, 3.25rem);    /* 32→52px */
+  --type-h2-editorial-size: clamp(1.75rem, 1.25rem + 2vw, 2.75rem);  /* 28→44px */
+
   /* ── Lines & Borders ── */
   --color-border-hairline: rgba(28,27,25,.06);
   --color-border-hairline-on-dark: rgba(255,255,255,.10);
@@ -1368,18 +1379,26 @@ footer.blk {
 }
 .hero-slogan {
   font-family: var(--font-en);
-  font-size: var(--type-display-size);
-  font-weight: var(--type-display-weight);
-  color: rgba(250,250,248,.7);
-  letter-spacing: var(--ls-display);
-  line-height: 1.1;
+  font-size: var(--type-hero-editorial-size);
+  letter-spacing: var(--type-hero-editorial-tracking);
+  line-height: var(--type-hero-editorial-leading);
+  display: flex;
+  flex-direction: column;
   opacity: 0;
   transform: translateY(20px);
   animation: heroSloganIn 0.9s ease-out 0.8s forwards;
 }
-.hero-slogan-br { display: none; }
-@media (max-width: 480px) {
-  .hero-slogan-br { display: inline; }
+/* A안: 라인별 weight·alpha 대비 — 가벼움("good things,") → 묵직함("take time") */
+.hero-slogan-line {
+  display: block;  /* 부모 flex 미적용 상황 방어 — block 으로 자체 줄바꿈 보장 */
+}
+.hero-slogan-line--1 {
+  font-weight: var(--type-hero-editorial-weight-soft);
+  color: rgba(250,250,248,.55);
+}
+.hero-slogan-line--2 {
+  font-weight: var(--type-hero-editorial-weight-strong);
+  color: rgba(250,250,248,.9);
 }
 .hero-scroll-mouse {
   width: 40px;
