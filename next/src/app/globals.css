@@ -126,6 +126,19 @@
   --ease-drawer: cubic-bezier(.25, .46, .45, .94);
   --ease-spring: cubic-bezier(.16, 1, .3, 1);
 
+  /* ── Scroll-reveal (sr) ── */
+  --sr-duration-txt: 800ms;
+  --sr-duration-img: 1000ms;
+  --sr-stagger: 120ms;
+  --sr-translate-txt: 28px;
+  --sr-blur-img: 16px;
+  --sr-easing: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ── Variable Font Weight (vfw) ── */
+  --vfw-weight-min: 300;
+  --vfw-weight-max: 600;
+  --vfw-range: entry 10% cover 60%;
+
   /* ── z-index ── */
   --z-sticky: 50;
   --z-page: 100;
@@ -1289,22 +1302,28 @@ footer.blk {
 /* ══ 스크롤 리빌 베이스 ══ */
 .sr-img {
   opacity: 0;
-  filter: blur(12px);
-  transition: opacity 0.9s ease-out, filter 0.9s ease-out;
+  filter: blur(var(--sr-blur-img));
+  transition: opacity var(--sr-duration-img) var(--sr-easing), filter var(--sr-duration-img) var(--sr-easing);
 }
 .sr-txt {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
+  transform: translateY(var(--sr-translate-txt));
+  transition: opacity var(--sr-duration-txt) var(--sr-easing), transform var(--sr-duration-txt) var(--sr-easing);
 }
 .sr-txt--d1 { transition-delay: 0ms; }
-.sr-txt--d2 { transition-delay: 150ms; }
-.sr-txt--d3 { transition-delay: 300ms; }
-.sr-txt--d4 { transition-delay: 450ms; }
+.sr-txt--d2 { transition-delay: var(--sr-stagger); }
+.sr-txt--d3 { transition-delay: calc(var(--sr-stagger) * 2); }
+.sr-txt--d4 { transition-delay: calc(var(--sr-stagger) * 3); }
 .sr--visible .sr-img,
 .sr-img.sr--visible { opacity: 1; filter: blur(0); }
 .sr--visible .sr-txt,
 .sr-txt.sr--visible { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sr-img { opacity: 1; filter: none; transition: none; }
+  .sr-txt { opacity: 1; transform: none; transition: none; }
+  .sr-txt--d1, .sr-txt--d2, .sr-txt--d3, .sr-txt--d4 { transition-delay: 0ms; }
+}
 
 /* ══ Grain / Noise Overlay (design-interaction-plan §4 ⑤) ══
    배경 필름 질감. 섹션 내 absolute 로 배치, pointer-events: none.
@@ -1329,6 +1348,37 @@ footer.blk {
 /* 히어로: 비디오(z:1) 위 + 텍스트(hero-c z:1) 아래 */
 #hero-blk .grain-overlay { z-index: 1; }
 
+
+/* ══ Variable Font Weight — Scroll-driven (design-interaction-plan §4 ①) ══
+   @supports 가드 필수: Chrome 120+ / Edge 지원, Safari 18 / Firefox 미지원.
+   미지원 브라우저 폴백 = 정적 --vfw-weight-min (300). */
+.vfw {
+  font-weight: var(--vfw-weight-min);
+}
+@supports (animation-timeline: view()) {
+  .vfw {
+    animation: vfw-swell linear both;
+    animation-timeline: view();
+    animation-range: var(--vfw-range);
+    animation-duration: 1ms;
+  }
+}
+@supports (animation-timeline: scroll()) {
+  .vfw-hero {
+    font-weight: var(--vfw-weight-min);
+    animation: vfw-swell linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0% 50%;
+    animation-duration: 1ms;
+  }
+}
+@keyframes vfw-swell {
+  from { font-weight: var(--vfw-weight-min); }
+  to   { font-weight: var(--vfw-weight-max); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vfw, .vfw-hero { animation: none; font-weight: var(--vfw-weight-min); }
+}
 
 /* ══ 키프레임 ══ */
 @keyframes heroSloganIn {
