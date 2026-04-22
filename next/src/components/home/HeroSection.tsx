@@ -18,6 +18,7 @@ export default function HeroSection() {
           <source src="/images/hero/hero-video.mp4" type="video/mp4" />
         </video>
         <div className="hero-bg-overlay" />
+        <div className="grain-overlay" aria-hidden="true" />
         <div className="hero-c">
           <span className="hero-slogan">
             <span className="hero-slogan-line hero-slogan-line--1">good things,</span>

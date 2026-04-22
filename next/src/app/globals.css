@@ -1307,14 +1307,12 @@ footer.blk {
 .sr-txt.sr--visible { opacity: 1; transform: translateY(0); }
 
 /* ══ Grain / Noise Overlay (design-interaction-plan §4 ⑤) ══
-   배경 필름 질감. 섹션 내 최상단 absolute 로 배치, pointer-events: none.
-   `.blk` 등 position: relative 컨테이너 안에 직접 삽입해 해당 섹션만 덮음.
+   배경 필름 질감. 섹션 내 absolute 로 배치, pointer-events: none.
    SVG feTurbulence 인라인 data URI — 네트워크 비용 0, 약 180 bytes. */
 .grain-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: var(--grain-tile-size);
   background-repeat: repeat;
@@ -1327,6 +1325,9 @@ footer.blk {
   opacity: var(--grain-opacity-dark);
   mix-blend-mode: var(--grain-blend-dark);
 }
+
+/* 히어로: 비디오(z:1) 위 + 텍스트(hero-c z:1) 아래 */
+#hero-blk .grain-overlay { z-index: 1; }
 
 
 /* ══ 키프레임 ══ */
