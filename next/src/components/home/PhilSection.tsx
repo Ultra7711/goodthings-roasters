@@ -15,7 +15,8 @@ export default function PhilSection() {
         <div className="phil-txt">
           <span className="phil-lbl sr-txt sr-txt--d1">OUR STORY</span>
           <span className="phil-h ed-h2 sr-txt sr-txt--d2">
-            좋은 것에는<br />시간이 필요합니다.
+            <span className="phil-h-line phil-h-line--1">좋은 것에는</span>
+            <span className="phil-h-line phil-h-line--2">시간이 필요합니다.</span>
           </span>
           <span className="phil-body sr-txt sr-txt--d3">
             빠름보다 바름을 선택합니다.<br />
