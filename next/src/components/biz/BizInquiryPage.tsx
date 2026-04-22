@@ -260,8 +260,7 @@ export default function BizInquiryPage() {
       <div id="bi-left">
         <div id="bi-page-title">비즈니스 문의</div>
         <p id="bi-page-desc">
-          카페, 레스토랑, 오피스 등<br />
-          맞춤 원두 납품을 상담해 드립니다.
+          카페, 레스토랑, 오피스 등 맞춤 원두 납품을 상담해 드립니다.
         </p>
         <p id="bi-page-note">
           확인 후 영업일 1~2일 내 연락드리겠습니다.

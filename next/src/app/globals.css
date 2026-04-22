@@ -5437,16 +5437,17 @@ footer.blk {
 }
 #bi-page-desc {
   font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: var(--type-body-m-weight);
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-heading);
   color: var(--color-text-secondary);
-  line-height: var(--lh-relaxed);
+  line-height: var(--lh-normal);
   margin: 0;
 }
 #bi-page-note {
   font-family: var(--font-kr);
   font-size: var(--type-body-ui-size);
-  color: var(--color-text-caption);
+  color: var(--color-text-tertiary);
   line-height: var(--lh-normal);
   margin: 4px 0 0;
   display: flex;
