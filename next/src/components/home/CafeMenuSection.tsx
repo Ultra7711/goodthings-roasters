@@ -41,7 +41,7 @@ export default function CafeMenuSection() {
           <div className="season-txt">
             <div className="season-copy">
               <span className="season-tag sr-txt sr-txt--d1">2026 · SPRING</span>
-              <span className="season-h sr-txt sr-txt--d2">봄, 한 잔의 여유.</span>
+              <span className="season-h ed-h2 sr-txt sr-txt--d2">봄, 한 잔의 여유.</span>
               <span className="season-desc sr-txt sr-txt--d3">벚꽃이 지기 전에 만나는 시즌 한정 메뉴</span>
             </div>
             <Link href="/menu?cat=signature" className="season-cta sr-txt sr-txt--d4">

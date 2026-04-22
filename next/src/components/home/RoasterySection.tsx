@@ -28,7 +28,7 @@ export default function RoasterySection() {
         <div className="roastery-bg sr-img" />
         <div className="roastery-c">
           <span className="roastery-lbl sr-txt sr-txt--d1">VISIT</span>
-          <span className="roastery-h sr-txt sr-txt--d2">직접 만나보세요.</span>
+          <span className="roastery-h ed-h2 sr-txt sr-txt--d2">직접 만나보세요.</span>
           <span className="roastery-body sr-txt sr-txt--d3">
             경북 구미시 인동21길 22-11
             <HoursLabel />

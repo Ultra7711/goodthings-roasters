@@ -14,7 +14,7 @@ export default function PhilSection() {
         </div>
         <div className="phil-txt">
           <span className="phil-lbl sr-txt sr-txt--d1">OUR STORY</span>
-          <span className="phil-h sr-txt sr-txt--d2">
+          <span className="phil-h ed-h2 sr-txt sr-txt--d2">
             좋은 것에는<br />시간이 필요합니다.
           </span>
           <span className="phil-body sr-txt sr-txt--d3">
