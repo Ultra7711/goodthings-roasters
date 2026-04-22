@@ -5446,8 +5446,8 @@ footer.blk {
 }
 #bi-page-note {
   font-family: var(--font-kr);
-  font-size: var(--type-body-ui-size);
-  color: var(--color-text-tertiary);
+  font-size: var(--type-body-m-size);
+  color: var(--color-text-secondary);
   line-height: var(--lh-normal);
   margin: 4px 0 0;
   display: flex;
@@ -5724,8 +5724,8 @@ footer.blk {
 /* ── 개인정보 안내 ── */
 #bi-privacy-note {
   font-family: var(--font-kr);
-  font-size: var(--type-body-ui-size);
-  color: var(--color-text-caption);
+  font-size: var(--type-body-m-size);
+  color: var(--color-text-secondary);
   text-align: center;
   margin-top: 0;
   line-height: var(--lh-normal);
