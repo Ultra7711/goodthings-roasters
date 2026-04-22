@@ -799,6 +799,7 @@ button.hdr-icon-btn { background: none; border: none; }
   min-height: 44px;
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 .mn-account-link:hover { opacity: 1; }
 .mn-close {
@@ -849,7 +850,8 @@ button.hdr-icon-btn { background: none; border: none; }
   flex-shrink: 0;
   transition: opacity 350ms ease;
 }
-.mn-link:hover .mn-link-arrow {
+.mn-link:hover .mn-link-arrow,
+.mn-account-link:hover .mn-link-arrow {
   opacity: 1;
   transition: opacity var(--duration-fade) ease-out;
   animation: cat-arrow-slide var(--duration-fade) ease-out;
