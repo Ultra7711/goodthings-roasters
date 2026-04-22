@@ -194,6 +194,14 @@
   --type-h1-editorial-size: clamp(2rem, 1.5rem + 2.5vw, 3.25rem);    /* 32→52px */
   --type-h2-editorial-size: clamp(1.75rem, 1.25rem + 2vw, 2.75rem);  /* 28→44px */
 
+  /* ── Animated Hairline Divider (design-interaction-plan §4 ⑧) ──
+     섹션 진입 시 1px 가로선 좌→우 draw-in. 기존 --color-border-hairline
+     (.06) 은 애니메이션 되는 선에 너무 흐려 전용 색 토큰 신설. */
+  --hairline-color: rgba(28,27,25,.18);
+  --hairline-color-on-dark: rgba(250,250,248,.22);
+  --hairline-duration: 600ms;
+  --hairline-easing: cubic-bezier(0.22, 1, 0.36, 1);  /* out-expo */
+
   /* ── Lines & Borders ── */
   --color-border-hairline: rgba(28,27,25,.06);
   --color-border-hairline-on-dark: rgba(255,255,255,.10);
@@ -1286,6 +1294,29 @@ footer.blk {
 .sr-img.sr--visible { opacity: 1; filter: blur(0); }
 .sr--visible .sr-txt,
 .sr-txt.sr--visible { opacity: 1; transform: translateY(0); }
+
+/* ══ Hairline Divider ══
+   섹션 진입 시 1px 가로선이 좌→우로 그어지는 에디토리얼 리듬.
+   sr--visible 클래스로 트리거 (SRInitializer 와 동일 타이밍).
+   선이 먼저 완료(600ms) → 이어서 sr-txt 페이드인(700ms+). */
+.hairline {
+  display: block;
+  height: 1px;
+  width: 100%;
+  background: var(--hairline-color);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--hairline-duration) var(--hairline-easing);
+}
+.sr--visible .hairline,
+.hairline.sr--visible { transform: scaleX(1); }
+
+/* 다크 섹션 오버라이드 — data-header-theme="dark" 섹션 */
+[data-header-theme="dark"] .hairline { background: var(--hairline-color-on-dark); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hairline { transform: scaleX(1); transition: none; }
+}
 
 /* ══ 키프레임 ══ */
 @keyframes heroSloganIn {
