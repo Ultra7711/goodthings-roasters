@@ -97,23 +97,25 @@ type Props = {
 };
 
 /* 말풍선 HTML 생성 — 길찾기·카카오맵 상세 두 버튼. 링크는 새 탭.
-   닫기: 마커 재클릭 또는 지도 빈 영역 클릭. */
+   닫기: 마커 재클릭 또는 지도 빈 영역 클릭.
+   onInteract: overlay 내부 mousedown 시 호출 — map click 핸들러가 플래그를 읽어
+   overlay 내부 클릭(링크 포함)을 외부 클릭과 구별한다. */
 function buildOverlayContent({
   placeName,
   placeId,
   lat,
   lng,
+  onInteract,
 }: {
   placeName: string;
   placeId?: string;
   lat: number;
   lng: number;
+  onInteract: () => void;
 }): HTMLElement {
   const wrap = document.createElement('div');
   wrap.className = 'st-map-overlay';
-  /* Kakao 지도 click 핸들러로 버블링되면 overlay 가 닫히면서 anchor navigation 이
-     취소된다. wrap 레벨에서 mousedown/click 을 모두 차단해야 링크가 정상 동작. */
-  wrap.addEventListener('mousedown', (e) => e.stopPropagation());
+  wrap.addEventListener('mousedown', (e) => { e.stopPropagation(); onInteract(); });
   wrap.addEventListener('click', (e) => e.stopPropagation());
 
   const detailHref = placeId
@@ -169,6 +171,7 @@ export default function KakaoMap({
     }
     let cancelled = false;
     let ro: ResizeObserver | null = null;
+    let docClickHandler: ((e: MouseEvent) => void) | null = null;
 
     loadSdk(appkey)
       .then(() => {
@@ -194,9 +197,17 @@ export default function KakaoMap({
           );
           const marker = new kakao.Marker({ position: center, map, image: markerImage });
 
+          /* overlay 내부 mousedown 플래그 — Kakao SDK 는 좌표 기반으로 map click 을
+             발행하므로 DOM stopPropagation 만으로는 구별 불가. mousedown 에서 플래그를
+             세우면 map click 핸들러가 overlay 내부 클릭(링크 포함)을 건너뛸 수 있다. */
+          let overlayInteracted = false;
+
           const overlay = new kakao.CustomOverlay({
             position: center,
-            content: buildOverlayContent({ placeName, placeId, lat, lng }),
+            content: buildOverlayContent({
+              placeName, placeId, lat, lng,
+              onInteract: () => { overlayInteracted = true; },
+            }),
             yAnchor: 1.35,
           });
 
@@ -204,9 +215,17 @@ export default function KakaoMap({
             if (overlay.getMap()) overlay.setMap(null);
             else overlay.setMap(map);
           });
-          /* 주의: map 'click' 핸들러로 overlay 를 닫으면 overlay 내부 링크 클릭도
-             좌표 기반으로 감지되어 DOM 이 제거 → anchor navigation 이 취소된다.
-             닫기는 마커 재클릭으로만 제공. */
+          kakao.event.addListener(map, 'click', () => {
+            if (overlayInteracted) { overlayInteracted = false; return; }
+            overlay.setMap(null);
+          });
+
+          /* 지도 외부 클릭 시 팝업 닫기 */
+          docClickHandler = (e: MouseEvent) => {
+            if (containerRef.current?.contains(e.target as Node)) return;
+            overlay.setMap(null);
+          };
+          document.addEventListener('click', docClickHandler);
         });
       })
       .catch((err) => console.warn('[KakaoMap]', err));
@@ -214,6 +233,7 @@ export default function KakaoMap({
     return () => {
       cancelled = true;
       ro?.disconnect();
+      if (docClickHandler) document.removeEventListener('click', docClickHandler);
     };
   }, [lat, lng, level, placeName, placeId]);
 

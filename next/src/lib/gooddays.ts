@@ -80,7 +80,7 @@ export const GD_PATTERNS: GdPattern[] = [
 ];
 
 /* Extended Palette 최연한 컬러 — 빈 셀 플레이스홀더 */
-export const GD_PLACEHOLDER_COLORS = ['#D9D6D2', '#E8DFD2', '#D4C8B8', '#D5DED0', '#F5EFE0'];
+export const GD_PLACEHOLDER_COLORS = ['#E0D5C5', '#E8DFD2', '#D4C8B8', '#DDD0BE', '#F5EFE0'];
 
 export type GdCell =
   | { kind: 'image'; src: string; orderedIdx: number; span: boolean }

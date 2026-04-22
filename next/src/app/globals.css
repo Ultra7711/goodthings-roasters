@@ -1057,6 +1057,8 @@ footer.blk {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  top: -3px;
   line-height: 1;
   /* Session 43 — tap-area 40x40 (icon 24 + padding 8 * 2, 시각 변경 없음) */
   width: 40px;
@@ -1725,7 +1727,7 @@ footer.blk {
   .phil {
     flex-direction: column;
     height: auto;
-    padding: 0 0 80px;
+    padding: 0 0 64px;
     gap: 48px;
   }
   .phil-img {
@@ -2503,6 +2505,7 @@ footer.blk {
     justify-content: center;
     pointer-events: none;
   }
+  .sp-qa-bar-icon svg { transition: transform 250ms ease; }
   .sp-qa-bar-text { display: none; }
   .sp-qa-close { display: none; }
 
@@ -2515,9 +2518,18 @@ footer.blk {
     height: 48px;
     border-radius: 0;
   }
-  .sp-card--qa-open .sp-qa-bar-icon { display: none; }
+  /* + 아이콘을 우측으로 절대 배치하여 × 닫기 버튼으로 전환 (sp-qa-close 대체) */
+  .sp-card--qa-open .sp-qa-bar-icon {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 48px;
+    pointer-events: auto;
+  }
+  .sp-card--qa-open .sp-qa-bar-icon svg { transform: rotate(45deg) scale(1.143); }
   .sp-card--qa-open .sp-qa-bar-text { display: inline; }
-  .sp-card--qa-open .sp-qa-close { display: flex; }
+  /* sp-qa-close 모바일 open 시에도 숨김 유지 — 아이콘이 대체 */
 
   /* 품절 바 — 모바일에서는 뱃지로 상태 표시 충분하므로 숨김 */
   .sp-qa-bar--disabled { display: none; }
@@ -3171,7 +3183,6 @@ footer.blk {
   padding: 0 24px 0 28px;
   height: 64px;
   flex-shrink: 0;
-  box-shadow: inset 0 -1px 0 0 var(--color-border-secondary);
 }
 #cart-drawer-panel .cd-header.cd-header--empty { box-shadow: none; }
 #cart-drawer-panel .cd-title-wrap { display: flex; align-items: center; gap: var(--gap-xs); }
@@ -3551,7 +3562,7 @@ footer.blk {
   display: contents;
 }
 #cart-drawer-panel .cd-shipping-item .shipping-gauge {
-  width: 160px;
+  width: 200px;
   flex-shrink: 0;
   order: 1;
 }
@@ -7886,7 +7897,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 @media (max-width: 1024px) {
   .cp-shipping-row .shipping-gauge { width: 200px; }
-  #cart-drawer-panel .cd-shipping-item .shipping-gauge { width: 120px; }
+  #cart-drawer-panel .cd-shipping-item .shipping-gauge { width: 160px; }
 }
 @media (max-width: 767px) {
   .cp-shipping-row .shipping-gauge { width: 140px; }
@@ -7923,13 +7934,13 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   #cart-drawer-panel .cd-shipping-item .shipping-gauge {
     grid-row: 2;
     grid-column: 2;
-    width: 96px;
+    width: 120px;
     order: 0;
   }
 }
 @media (max-width: 480px) {
   .cp-shipping-row .shipping-gauge { width: 96px; }
-  #cart-drawer-panel .cd-shipping-item .shipping-gauge { width: 72px; }
+  #cart-drawer-panel .cd-shipping-item .shipping-gauge { width: 88px; }
 }
 .cp-shipping-label {
   font-weight: 400; color: var(--color-text-secondary);
