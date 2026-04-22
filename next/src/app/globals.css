@@ -134,10 +134,6 @@
   --sr-blur-img: 16px;
   --sr-easing: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* ── Variable Font Weight (vfw) ── */
-  --vfw-weight-min: 300;
-  --vfw-weight-max: 600;
-  --vfw-range: entry 10% cover 60%;
 
   /* ── z-index ── */
   --z-sticky: 50;
@@ -1349,36 +1345,6 @@ footer.blk {
 #hero-blk .grain-overlay { z-index: 1; }
 
 
-/* ══ Variable Font Weight — Scroll-driven (design-interaction-plan §4 ①) ══
-   @supports 가드 필수: Chrome 120+ / Edge 지원, Safari 18 / Firefox 미지원.
-   미지원 브라우저 폴백 = 정적 --vfw-weight-min (300). */
-.vfw {
-  font-weight: var(--vfw-weight-min);
-}
-@supports (animation-timeline: view()) {
-  .vfw {
-    animation: vfw-swell linear both;
-    animation-timeline: view();
-    animation-range: var(--vfw-range);
-    animation-duration: 1ms;
-  }
-}
-@supports (animation-timeline: scroll()) {
-  .vfw-hero {
-    font-weight: var(--vfw-weight-min);
-    animation: vfw-swell linear both;
-    animation-timeline: scroll(root block);
-    animation-range: 0% 50%;
-    animation-duration: 1ms;
-  }
-}
-@keyframes vfw-swell {
-  from { font-weight: var(--vfw-weight-min); }
-  to   { font-weight: var(--vfw-weight-max); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .vfw, .vfw-hero { animation: none; font-weight: var(--vfw-weight-min); }
-}
 
 /* ══ 키프레임 ══ */
 @keyframes heroSloganIn {
