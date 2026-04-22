@@ -218,6 +218,17 @@ export default function GoodDaysPage() {
     };
   }, [lightboxIdx]);
 
+  /* 투핑거 핀치 줌 차단 — iOS Safari 는 touch-action: pan-y 만으로 부족.
+     viewport maximum-scale=1 / user-scalable=no 로 열린 동안만 줌 비활성화. */
+  useEffect(() => {
+    if (lightboxIdx === null) return;
+    const viewport = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+    if (!viewport) return;
+    const orig = viewport.content;
+    viewport.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
+    return () => { viewport.content = orig; };
+  }, [lightboxIdx]);
+
   const currentImg = lightboxIdx !== null ? ordered[lightboxIdx] : null;
 
   /* 라이트박스 — 프로토타입 L4193 처럼 body 직계로 렌더해야

@@ -6090,8 +6090,8 @@ footer.blk {
     transition: opacity 150ms ease;
   }
   .gd-lb-arrow:active { color: #fff; opacity: 1; }
-  .gd-lb-prev { left: 8px; }
-  .gd-lb-next { right: 8px; }
+  .gd-lb-prev { left: 10px; }
+  .gd-lb-next { right: 10px; }
   /* arrow-btn-primary 100px → 44px (탭 영역 최소치 확보) */
   .gd-lb-arrow.arrow-btn-primary { padding: 4px; }
   .gd-lb-arrow.arrow-btn-primary svg { width: 44px; height: 44px; }
