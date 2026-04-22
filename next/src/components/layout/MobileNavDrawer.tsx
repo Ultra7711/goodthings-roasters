@@ -171,9 +171,8 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
 
         <footer className="mn-footer">
           <p className="mn-slogan">good things, simply roasted.</p>
+          <span className="mn-f-copyright">© 2026 Good Things Roasters</span>
           <div className="mn-f-row">
-            <span className="mn-f-copyright">© 2026 Good Things Roasters</span>
-            <span className="mn-f-sep">·</span>
             <button
               type="button"
               className="mn-f-biz-toggle"
