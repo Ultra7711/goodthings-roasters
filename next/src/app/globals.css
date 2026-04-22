@@ -1177,31 +1177,22 @@ footer.blk {
   opacity: 0;
   filter: blur(12px);
   transition: opacity 0.9s ease-out, filter 0.9s ease-out;
-  /* JS 로딩 실패 시 5s 후 자동 표시 — sr--visible 붙으면 animation: none 으로 취소 */
-  animation: sr-img-fallback 0.9s ease-out 5s forwards;
 }
 .sr-txt {
   opacity: 0;
   transform: translateY(20px);
   transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
-  animation: sr-txt-fallback var(--duration-slide) ease-out 5s forwards;
 }
 .sr-txt--d1 { transition-delay: 0ms; }
 .sr-txt--d2 { transition-delay: 150ms; }
 .sr-txt--d3 { transition-delay: 300ms; }
 .sr-txt--d4 { transition-delay: 450ms; }
 .sr--visible .sr-img,
-.sr-img.sr--visible { opacity: 1; filter: blur(0); animation: none; }
+.sr-img.sr--visible { opacity: 1; filter: blur(0); }
 .sr--visible .sr-txt,
-.sr-txt.sr--visible { opacity: 1; transform: translateY(0); animation: none; }
+.sr-txt.sr--visible { opacity: 1; transform: translateY(0); }
 
 /* ══ 키프레임 ══ */
-@keyframes sr-img-fallback {
-  to { opacity: 1; filter: blur(0); }
-}
-@keyframes sr-txt-fallback {
-  to { opacity: 1; transform: translateY(0); }
-}
 @keyframes heroSloganIn {
   to { opacity: 1; transform: translateY(0); }
 }
@@ -1465,9 +1456,8 @@ footer.blk {
   opacity: 0;
   filter: blur(12px);
   transition: opacity 0.9s ease-out, filter 0.9s ease-out;
-  animation: sr-img-fallback 0.9s ease-out 5s forwards;
 }
-.cat-card.sr--visible .cat-card-clip { opacity: 1; filter: blur(0); animation: none; }
+.cat-card.sr--visible .cat-card-clip { opacity: 1; filter: blur(0); }
 .cat-grid .cat-card:nth-child(1) .cat-card-clip { transition-delay: 0ms; }
 .cat-grid .cat-card:nth-child(2) .cat-card-clip { transition-delay: 150ms; }
 .cat-grid .cat-card:nth-child(3) .cat-card-clip { transition-delay: 300ms; }
@@ -1835,10 +1825,9 @@ footer.blk {
   opacity: 0;
   filter: blur(12px);
   transition: transform 1.2s cubic-bezier(.25,.1,.25,1), opacity 0.9s ease-out, filter 0.9s ease-out;
-  animation: sr-img-fallback 0.9s ease-out 5s forwards;
 }
 .sr--visible .tci-img-inner,
-.tci-img-inner.sr--visible { opacity: 1; filter: blur(0); animation: none; }
+.tci-img-inner.sr--visible { opacity: 1; filter: blur(0); }
 .tci:hover .tci-img-inner { transform: scale(1.03); }
 .tci:hover .tci-img::before { opacity: .82; }
 .tci-overlay {
