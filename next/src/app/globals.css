@@ -1444,6 +1444,21 @@ footer.blk {
   margin-top: 2px;
 }
 
+/* ══ Editorial Heading Utilities (design-interaction-plan §4 ②) ══
+   기존 --type-h1/h2-size 보다 대형 스케일로 에디토리얼 임팩트 강화.
+   .phil-h · .roastery-h · .season-h 등 기존 섹션 타이틀 클래스와 병용.
+   font-weight 은 기존 셀렉터 값 유지 (300). .ed-* 은 크기·간격만 책임. */
+.ed-h1 {
+  font-size: var(--type-h1-editorial-size);
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+.ed-h2 {
+  font-size: var(--type-h2-editorial-size);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
 /* ══ #cafe-menu-blk 시즌 배너 ══ */
 .season-banner-section { background: var(--color-surface-warm); }
 .season-banner {
