@@ -43,16 +43,6 @@ const nextConfig: NextConfig = {
   // Next.js 가 Node.js native 모듈을 webpack 으로 처리하지 않고 런타임에 require 한다.
   serverExternalPackages: ["@node-rs/argon2"],
 
-  // BUG-006 Phase 2B 단계 3 — SRI 기반 CSP 전환 (nonce 대체).
-  // 빌드 시 모든 <script> 태그에 integrity="sha256-..." 을 자동 부착.
-  // nonce 기반 CSP 와 달리 정적 생성·PPR·cacheComponents 와 병립 가능하다
-  // (node_modules/next/dist/docs/.../content-security-policy.md L456-458).
-  experimental: {
-    sri: {
-      algorithm: "sha256",
-    },
-  },
-
   async headers() {
     return [
       {
