@@ -3,7 +3,8 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-04-23 후반 · Session 62 — **BUG-006 Phase 2B Session 1 전체 revert** (Preview QA 에서 로그인 튕김 + `/api/orders` 500 regression) → 이어서 revert baseline 에서도 재현되는 **기존 버그들** 다수 해결: Turbopack 프로덕션 번들 스코프 버그 대응 (orderService `calcShippingFee` 심볼 제거 + 로컬 상수 + orderRepo 타입 안전망), Toss SDK CSP `*.tosspayments.com` wildcard 확장, Toss 결제위젯 공용 데모 키로 교체, `checkout/page.tsx` requireAuth() 제거로 비회원 체크아웃 허용, 배송비 누락 해소, "비회원으로 주문하기" 버튼 silent return 제거. **master 머지 완료** (`e0ad0bc7..b90c5723`, 14 커밋) → Production 자동 재배포. 상세 `memory/project_session62_complete.md`.
+> **최종 업데이트:** 2026-04-23 야간 · Session 63 — **체크아웃 결제 페이지 UI·bfcache 복구** 3커밋 master push (`19cd5ed4`·`c1e6135f`·`d5fd907f`). loadFailed secondary CTA 디자인(mp-cancel-btn 재사용) + Toss 결제창 "이전" 후 bfcache 복원 시 **CheckoutPage submitting 누수 근본 수정** (1차에서 CheckoutPayment requesting 만 복구했던 miss → 2차에서 pageshow persisted + onBack 콜백에 setSubmitting(false) 추가로 완전 수정) + 모바일 축약 유틸(chp-back-full/short, ≤500px 에서 "이전" 축약). 상세 `memory/project_session63_complete.md`. 다음 세션 — **BUG-006 Phase 2B Session 1 재시도** (단계 1~3 CSP Foundations).
+> 이전: Session 62 — BUG-006 Phase 2B Session 1 전체 revert + Turbopack 스코프 버그 대응 + Toss CSP/키 교체 + 비회원 체크아웃 허용 + 배송비 누락 해소 + "비회원으로 주문하기" 버튼 수정. `memory/project_session62_complete.md`.
 
 ---
 
@@ -47,7 +48,7 @@
 | 2-G2 반응형 4BP | ✅ | Sessions 37~49 — clamp 토큰화 · container queries · 햄버거 드로어 · tap-area sweep · 360/768/1024/1440 전 페이지 QA |
 | 2-G3 프로덕션 마감 | 🔄 | H3 ✅ · M7 ✅ (proxy.ts nonce CSP) · 번들 감사 + Vercel 배포 잔여 |
 | 2-H BUG-006 Tier 3 (instant navigation) | 🔄 **재설계 필요** | Phase 1 진단 ✅ · Phase 2A 리서치 ✅ · Phase 2B 재설계 ✅ · **Session 1 (단계 1~3) 적용 후 Preview QA 에서 regression 확인 → 전체 revert (Session 62, 2026-04-23 후반)**. 회수된 교훈: `/login` · `/checkout` 등의 useSearchParams/cookies 의존성을 static 화 전에 전수 조사 필요. 다음 시도 시 기존 `project_bug006_phase2b_plan.md` 를 재검토·재설계 후 진입. 현재 브랜치 `feature/bug006-instant-nav` 는 master 에 fast-forward 머지 완료. |
-| 2-I 결제·체크아웃 정상화 (2026-04-23 세션 62 부수 성과) | ✅ | PGRST202 (Turbopack 스코프 버그) 해결 · CSP Toss 내부 엔드포인트 wildcard 추가 · Toss 결제위젯 공용 데모 키 교체 · requireAuth() 제거로 비회원 체크아웃 허용 · 배송비 누락 해소 · "비회원으로 주문하기" 버튼 silent return 수정 · master 머지 완료 (`b90c5723`). 상세 `memory/project_session62_complete.md` · 실서비스 키 교체 예정 `memory/project_production_toss_key_migration.md` |
+| 2-I 결제·체크아웃 정상화 (Session 62·63 부수 성과) | ✅ | **S62**: PGRST202 (Turbopack 스코프 버그) 해결 · CSP Toss 내부 엔드포인트 wildcard · 공용 데모 키 교체 · requireAuth() 제거 · 배송비 누락 해소 · "비회원으로 주문하기" silent return 수정 (`b90c5723`). **S63**: loadFailed secondary CTA 디자인 통일 · Toss 결제창 "이전" 후 CheckoutPage submitting 누수 근본 수정 (pageshow persisted + onBack 복구) · 모바일 "이전" 축약 유틸 (`d5fd907f`). 상세 `memory/project_session62_complete.md` · `memory/project_session63_complete.md` · 실서비스 키 교체 예정 `memory/project_production_toss_key_migration.md` |
 
 #### 7. Content & Asset
 
