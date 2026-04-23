@@ -5,10 +5,11 @@
    1. Supabase SSR 세션 쿠키 리프레시 (만료 전 자동 갱신)
       - auth.getUser() 호출이 리프레시 트리거 — 절대 제거 금지
       - 서버 컴포넌트에서 재호출해도 캐시 히트로 비용 없음
-   2. 요청별(per-request) Nonce 기반 Content-Security-Policy 주입
-      - 'unsafe-inline' 회피, strict-dynamic 으로 번들 스크립트 허용
+   2. Content-Security-Policy 주입 (BUG-006 Phase 2B — nonce 제거본)
+      - nonce/strict-dynamic 제거 → cacheComponents/PPR 과 병립 가능
       - TossPayments / Daum Postcode / OAuth provider 엔드포인트 허용
       - Supabase WSS (Realtime) 허용
+      - script 무결성 강화는 next.config.ts `experimental.sri` (단계 3) 가 담당
    3. 인증 리다이렉트는 proxy 에서 하지 않음
       - 각 Server Component / Route Handler 에서 getClaims() 기반 판정
       - proxy 는 세션 수명 관리 + 전역 보안 헤더만 담당 (관심사 분리)
@@ -16,11 +17,10 @@
    Next.js 16 규격:
    - `middleware.ts` → `proxy.ts` 개명 (CVE-2025-29927 회피 정책의 일환)
    - Edge runtime 미지원 — Node.js 런타임만 허용
-   - 서버 컴포넌트에서 nonce 읽기: `(await headers()).get('x-nonce')`
 
    참조:
    - Next.js 16 upgrade: https://nextjs.org/docs/app/guides/upgrading/version-16
-   - CSP with Nonce:    https://nextjs.org/docs/app/guides/content-security-policy
+   - CSP + SRI:         https://nextjs.org/docs/app/guides/content-security-policy
    - Supabase SSR:      https://supabase.com/docs/guides/auth/server-side/nextjs
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -56,16 +56,13 @@ export function shouldOverrideReferrerPolicy(pathname: string): boolean {
  * CSP 구성 — 허용 오리진은 단일 출처에서 관리.
  * 서드파티 추가/삭제 시 이 함수만 수정하면 proxy 전체가 일관성 유지.
  */
-function buildContentSecurityPolicy(nonce: string, isDev: boolean): string {
-  // strict-dynamic: nonce 가 부여된 초기 스크립트가 로드하는 후속 스크립트를 자동 신뢰
-  //                 → 번들 스플리팅/동적 import 대응
+function buildContentSecurityPolicy(isDev: boolean): string {
   // unsafe-eval:    dev 에서만 (React Fast Refresh / sourcemap 진단 용)
-  // style-src 'unsafe-inline' (nonce 미사용):
-  //   CSP3 에서 nonce 와 'unsafe-inline' 공존 시 'unsafe-inline' 이 무시되어
-  //   React 의 style={{...}} (style attribute) 가 전부 거부됨. style attribute 에는
-  //   nonce 를 부여할 수 없으므로 style-src 는 nonce 없이 'unsafe-inline' 만 허용.
-  //   Next.js 공식 CSP 가이드 · 업계 표준과 일치 (script-src 와 달리 style
-  //   inline 은 XSS 영향 제한적).
+  // style-src 'unsafe-inline':
+  //   React 의 style={{...}} (style attribute) 를 허용하기 위해 필요.
+  //   style attribute 에는 nonce/integrity 를 부여할 수 없고, script inline
+  //   과 달리 style inline 은 XSS 영향이 제한적이므로 업계 표준상 'unsafe-inline'
+  //   유지가 일반적 (Next.js 공식 CSP 가이드 일치).
   const directives = [
     `default-src 'self'`,
     `script-src 'self'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://pay.toss.im https://dapi.kakao.com https://t1.daumcdn.net https://va.vercel-scripts.com`,
@@ -92,25 +89,19 @@ function buildContentSecurityPolicy(nonce: string, isDev: boolean): string {
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const isDev = process.env.NODE_ENV === 'development';
 
-  /* ── 1. per-request Nonce 생성 ─────────────────────────────────────────
-     Node.js 20+ 전역 crypto.randomUUID() → base64 (22자 내외)
-     UUID 는 122 bits of entropy — CSP nonce 권고(>=128 bits) 를 근사 충족.
-     추가 안전성 필요 시 Uint8Array(16) + getRandomValues 로 교체 가능. */
-  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
-
-  /* ── 2. 요청 헤더에 nonce · CSP 주입 ───────────────────────────────────
-     서버 컴포넌트에서 `(await headers()).get('x-nonce')` 로 읽어
-     inline <script nonce={...}> 에 전달할 수 있다. */
+  /* ── 1. 요청 헤더에 CSP 주입 ───────────────────────────────────────────
+     SRI 기반 전환 (Phase 2B) 으로 per-request nonce 는 사용하지 않는다.
+     CSP 자체는 전역 정적이지만, 결제 경로 Referrer-Policy 축소 등 경로별
+     보안 헤더 제어를 위해 proxy 단계에서 일관되게 주입한다. */
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-nonce', nonce);
-  const csp = buildContentSecurityPolicy(nonce, isDev);
+  const csp = buildContentSecurityPolicy(isDev);
   requestHeaders.set('Content-Security-Policy', csp);
 
   let supabaseResponse = NextResponse.next({
     request: { headers: requestHeaders },
   });
 
-  /* ── 3. Supabase SSR 세션 리프레시 ─────────────────────────────────────
+  /* ── 2. Supabase SSR 세션 리프레시 ─────────────────────────────────────
      getAll/setAll 패턴 — 공식 권장. 구형 get/set/remove 는 세션 유실 위험.
      setAll 내부에서 request·response 쿠키를 동시에 업데이트해야 다음 단계
      (auth.getUser) 가 갱신된 쿠키로 서명 검증을 수행할 수 있다. */
@@ -142,12 +133,12 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   //            (Supabase 공식 가이드 경고 그대로 수용)
   await supabase.auth.getUser();
 
-  /* ── 4. 응답 헤더에 CSP 주입 ───────────────────────────────────────────
+  /* ── 3. 응답 헤더에 CSP 주입 ───────────────────────────────────────────
      정적 보안 헤더 (HSTS·COOP·CORP 등) 는 next.config.ts headers() 가 담당.
-     CSP 만 per-request 라 여기서 동적 주입. */
+     CSP 는 요청 컨텍스트와 함께 proxy 에서 일관되게 응답에도 주입. */
   supabaseResponse.headers.set('Content-Security-Policy', csp);
 
-  /* ── 5. 결제 경로 Referrer-Policy 축소 (Session 8 보안 #2) ─────────────
+  /* ── 4. 결제 경로 Referrer-Policy 축소 (Session 8 보안 #2) ─────────────
      3rd-party 분석/광고 태그에 order_number 누출 방어. 전역은
      strict-origin-when-cross-origin 유지, 민감 경로만 same-origin 으로 축소. */
   if (shouldOverrideReferrerPolicy(request.nextUrl.pathname)) {
