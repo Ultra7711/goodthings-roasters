@@ -11,10 +11,19 @@
        PIN 검증으로 유지
    ══════════════════════════════════════════ */
 
+import { Suspense } from 'react';
 import CheckoutPage from '@/components/checkout/CheckoutPage';
 
 export const metadata = { title: '주문·결제 — good things' };
 
 export default function CheckoutRoute() {
-  return <CheckoutPage />;
+  /* Suspense 경계: CheckoutPage 내부에서 useSearchParams() 호출.
+     root layout 의 `await headers()` 제거 후 이 라우트가 static prerender
+     대상이 되므로, Suspense 없이 useSearchParams 를 렌더하면 CSR bailout
+     에 실패해 빌드 오류가 발생한다. (BUG-006 Phase 2B 선행 조치) */
+  return (
+    <Suspense fallback={<div className="chp-page" style={{ minHeight: '100dvh' }} />}>
+      <CheckoutPage />
+    </Suspense>
+  );
 }

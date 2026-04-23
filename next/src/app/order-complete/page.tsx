@@ -11,6 +11,7 @@
    - dev/staging 에서는 레거시 링크 디버깅을 위해 유지.
    ══════════════════════════════════════════ */
 
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import OrderCompletePage from '@/components/checkout/OrderCompletePage';
 
@@ -28,5 +29,12 @@ export default async function OrderCompleteRoute({ searchParams }: PageProps) {
     notFound();
   }
 
-  return <OrderCompletePage />;
+  /* Suspense 경계: OrderCompletePage 내부에서 useSearchParams() 호출.
+     BUG-006 Phase 2B 선행 조치 — root layout 의 `await headers()` 제거 후
+     static prerender 대상이 될 때 CSR bailout 실패로 빌드 오류 방지. */
+  return (
+    <Suspense fallback={<div className="oc-page" style={{ minHeight: '100dvh' }} />}>
+      <OrderCompletePage />
+    </Suspense>
+  );
 }
