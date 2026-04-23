@@ -104,6 +104,9 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
             onClick={(e) => {
               if (pathname === '/') {
                 e.preventDefault();
+                /* 헤더 로고(handleLogoClick) 와 동일하게 same-path 에서 scroll top.
+                   드로어/헤더 로고 동작 일관성 유지. */
+                window.scrollTo({ top: 0, behavior: 'instant' });
                 onClose();
               } else {
                 /* 다른 라우트 — Link 가 router.push 예정. history.back 과 충돌 방지.
