@@ -1,15 +1,41 @@
 /* ══════════════════════════════════════════
    HeroSection
    프로토타입 #hero-blk (라인 803–815) 이식
+
+   BUG-006 Stage D-3 (2026-04-24):
+   - cacheComponents 활성화로 Activity hidden 시에도 <video> 가 계속 재생되어
+     모바일 배터리·데이터 소모 지속. useEffect cleanup 으로 pause,
+     visible 복귀 시 자동 재개. SSR 유지 위해 video 태그는 그대로 두고
+     client directive 만 추가 (hydration cost 미미 — 단일 ref + effect).
    ══════════════════════════════════════════ */
 
+'use client';
+
+import { useEffect, useRef } from 'react';
+
 export default function HeroSection() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    /* Activity visible 복귀 시 재생 보장 — autoplay 정책은 muted 속성으로 충족 */
+    void video.play().catch(() => {
+      /* 일부 브라우저 autoplay 정책으로 거부될 수 있음 — 사용자 제스처 후 재시도 */
+    });
+    return () => {
+      /* Activity hidden / unmount 시 일시정지 — currentTime 은 유지되어 복귀 시 이어재생 */
+      video.pause();
+    };
+  }, []);
+
   return (
     <section className="blk" id="hero-blk" data-header-theme="dark">
       <div className="hero">
         {/* 포스터 로드 전 gradient placeholder — 순수 다크에서 이미지로 전환 시 충격 완화 */}
         <div className="hero-bg-placeholder" aria-hidden="true" />
         <video
+          ref={videoRef}
           className="hero-bg"
           autoPlay muted loop playsInline
           poster="/images/hero/hero-poster.jpg"
