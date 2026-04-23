@@ -209,10 +209,15 @@ export async function createOrderFromInput(
   /* 1) 서버 권위 재계산 */
   const { rpcItems, subtotal } = recomputeItems(input.items);
 
-  /* 2) 배송비 / 총액 */
-  const shippingFee = calcShippingFee(subtotal);
+  /* 2) 배송비 / 총액
+     BUG-FIX 2026-04-23: 지역 변수명을 `shippingFeeAmount` 로 변경.
+     기존 `shippingFee` 변수명이 (import/re-export 된) `calcShippingFee`
+     identifier 와 Vercel Turbopack 프로덕션 번들의 스코프 최적화에서
+     충돌 → `shippingFee` 에 함수 객체가 할당되는 버그 발생 (PGRST202).
+     로컬 빌드에서는 재현되지 않고 Vercel 배포 번들에서만 발현. */
+  const shippingFeeAmount = calcShippingFee(subtotal);
   const discountAmount = 0; // 프로모션 도입 시 확장
-  const totalAmount = subtotal + shippingFee - discountAmount;
+  const totalAmount = subtotal + shippingFeeAmount - discountAmount;
 
   /* 3) PIN 해시 (게스트만) */
   const guestPinHash =
@@ -248,7 +253,7 @@ export async function createOrderFromInput(
       depositorName,
     },
     subtotal,
-    shippingFee,
+    shippingFee: shippingFeeAmount,
     discountAmount,
     totalAmount,
     termsVersion: input.termsVersion,
