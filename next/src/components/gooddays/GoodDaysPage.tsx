@@ -61,20 +61,29 @@ export default function GoodDaysPage() {
   const [arrowsHidden, setArrowsHidden] = useState(false);
   /* 라이트박스 settled 타이머 ref — 빠른 열기/닫기 시 stale state update 방지 */
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /* ?img= query 처리 완료 플래그 — 중복 실행 방지 */
-  const imgQueryHandledRef = useRef(false);
+  /* ?img= query 마지막 처리 src — 중복 실행 방지 + Activity 복귀 시 stale 판정.
+     BUG-006 Stage D-2 (2026-04-24): boolean 플래그로는 cacheComponents 활성화 후
+     Activity hidden→visible 복귀 시 새 ?img= 가 무시되어 이전 이미지가 stale 하게
+     표시되는 버그 발생. src 문자열을 비교하면 재진입 여부를 정확히 판정 가능. */
+  const lastHandledImgSrcRef = useRef<string | null>(null);
 
   /* 메인 페이지 갤러리 클릭 → ?img=<src> query 로 진입 시
      라이트박스를 instant(transition 없이) 즉시 표시.
      프로토타입 openGoodDaysPage(lightboxSrc) L10845~10858 동일.
-     flow: gd-lb-instant(즉시 표시) → 2 rAF 후 instant 해제 + settled 부여. */
+     flow: gd-lb-instant(즉시 표시) → 2 rAF 후 instant 해제 + settled 부여.
+
+     Stage D-2: src 기반 중복 판정 — Activity 복귀 시 다른 ?img= 가 오면 재처리. */
   useEffect(() => {
-    if (imgQueryHandledRef.current) return;
     const imgSrc = searchParams.get('img');
-    if (!imgSrc || ordered.length === 0) return;
+    if (!imgSrc || ordered.length === 0) {
+      /* 쿼리 없는 진입: 다음 ?img= 를 새로 처리할 수 있도록 ref 리셋 */
+      lastHandledImgSrcRef.current = null;
+      return;
+    }
+    if (lastHandledImgSrcRef.current === imgSrc) return;
     const idx = ordered.indexOf(imgSrc);
     if (idx < 0) return;
-    imgQueryHandledRef.current = true;
+    lastHandledImgSrcRef.current = imgSrc;
     // instant: transition 없이 즉시 검정 배경 표시 (화이트 flash 차단)
     // 쿼리 진입 1회성 동기 set — useEffect 내 즉시 set 의도된 패턴
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -167,6 +176,8 @@ export default function GoodDaysPage() {
     setLbSettled(false);
     setLbInstant(false);
     setArrowsHidden(false);
+    /* Stage D-2: 다음 동일 ?img= 재진입을 허용하려면 ref 도 리셋 */
+    lastHandledImgSrcRef.current = null;
     /* ?img= 파라미터가 남아 있으면 제거 — 새로고침 시 라이트박스 재오픈 방지 */
     if (searchParams.get('img')) {
       router.replace('/gooddays', { scroll: false });
