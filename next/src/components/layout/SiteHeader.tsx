@@ -55,6 +55,15 @@ export default function SiteHeader() {
     setMounted(true);
   }, []);
 
+  /* BUG-006 Stage D-4 (2026-04-24): pathname 변경 시 모바일 네비 드로어 자동 close.
+     cacheComponents 활성화 후 layout 의 drawer state 와 브라우저 history 가 꼬여
+     drawer 가 open 상태로 보존된 채 라우트 이동·back 이 발생 시 "엉뚱한 페이지 이동"
+     처럼 보이는 증상 해결. Link 네비게이션·브라우저 back 모두 pathname 변경을
+     트리거하므로 단일 감지로 양쪽 케이스 커버. */
+  useEffect(() => {
+    setIsMobileNavOpen(false);
+  }, [pathname]);
+
   const closeSearch = useCallback(() => {
     searchInputRef.current?.blur();
     setIsSearchOpen(false);
