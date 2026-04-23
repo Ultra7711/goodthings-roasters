@@ -6487,6 +6487,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .chp-submit-btn:active { opacity: .7; }
 
+/* 결제 2단계 "이전으로 돌아가기" — 좁은 모바일 폭(≤400px)에서 "이전" 으로 축약 */
+.chp-back-full { display: inline; }
+.chp-back-short { display: none; }
+@media (max-width: 400px) {
+  .chp-back-full { display: none; }
+  .chp-back-short { display: inline; }
+}
+
 /* 법적 안내 */
 .chp-legal-note {
   font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 400;

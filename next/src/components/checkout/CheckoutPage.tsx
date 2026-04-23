@@ -245,6 +245,20 @@ export default function CheckoutPage() {
   /* ── 제출 상태 (중복 클릭 방지) ── */
   const [submitting, setSubmitting] = useState(false);
 
+  /* ── submitting 무한 대기 복구 ──
+     1단계 "결제하기" 성공 경로는 finally 에서 submitting=false 를 일부러 호출하지
+     않음 (라우팅 중 가정). 그러나 2단계 → 1단계 복귀 / Toss 결제창 "이전" 후
+     bfcache 복원 경로에서 submitting=true 가 남아 "주문 처리 중…" 버튼이
+     무한 대기하던 버그 발생. onBack 콜백(아래 setStep('form') 옆)과
+     pageshow persisted=true 두 경로 모두에서 복구한다. */
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) setSubmitting(false);
+    };
+    window.addEventListener('pageshow', onPageShow);
+    return () => window.removeEventListener('pageshow', onPageShow);
+  }, []);
+
   /* ── 언마운트 감시 (Pass 1 CODE/H-1, M-11 공용 훅 추출)
      B-2 이후: step 전환은 이 컴포넌트가 살아 있으므로 언마운트 위험은 낮지만,
      비동기 완료 전 사용자가 뒤로가기로 이탈하는 케이스 대비 유지. */
@@ -739,7 +753,7 @@ export default function CheckoutPage() {
               /* 한국 휴대폰 10~11자리만 Toss 에 전달 (형식 위반 시 Toss 오류) */
               return digits.length >= 10 && digits.length <= 11 ? digits : undefined;
             })()}
-            onBack={() => setStep('form')}
+            onBack={() => { setStep('form'); setSubmitting(false); }}
           />
         )}
         </div>

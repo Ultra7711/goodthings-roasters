@@ -230,7 +230,8 @@ export default function CheckoutPayment({
           disabled={requesting}
           style={{ flex: '0 0 40%', height: 48, marginTop: 0, padding: '0 12px', minWidth: 0 }}
         >
-          이전으로 돌아가기
+          <span className="chp-back-full">이전으로 돌아가기</span>
+          <span className="chp-back-short">이전</span>
         </button>
         <button
           type="button"
