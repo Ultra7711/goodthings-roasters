@@ -57,6 +57,27 @@ export default function CheckoutPayment({
      (effect 내부 setState 금지 규칙 회피) */
   const [loadFailed, setLoadFailed] = useState(!CLIENT_KEY);
 
+  /* ── requesting 무한 대기 복구 ──
+     Toss 결제창에서 '이전' 클릭 시 브라우저 bfcache 로 이 페이지가 복원되면
+     requesting=true 상태가 그대로 남아 CTA 가 "결제창 이동 중…" 으로 무한 대기.
+     두 경로로 복구:
+     1. pageshow persisted=true — bfcache 복원 (이 버그의 근본 경로)
+     2. 15초 안전망 — SDK 가 promise reject 없이 결제창이 닫히는 드문 케이스
+  */
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) setRequesting(false);
+    };
+    window.addEventListener('pageshow', onPageShow);
+    return () => window.removeEventListener('pageshow', onPageShow);
+  }, []);
+
+  useEffect(() => {
+    if (!requesting) return;
+    const timer = setTimeout(() => setRequesting(false), 15000);
+    return () => clearTimeout(timer);
+  }, [requesting]);
+
   /* ── 위젯 로드 · 마운트 ──
      Strict Mode 이중 invoke 대응: cancelled flag + cleanup 시 selector 비우기
   */
@@ -172,13 +193,9 @@ export default function CheckoutPayment({
         </p>
         <button
           type="button"
-          className="chp-submit-btn"
+          className="mp-cancel-btn"
           onClick={onBack}
-          style={{
-            background: 'transparent',
-            color: 'var(--color-text-primary)',
-            border: '1px solid var(--color-line-light)',
-          }}
+          style={{ width: '100%', height: 48, marginTop: 24 }}
         >
           이전으로 돌아가기
         </button>
@@ -208,17 +225,12 @@ export default function CheckoutPayment({
       <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
         <button
           type="button"
-          className="chp-submit-btn"
+          className="mp-cancel-btn"
           onClick={onBack}
           disabled={requesting}
-          style={{
-            background: 'transparent',
-            color: 'var(--color-text-primary)',
-            border: '1px solid var(--color-line-light)',
-            flex: '0 0 40%',
-          }}
+          style={{ flex: '0 0 40%', height: 48, marginTop: 0, padding: '0 12px', minWidth: 0 }}
         >
-          이전
+          이전으로 돌아가기
         </button>
         <button
           type="button"
@@ -226,7 +238,7 @@ export default function CheckoutPayment({
           onClick={handleRequestPayment}
           disabled={!ready || requesting}
           aria-busy={requesting}
-          style={{ flex: 1 }}
+          style={{ flex: 1, marginTop: 0 }}
         >
           {requesting ? '결제창 이동 중…' : `${formatPrice(amount)} 결제하기`}
         </button>
