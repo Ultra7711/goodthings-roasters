@@ -133,6 +133,27 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<'form' | 'payment'>('form');
   const [orderResult, setOrderResult] = useState<CreateOrderResponse | null>(null);
 
+  /* ── Stage D-1 (BUG-006, 2026-04-24): Activity stale state guard ──
+     cacheComponents 활성화로 /checkout 이 Activity 에 의해 hidden 상태로 보존됨.
+     이전 결제 시도 후 cart 가 변경(품목·수량·로그아웃 후 재담기)되면 step='payment' +
+     orderResult 가 stale 하게 유지되어 이전 금액이 Toss 위젯에 표시되는 UX 버그 발생.
+     submit 시점의 cart signature 를 ref 에 기록하고, 이후 cart 가 달라지면
+     step='form' 으로 자동 복귀한다. */
+  const cartSig = useMemo(
+    () => items.map((i) => `${i.slug}:${i.qty}`).sort().join('|'),
+    [items],
+  );
+  const orderCartSigRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (step !== 'payment') return;
+    if (!orderCartSigRef.current) return;
+    if (orderCartSigRef.current !== cartSig) {
+      setStep('form');
+      setOrderResult(null);
+      orderCartSigRef.current = null;
+    }
+  }, [cartSig, step]);
+
   /* failUrl 로부터 돌아온 경우 안내 toast (마운트 1회) */
   const failNoticeShownRef = useRef(false);
   useEffect(() => {
@@ -327,8 +348,10 @@ export default function CheckoutPage() {
       sessionStorage.setItem('gtr-last-order', JSON.stringify(summary));
 
       /* B-2: 결제 단계로 전환 — 장바구니 비우기는 결제 성공 redirect 후
-         OrderCompletePage 에서 처리 (결제 실패 시 cart 유지). */
+         OrderCompletePage 에서 처리 (결제 실패 시 cart 유지).
+         Stage D-1: cart signature 기록 → 이후 변경 시 stale reset guard 발동. */
       if (isMountedRef.current) {
+        orderCartSigRef.current = cartSig;
         setOrderResult(result);
         setStep('payment');
       }
