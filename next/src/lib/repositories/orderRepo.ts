@@ -144,9 +144,15 @@ export async function createOrder(
   };
   console.log('[createOrder DEBUG] params shape', debugPayload);
 
-  const shippingFee = params.shippingFee ?? 0;
-  const discountAmount = params.discountAmount ?? 0;
-  const totalAmount = params.totalAmount ?? params.subtotal + shippingFee - discountAmount;
+  /* ?? 0 fallback 은 function/NaN 값에 대해 동작하지 않으므로 typeof + isFinite 로 강화. */
+  const toInt = (v: unknown, fallback: number): number =>
+    typeof v === 'number' && Number.isFinite(v) ? v : fallback;
+  const shippingFee = toInt(params.shippingFee, 0);
+  const discountAmount = toInt(params.discountAmount, 0);
+  const totalAmount = toInt(
+    params.totalAmount,
+    params.subtotal + shippingFee - discountAmount,
+  );
 
   const { data, error } = await admin
     .rpc('create_order', {

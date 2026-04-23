@@ -19,8 +19,11 @@
 
 import { hash as argon2Hash } from '@node-rs/argon2';
 import { PRODUCTS, type Product, type ProductVolume } from '@/lib/products';
-/* Pass 1 CODE/H-2: 배송비 규칙은 cartCalc 에서 단일 소스로 관리 */
-import { calcShippingFee } from '@/lib/cartCalc';
+/* Pass 1 CODE/H-2: 배송비 규칙은 cartCalc 에서 단일 소스로 관리
+   BUG-FIX 2026-04-23: Vercel Turbopack 프로덕션 번들에서 `calcShippingFee(subtotal)`
+   호출이 망가져 함수 객체 자체가 반환되는 문제 확인 → 이 파일에서는 `calcShippingFee`
+   심볼을 직접 호출하지 않고 상수만 import 하여 인라인 계산으로 우회한다. */
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/hooks/useCart';
 import {
   createOrder as createOrderRpc,
   type CreateOrderRpcItem,
@@ -32,7 +35,7 @@ import type {
 } from '@/lib/schemas/order';
 
 /* calcShippingFee 는 @/lib/cartCalc 로 이관.
-   기존 소비자 편의를 위해 재export — 정책 규칙 자체는 cartCalc 단일 소스. */
+   test 호환을 위해 re-export 만 유지 — 이 파일 내부에서는 호출하지 않는다 (위 BUG-FIX). */
 export { calcShippingFee } from '@/lib/cartCalc';
 
 /* ══════════════════════════════════════════
@@ -210,12 +213,12 @@ export async function createOrderFromInput(
   const { rpcItems, subtotal } = recomputeItems(input.items);
 
   /* 2) 배송비 / 총액
-     BUG-FIX 2026-04-23: 지역 변수명을 `shippingFeeAmount` 로 변경.
-     기존 `shippingFee` 변수명이 (import/re-export 된) `calcShippingFee`
-     identifier 와 Vercel Turbopack 프로덕션 번들의 스코프 최적화에서
-     충돌 → `shippingFee` 에 함수 객체가 할당되는 버그 발생 (PGRST202).
-     로컬 빌드에서는 재현되지 않고 Vercel 배포 번들에서만 발현. */
-  const shippingFeeAmount = calcShippingFee(subtotal);
+     BUG-FIX 2026-04-23: `calcShippingFee(subtotal)` 호출이 Vercel Turbopack
+     프로덕션 번들에서 함수 객체 자체를 반환하는 버그 확인 (변수명 변경으로 해결 안 됨).
+     cartCalc 의존을 제거하고 동일 규칙을 이 자리에서 인라인 계산한다 —
+     정책(subtotal===0 or subtotal>=threshold → 0, 그 외 SHIPPING_FEE)은 동일. */
+  const shippingFeeAmount =
+    subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
   const discountAmount = 0; // 프로모션 도입 시 확장
   const totalAmount = subtotal + shippingFeeAmount - discountAmount;
 
