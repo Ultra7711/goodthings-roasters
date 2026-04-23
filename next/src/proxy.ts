@@ -68,7 +68,7 @@ function buildContentSecurityPolicy(nonce: string, isDev: boolean): string {
   //   inline 은 XSS 영향 제한적).
   const directives = [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://pay.toss.im https://dapi.kakao.com https://t1.daumcdn.net https://va.vercel-scripts.com`,
+    `script-src 'self'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://pay.toss.im https://dapi.kakao.com https://t1.daumcdn.net https://va.vercel-scripts.com`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://t1.daumcdn.net`,
     `img-src 'self' blob: data: https://*.supabase.co https://*.tosspayments.com https://*.daumcdn.net https://postfiles.pstatic.net`,
     `font-src 'self' https://fonts.gstatic.com data:`,
