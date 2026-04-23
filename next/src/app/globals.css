@@ -417,6 +417,9 @@
 html {
   scrollbar-gutter: stable;
   background: #1E1B16;
+  /* Next.js 16 route 전환 시 sticky/fixed 를 skip 하고 scroll target 선정 → ann-bar 가 viewport 밖으로 올라가는 증상 방어.
+     공식 권장 (node_modules/next/dist/docs/.../link.md §"Scroll offset with sticky headers"). */
+  scroll-padding-top: calc(var(--ann-bar-height) + var(--header-height));
 }
 /* 모바일 스크롤(드래그) 중 :hover transition 발동 차단 — TouchHoverGuard.tsx 에서 주입 */
 html.is-touching *:hover {
