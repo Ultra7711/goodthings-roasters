@@ -10,7 +10,6 @@
 import { requireAuth } from '@/lib/auth/getClaims';
 import CheckoutPage from '@/components/checkout/CheckoutPage';
 
-export const dynamic = 'force-dynamic'; // 인증 가드 — 캐시 없이 매 요청마다 서버 실행
 export const metadata = { title: '주문·결제 — good things' };
 
 export default async function CheckoutRoute() {

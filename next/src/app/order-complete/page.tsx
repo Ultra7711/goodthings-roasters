@@ -14,9 +14,6 @@
 import { notFound } from 'next/navigation';
 import OrderCompletePage from '@/components/checkout/OrderCompletePage';
 
-/* Toss 결제위젯 successUrl 쿼리 파라미터(paymentKey/orderId/amount) 를
-   useSearchParams 로 수신 — 정적 프리렌더 불가. */
-export const dynamic = 'force-dynamic';
 export const metadata = { title: '주문 완료 — good things' };
 
 type PageProps = {
