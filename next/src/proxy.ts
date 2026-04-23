@@ -57,18 +57,18 @@ export function shouldOverrideReferrerPolicy(pathname: string): boolean {
  * 서드파티 추가/삭제 시 이 함수만 수정하면 proxy 전체가 일관성 유지.
  */
 function buildContentSecurityPolicy(nonce: string, isDev: boolean): string {
+  // strict-dynamic: nonce 가 부여된 초기 스크립트가 로드하는 후속 스크립트를 자동 신뢰
+  //                 → 번들 스플리팅/동적 import 대응
   // unsafe-eval:    dev 에서만 (React Fast Refresh / sourcemap 진단 용)
-  // style-src 'unsafe-inline':
-  //   React 의 style={{...}} (style attribute) 허용. style attribute 에는
-  //   nonce 부여 불가이므로 'unsafe-inline' 유지. XSS 영향 제한적.
-  // script-src (BUG-006 Phase 2B 단계 1, 2026-04-23):
-  //   `'nonce-${nonce}' 'strict-dynamic'` 제거 — nonce 기반 CSP 는 모든 페이지를
-  //   dynamic rendering 으로 강제하여 PPR / Cache Components 와 비호환
-  //   (Next.js 공식 CSP 가이드 L391-397). 단계 3 에서 SRI 로 전환 예정.
-  //   nonce 생성 및 x-nonce 요청 헤더 주입은 단계 2 (layout.tsx 정리) 까지 유지.
+  // style-src 'unsafe-inline' (nonce 미사용):
+  //   CSP3 에서 nonce 와 'unsafe-inline' 공존 시 'unsafe-inline' 이 무시되어
+  //   React 의 style={{...}} (style attribute) 가 전부 거부됨. style attribute 에는
+  //   nonce 를 부여할 수 없으므로 style-src 는 nonce 없이 'unsafe-inline' 만 허용.
+  //   Next.js 공식 CSP 가이드 · 업계 표준과 일치 (script-src 와 달리 style
+  //   inline 은 XSS 영향 제한적).
   const directives = [
     `default-src 'self'`,
-    `script-src 'self'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://pay.toss.im https://dapi.kakao.com https://t1.daumcdn.net https://va.vercel-scripts.com`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://pay.toss.im https://dapi.kakao.com https://t1.daumcdn.net https://va.vercel-scripts.com`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://t1.daumcdn.net`,
     `img-src 'self' blob: data: https://*.supabase.co https://*.tosspayments.com https://*.daumcdn.net https://postfiles.pstatic.net`,
     `font-src 'self' https://fonts.gstatic.com data:`,
