@@ -32,6 +32,8 @@ type UseCheckoutFormReturn = {
   clearErrors: () => void;
   blurEmail: () => void;
   blurPhone: () => void;
+  /** 전체 리셋 — form + errors + agreements + revealed 상태를 초기화. */
+  reset: () => void;
 };
 
 const AGREEMENT_COUNT = 2;
@@ -97,6 +99,17 @@ export function useCheckoutForm(): UseCheckoutFormReturn {
 
   const clearErrors = useCallback(() => {
     setErrors({});
+  }, []);
+
+  /* BUG-006 Stage D-1 확장: Activity stale state 리셋.
+     cacheComponents 활성화로 /checkout 이 hidden 보존되어 로그인 유저의
+     주소·연락처가 게스트 모드로 유출되는 문제 해결용. 로그인 상태 변경
+     감지 시 CheckoutPage 에서 호출. */
+  const reset = useCallback(() => {
+    setForm(INITIAL_CHECKOUT);
+    setErrors({});
+    setAgreements(Array(AGREEMENT_COUNT).fill(false));
+    setIsFormRevealed(false);
   }, []);
 
   /** blur 시 이메일 형식 검증 */
@@ -187,5 +200,6 @@ export function useCheckoutForm(): UseCheckoutFormReturn {
     clearErrors,
     blurEmail,
     blurPhone,
+    reset,
   };
 }

@@ -144,15 +144,6 @@ export default function CheckoutPage() {
     [items],
   );
   const orderCartSigRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (step !== 'payment') return;
-    if (!orderCartSigRef.current) return;
-    if (orderCartSigRef.current !== cartSig) {
-      setStep('form');
-      setOrderResult(null);
-      orderCartSigRef.current = null;
-    }
-  }, [cartSig, step]);
 
   /* failUrl 로부터 돌아온 경우 안내 toast (마운트 1회) */
   const failNoticeShownRef = useRef(false);
@@ -182,6 +173,7 @@ export default function CheckoutPage() {
     form, errors, agreements, allAgreed, isFormRevealed,
     setField, setPaymentMethod, toggleAgreement, toggleAllAgreements,
     revealForm, validate, clearErrors, blurEmail, blurPhone,
+    reset: resetForm,
   } = useCheckoutForm();
 
   /* ── 로그인 유저 자동 진입 (BUG-003) ──
@@ -279,6 +271,43 @@ export default function CheckoutPage() {
     window.addEventListener('pageshow', onPageShow);
     return () => window.removeEventListener('pageshow', onPageShow);
   }, []);
+
+  /* ── Stage D-1 통합 reset (BUG-006, 2026-04-24) ──
+     cacheComponents 활성화로 /checkout 이 Activity hidden 상태로 보존되는 이슈 대응.
+     pageshow 이벤트는 Activity 내부 네비게이션에서 발생하지 않으므로
+     독립적 감지 경로가 필요하다.
+
+     정책:
+     - 로그인 상태 변경 (user.id 변경) → 전체 reset (form 포함).
+       로그인→로그아웃 시 개인정보(주소·연락처) 게스트 모드 유출 방지.
+     - cart 변경 + orderResult 존재 → 결제 state reset (form 유지).
+       이전 주문의 step='payment' · submitting · orderResult 가 stale 유지되어
+       잘못된 금액이 Toss 위젯에 표시되는 문제 해결. */
+  const prevCartSigRef = useRef<string>(cartSig);
+  const prevUserIdRef = useRef<string | null>(user?.id ?? null);
+  useEffect(() => {
+    const currentUserId = user?.id ?? null;
+    const cartChanged = prevCartSigRef.current !== cartSig;
+    const userChanged = prevUserIdRef.current !== currentUserId;
+
+    if (!cartChanged && !userChanged) return;
+
+    prevCartSigRef.current = cartSig;
+    prevUserIdRef.current = currentUserId;
+
+    if (userChanged) {
+      setStep('form');
+      setOrderResult(null);
+      setSubmitting(false);
+      resetForm();
+      orderCartSigRef.current = null;
+    } else if (cartChanged && orderCartSigRef.current !== null && orderCartSigRef.current !== cartSig) {
+      setStep('form');
+      setOrderResult(null);
+      setSubmitting(false);
+      orderCartSigRef.current = null;
+    }
+  }, [cartSig, user?.id, resetForm]);
 
   /* ── 언마운트 감시 (Pass 1 CODE/H-1, M-11 공용 훅 추출)
      B-2 이후: step 전환은 이 컴포넌트가 살아 있으므로 언마운트 위험은 낮지만,
