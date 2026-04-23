@@ -3,7 +3,7 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-04-23 · BUG-006 Phase 2A 리서치 완료 — Tier 3 (cacheComponents + experimental.sri + unstable_instant + Activity cleanup) 8단계 권장 순서 + 결정 4건 확정. 다음 세션 Phase 2B 단계 1~2 진입.
+> **최종 업데이트:** 2026-04-23 · BUG-006 Phase 2B **재설계 완료** — Phase 2A §4 순서(cacheComponents 먼저)가 공식 문서 `content-security-policy.md` L391-397 "PPR is incompatible with nonce-based CSP" 와 충돌함을 빌드 실패로 확인. planner 출격으로 8단계 재설계 (CSP nonce 제거 → `await headers()` 제거 → SRI → cacheComponents → cleanup → instant → cache). 다음 세션 Session 1 (단계 1~3 CSP Foundations) 진입.
 
 ---
 
@@ -29,7 +29,7 @@
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
 | User AI | 0 | 0 | 1 | 0% |
 
-**현재 위치:** Sessions 18~49 (디자인 폴리시 · 팔레트 · 반응형 4BP) 완료. **PR#2(`2170f795`) · PR#3(`d0d76835`) · PR#4(`bc72219e`) 모두 master 머지 완료.** Session 50 반응형 1차 리뷰: CRITICAL 0 · HIGH 4 (1건 빌드차단 즉시 수정) · MED 5 · LOW 3. Sessions 51~60 — H3·M7 + Phase 4 인프라(Vercel/Supabase/Sentry) + Phase 1 디자인 인터랙션 ②⑤⑧ 완료. **현재 진행 중: BUG-006 Tier 3 (instant navigation 아키텍처 교체) · Phase 2A 리서치 완료, Phase 2B 단계 1~2 (cacheComponents + experimental.sri) 대기.**
+**현재 위치:** Sessions 18~49 (디자인 폴리시 · 팔레트 · 반응형 4BP) 완료. **PR#2(`2170f795`) · PR#3(`d0d76835`) · PR#4(`bc72219e`) 모두 master 머지 완료.** Session 50 반응형 1차 리뷰: CRITICAL 0 · HIGH 4 (1건 빌드차단 즉시 수정) · MED 5 · LOW 3. Sessions 51~60 — H3·M7 + Phase 4 인프라(Vercel/Supabase/Sentry) + Phase 1 디자인 인터랙션 ②⑤⑧ 완료. **현재 진행 중: BUG-006 Tier 3 (instant navigation 아키텍처 교체) · Phase 2A 리서치 + Phase 2B 재설계 완료, Session 1 (단계 1~3 CSP Foundations) 대기.**
 
 ---
 
@@ -46,7 +46,7 @@
 | 2-G1 디자인 폴리시 (Phase 1~3) | ✅ | Sessions 18~36 — 카트 풀페이지 · 게이지/레이더 통일 · 팔레트(gold accent + 섹션 로테이션) · CTA hover gold |
 | 2-G2 반응형 4BP | ✅ | Sessions 37~49 — clamp 토큰화 · container queries · 햄버거 드로어 · tap-area sweep · 360/768/1024/1440 전 페이지 QA |
 | 2-G3 프로덕션 마감 | 🔄 | H3 ✅ · M7 ✅ (proxy.ts nonce CSP) · 번들 감사 + Vercel 배포 잔여 |
-| 2-H BUG-006 Tier 3 (instant navigation) | 🔄 | Phase 1 진단 ✅ (root cause: `await headers()` dynamic 강제) · Phase 2A 리서치·결정 ✅ (2026-04-23) · Phase 2B 단계 1~2 (cacheComponents + experimental.sri) 대기 · 단계 3~8 후속 · 브랜치 `feature/bug006-instant-nav` · 안전 태그 `safety/pre-bug006-tier3-2026-04-23` · 단일 진입점 `memory/project_bug006_phase2a_research.md` |
+| 2-H BUG-006 Tier 3 (instant navigation) | 🔄 | Phase 1 진단 ✅ · Phase 2A 리서치 ✅ · Phase 2A §4 순서 오류 확인 (빌드 실패로 확정) · **Phase 2B 재설계 ✅ (2026-04-23 후반, planner 출격)** — 새 순서: ①CSP nonce 제거 → ②`await headers()` 제거 → ③SRI → ④cacheComponents → ⑤Hero video cleanup → ⑥Drawer/Modal cleanup → ⑦unstable_instant → ⑧use cache · 세션 분배 Session 1~5 · 선행 커밋 `21f478dc` (dynamic export 3곳 제거) · 브랜치 `feature/bug006-instant-nav` · 안전 태그 `safety/pre-bug006-tier3-2026-04-23` · 단일 진입점 `memory/project_bug006_phase2b_plan.md` |
 
 #### 7. Content & Asset
 
@@ -174,6 +174,7 @@
 | `docs/adr/ADR-004-state-management-simplification.md` | Zustand 제거 · TanStack Query 이행 로드맵 |
 | `docs/security-research-2026-04-16.md` | Session 6 폴리시 — 업계 표준 리서치 근거 |
 | `memory/project_backend_p2_session_plan.md` | 세션별 모델·에이전트 계획 |
-| `memory/project_bug006_phase2a_research.md` | BUG-006 Tier 3 단일 진입점 — 결정 4건·8단계 순서·위험 매트릭스·추가조사 결과 |
+| `memory/project_bug006_phase2b_plan.md` | **[단일 진입점]** BUG-006 Phase 2B 재설계 — 8단계 순서·Session 분배·단계별 파일/변경/검증/리스크 매트릭스 |
+| `memory/project_bug006_phase2a_research.md` | BUG-006 Phase 2A 리서치 (§4 순서 오류 · §1~3·5·6 유효) |
 | `memory/project_bug006_safety_net.md` | BUG-006 Tier 3 안전 태그·롤백 시나리오 4종 |
 | `memory/project_flash_debugging_failure_catalog.md` | Flash 디버깅 25커밋 실패 카탈로그 + X1~X8 금지 패턴 |
