@@ -89,7 +89,18 @@ export default function CheckoutPayment({
 
         widgetsRef.current = widgets;
         setReady(true);
-      } catch {
+      } catch (err) {
+        /* BUG-FIX 2026-04-23: 원래 catch{} 에 error 바인딩이 없어 실패 원인이
+           콘솔에 전혀 노출되지 않았음. 진단 완료 후 console.error 는 유지하되
+           필요 시 Sentry 등으로 교체. */
+        console.error('[CheckoutPayment] Toss 위젯 로드 실패', {
+          clientKeyPresent: Boolean(CLIENT_KEY),
+          clientKeyPrefix: CLIENT_KEY ? CLIENT_KEY.slice(0, 8) : null,
+          amount,
+          err,
+          errName: err instanceof Error ? err.name : typeof err,
+          errMessage: err instanceof Error ? err.message : String(err),
+        });
         if (cancelled) return;
         setLoadFailed(true);
       }

@@ -74,7 +74,10 @@ function buildContentSecurityPolicy(nonce: string, isDev: boolean): string {
     `font-src 'self' https://fonts.gstatic.com data:`,
     // Supabase: HTTPS REST + WSS Realtime / TossPayments: 결제 API / Resend: 메일 트리거
     // OAuth providers: kakao/naver/google 토큰 교환
-    `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.tosspayments.com https://pay.toss.im https://api.resend.com https://dapi.kakao.com https://openapi.naver.com https://accounts.google.com https://vitals.vercel-insights.com https://va.vercel-scripts.com`,
+    // BUG-FIX 2026-04-23: Toss SDK 내부 모니터링·로깅 엔드포인트
+    // (event.tosspayments.com / log.tosspayments.com) 차단으로 위젯 로드 실패 →
+    // api.* 단일 도메인 대신 *.tosspayments.com wildcard 로 확장.
+    `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.tosspayments.com https://pay.toss.im https://api.resend.com https://dapi.kakao.com https://openapi.naver.com https://accounts.google.com https://vitals.vercel-insights.com https://va.vercel-scripts.com`,
     `frame-src 'self' https://*.tosspayments.com https://pay.toss.im https://t1.daumcdn.net https://postcode.map.daum.net https://postcode.map.kakao.com`,
     `worker-src 'self' blob:`,
     `object-src 'none'`,
