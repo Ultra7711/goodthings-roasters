@@ -6487,10 +6487,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .chp-submit-btn:active { opacity: .7; }
 
-/* 결제 2단계 "이전으로 돌아가기" — 좁은 모바일 폭(≤400px)에서 "이전" 으로 축약 */
+/* 결제 2단계 "이전으로 돌아가기" — 모바일 폭에서 "이전" 으로 축약
+   (40% 폭 버튼 내부에서 "이전으로 돌아가기" 줄바꿈 방지 · 500px 까지 확보) */
 .chp-back-full { display: inline; }
 .chp-back-short { display: none; }
-@media (max-width: 400px) {
+@media (max-width: 500px) {
   .chp-back-full { display: none; }
   .chp-back-short { display: inline; }
 }
