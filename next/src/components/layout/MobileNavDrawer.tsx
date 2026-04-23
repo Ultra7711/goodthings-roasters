@@ -98,7 +98,21 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
         aria-label="메인 메뉴"
       >
         <div className="mn-header">
-          <Link href="/" className="mn-logo" onClick={onClose} aria-label="Good Things Roasters 홈">
+          <Link
+            href="/"
+            className="mn-logo"
+            onClick={(e) => {
+              if (pathname === '/') {
+                e.preventDefault();
+                onClose();
+              } else {
+                /* 다른 라우트 — Link 가 router.push 예정. history.back 과 충돌 방지.
+                   BUG-006 Stage D-4 2단계 race 수정. */
+                onNavigate();
+              }
+            }}
+            aria-label="Good Things Roasters 홈"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 680 142"
@@ -175,7 +189,15 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
           <Link
             href={isLoggedIn ? '/mypage' : '/login'}
             className="mn-account-link"
-            onClick={onClose}
+            onClick={(e) => {
+              const targetPath = isLoggedIn ? '/mypage' : '/login';
+              if (pathname === targetPath) {
+                e.preventDefault();
+                onClose();
+              } else {
+                onNavigate();
+              }
+            }}
           >
             {isLoggedIn ? '마이페이지' : '로그인'}
             <span className="mn-link-arrow" aria-hidden="true">
@@ -188,7 +210,14 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
           <Link
             href="/biz-inquiry"
             className="mn-account-link"
-            onClick={onClose}
+            onClick={(e) => {
+              if (pathname === '/biz-inquiry') {
+                e.preventDefault();
+                onClose();
+              } else {
+                onNavigate();
+              }
+            }}
           >
             Wholesale
             <span className="mn-link-arrow" aria-hidden="true">
