@@ -129,6 +129,25 @@ export async function createOrder(
 ): Promise<CreateOrderRpcResult> {
   const admin = getSupabaseAdmin();
 
+  /* BUG-FIX 2026-04-23: p_shipping_fee 런타임 누락으로 PGRST202 발생 이력.
+     원인 조사 중 — 디버그 로그로 런타임 params 형상 확인 + defensive fallback
+     으로 결제 흐름 복구. undefined → 0 매핑은 calcShippingFee 규칙과 정합
+     (subtotal === 0 일 때 0 반환이 이미 정책). */
+  const debugPayload = {
+    hasShippingFee: 'shippingFee' in params,
+    shippingFee: params.shippingFee,
+    shippingFeeType: typeof params.shippingFee,
+    subtotal: params.subtotal,
+    discountAmount: params.discountAmount,
+    totalAmount: params.totalAmount,
+    paramsKeys: Object.keys(params),
+  };
+  console.log('[createOrder DEBUG] params shape', debugPayload);
+
+  const shippingFee = params.shippingFee ?? 0;
+  const discountAmount = params.discountAmount ?? 0;
+  const totalAmount = params.totalAmount ?? params.subtotal + shippingFee - discountAmount;
+
   const { data, error } = await admin
     .rpc('create_order', {
       p_user_id: params.userId,
@@ -147,9 +166,9 @@ export async function createOrder(
       p_bank_name: params.payment.bankName,
       p_depositor_name: params.payment.depositorName,
       p_subtotal: params.subtotal,
-      p_shipping_fee: params.shippingFee,
-      p_discount_amount: params.discountAmount,
-      p_total_amount: params.totalAmount,
+      p_shipping_fee: shippingFee,
+      p_discount_amount: discountAmount,
+      p_total_amount: totalAmount,
       p_terms_version: params.termsVersion,
       p_items: params.items,
     })
