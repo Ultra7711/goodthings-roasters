@@ -56,10 +56,8 @@ export default function SiteHeader() {
   }, []);
 
   /* BUG-006 Stage D-4 (2026-04-24): pathname 변경 시 모바일 네비 드로어 자동 close.
-     cacheComponents 활성화 후 layout 의 drawer state 와 브라우저 history 가 꼬여
-     drawer 가 open 상태로 보존된 채 라우트 이동·back 이 발생 시 "엉뚱한 페이지 이동"
-     처럼 보이는 증상 해결. Link 네비게이션·브라우저 back 모두 pathname 변경을
-     트리거하므로 단일 감지로 양쪽 케이스 커버. */
+     Activity stale 방어용 — history API 기반 close (아래) 와 중복이지만
+     라우트 전환 시 drawer 가 남는 edge case 방지. */
   useEffect(() => {
     setIsMobileNavOpen(false);
   }, [pathname]);
@@ -69,6 +67,48 @@ export default function SiteHeader() {
     setIsSearchOpen(false);
     setSearchValue('');
     document.body.style.overflow = '';
+  }, []);
+
+  /* BUG-006 Stage D-4 2단계 (2026-04-24): history API 기반 drawer close.
+     모바일 네이티브 UX — drawer 열기 시 history entry 추가, 브라우저 back 으로
+     drawer 만 닫고 페이지는 유지.
+
+     경로 구분:
+     - openMobileNav: pushState({gtrMobileNav:true}) → back 버튼으로 close 가능
+     - closeMobileNav: X/ESC/backdrop/same-path 용 — history.back() 으로 marker 제거
+     - closeMobileNavForNavigation: Link 클릭 전용 — state 만 false (Link 가 router.push 할 예정) */
+  const openMobileNav = useCallback(() => {
+    closeSearch();
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ gtrMobileNav: true }, '', window.location.href);
+    }
+    setIsMobileNavOpen(true);
+  }, [closeSearch]);
+
+  const closeMobileNav = useCallback(() => {
+    const state = (typeof window !== 'undefined'
+      ? (window.history.state as { gtrMobileNav?: boolean } | null)
+      : null);
+    if (state?.gtrMobileNav) {
+      /* marker entry 가 있으면 back 으로 제거 → popstate 에서 state 업데이트 */
+      window.history.back();
+    } else {
+      setIsMobileNavOpen(false);
+    }
+  }, []);
+
+  const closeMobileNavForNavigation = useCallback(() => {
+    setIsMobileNavOpen(false);
+  }, []);
+
+  /* popstate — 브라우저 back 버튼으로 drawer marker entry 벗어날 때 state 정리.
+     이미 false 여도 noop. */
+  useEffect(() => {
+    function onPopState() {
+      setIsMobileNavOpen(false);
+    }
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
   /* 클리어 버튼: 입력값 초기화 + 포커스 유지.
@@ -352,7 +392,7 @@ export default function SiteHeader() {
               aria-label="메뉴 열기"
               aria-expanded={isMobileNavOpen}
               aria-controls="mobile-nav-panel"
-              onClick={() => { closeSearch(); setIsMobileNavOpen(true); }}
+              onClick={openMobileNav}
             >
               <svg className="hi" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4,5h16" />
@@ -414,7 +454,8 @@ export default function SiteHeader() {
       {/* ── 모바일 네비 드로어 ── */}
       <MobileNavDrawer
         open={isMobileNavOpen}
-        onClose={() => setIsMobileNavOpen(false)}
+        onClose={closeMobileNav}
+        onNavigate={closeMobileNavForNavigation}
         isLoggedIn={mounted && isLoggedIn}
       />
 

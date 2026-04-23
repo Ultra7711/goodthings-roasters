@@ -24,7 +24,14 @@ const FTC_BIZ_LOOKUP_URL = `https://www.ftc.go.kr/bizCommPop.do?wrkr_no=${BUSINE
 
 type Props = {
   open: boolean;
+  /** X 버튼 / ESC / 딤 클릭 / same-path nav 클릭용 — history.back 경로로 drawer marker 정리 */
   onClose: () => void;
+  /**
+   * 다른 라우트로 네비게이션 시 호출 — Link 기본 동작이 router.push 할 예정이므로
+   * drawer state 만 false. history 조작 안 함 (타이밍 충돌 방지).
+   * BUG-006 Stage D-4 2단계.
+   */
+  onNavigate: () => void;
   isLoggedIn: boolean;
 };
 
@@ -41,7 +48,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Good Days', href: '/gooddays', resetEvent: 'gtr:gooddays-reset' },
 ];
 
-export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
+export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn }: Props) {
   const pathname = usePathname();
   const cartDrawer = useCartDrawer();
   const { totalQty } = useCartQuery();
@@ -58,8 +65,13 @@ export default function MobileNavDrawer({ open, onClose, isLoggedIn }: Props) {
     if (pathname === item.href) {
       e.preventDefault();
       window.dispatchEvent(new Event(item.resetEvent));
+      /* same path — 페이지 이동 없음. X 버튼과 동일하게 history.back 경로로 close */
+      onClose();
+      return;
     }
-    onClose();
+    /* 다른 라우트 — Link 가 router.push 예정. drawer state 만 false.
+       history 조작(back) 하면 Link 의 push 와 순서 꼬일 수 있어 분리 콜백 사용. */
+    onNavigate();
   }
 
   function handleCartClick() {
