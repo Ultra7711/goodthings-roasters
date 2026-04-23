@@ -129,18 +129,25 @@ export async function createOrder(
 ): Promise<CreateOrderRpcResult> {
   const admin = getSupabaseAdmin();
 
-  /* BUG-FIX 2026-04-23: Vercel Turbopack 프로덕션 번들에서 orderService 의
-     calcShippingFee(subtotal) 호출이 함수 객체 자체로 평가되어 params.shippingFee
-     가 function/NaN 이 되는 버그 확인. orderService 쪽에서 calcShippingFee 심볼
-     사용을 제거해 근본 대응했으나, `??` 연산자는 function/NaN 에 무력하므로
-     typeof + isFinite 로 한 겹 더 방어한다. 재발 시 즉시 감지 가능. */
-  const toInt = (v: unknown, fallback: number): number =>
-    typeof v === 'number' && Number.isFinite(v) ? v : fallback;
-  const shippingFee = toInt(params.shippingFee, 0);
-  const discountAmount = toInt(params.discountAmount, 0);
+  /* BUG-FIX 2026-04-23: Vercel Turbopack 프로덕션 번들에서 외부 import 된 상수/함수가
+     함수 객체로 치환되는 버그 확인. orderService 에서 외부 import 제거로 근본 대응했으나,
+     재발 시 총액이 잘못된 값으로 silently 저장되는 것을 막기 위해 한 겹 더 방어.
+     fallback 발동 시 서버 로그에 경고를 남겨 재발을 즉시 감지 가능하게 한다. */
+  const toInt = (v: unknown, fallback: number, field: string): number => {
+    if (typeof v === 'number' && Number.isFinite(v)) return v;
+    console.error(
+      `[createOrder] ${field} invalid (type=${typeof v}, isFinite=${
+        typeof v === 'number' ? Number.isFinite(v) : 'n/a'
+      }) — falling back to ${fallback}. Turbopack scope bug 재발 가능성 확인 필요.`,
+    );
+    return fallback;
+  };
+  const shippingFee = toInt(params.shippingFee, 0, 'shippingFee');
+  const discountAmount = toInt(params.discountAmount, 0, 'discountAmount');
   const totalAmount = toInt(
     params.totalAmount,
     params.subtotal + shippingFee - discountAmount,
+    'totalAmount',
   );
 
   const { data, error } = await admin

@@ -19,11 +19,6 @@
 
 import { hash as argon2Hash } from '@node-rs/argon2';
 import { PRODUCTS, type Product, type ProductVolume } from '@/lib/products';
-/* Pass 1 CODE/H-2: 배송비 규칙은 cartCalc 에서 단일 소스로 관리
-   BUG-FIX 2026-04-23: Vercel Turbopack 프로덕션 번들에서 `calcShippingFee(subtotal)`
-   호출이 망가져 함수 객체 자체가 반환되는 문제 확인 → 이 파일에서는 `calcShippingFee`
-   심볼을 직접 호출하지 않고 상수만 import 하여 인라인 계산으로 우회한다. */
-import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/hooks/useCart';
 import {
   createOrder as createOrderRpc,
   type CreateOrderRpcItem,
@@ -33,6 +28,16 @@ import type {
   OrderCreateInput,
   OrderItemInput,
 } from '@/lib/schemas/order';
+
+/* ── 배송비 상수 (서버 단독 소스) ──────────────────────────────────────
+   BUG-FIX 2026-04-23: @/hooks/useCart · @/lib/cartCalc 등 외부 모듈에서
+   import 한 상수·함수가 Vercel Turbopack 프로덕션 번들에서 함수 객체로 치환되는
+   버그 확인 (PGRST202 → toInt fallback 은폐 → 총액 배송비 누락). 외부 의존
+   전부 제거하고 이 파일에 리터럴 상수로 고정. 값은 hooks/useCart.ts 의
+   FREE_SHIPPING_THRESHOLD(30000) / SHIPPING_FEE(3000) 과 동일 정책.
+   정책 변경 시 두 곳 동기화 필수. */
+const ORDER_FREE_SHIPPING_THRESHOLD = 30000;
+const ORDER_SHIPPING_FEE = 3000;
 
 /* calcShippingFee 는 @/lib/cartCalc 로 이관 완료.
    이 파일은 calcShippingFee 심볼을 직접 import/re-export 하지 않는다 —
@@ -214,13 +219,11 @@ export async function createOrderFromInput(
   /* 1) 서버 권위 재계산 */
   const { rpcItems, subtotal } = recomputeItems(input.items);
 
-  /* 2) 배송비 / 총액
-     BUG-FIX 2026-04-23: `calcShippingFee(subtotal)` 호출이 Vercel Turbopack
-     프로덕션 번들에서 함수 객체 자체를 반환하는 버그 확인 (변수명 변경으로 해결 안 됨).
-     cartCalc 의존을 제거하고 동일 규칙을 이 자리에서 인라인 계산한다 —
-     정책(subtotal===0 or subtotal>=threshold → 0, 그 외 SHIPPING_FEE)은 동일. */
+  /* 2) 배송비 / 총액 — 이 파일 내 로컬 상수 사용 (외부 import 없음, 위 주석 참조) */
   const shippingFeeAmount =
-    subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+    subtotal === 0 || subtotal >= ORDER_FREE_SHIPPING_THRESHOLD
+      ? 0
+      : ORDER_SHIPPING_FEE;
   const discountAmount = 0; // 프로모션 도입 시 확장
   const totalAmount = subtotal + shippingFeeAmount - discountAmount;
 
