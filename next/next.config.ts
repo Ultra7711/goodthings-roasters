@@ -43,6 +43,13 @@ const nextConfig: NextConfig = {
   // Next.js 가 Node.js native 모듈을 webpack 으로 처리하지 않고 런타임에 require 한다.
   serverExternalPackages: ["@node-rs/argon2"],
 
+  // Cache Components (PPR) 활성화 (BUG-006 D-011, Stage C, 2026-04-24):
+  //   모든 페이지가 기본 dynamic 이 되며, 정적 캐시는 `'use cache'` 디렉티브로 명시.
+  //   runtime data access (cookies/headers/params/searchParams) 는 <Suspense> 경계 필수.
+  //   네비게이션 시 이전 라우트를 React Activity 로 "hidden" 상태 보존 → state 유지.
+  //   참조: node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/cacheComponents.md
+  cacheComponents: true,
+
   // SRI 비활성화 (BUG-006 D-010, 2026-04-23):
   //   Stage B Preview QA 에서 Turbopack + experimental.sri 조합 버그 발견 —
   //   HTML 의 integrity 값과 실제 chunk SHA-256 이 불일치하여 브라우저가 chunk

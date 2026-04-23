@@ -9,6 +9,10 @@
    - order_number 는 순차 증분 형식(`GT-YYYYMMDD-NNNNN`) 이라 enumeration 표면.
    - 고객 대면 URL 은 `?token={public_token UUID}` 만 허용.
    - dev/staging 에서는 레거시 링크 디버깅을 위해 유지.
+
+   BUG-006 Stage C (D-011, 2026-04-24):
+   - cacheComponents 활성화로 searchParams await 가 Suspense 경계 밖이면
+     빌드 에러. 쿼리 검증을 inner async 컴포넌트로 이동.
    ══════════════════════════════════════════ */
 
 import { Suspense } from 'react';
@@ -21,20 +25,20 @@ type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function OrderCompleteRoute({ searchParams }: PageProps) {
+async function OrderCompleteInner({ searchParams }: PageProps) {
   const params = searchParams ? await searchParams : {};
   /* 보안 #3-4b — 프로덕션에서 `?orderNumber=` 수신 시 404.
      dev/staging 은 레거시 링크 디버깅용으로 허용. */
   if (process.env.NODE_ENV === 'production' && params?.orderNumber !== undefined) {
     notFound();
   }
+  return <OrderCompletePage />;
+}
 
-  /* Suspense 경계: OrderCompletePage 내부에서 useSearchParams() 호출.
-     BUG-006 Phase 2B 선행 조치 — root layout 의 `await headers()` 제거 후
-     static prerender 대상이 될 때 CSR bailout 실패로 빌드 오류 방지. */
+export default function OrderCompleteRoute({ searchParams }: PageProps) {
   return (
     <Suspense fallback={<div className="oc-page" style={{ minHeight: '100dvh' }} />}>
-      <OrderCompletePage />
+      <OrderCompleteInner searchParams={searchParams} />
     </Suspense>
   );
 }
