@@ -8,12 +8,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildRpcItem,
-  calcShippingFee,
   recomputeItems,
   resolveProduct,
   resolveVolume,
   OrderServiceError,
 } from './orderService';
+/* BUG-FIX 2026-04-23: calcShippingFee 를 orderService 에서 re-export 하지
+   않기 위해, test 는 cartCalc 원본 모듈에서 직접 import 한다. */
+import { calcShippingFee } from '@/lib/cartCalc';
 import { PRODUCTS } from '@/lib/products';
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/hooks/useCart';
 

@@ -34,9 +34,11 @@ import type {
   OrderItemInput,
 } from '@/lib/schemas/order';
 
-/* calcShippingFee 는 @/lib/cartCalc 로 이관.
-   test 호환을 위해 re-export 만 유지 — 이 파일 내부에서는 호출하지 않는다 (위 BUG-FIX). */
-export { calcShippingFee } from '@/lib/cartCalc';
+/* calcShippingFee 는 @/lib/cartCalc 로 이관 완료.
+   이 파일은 calcShippingFee 심볼을 직접 import/re-export 하지 않는다 —
+   Vercel Turbopack 프로덕션 번들에서 이 심볼이 식별되면 동일 파일 내 다른
+   변수(특히 배송비 계산 결과)가 함수 객체로 치환되는 버그가 발생하기 때문.
+   test 파일은 cartCalc 원본 모듈에서 직접 import. */
 
 /* ══════════════════════════════════════════
    상수
