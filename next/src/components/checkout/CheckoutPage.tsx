@@ -232,14 +232,15 @@ export default function CheckoutPage() {
     setField('bankName', e.target.value);
   }, [setField]);
 
-  /* ── 이메일 계속하기 ── */
-  const handleEmailContinue = useCallback(() => {
-    if (!form.email.trim()) {
-      /* 에러 표시는 validate 에서 처리 */
-      return;
-    }
+  /* ── 비회원으로 주문하기 ──
+     버튼 클릭 = 비회원 결제 flow 선언 + 폼 펼치기.
+     이메일은 펼쳐진 2단계 폼의 email 필드에서 입력 받고, 최종 검증은
+     "결제하기" 제출 시 validate(isLoggedIn=false) 가 일괄 수행.
+     (이전 `handleEmailContinue` 는 이메일 빈 값일 때 silent return 하여
+     버튼이 동작 안 함처럼 보이는 UX 버그 있었음 — 2026-04-23 수정) */
+  const handleGuestContinue = useCallback(() => {
     revealForm();
-  }, [form.email, revealForm]);
+  }, [revealForm]);
 
   /* ── 제출 상태 (중복 클릭 방지) ── */
   const [submitting, setSubmitting] = useState(false);
@@ -465,7 +466,7 @@ export default function CheckoutPage() {
                 </Link>
                 <p className="chp-login-benefit">로그인하면 배송지 정보가 자동으로 채워집니다.</p>
                 <div className="chp-guest-link-wrap">
-                  <button className="chp-guest-link" type="button" onClick={handleEmailContinue}>
+                  <button className="chp-guest-link" type="button" onClick={handleGuestContinue}>
                     비회원으로 주문하기
                   </button>
                 </div>
