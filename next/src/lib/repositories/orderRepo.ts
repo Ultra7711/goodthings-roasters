@@ -129,22 +129,11 @@ export async function createOrder(
 ): Promise<CreateOrderRpcResult> {
   const admin = getSupabaseAdmin();
 
-  /* BUG-FIX 2026-04-23: p_shipping_fee 런타임 누락으로 PGRST202 발생 이력.
-     원인 조사 중 — 디버그 로그로 런타임 params 형상 확인 + defensive fallback
-     으로 결제 흐름 복구. undefined → 0 매핑은 calcShippingFee 규칙과 정합
-     (subtotal === 0 일 때 0 반환이 이미 정책). */
-  const debugPayload = {
-    hasShippingFee: 'shippingFee' in params,
-    shippingFee: params.shippingFee,
-    shippingFeeType: typeof params.shippingFee,
-    subtotal: params.subtotal,
-    discountAmount: params.discountAmount,
-    totalAmount: params.totalAmount,
-    paramsKeys: Object.keys(params),
-  };
-  console.log('[createOrder DEBUG] params shape', debugPayload);
-
-  /* ?? 0 fallback 은 function/NaN 값에 대해 동작하지 않으므로 typeof + isFinite 로 강화. */
+  /* BUG-FIX 2026-04-23: Vercel Turbopack 프로덕션 번들에서 orderService 의
+     calcShippingFee(subtotal) 호출이 함수 객체 자체로 평가되어 params.shippingFee
+     가 function/NaN 이 되는 버그 확인. orderService 쪽에서 calcShippingFee 심볼
+     사용을 제거해 근본 대응했으나, `??` 연산자는 function/NaN 에 무력하므로
+     typeof + isFinite 로 한 겹 더 방어한다. 재발 시 즉시 감지 가능. */
   const toInt = (v: unknown, fallback: number): number =>
     typeof v === 'number' && Number.isFinite(v) ? v : fallback;
   const shippingFee = toInt(params.shippingFee, 0);
