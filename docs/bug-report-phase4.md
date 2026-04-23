@@ -203,13 +203,14 @@
 
 ## 네비·드로어 — 추가 리포트 (S67, 2026-04-24)
 
-### BUG-124 — 로그인 직후 메인 진입 시 어나운스바 사라진 상태 🟡
+### BUG-124 — 로그인 직후 메인 진입 시 어나운스바 사라진 상태 → **BUG-006 DB-01 로 병합** 🟡
 
 - **발견:** 2026-04-24
 - **재현 경로:** 로그인 성공 → 메인 페이지 복귀
 - **실제:** 어나운스바가 viewport 위로 올라가 있는 상태
-- **연관성:** DB-01 (S66 `e37a6555` `scroll-padding-top` 적용) 과 동일 증상 의심. DB-01 은 route 전환 전반, 이 건은 로그인 post-auth redirect 특정 경로.
-- **작업 방향:** 재발 모니터링 + 로그인 완료 핸들러에서 `window.scrollTo({top:0,behavior:'instant'})` 강제 여부 검토.
+- **병합 사유:** BUG-006 의 DB-01 (route 전환 시 sticky/fixed skip 으로 인한 `ann-bar-height` 오프셋) 과 동일 증상으로 확정. post-auth redirect 경로는 DB-01 케이스의 추가 발생 경로로 기록.
+- **추적 위치:** `memory/project_bug006_deferred_bugs.md` § DB-01
+- **현재 상태:** 1차 수정 완료 (S66 `e37a6555` `scroll-padding-top`) — 재발 모니터링 중. 재발 시 DB-01 섹션에 경로 추가 후 2차 수정 검토.
 
 ### BUG-125 — 마이페이지 드롭다운 outside 터치 시 하단 아코디언 동작 🟡
 
