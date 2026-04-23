@@ -5,10 +5,11 @@
    1. Supabase SSR 세션 쿠키 리프레시 (만료 전 자동 갱신)
       - auth.getUser() 호출이 리프레시 트리거 — 절대 제거 금지
       - 서버 컴포넌트에서 재호출해도 캐시 히트로 비용 없음
-   2. 요청별(per-request) Nonce 기반 Content-Security-Policy 주입
-      - 'unsafe-inline' 회피, strict-dynamic 으로 번들 스크립트 허용
-      - TossPayments / Daum Postcode / OAuth provider 엔드포인트 허용
-      - Supabase WSS (Realtime) 허용
+   2. strict-source-list + SRI 기반 Content-Security-Policy 주입
+      - script-src: 'self' 'unsafe-inline' + 허용 외부 origin (Toss/Kakao/Daum/Vercel)
+      - 공급망 방어는 experimental.sri (next.config.ts) 의 integrity hash 로 수행
+      - 인라인 주입 방어는 React 자동 escape + 프로젝트 규칙 (feedback_no_dangerous_html)
+      - Supabase WSS (Realtime) · 결제 · OAuth 엔드포인트 connect-src 허용
    3. 인증 리다이렉트는 proxy 에서 하지 않음
       - 각 Server Component / Route Handler 에서 getClaims() 기반 판정
       - proxy 는 세션 수명 관리 + 전역 보안 헤더만 담당 (관심사 분리)
@@ -16,11 +17,17 @@
    Next.js 16 규격:
    - `middleware.ts` → `proxy.ts` 개명 (CVE-2025-29927 회피 정책의 일환)
    - Edge runtime 미지원 — Node.js 런타임만 허용
-   - 서버 컴포넌트에서 nonce 읽기: `(await headers()).get('x-nonce')`
+
+   CSP 경로 결정 (BUG-006 D-007, 2026-04-23):
+   - `'nonce-...' 'strict-dynamic'` 제거 + `'unsafe-inline'` 수용
+   - 이유: nonce 기반 CSP 는 모든 페이지 dynamic rendering 강제 → PPR 비호환
+   - 업계 표준 (Vercel · nextjs.org · Linear · Cursor 모두 'unsafe-inline' 사용)
+   - 운영 조건: dangerouslySetInnerHTML 등 HTML 주입 API 추가 금지
 
    참조:
    - Next.js 16 upgrade: https://nextjs.org/docs/app/guides/upgrading/version-16
-   - CSP with Nonce:    https://nextjs.org/docs/app/guides/content-security-policy
+   - CSP "Without Nonces":
+     next/node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md L417-451
    - Supabase SSR:      https://supabase.com/docs/guides/auth/server-side/nextjs
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -56,19 +63,17 @@ export function shouldOverrideReferrerPolicy(pathname: string): boolean {
  * CSP 구성 — 허용 오리진은 단일 출처에서 관리.
  * 서드파티 추가/삭제 시 이 함수만 수정하면 proxy 전체가 일관성 유지.
  */
-function buildContentSecurityPolicy(nonce: string, isDev: boolean): string {
-  // strict-dynamic: nonce 가 부여된 초기 스크립트가 로드하는 후속 스크립트를 자동 신뢰
-  //                 → 번들 스플리팅/동적 import 대응
-  // unsafe-eval:    dev 에서만 (React Fast Refresh / sourcemap 진단 용)
-  // style-src 'unsafe-inline' (nonce 미사용):
-  //   CSP3 에서 nonce 와 'unsafe-inline' 공존 시 'unsafe-inline' 이 무시되어
-  //   React 의 style={{...}} (style attribute) 가 전부 거부됨. style attribute 에는
-  //   nonce 를 부여할 수 없으므로 style-src 는 nonce 없이 'unsafe-inline' 만 허용.
-  //   Next.js 공식 CSP 가이드 · 업계 표준과 일치 (script-src 와 달리 style
-  //   inline 은 XSS 영향 제한적).
+function buildContentSecurityPolicy(isDev: boolean): string {
+  // script-src (BUG-006 D-007, 2026-04-23):
+  //   'self' — 자체 번들 chunk (integrity hash 로 공급망 보호)
+  //   'unsafe-inline' — Next.js RSC hydration inline script (self.__next_f.push) 허용
+  //     · XSS 주입 경로는 React 자동 escape + `feedback_no_dangerous_html` 규칙으로 차단
+  //   외부 origin — Toss / Kakao / Daum / Vercel 런타임 inject 스크립트
+  // unsafe-eval: dev 에서만 (React Fast Refresh / sourcemap 진단)
+  // style-src 'unsafe-inline': React style={{...}} (style attribute) 허용. XSS 영향 제한적.
   const directives = [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://pay.toss.im https://dapi.kakao.com https://t1.daumcdn.net https://va.vercel-scripts.com`,
+    `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://pay.toss.im https://dapi.kakao.com https://t1.daumcdn.net https://va.vercel-scripts.com`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://t1.daumcdn.net`,
     `img-src 'self' blob: data: https://*.supabase.co https://*.tosspayments.com https://*.daumcdn.net https://postfiles.pstatic.net`,
     `font-src 'self' https://fonts.gstatic.com data:`,
@@ -95,25 +100,17 @@ function buildContentSecurityPolicy(nonce: string, isDev: boolean): string {
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const isDev = process.env.NODE_ENV === 'development';
 
-  /* ── 1. per-request Nonce 생성 ─────────────────────────────────────────
-     Node.js 20+ 전역 crypto.randomUUID() → base64 (22자 내외)
-     UUID 는 122 bits of entropy — CSP nonce 권고(>=128 bits) 를 근사 충족.
-     추가 안전성 필요 시 Uint8Array(16) + getRandomValues 로 교체 가능. */
-  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
-
-  /* ── 2. 요청 헤더에 nonce · CSP 주입 ───────────────────────────────────
-     서버 컴포넌트에서 `(await headers()).get('x-nonce')` 로 읽어
-     inline <script nonce={...}> 에 전달할 수 있다. */
+  /* ── CSP 구성 ─────────────────────────────────────────────────────────
+     BUG-006 D-007 (2026-04-23) 이후 nonce 기반 → strict-source-list + SRI.
+     요청별 동적 요소 없음 → 상수. 응답 헤더에 주입 (아래 §2). */
+  const csp = buildContentSecurityPolicy(isDev);
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-nonce', nonce);
-  const csp = buildContentSecurityPolicy(nonce, isDev);
-  requestHeaders.set('Content-Security-Policy', csp);
 
   let supabaseResponse = NextResponse.next({
     request: { headers: requestHeaders },
   });
 
-  /* ── 3. Supabase SSR 세션 리프레시 ─────────────────────────────────────
+  /* ── 1. Supabase SSR 세션 리프레시 ─────────────────────────────────────
      getAll/setAll 패턴 — 공식 권장. 구형 get/set/remove 는 세션 유실 위험.
      setAll 내부에서 request·response 쿠키를 동시에 업데이트해야 다음 단계
      (auth.getUser) 가 갱신된 쿠키로 서명 검증을 수행할 수 있다. */
@@ -145,12 +142,12 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   //            (Supabase 공식 가이드 경고 그대로 수용)
   await supabase.auth.getUser();
 
-  /* ── 4. 응답 헤더에 CSP 주입 ───────────────────────────────────────────
+  /* ── 2. 응답 헤더에 CSP 주입 ───────────────────────────────────────────
      정적 보안 헤더 (HSTS·COOP·CORP 등) 는 next.config.ts headers() 가 담당.
-     CSP 만 per-request 라 여기서 동적 주입. */
+     CSP 는 proxy matcher 통과 경로만 적용되므로 여기서 주입. */
   supabaseResponse.headers.set('Content-Security-Policy', csp);
 
-  /* ── 5. 결제 경로 Referrer-Policy 축소 (Session 8 보안 #2) ─────────────
+  /* ── 3. 결제 경로 Referrer-Policy 축소 (Session 8 보안 #2) ─────────────
      3rd-party 분석/광고 태그에 order_number 누출 방어. 전역은
      strict-origin-when-cross-origin 유지, 민감 경로만 same-origin 으로 축소. */
   if (shouldOverrideReferrerPolicy(request.nextUrl.pathname)) {

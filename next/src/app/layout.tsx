@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import localFont from 'next/font/local';
 import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
@@ -30,17 +29,14 @@ export const metadata: Metadata = {
   description: 'good things, simply roasted. — 스페셜티 커피 로스터리',
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
-  /* CSP nonce: proxy.ts 가 per-request 로 주입한 nonce 를 읽어 동적 렌더링을
-     강제한다. 이 호출이 없으면 Next.js 가 정적 최적화로 HTML 을 캐시하여
-     proxy 의 nonce 와 script 태그 nonce 가 불일치 → strict-dynamic CSP 가
-     모든 inline script 를 차단. headers() 호출이 전역 dynamic rendering 트리거. */
-  await headers();
-
+  /* BUG-006 D-007 (2026-04-23): `await headers()` 제거.
+     nonce 기반 CSP 가 제거되어 전역 dynamic rendering 강제가 불필요해졌다.
+     Next.js 가 이제 정적 최적화 가능한 라우트를 shell 로 prerender 할 수 있다. */
   return (
     <html lang="ko" className={`${inter.variable} ${pretendard.variable} antialiased`}>
       <head>
