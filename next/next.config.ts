@@ -43,17 +43,12 @@ const nextConfig: NextConfig = {
   // Next.js 가 Node.js native 모듈을 webpack 으로 처리하지 않고 런타임에 require 한다.
   serverExternalPackages: ["@node-rs/argon2"],
 
-  // Subresource Integrity (SRI) — BUG-006 Phase 2B Stage A (2026-04-23)
-  // 빌드 산출물 script 태그에 `integrity="sha256-..."` 부착. 공식 문서:
-  //   next/node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md
-  //   L456-540 "Subresource Integrity (Experimental)"
-  // L486-487 "SRI 와 nonce 는 병행 가능" — 기존 nonce CSP 정책과 충돌 없음.
-  // Stage A 목적: inline RSC payload script 의 처리 방식 관찰 (HTML 렌더 결과 검사).
-  experimental: {
-    sri: {
-      algorithm: "sha256",
-    },
-  },
+  // SRI 비활성화 (BUG-006 D-010, 2026-04-23):
+  //   Stage B Preview QA 에서 Turbopack + experimental.sri 조합 버그 발견 —
+  //   HTML 의 integrity 값과 실제 chunk SHA-256 이 불일치하여 브라우저가 chunk
+  //   차단 ("Failed to find a valid digest in the 'integrity' attribute").
+  //   공급망 방어는 Next.js 생태계 표준(Vercel/nextjs.org/Linear 모두 SRI 미사용)
+  //   + Vercel 자체 CDN 무결성에 의존. D-007 운영 조건 #3 취소.
 
   async headers() {
     return [
