@@ -2288,7 +2288,6 @@ footer.blk {
 /* ══════════════════════════════════════════
    공통 페이지 타이틀 영역 — Shop / Menu / GoodDays (BUG-139)
    font/color/margin 공통화로 드리프트 제거. ID selector 는 애니메이션만 담당.
-   BUG-134: 모바일 (≤767px) 에서 title-area margin-bottom 48 → 18px 축소.
    ══════════════════════════════════════════ */
 .page-title-area { margin-bottom: 48px; }
 .page-title {
@@ -2327,9 +2326,6 @@ footer.blk {
   height: 2px;
   background: var(--color-border-secondary);
   z-index: 0;
-}
-@media (max-width: 767px) {
-  .page-title-area { margin-bottom: 18px; }
 }
 
 /* ══ SHOP PAGE ══ */
@@ -8564,4 +8560,16 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   }
   /* beans-scroll: 카드 레일 시작 gutter 만 24px (max() 계산 불필요) */
   .beans-scroll { padding: 0 24px; }
+}
+
+/* ══════════════════════════════════════════
+   BUG-134 — 모바일 전용 Shop/Menu/GoodDays 상단 여백 30px 축소
+   데스크탑 100px 유지 · 모바일에서만 70px 로 축소 → 타이틀 이하 모든 콘텐츠가 30px 위로 이동.
+   ══════════════════════════════════════════ */
+@media (max-width: 767px) {
+  #sp-body,
+  #cm-body,
+  #gd-inner {
+    padding-top: 70px;
+  }
 }
