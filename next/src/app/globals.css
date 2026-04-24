@@ -6066,6 +6066,9 @@ footer.blk {
   right: 32px;
   z-index: 1;
 }
+@media (max-width: 767px) {
+  .gd-lb-close { top: 12px; right: 12px; }
+}
 .gd-lb-arrow {
   position: absolute;
   top: 50%;
