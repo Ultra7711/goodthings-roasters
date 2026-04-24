@@ -57,10 +57,21 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
   const { totalQty } = useCartQuery();
   const [mounted, setMounted] = useState(false);
   const [bizOpen, setBizOpen] = useState(false);
+  /**
+   * navigate 경로에서 transition 없이 즉시 닫기.
+   * route 전환 후 #mobile-nav-bg opacity 1→0 fade (delay 80 + duration 250 = 330ms) 가
+   * 새 페이지 위에 잔존하여 "시커먼 화면" 으로 보이는 현상 제거 (BUG-006 H6 · S68 M-002).
+   */
+  const [snapClose, setSnapClose] = useState(false);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
+
+  // 드로어가 다시 열릴 때 snap 모드 리셋 — 다음 close 가 기본 fade 복구
+  useEffect(() => {
+    if (open) setSnapClose(false);
+  }, [open]);
 
   useDrawer({ open, onClose });
 
@@ -88,6 +99,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
     }
     /* 다른 라우트 — Link 가 router.push 예정. drawer state 만 false.
        history 조작(back) 하면 Link 의 push 와 순서 꼬일 수 있어 분리 콜백 사용. */
+    setSnapClose(true);
     onNavigate();
   }
 
@@ -97,6 +109,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
       handleSamePathReset();
       return;
     }
+    setSnapClose(true);
     onNavigate();
   }
 
@@ -107,6 +120,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
       handleSamePathReset();
       return;
     }
+    setSnapClose(true);
     onNavigate();
   }
 
@@ -116,6 +130,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
       handleSamePathReset();
       return;
     }
+    setSnapClose(true);
     onNavigate();
   }
 
@@ -127,7 +142,11 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
   if (!mounted) return null;
 
   return createPortal(
-    <div id="mobile-nav" className={open ? 'open' : ''} aria-hidden={!open}>
+    <div
+      id="mobile-nav"
+      className={`${open ? 'open' : ''}${snapClose ? ' nav-snap' : ''}`.trim()}
+      aria-hidden={!open}
+    >
       <div
         id="mobile-nav-bg"
         onClick={onClose}

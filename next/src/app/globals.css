@@ -780,6 +780,17 @@ button.hdr-icon-btn { background: none; border: none; }
   will-change: transform;
 }
 #mobile-nav.open #mobile-nav-panel { transform: translateX(0); }
+/* navigate 경로 snap close — BUG-006 H6 (S68 M-002).
+   route 전환 후 #mobile-nav-bg opacity fade (330ms) 가 새 페이지 위에 잔존하여
+   "시커먼 화면" 으로 보이는 현상 제거. onClose (X/ESC/dim) 경로는 기본 fade 유지. */
+#mobile-nav.nav-snap #mobile-nav-bg {
+  transition: none;
+  opacity: 0;
+}
+#mobile-nav.nav-snap #mobile-nav-panel {
+  transition: none;
+  transform: translateX(100%);
+}
 .mn-header {
   display: flex;
   align-items: center;
