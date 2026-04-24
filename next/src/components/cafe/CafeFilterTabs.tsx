@@ -93,7 +93,7 @@ export default function CafeFilterTabs({ active, onChange }: Props) {
   }, []);
 
   return (
-    <div id="cm-filter-wrap">
+    <div id="cm-filter-wrap" className="page-filter-wrap">
       <div id="cm-filter-tabs" ref={tabsRef}>
         <div id="cm-filter-indicator" ref={indicatorRef} />
         {CAFE_FILTER_TABS.map((tab) => (

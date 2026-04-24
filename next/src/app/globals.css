@@ -2285,6 +2285,53 @@ footer.blk {
   .moments-grid .moment-card { aspect-ratio: 3/2; }
 }
 
+/* ══════════════════════════════════════════
+   공통 페이지 타이틀 영역 — Shop / Menu / GoodDays (BUG-139)
+   font/color/margin 공통화로 드리프트 제거. ID selector 는 애니메이션만 담당.
+   BUG-134: 모바일 (≤767px) 에서 title-area margin-bottom 48 → 18px 축소.
+   ══════════════════════════════════════════ */
+.page-title-area { margin-bottom: 48px; }
+.page-title {
+  font-family: var(--font-kr);
+  font-size: var(--type-h1-size);
+  font-weight: var(--type-h1-weight);
+  letter-spacing: var(--ls-display);
+  color: var(--color-text-primary);
+  line-height: var(--lh-tight);
+  margin: 0;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.page-subtitle {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-heading);
+  color: var(--color-text-secondary);
+  margin: 16px 0 0;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.page-filter-wrap {
+  position: relative;
+  margin-bottom: 48px;
+  opacity: 0;
+  transform: translateY(16px);
+}
+.page-filter-wrap::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-border-secondary);
+  z-index: 0;
+}
+@media (max-width: 767px) {
+  .page-title-area { margin-bottom: 18px; }
+}
+
 /* ══ SHOP PAGE ══ */
 .sp-page-bg {
   background: var(--color-background-primary);
@@ -2300,56 +2347,18 @@ footer.blk {
 }
 #sp-body:has(#sp-pagination) { padding-bottom: 80px; }
 #sp-head { padding-top: 8px; }
-#sp-title-area { margin-bottom: 48px; }
-#sp-page-title {
-  font-family: var(--font-kr);
-  font-size: var(--type-h1-size);
-  font-weight: var(--type-h1-weight);
-  letter-spacing: var(--ls-display);
-  color: var(--color-text-primary);
-  line-height: 1.2;
-  margin: 0;
-  opacity: 0;
-  transform: translateY(20px);
-}
+/* 타이틀/서브타이틀 공통 스타일은 .page-title / .page-subtitle — ID selector 는 애니메이션만 담당 */
 #sp-body.sp-anim #sp-page-title {
   animation: gtr-rise-20 var(--duration-slide) ease-out .15s forwards;
-}
-#sp-page-subtitle {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-l-size);
-  font-weight: 400;
-  letter-spacing: var(--ls-heading);
-  color: var(--color-text-secondary);
-  /* S69: /menu · /gooddays 와 16px 로 통일 — 페이지 전환 시 4px 튐 제거. */
-  margin: 16px 0 0;
-  opacity: 0;
-  transform: translateY(20px);
 }
 #sp-body.sp-anim #sp-page-subtitle {
   animation: gtr-rise-20 var(--duration-slide) ease-out .3s forwards;
 }
 
-/* 필터 탭 — 베이스라인은 래퍼(#sp-filter-wrap)에 두어 스크롤 컨테이너 scrollWidth 영향을 배제 */
-#sp-filter-wrap {
-  position: relative;
-  margin-bottom: 48px;
-  opacity: 0;
-  transform: translateY(16px);
-}
+/* 필터 탭 — 베이스라인은 공통 .page-filter-wrap · ID selector 는 애니메이션만 담당 */
 #sp-body.sp-anim #sp-filter-wrap {
   /* S69: /menu (.45s) 와 filter 진입 타이밍 통일. */
   animation: gtr-rise-16 var(--duration-fade) ease-out .45s forwards;
-}
-#sp-filter-wrap::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--color-border-secondary);
-  z-index: 0;
 }
 #sp-filter-tabs {
   display: flex;
@@ -2791,60 +2800,17 @@ footer.blk {
 }
 #cm-body:has(#cm-pagination) { padding-bottom: 80px; }
 #cm-head { padding-top: 8px; }
-#cm-title-area {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 48px;
-}
-#cm-page-title {
-  font-family: var(--font-kr);
-  font-size: var(--type-h1-size);
-  font-weight: var(--type-h1-weight);
-  letter-spacing: var(--ls-display);
-  color: var(--color-text-primary);
-  line-height: 1.2;
-  margin: 0;
-  opacity: 0;
-  transform: translateY(20px);
-}
+/* 타이틀/서브타이틀 공통 스타일은 .page-title / .page-subtitle — ID selector 는 애니메이션만 담당 */
 #cm-body.cm-anim #cm-page-title {
   animation: gtr-rise-20 var(--duration-slide) ease-out .15s forwards;
-}
-#cm-body .page-subtitle {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-l-size);
-  font-weight: 400;
-  letter-spacing: var(--ls-heading);
-  color: var(--color-text-secondary);
-  margin: 16px 0 0;
-  opacity: 0;
-  transform: translateY(20px);
 }
 #cm-body.cm-anim .page-subtitle {
   animation: gtr-rise-20 var(--duration-slide) ease-out .3s forwards;
 }
 
-/* 필터 탭 — 프로토타입 동일, 전용 클래스(.cm-filter-tab)
-   베이스라인은 래퍼(#cm-filter-wrap)에 두어 스크롤 컨테이너 scrollWidth 영향을 배제 */
-#cm-filter-wrap {
-  position: relative;
-  margin-bottom: 48px;
-  opacity: 0;
-  transform: translateY(16px);
-}
+/* 필터 탭 — 베이스라인은 공통 .page-filter-wrap · ID selector 는 애니메이션만 담당 */
 #cm-body.cm-anim #cm-filter-wrap {
   animation: gtr-rise-16 var(--duration-fade) ease-out .45s forwards;
-}
-#cm-filter-wrap::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--color-border-secondary);
-  z-index: 0;
 }
 #cm-filter-tabs {
   display: flex;
@@ -5850,30 +5816,10 @@ footer.blk {
   margin: 0 auto;
   padding: 100px 60px 120px;
 }
-#gd-title {
-  font-family: var(--font-kr);
-  font-size: var(--type-h1-size);
-  font-weight: var(--type-h1-weight);
-  letter-spacing: var(--ls-display);
-  line-height: var(--lh-tight);
-  margin: 0;
-  opacity: 0;
-  transform: translateY(20px);
-}
+/* 타이틀/서브타이틀 공통 스타일은 .page-title / .page-subtitle — ID selector 는 애니메이션만 담당.
+   wrapper 역할은 .page-title-area (subtitle-grid 간 48px margin) 이 담당. */
 #gd-page.gd-anim #gd-title {
   animation: gtr-rise-20 var(--duration-slide) ease-out 0.15s forwards;
-}
-/* 서브타이틀 — 프로토타입 L4186 inline style (margin-top:16px;margin-bottom:48px) +
-   .page-subtitle 공통 타입 (L4694) + #gd-page 전용 애니메이션 (L2436/2438) 이식. */
-#gd-page .page-subtitle {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-l-size);
-  font-weight: 400;
-  letter-spacing: var(--ls-heading);
-  color: var(--color-text-secondary);
-  margin: 16px 0 48px;
-  opacity: 0;
-  transform: translateY(20px);
 }
 #gd-page.gd-anim .page-subtitle {
   animation: gtr-rise-20 var(--duration-slide) ease-out 0.3s forwards;

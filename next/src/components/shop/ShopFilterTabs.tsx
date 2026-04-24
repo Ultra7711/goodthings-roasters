@@ -87,7 +87,7 @@ export default function ShopFilterTabs({ active, onChange }: Props) {
   }
 
   return (
-    <div id="sp-filter-wrap">
+    <div id="sp-filter-wrap" className="page-filter-wrap">
       <div id="sp-filter-tabs" ref={tabsRef}>
         <div id="sp-filter-indicator" ref={indicatorRef} />
         {FILTER_TABS.map((tab) => (

@@ -232,8 +232,8 @@ export default function CafeMenuPage() {
   return (
     <div id="cm-body" ref={setBodyEl}>
       <div id="cm-head">
-        <div id="cm-title-area">
-          <h1 id="cm-page-title">{activeTab.titleKr}</h1>
+        <div id="cm-title-area" className="page-title-area">
+          <h1 id="cm-page-title" className="page-title">{activeTab.titleKr}</h1>
           <p className="page-subtitle">매장에서 직접 내리고, 직접 굽습니다</p>
         </div>
 

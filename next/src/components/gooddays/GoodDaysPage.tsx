@@ -378,8 +378,10 @@ export default function GoodDaysPage() {
       data-header-theme="light"
     >
       <div id="gd-inner">
-        <h1 id="gd-title">좋은 순간들</h1>
-        <p className="page-subtitle">매장에서 보내는 하루하루를 기록합니다</p>
+        <div className="page-title-area">
+          <h1 id="gd-title" className="page-title">좋은 순간들</h1>
+          <p className="page-subtitle">매장에서 보내는 하루하루를 기록합니다</p>
+        </div>
         <div className="gd-grid" id="gd-grid" ref={gridRef}>
           {rows.map((row, rIdx) => (
             <div key={`${row.pattern.cls}-${rIdx}`} className={`gd-row ${row.pattern.cls}`}>

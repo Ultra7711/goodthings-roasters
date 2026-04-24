@@ -134,9 +134,9 @@ export default function ShopPage() {
     <div className="sp-page-bg">
     <div id="sp-body" ref={setBodyEl}>
       <div id="sp-head">
-        <div id="sp-title-area">
-          <h1 id="sp-page-title">{activeTab.titleKr}</h1>
-          <p id="sp-page-subtitle">{activeTab.subtitleKr}</p>
+        <div id="sp-title-area" className="page-title-area">
+          <h1 id="sp-page-title" className="page-title">{activeTab.titleKr}</h1>
+          <p id="sp-page-subtitle" className="page-subtitle">{activeTab.subtitleKr}</p>
         </div>
 
         <ShopFilterTabs active={filter} onChange={handleFilterChange} />
