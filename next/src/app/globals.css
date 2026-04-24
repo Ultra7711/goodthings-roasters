@@ -2304,7 +2304,8 @@ footer.blk {
   font-weight: 400;
   letter-spacing: var(--ls-heading);
   color: var(--color-text-secondary);
-  margin: 12px 0 0;
+  /* S69: /menu · /gooddays 와 16px 로 통일 — 페이지 전환 시 4px 튐 제거. */
+  margin: 16px 0 0;
   opacity: 0;
   transform: translateY(20px);
   transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
@@ -2326,7 +2327,8 @@ footer.blk {
 #sp-body.sp-anim #sp-filter-wrap {
   opacity: 1;
   transform: translateY(0);
-  transition-delay: .4s;
+  /* S69: /menu (.45s) 와 filter 진입 타이밍 통일. */
+  transition-delay: .45s;
 }
 #sp-filter-wrap::after {
   content: '';

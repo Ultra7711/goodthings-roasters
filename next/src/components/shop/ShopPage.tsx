@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ShopFilterTabs from './ShopFilterTabs';
 import ShopCard from './ShopCard';
 import {
@@ -15,10 +16,36 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const COLS = 3;
 const CARD_BASE_DELAY_INIT = 420; // 초기 로드: 탭(0.3s) 등장 후 카드 시작 (ms)
+const VALID_FILTERS: FilterKey[] = ['all', 'bean', 'drip', 'sub'];
 
-export default function ShopPage({ initialFilter = 'all' }: { initialFilter?: FilterKey }) {
-  const [filter, setFilter] = useState<FilterKey>(initialFilter);
+function isValidFilter(v: string | null): v is FilterKey {
+  return v !== null && (VALID_FILTERS as string[]).includes(v);
+}
+
+export default function ShopPage() {
+  const searchParams = useSearchParams();
+
+  // URL `?filter=` 파싱 — searchParams 가 바뀔 때마다 재평가.
+  // CafeMenuPage 와 동일 패턴: page.tsx 의 server-side await searchParams 를 제거하고
+  // client 에서 읽어 /shop 를 Static (○) 라우트로 전환. Router Cache + Activity 보존
+  // 효과로 /menu 와 동일하게 "재진입 시 DOM 유지 · 연출 중복 없음" 동작 확보.
+  const urlFilter = useMemo<FilterKey>(() => {
+    const q = searchParams.get('filter');
+    return isValidFilter(q) ? q : 'all';
+  }, [searchParams]);
+
+  const [filter, setFilter] = useState<FilterKey>(urlFilter);
   const [page, setPage] = useState(1);
+
+  // Adjusting state during render — urlFilter 동기화.
+  // React 19 권장 패턴: effect 대신 렌더 본문에서 이전 값과 비교 후 즉시 setState.
+  // CafeMenuPage 의 `prevUrlFilter` 패턴과 동일.
+  const [prevUrlFilter, setPrevUrlFilter] = useState(urlFilter);
+  if (prevUrlFilter !== urlFilter) {
+    setPrevUrlFilter(urlFilter);
+    setFilter(urlFilter);
+    setPage(1);
+  }
   // body element — callback ref 로 받아 scrollRoot 전달 시 리렌더 트리거 보장
   const [bodyEl, setBodyEl] = useState<HTMLDivElement | null>(null);
   // 초기 진입 플래그 — 최초 마운트에만 true 여서 첫 카드 stagger 에 0.42s 의
