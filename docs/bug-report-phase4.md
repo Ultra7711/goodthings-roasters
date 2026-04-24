@@ -244,20 +244,18 @@
 
 ## 추가 리포트 (S72, 2026-04-24)
 
-### BUG-131 — 메인 페이지 화살표 stroke 1.5px 로 두껍게 🟢
+### BUG-131 — ✅ 메인 페이지 화살표 stroke 1.5px 로 두껍게
 
 - **발견:** 2026-04-24 / S72
-- **재현 경로:** 홈 진입 → 각 섹션 CTA / 이동 화살표 아이콘
-- **실제:** 화살표 stroke `1px` 로 얇아 보임
-- **기대:** `1.5px` 로 조정하여 굵기 보강
-- **추정 범위:** 홈 페이지 화살표 SVG 아이콘 `stroke-width` 속성 또는 CSS `stroke-width` 토큰
+- **해결:** 2026-04-24 / S73 / `1d6c8d97`
+- **수정:** TwoColSection `.tci-arrow` ×2 + CafeMenuSection `.cat-arrow` ×1 의 `strokeWidth="1"` → `"1.5"`. viewBox 48 / 렌더 48px 이라 시각 1.5px 정확 일치.
 
-### BUG-132 — 검색 패널 왼쪽 1px 빈 영역 🟢
+### BUG-132 — ✅ 검색 패널 왼쪽 1px 빈 영역
 
 - **발견:** 2026-04-24 / S72
-- **재현 경로:** 헤더 검색 아이콘 클릭 → 검색 패널 오픈
-- **실제:** 검색 패널 좌측에 `1px` 빈 영역 노출
-- **추정 범위:** 패널 컨테이너 `border-left` · `padding-left` 또는 헤더 구분선 (`feedback_search_panel_divider.md`) 의 `::after` inset 선과 경계 어긋남
+- **해결:** 2026-04-24 / S73 / `1d6c8d97`
+- **근본 원인:** BUG-103 iOS 고DPR hairline 전수 적용 (`253ea44e`, S-?) 에서 `#site-hdr-wrap` 에 `box-shadow: inset ±1px 0 0 0 rgba(255,255,255,.4)` 좌우 hairline 추가. 헤더가 다크 테마일 때 좌우 1px 흰색 반투명 overlay 가 "왼쪽 1px 빈 영역" 으로 노출.
+- **수정:** 해당 box-shadow 줄 삭제. 헤더 좌우는 viewport 가장자리와 인접하여 hairline 불필요 · 상/하 구분선은 별도 유지.
 
 ### BUG-133 — 장바구니 드로어 브라우저 back 버튼 처리 누락 🟡
 
@@ -275,13 +273,21 @@
 - **기대:** 타이틀 아래 모든 컨텐츠를 **30px 위로** 이동
 - **추정 범위:** 3 페이지 공통 — `#sp-title-area` · `#cm-title-area` · (gooddays 는 wrapper 없음) 의 `margin-bottom` 또는 subtitle `margin-top`. DB-08 공통 클래스 리팩토링과 함께 처리 가능
 
-### BUG-135 — 굿데이즈 라이트박스 X 버튼 위치 우상단 재배치 🟢
+### BUG-135 — ✅ 굿데이즈 라이트박스 X 버튼 위치 우상단 재배치
 
 - **발견:** 2026-04-24 / S72
-- **재현 경로:** /gooddays 갤러리 셀 클릭 → 라이트박스 오픈
-- **실제:** X 닫기 버튼 위치가 우상단 끝에서 다름
-- **기대:** 우상단 끝 기준 `x: -32px · y: +32px` 위치 (끝에서 내측 32px 인셋)
-- **추정 범위:** `.gd-lb-close` 의 `top` · `right` 값 조정. 기존 위치 실측 후 `top: 32px` · `right: 32px` 로 재설정
+- **해결:** 2026-04-24 / S73 / `1d6c8d97`
+- **수정:** `.gd-lb-close` 의 `top: 24px; right: 24px;` → `top: 32px; right: 32px;` (globals.css L6063-6064). 모바일 오버라이드 없음.
+
+### BUG-130 — ✅ 헤더 다크↔라이트 모드 전환 깜빡임
+
+- **발견:** 2026-04-24 / S72 (가칭 등록)
+- **해결:** 2026-04-24 / S73 / `263fe57a`
+- **증상:** /story ↔ /shop 등 다크↔라이트 전환 시 로고/아이콘 색 반전이 본문 전환보다 먼저 체감 → "헤더만 깜빡" 체감.
+- **근본 원인 (§11-H1 측정 · M-006):** SiteHeader 의 useHeaderTheme useLayoutEffect 가 NavigationVisibilityGate 의 useLayoutEffect 보다 React 컴포넌트 트리 순서상 2~15ms 먼저 commit. pathname 변경 즉시 헤더 색이 new theme 으로 전환 · 본문은 여전히 `data-transitioning=true` 로 hidden. 시각 순서 불일치 발생.
+- **수정 (Prototype A):** SiteHeader 에 `effectivePath` state 추가. NavigationVisibilityGate 가 이미 dispatch 중인 `gtr:route-change` 이벤트 (S72 DB-06 해결용 자산) 를 수신하여 effectivePath 갱신. 테마 계산이 gate-LE 와 동일 tick 에 commit → 본문-헤더 동시 전환.
+- **측정 후 결과:** 순서 역전 성공 (gate-LE → hdr-LE +4.6~5.3ms). 5ms 는 paint frame 내 처리 → 시각적 동시. 사용자 체감 통과.
+- **상세:** `memory/project_bug006_decisions_log.md` D-024 · `memory/project_bug006_measurement_log.md` M-006
 
 ---
 
