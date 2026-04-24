@@ -122,10 +122,11 @@ export default function GoodDaysPage() {
     const cells = Array.from(
       gridEl.querySelectorAll<HTMLElement>('.gd-cell:not(.gd-cell--placeholder)'),
     );
-    /* 재진입 시 기존 visible + stagger delay 초기화 */
+    /* 재진입 시 기존 visible + stagger delay 초기화.
+       CSS 는 animation 기반 (DB-06/10/11 S72) → animationDelay 제어. */
     cells.forEach((c) => {
       c.classList.remove('gd-visible');
-      c.style.transitionDelay = '';
+      c.style.animationDelay = '';
     });
 
     const io = new IntersectionObserver(
@@ -139,7 +140,7 @@ export default function GoodDaysPage() {
             (c) => !c.classList.contains('gd-cell--placeholder'),
           );
           const idx = siblings.indexOf(cell);
-          cell.style.transitionDelay = `${idx * 70}ms`;
+          cell.style.animationDelay = `${idx * 70}ms`;
           cell.classList.add('gd-visible');
           io.unobserve(cell);
         });

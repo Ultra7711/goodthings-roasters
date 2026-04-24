@@ -41,13 +41,13 @@ function paragraphs(body: string) {
 
 export default function StoryPage() {
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  const heroEnRef = useRef<HTMLHeadingElement | null>(null);
+  const heroKrRef = useRef<HTMLParagraphElement | null>(null);
   /* 재진입·same-path 재클릭마다 히어로 페이드 + IO 재구성을 재생하기 위한 카운터.
      - 'gtr:route-change' (layout 발송, 다른 페이지 → /story 복귀)
      - 'gtr:story-reset' (SiteHeader same-path 재클릭)
      둘 다 setResetTick 증가 → effect 재실행. */
   const [resetTick, setResetTick] = useState(0);
-  const [heroEnVisible, setHeroEnVisible] = useState(false);
-  const [heroKrVisible, setHeroKrVisible] = useState(false);
 
   /* same-page reentry — SiteHeader The Story 링크 재클릭 시 발송.
      스크롤 top + resetTick 증가 → 히어로 페이드 + sr-txt 리빌 재생.
@@ -76,14 +76,19 @@ export default function StoryPage() {
   }, []);
 
   /* 히어로 순차 페이드 — 프로토타입 _initStoryAnimate 의 200ms / 450ms 타이밍.
-     resetTick 변경 시 false 로 리셋 후 타이머로 true 전환 — SiteHeader.tsx L40 의
-     setMounted(true) 와 동일 컨벤션. */
+     state → DOM ref 방식 (Menu/Shop 패턴 통일): class 를 직접 remove/reflow/add 하여
+     CSS keyframes (gtr-rise-20) 재생을 안정적으로 트리거. React state 기반은 Activity
+     하에서 batch 처리로 false→true 전환이 같은 commit 에 묶여 재생 실패 위험 있음. */
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHeroEnVisible(false);
-    setHeroKrVisible(false);
-    const t1 = window.setTimeout(() => setHeroEnVisible(true), 200);
-    const t2 = window.setTimeout(() => setHeroKrVisible(true), 450);
+    const en = heroEnRef.current;
+    const kr = heroKrRef.current;
+    if (!en || !kr) return;
+    en.classList.remove('st--visible');
+    kr.classList.remove('st--visible');
+    void en.offsetHeight;
+    void kr.offsetHeight;
+    const t1 = window.setTimeout(() => en.classList.add('st--visible'), 200);
+    const t2 = window.setTimeout(() => kr.classList.add('st--visible'), 450);
     return () => {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
@@ -125,10 +130,10 @@ export default function StoryPage() {
           style={{ backgroundImage: `url('${STORY_HERO.background}')` }}
         />
         <div className="st-hero-content">
-          <h1 className={`st-hero-en${heroEnVisible ? ' st--visible' : ''}`}>
+          <h1 ref={heroEnRef} className="st-hero-en">
             {STORY_HERO.en}
           </h1>
-          <p className={`st-hero-kr${heroKrVisible ? ' st--visible' : ''}`}>
+          <p ref={heroKrRef} className="st-hero-kr">
             {STORY_HERO.kr}
           </p>
         </div>

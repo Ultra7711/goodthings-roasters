@@ -1345,6 +1345,24 @@ footer.blk {
   .sr-txt--d1, .sr-txt--d2, .sr-txt--d3, .sr-txt--d4 { transition-delay: 0ms; }
 }
 
+/* ══ Entry animation keyframes (DB-06/10/11 S72) ══
+   transition 기반 class toggle 은 Chrome 에서 remove→reflow→add 를 같은 layout pass
+   로 처리하여 재생 안 되는 버그가 있음 (DB-07 의 본질). keyframes 는 class 제거 시
+   element 가 initial state 로 reset → class 부여 시 처음부터 재생 → reliably 동작.
+   translateY 값별로 3종 정의: 16px(filter-wrap) · 20px(title/subtitle/hero) · 24px(gd-cell). */
+@keyframes gtr-rise-16 {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes gtr-rise-20 {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes gtr-rise-24 {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ══ Grain / Noise Overlay (design-interaction-plan §4 ⑤) ══
    배경 필름 질감. 섹션 내 absolute 로 배치, pointer-events: none.
    SVG feTurbulence 인라인 data URI — 네트워크 비용 0, 약 180 bytes. */
@@ -2291,12 +2309,9 @@ footer.blk {
   margin: 0;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
 }
 #sp-body.sp-anim #sp-page-title {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: .15s;
+  animation: gtr-rise-20 var(--duration-slide) ease-out .15s forwards;
 }
 #sp-page-subtitle {
   font-family: var(--font-kr);
@@ -2308,12 +2323,9 @@ footer.blk {
   margin: 16px 0 0;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
 }
 #sp-body.sp-anim #sp-page-subtitle {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: .3s;
+  animation: gtr-rise-20 var(--duration-slide) ease-out .3s forwards;
 }
 
 /* 필터 탭 — 베이스라인은 래퍼(#sp-filter-wrap)에 두어 스크롤 컨테이너 scrollWidth 영향을 배제 */
@@ -2322,13 +2334,10 @@ footer.blk {
   margin-bottom: 48px;
   opacity: 0;
   transform: translateY(16px);
-  transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) ease-out;
 }
 #sp-body.sp-anim #sp-filter-wrap {
-  opacity: 1;
-  transform: translateY(0);
   /* S69: /menu (.45s) 와 filter 진입 타이밍 통일. */
-  transition-delay: .45s;
+  animation: gtr-rise-16 var(--duration-fade) ease-out .45s forwards;
 }
 #sp-filter-wrap::after {
   content: '';
@@ -2796,12 +2805,9 @@ footer.blk {
   margin: 0;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
 }
 #cm-body.cm-anim #cm-page-title {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: .15s;
+  animation: gtr-rise-20 var(--duration-slide) ease-out .15s forwards;
 }
 #cm-body .page-subtitle {
   font-family: var(--font-kr);
@@ -2812,12 +2818,9 @@ footer.blk {
   margin: 16px 0 0;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
 }
 #cm-body.cm-anim .page-subtitle {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: .3s;
+  animation: gtr-rise-20 var(--duration-slide) ease-out .3s forwards;
 }
 
 /* 필터 탭 — 프로토타입 동일, 전용 클래스(.cm-filter-tab)
@@ -2827,12 +2830,9 @@ footer.blk {
   margin-bottom: 48px;
   opacity: 0;
   transform: translateY(16px);
-  transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) ease-out;
 }
 #cm-body.cm-anim #cm-filter-wrap {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: .45s;
+  animation: gtr-rise-16 var(--duration-fade) ease-out .45s forwards;
 }
 #cm-filter-wrap::after {
   content: '';
@@ -5134,7 +5134,6 @@ footer.blk {
   margin: 0;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.9s ease-out, transform 0.9s ease-out;
 }
 .st-hero-kr {
   font-family: var(--font-kr);
@@ -5146,13 +5145,14 @@ footer.blk {
   margin: 0;
   opacity: 0;
   transform: translateY(20px);
-  /* 프로토타입 L4961~4966 parity: 0.9s 트랜지션 + 0.25s 딜레이 → EN 200ms, KR 450ms+250ms=700ms 총 gap 500ms */
-  transition: opacity 0.9s ease-out 0.25s, transform 0.9s ease-out 0.25s;
 }
-.st-hero-en.st--visible,
+.st-hero-en.st--visible {
+  animation: gtr-rise-20 0.9s ease-out forwards;
+}
+/* 프로토타입 L4961~4966 parity: 0.9s 트랜지션 + 0.25s 딜레이 → EN 200ms, KR 450ms+250ms=700ms 총 gap 500ms.
+   keyframes 전환 후에도 KR 의 추가 delay 0.25s 는 유지 (JS setTimeout 450ms + CSS delay 250ms = 700ms). */
 .st-hero-kr.st--visible {
-  opacity: 1;
-  transform: translateY(0);
+  animation: gtr-rise-20 0.9s ease-out 0.25s forwards;
 }
 
 /* ── 공통 라벨 ── */
@@ -5857,12 +5857,9 @@ footer.blk {
   margin: 0;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
 }
 #gd-page.gd-anim #gd-title {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.15s;
+  animation: gtr-rise-20 var(--duration-slide) ease-out 0.15s forwards;
 }
 /* 서브타이틀 — 프로토타입 L4186 inline style (margin-top:16px;margin-bottom:48px) +
    .page-subtitle 공통 타입 (L4694) + #gd-page 전용 애니메이션 (L2436/2438) 이식. */
@@ -5875,12 +5872,9 @@ footer.blk {
   margin: 16px 0 48px;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity var(--duration-slide) ease-out, transform var(--duration-slide) ease-out;
 }
 #gd-page.gd-anim .page-subtitle {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.3s;
+  animation: gtr-rise-20 var(--duration-slide) ease-out 0.3s forwards;
 }
 
 /* 매거진 그리드 */
@@ -5982,14 +5976,13 @@ footer.blk {
 .gd-cell {
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity var(--duration-fade) ease-out, transform var(--duration-fade) ease-out;
   overflow: hidden;
   cursor: pointer;
   position: relative;
 }
 .gd-cell.gd-visible {
-  opacity: 1;
-  transform: translateY(0);
+  animation: gtr-rise-24 var(--duration-fade) ease-out forwards;
+  /* stagger 는 JS 에서 element.style.animationDelay 로 설정 (idx * 70ms) */
 }
 .gd-cell--placeholder {
   opacity: 1;
