@@ -242,6 +242,49 @@
 
 ---
 
+## 추가 리포트 (S72, 2026-04-24)
+
+### BUG-131 — 메인 페이지 화살표 stroke 1.5px 로 두껍게 🟢
+
+- **발견:** 2026-04-24 / S72
+- **재현 경로:** 홈 진입 → 각 섹션 CTA / 이동 화살표 아이콘
+- **실제:** 화살표 stroke `1px` 로 얇아 보임
+- **기대:** `1.5px` 로 조정하여 굵기 보강
+- **추정 범위:** 홈 페이지 화살표 SVG 아이콘 `stroke-width` 속성 또는 CSS `stroke-width` 토큰
+
+### BUG-132 — 검색 패널 왼쪽 1px 빈 영역 🟢
+
+- **발견:** 2026-04-24 / S72
+- **재현 경로:** 헤더 검색 아이콘 클릭 → 검색 패널 오픈
+- **실제:** 검색 패널 좌측에 `1px` 빈 영역 노출
+- **추정 범위:** 패널 컨테이너 `border-left` · `padding-left` 또는 헤더 구분선 (`feedback_search_panel_divider.md`) 의 `::after` inset 선과 경계 어긋남
+
+### BUG-133 — 장바구니 드로어 브라우저 back 버튼 처리 누락 🟡
+
+- **발견:** 2026-04-24 / S72
+- **재현 경로:** 카트 아이콘 클릭 → 드로어 오픈 → 브라우저 back 버튼 (또는 모바일 back 제스처)
+- **실제:** back 동작이 드로어 닫기로 처리되지 않고 페이지 자체가 뒤로 이동
+- **기대:** MobileNavDrawer 와 동일하게 `pushState` marker 기반으로 back 시 드로어 먼저 close
+- **추정 범위:** `CartDrawer` / `useCartDrawer` 에 history marker 누락. MobileNavDrawer 의 `handleNavClick` · `pushState({ gtrMobileNav: true })` 패턴 재활용 필요 (단 scroll 조작 충돌 주의 — DB-05 교훈)
+
+### BUG-134 — menu / shop / gooddays 타이틀 아래 컨텐츠 30px 위로 🟢
+
+- **발견:** 2026-04-24 / S72
+- **재현 경로:** /menu · /shop · /gooddays 진입
+- **실제:** 타이틀 영역 아래 (subtitle · filter · grid 등) 컨텐츠 전체가 타이틀과 간격 과다
+- **기대:** 타이틀 아래 모든 컨텐츠를 **30px 위로** 이동
+- **추정 범위:** 3 페이지 공통 — `#sp-title-area` · `#cm-title-area` · (gooddays 는 wrapper 없음) 의 `margin-bottom` 또는 subtitle `margin-top`. DB-08 공통 클래스 리팩토링과 함께 처리 가능
+
+### BUG-135 — 굿데이즈 라이트박스 X 버튼 위치 우상단 재배치 🟢
+
+- **발견:** 2026-04-24 / S72
+- **재현 경로:** /gooddays 갤러리 셀 클릭 → 라이트박스 오픈
+- **실제:** X 닫기 버튼 위치가 우상단 끝에서 다름
+- **기대:** 우상단 끝 기준 `x: -32px · y: +32px` 위치 (끝에서 내측 32px 인셋)
+- **추정 범위:** `.gd-lb-close` 의 `top` · `right` 값 조정. 기존 위치 실측 후 `top: 32px` · `right: 32px` 로 재설정
+
+---
+
 ## 해결됨
 
 ### BUG-105 — 모바일 Chrome 하단 네비 영역이 히어로와 충돌 ✅
