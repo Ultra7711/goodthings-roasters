@@ -35,7 +35,7 @@ function subBadgeLabel(item: CartItem): string | null {
 }
 
 export default function CartDrawer() {
-  const { isOpen, close } = useCartDrawer();
+  const { isOpen, close, closeForNavigation } = useCartDrawer();
   const { items, totalQty, subtotal, totalPrice } = useCartQuery();
   const updateQty = useUpdateCartQty();
   const removeItem = useRemoveCartItem();
@@ -48,18 +48,19 @@ export default function CartDrawer() {
   const gaugePct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
   const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
+  /* navigate 동반 close — history 조작 없이 state 만 false (router.push 와 충돌 방지) */
   function handleCheckout() {
-    close();
+    closeForNavigation();
     router.push('/checkout');
   }
 
   function handleViewCart() {
-    close();
+    closeForNavigation();
     router.push('/cart');
   }
 
   function handleContinueShopping() {
-    close();
+    closeForNavigation();
     router.push('/shop');
   }
 
@@ -73,7 +74,7 @@ export default function CartDrawer() {
           WebkitBackdropFilter: 'var(--overlay-dim-blur)',
         }}
       />
-      <div id="cart-drawer-panel" role="dialog" aria-label="장바구니">
+      <div id="cart-drawer-panel" role="dialog" aria-modal="true" aria-label="장바구니">
         {/* 헤더 */}
         <div className={`cd-header${isEmpty ? ' cd-header--empty' : ''}`}>
           <div className="cd-title-wrap">
@@ -129,7 +130,7 @@ export default function CartDrawer() {
                         <Link
                           href={`/shop/${item.slug}`}
                           className="cd-item-img"
-                          onClick={close}
+                          onClick={closeForNavigation}
                           aria-label={`${item.name} 상세 보기`}
                         >
                           {item.image ? (

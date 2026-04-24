@@ -134,8 +134,20 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
     onNavigate();
   }
 
+  /**
+   * mobile nav → cart 전환: nav marker 를 replaceState 로 조용히 제거 후
+   * state 만 false → cart open (자체 marker pushState) → 새 단일 entry 구성.
+   * history.back() 경로 사용 시 cart pushState 와 race 가 발생해 entry 꼬임.
+   * BUG-133 (S74).
+   */
   function handleCartClick() {
-    onClose();
+    if (typeof window !== 'undefined') {
+      const state = window.history.state as { gtrMobileNav?: boolean } | null;
+      if (state?.gtrMobileNav) {
+        window.history.replaceState(null, '', window.location.href);
+      }
+    }
+    onNavigate();
     cartDrawer.open();
   }
 

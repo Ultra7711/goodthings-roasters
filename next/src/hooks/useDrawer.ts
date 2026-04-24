@@ -35,6 +35,21 @@ export function useDrawer({ open, onClose }: UseDrawerArgs): void {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  // focus 복원 (BUG-128 · S74).
+  // drawer open 직전의 activeElement (= trigger 버튼) 를 기억했다가 close 시 복원.
+  // aria-hidden 영역 안에 focus 가 남아 스크린 리더 경고 나는 상황 방지 + 키보드 사용자 UX.
+  useEffect(() => {
+    if (!open) return;
+    const trigger = (typeof document !== 'undefined'
+      ? document.activeElement
+      : null) as HTMLElement | null;
+    return () => {
+      if (trigger && typeof document !== 'undefined' && document.body.contains(trigger)) {
+        trigger.focus();
+      }
+    };
+  }, [open]);
+
   // body scroll lock + scrollbar gutter 토글.
   //
   // 기본 상태: html { scrollbar-gutter: stable } 로 15px 예약 → ICB=1072.
