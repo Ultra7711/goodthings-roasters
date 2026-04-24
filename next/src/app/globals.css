@@ -1068,7 +1068,7 @@ button.hdr-icon-btn { background: none; border: none; }
 /* ══ 검색 딤 ══ */
 #search-dim {
   position: fixed;
-  top: var(--dim-top, 158px);
+  top: var(--dim-top, 60px);
   left: 0;
   right: 0;
   bottom: 0;
@@ -1076,6 +1076,9 @@ button.hdr-icon-btn { background: none; border: none; }
   /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 */
   opacity: 0;
   pointer-events: none;
+  /* S74 DB-03 2단계: iOS Safari 에서 body overflow:hidden 만으론 touch scroll 관통 차단 안 됨.
+     딤 영역에서 touchmove 자체를 차단해 background scroll 직접 방지. */
+  touch-action: none;
   transition: opacity var(--duration-hover) ease;
   z-index: 40;
 }

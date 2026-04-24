@@ -238,7 +238,11 @@ export default function SiteHeader() {
   function openSearch() {
     const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? HEADER_HEIGHT_FALLBACK;
     document.documentElement.style.setProperty('--search-drop-top', `${headerBottom}px`);
-    document.documentElement.style.setProperty('--dim-top', `${headerBottom + SEARCH_PANEL_HEIGHT}px`);
+    /* S74 DB-03 2단계: 딤을 헤더 바로 아래부터 시작 (이전: headerBottom + SEARCH_PANEL_HEIGHT).
+       검색 패널 z-index(var(--z-modal)=300) > 딤(40) 이라 패널은 딤 위에 떠있음.
+       효과: 검색 패널 좌우 빈 공간·패널과 헤더 사이 영역도 딤으로 덮여 outside tap close +
+       iOS touch scroll 관통 차단 (#search-dim touch-action:none 와 결합). */
+    document.documentElement.style.setProperty('--dim-top', `${headerBottom}px`);
     /* body.overflow 토글은 useDrawer(isSearchOpen) useLayoutEffect 가 담당 (S74 DB-03) */
     setIsSearchOpen(true);
     // 모바일 가상 키보드 활성화: focus()는 사용자 제스처 컨텍스트(click 핸들러) 내에서
