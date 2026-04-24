@@ -38,13 +38,27 @@ export function useDrawer({ open, onClose }: UseDrawerArgs): void {
   // focus 복원 (BUG-128 · S74).
   // drawer open 직전의 activeElement (= trigger 버튼) 를 기억했다가 close 시 복원.
   // aria-hidden 영역 안에 focus 가 남아 스크린 리더 경고 나는 상황 방지 + 키보드 사용자 UX.
+  //
+  // trigger 판정 — activeElement 가 실제 포커스된 interactive 요소인 경우만 저장.
+  // 모바일 터치·Safari macOS 기본은 click 에서 button 에 focus 를 주지 않아
+  // activeElement=body (또는 null) 인 경우가 빈번. 이 상태에서 body.focus() 호출하면
+  // tab 시퀀스가 문서 첫 focusable 요소로 리셋되어 "엉뚱한 곳 focus" 체감 발생.
+  // interactive 태그(button/a/input/select/textarea) 또는 tabindex 명시 요소만 복원 대상.
   useEffect(() => {
-    if (!open) return;
-    const trigger = (typeof document !== 'undefined'
-      ? document.activeElement
-      : null) as HTMLElement | null;
+    if (!open || typeof document === 'undefined') return;
+    const el = document.activeElement;
+    const isInteractive =
+      el instanceof HTMLElement &&
+      el !== document.body &&
+      (el.tagName === 'BUTTON' ||
+        el.tagName === 'A' ||
+        el.tagName === 'INPUT' ||
+        el.tagName === 'SELECT' ||
+        el.tagName === 'TEXTAREA' ||
+        el.hasAttribute('tabindex'));
+    const trigger = isInteractive ? (el as HTMLElement) : null;
     return () => {
-      if (trigger && typeof document !== 'undefined' && document.body.contains(trigger)) {
+      if (trigger && document.body.contains(trigger)) {
         trigger.focus();
       }
     };
