@@ -75,11 +75,26 @@ export function useHeaderTheme(
      예: Home(dark) → /shop(light) 진입 시 headerbg warm-white 번쩍임 제거. */
   useIsomorphicLayoutEffect(() => {
     fallbackThemeRef.current = initialTheme;
-    setIsDark(initialTheme === 'dark');
+    /* [BUG-130-PROBE] §11-H1 — useLayoutEffect 발화 시점 측정 (세션 종료 시 제거) */
+    setIsDark((prev) => {
+      // eslint-disable-next-line no-console
+      console.log('[H1-hdr-LE]', {
+        pathname,
+        initialTheme,
+        prevIsDark: prev,
+        newIsDark: initialTheme === 'dark',
+        ts: performance.now(),
+      });
+      return initialTheme === 'dark';
+    });
     setSkipTransition(true);
     let id2 = 0;
     const id1 = requestAnimationFrame(() => {
-      id2 = requestAnimationFrame(() => setSkipTransition(false));
+      id2 = requestAnimationFrame(() => {
+        // eslint-disable-next-line no-console
+        console.log('[H1-hdr-rAF2]', { pathname, ts: performance.now() });
+        setSkipTransition(false);
+      });
     });
     return () => {
       cancelAnimationFrame(id1);
