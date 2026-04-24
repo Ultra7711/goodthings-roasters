@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import ShopFilterTabs from './ShopFilterTabs';
 import ShopCard from './ShopCard';
 import {
@@ -24,6 +24,7 @@ function isValidFilter(v: string | null): v is FilterKey {
 
 export default function ShopPage() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   // URL `?filter=` 파싱 — searchParams 가 바뀔 때마다 재평가.
   // CafeMenuPage 와 동일 패턴: page.tsx 의 server-side await searchParams 를 제거하고
@@ -67,17 +68,21 @@ export default function ShopPage() {
     });
   }, []);
 
-  // 페이지 진입 연출 — 프로토타입 sp-anim 클래스 트리거 (최초 마운트에만).
-  // 헤더 Shop 재클릭 시엔 래퍼 연출을 재생하지 않고 카드만 remount 되도록 해
-  // "탭 전환과 동일한 속도감"을 유지한다.
+  /* 페이지 진입 연출 — bodyEl 이 붙는 순간 + pathname 복귀 시 sp-anim 재토글.
+     Next.js 16 + cacheComponents + Activity 하에서 이 페이지는 다른 페이지로 이동 시
+     unmount 되지 않고 `display:none` 으로 hidden 됨. bodyEl 만 deps 로 두면 재진입 시
+     effect 가 fire 되지 않아 sp-anim 이 완료 상태 그대로 남고 transition 재생 불가.
+     pathname 을 deps 에 추가하고 `=== '/shop'` 가드로 **visible 복귀 시에만** 재토글.
+     (DB-06 S72 측정: Activity preserve 확정 + sp-anim class 제거 안됨 확인) */
   useEffect(() => {
     if (!bodyEl) return;
+    if (pathname !== '/shop') return;
     bodyEl.classList.remove('sp-anim');
     void bodyEl.offsetHeight;
     bodyEl.classList.add('sp-anim');
     // 진입 연출 완료 → 이후 필터 전환·리셋은 baseDelay 0
     isInitRef.current = false;
-  }, [bodyEl]);
+  }, [bodyEl, pathname]);
 
   /* SiteHeader 의 Shop 링크를 /shop 내에서 클릭했을 때 발송되는
      'gtr:shop-reset' 이벤트 수신 → 스크롤 top + sp-anim 래퍼 리빌 재생만 수행.

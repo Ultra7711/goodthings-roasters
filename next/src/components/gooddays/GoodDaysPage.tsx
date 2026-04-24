@@ -28,12 +28,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { buildGoodDaysGrid } from '@/lib/gooddays';
 
 export default function GoodDaysPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   /* 그리드 데이터는 렌더링 순수 함수 — useMemo 로 한 번만 계산 */
   const grid = useMemo(() => buildGoodDaysGrid(), []);
@@ -42,7 +43,9 @@ export default function GoodDaysPage() {
   const rootRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const [anim, setAnim] = useState(false);
-  const [resetTick] = useState(0);
+  /* 재진입마다 타이틀 페이드 + 셀 IO 재구성을 재생하기 위한 카운터.
+     SiteHeader 의 'gtr:gooddays-reset' (same-path 재클릭) 시 증가. */
+  const [resetTick, setResetTick] = useState(0);
   /* 라이트박스 portal 은 document.body 가 존재해야 렌더 가능 — SSR/hydration 회피.
      mount 직후 1회성 true 전환 — SiteHeader.tsx L40 setMounted 컨벤션 동일. */
   const [mounted, setMounted] = useState(false);
@@ -99,26 +102,36 @@ export default function GoodDaysPage() {
     });
   }, [searchParams, ordered]);
 
-  /* 타이틀 등장 연출 — mount 직후 anim 부여.
-     동기 setState 는 resetTick 변경 시 1회성 리셋 — SiteHeader.tsx L40 컨벤션. */
+  /* 타이틀 등장 연출 — 재진입 시 anim 재부여.
+     deps: resetTick (same-path 재클릭) · pathname (다른 페이지 → 재진입).
+     Next.js 16 + cacheComponents + Activity 하에서 페이지는 display:none 토글로 보존 →
+     pathname 변화로 재진입 감지. `=== '/gooddays'` 가드로 visible 복귀 시에만 재생. */
   useEffect(() => {
+    if (pathname !== '/gooddays') return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAnim(false);
     const id = requestAnimationFrame(() => {
       requestAnimationFrame(() => setAnim(true));
     });
     return () => cancelAnimationFrame(id);
-  }, [resetTick]);
+  }, [resetTick, pathname]);
 
-  /* 셀 스크롤 리빌 IO — row 내 인덱스 * 70ms stagger */
+  /* 셀 스크롤 리빌 IO — row 내 인덱스 * 70ms stagger.
+     재진입 시 기존 gd-visible + inline transitionDelay 모두 초기화해야 stagger 를
+     처음부터 다시 재생 가능 (DB-11: Activity preserve 하에서 이전 delay 가 잔존하면
+     "전체적으로 묶여서 속도가 빨라지는" 증상 발생). */
   useEffect(() => {
+    if (pathname !== '/gooddays') return;
     const gridEl = gridRef.current;
     if (!gridEl) return;
     const cells = Array.from(
       gridEl.querySelectorAll<HTMLElement>('.gd-cell:not(.gd-cell--placeholder)'),
     );
-    /* resetTick 변경 시 기존 visible 해제 */
-    cells.forEach((c) => c.classList.remove('gd-visible'));
+    /* 재진입 시 기존 visible + stagger delay 초기화 */
+    cells.forEach((c) => {
+      c.classList.remove('gd-visible');
+      c.style.transitionDelay = '';
+    });
 
     const io = new IntersectionObserver(
       (entries) => {
@@ -140,13 +153,15 @@ export default function GoodDaysPage() {
     );
     cells.forEach((c) => io.observe(c));
     return () => io.disconnect();
-  }, [rows, resetTick]);
+  }, [rows, resetTick, pathname]);
 
   /* same-page reentry — SiteHeader Good Days 링크 재클릭 시 발송.
-     Menu/Shop 과 동일하게 스크롤 top 만 수행 — entrance 애니메이션은 재생하지 않음. */
+     스크롤 top + resetTick 증가 → 타이틀 페이드 + 셀 IO 리빌 재생.
+     Menu/Shop 과 동일한 same-page reentry 정책. */
   useEffect(() => {
     function onReset() {
       window.scrollTo({ top: 0, behavior: 'instant' });
+      setResetTick((n) => n + 1);
     }
     window.addEventListener('gtr:gooddays-reset', onReset);
     return () => window.removeEventListener('gtr:gooddays-reset', onReset);

@@ -24,6 +24,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   STORY_HERO,
   STORY_LOCATION,
@@ -41,28 +42,33 @@ function paragraphs(body: string) {
 
 export default function StoryPage() {
   const bodyRef = useRef<HTMLDivElement | null>(null);
-  /* 헤더 Story 재클릭 시 sr/hero 연출을 다시 트리거하기 위한 카운터 */
-  const [resetTick] = useState(0);
-  /* 히어로 텍스트 페이드: 마운트 + resetTick 변경 시 false → true 로 전환 */
+  const pathname = usePathname();
+  /* 재진입마다 히어로 페이드 + IO 재구성을 재생하기 위한 카운터.
+     SiteHeader 의 'gtr:story-reset' (same-path 재클릭) 시 증가. */
+  const [resetTick, setResetTick] = useState(0);
+  /* 히어로 텍스트 페이드: 마운트 + resetTick/pathname 복귀 시 false → true 로 전환 */
   const [heroEnVisible, setHeroEnVisible] = useState(false);
   const [heroKrVisible, setHeroKrVisible] = useState(false);
 
   /* SiteHeader 의 The Story 링크 재클릭 시 발송되는 'gtr:story-reset' 수신 →
-     스크롤 top 만. Menu/Shop 과 동일하게 같은 페이지 재클릭 시 entrance 애니메이션은
-     재생하지 않는다 (resetTick 증가 제거). */
+     스크롤 top + resetTick 증가 → 히어로 페이드 + sr-txt 리빌 재생.
+     Menu/Shop 과 동일한 same-page reentry 정책. */
   useEffect(() => {
     function onReset() {
       window.scrollTo({ top: 0, behavior: 'instant' });
+      setResetTick((n) => n + 1);
     }
     window.addEventListener('gtr:story-reset', onReset);
     return () => window.removeEventListener('gtr:story-reset', onReset);
   }, []);
 
-  /* 히어로 순차 페이드 — resetTick dep 으로 매 진입마다 재생.
-     프로토타입 _initStoryAnimate 의 200ms / 450ms 타이밍 그대로.
-     동기 setState 두 줄은 resetTick 변경 시 false 로 리셋 후 타이머로 true 전환하는
-     의도적 1회성 패턴 — SiteHeader.tsx L40 의 setMounted(true) 와 동일 컨벤션. */
+  /* 히어로 순차 페이드 — 프로토타입 _initStoryAnimate 의 200ms / 450ms 타이밍.
+     deps: resetTick (same-path 재클릭) · pathname (다른 페이지 → 재진입).
+     Next.js 16 + cacheComponents + Activity 하에서 이 페이지는 display:none 토글로
+     보존되어 unmount 안 됨 → pathname 변화만으로 재진입 감지 가능.
+     `=== '/story'` 가드로 visible 복귀 시에만 재생 (hidden 상태의 timer 낭비 방지). */
   useEffect(() => {
+    if (pathname !== '/story') return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setHeroEnVisible(false);
     setHeroKrVisible(false);
@@ -72,15 +78,17 @@ export default function StoryPage() {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
     };
-  }, [resetTick]);
+  }, [resetTick, pathname]);
 
   /* 페이지 스코프 sr-txt/sr-img Intersection Observer.
      - threshold 0.3 / rootMargin '0px 0px -40px 0px' (프로토타입 동일)
      - 토글 동작: 화면을 벗어나면 sr--visible 제거 → 다시 볼 때 재생
      - root 는 viewport (Next.js 는 풀페이지 스크롤이라 page element root 불필요)
-     - resetTick 변경 시 IO 재구성하여 모든 요소 클래스 reset
+     - resetTick/pathname 변경 시 IO 재구성 + 모든 요소 클래스 reset.
+       pathname 가드로 visible 복귀 시에만 IO 재설치 (hidden 상태에서 IO 동작 방지).
   */
   useEffect(() => {
+    if (pathname !== '/story') return;
     const body = bodyRef.current;
     if (!body) return;
 
@@ -99,7 +107,7 @@ export default function StoryPage() {
     );
     targets.forEach((el) => io.observe(el));
     return () => io.disconnect();
-  }, [resetTick]);
+  }, [resetTick, pathname]);
 
   return (
     <div id="st-body" ref={bodyRef}>
