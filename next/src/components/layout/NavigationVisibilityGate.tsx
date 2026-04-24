@@ -72,13 +72,6 @@ export default function NavigationVisibilityGate() {
         return;
       const main = document.getElementById('main-content');
       if (main) main.setAttribute('data-transitioning', 'true');
-      /* [BUG-130-PROBE] §11-H1 — click capture-phase 시점 측정 (세션 종료 시 제거) */
-      // eslint-disable-next-line no-console
-      console.log('[H1-click]', {
-        currentPath: pathname,
-        href,
-        ts: performance.now(),
-      });
     };
     document.addEventListener('click', onClick, { capture: true });
     return () =>
@@ -99,13 +92,6 @@ export default function NavigationVisibilityGate() {
   useLayoutEffect(() => {
     const main = document.getElementById('main-content');
     if (main) main.removeAttribute('data-transitioning');
-    /* [BUG-130-PROBE] §11-H1 — new page commit 시점 측정 (세션 종료 시 제거) */
-    // eslint-disable-next-line no-console
-    console.log('[H1-gate-LE]', {
-      newPath: pathname,
-      prevPath: prevPathRef.current,
-      ts: performance.now(),
-    });
     if (prevPathRef.current !== pathname) {
       window.dispatchEvent(
         new CustomEvent<string>('gtr:route-change', { detail: pathname }),
