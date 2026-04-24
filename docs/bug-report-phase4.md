@@ -184,19 +184,21 @@
 - **실제:** 하단 가격 · CTA 버튼 푸터가 브라우저 네비바에 가려짐
 - **해결:** 2026-04-24 / `060b3e70` (Stage E) — `/cart` 를 server component + CartClient island 로 분리한 부수 효과로 드로어 layout 계산 타이밍이 개선되어 해소. 근본 원인은 미확정이나 실측상 재현 안 됨.
 
-### BUG-122 — 드로어 CTA 버튼이 1:1 비율 아님 🟢
+### BUG-122 — ✅ 드로어 CTA 버튼이 1:1 비율 아님 🟢
 
 - **발견:** 2026-04-24
 - **실제:** 장바구니 드로어 하단 CTA 버튼 2개의 가로 비율 불일치
 - **기대:** 1:1
-- **추정 범위:** `flex: 1 1 0` 또는 `grid-template-columns: 1fr 1fr` 적용 누락
+- **근본 원인:** `.cta-btn` 의 `white-space: nowrap` + flex item 기본 `min-width: auto` 조합으로 인해, 텍스트가 긴 버튼의 min-content 가 더 커서 `flex: 1` 에도 불구하고 공간 배분이 불균등.
+- **해결:** 2026-04-24 S70 / `b1654c18` — `.cd-cta-secondary`·`.cd-cta-primary` 에 `min-width: 0` 추가 → flex 배분이 min-content 무시하고 1:1 수렴.
 
-### BUG-123 — 모바일 드로어 하단 결제금액 푸터 좌우 패딩 본체와 다름 🟡
+### BUG-123 — ✅ 모바일 드로어 하단 결제금액 푸터 좌우 패딩 본체와 다름 🟡
 
 - **발견:** 2026-04-24 / 모바일
 - **실제:** 장바구니 드로어 본체와 하단 푸터(결제금액 + CTA) 좌우 패딩이 불일치
 - **기대:** 동일 좌우 간격 (CTA 버튼 포함)
-- **추정 범위:** `CartDrawer` 본문 패딩 vs 푸터 패딩 토큰 분리 — `--drawer-padding-x` 로 통일 필요
+- **근본 원인:** 모바일 media query (≤767px) 에서 `.cd-items` 는 `padding: 0 20px` 로 조정되었으나, 푸터 절대좌표 요소들 (`.cd-subtotal-label`·`.cd-subtotal-price`·`.cd-note`·`.cd-cta-row`) 의 `left/right` 는 기본값 28px 잔존.
+- **해결:** 2026-04-24 S70 / `977e68b9` — 모바일 media query 에서 푸터 요소들 `left: 20px; right: 20px` 오버라이드. `--drawer-padding-x` 토큰 기반 완전 통일은 별도 리팩토링 세션으로 이월.
 
 ---
 
@@ -230,12 +232,13 @@
 
 ## 디자인 시스템 — 추가 리포트 (S67, 2026-04-24)
 
-### BUG-127 — CTA Secondary 호버 밑줄 위치가 아웃라인에 안 붙음 🟢
+### BUG-127 — ✅ CTA Secondary 호버 밑줄 위치가 아웃라인에 안 붙음 🟢
 
 - **발견:** 2026-04-24
 - **실제:** Secondary 버튼 호버 시 밑줄 2px 라인이 1px 위로 올라감
 - **기대:** 아웃라인이 있는 버튼이므로 시각적으로 아웃라인에 붙어야 Primary 와 동일해 보임
-- **추정 범위:** Secondary variant 의 `bottom` 또는 `transform` 값 1px 보정 누락
+- **근본 원인:** 모든 CTA 변종의 `::after` 가 `bottom: 1px` 공통값 → outline 변종에선 outline (1px 두께) 위로 1px 떠보임. Primary (filled) 는 background 연속이라 문제 없음.
+- **해결:** 2026-04-24 S70 / `c0d891e9` — outline 변종 (`.cta-btn-dark-outline`·`.cta-btn-light-outline`·`.mp-cancel-btn`·`.mp-modal-cancel`·`.st-map-overlay-btn`) 한정 `bottom: 0` 오버라이드 → padding-box 하단에서 outline 과 시각적 연결.
 
 ---
 
