@@ -17,6 +17,7 @@ import { getInitialHeaderTheme } from '@/lib/headerThemeConfig';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { useCartQuery } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
+import { useDrawer } from '@/hooks/useDrawer';
 import { ClearIcon } from '@/components/ui/InputIcons';
 import MobileNavDrawer from '@/components/layout/MobileNavDrawer';
 
@@ -89,8 +90,15 @@ export default function SiteHeader() {
     searchInputRef.current?.blur();
     setIsSearchOpen(false);
     setSearchValue('');
-    document.body.style.overflow = '';
   }, []);
+
+  /* S74 DB-03: 검색 패널 scroll lock 을 useDrawer 훅으로 통일.
+     - body.overflow 단독 토글은 iOS Safari 에서 touch scroll 관통 발생 →
+       useDrawer 의 scrollbar-gutter + paddingRight + overflow 조합으로 강화
+     - ESC 리스너도 훅 내부에서 처리 (중복 제거)
+     - restoreFocus=false: openSearch 가 input 에 focus 를 이동시키므로 trigger 저장
+       시점 activeElement=input → close 시 input 재-focus 로 가상 키보드 재호출 방지 */
+  useDrawer({ open: isSearchOpen, onClose: closeSearch, restoreFocus: false });
 
   /* BUG-006 Stage D-4 2단계 (2026-04-24): history API 기반 drawer close.
      모바일 네이티브 UX — drawer 열기 시 history entry 추가, 브라우저 back 으로
@@ -231,27 +239,12 @@ export default function SiteHeader() {
     const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? HEADER_HEIGHT_FALLBACK;
     document.documentElement.style.setProperty('--search-drop-top', `${headerBottom}px`);
     document.documentElement.style.setProperty('--dim-top', `${headerBottom + SEARCH_PANEL_HEIGHT}px`);
-    document.body.style.overflow = 'hidden';
+    /* body.overflow 토글은 useDrawer(isSearchOpen) useLayoutEffect 가 담당 (S74 DB-03) */
     setIsSearchOpen(true);
     // 모바일 가상 키보드 활성화: focus()는 사용자 제스처 컨텍스트(click 핸들러) 내에서
     // 동기 호출해야 iOS/Android가 키보드를 띄운다. setTimeout으로 감싸면 체인이 끊김.
     searchInputRef.current?.focus();
   }
-
-  /* 언마운트 시 body.overflow 강제 해제 */
-  useEffect(() => {
-    return () => { document.body.style.overflow = ''; };
-  }, []);
-
-  /* ESC 키로 검색 닫기 */
-  useEffect(() => {
-    if (!isSearchOpen) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') closeSearch();
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isSearchOpen, closeSearch]);
 
   return (
     <>

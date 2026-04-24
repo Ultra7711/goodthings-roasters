@@ -13,6 +13,13 @@ type UseDrawerArgs = {
   open: boolean;
   /** ESC 키 수신 시 호출 */
   onClose: () => void;
+  /**
+   * close 시 trigger 요소로 focus 복원 여부. default true.
+   * open 시점 activeElement 가 drawer 내부 요소(검색 input 등) 로 의도적으로
+   * 이동하는 패턴에서는 false 로 지정해 close 후 input 재-focus 로 인한
+   * 가상 키보드 재호출·원치 않는 focus 이동 방지.
+   */
+  restoreFocus?: boolean;
 };
 
 /**
@@ -24,7 +31,7 @@ type UseDrawerArgs = {
  *
  * 새 드로어 추가 시 이 훅만 호출하면 두 동작이 자동으로 붙는다.
  */
-export function useDrawer({ open, onClose }: UseDrawerArgs): void {
+export function useDrawer({ open, onClose, restoreFocus = true }: UseDrawerArgs): void {
   // ESC 키 닫기
   useEffect(() => {
     if (!open) return;
@@ -45,7 +52,7 @@ export function useDrawer({ open, onClose }: UseDrawerArgs): void {
   // tab 시퀀스가 문서 첫 focusable 요소로 리셋되어 "엉뚱한 곳 focus" 체감 발생.
   // interactive 태그(button/a/input/select/textarea) 또는 tabindex 명시 요소만 복원 대상.
   useEffect(() => {
-    if (!open || typeof document === 'undefined') return;
+    if (!open || typeof document === 'undefined' || !restoreFocus) return;
     const el = document.activeElement;
     const isInteractive =
       el instanceof HTMLElement &&
@@ -62,7 +69,7 @@ export function useDrawer({ open, onClose }: UseDrawerArgs): void {
         trigger.focus();
       }
     };
-  }, [open]);
+  }, [open, restoreFocus]);
 
   // body scroll lock + scrollbar gutter 토글.
   //
