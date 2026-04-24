@@ -36,8 +36,31 @@ export default function SiteHeader() {
   /* 페이지별 초기 테마 — 플래시 방지 */
   const pathname = usePathname();
   const router = useRouter();
-  const initialTheme = getInitialHeaderTheme(pathname);
-  const { isDark, skipTransition, atTop } = useHeaderTheme(headerRef, initialTheme, pathname);
+
+  /* BUG-130 Prototype A (S73): 헤더 테마 전환 타이밍을 본문 visibility 복원과 동기화.
+     기존에는 pathname 변경 즉시 initialTheme 재계산 → useHeaderTheme 의 useLayoutEffect
+     가 즉시 발화 → 헤더 색이 new theme 으로 전환. 그러나 NavigationVisibilityGate 가
+     본문 visibility 를 복원하기 전이라 "헤더만 먼저 색 반전 → 본문 뒤따라 전환" 의
+     시각 순서 불일치가 사용자에게 깜빡임으로 체감 (§11-H1 측정 case 1 에서 14ms gap).
+
+     해결: NavigationVisibilityGate 의 useLayoutEffect 에서 dispatch 하는 'gtr:route-change'
+     이벤트 (기존 자산) 를 수신하여 effectivePath 갱신. gate-LE 와 동일 tick 에 테마 전환
+     → 본문-헤더 동시 snap.
+
+     주의: effectivePath 는 테마 계산에만 사용. pathname 자체는 aria-current 표시·
+     same-path 클릭 판정 등에서 즉시 반영 필요하므로 그대로 유지. */
+  const [effectivePath, setEffectivePath] = useState(pathname);
+  useEffect(() => {
+    function onRouteChange(e: Event) {
+      const detail = (e as CustomEvent<string>).detail;
+      if (typeof detail === 'string') setEffectivePath(detail);
+    }
+    window.addEventListener('gtr:route-change', onRouteChange);
+    return () => window.removeEventListener('gtr:route-change', onRouteChange);
+  }, []);
+
+  const initialTheme = getInitialHeaderTheme(effectivePath);
+  const { isDark, skipTransition, atTop } = useHeaderTheme(headerRef, initialTheme, effectivePath);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -241,7 +264,9 @@ export default function SiteHeader() {
         className={
           (isDark ? 'blk hdr-dark' : 'blk') +
           (skipTransition ? ' hdr-instant' : '') +
-          (pathname === '/shop' && !isDark ? ' hdr-on-secondary' : '') +
+          /* hdr-on-secondary 도 테마 계열이므로 effectivePath 로 동기화
+             (BUG-130 Prototype A — 테마 클래스 일괄 같은 tick 전환) */
+          (effectivePath === '/shop' && !isDark ? ' hdr-on-secondary' : '') +
           (atTop && !isDark ? ' hdr-at-top' : '')
         }
         style={{
