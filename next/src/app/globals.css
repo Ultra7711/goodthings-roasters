@@ -7056,6 +7056,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .page-loading-shell--dark {
   background: var(--color-background-inverse);
 }
+/* H8 — prev-page 잔상 차단. NavigationVisibilityGate 가 click 시
+   data-transitioning="true" 부여 → useLayoutEffect (new commit) 에서 제거. */
+#main-content[data-transitioning="true"] {
+  visibility: hidden;
+}
 .error-page {
   min-height: 100dvh;
   display: flex; flex-direction: column;

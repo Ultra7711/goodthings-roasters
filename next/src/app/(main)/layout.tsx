@@ -10,6 +10,7 @@ import SiteHeader from '@/components/layout/SiteHeader';
 import SiteFooter from '@/components/layout/SiteFooter';
 import SRInitializer from '@/components/layout/SRInitializer';
 import NavigationScrollReset from '@/components/layout/NavigationScrollReset';
+import NavigationVisibilityGate from '@/components/layout/NavigationVisibilityGate';
 import ToastContainer from '@/components/layout/ToastContainer';
 
 export default function MainLayout({ children }: { children: ReactNode }) {
@@ -51,6 +52,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
       {/* Route 전환 시 scroll reset (BUG-006 H7 · push/replace 만 · traverse 보존) */}
       <NavigationScrollReset />
+
+      {/* Route 전환 시 prev DOM 잔상 차단 (BUG-007/H8 · visibility hidden 패턴) */}
+      <NavigationVisibilityGate />
 
       {/* Scroll Reveal 초기화 (페이지 이동마다 재관찰) */}
       <SRInitializer />
