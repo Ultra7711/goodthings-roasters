@@ -78,19 +78,15 @@ export default function NavigationVisibilityGate() {
       document.removeEventListener('click', onClick, { capture: true });
   }, [pathname]);
 
-  /* pathname 변화 = new page commit → useLayoutEffect (paint 전) → 속성 제거.
-     실패 케이스 안전망: 클릭은 됐으나 navigation 실패한 경우에도 다음 click
-     마다 새로 set 되므로 stuck 위험 없음. */
+  /* pathname 변화 또는 mount 시 → useLayoutEffect (paint 전) → 속성 제거.
+     안전망 강화: prevPathRef === null (mount 첫 실행) 케이스도 attribute
+     제거. (main) ↔ /login 처럼 route group 경계 넘는 navigation 으로
+     (main) layout 이 unmount 후 re-mount 되는 시점에 visibility hidden 이
+     stuck 되는 것 방지. */
   useLayoutEffect(() => {
-    if (prevPathRef.current === null) {
-      prevPathRef.current = pathname;
-      return;
-    }
-    if (prevPathRef.current !== pathname) {
-      const main = document.getElementById('main-content');
-      if (main) main.removeAttribute('data-transitioning');
-      prevPathRef.current = pathname;
-    }
+    const main = document.getElementById('main-content');
+    if (main) main.removeAttribute('data-transitioning');
+    prevPathRef.current = pathname;
   }, [pathname]);
 
   return null;
