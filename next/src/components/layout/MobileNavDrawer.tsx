@@ -6,7 +6,9 @@
    - 네비: The Story / Menu / Shop / Good Days
    - 하단: 로그인 / 마이페이지 (텍스트 링크)
    - 장바구니 클릭: 드로어 닫고 카트 드로어 오픈
-   - same-path 클릭 시 기존 reset 이벤트 재사용
+   - same-path 클릭 시 handleSamePathReset(resetEvent?) 통일 헬퍼 적용 (BUG-006 DB-05 재설계 · S67)
+     · history marker 를 history.back 이 아닌 replaceState 로 정리 → native scroll restoration 회피
+     · 이어서 scrollTo(0) + 페이지별 reset 이벤트 dispatch + onNavigate(state false)
    ══════════════════════════════════════════ */
 
 'use client';
@@ -24,12 +26,13 @@ const FTC_BIZ_LOOKUP_URL = `https://www.ftc.go.kr/bizCommPop.do?wrkr_no=${BUSINE
 
 type Props = {
   open: boolean;
-  /** X 버튼 / ESC / 딤 클릭 / same-path nav 클릭용 — history.back 경로로 drawer marker 정리 */
+  /** X 버튼 / ESC / 딤 클릭 전용 — history.back 경로로 drawer marker 정리 */
   onClose: () => void;
   /**
-   * 다른 라우트로 네비게이션 시 호출 — Link 기본 동작이 router.push 할 예정이므로
-   * drawer state 만 false. history 조작 안 함 (타이밍 충돌 방지).
-   * BUG-006 Stage D-4 2단계.
+   * 다른 라우트로 네비게이션 · same-path 리프레시 공통 — drawer state 만 false.
+   * history 조작 없음 (타이밍 충돌 방지). same-path 는 handleSamePathReset 이
+   * replaceState 로 marker 를 먼저 정리한 뒤 이 콜백을 호출.
+   * BUG-006 Stage D-4 2단계 (S65) + DB-05 재설계 (S67).
    */
   onNavigate: () => void;
   isLoggedIn: boolean;
@@ -61,16 +64,58 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
 
   useDrawer({ open, onClose });
 
+  /**
+   * same-path 클릭 공통 처리 (BUG-006 DB-05 재설계 · S67).
+   * history.back() 사용 시 브라우저 native scroll restoration 이 pushState 시점 scroll 위치로
+   * 복원 → 뒤따르는 scrollTo(0) 을 덮는 race 발생. history marker 는 replaceState 로 조용히
+   * 정리하고 drawer 는 onNavigate(state false) 로 닫는다.
+   */
+  function handleSamePathReset(resetEvent?: string) {
+    const state = window.history.state as { gtrMobileNav?: boolean } | null;
+    if (state?.gtrMobileNav) {
+      window.history.replaceState(null, '', window.location.href);
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    if (resetEvent) window.dispatchEvent(new Event(resetEvent));
+    onNavigate();
+  }
+
   function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>, item: NavItem) {
     if (pathname === item.href) {
       e.preventDefault();
-      window.dispatchEvent(new Event(item.resetEvent));
-      /* same path — 페이지 이동 없음. X 버튼과 동일하게 history.back 경로로 close */
-      onClose();
+      handleSamePathReset(item.resetEvent);
       return;
     }
     /* 다른 라우트 — Link 가 router.push 예정. drawer state 만 false.
        history 조작(back) 하면 Link 의 push 와 순서 꼬일 수 있어 분리 콜백 사용. */
+    onNavigate();
+  }
+
+  function handleLogoClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (pathname === '/') {
+      e.preventDefault();
+      handleSamePathReset();
+      return;
+    }
+    onNavigate();
+  }
+
+  function handleAccountClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    const targetPath = isLoggedIn ? '/mypage' : '/login';
+    if (pathname === targetPath) {
+      e.preventDefault();
+      handleSamePathReset();
+      return;
+    }
+    onNavigate();
+  }
+
+  function handleWholesaleClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (pathname === '/biz-inquiry') {
+      e.preventDefault();
+      handleSamePathReset();
+      return;
+    }
     onNavigate();
   }
 
@@ -101,16 +146,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
           <Link
             href="/"
             className="mn-logo"
-            onClick={(e) => {
-              if (pathname === '/') {
-                e.preventDefault();
-                onClose();
-              } else {
-                /* 다른 라우트 — Link 가 router.push 예정. history.back 과 충돌 방지.
-                   BUG-006 Stage D-4 2단계 race 수정. */
-                onNavigate();
-              }
-            }}
+            onClick={handleLogoClick}
             aria-label="Good Things Roasters 홈"
           >
             <svg
@@ -189,15 +225,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
           <Link
             href={isLoggedIn ? '/mypage' : '/login'}
             className="mn-account-link"
-            onClick={(e) => {
-              const targetPath = isLoggedIn ? '/mypage' : '/login';
-              if (pathname === targetPath) {
-                e.preventDefault();
-                onClose();
-              } else {
-                onNavigate();
-              }
-            }}
+            onClick={handleAccountClick}
           >
             {isLoggedIn ? '마이페이지' : '로그인'}
             <span className="mn-link-arrow" aria-hidden="true">
@@ -210,14 +238,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
           <Link
             href="/biz-inquiry"
             className="mn-account-link"
-            onClick={(e) => {
-              if (pathname === '/biz-inquiry') {
-                e.preventDefault();
-                onClose();
-              } else {
-                onNavigate();
-              }
-            }}
+            onClick={handleWholesaleClick}
           >
             Wholesale
             <span className="mn-link-arrow" aria-hidden="true">
