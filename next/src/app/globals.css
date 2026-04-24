@@ -540,7 +540,6 @@ textarea:-webkit-autofill:active {
   z-index: var(--z-sticky);
   background: color-mix(in oklab, var(--color-background-primary) 72%, transparent);
   /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 (Tailwind v4 Lightning CSS drop 이슈 회피) */
-  box-shadow: inset 1px 0 0 0 rgba(255,255,255,.4), inset -1px 0 0 0 rgba(255,255,255,.4);
   overflow: visible;
   transition:
     background var(--duration-slide) ease,
@@ -6060,8 +6059,8 @@ footer.blk {
    여기서는 위치만 지정. 프로토타입 L2466~2470 동일. */
 .gd-lb-close {
   position: absolute;
-  top: 24px;
-  right: 24px;
+  top: 32px;
+  right: 32px;
   z-index: 1;
 }
 .gd-lb-arrow {

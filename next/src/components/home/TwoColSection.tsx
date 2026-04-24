@@ -19,7 +19,7 @@ export default function TwoColSection() {
                 viewBox="0 0 48 48"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1"
+                strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
@@ -43,7 +43,7 @@ export default function TwoColSection() {
                 viewBox="0 0 48 48"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1"
+                strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
