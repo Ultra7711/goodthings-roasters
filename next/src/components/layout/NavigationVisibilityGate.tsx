@@ -82,10 +82,21 @@ export default function NavigationVisibilityGate() {
      안전망 강화: prevPathRef === null (mount 첫 실행) 케이스도 attribute
      제거. (main) ↔ /login 처럼 route group 경계 넘는 navigation 으로
      (main) layout 이 unmount 후 re-mount 되는 시점에 visibility hidden 이
-     stuck 되는 것 방지. */
+     stuck 되는 것 방지.
+
+     추가 책임 (DB-06/10/11 S72): 페이지 컴포넌트는 Next.js 16 + React 19
+     Activity 하에서 `display:none` 으로 hidden 될 때 effect 가 defer 됨
+     (`useEffect` deps 에 pathname 을 추가해도 재진입 시 fire 되지 않음).
+     Layout 은 Activity 밖이므로 여기서 route change custom event 를 발송 →
+     각 페이지가 window listener 로 수신하여 entry animation 재생. */
   useLayoutEffect(() => {
     const main = document.getElementById('main-content');
     if (main) main.removeAttribute('data-transitioning');
+    if (prevPathRef.current !== pathname) {
+      window.dispatchEvent(
+        new CustomEvent<string>('gtr:route-change', { detail: pathname }),
+      );
+    }
     prevPathRef.current = pathname;
   }, [pathname]);
 

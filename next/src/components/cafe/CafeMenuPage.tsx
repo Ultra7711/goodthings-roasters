@@ -11,7 +11,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import CafeFilterTabs from './CafeFilterTabs';
 import CafeMenuGrid from './CafeMenuGrid';
 import CafeNutritionSheet from './CafeNutritionSheet';
@@ -34,7 +34,6 @@ const CARD_BASE_DELAY_INIT = 420;
 
 export default function CafeMenuPage() {
   const searchParams = useSearchParams();
-  const pathname = usePathname();
 
   // URL `?cat=` 파싱 — searchParams 가 바뀔 때마다 재평가
   const urlFilter = useMemo<CafeFilterKey>(() => {
@@ -123,21 +122,30 @@ export default function CafeMenuPage() {
     });
   }, []);
 
-  /* 페이지 진입 연출 — bodyEl 이 붙는 순간 + pathname 복귀 시 cm-anim 재토글.
-     Next.js 16 + cacheComponents + Activity 하에서 이 페이지는 다른 페이지로 이동 시
-     unmount 되지 않고 `display:none` 으로 hidden 됨. bodyEl 만 deps 로 두면 재진입 시
-     effect 가 fire 되지 않아 cm-anim 이 완료 상태 그대로 남고 transition 재생 불가.
-     pathname 을 deps 에 추가하고 `=== '/menu'` 가드로 **visible 복귀 시에만** 재토글.
-     (DB-06 S72 측정: Activity preserve 확정 + cm-anim class 제거 안됨 확인) */
+  /* 페이지 진입 연출 — bodyEl 이 붙는 순간 재생 + window 'gtr:route-change'
+     event 로 재진입 감지.
+     Next.js 16 + React 19 Activity 하에서 이 페이지는 다른 페이지로 이동 시
+     `display:none` 으로 hidden + effect 가 defer 됨 (pathname deps 로 재실행 불가).
+     Layout 의 NavigationVisibilityGate 가 발송하는 route-change event 로 재진입
+     타이밍을 알 수 있음 → detail === '/menu' 에서만 재생.
+     (DB-06 S72 측정: Activity preserve 확정 · pathname deps 실패 확인) */
   useEffect(() => {
     if (!bodyEl) return;
-    if (pathname !== '/menu') return;
-    bodyEl.classList.remove('cm-anim');
-    void bodyEl.offsetHeight;
-    bodyEl.classList.add('cm-anim');
-    // 진입 연출 완료 → 이후 필터 전환은 baseDelay 0
-    isInitRef.current = false;
-  }, [bodyEl, pathname]);
+    const triggerAnim = () => {
+      bodyEl.classList.remove('cm-anim');
+      void bodyEl.offsetHeight;
+      bodyEl.classList.add('cm-anim');
+      isInitRef.current = false;
+    };
+    // 초기 재생 — mount 시점에 이미 /menu 인 경우 (직접 진입)
+    if (window.location.pathname === '/menu') triggerAnim();
+    // 재진입 감지
+    const onRouteChange = (e: Event) => {
+      if ((e as CustomEvent<string>).detail === '/menu') triggerAnim();
+    };
+    window.addEventListener('gtr:route-change', onRouteChange);
+    return () => window.removeEventListener('gtr:route-change', onRouteChange);
+  }, [bodyEl]);
 
   /* SiteHeader 의 Menu 링크를 /menu 내에서 클릭했을 때 발송되는
      'gtr:menu-reset' 이벤트 수신 → 스크롤 top + cm-anim 래퍼 리빌 재생만 수행.
