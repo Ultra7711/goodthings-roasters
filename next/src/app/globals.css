@@ -8431,6 +8431,17 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   transform-origin: left;
 }
 
+/* BUG-127 (S70): outline 변종의 hover 밑줄을 outline 경계에 붙임.
+   기본 `bottom: 1px` 은 outline 위로 1px 떠보이므로 Primary (filled) 와 시각 베이스라인 불일치.
+   `bottom: 0` 으로 조정해 padding-box 하단 (= outline 상단) 에 직접 붙이도록 함. */
+.cta-btn-dark-outline::after,
+.cta-btn-light-outline::after,
+.mp-cancel-btn::after,
+.mp-modal-cancel::after,
+.st-map-overlay-btn::after {
+  bottom: 0;
+}
+
 /* hover 시 opacity 고정 (전역 darken 방지) */
 .cta-btn-light-filled:hover,
 .cta-btn-dark-outline:hover,
