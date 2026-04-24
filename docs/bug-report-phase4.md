@@ -257,27 +257,70 @@
 - **근본 원인:** BUG-103 iOS 고DPR hairline 전수 적용 (`253ea44e`, S-?) 에서 `#site-hdr-wrap` 에 `box-shadow: inset ±1px 0 0 0 rgba(255,255,255,.4)` 좌우 hairline 추가. 헤더가 다크 테마일 때 좌우 1px 흰색 반투명 overlay 가 "왼쪽 1px 빈 영역" 으로 노출.
 - **수정:** 해당 box-shadow 줄 삭제. 헤더 좌우는 viewport 가장자리와 인접하여 hairline 불필요 · 상/하 구분선은 별도 유지.
 
-### BUG-133 — 장바구니 드로어 브라우저 back 버튼 처리 누락 🟡
+### BUG-133 — ✅ 장바구니 드로어 브라우저 back 버튼 처리 누락
 
 - **발견:** 2026-04-24 / S72
-- **재현 경로:** 카트 아이콘 클릭 → 드로어 오픈 → 브라우저 back 버튼 (또는 모바일 back 제스처)
-- **실제:** back 동작이 드로어 닫기로 처리되지 않고 페이지 자체가 뒤로 이동
-- **기대:** MobileNavDrawer 와 동일하게 `pushState` marker 기반으로 back 시 드로어 먼저 close
-- **추정 범위:** `CartDrawer` / `useCartDrawer` 에 history marker 누락. MobileNavDrawer 의 `handleNavClick` · `pushState({ gtrMobileNav: true })` 패턴 재활용 필요 (단 scroll 조작 충돌 주의 — DB-05 교훈)
+- **해결:** 2026-04-24 / S74 / `691860e3`
+- **수정:** `CartDrawerContext` 에 `open/close/closeForNavigation` 3콜백 + `pushState({ gtrCartDrawer: true })` marker + `popstate` listener 추가. `close` 는 marker 있으면 `history.back()`, 없으면 `setIsOpen(false)`. `closeForNavigation` (router.push 동반) 은 history 조작 없이 state 만 false. `MobileNavDrawer.handleCartClick` 은 nav marker 를 `replaceState(null)` 로 조용히 제거 후 cart open (race 회피).
 
-### BUG-134 — menu / shop / gooddays 타이틀 아래 컨텐츠 30px 위로 🟢
+### BUG-128 — ✅ drawer aria-hidden + focus 접근성
+
+- **발견:** 2026-04-24 / S72 (가칭)
+- **해결:** 2026-04-24 / S74 / `691860e3`·`920165cb`
+- **증상:** drawer close 시 focus 가 drawer 내부 요소에 남을 수 있음 + CartDrawer panel 에 aria-modal 누락.
+- **수정:** `useDrawer` 훅에 `restoreFocus?: boolean` (default true) 옵션 + open 시점 activeElement (interactive 요소 한정 — BUTTON/A/INPUT/SELECT/TEXTAREA/[tabindex]) 저장 → cleanup 에서 `.focus()` 복원. body/기타 비-interactive 요소면 skip (Tab 시퀀스 자연 유지). CartDrawer panel 에 `aria-modal="true"` 추가.
+
+### BUG-134 — menu / shop / gooddays 타이틀 아래 컨텐츠 30px 위로 (모바일 전용) 🟢
 
 - **발견:** 2026-04-24 / S72
-- **재현 경로:** /menu · /shop · /gooddays 진입
-- **실제:** 타이틀 영역 아래 (subtitle · filter · grid 등) 컨텐츠 전체가 타이틀과 간격 과다
-- **기대:** 타이틀 아래 모든 컨텐츠를 **30px 위로** 이동
-- **추정 범위:** 3 페이지 공통 — `#sp-title-area` · `#cm-title-area` · (gooddays 는 wrapper 없음) 의 `margin-bottom` 또는 subtitle `margin-top`. DB-08 공통 클래스 리팩토링과 함께 처리 가능
+- **재현 경로:** 모바일 (iPhone 16 Pro 393px 기준) · /menu · /shop · /gooddays 진입
+- **실제:** 타이틀 영역 아래 (subtitle · filter · grid 등) 컨텐츠가 모바일 viewport 대비 여유 과다 (48px = viewport 의 12%)
+- **기대:** **모바일 `@media (max-width: 767px)` 에서만** 타이틀-아래 컨텐츠 30px 축소 (48→18px). 데스크탑은 현재 48px 유지
+- **처리 계획 (S75):** BUG-139 (DB-08 공통 클래스 리팩토링) 과 묶음 처리. `.page-title-area` 공통 클래스에 모바일 media query 로 `margin-bottom: 18px` 오버라이드. 3 페이지 + 외부 3페이지 (Login/MyPage/BizInquiry) 공통화 동시
 
 ### BUG-135 — ✅ 굿데이즈 라이트박스 X 버튼 위치 우상단 재배치
 
 - **발견:** 2026-04-24 / S72
-- **해결:** 2026-04-24 / S73 / `1d6c8d97`
-- **수정:** `.gd-lb-close` 의 `top: 24px; right: 24px;` → `top: 32px; right: 32px;` (globals.css L6063-6064). 모바일 오버라이드 없음.
+- **해결:** 2026-04-24 / S73 / `1d6c8d97` · 모바일 추가 조정 S74 / `3ffd0faf`
+- **수정:** `.gd-lb-close` 의 `top: 24px; right: 24px;` → `top: 32px; right: 32px;` (globals.css L6063-6064). 모바일(`max-width: 767px`) 에서는 `top: 12px; right: 12px;` 오버라이드 (S74 추가).
+
+### BUG-136 — 어나운스 바 사라짐 (`scroll-padding-top` 모니터링) 🟡
+
+- **발견:** 2026-04-24 / S66 · S67 (BUG-006 DB-01 승격)
+- **재현 경로:** 페이지 간 네비게이션 후 간헐 · 특히 로그인 직후 메인 진입 (BUG-124 병합)
+- **실제:** viewport scrollTop 이 `--ann-bar-height` (≈36px) 만큼 오프셋되어 어나운스 바가 viewport 위로 올라감
+- **근본 원인:** Next.js 16 Link 의 `scrollIntoView` 가 sticky/fixed 요소 skip → main scroll target 에 걸림 → header-bottom 기준 정렬 (공식 문서 근거)
+- **1차 수정 (S66 `e37a6555`):** `html { scroll-padding-top: calc(var(--ann-bar-height) + var(--header-height)) }`. 모니터링 중 — 재발 시 post-auth redirect 경로 분석 필요
+- **상세:** `memory/project_bug006_deferred_bugs.md` DB-01 (원본 기록 유지)
+
+### BUG-137 — Hero video 간헐 정지 🟡
+
+- **발견:** 2026-04-24 / S66 (BUG-006 DB-02 승격)
+- **재현 경로:** 홈으로 복귀 시 `<video>` 가 멈춘 상태로 잔존 (재현 스텝 불명)
+- **가설:** `play()` Promise rejection 후 재시도 없음 · HTML5 video play/pause race · iOS Safari 페이지 복귀 시 inline video unload
+- **코드 위치:** `src/components/home/HeroSection.tsx`
+- **진행 원칙:** 재현 조건 확보 우선 (North Star #1 "측정 없는 재설계 금지")
+- **상세:** `memory/project_bug006_deferred_bugs.md` DB-02
+
+### BUG-138 — ✅ 검색 패널 outside tap close + iOS background scroll 관통
+
+- **발견:** 2026-04-24 / S66 (BUG-006 DB-03 승격)
+- **해결:** 2026-04-24 / S74 / `a58db3e2` (1단계) · `07551bf5` (2단계)
+- **증상:** iOS Safari 에서 검색 패널 열린 상태에서 배경 scroll 관통 + 인풋 외 영역 탭 시 close 안 됨
+- **수정 (1단계):** SiteHeader 검색을 `useDrawer({ open: isSearchOpen, onClose: closeSearch, restoreFocus: false })` 로 통일 · scrollbar-gutter + paddingRight 조합 + ESC/cleanup 중복 제거. `restoreFocus=false` 는 openSearch 가 input 에 동기 focus 이동하는 iOS 가상 키보드 요건과 충돌 방지.
+- **수정 (2단계):** `#search-dim` 에 `touch-action: none` + `--dim-top` 을 `headerBottom + SEARCH_PANEL_HEIGHT` → `headerBottom` 으로 변경. 딤이 헤더 아래 viewport 전체 덮음 · 검색 패널 z-index(--z-modal=300) > 딤(40) 이라 패널 위 유지. outside tap close 부가 해결.
+- **상세:** `memory/project_bug006_deferred_bugs.md` DB-03
+
+### BUG-139 — 공통 `.page-title` / `.page-subtitle` / `.page-title-area` 리팩토링 🟡
+
+- **발견:** 2026-04-24 / S69 (BUG-006 DB-08 승격)
+- **배경:** /shop · /menu · /gooddays 3 페이지에 동일한 font/color/opacity/transform 속성이 ID selector 별로 중복 선언. 현재 값은 통일됐으나 구조적 드리프트 리스크 상시.
+- **처리 계획 (S75):**
+  - 공통 클래스 신규 선언 (`.page-title-area` · `.page-title` · `.page-subtitle` · `.page-filter-wrap`) 도입
+  - 외부 3페이지 (Login/MyPage/BizInquiry) 도 같은 이름 사용 중 → 스타일 동일 시 **함께 공통화**, 다르면 해당 페이지 전용 override
+  - gooddays 는 filter JSX 미추가 (YAGNI) 하되 `.page-filter-wrap` CSS 만 미리 준비 (미래 탭 바 추가 대비)
+  - BUG-134 (타이틀 이하 30px 축소) 와 묶음 진행 — 모바일 `@media (max-width: 767px)` 에서만 축소
+- **상세:** `memory/project_bug006_deferred_bugs.md` DB-08
 
 ### BUG-130 — ✅ 헤더 다크↔라이트 모드 전환 깜빡임
 
