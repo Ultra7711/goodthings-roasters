@@ -3580,6 +3580,14 @@ footer.blk {
   }
   #cart-drawer-panel .cd-item-name-kr { font-size: 16px; line-height: 1.4; }
   #cart-drawer-panel .cd-item-bottom { gap: 12px; margin-top: 0; }
+
+  /* BUG-123 (S70): 푸터 절대좌표 요소들을 모바일 본체 패딩(20px) 과 통일.
+     본체(.cd-items padding: 0 20px) 와 푸터(기본 28px 잔존) 좌우 정렬 일치. */
+  #cart-drawer-panel .cd-subtotal-label,
+  #cart-drawer-panel .cd-cta-row { left: 20px; }
+  #cart-drawer-panel .cd-subtotal-price,
+  #cart-drawer-panel .cd-note,
+  #cart-drawer-panel .cd-cta-row { right: 20px; }
 }
 
 /* 빈 상태 */
