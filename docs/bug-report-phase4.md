@@ -270,13 +270,14 @@
 - **증상:** drawer close 시 focus 가 drawer 내부 요소에 남을 수 있음 + CartDrawer panel 에 aria-modal 누락.
 - **수정:** `useDrawer` 훅에 `restoreFocus?: boolean` (default true) 옵션 + open 시점 activeElement (interactive 요소 한정 — BUTTON/A/INPUT/SELECT/TEXTAREA/[tabindex]) 저장 → cleanup 에서 `.focus()` 복원. body/기타 비-interactive 요소면 skip (Tab 시퀀스 자연 유지). CartDrawer panel 에 `aria-modal="true"` 추가.
 
-### BUG-134 — menu / shop / gooddays 타이틀 아래 컨텐츠 30px 위로 (모바일 전용) 🟢
+### BUG-134 — ✅ menu / shop / gooddays 타이틀 이하 콘텐츠 30px 위로 (모바일 전용) — S75 closure (`47ecab23`)
 
 - **발견:** 2026-04-24 / S72
+- **해결:** 2026-04-25 / S75 / `47ecab23`
 - **재현 경로:** 모바일 (iPhone 16 Pro 393px 기준) · /menu · /shop · /gooddays 진입
-- **실제:** 타이틀 영역 아래 (subtitle · filter · grid 등) 컨텐츠가 모바일 viewport 대비 여유 과다 (48px = viewport 의 12%)
-- **기대:** **모바일 `@media (max-width: 767px)` 에서만** 타이틀-아래 컨텐츠 30px 축소 (48→18px). 데스크탑은 현재 48px 유지
-- **처리 계획 (S75):** BUG-139 (DB-08 공통 클래스 리팩토링) 과 묶음 처리. `.page-title-area` 공통 클래스에 모바일 media query 로 `margin-bottom: 18px` 오버라이드. 3 페이지 + 외부 3페이지 (Login/MyPage/BizInquiry) 공통화 동시
+- **의도 명확화 (S75):** title-area margin-bottom 축소가 아닌, **body 전체의 padding-top 축소** — 타이틀+서브타이틀+필터+아이템 모두 30px 위로 이동
+- **수정:** `@media (max-width: 767px) { #sp-body, #cm-body, #gd-inner { padding-top: 70px } }` (데스크탑 100px 유지)
+- **QA:** 사용자 preview 배포 모바일 검증 통과 (2026-04-25)
 
 ### BUG-135 — ✅ 굿데이즈 라이트박스 X 버튼 위치 우상단 재배치
 
@@ -311,16 +312,19 @@
 - **수정 (2단계):** `#search-dim` 에 `touch-action: none` + `--dim-top` 을 `headerBottom + SEARCH_PANEL_HEIGHT` → `headerBottom` 으로 변경. 딤이 헤더 아래 viewport 전체 덮음 · 검색 패널 z-index(--z-modal=300) > 딤(40) 이라 패널 위 유지. outside tap close 부가 해결.
 - **상세:** `memory/project_bug006_deferred_bugs.md` DB-03
 
-### BUG-139 — 공통 `.page-title` / `.page-subtitle` / `.page-title-area` 리팩토링 🟡
+### BUG-139 — ✅ 공통 `.page-title` / `.page-subtitle` / `.page-title-area` / `.page-filter-wrap` 리팩토링 (1차) — S75 closure (`49885c4a`)
 
 - **발견:** 2026-04-24 / S69 (BUG-006 DB-08 승격)
+- **해결 (1차):** 2026-04-25 / S75 / `49885c4a`
 - **배경:** /shop · /menu · /gooddays 3 페이지에 동일한 font/color/opacity/transform 속성이 ID selector 별로 중복 선언. 현재 값은 통일됐으나 구조적 드리프트 리스크 상시.
-- **처리 계획 (S75):**
-  - 공통 클래스 신규 선언 (`.page-title-area` · `.page-title` · `.page-subtitle` · `.page-filter-wrap`) 도입
-  - 외부 3페이지 (Login/MyPage/BizInquiry) 도 같은 이름 사용 중 → 스타일 동일 시 **함께 공통화**, 다르면 해당 페이지 전용 override
-  - gooddays 는 filter JSX 미추가 (YAGNI) 하되 `.page-filter-wrap` CSS 만 미리 준비 (미래 탭 바 추가 대비)
-  - BUG-134 (타이틀 이하 30px 축소) 와 묶음 진행 — 모바일 `@media (max-width: 767px)` 에서만 축소
-- **상세:** `memory/project_bug006_deferred_bugs.md` DB-08
+- **1차 수정 (3페이지):**
+  - `globals.css` 에 공통 `.page-title-area` / `.page-title` / `.page-subtitle` / `.page-filter-wrap` 4 클래스 신설 (line-height: `var(--lh-tight)`)
+  - Shop/Menu/GoodDays ID selector 에서 font/color/margin/opacity/transform 중복 제거 → 애니메이션 keyframes 만 잔존
+  - `#cm-title-area` 의 flex column 제거 → block 통일
+  - GoodDaysPage JSX 에 `<div className="page-title-area">` wrapper 추가 → `#gd-page .page-subtitle { margin-bottom: 48px }` override 제거 (wrapper 의 48px 통합)
+  - `+58 / -110` 라인 · 6 files
+- **2차 검토 (외부 3페이지):** Login/MyPage/BizInquiry 는 `lp-*` / `mp-*` / `#bi-*` prefix 로 격리 · 스타일 차이 (letter-spacing · line-height · Login H2 · MyPage 모바일 H2 다운 · entry animation 유무) 는 drift 가 아닌 페이지 성격 차이로 판정 → **공통화 제외 권장** (옵션 A). 상세: `memory/project_bug139_phase2_plan.md`
+- **상세:** `memory/project_bug006_deferred_bugs.md` DB-08 · `memory/project_bug139_phase2_plan.md`
 
 ### BUG-130 — ✅ 헤더 다크↔라이트 모드 전환 깜빡임
 
