@@ -303,22 +303,34 @@ const refHdr=activeSubHdr||document.getElementById('site-hdr-wrap');
 
 ## 핸드오버 메모리 작성 규칙
 
-> 상세 규칙: `docs/handover-memory-rule.md`
+> 운영 규칙: `memory/feedback_next_session_single_file.md` (단일 파일 덮어쓰기 원칙)
+> 상세 레거시 규칙: `docs/handover-memory-rule.md`
 
-세션 경계(페이즈 완료·도메인 전환·컨텍스트 리셋 직전)에 다음 세션이 즉시 복귀할 수 있도록
-`memory/project_*_complete.md` 또는 `memory/session_handover_*.md` 를 작성한다.
-**이 문서는 git 저장소에 영구 보관**되므로 Claude Desktop 재설치·설정 초기화 후에도 유효하다.
+### 단일 파일 덮어쓰기 원칙 (S72 신규 · 2026-04-24)
 
-### 자동 트리거 3종 (명시적 요청 없이 실행)
+매 세션 종료 시 **`memory/NEXT_SESSION.md` 한 파일만 전체 덮어쓰기**. 새 세션은 첫 메시지에 **"진입"** 한 단어 입력 시 이 파일을 읽고 bootstrap.
 
-1. **페이즈·RP 완료 커밋 + 푸시 직후** — `project_pixel_port_rp{N}_handover.md`
-2. **세션 리셋·`/clear` 직전** — `session_handover_{YYYY_MM_DD}.md`
-3. **Compaction 3회 이상 + 클린 커밋 경계** — `project_session{N}_complete.md`
+- 고정 파일: `memory/NEXT_SESSION.md` (이름 변경 금지 · 경로 고정)
+- 방식: Write 도구로 전체 덮어쓰기 (Edit 아님)
+- 템플릿: 8섹션 (선행 로드 · 범위 · 상태 스냅샷 · 선행 완료 자산 · 주의사항 · 검증 명령 · 남은 작업 · 운영 규칙)
+- fenced code block 프롬프트는 **더 이상 생성하지 않음** (사용자 명시 요청 시에만)
+
+### 병행 유지 (히스토리 추적)
+
+- `project_session{N}_complete.md` — 세션별 완료 스냅샷 (append-only)
+- 도메인 전용 entry (예: `project_bug006_session_entry.md`) — 유지
+- `MEMORY.md [LATEST]` 포인터 — 매 세션 갱신
+
+### 자동 트리거 (명시 요청 없이 실행)
+
+1. **페이즈·도메인 완료 커밋 + 푸시 직후** — `project_session{N}_complete.md` 작성 + `NEXT_SESSION.md` 덮어쓰기
+2. **세션 리셋·`/clear` 직전** — `NEXT_SESSION.md` 덮어쓰기
+3. **Compaction 3회 이상 + 클린 커밋 경계** — 동일
 
 ### 핵심 원칙
 
-- **7섹션 필수:** frontmatter → 완료 내용 → Deferred → 결과 문서 포인터 → 진입 컨텍스트 → 영구 원칙 → 다음 첫 단계
-- **결과 문서 포인터 원칙:** handover 메모리 하나만 읽으면 모든 관련 문서 위치를 알 수 있어야 한다. 경로 추측 금지.
-- **체인 유지:** 섹션 4에 이전 핸드오버 메모리 링크 포함 (N-1 → N → N+1 추적 가능)
-- **커밋 후 작성:** 먼저 커밋·푸시 → 해시 확인 → 메모리 작성 순서 준수
+- **단일 파일 + 덮어쓰기:** `session_handover_{YYYY_MM_DD}.md` 같은 복사본 누적 금지
+- **결과 문서 포인터 원칙:** `NEXT_SESSION.md` 하나만 읽으면 모든 관련 문서 위치를 알 수 있어야 한다
+- **체인 유지:** 선행 로드에 직전 세션 `project_session{N}_complete.md` 링크 포함
+- **커밋 후 작성:** 먼저 커밋·푸시 → 해시 확인 → complete 메모리 → NEXT_SESSION.md 덮어쓰기 순서 준수
 - **MEMORY.md 인덱스 동시 등록** 필수
