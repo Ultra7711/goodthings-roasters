@@ -6,7 +6,7 @@
      OAuth 의 REST API 키와 다른 키이므로 혼동 주의.
    - 플랫폼 > Web 에 배포 도메인 등록 필수 (localhost 포함).
    - SDK 는 autoload=false 로 로드 후 `kakao.maps.load` 로 초기화 — Next.js SSR 안전.
-   - 마커 클릭 시 CustomOverlay 말풍선 토글 → 카카오맵 상세·길찾기 링크 제공.
+   - 마커 클릭 시 CustomOverlay 말풍선 토글 → 상세보기·길찾기 링크 제공.
    ══════════════════════════════════════════ */
 
 import { useEffect, useRef } from 'react';
@@ -96,7 +96,7 @@ type Props = {
   placeId?: string;
 };
 
-/* 말풍선 HTML 생성 — 길찾기·카카오맵 상세 두 버튼. 링크는 새 탭.
+/* 말풍선 HTML 생성 — 길찾기·상세보기 두 버튼. 링크는 새 탭.
    닫기: 마커 재클릭 또는 지도 빈 영역 클릭.
    onInteract: overlay 내부 mousedown 시 호출 — map click 핸들러가 플래그를 읽어
    overlay 내부 클릭(링크 포함)을 외부 클릭과 구별한다. */
@@ -144,7 +144,7 @@ function buildOverlayContent({
   detailLink.href = detailHref;
   detailLink.target = '_blank';
   detailLink.rel = 'noopener noreferrer';
-  detailLink.textContent = '카카오맵 상세';
+  detailLink.textContent = '상세보기';
   detailLink.addEventListener('click', (e) => e.stopPropagation());
 
   actionsEl.append(toLink, detailLink);
@@ -189,11 +189,11 @@ export default function KakaoMap({
             map.setCenter(center);
           });
           ro.observe(containerRef.current);
-          /* 브랜드 커스텀 마커 — 28×36 티어드롭, 바닥 중앙 앵커 */
+          /* 브랜드 커스텀 마커 — 40×52 티어드롭 (BUG-146 1.4× 확대), 바닥 중앙 앵커 */
           const markerImage = new kakao.MarkerImage(
             '/images/icons/map_marker.svg',
-            new kakao.Size(28, 36),
-            { offset: new kakao.Point(14, 36) },
+            new kakao.Size(40, 52),
+            { offset: new kakao.Point(20, 52) },
           );
           const marker = new kakao.Marker({ position: center, map, image: markerImage });
 

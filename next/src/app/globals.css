@@ -8423,6 +8423,35 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   opacity: 1;
 }
 
+/* BUG-144 — touch 디바이스 (hover: none) 에서 CTA gold rule hover 발화 차단.
+   모바일에서 스크롤·드래그 도중 손가락이 버튼 위를 지나면 :hover 가 잠깐 발화 →
+   gold rule scaleX(1) 슬라이드인 → 의도하지 않은 활성화 피드백.
+   touch 디바이스에서는 :hover 시에도 scaleX(0) 유지 → tap 시에만 transition 발생하지 않음. */
+@media (hover: none) {
+  .season-cta:hover::after,
+  .roastery-cta-btn:hover::after,
+  .cta-btn-light-filled:hover::after,
+  .cta-btn-dark-outline:hover::after,
+  .cta-btn-dark-filled:hover::after,
+  .cta-btn-light-outline:hover::after,
+  .lp-submit-btn:hover::after,
+  .lp-guest-buy-btn:hover::after,
+  .chp-submit-btn:hover::after,
+  .chp-login-primary-btn:hover::after,
+  .ocp-btn-primary:hover::after,
+  .cp-order-btn:hover:not(:disabled)::after,
+  .bi-submit-btn:hover::after,
+  #pd-cart-btn:hover:not(.disabled)::after,
+  .mp-save-btn:hover::after,
+  .mp-cancel-btn:hover::after,
+  .mp-modal-confirm:hover::after,
+  .mp-modal-cancel:hover::after,
+  .st-map-overlay-btn:hover::after,
+  .st-map-overlay-btn--primary:hover::after {
+    transform: scaleX(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cta-btn-light-filled::after, .cta-btn-dark-outline::after,
   .cta-btn-dark-filled::after, .cta-btn-light-outline::after,
