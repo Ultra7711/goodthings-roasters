@@ -456,8 +456,9 @@ input:-webkit-autofill:active,
 textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
 textarea:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #FBF8F3 inset, 0 -1px 0 0 rgba(28,27,25,.12) inset !important;
-  box-shadow: 0 0 0 1000px #FBF8F3 inset, 0 -1px 0 0 rgba(28,27,25,.12) inset !important;
+  /* 라인 shadow 를 첫 번째(맨 위)로 — 두 번째 1000px 배경 shadow 에 가려지지 않도록 */
+  -webkit-box-shadow: 0 -1px 0 0 rgba(28,27,25,.12) inset, 0 0 0 1000px #FBF8F3 inset !important;
+  box-shadow: 0 -1px 0 0 rgba(28,27,25,.12) inset, 0 0 0 1000px #FBF8F3 inset !important;
   -webkit-text-fill-color: #1C1B19 !important;
   caret-color: #1C1B19;
   /* calc(infinity * 1s) 는 iOS 16.4 미만 미지원 → 99999s 로 교체 (BUG-106) */
@@ -468,8 +469,8 @@ textarea:-webkit-autofill:active {
 /* focus 시 하단 라인 2px + 다크 컬러 (--color-text-primary = #1C1B19) */
 input:-webkit-autofill:focus,
 textarea:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #FBF8F3 inset, 0 -2px 0 0 #1C1B19 inset !important;
-  box-shadow: 0 0 0 1000px #FBF8F3 inset, 0 -2px 0 0 #1C1B19 inset !important;
+  -webkit-box-shadow: 0 -2px 0 0 #1C1B19 inset, 0 0 0 1000px #FBF8F3 inset !important;
+  box-shadow: 0 -2px 0 0 #1C1B19 inset, 0 0 0 1000px #FBF8F3 inset !important;
 }
 
 .root {
