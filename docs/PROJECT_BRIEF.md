@@ -3,7 +3,7 @@
 > **새 세션 진입용 단일 문서.** 이 파일 하나로 프로젝트 전체 맥락을 5분 내 파악할 수 있도록 유지한다.
 >
 > 상세 이력 → `docs/milestone.md` / `docs/milestone-completed.md`
-> 최종 업데이트: 2026-04-21 · Session 53 완료 시점
+> 최종 업데이트: 2026-04-25 · Session 78 완료 시점
 
 ---
 
@@ -68,10 +68,11 @@ next/src/app/
 │   ├── story/           # 브랜드 스토리 + 카카오맵
 │   ├── search/          # 검색 결과 페이지 (SRP)
 │   ├── cart/            # 장바구니 풀페이지
-│   └── biz-inquiry/     # B2B 도매 문의
-├── checkout/            # 체크아웃 · 주문완료 (별도 레이아웃)
-├── login/               # 로그인·회원가입
-├── mypage/              # 마이페이지
+│   ├── biz-inquiry/     # B2B 도매 문의
+│   └── login/           # 로그인·회원가입 (메인 레이아웃 내)
+├── checkout/            # 체크아웃 (별도 레이아웃)
+├── order-complete/      # 주문완료 (별도 레이아웃)
+├── mypage/              # 마이페이지 (별도 레이아웃)
 ├── auth/callback/       # Supabase OAuth 콜백
 └── api/
     ├── auth/kakao|naver/ # OAuth 소셜 로그인
@@ -128,7 +129,7 @@ next/src/app/
 
 | 항목 | 문서 |
 |------|------|
-| BUG-101~147 (프로덕션 버그·폴리싱 누적) | `docs/bug-and-polishing.md` |
+| BUG-101~155 (프로덕션 버그·폴리싱 누적) | `docs/bug-and-polishing.md` |
 | Phase 4 — Supabase staging/prod 분리 | `docs/milestone.md` §Phase 4 |
 | Phase 2 — 콘텐츠 채우기 (GoodDays·Story·MyPage) | `docs/milestone.md` §2-F |
 | Phase 2 — 이미지 최적화 파이프라인 (WebP/AVIF) | `docs/milestone.md` §항목 7 |

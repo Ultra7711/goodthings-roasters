@@ -16,7 +16,7 @@
 
    3. 커스텀 드롭다운
       - <select> 가 아닌 button + ul 구조로 프로토타입 그대로
-      - 외부 클릭 시 닫힘 — useEffect 에서 document mousedown 리스너
+      - 외부 클릭 시 닫힘 — bi-dropdown-backdrop (mousedown+preventDefault 로 click 소비)
 
    4. 동일 라우트 헤더 재클릭 시
       - SiteHeader 에서 Story/Shop/Menu 와 동일하게 'gtr:biz-reset' 발송 → 폼 리셋 + 스크롤 top
@@ -111,17 +111,18 @@ export default function BizInquiryPage() {
   /* 드롭다운 open 상태 — 한 번에 하나만 */
   const [openDropdown, setOpenDropdown] = useState<'type' | 'volume' | 'cycle' | 'products' | null>(null);
 
-  /* 외부 클릭 시 드롭다운 닫기 */
+  /* 외부 클릭 시 드롭다운 닫기 — click 캡처 단계에서 stopPropagation 으로 버튼 관통 차단 */
   useEffect(() => {
     if (!openDropdown) return;
-    function onClick(e: MouseEvent) {
+    function onCapture(e: MouseEvent) {
       const target = e.target as HTMLElement;
       if (!target.closest('.bi-dropdown-field')) {
+        e.stopPropagation();
         setOpenDropdown(null);
       }
     }
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+    document.addEventListener('click', onCapture, true);
+    return () => document.removeEventListener('click', onCapture, true);
   }, [openDropdown]);
 
   /* 폼 리셋 */

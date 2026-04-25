@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **36 / 50 closure (72.0%)** · 2026-04-25 S78 기준
+> **37 / 53 closure (69.8%)** · 2026-04-25 S79 기준
 >
 > 카운트 명령:
 > ```bash
@@ -471,6 +471,39 @@
 - **실제:** "장바구니가 비어 있습니다." 텍스트만 표시 — 장바구니 드로어의 빈 상태 UI(아이콘 + 문구 + 밑줄 버튼)와 스타일 불일치
 - **기대:** 드로어 빈 상태와 동일한 구성 — 아이콘 + 문구 + "쇼핑 계속하기" 밑줄 버튼
 - **추정 범위:** `CheckoutPage` 빈 장바구니 분기 렌더 — `CartDrawer` 의 empty state UI 컴포넌트 또는 동일 마크업 재사용 필요.
+
+### BUG-158 — 비즈니스 폼 드롭다운 열린 상태에서 외부 버튼 클릭 관통 🟡 ✅
+
+- **발견:** 2026-04-25 / S79
+- **재현 경로:** 비즈니스 문의 폼 → 드롭다운 열기 → 드롭다운 외부 버튼 클릭
+- **실제:** 드롭다운이 닫히면서 외부 버튼 클릭 이벤트도 동시에 발화 (관통)
+- **기대:** 외부 클릭 시 드롭다운 닫힘만 발생, 버튼 이벤트는 소비
+- **원인:** `document.mousedown` 리스너로 드롭다운을 닫았으나 이후 `click` 이벤트는 그대로 전파
+- **해결 (S79):** `document.mousedown` 리스너 제거 → 드롭다운 open 시 `bi-dropdown-backdrop`(fixed 투명 레이어, z-index `--z-float - 1`) 렌더. backdrop `mousedown`에 `preventDefault()` 호출로 후속 click 소비.
+
+### BUG-157 — 모바일 드로어 장바구니 버튼 뱃지 크기·폰트가 헤더 뱃지와 불일치 🟡
+
+- **발견:** 2026-04-25 / S79
+- **재현 경로:** 모바일 → 장바구니 아이템 추가 → 햄버거 메뉴 드로어 열기 → 장바구니 버튼 뱃지 확인
+- **실제:** 드로어 내 장바구니 뱃지(`mn-cart .cart-badge`) — 16×16px, font-size 10px, weight 500
+- **기대:** 헤더 공통 뱃지(`cart-badge`)와 동일 — 20×20px, font-size `var(--type-caption-size)`, weight 600
+- **원인:** `globals.css` `.mn-cart .cart-badge` 셀렉터가 공통 `.cart-badge` 스타일을 다른 수치로 오버라이드
+- **픽스 방향:** `.mn-cart .cart-badge` 오버라이드에서 크기·폰트 수치를 공통 `.cart-badge`와 일치시키거나, 위치(`top/right`)만 오버라이드하고 나머지는 공통에서 상속
+
+### BUG-156 — 명시적 로그인 없이 장바구니 드로어 열면 자동 로그인 + 이전 카트 복원 🟡
+
+- **발견:** 2026-04-25 / S79
+- **재현 경로:** 이전 세션에서 로그아웃 없이 브라우저 종료 → 재방문 → 장바구니 드로어 열기
+- **실제:** 로그인 플로우 없이 이전 계정으로 자동 로그인되면서 DB 카트 아이템이 드로어에 나타남
+- **기대:** 재방문 시 "로그인됨" 상태가 헤더에 올바르게 반영되어야 함. 또는 세션이 만료·로그아웃된 경우 게스트 카트를 표시.
+- **근본 원인 (2레이어):**
+  - **1차 — Supabase 설계:** `createBrowserClient(@supabase/ssr)` 는 세션을 쿠키에 영속 저장. 명시적 `signOut()` 없이 브라우저를 닫으면 다음 방문 시 `INITIAL_SESSION` 이벤트로 세션 자동 복원 → `AuthSyncProvider` 가 서버 카트 fetch 트리거.
+  - **2차 — 헤더 `isLoading` 미처리:** `SiteHeader` 가 `isLoggedIn`만 읽고 `isLoading` 을 무시. `INITIAL_SESSION` 발화 전 `isLoading: true` 구간에서 `isLoggedIn = false` → 헤더가 "비로그인" 아이콘 표시 → 사용자가 비로그인 상태라고 착각하는 UX 플리커 발생.
+- **픽스 방향:**
+  - `SiteHeader` 에 `isLoading` 구간 동안 로그인/비로그인 아이콘 전환 보류 (스켈레톤 또는 중립 상태)
+  - `isLoading → false` 전환 시점에 헤더 아이콘 확정 — 사용자가 자신의 로그인 상태를 명확히 인지
+  - (선택) 세션 자동 복원 시 "다시 오셨군요" 토스트 피드백
+- **추정 범위:** `SiteHeader.tsx` `isLoggedIn` 참조 구간 (`mounted && isLoggedIn`) + `useSupabaseSession` `isLoading` 반환값 활용
 
 ---
 
