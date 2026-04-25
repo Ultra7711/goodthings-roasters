@@ -5555,6 +5555,7 @@ footer.blk {
 .bi-section-fields {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 /* ── bi-field 기본 ── (dropdown wrapper 용도로만 잔존 — 텍스트 인풋/textarea 는
