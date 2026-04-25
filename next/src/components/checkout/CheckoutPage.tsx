@@ -825,7 +825,9 @@ export default function CheckoutPage() {
                 </div>
                 <div className="chp-sum-item-info">
                   <div className="chp-sum-item-name">{extractKrName(item.name)}</div>
-                  <span className="chp-sum-item-qty-txt">× {item.qty}</span>
+                  <span className="chp-sum-item-meta">
+                    {[item.volume, item.type === 'subscription' ? item.period : null, `${item.qty}개`].filter(Boolean).join(' · ')}
+                  </span>
                 </div>
                 <div className="chp-sum-item-price">{formatPrice(item.priceNum * item.qty)}</div>
               </div>
