@@ -6146,6 +6146,8 @@ footer.blk {
   /* arrow-btn-primary 100px → 44px (탭 영역 최소치 확보) */
   .gd-lb-arrow.arrow-btn-primary { padding: 4px; }
   .gd-lb-arrow.arrow-btn-primary svg { width: 44px; height: 44px; }
+  /* 44px SVG 기준 시각적 1.5px: 1.5 × (24/44) ≈ 0.82 (BUG-107) */
+  .gd-lb-arrow svg { stroke-width: 0.82; }
 }
 
 /* ══════════════════════════════════════════
