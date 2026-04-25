@@ -28,6 +28,11 @@ declare global {
           addControl: (control: unknown, position: unknown) => void;
           relayout: () => void;
           setCenter: (latlng: unknown) => void;
+          panTo: (latlng: unknown) => void;
+          getProjection: () => {
+            containerPointFromCoords: (coords: unknown) => { x: number; y: number };
+            coordsFromContainerPoint: (point: unknown) => unknown;
+          };
         };
         Marker: new (opts: { position: unknown; map?: unknown; image?: unknown }) => {
           setMap: (map: unknown) => void;
@@ -183,17 +188,15 @@ export default function KakaoMap({
           const map = new kakao.Map(containerRef.current, { center, level });
           /* 확대/축소 게이지 컨트롤 — 우상단 */
           map.addControl(new kakao.ZoomControl(), kakao.ControlPosition.TOPRIGHT);
-          /* 컨테이너 리사이즈 시 relayout + 중심 재설정 (BP 전환·회전 대응) */
-          ro = new ResizeObserver(() => {
-            map.relayout();
-            map.setCenter(center);
-          });
-          ro.observe(containerRef.current);
+
           /* 브랜드 커스텀 마커 — 40×52 티어드롭 (BUG-146 1.4× 확대), 바닥 중앙 앵커 */
+          const MARKER_HEIGHT = 52;
+          const MARKER_HALF_HEIGHT = MARKER_HEIGHT / 2; // 26 — 마커 시각 중앙 보정
+          const POPUP_VIEW_OFFSET = 60; // 팝업 open 시 추가 보정 (yAnchor=1.35 + 컨텐트 ≈ 80px 고려)
           const markerImage = new kakao.MarkerImage(
             '/images/icons/map_marker.svg',
-            new kakao.Size(40, 52),
-            { offset: new kakao.Point(20, 52) },
+            new kakao.Size(40, MARKER_HEIGHT),
+            { offset: new kakao.Point(20, MARKER_HEIGHT) },
           );
           const marker = new kakao.Marker({ position: center, map, image: markerImage });
 
@@ -201,6 +204,7 @@ export default function KakaoMap({
              발행하므로 DOM stopPropagation 만으로는 구별 불가. mousedown 에서 플래그를
              세우면 map click 핸들러가 overlay 내부 클릭(링크 포함)을 건너뛸 수 있다. */
           let overlayInteracted = false;
+          let popupOpen = false;
 
           const overlay = new kakao.CustomOverlay({
             position: center,
@@ -211,19 +215,61 @@ export default function KakaoMap({
             yAnchor: 1.35,
           });
 
+          /* BUG-146 follow-up — 마커 anchor 가 lat/lng (마커 바닥) 에 있어
+             기본 setCenter 시 마커 시각 중앙이 viewport 중앙보다 26px 위로 쏠림.
+             팝업 open 시에는 yAnchor=1.35 로 추가 위쪽 확장 → 더 쏠림.
+             projection 으로 lat/lng 의 화면 픽셀 위치를 가져와 시각 중앙이
+             viewport 중앙에 오도록 보정된 center 좌표 계산. */
+          const recenter = (smooth: boolean) => {
+            const proj = map.getProjection();
+            const anchorPx = proj.containerPointFromCoords(center);
+            const offsetY = popupOpen
+              ? MARKER_HALF_HEIGHT + POPUP_VIEW_OFFSET
+              : MARKER_HALF_HEIGHT;
+            const adjustedCoord = proj.coordsFromContainerPoint(
+              new kakao.Point(anchorPx.x, anchorPx.y - offsetY),
+            );
+            if (smooth) map.panTo(adjustedCoord);
+            else map.setCenter(adjustedCoord);
+          };
+
+          /* 초기 진입 시 마커 시각 중앙 보정 */
+          recenter(false);
+
+          /* 컨테이너 리사이즈 시 relayout + 보정된 중심 재설정 (BP 전환·회전 대응) */
+          ro = new ResizeObserver(() => {
+            map.relayout();
+            recenter(false);
+          });
+          ro.observe(containerRef.current);
+
           kakao.event.addListener(marker, 'click', () => {
-            if (overlay.getMap()) overlay.setMap(null);
-            else overlay.setMap(map);
+            if (overlay.getMap()) {
+              overlay.setMap(null);
+              popupOpen = false;
+            } else {
+              overlay.setMap(map);
+              popupOpen = true;
+            }
+            recenter(true);
           });
           kakao.event.addListener(map, 'click', () => {
             if (overlayInteracted) { overlayInteracted = false; return; }
-            overlay.setMap(null);
+            if (popupOpen) {
+              overlay.setMap(null);
+              popupOpen = false;
+              recenter(true);
+            }
           });
 
           /* 지도 외부 클릭 시 팝업 닫기 */
           docClickHandler = (e: MouseEvent) => {
             if (containerRef.current?.contains(e.target as Node)) return;
-            overlay.setMap(null);
+            if (popupOpen) {
+              overlay.setMap(null);
+              popupOpen = false;
+              recenter(true);
+            }
           };
           document.addEventListener('click', docClickHandler);
         });

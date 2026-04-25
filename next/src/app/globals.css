@@ -8423,10 +8423,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   opacity: 1;
 }
 
-/* BUG-144 — touch 디바이스 (hover: none) 에서 CTA gold rule hover 발화 차단.
-   모바일에서 스크롤·드래그 도중 손가락이 버튼 위를 지나면 :hover 가 잠깐 발화 →
-   gold rule scaleX(1) 슬라이드인 → 의도하지 않은 활성화 피드백.
-   touch 디바이스에서는 :hover 시에도 scaleX(0) 유지 → tap 시에만 transition 발생하지 않음. */
+/* BUG-144 — touch 디바이스 (hover: none) 에서 hover 발화 차단.
+   모바일에서 스크롤·드래그 도중 손가락이 요소 위를 지나면 :hover 가 잠깐 발화 →
+   의도하지 않은 활성화 피드백. tap-and-hold 시 sticky hover 도 동일 문제.
+   데스크탑 hover 동작은 영향 없음. */
+
+/* BUG-144 (1) — CTA gold rule (`:hover::after` scaleX) 차단 */
 @media (hover: none) {
   .season-cta:hover::after,
   .roastery-cta-btn:hover::after,
@@ -8449,6 +8451,24 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .st-map-overlay-btn:hover::after,
   .st-map-overlay-btn--primary:hover::after {
     transform: scaleX(0);
+  }
+}
+
+/* BUG-144 (2) — 메인 카드 (.cat-card · .tci) hover 효과 3종 차단:
+   이미지 scale(1.03) · overlay darken(.82) · 화살표 fade-in + slide. */
+@media (hover: none) {
+  .cat-card:hover .cat-img-inner,
+  .tci:hover .tci-img-inner {
+    transform: none;
+  }
+  .cat-card:hover .cat-img::before,
+  .tci:hover .tci-img::before {
+    opacity: 0;
+  }
+  .cat-card:hover .cat-arrow,
+  .tci:hover .tci-arrow {
+    opacity: 0;
+    animation: none;
   }
 }
 
