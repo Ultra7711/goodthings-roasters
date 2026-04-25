@@ -1,8 +1,27 @@
-# GTR 버그 리포트 — Phase 4 이후
+# GTR BUG & POLISHING
 
-> 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
+> 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-24 · Session 67
+> **최종 업데이트:** 2026-04-25 · Session 76
+
+---
+
+## 진행률
+
+> **20 / 46 closure (43.5%)** · 2026-04-25 S76 기준
+>
+> 카운트 명령:
+> ```bash
+> grep -oE "^### BUG-[0-9]+" docs/bug-and-polishing.md | sort -u | wc -l        # total unique
+> grep -oE "^### BUG-[0-9]+ — ✅" docs/bug-and-polishing.md | sort -u | wc -l   # closed (inline ✅)
+> ```
+>
+> **세션별 closure 누적:**
+> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146)
+>
+> **데이터 정합 노트:**
+> - BUG-105 는 하단 `해결됨` 섹션에만 ✅ · 열린 버그 섹션은 🟠 잔존 (cleanup 후보)
+> - BUG-104/108 은 양쪽 섹션 모두 표기 (legacy `해결됨` 정리 후보)
 
 ---
 

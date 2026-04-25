@@ -128,7 +128,7 @@ next/src/app/
 
 | 항목 | 문서 |
 |------|------|
-| BUG-101~108 (프로덕션 버그 8건) | `docs/bug-report-phase4.md` |
+| BUG-101~147 (프로덕션 버그·폴리싱 누적) | `docs/bug-and-polishing.md` |
 | Phase 4 — Supabase staging/prod 분리 | `docs/milestone.md` §Phase 4 |
 | Phase 2 — 콘텐츠 채우기 (GoodDays·Story·MyPage) | `docs/milestone.md` §2-F |
 | Phase 2 — 이미지 최적화 파이프라인 (WebP/AVIF) | `docs/milestone.md` §항목 7 |
@@ -171,7 +171,7 @@ next/src/app/
 | 백엔드 아키텍처 로드맵 | `docs/backend-architecture-plan.md` |
 | 이메일 인프라 | `docs/email-infrastructure.md` |
 | 프로토타입 핸드오프 명세 | `docs/prototype-handoff.md` |
-| 프로덕션 버그 리스트 | `docs/bug-report-phase4.md` |
+| BUG & POLISHING 리스트 (프로덕션 버그·UX·폴리싱) | `docs/bug-and-polishing.md` |
 | 핸드오버 메모리 작성 규칙 | `docs/handover-memory-rule.md` |
 | OAuth 보안 계획 | `docs/oauth-security-plan.md` |
 | 인프라 스택 · 비용 | `docs/GTR_infrastructure.md` |
