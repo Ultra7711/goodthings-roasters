@@ -15,11 +15,14 @@
 
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useDrawer } from '@/hooks/useDrawer';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useCartQuery } from '@/hooks/useCart';
+import { useSupabaseSession } from '@/hooks/useSupabaseSession';
+import { useToast } from '@/hooks/useToast';
+import { supabase } from '@/lib/supabase';
 import { BUSINESS_INFO } from '@/lib/constants';
 
 const FTC_BIZ_LOOKUP_URL = `https://www.ftc.go.kr/bizCommPop.do?wrkr_no=${BUSINESS_INFO.registrationNumber.replace(/-/g, '')}`;
@@ -53,10 +56,21 @@ const NAV_ITEMS: NavItem[] = [
 
 export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { show: toast } = useToast();
   const cartDrawer = useCartDrawer();
   const { totalQty } = useCartQuery();
+  const { user: supabaseUser } = useSupabaseSession();
   const [mounted, setMounted] = useState(false);
   const [bizOpen, setBizOpen] = useState(false);
+
+  /* 로그인 사용자 표시명: user_metadata.full_name → name → email handle.
+     MyPagePage 의 "{displayName}님, 환영합니다." 로직과 동일 (BUG-140 · S77). */
+  const meta = supabaseUser?.user_metadata ?? {};
+  const metaName =
+    (meta.full_name as string | undefined) ?? (meta.name as string | undefined);
+  const emailHandle = supabaseUser?.email?.split('@')[0];
+  const displayName = metaName ?? emailHandle ?? null;
   /**
    * navigate 경로에서 transition 없이 즉시 닫기.
    * route 전환 후 #mobile-nav-bg opacity 1→0 fade (delay 80 + duration 250 = 330ms) 가
@@ -122,6 +136,20 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
     }
     setSnapClose(true);
     onNavigate();
+  }
+
+  /* 로그아웃: MyPagePage.handleLogout 과 동일 패턴.
+     supabase.auth.signOut() → SIGNED_OUT 이벤트 → AuthSyncProvider clearUser 자동 처리.
+     drawer 는 먼저 닫고 signOut 진행 (체감 응답성). */
+  async function handleLogout() {
+    setSnapClose(true);
+    onNavigate();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast('로그아웃 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      return;
+    }
+    router.push('/');
   }
 
   function handleWholesaleClick(e: React.MouseEvent<HTMLAnchorElement>) {
@@ -231,6 +259,55 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
         </div>
 
         <nav className="mn-nav" aria-label="모바일 내비게이션">
+          {/* 로그인 후 identity 카드: welcome (15px secondary) + 마이페이지 | 로그아웃 (H3 nav 크기, NAV 위) (BUG-140 · S77) */}
+          {isLoggedIn && displayName && (
+            <div className="mn-user-wrap">
+              <span className="mn-welcome-txt">
+                {displayName}님, 환영합니다.
+              </span>
+              <div className="mn-account-row">
+                <Link
+                  href="/mypage"
+                  className="mn-account-link-inline"
+                  onClick={handleAccountClick}
+                >
+                  <span className="mn-account-link-text">마이페이지</span>
+                  <span className="mn-link-arrow mn-link-arrow-inline" aria-hidden="true">
+                    <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4,24h34"/>
+                      <path d="M24,10l14,14-14,14"/>
+                    </svg>
+                  </span>
+                </Link>
+                <span className="mn-account-sep" aria-hidden="true" />
+                <button
+                  type="button"
+                  className="mn-account-link-inline mn-logout-btn-inline"
+                  onClick={handleLogout}
+                >
+                  로그아웃
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 로그인 전: "로그인" 버튼을 NAV 위 (identity 자리) 에 배치 (BUG-140 · S77) */}
+          {!isLoggedIn && (
+            <Link
+              href="/login"
+              className="mn-link"
+              onClick={handleAccountClick}
+            >
+              <span className="mn-link-text">로그인</span>
+              <span className="mn-link-arrow" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4,24h34"/>
+                  <path d="M24,10l14,14-14,14"/>
+                </svg>
+              </span>
+            </Link>
+          )}
+
           {NAV_ITEMS.map((item) => {
             const isActive =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -253,19 +330,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
             );
           })}
 
-          <Link
-            href={isLoggedIn ? '/mypage' : '/login'}
-            className="mn-account-link"
-            onClick={handleAccountClick}
-          >
-            {isLoggedIn ? '마이페이지' : '로그인'}
-            <span className="mn-link-arrow" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4,24h34"/>
-                <path d="M24,10l14,14-14,14"/>
-              </svg>
-            </span>
-          </Link>
+          {/* Wholesale: 별도 그룹 (NAV 다음 32px 간격, 기존 위계 유지) */}
           <Link
             href="/biz-inquiry"
             className="mn-account-link"
