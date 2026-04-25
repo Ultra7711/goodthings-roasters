@@ -579,6 +579,7 @@ export default function CheckoutPage() {
                   <TextField
                     label="주소 검색"
                     readOnly
+                    autoComplete="off"
                     style={{ cursor: 'pointer', paddingRight: 36 }}
                     value={form.addr1}
                     onChange={() => { /* readOnly */ }}
@@ -597,6 +598,7 @@ export default function CheckoutPage() {
                     label="우편번호"
                     maxLength={5}
                     inputMode="numeric"
+                    autoComplete="off"
                     value={form.zipcode}
                     onChange={(v) => setField('zipcode', v.replace(/\D/g, ''))}
                     onKeyDown={chpNav}
