@@ -6515,11 +6515,20 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-agree-all-row input[type="checkbox"],
 .chp-agree-item input[type="checkbox"] { display: none; }
 .chp-check-icon {
-  width: 24px; height: 24px; flex-shrink: 0; color: var(--color-text-caption);
-  transition: color var(--duration-hover) ease; display: flex; align-items: center;
+  flex-shrink: 0;
+  width: 20px; height: 20px;
+  border-radius: 3px;
+  border: 1.5px solid var(--color-border-primary);
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--duration-transition) ease,
+              border-color var(--duration-transition) ease;
 }
-.chp-check-icon svg { width: 24px; height: 24px; }
-.chp-check-icon.checked { color: var(--color-surface-stone); }
+.chp-check-icon svg { opacity: 0; transition: opacity var(--duration-transition) ease; }
+.chp-check-icon.checked {
+  background: var(--color-btn-primary-bg);
+  border-color: var(--color-btn-primary-bg);
+}
+.chp-check-icon.checked svg { opacity: 1; }
 .chp-agree-all-label {
   font-family: var(--font-kr); font-size: var(--type-input-size); font-weight: 500;
   color: var(--color-text-primary); padding-bottom: var(--font-kr-align-fix);
@@ -6535,7 +6544,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-agree-item-label { flex: 1; padding-bottom: var(--font-kr-align-fix); }
 .chp-agree-arrow { color: rgba(156,152,144,.7); display: flex; align-items: center; transition: color var(--duration-hover) linear; }
 .chp-agree-item:hover .chp-agree-arrow { color: var(--color-icon-default); }
-.chp-agree-section.error .chp-check-icon:not(.checked) { color: var(--color-error); }
+.chp-agree-section.error .chp-check-icon:not(.checked) { border-color: var(--color-error); }
 
 /* 결제하기 버튼 */
 .chp-submit-btn {
