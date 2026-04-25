@@ -5033,6 +5033,7 @@ footer.blk {
   opacity: 1;
   padding: 0 0 24px;
 }
+.pd-product-info-body { overflow-x: auto; }
 .pd-info-table {
   width: 100%;
   border-collapse: collapse;
