@@ -3570,7 +3570,7 @@ footer.blk {
   flex: 1;
   text-align: center;
   font-family: var(--font-en);
-  font-size: var(--type-heading-s-size);
+  font-size: var(--type-body-ui-size);
   font-weight: 500;
   color: var(--color-text-primary);
 }
@@ -3622,7 +3622,7 @@ footer.blk {
   #cart-drawer-panel .cd-item-thumb { width: 96px; height: 96px; }
   #cart-drawer-panel .cd-item-category { font-size: 12px; line-height: 1; }
   #cart-drawer-panel .cd-item-name {
-    gap: 0;
+    gap: 4px;
     line-height: 1.4;
     margin-top: 2px;
     margin-bottom: 8px;
@@ -3630,13 +3630,7 @@ footer.blk {
   #cart-drawer-panel .cd-item-name-kr { font-size: 16px; line-height: 1.4; }
   #cart-drawer-panel .cd-item-bottom { gap: 12px; margin-top: 0; }
 
-  /* BUG-123 (S70): 푸터 절대좌표 요소들을 모바일 본체 패딩(20px) 과 통일.
-     본체(.cd-items padding: 0 20px) 와 푸터(기본 28px 잔존) 좌우 정렬 일치. */
-  #cart-drawer-panel .cd-subtotal-label,
-  #cart-drawer-panel .cd-cta-row { left: 20px; }
-  #cart-drawer-panel .cd-subtotal-price,
-  #cart-drawer-panel .cd-note,
-  #cart-drawer-panel .cd-cta-row { right: 20px; }
+  #cart-drawer-panel .cd-footer { padding: 0 20px 20px; }
 }
 
 /* 빈 상태 */
@@ -3701,7 +3695,7 @@ footer.blk {
 }
 #cart-drawer-panel .cd-si-label {
   font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
+  font-size: var(--type-body-ui-size);
   font-weight: 400;
   color: var(--color-text-secondary);
   flex-shrink: 0;
@@ -3717,7 +3711,7 @@ footer.blk {
 }
 #cart-drawer-panel .cd-si-price {
   font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
+  font-size: var(--type-body-ui-size);
   font-weight: 400;
   color: var(--color-text-primary);
   flex-shrink: 0;
@@ -3726,29 +3720,25 @@ footer.blk {
 }
 #cart-drawer-panel .cd-si-price.free { color: var(--color-success); font-weight: 500; }
 
-/* 푸터 — 176px 절대좌표 */
+/* 푸터 — flow 레이아웃 (cd-body 밖, 항상 하단 고정) */
 #cart-drawer-panel .cd-footer {
   flex-shrink: 0;
-  height: 176px;
-  padding: 0;
-  position: relative;
-  box-sizing: border-box;
+  padding: 0 28px 24px;
+}
+#cart-drawer-panel .cd-total-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 16px 0 4px;
+  box-shadow: inset 0 1px 0 0 var(--color-border-secondary);
 }
 #cart-drawer-panel .cd-subtotal-label {
-  position: absolute;
-  left: 28px;
-  bottom: 114px;
   font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
-  font-weight: 400;
-  letter-spacing: var(--ls-body);
-  color: var(--color-text-tertiary);
-  line-height: 1;
+  font-size: var(--type-body-ui-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
 }
 #cart-drawer-panel .cd-subtotal-price {
-  position: absolute;
-  right: 28px;
-  bottom: 112px;
   font-family: var(--font-en);
   font-size: var(--type-price-l-size);
   font-weight: var(--type-price-l-weight);
@@ -3756,20 +3746,16 @@ footer.blk {
   line-height: 1;
 }
 #cart-drawer-panel .cd-note {
-  position: absolute;
-  right: 28px;
-  bottom: 88px;
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
   font-weight: 400;
   color: var(--color-text-tertiary);
+  text-align: right;
+  margin-top: 4px;
+  margin-bottom: 16px;
   line-height: 1;
 }
 #cart-drawer-panel .cd-cta-row {
-  position: absolute;
-  left: 28px;
-  right: 28px;
-  bottom: 21px;
   display: flex;
   flex-direction: row;
   gap: var(--gap-xs);
@@ -8076,13 +8062,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   #cart-drawer-panel .cd-shipping-item .shipping-gauge { width: 88px; }
 }
 .cp-shipping-label {
+  font-size: var(--type-body-ui-size);
   font-weight: 400; color: var(--color-text-secondary);
   flex-shrink: 0; margin-right: var(--gap-lg);
 }
 .cp-shipping-notice { flex: 1; font-weight: 400; color: var(--color-text-tertiary); line-height: 1.5; }
 .cp-shipping-price {
   font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
+  font-size: var(--type-body-ui-size);
   font-weight: 400;
   color: var(--color-text-primary);
   flex-shrink: 0; text-align: right;
@@ -8095,10 +8082,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cp-subtotal-label {
   position: absolute; right: 229px; top: 55px;
   font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
-  font-weight: 400;
-  letter-spacing: var(--ls-body);
-  color: var(--color-text-tertiary);
+  font-size: var(--type-body-ui-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
   line-height: 1;
 }
 .cp-subtotal-price {
@@ -8293,7 +8279,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cp-footer {
     position: static;
     height: auto;
-    padding: 24px 0 40px;
+    padding: 16px 0 40px;
+    box-shadow: inset 0 1px 0 0 var(--color-border-secondary);
     display: grid;
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto auto;

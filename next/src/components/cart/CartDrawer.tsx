@@ -154,9 +154,11 @@ export default function CartDrawer() {
                       <div className="cd-item-category">{item.category}</div>
                       <div className="cd-item-name">
                         <span className="cd-item-name-kr">{krName}</span>
-                        <span className="cd-item-meta-inline">
-                          {` ${[item.volume, subBadge, `${item.qty}개`].filter(Boolean).join(' · ')}`}
-                        </span>
+                        {[item.volume, subBadge].filter(Boolean).length > 0 && (
+                          <span className="cd-item-meta-inline">
+                            {` ${[item.volume, subBadge].filter(Boolean).join(' · ')}`}
+                          </span>
+                        )}
                       </div>
                       <div className="cd-item-bottom">
                         {item.volume && (
@@ -236,32 +238,34 @@ export default function CartDrawer() {
                   </div>
                 )}
               </div>
-
-              {/* 푸터 */}
-              <div className="cd-footer">
-                <span className="cd-subtotal-label">결제예정금액</span>
-                <span className="cd-subtotal-price">{formatWon(totalPrice)}</span>
-                <div className="cd-note">부가세 포함</div>
-                <div className="cd-cta-row">
-                  <button
-                    className="cta-btn cta-btn-light-outline cd-cta-secondary"
-                    type="button"
-                    onClick={handleViewCart}
-                  >
-                    장바구니 보기
-                  </button>
-                  <button
-                    className="cta-btn cta-btn-light-filled cd-cta-primary"
-                    type="button"
-                    onClick={handleCheckout}
-                  >
-                    주문하기
-                  </button>
-                </div>
-              </div>
             </>
           )}
         </div>
+        {!isEmpty && (
+          <div className="cd-footer">
+            <div className="cd-total-row">
+              <span className="cd-subtotal-label">결제예정금액</span>
+              <span className="cd-subtotal-price">{formatWon(totalPrice)}</span>
+            </div>
+            <div className="cd-note">부가세 포함</div>
+            <div className="cd-cta-row">
+              <button
+                className="cta-btn cta-btn-light-outline cd-cta-secondary"
+                type="button"
+                onClick={handleViewCart}
+              >
+                장바구니 보기
+              </button>
+              <button
+                className="cta-btn cta-btn-light-filled cd-cta-primary"
+                type="button"
+                onClick={handleCheckout}
+              >
+                주문하기
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
