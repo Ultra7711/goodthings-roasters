@@ -437,6 +437,14 @@
 - **실제:** `/cart` 진입 후 로딩이 체감상 오래 걸림
 - **추정 범위:** CartClient 가 client-only island 로 마운트되는 지연 + TanStack Query `useCartQuery` 첫 fetch latency 복합 가능성. Suspense boundary 또는 skeleton UI 부재. 드로어에서 이미 로드된 cart 데이터를 `/cart` 에서 재사용하지 못하는 캐시 미스도 확인 필요.
 
+### BUG-151 — 비회원 결제 진입 시 비밀번호 필드 자동완성 선채움 🟡
+
+- **발견:** 2026-04-25 / S78
+- **재현 경로:** 비회원으로 결제 페이지(`/checkout`) 진입 → 비밀번호·비밀번호 확인 필드에 값이 이미 입력된 상태
+- **실제:** 사용자가 아무것도 입력하지 않았는데 필드에 값이 채워져 있음
+- **기대:** 결제 페이지 최초 진입 시 빈 필드
+- **추정 범위:** 브라우저 autofill — `autocomplete` 속성 미설정 또는 부적절한 값(예: `"current-password"`) 으로 인해 저장된 자격증명이 주입. `CheckoutPage.tsx` `guestPw` / `guestPw2` TextField에 `autoComplete="new-password"` (또는 `"off"`) 추가 필요. BUG-114 브라우저 자동완성 계열 이슈.
+
 ---
 
 ### BUG-130 — ✅ 헤더 다크↔라이트 모드 전환 깜빡임
