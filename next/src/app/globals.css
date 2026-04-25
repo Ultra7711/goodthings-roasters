@@ -2286,8 +2286,10 @@ footer.blk {
 }
 
 /* ══════════════════════════════════════════
-   공통 페이지 타이틀 영역 — Shop / Menu / GoodDays (BUG-139)
+   공통 페이지 타이틀 영역 — Shop / Menu / GoodDays 전용 (BUG-139)
    font/color/margin 공통화로 드리프트 제거. ID selector 는 애니메이션만 담당.
+   외부 3페이지 (Login/MyPage/BizInquiry) 는 페이지 성격 차이로 공통화 제외 ·
+   `lp-*` / `mp-*` / `bi-*` prefix 격리 유지. (D-025 · 2026-04-25)
    ══════════════════════════════════════════ */
 .page-title-area { margin-bottom: 48px; }
 .page-title {

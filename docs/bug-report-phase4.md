@@ -312,10 +312,11 @@
 - **수정 (2단계):** `#search-dim` 에 `touch-action: none` + `--dim-top` 을 `headerBottom + SEARCH_PANEL_HEIGHT` → `headerBottom` 으로 변경. 딤이 헤더 아래 viewport 전체 덮음 · 검색 패널 z-index(--z-modal=300) > 딤(40) 이라 패널 위 유지. outside tap close 부가 해결.
 - **상세:** `memory/project_bug006_deferred_bugs.md` DB-03
 
-### BUG-139 — ✅ 공통 `.page-title` / `.page-subtitle` / `.page-title-area` / `.page-filter-wrap` 리팩토링 (1차) — S75 closure (`49885c4a`)
+### BUG-139 — ✅ 공통 `.page-title` / `.page-subtitle` / `.page-title-area` / `.page-filter-wrap` 리팩토링 — S75/S76 closure (`49885c4a` · D-025)
 
 - **발견:** 2026-04-24 / S69 (BUG-006 DB-08 승격)
-- **해결 (1차):** 2026-04-25 / S75 / `49885c4a`
+- **해결 (1차):** 2026-04-25 / S75 / `49885c4a` (Shop/Menu/GoodDays)
+- **closure (2차):** 2026-04-25 / S76 / D-025 (외부 3페이지 공통화 포기 — prefix 격리 유지)
 - **배경:** /shop · /menu · /gooddays 3 페이지에 동일한 font/color/opacity/transform 속성이 ID selector 별로 중복 선언. 현재 값은 통일됐으나 구조적 드리프트 리스크 상시.
 - **1차 수정 (3페이지):**
   - `globals.css` 에 공통 `.page-title-area` / `.page-title` / `.page-subtitle` / `.page-filter-wrap` 4 클래스 신설 (line-height: `var(--lh-tight)`)
@@ -323,8 +324,70 @@
   - `#cm-title-area` 의 flex column 제거 → block 통일
   - GoodDaysPage JSX 에 `<div className="page-title-area">` wrapper 추가 → `#gd-page .page-subtitle { margin-bottom: 48px }` override 제거 (wrapper 의 48px 통합)
   - `+58 / -110` 라인 · 6 files
-- **2차 검토 (외부 3페이지):** Login/MyPage/BizInquiry 는 `lp-*` / `mp-*` / `#bi-*` prefix 로 격리 · 스타일 차이 (letter-spacing · line-height · Login H2 · MyPage 모바일 H2 다운 · entry animation 유무) 는 drift 가 아닌 페이지 성격 차이로 판정 → **공통화 제외 권장** (옵션 A). 상세: `memory/project_bug139_phase2_plan.md`
-- **상세:** `memory/project_bug006_deferred_bugs.md` DB-08 · `memory/project_bug139_phase2_plan.md`
+- **2차 결정 (D-025 · 옵션 A 채택):** Login/MyPage/BizInquiry 는 `lp-*` / `mp-*` / `#bi-*` prefix 격리 유지. 스타일 차이 (letter-spacing `--ls-heading` vs `--ls-display` · line-height 1.3 vs 1.2 · Login H2 · MyPage 모바일 H2 다운 · entry animation 유무) 는 drift 가 아닌 **페이지 성격 차이** (폼 UI vs 콘텐츠 갤러리). subtitle/wrapper 구조도 완전 이질적 (switch-wrap · welcome-wrap · page-desc+note) → title 만 공통화 효과 제한적. CLAUDE.md "파일 격리 원칙" 부합. `globals.css` 공통 클래스 주석에 "Shop/Menu/GoodDays 전용" 명시.
+- **상세:** `memory/project_bug006_deferred_bugs.md` DB-08 · `memory/project_bug139_phase2_plan.md` · `memory/project_bug006_decisions_log.md` D-025
+
+## 추가 리포트 (S76, 2026-04-25)
+
+### BUG-140 — 햄버거 메뉴 드로어 로그인 토글 → "로그아웃 · 마이페이지" 분리 🟡
+
+- **발견:** 2026-04-25 / S76
+- **현재:** 모바일 햄버거 드로어에서 단일 슬롯 토글. 비로그인 시 "로그인", 로그인 후 같은 슬롯이 "로그아웃" 으로 전환.
+- **제안:** 로그인 상태에서 **"로그아웃 · 마이페이지"** 두 링크를 별도로 노출, 각각 분리된 액션 연결.
+- **근거:** 단일 슬롯 토글은 로그인 후 마이페이지 진입에 별도 경로 필요. 분리 시 1탭으로 양쪽 모두 접근 가능 + 로그인 상태 인지가 명확.
+- **고려:** 시각 노이즈 미미 / 가독성 우려는 구분자 (`·` 또는 두 행 분리) 디자인으로 해결 가능.
+- **관련:** BUG-126 (로그인 상태 메뉴 드로어 로그아웃 버튼 추가) 의 구체화 안으로 통합 검토 필요. BUG-126 → BUG-140 으로 흡수 또는 묶음 처리 후보.
+- **추정 범위:** `MobileNavDrawer` `isLoggedIn` 분기에서 단일 토글 → 두 슬롯 분리 · 라우팅 분기.
+
+### BUG-141 — 비즈니스 인콰이어리 "관심 제품" 모두 선택 시 페이지 좌우 가로 스크롤 🟠
+
+- **발견:** 2026-04-25 / S76
+- **재현 경로:** /biz-inquiry → "관심 제품" 체크박스 모두 선택 → 선택된 라벨 합산 폭이 인풋 필드를 초과하면서 페이지 가로 스크롤 발생
+- **실제:** 관심 제품 인풋필드가 자체 폭을 넘어 가로 확장 → 같은 행/폼 내 다른 인풋필드까지 같이 끌려가서 오버플로우. 페이지가 좌우 스크롤됨.
+- **기대:** 관심 제품 인풋필드 가로 크기 내에서 **선택된 라벨 텍스트만 좌우 스크롤** 되거나 줄바꿈. 페이지 전체 스크롤 발생 금지.
+- **추정 범위:** `BizInquiryPage` 관심 제품 선택 표시 컨테이너에 `overflow-x: auto` + `white-space: nowrap` + `min-width: 0` (flex shrink). 부모 폼 wrapper 에 `overflow-x: hidden` 안전망.
+- **결정 필요:** 가로 스크롤 vs 줄바꿈(wrap) 중 디자인 선택.
+
+### BUG-142 — 라벨 eyebrow 애니메이션 스크롤 위치 반응 (중앙 진입/이탈 역재생) 🟢
+
+- **발견:** 2026-04-25 / S76
+- **현재:** eyebrow 라벨 (예: 섹션 상단 "01 — Story" 등) 등장 애니메이션이 1회 진입 시점 기준으로만 재생. 스크롤로 화면 중앙에서 멀어진 후 다시 돌아와도 정적 상태 유지.
+- **기대:** 라벨이 **화면 중앙 근처에 진입하면 재생 · 중앙에서 멀어지면 역재생** (양방향). 스크롤 위치를 progress 로 환산하여 애니메이션 timeline 연동.
+- **추정 범위:** `IntersectionObserver` threshold 다단 + `scroll-timeline` (CSS) 또는 IO progress → CSS variable bind. 모바일 성능 고려 (rAF throttle).
+- **참조:** Phase 2 "Scroll Variable Font" 트랙 (`project_design_interaction_plan.md`) 과 묶음 후보.
+
+### BUG-143 — 모바일 버튼 호버 애니메이션 종료 후 액션 실행 (UX 호흡) 🟡
+
+- **발견:** 2026-04-25 / S76
+- **현재:** 모바일 탭 시 호버 애니메이션과 액션 (네비게이션·서브밋) 이 동시 발화 → 사용자가 호버 피드백을 인지하기 전에 다음 화면 진입. "탭한 게 인식됐는지" 확신이 약함.
+- **기대:** 탭 → 호버 애니메이션 재생 → **재생 종료 후 액션 실행**. 호흡 늘리기 + 명확한 피드백.
+- **추정 범위:** 공통 CTA 컴포넌트 (`cta-btn-*`) 의 click 핸들러를 `pointercoarse` 미디어 쿼리/touch 디바이스 분기에서 `transitionend` (또는 토큰 duration) 후 액션 실행으로 래핑. desktop 동작은 즉시 유지.
+- **리스크:** 응답성 저하 체감 가능 → 토큰 duration 200~300ms 범위로 조정 필요 + double tap 차단 정책 확인.
+
+### BUG-144 — 모바일 버튼 드래그 시 호버 애니메이션 발화 차단 🟡
+
+- **발견:** 2026-04-25 / S76
+- **현재:** 모바일에서 페이지 스크롤을 위해 손가락이 버튼 위를 지나가면 호버 애니메이션이 잠깐 재생됨 → 의도하지 않은 활성화 피드백.
+- **기대:** **드래그/스크롤 제스처 도중에는 호버 애니메이션 차단**. 명확한 탭만 호버 발화.
+- **추정 범위:** `pointerdown` → `pointermove` 임계값 (예: 5px 이동) 초과 시 호버 클래스 제거 또는 `:hover` 미디어 쿼리 (`@media (hover: hover)`) 로 desktop 한정. 후자가 simpler.
+- **묶음:** BUG-143 과 같은 컴포넌트 (`cta-btn-*`) 수정 — S77 묶음 D 후보.
+
+### BUG-145 — 카카오맵 마커 팝업 "카카오맵 상세" → "상세보기" 명칭 변경 🟢
+
+- **발견:** 2026-04-25 / S76
+- **현재:** 스토어 페이지 카카오맵 마커 클릭 시 표시되는 팝업 내 액션 버튼 라벨이 "카카오맵 상세".
+- **기대:** **"상세보기"** 로 변경. (외부 서비스명 노출 최소화 · 일관된 한국어 UI 언어)
+- **추정 범위:** `StorePage` (또는 `KakaoMapMarker` 컴포넌트) 의 마커 InfoWindow HTML 문자열. 단순 텍스트 교체.
+
+### BUG-146 — 카카오맵 마커 크기 확대 🟢
+
+- **발견:** 2026-04-25 / S76
+- **현재:** 카카오맵 마커가 작아 페이지 전체 시각 위계상 약함. 모바일에서 특히 시인성 부족.
+- **기대:** 마커 크기 현재보다 확대 (구체 px 값은 디자인 후속).
+- **추정 범위:** `kakao.maps.MarkerImage` 의 size 파라미터 (또는 `MarkerImage` 미사용 시 default 마커 → 커스텀 이미지 전환). 사이즈 토큰 정의 후 적용.
+- **묶음:** BUG-145 와 같은 컴포넌트 — 함께 처리 권장.
+
+---
 
 ### BUG-130 — ✅ 헤더 다크↔라이트 모드 전환 깜빡임
 
