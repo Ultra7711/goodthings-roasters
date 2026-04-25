@@ -22,8 +22,8 @@ export const PASSWORD_MIN_LENGTH = 6;
 /** 비밀번호 최대 길이 */
 export const PASSWORD_MAX_LENGTH = 16;
 
-/** 비회원 주문 비밀번호 최소 길이 (간이 검증용) */
-export const GUEST_PASSWORD_MIN_LENGTH = 6;
+/** 비회원 주문 비밀번호 최소 길이 — 서버 GUEST_PIN_MIN(4)과 일치 */
+export const GUEST_PASSWORD_MIN_LENGTH = 4;
 
 /* ══════════════════════════════════════════
    검증 함수

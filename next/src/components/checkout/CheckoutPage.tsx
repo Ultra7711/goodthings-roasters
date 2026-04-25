@@ -34,6 +34,7 @@ import { shakeFields } from '@/lib/shakeFields';
 import { TextField } from '@/components/ui/TextField';
 import { SearchIcon } from '@/components/ui/InputIcons';
 import type { PaymentMethod } from '@/types/checkout';
+import { GUEST_PASSWORD_MIN_LENGTH } from '@/lib/validation';
 import {
   buildOrderPayload,
   createOrder,
@@ -219,7 +220,7 @@ export default function CheckoutPage() {
   }, []);
 
   /* ── 비밀번호 확인 필드 등장 ── */
-  const showPw2 = form.guestPw.length >= 4;
+  const showPw2 = form.guestPw.length >= GUEST_PASSWORD_MIN_LENGTH;
 
   /* ── 결제수단 전환 fade ── */
   const [payFade, setPayFade] = useState(false);
@@ -668,8 +669,9 @@ export default function CheckoutPage() {
                     onClear={() => setField('guestPw', '')}
                     onKeyDown={chpNav}
                     showPasswordToggle
+                    autoComplete="new-password"
                     error={errors.guestPw}
-                    helper="4자 이상 입력해 주세요."
+                    helper={`${GUEST_PASSWORD_MIN_LENGTH}자 이상 입력해 주세요.`}
                   />
                   <TextField
                     type="password"
@@ -680,6 +682,7 @@ export default function CheckoutPage() {
                     onClear={() => setField('guestPw2', '')}
                     onKeyDown={chpNav}
                     showPasswordToggle
+                    autoComplete="new-password"
                     error={errors.guestPw2}
                     helper="비밀번호를 한 번 더 입력하세요."
                     wrapperClass={`pw2-field${showPw2 ? ' pw2-visible' : ''}`}
