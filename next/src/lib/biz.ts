@@ -33,9 +33,8 @@ export const BIZ_VOLUME_OPTIONS: BizDropdownOption[] = [
 /** 희망 납품 주기 — 선택 */
 export const BIZ_CYCLE_OPTIONS: BizDropdownOption[] = [
   { value: 'weekly', label: '주 1회' },
-  { value: 'biweekly', label: '격주' },
-  { value: 'monthly2', label: '월 2회' },
   { value: 'monthly', label: '월 1회' },
+  { value: 'monthly2', label: '월 2회' },
   { value: 'undecided', label: '미정 (상담 희망)' },
 ];
 
