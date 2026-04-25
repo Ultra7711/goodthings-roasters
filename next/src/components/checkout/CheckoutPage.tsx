@@ -822,16 +822,10 @@ export default function CheckoutPage() {
                       <Image src={item.image} alt={item.name} width={56} height={56} style={{ objectFit: 'contain' }} />
                     )}
                   </div>
-                  <span className="chp-sum-item-qty">{item.qty}</span>
                 </div>
                 <div className="chp-sum-item-info">
                   <div className="chp-sum-item-name">{extractKrName(item.name)}</div>
-                  <div className="chp-sum-item-badges">
-                    {item.volume && <span className="chp-sum-item-badge">{item.volume}</span>}
-                    {item.type === 'subscription' && item.period && (
-                      <span className="chp-sum-item-badge">정기 {item.period}</span>
-                    )}
-                  </div>
+                  <span className="chp-sum-item-qty-txt">× {item.qty}</span>
                 </div>
                 <div className="chp-sum-item-price">{formatPrice(item.priceNum * item.qty)}</div>
               </div>
