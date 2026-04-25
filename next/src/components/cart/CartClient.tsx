@@ -244,7 +244,7 @@ export default function CartClient() {
                 {isFreeShipping ? '무료' : formatWon(SHIPPING_FEE)}
               </span>
             </div>
-            {!isFreeShipping && subtotal > 0 && (
+            {subtotal > 0 && (
               <div className="shipping-gauge">
                 <div
                   className="shipping-gauge-fill"
