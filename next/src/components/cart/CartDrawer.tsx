@@ -206,9 +206,12 @@ export default function CartDrawer() {
                         title="삭제"
                         onClick={() => removeItem.mutate(item.id)}
                       >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M17,7l-10,10" />
-                          <path d="M7,7l10,10" />
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10,11v6" />
+                          <path d="M14,11v6" />
+                          <path d="M19,6v14c0,1.1-.9,2-2,2H7c-1.1,0-2-.9-2-2V6" />
+                          <path d="M3,6h18" />
+                          <path d="M8,6v-2c0-1.1.9-2,2-2h4c1.1,0,2,.9,2,2v2" />
                         </svg>
                       </button>
                     </div>
@@ -220,7 +223,7 @@ export default function CartDrawer() {
               <div className="cd-shipping-item">
                 <div className="cd-si-main">
                   <span className="cd-si-label">배송비</span>
-                  <span className="cd-si-notice">
+                  <span className={`cd-si-notice${isFreeShipping ? ' free' : ''}`}>
                     {isFreeShipping
                       ? '무료 배송이 적용됩니다.'
                       : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하시면 무료 배송됩니다.`}

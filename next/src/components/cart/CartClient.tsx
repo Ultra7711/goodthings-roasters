@@ -8,8 +8,7 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -36,14 +35,7 @@ export default function CartClient() {
   const updateQty = useUpdateCartQty();
   const removeItem = useRemoveCartItem();
   const router = useRouter();
-  const [clearOpen, setClearOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -54,11 +46,6 @@ export default function CartClient() {
   }, []);
 
   const isEmpty = items.length === 0;
-
-  function handleClearAll() {
-    items.forEach((item) => removeItem.mutate(item.id));
-    setClearOpen(false);
-  }
   const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
   const gaugePct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
   const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
@@ -68,27 +55,9 @@ export default function CartClient() {
   }
 
   return (
-    <>
     <div className="cp-root" ref={rootRef}>
       <div className="cp-page-header">
         <h1 className="cp-title-text">장바구니</h1>
-        {!isEmpty && (
-          <button
-            type="button"
-            className="cp-title-delete"
-            aria-label="장바구니 전체 삭제"
-            title="전체 삭제"
-            onClick={() => setClearOpen(true)}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10,11v6" />
-              <path d="M14,11v6" />
-              <path d="M19,6v14c0,1.1-.9,2-2,2H7c-1.1,0-2-.9-2-2V6" />
-              <path d="M3,6h18" />
-              <path d="M8,6v-2c0-1.1.9-2,2-2h4c1.1,0,2,.9,2,2v2" />
-            </svg>
-          </button>
-        )}
       </div>
 
       {isEmpty ? (
@@ -112,21 +81,7 @@ export default function CartClient() {
             <span className="cp-th-price">가격</span>
             <span className="cp-th-qty">수량</span>
             <span className="cp-th-total">합계</span>
-            <button
-              type="button"
-              className="cp-th-delete"
-              aria-label="장바구니 전체 삭제"
-              title="전체 삭제"
-              onClick={() => setClearOpen(true)}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10,11v6" />
-                <path d="M14,11v6" />
-                <path d="M19,6v14c0,1.1-.9,2-2,2H7c-1.1,0-2-.9-2-2V6" />
-                <path d="M3,6h18" />
-                <path d="M8,6v-2c0-1.1.9-2,2-2h4c1.1,0,2,.9,2,2v2" />
-              </svg>
-            </button>
+            <span className="cp-th-delete">삭제</span>
           </div>
 
           <div className="cp-items-list">
@@ -166,9 +121,11 @@ export default function CartClient() {
                       <div className="cp-item-category">{item.category}</div>
                       <div className="cp-item-name">
                         <span className="cp-item-name-kr">{krName}</span>
-                        <span className="cp-item-meta-inline">
-                          {` · ${[item.volume, subBadge, `${item.qty}개`].filter(Boolean).join(' · ')}`}
-                        </span>
+                        {[item.volume, subBadge].some(Boolean) && (
+                          <span className="cp-item-meta-inline">
+                            {` ${[item.volume, subBadge].filter(Boolean).join(' · ')}`}
+                          </span>
+                        )}
                       </div>
                       {(item.volume || subBadge) && (
                         <div className="cp-item-badges">
@@ -222,9 +179,12 @@ export default function CartClient() {
                     title="삭제"
                     onClick={() => removeItem.mutate(item.id)}
                   >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M16,8l-8,8" />
-                      <path d="M8,8l8,8" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10,11v6" />
+                      <path d="M14,11v6" />
+                      <path d="M19,6v14c0,1.1-.9,2-2,2H7c-1.1,0-2-.9-2-2V6" />
+                      <path d="M3,6h18" />
+                      <path d="M8,6v-2c0-1.1.9-2,2-2h4c1.1,0,2,.9,2,2v2" />
                     </svg>
                   </button>
                 </div>
@@ -235,7 +195,7 @@ export default function CartClient() {
           <div className="cp-shipping-row">
             <div className="cp-shipping-main">
               <span className="cp-shipping-label">배송비</span>
-              <span className="cp-shipping-notice">
+              <span className={`cp-shipping-notice${isFreeShipping ? ' free' : ''}`}>
                 {isFreeShipping
                   ? '무료 배송이 적용됩니다.'
                   : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하시면 무료 배송됩니다.`}
@@ -273,32 +233,6 @@ export default function CartClient() {
           </div>
         </>
       )}
-
     </div>
-    {mounted && clearOpen && createPortal(
-      <div
-        className="mp-modal-overlay"
-        style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-        onClick={() => setClearOpen(false)}
-      >
-        <div className="mp-modal mp-modal--calm" onClick={(e) => e.stopPropagation()}>
-          <p className="mp-modal-title">장바구니를 비우시겠어요?</p>
-          <p className="mp-modal-desc">
-            담으신 모든 상품이 삭제됩니다.<br />
-            이 작업은 되돌릴 수 없습니다.
-          </p>
-          <div className="mp-modal-actions">
-            <button className="mp-modal-confirm" type="button" onClick={handleClearAll}>
-              전체 삭제
-            </button>
-            <button className="mp-modal-cancel" type="button" onClick={() => setClearOpen(false)}>
-              취소
-            </button>
-          </div>
-        </div>
-      </div>,
-      document.body,
-    )}
-    </>
   );
 }
