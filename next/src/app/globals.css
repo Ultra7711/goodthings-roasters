@@ -861,9 +861,88 @@ button.hdr-icon-btn { background: none; border: none; }
   min-height: 44px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 .mn-account-link:hover { opacity: 1; }
+/* ── 로그인 identity 카드 (BUG-140 · S77) ──
+   3그룹 구조: 그룹1 (welcome + 마이페이지|로그아웃) · 그룹2 (NAV 4개) · 그룹3 (Wholesale).
+   그룹 간 32px 분리: user-wrap margin-bottom 32 (= Wholesale margin-top 32 와 동일 패턴).
+   - welcome 텍스트만 15px body-reading · secondary
+   - 마이페이지 | 로그아웃 은 NAV 와 동일한 H3 nav 크기
+   - 마이페이지 hover → 화살표 width 0 → 24px 펼쳐지면서 로그아웃 우측 자연 밀림
+   - 로그아웃 은 화살표 없음 */
+.mn-user-wrap {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 32px;
+}
+/* 비로그인 시 NAV 첫 항목 = "로그인" (.mn-link). 로그인 ↔ NAV 사이도 32px 분리. */
+.mn-nav > .mn-link:first-child {
+  margin-bottom: 32px;
+}
+.mn-welcome-txt {
+  display: block;
+  font-family: var(--font-kr);
+  font-size: 16px;
+  font-weight: var(--type-body-reading-weight);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--ls-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-top: 16px;
+}
+.mn-account-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: 16px 0;
+  min-height: 44px;
+}
+.mn-account-link-inline {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-h3-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-nav);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  transition: gap var(--duration-hover) ease, color var(--duration-hover) ease;
+}
+.mn-account-link-inline:hover { color: var(--color-text-primary); }
+.mn-account-link-inline:hover { gap: 8px; }
+/* inline 화살표: 평상시 width 0 → 호버 시 24px 펼쳐짐 (옆 텍스트 자연 밀림).
+   compound 셀렉터로 specificity 0,2,0 → base .mn-link-arrow (0,1,0) 의 width 24px 덮음.
+   duration·easing 은 NAV `.mn-link-arrow` 와 동일 (var(--duration-hover) 200ms ease). */
+.mn-link-arrow.mn-link-arrow-inline {
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    width var(--duration-hover) ease,
+    opacity var(--duration-hover) ease;
+}
+.mn-account-link-inline:hover .mn-link-arrow.mn-link-arrow-inline {
+  width: 24px;
+  opacity: 1;
+}
+/* 골드 세로 라인 — .st-location-hours border-left 2px gold 패턴 차용 (BUG-140 · S77).
+   텍스트 height 에 맞추기 위해 1em 사용 (현재 H3 18px 컨텍스트 → 18px 라인). */
+.mn-account-sep {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--color-accent-gold);
+  align-self: center;
+  flex-shrink: 0;
+}
 .mn-close {
   width: 40px;
   height: 40px;
@@ -898,7 +977,7 @@ button.hdr-icon-btn { background: none; border: none; }
   min-height: 44px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 .mn-link-text { display: inline-block; }
 .mn-link-arrow {
@@ -910,13 +989,16 @@ button.hdr-icon-btn { background: none; border: none; }
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: opacity 350ms ease;
+  transition: opacity var(--duration-hover) ease;
 }
+/* 모바일 드로어 NAV 화살표 hover: cat-arrow-slide (translateX -16 → 0 펼쳐짐) 유지,
+   duration 만 var(--duration-hover) 200ms 로 단축 (기존 600ms → 200ms).
+   마이페이지 inline 은 width 0→24 펼쳐짐 패턴 — 둘 다 "펼쳐짐" 효과로 통일 (BUG-140 · S77). */
 .mn-link:hover .mn-link-arrow,
 .mn-account-link:hover .mn-link-arrow {
   opacity: 1;
-  transition: opacity var(--duration-fade) ease-out;
-  animation: cat-arrow-slide var(--duration-fade) ease-out;
+  transition: opacity var(--duration-hover) ease;
+  animation: cat-arrow-slide var(--duration-hover) ease-out;
 }
 .mn-footer {
   flex-shrink: 0;
