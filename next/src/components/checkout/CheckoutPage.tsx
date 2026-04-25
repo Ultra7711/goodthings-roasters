@@ -113,6 +113,11 @@ export default function CheckoutPage() {
   const { open: openDrawer } = useCartDrawer();
   const atTop = useAtTop();
 
+  /* ── 마운트 가드: SSR/클라이언트 초기 렌더 일치 (hydration mismatch 방지)
+     서버는 cart 상태를 알 수 없으므로 마운트 전에는 항상 로딩 스켈레톤을 표시. */
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   /* ── 장바구니 (ADR-004 Step B: TanStack Query) ──
      isLoading: 최초 로드 중 — 스켈레톤 UI. BUG-003 근본 해결. */
   const {
@@ -427,7 +432,7 @@ export default function CheckoutPage() {
 
   /* ── 하이드레이션 대기 스켈레톤 ──
      ['cart'] 최초 로드 중엔 items 판정 불가. 미니 헤더만 그린다. */
-  if (cartLoading) {
+  if (!mounted || cartLoading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
         <div
