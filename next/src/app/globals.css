@@ -6557,9 +6557,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-legal-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 20px; margin-top: 40px; }
 .chp-legal-link {
   flex: 0 0 auto; font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
-  color: var(--color-text-caption); cursor: pointer;
+  color: var(--color-text-secondary); cursor: pointer;
   text-decoration: underline;
-  text-decoration-color: var(--color-border-primary);
+  text-decoration-color: var(--color-border-secondary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
   transition: text-decoration-color var(--duration-hover) ease;
