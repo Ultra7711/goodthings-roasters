@@ -455,13 +455,14 @@ textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
 textarea:-webkit-autofill:focus,
 textarea:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #FBF8F3 inset !important;
-  box-shadow: 0 0 0 1000px #FBF8F3 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #FAFAF8 inset !important;
+  box-shadow: 0 0 0 1000px #FAFAF8 inset !important;
   -webkit-text-fill-color: #1C1B19 !important;
   caret-color: #1C1B19;
+  /* calc(infinity * 1s) 는 iOS 16.4 미만 미지원 → 99999s 로 교체 (BUG-106) */
   transition:
-    background-color calc(infinity * 1s) step-end,
-    color calc(infinity * 1s) step-end;
+    background-color 99999s step-end,
+    color 99999s step-end;
 }
 
 .root {
