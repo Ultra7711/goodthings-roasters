@@ -6198,9 +6198,9 @@ footer.blk {
 
 /* 좌측 폼 */
 .chp-left { padding-top: 48px; }
-.chp-section { margin-bottom: 56px; padding-top: 56px; box-shadow: inset 0 1px 0 0 var(--color-border-tertiary); }
-.chp-section:first-child { border-top: none; padding-top: 0; }
-.chp-section.chp-section--no-border { border-top: none; padding-top: 0; }
+.chp-section { margin-bottom: 56px; padding-top: 56px; }
+.chp-section:first-child { padding-top: 0; }
+.chp-section.chp-section--no-border { padding-top: 0; }
 .chp-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .chp-section-title {
   font-family: var(--font-en); font-size: var(--type-heading-m-size); font-weight: var(--type-heading-m-weight);
