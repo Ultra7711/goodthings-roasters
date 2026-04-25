@@ -446,24 +446,30 @@ body {
 
 /* Chrome 자동완성 파란 배경 제거 — 2-레이어 방어:
    ① inset box-shadow(!important) 로 배경색 덮기 (hex 직접 지정, iOS CSS변수 미지원 대응)
+      두 번째 shadow 값에 하단 라인(--color-border-secondary = rgba(28,27,25,.12)) 복원
+      — autofill !important 가 .chp-input box-shadow(하단 라인) 전체를 덮는 문제 대응
    ② transition: step-end + 사실상 무한 duration 으로 UA !important 스타일을 시간축 차단
       (noahliebman.net/2024/08 기법: transitions take precedence over !important UA styles) */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
 input:-webkit-autofill:active,
 textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
-textarea:-webkit-autofill:focus,
 textarea:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #FBF8F3 inset !important;
-  box-shadow: 0 0 0 1000px #FBF8F3 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #FBF8F3 inset, 0 -1px 0 0 rgba(28,27,25,.12) inset !important;
+  box-shadow: 0 0 0 1000px #FBF8F3 inset, 0 -1px 0 0 rgba(28,27,25,.12) inset !important;
   -webkit-text-fill-color: #1C1B19 !important;
   caret-color: #1C1B19;
   /* calc(infinity * 1s) 는 iOS 16.4 미만 미지원 → 99999s 로 교체 (BUG-106) */
   transition:
     background-color 99999s step-end,
     color 99999s step-end;
+}
+/* focus 시 하단 라인 2px + 다크 컬러 (--color-text-primary = #1C1B19) */
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #FBF8F3 inset, 0 -2px 0 0 #1C1B19 inset !important;
+  box-shadow: 0 0 0 1000px #FBF8F3 inset, 0 -2px 0 0 #1C1B19 inset !important;
 }
 
 .root {
