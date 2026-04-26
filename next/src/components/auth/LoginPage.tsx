@@ -353,23 +353,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 비회원 구매 박스 (체크아웃 진입 시) */}
-        {fromCheckout && mode === 'login' && (
-          <div className="lp-guest-buy-box">
-            <p className="lp-guest-buy-desc">
-              비회원도 상품구매가 가능하나<br />회원혜택에서 제외됩니다.
-            </p>
-            <button
-              className="lp-guest-buy-btn"
-              type="button"
-              onClick={() => router.push('/checkout')}
-              data-gtr-tap
-            >
-              비회원 주문
-            </button>
-          </div>
-        )}
-
         {/* 폼 영역 */}
         <div className="lp-right">
           {/* ── 로그인 폼 ── */}

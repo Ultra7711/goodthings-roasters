@@ -16,7 +16,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
@@ -100,6 +100,7 @@ function CheckboxIcon() {
 
 /* ══════════════════════════════════════════ */
 export default function CheckoutPage() {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { show: toast } = useToast();
   const { isLoggedIn, isLoading: sessionLoading, user } = useSupabaseSession();
@@ -306,6 +307,18 @@ export default function CheckoutPage() {
       orderCartSigRef.current = null;
     }
   }, [cartSig, user?.id, resetForm]);
+
+  /* ── 재진입 reset (cacheComponents 대응) ──
+     /checkout을 벗어났다가 돌아올 때 isFormRevealed 등 폼 상태를 초기화한다.
+     Activity hide/show 사이클에서 userChanged 가 발생하지 않는 케이스 보완. */
+  const prevPathnameRef = useRef(pathname);
+  useEffect(() => {
+    const prev = prevPathnameRef.current;
+    prevPathnameRef.current = pathname;
+    if (prev !== '/checkout' && pathname === '/checkout') {
+      resetForm();
+    }
+  }, [pathname, resetForm]);
 
   /* ── 언마운트 감시 (Pass 1 CODE/H-1, M-11 공용 훅 추출)
      B-2 이후: step 전환은 이 컴포넌트가 살아 있으므로 언마운트 위험은 낮지만,
