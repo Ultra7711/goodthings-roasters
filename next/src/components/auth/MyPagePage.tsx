@@ -161,16 +161,18 @@ export default function MyPagePage() {
     return () => { document.body.style.overflow = prev; };
   }, [withdrawOpen]);
 
-  /* 커스텀 드롭다운 외부 클릭 닫기 */
+  /* 커스텀 드롭다운 외부 클릭 닫기
+     capture 단계 stopPropagation 으로 하단 아코디언 관통 차단 (BUG-125) */
   useEffect(() => {
     if (!cycleDropdownOpen) return;
-    const close = (e: MouseEvent) => {
+    const onCapture = (e: MouseEvent) => {
       if (cycleDropdownRef.current && !cycleDropdownRef.current.contains(e.target as Node)) {
+        e.stopPropagation();
         setCycleDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
+    document.addEventListener('click', onCapture, true);
+    return () => document.removeEventListener('click', onCapture, true);
   }, [cycleDropdownOpen]);
 
   const openSubAccordion = useCallback((sub: Subscription) => {

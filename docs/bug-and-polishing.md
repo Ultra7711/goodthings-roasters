@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **49 / 55 closure (89.1%)** · 2026-04-26 S84 기준 (BUG-112 ✅ · BUG-160 ✅ · BUG-106 회귀 재closure ✅)
+> **50 / 55 closure (90.9%)** · 2026-04-27 S85 기준 (BUG-125 ✅ · 로그인 비회원 박스 제거 · isFormRevealed 재진입 reset)
 >
 > 카운트 명령:
 > ```bash
@@ -230,13 +230,14 @@
 - **추적 위치:** `memory/project_bug006_deferred_bugs.md` § DB-01
 - **현재 상태:** 1차 수정 완료 (S66 `e37a6555` `scroll-padding-top`) — 재발 모니터링 중. 재발 시 DB-01 섹션에 경로 추가 후 2차 수정 검토.
 
-### BUG-125 — 마이페이지 드롭다운 outside 터치 시 하단 아코디언 동작 🟡
+### BUG-125 — ✅ 마이페이지 드롭다운 outside 터치 시 하단 아코디언 동작 🟡
 
 - **발견:** 2026-04-24
 - **재현 경로:** 마이페이지 드롭다운 오픈 → 드롭다운을 닫으려고 다른 영역 터치
 - **실제:** 드롭다운이 닫히면서 터치한 위치의 아코디언이 함께 열림/닫힘
 - **기대:** outside tap 은 드롭다운 닫기만 수행, 하단 터치 소비 차단
-- **추정 범위:** 드롭다운 바깥 클릭 핸들러가 이벤트 `stopPropagation` 미수행 또는 overlay 가 hit-test 에서 제외
+- **원인:** `document.mousedown` 리스너로 닫았으나 후속 `click` 이벤트가 아코디언까지 전파.
+- **해결 (S85):** `mousedown` → capture-phase `click` + `e.stopPropagation()` 으로 교체. BUG-158과 동일 패턴.
 
 ### BUG-126 — ✅ 로그인 상태 메뉴 드로어에 로그아웃 버튼 추가 🟡 — 이전 세션 closure
 
