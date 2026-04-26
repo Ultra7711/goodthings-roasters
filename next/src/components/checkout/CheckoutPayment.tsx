@@ -196,6 +196,7 @@ export default function CheckoutPayment({
           className="mp-cancel-btn"
           onClick={onBack}
           style={{ width: '100%', height: 48, marginTop: 24 }}
+          data-gtr-tap
         >
           이전으로 돌아가기
         </button>
@@ -229,6 +230,7 @@ export default function CheckoutPayment({
           onClick={onBack}
           disabled={requesting}
           style={{ flex: '0 0 40%', height: 48, marginTop: 0, padding: '0 12px', minWidth: 0 }}
+          data-gtr-tap
         >
           <span className="chp-back-full">이전으로 돌아가기</span>
           <span className="chp-back-short">이전</span>
@@ -240,6 +242,7 @@ export default function CheckoutPayment({
           disabled={!ready || requesting}
           aria-busy={requesting}
           style={{ flex: 1, marginTop: 0 }}
+          data-gtr-tap
         >
           {requesting ? '결제창 이동 중…' : `${formatPrice(amount)} 결제하기`}
         </button>

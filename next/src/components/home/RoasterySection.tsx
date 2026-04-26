@@ -38,6 +38,7 @@ export default function RoasterySection() {
           <Link
             className="roastery-cta-btn sr-txt sr-txt--d4"
             href="/story#location"
+            data-gtr-tap
           >
             매장 정보
           </Link>

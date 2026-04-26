@@ -256,6 +256,7 @@ export default function CartDrawer() {
                 className="cta-btn cta-btn-light-outline cd-cta-secondary"
                 type="button"
                 onClick={handleViewCart}
+                data-gtr-tap
               >
                 장바구니 보기
               </button>
@@ -263,6 +264,7 @@ export default function CartDrawer() {
                 className="cta-btn cta-btn-light-filled cd-cta-primary"
                 type="button"
                 onClick={handleCheckout}
+                data-gtr-tap
               >
                 주문하기
               </button>

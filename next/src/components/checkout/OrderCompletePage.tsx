@@ -351,7 +351,7 @@ export default function OrderCompletePage() {
               </p>
             </div>
             <div className="ocp-actions">
-              <Link href="/" className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Link href="/" className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} data-gtr-tap>
                 홈으로 돌아가기
               </Link>
             </div>
@@ -422,6 +422,7 @@ export default function OrderCompletePage() {
                 disabled={retryingEmail}
                 onClick={() => void handleEmailRetry(confirmState.attempts)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                data-gtr-tap
               >
                 {retryingEmail ? '확인 중…' : '확인하기'}
               </button>
@@ -486,6 +487,7 @@ export default function OrderCompletePage() {
                     className="ocp-btn-primary"
                     onClick={() => router.push(ORDER_LOOKUP_PATH)}
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    data-gtr-tap
                   >
                     주문조회로 이동
                   </button>
@@ -499,6 +501,7 @@ export default function OrderCompletePage() {
                     href="/checkout"
                     className="ocp-btn-primary"
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    data-gtr-tap
                   >
                     결제 다시 시도하기
                   </Link>
@@ -565,7 +568,7 @@ export default function OrderCompletePage() {
           </div>
 
           <div className="ocp-actions">
-            <Link href="/shop" className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Link href="/shop" className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} data-gtr-tap>
               쇼핑 계속하기
             </Link>
             <button className="ocp-btn-secondary" onClick={() => router.push('/mypage')}>

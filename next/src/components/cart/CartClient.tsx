@@ -226,6 +226,7 @@ export default function CartClient() {
                 className="cp-order-btn"
                 type="button"
                 onClick={handleCheckout}
+                data-gtr-tap
               >
                 주문하기
               </button>

@@ -8603,6 +8603,36 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .st-map-overlay-btn::after, .st-map-overlay-btn--primary::after { transition: none; }
 }
 
+/* ══ BUG-143 — 모바일 탭 피드백 (.is-tapping)
+   TouchHoverGuard.tsx 의 [data-gtr-tap] 핸들러가 주입하는 클래스.
+   새 CTA 추가 방법: JSX에 data-gtr-tap 속성 추가 → ::after gold 자동 처리.
+   카드 추가 방법: JSX에 data-gtr-tap 추가 + 아래에 .xxx.is-tapping 자식 규칙 추가.
+   ══════════════════════════════════════════ */
+
+/* CTA gold underline: scaleX(0→1) 즉시 완성 상태로 고정 */
+[data-gtr-tap].is-tapping::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* cat-card 탭: 이미지 줌 + 오버레이 + 화살표 350ms 완성 */
+.cat-card.is-tapping .cat-img-inner,
+.tci.is-tapping .tci-img-inner {
+  transform: scale(1.03);
+  transition: transform 350ms cubic-bezier(.25,.1,.25,1);
+}
+.cat-card.is-tapping .cat-img::before,
+.tci.is-tapping .tci-img::before {
+  opacity: .82;
+  transition: opacity 350ms ease;
+}
+.cat-card.is-tapping .cat-arrow,
+.tci.is-tapping .tci-arrow {
+  opacity: 1;
+  transition: opacity 350ms ease;
+  animation: cat-arrow-slide 350ms ease-out;
+}
+
 /* ══ Step 3-A-5: 섹션 eyebrow gold rule ══
    Home·Story 섹션 머리 uppercase eyebrow 앞에 32px gold 수평선.
    대상: .blk-label · .phil-lbl · .roastery-lbl · .tci-lbl · .st-label (5종)

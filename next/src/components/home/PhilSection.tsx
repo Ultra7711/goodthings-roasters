@@ -23,7 +23,7 @@ export default function PhilSection() {
             정직한 로스팅, 일관된 품질, 그리고 진심.<br />
             그것이 굳띵즈가 지켜온 단 하나의 기준입니다.
           </span>
-          <Link href="/story" className="season-cta sr-txt sr-txt--d4">
+          <Link href="/story" className="season-cta sr-txt sr-txt--d4" data-gtr-tap>
             스토리 보기
           </Link>
         </div>

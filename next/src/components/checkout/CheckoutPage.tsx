@@ -465,7 +465,7 @@ export default function CheckoutPage() {
         <div className="chp-empty">
           <Image src="/images/icons/cart_big.svg" alt="" aria-hidden="true" width={64} height={64} className="chp-empty-icon" />
           <p className="chp-empty-msg">장바구니가 비어 있습니다.</p>
-          <Link href="/shop" className="chp-empty-cta">쇼핑 계속하기</Link>
+          <Link href="/shop" className="chp-empty-cta" data-gtr-tap>쇼핑 계속하기</Link>
         </div>
       </div>
     );
@@ -522,7 +522,7 @@ export default function CheckoutPage() {
             />
             {!isFormRevealed && (
               <>
-                <Link href="/login?from=checkout" className="chp-login-primary-btn">
+                <Link href="/login?from=checkout" className="chp-login-primary-btn" data-gtr-tap>
                   로그인하고 주문하기
                 </Link>
                 <p className="chp-login-benefit">로그인하면 배송지 정보가 자동으로 채워집니다.</p>
@@ -768,6 +768,7 @@ export default function CheckoutPage() {
                 onClick={handleSubmit}
                 disabled={submitting}
                 aria-busy={submitting}
+                data-gtr-tap
               >
                 {submitting ? '주문 처리 중…' : '결제하기'}
               </button>

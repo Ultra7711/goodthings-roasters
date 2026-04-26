@@ -10,7 +10,7 @@ export default function TwoColSection() {
     <section className="blk blk--bg-tertiary two-col-blk" data-header-theme="light">
       <div className="two-col">
         {/* Subscription */}
-        <Link href="/shop?filter=sub" className="tci" id="svc-subscription" data-sr-toggle>
+        <Link href="/shop?filter=sub" className="tci" id="svc-subscription" data-sr-toggle data-gtr-tap>
           <div className="tci-img">
             <div className="tci-img-inner img-subscription" />
             <div className="tci-overlay">
@@ -34,7 +34,7 @@ export default function TwoColSection() {
         </Link>
 
         {/* Business */}
-        <Link href="/biz-inquiry" className="tci" id="svc-business" data-sr-toggle>
+        <Link href="/biz-inquiry" className="tci" id="svc-business" data-sr-toggle data-gtr-tap>
           <div className="tci-img">
             <div className="tci-img-inner img-business" />
             <div className="tci-overlay">

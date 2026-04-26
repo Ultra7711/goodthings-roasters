@@ -430,8 +430,8 @@ export default function MyPagePage() {
                     />
                   )}
                   <div className="mp-accordion-actions">
-                    <button className="mp-save-btn" type="button" onClick={() => { addressForm.submit(); setTimeout(() => shakeFields(addrFormRef.current), 0); }}>저장</button>
-                    <button className="mp-cancel-btn" type="button" onClick={() => setAddrOpen(false)}>취소</button>
+                    <button className="mp-save-btn" type="button" onClick={() => { addressForm.submit(); setTimeout(() => shakeFields(addrFormRef.current), 0); }} data-gtr-tap>저장</button>
+                    <button className="mp-cancel-btn" type="button" onClick={() => setAddrOpen(false)} data-gtr-tap>취소</button>
                   </div>
                 </div>
               </div>
@@ -506,8 +506,8 @@ export default function MyPagePage() {
                           <span className="mp-info-value">{sub.nextDate}</span>
                         </div>
                         <div className="mp-accordion-actions">
-                          <button className="mp-save-btn mp-sub-save-btn" type="button" onClick={() => saveSubCycle(sub.id)}>저장</button>
-                          <button className="mp-cancel-btn" type="button" onClick={() => setSubEditId(null)}>취소</button>
+                          <button className="mp-save-btn mp-sub-save-btn" type="button" onClick={() => saveSubCycle(sub.id)} data-gtr-tap>저장</button>
+                          <button className="mp-cancel-btn" type="button" onClick={() => setSubEditId(null)} data-gtr-tap>취소</button>
                           <button className="mp-sub-unsubscribe" type="button" onClick={() => cancelSub(sub.id)}>구독 해지</button>
                         </div>
                       </div>
@@ -584,8 +584,8 @@ export default function MyPagePage() {
                   wrapperClass={`pw2-field${pwForm.next ? ' pw2-visible' : ''}`}
                 />
                 <div className="mp-accordion-actions">
-                  <button className="mp-save-btn" type="button" onClick={() => { void pwForm.submit(); setTimeout(() => shakeFields(pwFormRef.current), 0); }}>변경</button>
-                  <button className="mp-cancel-btn" type="button" onClick={() => { pwForm.reset(); setPwOpen(false); }}>취소</button>
+                  <button className="mp-save-btn" type="button" onClick={() => { void pwForm.submit(); setTimeout(() => shakeFields(pwFormRef.current), 0); }} data-gtr-tap>변경</button>
+                  <button className="mp-cancel-btn" type="button" onClick={() => { pwForm.reset(); setPwOpen(false); }} data-gtr-tap>취소</button>
                 </div>
               </div>
             </div>
@@ -708,8 +708,8 @@ export default function MyPagePage() {
               재가입하시더라도 기존 주문 내역은 복구되지 않습니다.
             </p>
             <div className="mp-modal-actions">
-              <button className="mp-modal-confirm" type="button" onClick={() => void confirmWithdraw()}>탈퇴</button>
-              <button className="mp-modal-cancel" type="button" onClick={() => setWithdrawOpen(false)}>취소</button>
+              <button className="mp-modal-confirm" type="button" onClick={() => void confirmWithdraw()} data-gtr-tap>탈퇴</button>
+              <button className="mp-modal-cancel" type="button" onClick={() => setWithdrawOpen(false)} data-gtr-tap>취소</button>
             </div>
           </div>
         </div>

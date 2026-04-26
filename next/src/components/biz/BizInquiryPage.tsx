@@ -437,6 +437,7 @@ export default function BizInquiryPage() {
             id="bi-submit-btn"
             type="button"
             onClick={handleSubmit}
+            data-gtr-tap
           >
             문의 보내기
           </button>

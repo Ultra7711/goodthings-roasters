@@ -368,6 +368,7 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
         role="button"
         tabIndex={0}
         onClick={handleCart}
+        data-gtr-tap
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();

@@ -363,6 +363,7 @@ export default function LoginPage() {
               className="lp-guest-buy-btn"
               type="button"
               onClick={() => router.push('/checkout')}
+              data-gtr-tap
             >
               비회원 주문
             </button>
@@ -409,7 +410,7 @@ export default function LoginPage() {
                   비밀번호를 잊으셨나요?
                 </span>
               </div>
-              <button className="lp-submit-btn" type="submit" disabled={loginForm.isLoading}>
+              <button className="lp-submit-btn" type="submit" disabled={loginForm.isLoading} data-gtr-tap>
                 {loginForm.isLoading ? '로그인 중…' : '로그인'}
               </button>
             </form>
@@ -470,7 +471,7 @@ export default function LoginPage() {
               {registerForm.notice && (
                 <div className="lp-submit-notice">{registerForm.notice}</div>
               )}
-              <button className="lp-submit-btn" type="submit" disabled={registerForm.isLoading}>
+              <button className="lp-submit-btn" type="submit" disabled={registerForm.isLoading} data-gtr-tap>
                 {registerForm.isLoading ? '처리 중…' : '계정 만들기'}
               </button>
             </form>
@@ -491,7 +492,7 @@ export default function LoginPage() {
                 error={resetError}
                 helper="가입 시 등록한 이메일 주소를 입력하세요."
               />
-              <button className="lp-submit-btn" type="submit">전송</button>
+              <button className="lp-submit-btn" type="submit" data-gtr-tap>전송</button>
             </form>
           )}
 
@@ -524,7 +525,7 @@ export default function LoginPage() {
                 error={guestErrors.orderNum}
                 helper="GT- 뒤에 숫자를 입력하세요. 예: GT-20260413-00001"
               />
-              <button className="lp-submit-btn" type="submit">주문 조회하기</button>
+              <button className="lp-submit-btn" type="submit" data-gtr-tap>주문 조회하기</button>
             </form>
           )}
 

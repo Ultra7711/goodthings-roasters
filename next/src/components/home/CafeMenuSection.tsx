@@ -44,7 +44,7 @@ export default function CafeMenuSection() {
               <span className="season-h ed-h2 sr-txt sr-txt--d2">봄, 한 잔의 여유.</span>
               <span className="season-desc sr-txt sr-txt--d3">벚꽃이 지기 전에 만나는 시즌 한정 메뉴</span>
             </div>
-            <Link href="/menu?cat=signature" className="season-cta sr-txt sr-txt--d4">
+            <Link href="/menu?cat=signature" className="season-cta sr-txt sr-txt--d4" data-gtr-tap>
               시즌 메뉴 보기
             </Link>
           </div>
@@ -66,6 +66,7 @@ export default function CafeMenuSection() {
             className="cat-card"
             data-sr-toggle
             data-cat={cat}
+            data-gtr-tap
           >
             <div className="cat-card-clip">
               <div className="cat-img">
