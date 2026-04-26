@@ -159,12 +159,22 @@ export default function CheckoutPage() {
   const hasSubscription = useMemo(() => items.some((i) => i.type === 'subscription'), [items]);
 
   /* ── Toss orderName (B-2) ──
-     상품 1건 → 상품명 그대로, 여러 건 → "상품명 외 N건" */
+     영문 suffix 제거 후 20자 이내로 truncate.
+     Toss UI가 ~25자 이상을 말줄임 없이 하드클립하므로 미리 자른다. */
   const orderName = useMemo(() => {
     if (items.length === 0) return '';
-    const first = items[0];
+    const MAX_LEN = 20;
+    const koreanOnly = (s: string) =>
+      s.replace(/\s+[A-Za-z][A-Za-z\s]*$/, '').trim() || s.trim();
+    const truncate = (s: string, max: number) =>
+      s.length > max ? s.slice(0, max - 1) + '…' : s;
+    const first = koreanOnly(items[0].name);
     const rest = items.length - 1;
-    return rest > 0 ? `${first.name} 외 ${rest}건` : first.name;
+    if (rest > 0) {
+      const suffix = ` 외 ${rest}건`;
+      return truncate(first, MAX_LEN - suffix.length) + suffix;
+    }
+    return truncate(first, MAX_LEN);
   }, [items]);
 
   /* ── 폼 훅 ── */
