@@ -75,14 +75,18 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     return () => io.disconnect();
   }, [scrollRoot, visible]);
 
-  // qa 열릴 때 외부 클릭 감지
+  // qa 열릴 때 외부 클릭 감지 — capture 페이즈로 다른 요소 이벤트 관통 차단
   useEffect(() => {
     if (!qaOpen) return;
     const onDoc = (e: MouseEvent) => {
-      if (!cardRef.current?.contains(e.target as Node)) closeQa();
+      if (cardRef.current?.contains(e.target as Node)) return;
+      // 다른 카드의 sp-qa-bar 클릭은 허용 (해당 카드 빠른 추가 동작)
+      if ((e.target as HTMLElement).closest('.sp-qa-bar')) return;
+      e.stopPropagation();
+      closeQa();
     };
-    document.addEventListener('click', onDoc);
-    return () => document.removeEventListener('click', onDoc);
+    document.addEventListener('click', onDoc, true);
+    return () => document.removeEventListener('click', onDoc, true);
   }, [qaOpen, closeQa]);
 
   // Unmount cleanup — resetTick 증가 또는 필터 전환 시 ShopCard 가 remount 되는데,
