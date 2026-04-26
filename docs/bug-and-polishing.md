@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **52 / 58 closure (89.7%)** · 2026-04-27 S87 기준 (BUG-162 🟠 · BUG-163 🟡 신규 등록 / BUG-115 PR1 완료 · CSP 퀵계좌이체 fix)
+> **53 / 58 closure (91.4%)** · 2026-04-27 S87 기준 (BUG-115 ✅ PR2 완료 closure / BUG-162 🟠 · BUG-163 🟡 신규 등록)
 >
 > 카운트 명령:
 > ```bash
@@ -155,7 +155,7 @@
 - **추정 범위:** `autocomplete="off"` 또는 hidden · read-only · postcode 필드 별도 이름 사용 등
 - **해결 (S78):** 우편번호 + 주소 검색 TextField 양쪽에 `autoComplete="off"` 추가. Daum Postcode 검색 외 브라우저 주입 차단.
 
-### BUG-115 — 토스 UI 내 퀵 계좌이체 허용 vs 우리 "계좌이체/무통장입금" 중복 검토 🟢 (PR1 완료 · PR2 대기)
+### BUG-115 — ✅ 토스 UI 내 퀵 계좌이체 허용 vs 우리 "계좌이체/무통장입금" 중복 검토 🟢
 
 - **발견:** 2026-04-24
 - **재현 경로:** 결제 수단 "체크/신용카드" 탭 선택 → 토스 결제창 → 퀵 계좌이체 옵션 노출
@@ -168,10 +168,10 @@
   - `orderConfirmationEmail.ts` `EASYPAY_PROVIDER_LABELS` 9종 + `paymentMethodLabel` helper. `notifications.ts` 에서 DB → 템플릿 propagation.
   - 신규 `paymentService.test.ts` (9종 provider + 회귀 + 실패 케이스) · 388/388 vitest green · tsc clean.
   - 3관문 리뷰 통과: database-reviewer / typescript-reviewer / security-reviewer (CRITICAL/HIGH 0건).
-- **PR2 (클라이언트, 별도 세션):** chp-payment 라디오 + transfer 입력필드 제거, paymentMethod='card' 고정 송신, CSS 정리. **선행 조건 (pre-production 조정):** PR1 마이그레이션을 staging/dev 에 적용 + 토스 테스트 키 결제 5종 수동 검증 → PR2 착수. (프로덕션 트래픽 기반 모니터링은 출시 전이라 적용 불가.)
+- **PR2 완료 (2026-04-27 / S87):** chp-payment 라디오 + transfer 입력필드 제거, `{ method: 'card' }` 고정 송신, CSS `.chp-payment-*` 전체 제거. vitest 387/387 · tsc clean · code-reviewer CRITICAL/HIGH 0건.
 - **상세 설계:** `docs/bug115-payment-easypay-design.md` (10섹션). DB 스키마·CHECK 제약·매핑 테이블·테스트 케이스·이행 순서·위험 요소 정리.
 - **리뷰 산출물:** `memory/review_bug115_pr1_db_2026_04_27.md` · `review_bug115_pr1_ts_2026_04_27.md` · `review_bug115_pr1_security_2026_04_27.md`.
-- **상태:** PR1 머지·배포 대기 (코드 준비 완료) · PR2 별도 세션 대기.
+- **상태:** ✅ PR1 + PR2 완료 closure.
 
 ### BUG-116 — ✅ 희망 납품 주기 드롭다운 순서·명칭 정리 🟢
 
