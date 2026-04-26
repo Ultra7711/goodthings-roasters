@@ -70,7 +70,7 @@ export default function SiteHeader() {
 
   /* SSR 안전: 클라이언트에서만 store 값 사용 */
   const { totalQty } = useCartQuery();
-  const { isLoggedIn } = useSupabaseSession();
+  const { isLoggedIn, isLoading: sessionLoading } = useSupabaseSession();
   const { open: openDrawer } = useCartDrawer();
 
   useLayoutEffect(() => {
@@ -356,11 +356,14 @@ export default function SiteHeader() {
               </svg>
             </button>
 
-            {/* 로그인 / 마이페이지 — 데스크탑 전용 (<768 에서는 햄버거 메뉴 내장) */}
+            {/* 로그인 / 마이페이지 — 데스크탑 전용 (<768 에서는 햄버거 메뉴 내장)
+                sessionLoading 중엔 visibility:hidden 으로 레이아웃 유지 + 아이콘 미표시
+                → INITIAL_SESSION 이전 '비로그인' 플리커 방지 */}
             <Link
-              href={mounted && isLoggedIn ? '/mypage' : '/login'}
+              href={mounted && !sessionLoading && isLoggedIn ? '/mypage' : '/login'}
               className="hdr-icon-btn hdr-icon-user"
-              aria-label={mounted && isLoggedIn ? '마이페이지' : '로그인'}
+              aria-label={mounted && !sessionLoading && isLoggedIn ? '마이페이지' : '로그인'}
+              style={{ visibility: mounted && sessionLoading ? 'hidden' : 'visible' }}
             >
               {/* 비로그인 아이콘 */}
               <svg
@@ -478,7 +481,7 @@ export default function SiteHeader() {
         open={isMobileNavOpen}
         onClose={closeMobileNav}
         onNavigate={closeMobileNavForNavigation}
-        isLoggedIn={mounted && isLoggedIn}
+        isLoggedIn={mounted && !sessionLoading && isLoggedIn}
       />
 
       {/* ── 검색 딤 오버레이 (portal → body) ── */}
