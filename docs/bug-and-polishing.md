@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-25 · Session 78
+> **최종 업데이트:** 2026-04-26 · Session 81
 
 ---
 
 ## 진행률
 
-> **41 / 53 closure (77.4%)** · 2026-04-26 S80 기준
+> **42 / 53 closure (79.2%)** · 2026-04-26 S81 기준
 >
 > 카운트 명령:
 > ```bash
@@ -17,7 +17,7 @@
 > ```
 >
 > **세션별 closure 누적:**
-> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157)
+> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143)
 >
 > **데이터 정합 노트:**
 > - BUG-105 는 하단 `해결됨` 섹션에만 ✅ · 열린 버그 섹션은 🟠 잔존 (cleanup 후보)
@@ -395,18 +395,16 @@
 - **추정 범위:** `IntersectionObserver` threshold 다단 + `scroll-timeline` (CSS) 또는 IO progress → CSS variable bind. 모바일 성능 고려 (rAF throttle).
 - **참조:** Phase 2 "Scroll Variable Font" 트랙 (`project_design_interaction_plan.md`) 과 묶음 후보.
 
-### BUG-143 — 모바일 버튼 탭 시 호버 연출 재생 후 액션 실행 (UX 호흡) 🟡
+### BUG-143 — ✅ 모바일 버튼 탭 시 호버 연출 재생 후 액션 실행 (UX 호흡) 🟡 — S81 closure
 
 - **발견:** 2026-04-25 / S76
-- **현재:** 모바일 탭 시 호버 애니메이션 없이 액션 즉시 발화 (BUG-144 이후 `@media (hover: none)`으로 CSS `:hover` 완전 차단). "탭한 게 인식됐는지" 확신이 약함.
-- **기대:** 탭 → gold 밑줄 연출 재생 → **재생 종료 후 액션 실행**. 호흡 늘리기 + 명확한 피드백.
-- **설계 방향 (S80 확정):**
-  - CSS `:hover` 방식이 아닌 **JS 클래스 토글** 방식 — `@media (hover: none)` 차단과 충돌 없음
-  - 탭 이벤트 → `.is-tapping` 클래스 추가 → `::after scaleX(1)` 트리거 → `transitionend` 대기 → 액션 실행
-  - 데스크탑은 기존 `:hover` 연출 즉시 액션 그대로 유지
-  - **참조 구현:** `MobileNavDrawer` 화살표 연출 (클릭 시 연출 재생 후 네비게이션) — 글로벌 패턴의 프로토타입
-- **적용 범위:** `cta-btn-*` 전체 + 페이지별 CTA (`chp-submit-btn` · `lp-submit-btn` · `bi-submit-btn` 등)
-- **리스크:** 응답성 저하 체감 가능 → transition duration 200~300ms 범위 조정 + double tap 차단 정책 확인.
+- **해결:** 2026-04-26 / S81
+- **구현:** `[data-gtr-tap]` opt-in 어트리뷰트 + `TouchHoverGuard.tsx` capture-phase 전역 위임 핸들러. 탭 시 `.is-tapping` 클래스 추가 → CSS `[data-gtr-tap].is-tapping::after { transform: scaleX(1); transition: none }` 즉시 snap → `--duration-tap` (350ms) 후 클래스 제거 + `target.click()` 재발화 (WeakSet bypass). 데스크탑 `:hover` 연출 그대로 유지.
+- **타이밍 토큰:** `--duration-tap: 350ms` 단일 소스 (JS·CSS 동기). Chrome 정규화로 `.35s` 로 노출되므로 TouchHoverGuard 가 `s` / `ms` 양쪽 파싱.
+- **핵심 디버깅 (디버그 길었던 이유):**
+  - **NavigationVisibilityGate (BUG-007/H8 prev-DOM 잔상 차단) 와 capture-phase click 핸들러 충돌**. 동일 `document` 노드에 등록된 두 capture listener 가 함께 발화 → NavVisGate 가 `<main>` 에 `data-transitioning="true"` 부여 → CSS `visibility: hidden` 으로 페이지 본문 통째 가림 → 350ms 동안 골드 라인 보이지 않음. 사용자 체감: "탭 직후 웜화이트 배경만 덮이고 라인 안 보임".
+  - **수정:** `e.stopPropagation()` → `e.stopImmediatePropagation()`. 탭 딜레이 도중 NavVisGate 발화 차단. 재발화된 click(bypassed)은 early return 으로 통과 → NavVisGate 정상 실행 → 잔상 차단 본래 의도대로 navigation 시점에만 적용.
+- **적용 범위:** `season-cta` · `roastery-cta-btn` · `cta-btn-*` 전체 + `lp-submit-btn` · `lp-guest-buy-btn` · `chp-submit-btn` · `chp-login-primary-btn` · `chp-empty-cta` · `ocp-btn-primary` · `cp-order-btn` · `bi-submit-btn` · `pd-cart-btn` · `mp-save-btn` · `mp-cancel-btn` · `mp-modal-confirm` · `mp-modal-cancel` · `st-map-overlay-btn[--primary]` · `tci` · `cat-card`. JSX 에 `data-gtr-tap` 추가만 하면 자동 적용.
 
 ### BUG-144 — ✅ 모바일 버튼 드래그 시 호버 애니메이션 발화 차단 🟡 — S76 closure
 
@@ -415,7 +413,7 @@
 - **현재:** 모바일에서 페이지 스크롤을 위해 손가락이 버튼 위를 지나가면 호버 애니메이션이 잠깐 재생됨 → 의도하지 않은 활성화 피드백.
 - **기대:** **드래그/스크롤 제스처 도중에는 호버 애니메이션 차단**. 명확한 탭만 호버 발화.
 - **수정:** `globals.css` 에 `@media (hover: none)` 블록 추가 — 모든 CTA 변종 (`cta-btn-*` · `lp-*` · `chp-*` · `ocp-*` · `cp-*` · `bi-*` · `mp-*` · `pd-cart-btn` · `st-map-overlay-btn` · `season-cta` · `roastery-cta-btn`) 의 `:hover::after` gold rule 을 touch 디바이스에서 `transform: scaleX(0)` 으로 강제 → tap 시에도 발화하지 않음. 데스크탑 hover 동작은 유지.
-- **잔여 (BUG-143):** tap → 호버 재생 → 종료 후 액션 실행 (호흡 늘리기) 은 별도 트랙. desktop 동작 일관성 + 모바일 즉시 액션 vs 지연 액션 디자인 결정 선행 필요.
+- **잔여 (BUG-143):** ✅ S81 에서 closure (`data-gtr-tap` opt-in + `TouchHoverGuard.tsx` 전역 위임).
 
 ### BUG-145 — ✅ 카카오맵 마커 팝업 "카카오맵 상세" → "상세보기" 명칭 변경 🟢 — S76 closure
 

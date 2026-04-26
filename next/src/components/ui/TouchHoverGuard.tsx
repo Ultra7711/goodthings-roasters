@@ -55,7 +55,9 @@ export default function TouchHoverGuard() {
   // TAP_MS 조정: globals.css --duration-tap 값 하나만 변경하면 JS·CSS 동시 반영.
   useEffect(() => {
     const raw = getComputedStyle(document.documentElement).getPropertyValue('--duration-tap').trim();
-    const TAP_MS = raw ? parseInt(raw, 10) : 350;
+    const TAP_MS = raw
+      ? raw.endsWith('ms') ? parseInt(raw, 10) : Math.round(parseFloat(raw) * 1000)
+      : 350;
     const bypassed = new WeakSet<Element>();
 
     function onTapClick(e: MouseEvent) {
@@ -69,7 +71,11 @@ export default function TouchHoverGuard() {
       if (target.classList.contains('disabled')) return;
 
       e.preventDefault();
-      e.stopPropagation();
+      // stopImmediatePropagation: 동일 document 에 등록된 다른 capture 핸들러
+      // (NavigationVisibilityGate 의 [data-transitioning] gate) 가 탭 딜레이 도중
+      // <main> 을 visibility:hidden 처리해 골드 라인을 가리는 문제 차단.
+      // 재발화된 click(bypassed)은 early return 으로 통과시켜 정상 navigation 트리거.
+      e.stopImmediatePropagation();
 
       target.classList.add('is-tapping');
       setTimeout(() => {
