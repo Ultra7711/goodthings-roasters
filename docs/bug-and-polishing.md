@@ -168,7 +168,7 @@
   - `orderConfirmationEmail.ts` `EASYPAY_PROVIDER_LABELS` 9종 + `paymentMethodLabel` helper. `notifications.ts` 에서 DB → 템플릿 propagation.
   - 신규 `paymentService.test.ts` (9종 provider + 회귀 + 실패 케이스) · 388/388 vitest green · tsc clean.
   - 3관문 리뷰 통과: database-reviewer / typescript-reviewer / security-reviewer (CRITICAL/HIGH 0건).
-- **PR2 (클라이언트, 별도 세션):** chp-payment 라디오 + transfer 입력필드 제거, paymentMethod='card' 고정 송신, CSS 정리. PR1 프로덕션 24~48h 모니터링 후 진행.
+- **PR2 (클라이언트, 별도 세션):** chp-payment 라디오 + transfer 입력필드 제거, paymentMethod='card' 고정 송신, CSS 정리. **선행 조건 (pre-production 조정):** PR1 마이그레이션을 staging/dev 에 적용 + 토스 테스트 키 결제 5종 수동 검증 → PR2 착수. (프로덕션 트래픽 기반 모니터링은 출시 전이라 적용 불가.)
 - **상세 설계:** `docs/bug115-payment-easypay-design.md` (10섹션). DB 스키마·CHECK 제약·매핑 테이블·테스트 케이스·이행 순서·위험 요소 정리.
 - **리뷰 산출물:** `memory/review_bug115_pr1_db_2026_04_27.md` · `review_bug115_pr1_ts_2026_04_27.md` · `review_bug115_pr1_security_2026_04_27.md`.
 - **상태:** PR1 머지·배포 대기 (코드 준비 완료) · PR2 별도 세션 대기.
