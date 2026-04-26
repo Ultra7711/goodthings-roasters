@@ -6172,6 +6172,41 @@ footer.blk {
 .chp-hdr-inner > .hdr-icon-btn { margin-right: -8px; }
 .chp-logo-img { cursor: pointer; }
 
+/* 빈 장바구니 상태 */
+.chp-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-md);
+  padding: 80px 40px;
+}
+.chp-empty-icon { width: 64px; height: 64px; opacity: .25; margin-bottom: 8px; }
+.chp-empty-msg {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+.chp-shop-link {
+  font-family: var(--font-kr);
+  font-size: var(--link-cta-font-size);
+  font-weight: var(--link-cta-font-weight);
+  color: var(--link-cta-color);
+  letter-spacing: var(--link-cta-letter-spacing);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--duration-hover) ease;
+  display: inline-block;
+  padding: 12px 0;
+  margin-top: calc(8px - 12px);
+}
+.chp-shop-link:hover { text-decoration-color: var(--color-accent-gold); }
+
 /* 2열 바디 */
 .chp-body {
   flex: 1;

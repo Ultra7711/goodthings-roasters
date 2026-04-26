@@ -462,13 +462,10 @@ export default function CheckoutPage() {
             </Link>
           </div>
         </div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 24, padding: '80px 60px' }}>
-          <p style={{ fontFamily: 'var(--font-kr)', fontSize: 'var(--type-body-l-size)', color: 'var(--color-text-secondary)' }}>
-            장바구니가 비어 있습니다.
-          </p>
-          <Link href="/shop" className="ocp-btn-primary" style={{ maxWidth: 280, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            쇼핑하러 가기
-          </Link>
+        <div className="chp-empty">
+          <Image src="/images/icons/cart_big.svg" alt="" aria-hidden="true" width={64} height={64} className="chp-empty-icon" />
+          <p className="chp-empty-msg">장바구니가 비어 있습니다.</p>
+          <Link href="/shop" className="chp-shop-link">쇼핑 계속하기</Link>
         </div>
       </div>
     );
