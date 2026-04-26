@@ -2,7 +2,7 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-26 · Session 82 (BUG-103 closure + BUG-105 cleanup)
+> **최종 업데이트:** 2026-04-26 · Session 83 (BUG-149 UX 정제 + useNavigation 훅 신규)
 
 ---
 
@@ -17,7 +17,7 @@
 > ```
 >
 > **세션별 closure 누적:**
-> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143) · S82 (BUG-103)
+> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143) · S82 (BUG-103) · S83 (신규 closure 없음 · BUG-149 UX 정제 · useNavigation 훅)
 >
 > **데이터 정합 노트:**
 > - BUG-104/108/105 는 하단 `해결됨` 섹션에도 중복 기재 (legacy · 참조용)
@@ -431,7 +431,7 @@
 - **기대:** 페이지 콘텐츠가 상단부터 순차 렌더링
 - **실제:** 푸터 영역이 먼저 노출된 뒤 본문이 채워짐.
 - **근본 원인:** `.root { min-height: 100dvh }` (not `height`) + `<main style={{ flex:1 }}>` 조합에서 iOS Safari 는 부모에 `height` 없을 때 `flex-grow:1` 을 무시함 → main 높이 0 → footer 상단 노출.
-- **수정:** `globals.css` 에 `#main-content { min-height: calc(100dvh - var(--ann-bar-height) - var(--header-height)) }` 추가. 외부 layout(`/checkout`, `/mypage` 등) 은 `#main-content` 없어 무영향.
+- **수정:** `globals.css` 에 `#main-content { min-height: calc(100svh - var(--ann-bar-height) - var(--header-height)) }` 추가 (`dvh` → `svh` — iOS Safari 스크롤 중 dvh 재계산으로 인한 레이아웃 점프 방지). 외부 layout(`/checkout`, `/mypage` 등) 은 `#main-content` 없어 무영향.
 
 ### BUG-149 — ✅ 장바구니 드로어 → 풀페이지 전환 시 상품 상세 페이지 잠깐 노출 🟡 — S82 closure
 
@@ -440,8 +440,12 @@
 - **재현 경로:** 상품 상세 페이지에서 장바구니 드로어 열기 → 드로어 내 "장바구니 보기" 클릭 → `/cart` 이동
 - **기대:** 드로어 닫힘 → 장바구니 풀페이지로 부드럽게 전환
 - **실제:** `/cart` 로 이동하는 순간 상품 상세 페이지 콘텐츠가 짧게 노출됨
-- **근본 원인:** `router.push` 는 programmatic → NavVisGate capture-phase click 리스너가 미캐치 → `#main-content[data-transitioning]` 미설정 → 드로어 닫힘 애니(350ms) 중 하단 페이지 노출.
-- **수정:** `CartDrawer.tsx` `handleViewCart` · `handleCheckout` · `handleContinueShopping` 에서 `router.push` 호출 전 `document.getElementById('main-content')?.setAttribute('data-transitioning', 'true')` 추가. NavVisGate `useLayoutEffect` 가 새 pathname commit 시 자동 제거.
+- **근본 원인:** 드로어가 `router.push` 직후 닫히면 새 페이지 로드 전 하단 페이지가 노출됨.
+- **수정 (S83 최종):**
+  - `useNavigation` 훅 신규 (`hooks/useNavigation.ts`) — `router.push` 래퍼, `navigatingTo: string|null` 상태, 10s 타임아웃 시 에러 토스트.
+  - `CartDrawer` `drawerPendingRef` + `useEffect([pathname])` 조합 — 새 페이지 렌더 완료(pathname 변경) 시 `closeWithoutAnimation(closeForNavigation)` 호출.
+  - `closeWithoutAnimation` 헬퍼 — `transition:none` → close → rAF×2 후 복원 (슬라이드 아웃 전면 제거).
+  - 버튼 피드백: 클릭한 버튼만 `disabled` + "이동 중..." 텍스트, 나머지 버튼 원문 유지. opacity dim 없음.
 
 ### BUG-150 — ✅ 장바구니 드로어 → 풀페이지 전환 시 로딩 지연 🟠 — S82 closure
 
