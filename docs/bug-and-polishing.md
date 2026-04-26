@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 87 (BUG-162/163 신규 등록 · CSP 퀵계좌이체 fix)
+> **최종 업데이트:** 2026-04-27 · Session 87 (BUG-164/165/166 신규 등록)
 
 ---
 
 ## 진행률
 
-> **53 / 58 closure (91.4%)** · 2026-04-27 S87 기준 (BUG-115 ✅ PR2 완료 closure / BUG-162 🟠 · BUG-163 🟡 신규 등록)
+> **53 / 61 closure (86.9%)** · 2026-04-27 S87 기준 (BUG-164 🟡 · BUG-165 🟡 · BUG-166 🟠 신규 등록)
 >
 > 카운트 명령:
 > ```bash
@@ -634,6 +634,58 @@ React state flush: schedule 순서대로 적용
 - **실제 (버그):** 아이템 행에 volume 뱃지(`ocp-item-badge`) + "수량 N개" 텍스트가 나란히 표시됨. 예: `[1개] 수량 1개`, `[200G] 수량 1개`
 - **기대:** 장바구니 아이템과 동일한 텍스트 스타일 — 뱃지 없이 "200g · 수량 1개" 형식 (이전 cart UI 버그픽스 참고).
 - **관련 코드:** `next/src/components/checkout/OrderCompletePage.tsx` line 557–563 (`ocp-item-badges` 블록)
+
+---
+
+### BUG-164 — 로그인 페이지 인풋 자동완성 파란 배경 미제거 + 필드 레이아웃 이탈 🟡
+
+- **발견:** 2026-04-27 / S87
+- **재현 경로:** `/login` 진입 → 브라우저 자동완성(autofill) 적용
+- **실제 (버그):**
+  1. 자동완성 시 인풋 배경이 브라우저 기본 파란색으로 표시됨 (글로벌 `-webkit-autofill` 규칙 미적용 또는 색 불일치).
+  2. 자동완성 후 인풋 필드들이 예상 레이아웃에서 벗어나 있음 (floating label 위치 불일치 추정).
+- **기대:** 다른 페이지 인풋과 동일하게 `#FBF8F3` 배경 유지, floating label 정상 위치.
+- **참고:** 글로벌 autofill 룰(`globals.css` L454~474)은 `#FBF8F3` 배경 고정. 로그인 페이지 TextField의 실제 배경색과 일치 여부 확인 필요. 체크아웃 autofill fix(BUG-160)와 동일 패턴 적용 검토.
+- **관련 코드:** `next/src/components/auth/LoginPage.tsx`, `next/src/app/globals.css` L454~474
+
+---
+
+### BUG-165 — 로그인 페이지 상하단 overscroll 경계 처리 누락 🟡
+
+- **발견:** 2026-04-27 / S87
+- **재현 경로:** `/login` 진입 → 상단 또는 하단으로 overscroll
+- **실제 (버그):** 다른 페이지(메인/스토리/메뉴/샵/굿데이즈)는 overscroll 시 상하단 배경색이 콘텐츠와 자연스럽게 연결되지만, 로그인 페이지는 overscroll 시 배경색이 끊기거나 다른 색으로 보임.
+- **기대:** overscroll 상단·하단 모두 로그인 페이지 배경색(`#FBF8F3`)으로 자연스럽게 연결.
+- **원인 분석:**
+  - `login/page.tsx`에 `<OverscrollTop top="#FBF8F3" bottom="#FBF8F3" />`는 존재하나, `OverscrollColor` 컴포넌트(동적 스크롤 위치 기반 html bgcolor 전환)와 `minHeight: 100dvh` 레이아웃이 충돌할 가능성.
+  - 로그인 페이지는 `(main)` layout 안에서 일반 문서 흐름으로 렌더되므로 별도 진단 필요.
+- **관련 코드:** `next/src/app/(main)/login/page.tsx`, `next/src/components/ui/OverscrollTop.tsx`, `next/src/components/ui/OverscrollColor.tsx`
+
+---
+
+### BUG-166 — Daum Postcode `openPostcode()` 간헐적 팝업 미호출 🟠
+
+- **발견:** 2026-04-27 / S87 (체크아웃 주소 검색 반복 테스트 중)
+- **재현 경로:** `/checkout` → 주소 검색 인풋 클릭 → 필드는 활성화(포커스·라인 강조)되나 Daum Postcode 팝업 미호출.
+- **재현 빈도:** 간헐적 (여러 번 중 1~2회). 특히 첫 번째 이후 재호출 시 발생 빈도 높음.
+- **실제 (버그):** 인풋이 포커스된 것처럼 보이지만 팝업이 열리지 않고, 키보드 입력 가능 상태도 아님. 클릭 이벤트는 정상 발생하나 `openPostcode()` Promise가 hang.
+- **원인 분석 (race condition):**
+  - `daumPostcode.ts`의 `loadDaumPostcode()` 내 `existing` 분기 문제.
+  - 스크립트 태그가 이미 `document.head`에 존재하고 `load` 이벤트가 이미 fired된 상태에서 두 번째 호출 시, `addEventListener('load', resolve, { once: true })`를 붙여도 이미 fired된 이벤트를 받지 못함 → `resolve()` 영원히 미호출 → Promise hang.
+  - `window.daum?.Postcode` 체크는 통과했으나 실제 객체가 준비되기 전 타이밍에 진입하는 경우 포함.
+- **기대:** 주소 검색 클릭마다 안정적으로 Daum Postcode 팝업 호출.
+- **수정 방향:** `existing` 분기에서 스크립트의 `readyState` 또는 `window.daum?.Postcode` 재확인 후 즉시 resolve 처리 추가.
+  ```typescript
+  if (existing) {
+    // 이미 load가 완료된 경우 (이벤트 이미 fired) → 즉시 resolve
+    if (window.daum?.Postcode) { resolve(); return; }
+    existing.addEventListener('load', () => resolve(), { once: true });
+    existing.addEventListener('error', () => reject(...), { once: true });
+    return;
+  }
+  ```
+- **관련 코드:** `next/src/lib/daumPostcode.ts` `loadDaumPostcode()` `existing` 분기 (L38~44)
+- **우선순위:** 주소 입력 필수 경로 (체크아웃 완료 불가) → High.
 
 ---
 
