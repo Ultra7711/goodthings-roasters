@@ -48,18 +48,23 @@ export default function CartDrawer() {
   const gaugePct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
   const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
-  /* navigate 동반 close — history 조작 없이 state 만 false (router.push 와 충돌 방지) */
+  /* navigate 동반 close — history 조작 없이 state 만 false (router.push 와 충돌 방지).
+     router.push 는 programmatic → NavVisGate capture-phase 가 캐치 못함.
+     직접 data-transitioning 을 세팅해 드로어 닫힘 애니 중 하단 페이지 노출 차단 (BUG-149). */
   function handleCheckout() {
+    document.getElementById('main-content')?.setAttribute('data-transitioning', 'true');
     closeForNavigation();
     router.push('/checkout');
   }
 
   function handleViewCart() {
+    document.getElementById('main-content')?.setAttribute('data-transitioning', 'true');
     closeForNavigation();
     router.push('/cart');
   }
 
   function handleContinueShopping() {
+    document.getElementById('main-content')?.setAttribute('data-transitioning', 'true');
     closeForNavigation();
     router.push('/shop');
   }

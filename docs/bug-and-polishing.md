@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **43 / 54 closure (79.6%)** · 2026-04-26 S82 기준 (BUG-103 closure)
+> **46 / 54 closure (85.2%)** · 2026-04-26 S82 기준 (BUG-148/149/150 closure)
 >
 > 카운트 명령:
 > ```bash
@@ -423,29 +423,35 @@
 - **해결:** 2026-04-25 / S76
 - **수정:** `KakaoMap.tsx` `MarkerImage` Size 28×36 → **40×52** (1.42×) · offset Point(14, 36) → (20, 52) 비례 갱신. 바닥 중앙 앵커 유지. 시인성 향상 + 모바일 가독성 보강.
 
-### BUG-148 — 상품 상세 페이지 푸터부터 렌더링되는 현상 (회귀) 🟠
+### BUG-148 — ✅ 상품 상세 페이지 푸터부터 렌더링되는 현상 (회귀) 🟠 — S82 closure
 
 - **발견:** 2026-04-25
+- **해결:** 2026-04-26 / S82
 - **재현 경로:** 상품 상세 페이지 (`/shop/[slug]`) 진입
 - **기대:** 페이지 콘텐츠가 상단부터 순차 렌더링
-- **실제:** 푸터 영역이 먼저 노출된 뒤 본문이 채워짐. 메인 페이지에서 수정했던 패턴과 유사한 회귀로 추정.
-- **추정 범위:** `ProductDetail` 레이아웃 — `flex-direction` 또는 진입 애니메이션 초기 `opacity/transform` 누락. 이전 버그 픽스(메인 페이지 기준)가 상품 상세에는 미적용된 상태일 가능성.
+- **실제:** 푸터 영역이 먼저 노출된 뒤 본문이 채워짐.
+- **근본 원인:** `.root { min-height: 100dvh }` (not `height`) + `<main style={{ flex:1 }}>` 조합에서 iOS Safari 는 부모에 `height` 없을 때 `flex-grow:1` 을 무시함 → main 높이 0 → footer 상단 노출.
+- **수정:** `globals.css` 에 `#main-content { min-height: calc(100dvh - var(--ann-bar-height) - var(--header-height)) }` 추가. 외부 layout(`/checkout`, `/mypage` 등) 은 `#main-content` 없어 무영향.
 
-### BUG-149 — 장바구니 드로어 → 풀페이지 전환 시 상품 상세 페이지 잠깐 노출 🟡
+### BUG-149 — ✅ 장바구니 드로어 → 풀페이지 전환 시 상품 상세 페이지 잠깐 노출 🟡 — S82 closure
 
 - **발견:** 2026-04-25
+- **해결:** 2026-04-26 / S82
 - **재현 경로:** 상품 상세 페이지에서 장바구니 드로어 열기 → 드로어 내 "장바구니 보기" 클릭 → `/cart` 이동
 - **기대:** 드로어 닫힘 → 장바구니 풀페이지로 부드럽게 전환
 - **실제:** `/cart` 로 이동하는 순간 상품 상세 페이지 콘텐츠가 짧게 노출됨
-- **추정 범위:** `closeForNavigation()` + `router.push('/cart')` 시퀀스에서 드로어 닫힘 애니메이션 완료 전에 라우트 전환이 발생 → 하단 페이지가 드러나는 타이밍 충돌. `handleViewCart` 에서 close 와 push 의 순서/지연 검토 필요.
+- **근본 원인:** `router.push` 는 programmatic → NavVisGate capture-phase click 리스너가 미캐치 → `#main-content[data-transitioning]` 미설정 → 드로어 닫힘 애니(350ms) 중 하단 페이지 노출.
+- **수정:** `CartDrawer.tsx` `handleViewCart` · `handleCheckout` · `handleContinueShopping` 에서 `router.push` 호출 전 `document.getElementById('main-content')?.setAttribute('data-transitioning', 'true')` 추가. NavVisGate `useLayoutEffect` 가 새 pathname commit 시 자동 제거.
 
-### BUG-150 — 장바구니 드로어 → 풀페이지 전환 시 로딩 지연 🟠
+### BUG-150 — ✅ 장바구니 드로어 → 풀페이지 전환 시 로딩 지연 🟠 — S82 closure
 
 - **발견:** 2026-04-25
+- **해결:** 2026-04-26 / S82
 - **재현 경로:** 장바구니 드로어 → "장바구니 보기" 클릭 → `/cart` 로드
 - **기대:** 빠른 페이지 전환
 - **실제:** `/cart` 진입 후 로딩이 체감상 오래 걸림
-- **추정 범위:** CartClient 가 client-only island 로 마운트되는 지연 + TanStack Query `useCartQuery` 첫 fetch latency 복합 가능성. Suspense boundary 또는 skeleton UI 부재. 드로어에서 이미 로드된 cart 데이터를 `/cart` 에서 재사용하지 못하는 캐시 미스도 확인 필요.
+- **근본 원인:** `useCartQuery` 는 `staleTime: 30_000` 으로 캐시 히트이나, `.cp-root` 진입 애니메이션이 `var(--duration-slide): 700ms` 로 너무 길어 체감 지연 발생.
+- **수정:** `globals.css` `.cp-root` transition duration 을 `var(--duration-slide)` (700ms) → `var(--duration-drawer)` (350ms) 로 단축.
 
 ### BUG-151 — 비회원 결제 진입 시 비밀번호 필드 자동완성 선채움ㅤ✅
 

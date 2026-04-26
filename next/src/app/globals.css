@@ -7133,8 +7133,16 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .page-loading-shell--dark {
   background: var(--color-background-inverse);
 }
+/* BUG-148 — iOS Safari flex-grow 버그 방어.
+   .root { min-height: 100dvh } + main { flex: 1 } 조합에서 iOS Safari 는
+   flex-grow 를 0으로 처리해 main 이 줄어들고 footer 가 올라오는 현상.
+   직접 min-height 를 지정해 공지바+헤더 이하 뷰포트를 항상 점유. */
+#main-content {
+  min-height: calc(100dvh - var(--ann-bar-height) - var(--header-height));
+}
 /* H8 — prev-page 잔상 차단. NavigationVisibilityGate 가 click 시
-   data-transitioning="true" 부여 → useLayoutEffect (new commit) 에서 제거. */
+   data-transitioning="true" 부여 → useLayoutEffect (new commit) 에서 제거.
+   CartDrawer router.push 등 programmatic navigation 에서도 직접 세팅. */
 #main-content[data-transitioning="true"] {
   visibility: hidden;
 }
@@ -7893,8 +7901,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   padding: 100px 60px 120px;
   opacity: 0;
   transform: translateY(32px);
-  transition: opacity var(--duration-slide) ease-out,
-              transform var(--duration-slide) ease-out;
+  /* BUG-150: 700ms → 350ms. 드로어에서 이미 로드된 데이터가 캐시 히트되어도
+     700ms 애니메이션으로 체감 지연 발생 — duration-drawer 로 통일. */
+  transition: opacity var(--duration-drawer) ease-out,
+              transform var(--duration-drawer) ease-out;
 }
 .cp-root.cp-anim {
   opacity: 1;
