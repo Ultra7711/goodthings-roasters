@@ -6290,7 +6290,7 @@ footer.blk {
   width: 100%; height: 56px; padding: 20px 0 4px;
   border: none;
   box-shadow: inset 0 -1px 0 0 var(--color-border-secondary);
-  background: transparent; outline: none;
+  background: #FBF8F3; outline: none;
   font-family: var(--font-kr); font-size: var(--type-input-size); font-weight: var(--type-input-weight);
   color: var(--color-text-primary);
   transition: box-shadow var(--duration-hover) linear;
