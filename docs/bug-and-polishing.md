@@ -155,16 +155,23 @@
 - **추정 범위:** `autocomplete="off"` 또는 hidden · read-only · postcode 필드 별도 이름 사용 등
 - **해결 (S78):** 우편번호 + 주소 검색 TextField 양쪽에 `autoComplete="off"` 추가. Daum Postcode 검색 외 브라우저 주입 차단.
 
-### BUG-115 — 토스 UI 내 퀵 계좌이체 허용 vs 우리 "계좌이체/무통장입금" 중복 검토 🟢 (설계 완료)
+### BUG-115 — 토스 UI 내 퀵 계좌이체 허용 vs 우리 "계좌이체/무통장입금" 중복 검토 🟢 (PR1 완료 · PR2 대기)
 
 - **발견:** 2026-04-24
 - **재현 경로:** 결제 수단 "체크/신용카드" 탭 선택 → 토스 결제창 → 퀵 계좌이체 옵션 노출
 - **실제 분석 (S85):** 우리 chp-payment 라디오는 결제 흐름에 영향 없음 (토스 위젯이 자체 UI 로 결제수단 처리). 토스 어드민에 7개 결제수단 활성화(퀵계좌이체·신용카드·tosspay·PAYCO·KakaoPay·NaverPay·ApplePay). 카드/퀵계좌이체만 paymentService TOSS_METHOD_TABLE 매핑 존재 → 간편결제 5종 결제 시 method_mismatch 거부 → **잠재 매출 손실**.
 - **설계 결정 (2026-04-27 / S85):** 옵션 A (라디오 제거) + 옵션 Z 확장 (DB enum 'easypay' 추가 + easypay_provider 9종 enum 신설). 두 PR 분할.
-- **PR1 (백엔드 + DB):** 마이그레이션 023 (enum + 컬럼 + CHECK + provider 집계 함수), paymentService 매핑 확장 + DB update, 이메일 라벨. database-reviewer 호출 필수.
-- **PR2 (클라이언트):** chp-payment 라디오 + transfer 입력필드 제거, paymentMethod='card' 고정 송신, CSS 정리. PR1 안정 배포 24~48h 모니터링 후 진행.
+- **PR1 완료 (2026-04-27 / S86):**
+  - 마이그레이션 023 (enum 분리 — `payment_method += 'easypay'` + `easypay_provider` 신규 9종 enum) + 024 (orders/payments 컬럼 + CHECK 교체 + confirm_payment RPC 확장 + `get_easypay_provider_breakdown` RPC).
+  - `paymentService.ts` TOSS_METHOD_TABLE 확장 (`간편결제`/`EASY_PAY`) + `TOSS_PROVIDER_TABLE` 신규 (9종 한/영) + `mapEasyPayProvider` + `method !== order.payment_method` 비교 검증 제거 (webhook 권위 원칙) + 새 에러 `easypay_provider_missing`.
+  - `paymentRepo.ConfirmPaymentRpcParams` += `easypayProvider`, SELECT 에 `easypay_provider` 포함.
+  - `orderConfirmationEmail.ts` `EASYPAY_PROVIDER_LABELS` 9종 + `paymentMethodLabel` helper. `notifications.ts` 에서 DB → 템플릿 propagation.
+  - 신규 `paymentService.test.ts` (9종 provider + 회귀 + 실패 케이스) · 388/388 vitest green · tsc clean.
+  - 3관문 리뷰 통과: database-reviewer / typescript-reviewer / security-reviewer (CRITICAL/HIGH 0건).
+- **PR2 (클라이언트, 별도 세션):** chp-payment 라디오 + transfer 입력필드 제거, paymentMethod='card' 고정 송신, CSS 정리. PR1 프로덕션 24~48h 모니터링 후 진행.
 - **상세 설계:** `docs/bug115-payment-easypay-design.md` (10섹션). DB 스키마·CHECK 제약·매핑 테이블·테스트 케이스·이행 순서·위험 요소 정리.
-- **상태:** 설계 완료, 다음 세션 PR1 착수 가능.
+- **리뷰 산출물:** `memory/review_bug115_pr1_db_2026_04_27.md` · `review_bug115_pr1_ts_2026_04_27.md` · `review_bug115_pr1_security_2026_04_27.md`.
+- **상태:** PR1 머지·배포 대기 (코드 준비 완료) · PR2 별도 세션 대기.
 
 ### BUG-116 — ✅ 희망 납품 주기 드롭다운 순서·명칭 정리 🟢
 

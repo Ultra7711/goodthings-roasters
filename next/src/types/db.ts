@@ -29,8 +29,25 @@ export type DbOrderStatus =
   | 'refund_processing'
   | 'refunded';
 
-/** 003_orders.sql public.payment_method */
-export type DbPaymentMethod = 'card' | 'transfer';
+/** 003_orders.sql + 023_payment_easypay_enum.sql public.payment_method */
+export type DbPaymentMethod = 'card' | 'transfer' | 'easypay';
+
+/**
+ * 023_payment_easypay_enum.sql public.easypay_provider
+ *
+ * Toss `easyPay.provider` 응답 9종.
+ * payment_method = 'easypay' 일 때 NOT NULL, 그 외 NULL.
+ */
+export type EasypayProvider =
+  | 'tosspay'
+  | 'kakaopay'
+  | 'naverpay'
+  | 'payco'
+  | 'samsungpay'
+  | 'lpay'
+  | 'ssgpay'
+  | 'applepay'
+  | 'pinpay';
 
 /** 004_order_items.sql public.order_item_type */
 export type OrderItemType = 'normal' | 'subscription';

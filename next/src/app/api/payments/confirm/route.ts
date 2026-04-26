@@ -18,7 +18,8 @@
    - amount_mismatch    → 409 conflict (detail='amount_mismatch')
    - toss_failed        → 402 payment_failed (detail=Toss code)
    - toss_unavailable   → 502 server_error (detail='toss_unavailable')
-   - method_mismatch    → 409 conflict (detail=…)
+   - method_mismatch          → 409 conflict (detail=…)
+   - easypay_provider_missing → 409 conflict (detail=…) — BUG-115 PR1
    - 기타 PostgrestError → 500 server_error
 
    참조:
@@ -90,6 +91,10 @@ export async function POST(request: Request): Promise<Response> {
           return apiError('conflict', { detail: 'amount_mismatch' });
         case 'method_mismatch':
           return apiError('conflict', { detail: `method_mismatch:${err.detail ?? ''}` });
+        case 'easypay_provider_missing':
+          return apiError('conflict', {
+            detail: `easypay_provider_missing:${err.detail ?? ''}`,
+          });
         case 'toss_failed':
           /* Toss 가 거부 (카드사 승인 실패 · ALREADY_PROCESSED_PAYMENT 예외 등).
              상세 code 는 클라이언트가 FAQ 매칭에 사용. */

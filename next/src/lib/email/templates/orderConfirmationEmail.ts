@@ -11,7 +11,7 @@
 
 import { esc, stripNewlines } from './utils';
 import { buildOrderCompleteUrl } from './urls';
-import type { DbPaymentMethod } from '@/types/db';
+import type { DbPaymentMethod, EasypayProvider } from '@/types/db';
 
 export type OrderConfirmationEmailItem = {
   name: string;
@@ -27,6 +27,8 @@ export type OrderConfirmationEmailProps = {
   discountAmount: number;
   totalAmount: number;
   method: DbPaymentMethod;
+  /** BUG-115 PR1: method='easypay' 일 때 provider. 그 외 null. */
+  easypayProvider?: EasypayProvider | null;
   items: OrderConfirmationEmailItem[];
   virtualAccount?: {
     bank: string | null;
@@ -55,14 +57,43 @@ function formatKRW(amount: number): string {
 const METHOD_LABELS: Record<DbPaymentMethod, string> = {
   card: '신용카드',
   transfer: '가상계좌',
+  easypay: '간편결제',
 };
+
+/** BUG-115 PR1: easypay provider 9종 라벨 (이메일·UI 공통). */
+const EASYPAY_PROVIDER_LABELS: Record<EasypayProvider, string> = {
+  tosspay: '토스페이',
+  kakaopay: '카카오페이',
+  naverpay: '네이버페이',
+  payco: '페이코',
+  applepay: '애플페이',
+  samsungpay: '삼성페이',
+  lpay: 'L.pay',
+  ssgpay: 'SSG페이',
+  pinpay: '핀페이',
+};
+
+/**
+ * 결제 수단 라벨 합성. easypay 면 "{provider} (간편결제)" 로 노출, 그 외는 단순 라벨.
+ * provider 가 누락된 easypay 행은 라벨 fallback "간편결제" 만 노출 (방어적).
+ */
+function paymentMethodLabel(
+  method: DbPaymentMethod,
+  provider: EasypayProvider | null | undefined,
+): string {
+  if (method === 'easypay' && provider) {
+    return `${EASYPAY_PROVIDER_LABELS[provider]} (간편결제)`;
+  }
+  return METHOD_LABELS[method];
+}
 
 export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps): {
   subject: string;
   html: string;
   text: string;
 } {
-  const { orderNumber, recipientName, subtotal, shippingFee, discountAmount, totalAmount, method, items, virtualAccount, depositCompleted, publicToken } = props;
+  const { orderNumber, recipientName, subtotal, shippingFee, discountAmount, totalAmount, method, easypayProvider, items, virtualAccount, depositCompleted, publicToken } = props;
+  const methodLabel = paymentMethodLabel(method, easypayProvider ?? null);
   const orderCompleteUrl = buildOrderCompleteUrl(publicToken);
 
   /* CRLF 인젝션 방어 — subject 헤더 삽입 전 제거 */
@@ -179,7 +210,7 @@ export function renderOrderConfirmationEmail(props: OrderConfirmationEmailProps)
               </tr>
             </table>
 
-            <p style="margin:16px 0 0;font-size:13px;color:#6B6963;">결제 방법: ${METHOD_LABELS[method]}</p>
+            <p style="margin:16px 0 0;font-size:13px;color:#6B6963;">결제 방법: ${methodLabel}</p>
 
             ${virtualAccountBlock}
 
@@ -240,7 +271,7 @@ ${itemsText}
 소계: ${formatKRW(subtotal)}
 배송비: ${shippingFee === 0 ? '무료' : formatKRW(shippingFee)}${discountText}
 합계: ${formatKRW(totalAmount)}
-결제 방법: ${METHOD_LABELS[method]}${vaText}${ctaText}
+결제 방법: ${methodLabel}${vaText}${ctaText}
 
 © ${new Date().getFullYear()} Good Things Roasters`;
 

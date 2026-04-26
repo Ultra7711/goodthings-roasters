@@ -18,6 +18,7 @@ import type {
   DbPaymentEventType,
   DbPaymentMethod,
   DbPaymentStatus,
+  EasypayProvider,
 } from '@/types/db';
 
 /* ══════════════════════════════════════════
@@ -76,6 +77,8 @@ export type PaymentRow = {
   balance_amount: number;
   status: DbPaymentStatus;
   approved_at: string | null;
+  /** 024 마이그레이션. method = 'easypay' 일 때 NOT NULL, 그 외 NULL. */
+  easypay_provider: EasypayProvider | null;
 };
 
 /**
@@ -90,7 +93,7 @@ export async function findPaymentByOrderId(
   const { data, error } = await admin
     .from('payments')
     .select(
-      'id, order_id, payment_key, method, webhook_secret, approved_amount, refunded_amount, balance_amount, status, approved_at',
+      'id, order_id, payment_key, method, webhook_secret, approved_amount, refunded_amount, balance_amount, status, approved_at, easypay_provider',
     )
     .eq('order_id', orderId)
     .maybeSingle<PaymentRow>();
@@ -148,7 +151,8 @@ export async function findOrderWithPaymentByOrderNumber(
         refunded_amount,
         balance_amount,
         status,
-        approved_at
+        approved_at,
+        easypay_provider
       )
       `,
     )
@@ -236,11 +240,13 @@ export type ConfirmPaymentRpcParams = {
   orderId: string; // orders.id (UUID)
   paymentKey: string;
   method: DbPaymentMethod;
-  /** 가상계좌(transfer) 만 not null. 카드(card) 는 null. */
+  /** 가상계좌(transfer) 만 not null. 카드(card)/간편결제(easypay) 는 null. */
   webhookSecret: string | null;
   approvedAmount: number;
   approvedAt: string; // ISO 8601
   rawResponse: unknown; // Toss confirm 응답 원본
+  /** 024 마이그레이션. method = 'easypay' 일 때 NOT NULL, 그 외 NULL. */
+  easypayProvider: EasypayProvider | null;
 };
 
 export type ConfirmPaymentRpcResult = {
@@ -270,6 +276,7 @@ export async function confirmPaymentRpc(
       p_approved_amount: params.approvedAmount,
       p_approved_at: params.approvedAt,
       p_raw: params.rawResponse,
+      p_easypay_provider: params.easypayProvider,
     })
     .single<{ order_number: string; status: DbOrderStatus }>();
 

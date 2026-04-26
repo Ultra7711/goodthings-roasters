@@ -128,6 +128,7 @@ function makePayment(overrides: Partial<PaymentRow> = {}): PaymentRow {
     balance_amount: TOTAL_AMOUNT,
     status: 'approved',
     approved_at: '2026-04-16T01:00:00.000Z',
+    easypay_provider: null,
     ...overrides,
   };
 }

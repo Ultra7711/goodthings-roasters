@@ -52,7 +52,7 @@ import {
   type PaymentRow,
 } from '@/lib/repositories/paymentRepo';
 import type { PaymentConfirmInput } from '@/lib/schemas/payment';
-import type { DbOrderStatus, DbPaymentMethod } from '@/types/db';
+import type { DbOrderStatus, DbPaymentMethod, EasypayProvider } from '@/types/db';
 
 /* ══════════════════════════════════════════
    에러 — 도메인 레벨
@@ -79,9 +79,10 @@ export type PaymentServiceErrorCode =
   | 'forbidden'
   | 'state_conflict'
   | 'amount_mismatch'
-  | 'toss_failed'       // Toss 4xx (카드 거부 등)
-  | 'toss_unavailable'  // 네트워크·5xx 재시도 후 실패
-  | 'method_mismatch';  // orders.payment_method 와 Toss 실제 method 불일치
+  | 'toss_failed'             // Toss 4xx (카드 거부 등)
+  | 'toss_unavailable'        // 네트워크·5xx 재시도 후 실패
+  | 'method_mismatch'         // Toss method 매핑 실패 (지원하지 않는 수단)
+  | 'easypay_provider_missing'; // method='easypay' 인데 provider 매핑 실패 (BUG-115 PR1)
 
 /* ══════════════════════════════════════════
    결과 타입
@@ -108,15 +109,18 @@ export type ConfirmResult = {
 };
 
 /* ══════════════════════════════════════════
-   내부 유틸 — method 매핑 (code H-3)
+   내부 유틸 — method / provider 매핑 (code H-3 + BUG-115 PR1)
    ══════════════════════════════════════════ */
 
 /**
  * Toss `method` 응답 → DB `payment_method` enum 단일 매핑 테이블.
  *
- * Toss 가 한글(`카드`/`가상계좌`/`계좌이체`) 또는 영어 토큰(`CARD`/`VIRTUAL_ACCOUNT`/
- * `TRANSFER`/`card`) 를 섞어 반환할 수 있어 모두 열거한다. 여기에 없는 수단
- * (간편결제·휴대폰·문화상품권 등) 은 MVP 범위 밖 → `method_mismatch` 로 거부.
+ * Toss 가 한글(`카드`/`가상계좌`/`계좌이체`/`간편결제`) 또는 영어 토큰
+ * (`CARD`/`VIRTUAL_ACCOUNT`/`TRANSFER`/`EASY_PAY`) 를 섞어 반환할 수 있어 모두
+ * 열거한다. 여기에 없는 수단(휴대폰·문화상품권 등) 은 본 프로젝트 범위 밖 →
+ * `method_mismatch` 로 거부.
+ *
+ * BUG-115 PR1: 간편결제(`easypay`) 매핑 추가. provider 별 분류는 mapEasyPayProvider 가 별도 처리.
  */
 const TOSS_METHOD_TABLE: Readonly<Record<string, DbPaymentMethod>> = {
   카드: 'card',
@@ -126,11 +130,53 @@ const TOSS_METHOD_TABLE: Readonly<Record<string, DbPaymentMethod>> = {
   계좌이체: 'transfer',
   VIRTUAL_ACCOUNT: 'transfer',
   TRANSFER: 'transfer',
+  간편결제: 'easypay',
+  EASY_PAY: 'easypay',
 };
 
 function mapTossMethod(method: string | undefined): DbPaymentMethod | null {
   if (!method) return null;
   return TOSS_METHOD_TABLE[method] ?? null;
+}
+
+/**
+ * Toss `easyPay.provider` 응답 → DB `easypay_provider` enum 매핑 테이블.
+ *
+ * 토스 ENUM 코드 (https://docs.tosspayments.com/reference/enum-codes):
+ * - 9종 provider 모두 enum 에 등록 (어드민 활성/비활성 무관, 미래 확장 친화).
+ * - 한글/영문 모두 지원.
+ *
+ * BUG-115 PR1: method='easypay' 일 때만 호출. provider 매핑 실패 시 호출자가
+ * `easypay_provider_missing` 에러로 분기.
+ */
+const TOSS_PROVIDER_TABLE: Readonly<Record<string, EasypayProvider>> = {
+  토스페이: 'tosspay',
+  토스결제: 'tosspay',
+  TOSSPAY: 'tosspay',
+  네이버페이: 'naverpay',
+  NAVERPAY: 'naverpay',
+  카카오페이: 'kakaopay',
+  KAKAOPAY: 'kakaopay',
+  페이코: 'payco',
+  PAYCO: 'payco',
+  애플페이: 'applepay',
+  APPLEPAY: 'applepay',
+  삼성페이: 'samsungpay',
+  SAMSUNGPAY: 'samsungpay',
+  엘페이: 'lpay',
+  LPAY: 'lpay',
+  SSG페이: 'ssgpay',
+  SSG: 'ssgpay',
+  SSGPAY: 'ssgpay',
+  핀페이: 'pinpay',
+  PINPAY: 'pinpay',
+};
+
+function mapEasyPayProvider(
+  provider: string | undefined,
+): EasypayProvider | null {
+  if (!provider) return null;
+  return TOSS_PROVIDER_TABLE[provider] ?? null;
 }
 
 /* ══════════════════════════════════════════
@@ -311,22 +357,36 @@ function deriveRpcParams(
   webhookSecret: string | null;
   approvedAt: string;
   approvedAtFallback: boolean;
+  easypayProvider: EasypayProvider | null;
 } {
+  /* BUG-115 PR1: method 매핑 실패만 method_mismatch 로 거부.
+     order.payment_method 와의 비교 검증은 제거 — 클라이언트가 'card'/'transfer' 송신
+     상태에서도 Toss 가 'easypay' 로 응답할 수 있고, RPC 가 webhook 권위값으로 orders 갱신.
+     보안 검증은 amount 일치(handleStateAndAmount) 와 webhook signature(transfer) 가 담당. */
   const method = mapTossMethod(tossResponse.method);
   if (!method) {
     throw new PaymentServiceError('method_mismatch', tossResponse.method ?? 'unknown');
-  }
-  if (method !== order.payment_method) {
-    throw new PaymentServiceError(
-      'method_mismatch',
-      `expected=${order.payment_method},actual=${method}`,
-    );
   }
 
   const webhookSecret =
     method === 'transfer' ? (tossResponse.virtualAccount?.secret ?? null) : null;
   if (method === 'transfer' && !webhookSecret) {
     throw new PaymentServiceError('toss_failed', 'virtual_account_secret_missing');
+  }
+
+  /* easypay 시 provider 매핑. tossResponse.easyPay.provider 위치(공식 스펙).
+     매핑 실패 시 별도 에러 코드로 분기 — DB CHECK 제약(payments_easypay_provider_consistency)
+     을 위반하기 전에 명시적으로 거부. */
+  let easypayProvider: EasypayProvider | null = null;
+  if (method === 'easypay') {
+    const easyPayBlock = tossResponse.easyPay as { provider?: string } | undefined;
+    easypayProvider = mapEasyPayProvider(easyPayBlock?.provider);
+    if (!easypayProvider) {
+      throw new PaymentServiceError(
+        'easypay_provider_missing',
+        easyPayBlock?.provider ?? 'unknown',
+      );
+    }
   }
 
   let approvedAt = tossResponse.approvedAt;
@@ -342,7 +402,7 @@ function deriveRpcParams(
     });
   }
 
-  return { method, webhookSecret, approvedAt, approvedAtFallback };
+  return { method, webhookSecret, approvedAt, approvedAtFallback, easypayProvider };
 }
 
 /* ══════════════════════════════════════════
@@ -390,11 +450,9 @@ export async function confirmOrder(
   if (toss.kind === 'idempotent') return toss.value;
   const tossResponse = toss.value;
 
-  /* 5) method / webhook_secret / approvedAt 검증 */
-  const { method, webhookSecret, approvedAt, approvedAtFallback } = deriveRpcParams(
-    order,
-    tossResponse,
-  );
+  /* 5) method / webhook_secret / approvedAt / easypay_provider 검증 (BUG-115 PR1) */
+  const { method, webhookSecret, approvedAt, approvedAtFallback, easypayProvider } =
+    deriveRpcParams(order, tossResponse);
 
   /* 6) RPC — 원자 커밋. rawResponse 는 C-3 마스킹 후 저장.
      approvedAt fallback 발생 시 `_fallback.approved_at=true` 플래그로 감사 추적성 유지. */
@@ -413,6 +471,7 @@ export async function confirmOrder(
       approvedAmount: tossResponse.totalAmount,
       approvedAt,
       rawResponse: rawResponseForRpc,
+      easypayProvider,
     });
 
     const payment = await findPaymentByOrderId(order.id);

@@ -19,7 +19,7 @@ import { renderWelcomeEmail } from './templates/welcomeEmail';
 import { renderOrderConfirmationEmail } from './templates/orderConfirmationEmail';
 import { renderShippingNotificationEmail } from './templates/shippingNotificationEmail';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
-import type { DbPaymentMethod } from '@/types/db';
+import type { DbPaymentMethod, EasypayProvider } from '@/types/db';
 
 /* ─── 내부 DB 쿼리 ──────────────────────────────────────────────────────── */
 
@@ -34,6 +34,8 @@ type OrderRow = {
   discount_amount: number;
   total_amount: number;
   payment_method: DbPaymentMethod;
+  /** BUG-115 PR1: payment_method='easypay' 일 때 NOT NULL. */
+  easypay_provider: EasypayProvider | null;
 };
 
 type OrderItemRow = {
@@ -63,7 +65,7 @@ async function fetchOrderForEmail(
   const { data: order, error: orderErr } = await admin
     .from('orders')
     .select(
-      'id, public_token, contact_email, shipping_name, subtotal, shipping_fee, discount_amount, total_amount, payment_method',
+      'id, public_token, contact_email, shipping_name, subtotal, shipping_fee, discount_amount, total_amount, payment_method, easypay_provider',
     )
     .eq('order_number', orderNumber)
     .single();
@@ -161,6 +163,7 @@ export async function sendOrderConfirmationEmail(
       discountAmount: order.discount_amount,
       totalAmount: order.total_amount,
       method: order.payment_method,
+      easypayProvider: order.easypay_provider,
       items: items.map((i) => ({
         name: i.product_name,
         quantity: i.quantity,
