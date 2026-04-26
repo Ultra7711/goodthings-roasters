@@ -8610,11 +8610,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    카드 추가 방법: JSX에 data-gtr-tap 추가 + 아래에 .xxx.is-tapping 자식 규칙 추가.
    ══════════════════════════════════════════ */
 
-/* CTA gold underline: 탭 즉시 snap → TAP_MS 동안 유지 → 이동 */
+/* CTA gold underline: 좌→우 흐름 (데스크탑 hover 와 동일 350ms ease) → 도달 시점 = navigation.
+   base rule 의 `transition: transform 350ms var(--sr-easing)` 자동 상속. */
 [data-gtr-tap].is-tapping::after {
   transform: scaleX(1);
   transform-origin: left;
-  transition: none;
 }
 
 /* cat-card 탭: 이미지 줌 + 오버레이 + 화살표 350ms 완성 */
