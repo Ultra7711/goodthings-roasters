@@ -840,8 +840,6 @@ button.hdr-icon-btn { background: none; border: none; }
 }
 .mn-cart:hover { opacity: 1; }
 .mn-cart .cart-badge {
-  top: 6px;
-  right: 6px;
   background: var(--color-text-primary);
   color: var(--color-background-primary);
 }
