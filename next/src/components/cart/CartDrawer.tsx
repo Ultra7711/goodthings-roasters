@@ -12,7 +12,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   useCartQuery,
   useUpdateCartQty,
@@ -22,9 +22,10 @@ import {
 } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useDrawer } from '@/hooks/useDrawer';
+import { useNavigation } from '@/hooks/useNavigation';
 import { splitName } from '@/lib/products';
 import type { CartItem } from '@/types/cart';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 function formatWon(n: number): string {
   return `${n.toLocaleString('ko-KR')}원`;
@@ -40,10 +41,9 @@ export default function CartDrawer() {
   const { items, totalQty, subtotal, totalPrice } = useCartQuery();
   const updateQty = useUpdateCartQty();
   const removeItem = useRemoveCartItem();
-  const router = useRouter();
   const pathname = usePathname();
-  const pendingNavRef = useRef(false);
-  const [navigating, setNavigating] = useState(false);
+  const { navigate, navigatingTo } = useNavigation();
+  const drawerPendingRef = useRef(false);
 
   /* transition:none → fn() → rAF×2 복원. 슬라이드 아웃 전면 제거용 공통 헬퍼.
      닫힘 이후 패널이 translateX(100%) 상태에서 복원되므로 다음 슬라이드인 정상 재생. */
@@ -65,9 +65,8 @@ export default function CartDrawer() {
 
   /* pathname 변경(새 페이지 렌더 완료) 시 드로어 즉시 닫기 (BUG-149). */
   useEffect(() => {
-    if (!pendingNavRef.current) return;
-    pendingNavRef.current = false;
-    setNavigating(false);
+    if (!drawerPendingRef.current) return;
+    drawerPendingRef.current = false;
     closeWithoutAnimation(closeForNavigation);
   }, [pathname, closeForNavigation]);
 
@@ -78,23 +77,20 @@ export default function CartDrawer() {
 
   function handleCheckout() {
     if (pathname === '/checkout') { closeWithoutAnimation(close); return; }
-    setNavigating(true);
-    pendingNavRef.current = true;
-    router.push('/checkout');
+    drawerPendingRef.current = true;
+    navigate('/checkout');
   }
 
   function handleViewCart() {
     if (pathname === '/cart') { closeWithoutAnimation(close); return; }
-    setNavigating(true);
-    pendingNavRef.current = true;
-    router.push('/cart');
+    drawerPendingRef.current = true;
+    navigate('/cart');
   }
 
   function handleContinueShopping() {
     if (pathname === '/shop') { closeWithoutAnimation(close); return; }
-    setNavigating(true);
-    pendingNavRef.current = true;
-    router.push('/shop');
+    drawerPendingRef.current = true;
+    navigate('/shop');
   }
 
   return (
@@ -144,9 +140,9 @@ export default function CartDrawer() {
                   className="cd-shop-btn"
                   type="button"
                   onClick={handleContinueShopping}
-                  disabled={navigating}
+                  disabled={navigatingTo !== null}
                 >
-                  {navigating ? '이동 중...' : '쇼핑 계속하기'}
+                  {navigatingTo === '/shop' ? '이동 중...' : '쇼핑 계속하기'}
                 </button>
               </div>
             </div>
@@ -290,19 +286,19 @@ export default function CartDrawer() {
                 className="cta-btn cta-btn-light-outline cd-cta-secondary"
                 type="button"
                 onClick={handleViewCart}
-                disabled={navigating}
+                disabled={navigatingTo !== null}
                 data-gtr-tap
               >
-                {navigating ? '이동 중...' : '장바구니 보기'}
+                {navigatingTo === '/cart' ? '이동 중...' : '장바구니 보기'}
               </button>
               <button
                 className="cta-btn cta-btn-light-filled cd-cta-primary"
                 type="button"
                 onClick={handleCheckout}
-                disabled={navigating}
+                disabled={navigatingTo !== null}
                 data-gtr-tap
               >
-                {navigating ? '이동 중...' : '주문하기'}
+                {navigatingTo === '/checkout' ? '이동 중...' : '주문하기'}
               </button>
             </div>
           </div>

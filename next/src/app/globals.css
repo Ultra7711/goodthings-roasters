@@ -3780,9 +3780,7 @@ footer.blk {
 }
 #cart-drawer-panel .cd-cta-secondary:active { opacity: .7; }
 #cart-drawer-panel .cd-cta-primary:active { opacity: .7; }
-/* 네비게이션 진행 중: dim + 골드 라인 고정(hover-out 애니 차단) */
-#cart-drawer-panel .cd-cta-secondary:disabled,
-#cart-drawer-panel .cd-cta-primary:disabled { opacity: .5; cursor: default; }
+/* 네비게이션 진행 중: 골드 라인 고정(hover-out 애니 차단) */
 #cart-drawer-panel .cd-cta-secondary:disabled::after,
 #cart-drawer-panel .cd-cta-primary:disabled::after { transform: scaleX(1); transition: none; }
 
