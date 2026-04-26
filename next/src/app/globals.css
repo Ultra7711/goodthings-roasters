@@ -119,6 +119,7 @@
   --opacity-footer-sns-rest: .4;
   --opacity-footer-sns-hover: .9;
   --duration-drawer: 350ms;
+  --duration-tap: 350ms;
   --duration-zoom: 400ms;
   --duration-fade: 600ms;
   --duration-slide: 700ms;
@@ -8619,18 +8620,18 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cat-card.is-tapping .cat-img-inner,
 .tci.is-tapping .tci-img-inner {
   transform: scale(1.03);
-  transition: transform 350ms cubic-bezier(.25,.1,.25,1);
+  transition: transform var(--duration-tap) cubic-bezier(.25,.1,.25,1);
 }
 .cat-card.is-tapping .cat-img::before,
 .tci.is-tapping .tci-img::before {
   opacity: .82;
-  transition: opacity 350ms ease;
+  transition: opacity var(--duration-tap) ease;
 }
 .cat-card.is-tapping .cat-arrow,
 .tci.is-tapping .tci-arrow {
   opacity: 1;
-  transition: opacity 350ms ease;
-  animation: cat-arrow-slide 350ms ease-out;
+  transition: opacity var(--duration-tap) ease;
+  animation: cat-arrow-slide var(--duration-tap) ease-out;
 }
 
 /* ══ Step 3-A-5: 섹션 eyebrow gold rule ══

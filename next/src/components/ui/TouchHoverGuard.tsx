@@ -50,10 +50,12 @@ export default function TouchHoverGuard() {
   }, []);
 
   // BUG-143: 모바일 전용 탭 피드백 핸들러.
-  // [data-gtr-tap] 요소 클릭을 캡처 단계에서 가로채고 → .is-tapping → 350ms 후 재발화.
+  // [data-gtr-tap] 요소 클릭을 캡처 단계에서 가로채고 → .is-tapping → TAP_MS 후 재발화.
   // WeakSet bypass: 재발화된 click은 재가로채기 없이 통과.
+  // TAP_MS 조정: globals.css --duration-tap 값 하나만 변경하면 JS·CSS 동시 반영.
   useEffect(() => {
-    const TAP_MS = 350;
+    const raw = getComputedStyle(document.documentElement).getPropertyValue('--duration-tap').trim();
+    const TAP_MS = raw ? parseInt(raw, 10) : 350;
     const bypassed = new WeakSet<Element>();
 
     function onTapClick(e: MouseEvent) {
