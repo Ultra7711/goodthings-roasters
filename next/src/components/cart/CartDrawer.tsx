@@ -24,7 +24,7 @@ import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useDrawer } from '@/hooks/useDrawer';
 import { splitName } from '@/lib/products';
 import type { CartItem } from '@/types/cart';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function formatWon(n: number): string {
   return `${n.toLocaleString('ko-KR')}원`;
@@ -43,6 +43,7 @@ export default function CartDrawer() {
   const router = useRouter();
   const pathname = usePathname();
   const pendingNavRef = useRef(false);
+  const [navigating, setNavigating] = useState(false);
 
   useDrawer({ open: isOpen, onClose: close });
 
@@ -52,6 +53,7 @@ export default function CartDrawer() {
   useEffect(() => {
     if (!pendingNavRef.current) return;
     pendingNavRef.current = false;
+    setNavigating(false);
     closeForNavigation();
   }, [pathname, closeForNavigation]);
 
@@ -62,18 +64,21 @@ export default function CartDrawer() {
 
   function handleCheckout() {
     if (pathname === '/checkout') { close(); return; }
+    setNavigating(true);
     pendingNavRef.current = true;
     router.push('/checkout');
   }
 
   function handleViewCart() {
     if (pathname === '/cart') { close(); return; }
+    setNavigating(true);
     pendingNavRef.current = true;
     router.push('/cart');
   }
 
   function handleContinueShopping() {
     if (pathname === '/shop') { close(); return; }
+    setNavigating(true);
     pendingNavRef.current = true;
     router.push('/shop');
   }
@@ -125,6 +130,7 @@ export default function CartDrawer() {
                   className="cd-shop-btn"
                   type="button"
                   onClick={handleContinueShopping}
+                  disabled={navigating}
                 >
                   쇼핑 계속하기
                 </button>
@@ -270,6 +276,7 @@ export default function CartDrawer() {
                 className="cta-btn cta-btn-light-outline cd-cta-secondary"
                 type="button"
                 onClick={handleViewCart}
+                disabled={navigating}
                 data-gtr-tap
               >
                 장바구니 보기
@@ -278,6 +285,7 @@ export default function CartDrawer() {
                 className="cta-btn cta-btn-light-filled cd-cta-primary"
                 type="button"
                 onClick={handleCheckout}
+                disabled={navigating}
                 data-gtr-tap
               >
                 주문하기
