@@ -7134,15 +7134,13 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   background: var(--color-background-inverse);
 }
 /* BUG-148 — iOS Safari flex-grow 버그 방어.
-   .root { min-height: 100dvh } + main { flex: 1 } 조합에서 iOS Safari 는
-   flex-grow 를 0으로 처리해 main 이 줄어들고 footer 가 올라오는 현상.
-   직접 min-height 를 지정해 공지바+헤더 이하 뷰포트를 항상 점유. */
+   dvh 는 스크롤 중 주소창 접힘에 따라 실시간 변경 → 레이아웃 재계산 → 푸터 튐.
+   svh(small viewport height) 는 주소창 최대 노출 기준 고정값 → 스크롤 중 불변. */
 #main-content {
-  min-height: calc(100dvh - var(--ann-bar-height) - var(--header-height));
+  min-height: calc(100svh - var(--ann-bar-height) - var(--header-height));
 }
-/* H8 — prev-page 잔상 차단. NavigationVisibilityGate 가 click 시
-   data-transitioning="true" 부여 → useLayoutEffect (new commit) 에서 제거.
-   CartDrawer router.push 등 programmatic navigation 에서도 직접 세팅. */
+/* H8 — prev-page 잔상 차단. NavigationVisibilityGate 가 a[href] click 시
+   data-transitioning="true" 부여 → useLayoutEffect (new pathname) 에서 제거. */
 #main-content[data-transitioning="true"] {
   visibility: hidden;
 }

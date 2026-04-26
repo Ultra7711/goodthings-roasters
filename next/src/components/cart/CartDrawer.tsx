@@ -12,7 +12,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   useCartQuery,
   useUpdateCartQty,
@@ -24,6 +24,7 @@ import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useDrawer } from '@/hooks/useDrawer';
 import { splitName } from '@/lib/products';
 import type { CartItem } from '@/types/cart';
+import { useEffect } from 'react';
 
 function formatWon(n: number): string {
   return `${n.toLocaleString('ko-KR')}원`;
@@ -40,33 +41,47 @@ export default function CartDrawer() {
   const updateQty = useUpdateCartQty();
   const removeItem = useRemoveCartItem();
   const router = useRouter();
+  const pathname = usePathname();
 
   useDrawer({ open: isOpen, onClose: close });
+
+  /* 드로어가 다시 열릴 때 navigation 핸들러가 설정한 transition:none 을 복원.
+     복원하지 않으면 다음 오픈 시 슬라이드인 애니가 사라짐. */
+  useEffect(() => {
+    if (!isOpen) return;
+    document.getElementById('cart-drawer-panel')?.style.removeProperty('transition');
+    document.getElementById('cart-drawer-bg')?.style.removeProperty('transition');
+  }, [isOpen]);
 
   const isEmpty = items.length === 0;
   const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
   const gaugePct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
   const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
-  /* navigate 동반 close — history 조작 없이 state 만 false (router.push 와 충돌 방지).
-     router.push 는 programmatic → NavVisGate capture-phase 가 캐치 못함.
-     직접 data-transitioning 을 세팅해 드로어 닫힘 애니 중 하단 페이지 노출 차단 (BUG-149). */
+  /* transition:none 인라인 세팅 → 슬라이드 아웃 즉시 제거 → 하단 페이지 노출 차단 (BUG-149).
+     data-transitioning DOM 조작 방식 폐기: /cart 동일 경로 push 시 pathname 미변경 →
+     NavVisGate useLayoutEffect 미발화 → data-transitioning 영구 세팅 → 빈 화면 회귀. */
+  function suppressDrawerTransition() {
+    document.getElementById('cart-drawer-panel')?.style.setProperty('transition', 'none');
+    document.getElementById('cart-drawer-bg')?.style.setProperty('transition', 'none');
+  }
+
   function handleCheckout() {
-    document.getElementById('main-content')?.setAttribute('data-transitioning', 'true');
+    suppressDrawerTransition();
     closeForNavigation();
     router.push('/checkout');
   }
 
   function handleViewCart() {
-    document.getElementById('main-content')?.setAttribute('data-transitioning', 'true');
+    suppressDrawerTransition();
     closeForNavigation();
-    router.push('/cart');
+    if (pathname !== '/cart') router.push('/cart');
   }
 
   function handleContinueShopping() {
-    document.getElementById('main-content')?.setAttribute('data-transitioning', 'true');
+    suppressDrawerTransition();
     closeForNavigation();
-    router.push('/shop');
+    if (pathname !== '/shop') router.push('/shop');
   }
 
   return (
