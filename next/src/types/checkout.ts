@@ -1,9 +1,7 @@
 /* ══════════════════════════════════════════
    Checkout Types
-   체크아웃 폼 데이터 + 결제 수단
+   체크아웃 폼 데이터
    ══════════════════════════════════════════ */
-
-export type PaymentMethod = 'card' | 'transfer';
 
 export type DeliveryMessageOption = {
   value: string;
@@ -29,9 +27,6 @@ export type CheckoutFormData = {
   deliveryCustom: string;
   guestPw: string;
   guestPw2: string;
-  paymentMethod: PaymentMethod;
-  bankName: string;
-  depositorName: string;
 };
 
 export type CheckoutErrors = Partial<Record<keyof CheckoutFormData | 'agreement', string>>;
@@ -47,7 +42,4 @@ export const INITIAL_CHECKOUT: CheckoutFormData = {
   deliveryCustom: '',
   guestPw: '',
   guestPw2: '',
-  paymentMethod: 'card',
-  bankName: '',
-  depositorName: '',
 };

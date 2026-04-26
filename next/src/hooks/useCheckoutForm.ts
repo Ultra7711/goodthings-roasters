@@ -7,7 +7,6 @@ import { useState, useCallback } from 'react';
 import type {
   CheckoutFormData,
   CheckoutErrors,
-  PaymentMethod,
 } from '@/types/checkout';
 import { INITIAL_CHECKOUT } from '@/types/checkout';
 import {
@@ -24,7 +23,6 @@ type UseCheckoutFormReturn = {
   allAgreed: boolean;
   isFormRevealed: boolean;
   setField: <K extends keyof CheckoutFormData>(key: K, value: CheckoutFormData[K]) => void;
-  setPaymentMethod: (method: PaymentMethod) => void;
   toggleAgreement: (idx: number) => void;
   toggleAllAgreements: () => void;
   revealForm: () => void;
@@ -60,15 +58,6 @@ export function useCheckoutForm(): UseCheckoutFormReturn {
     },
     [],
   );
-
-  const setPaymentMethod = useCallback((method: PaymentMethod) => {
-    setForm((prev) => ({
-      ...prev,
-      paymentMethod: method,
-      bankName: '',
-      depositorName: '',
-    }));
-  }, []);
 
   const toggleAgreement = useCallback((idx: number) => {
     setAgreements((prev) => prev.map((v, i) => (i === idx ? !v : v)));
@@ -154,12 +143,6 @@ export function useCheckoutForm(): UseCheckoutFormReturn {
       }
       if (!form.addr1.trim()) newErrors.addr1 = '주소를 검색해 주세요.';
 
-      /* 계좌이체 전용 */
-      if (form.paymentMethod === 'transfer') {
-        if (!form.bankName.trim()) newErrors.bankName = '은행명을 입력해 주세요.';
-        if (!form.depositorName.trim()) newErrors.depositorName = '입금자명을 입력해 주세요.';
-      }
-
       /* 비회원 비밀번호 */
       if (!isLoggedIn) {
         if (!form.guestPw) {
@@ -192,7 +175,6 @@ export function useCheckoutForm(): UseCheckoutFormReturn {
     allAgreed,
     isFormRevealed,
     setField,
-    setPaymentMethod,
     toggleAgreement,
     toggleAllAgreements,
     revealForm,

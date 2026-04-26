@@ -33,7 +33,6 @@ import { extractKrName, formatPrice } from '@/lib/utils';
 import { shakeFields } from '@/lib/shakeFields';
 import { TextField } from '@/components/ui/TextField';
 import { SearchIcon } from '@/components/ui/InputIcons';
-import type { PaymentMethod } from '@/types/checkout';
 import { GUEST_PASSWORD_MIN_LENGTH } from '@/lib/validation';
 import {
   buildOrderPayload,
@@ -53,9 +52,6 @@ const DELIVERY_OPTIONS = [
   { value: 'direct', label: '직접 입력' },
 ] as const;
 
-/* ── 은행 목록 ── */
-const BANKS = ['국민은행', '신한은행', '우리은행', '하나은행', '기업은행', '농협은행', '카카오뱅크', '토스뱅크'] as const;
-
 /* ── SVG 아이콘 ── */
 function ChevronDown({ size = 24 }: { size?: number }) {
   return (
@@ -69,14 +65,6 @@ function ChevronRight({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9,18l6-6-6-6" />
-    </svg>
-  );
-}
-
-function InfoIcon() {
-  return (
-    <svg className="chp-card-notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="8" /><path d="M12,16v-4" /><path d="M12,8h0" />
     </svg>
   );
 }
@@ -180,7 +168,7 @@ export default function CheckoutPage() {
   /* ── 폼 훅 ── */
   const {
     form, errors, agreements, allAgreed, isFormRevealed,
-    setField, setPaymentMethod, toggleAgreement, toggleAllAgreements,
+    setField, toggleAgreement, toggleAllAgreements,
     revealForm, validate, clearErrors, blurEmail, blurPhone,
     reset: resetForm,
   } = useCheckoutForm();
@@ -225,18 +213,6 @@ export default function CheckoutPage() {
   /* ── 비밀번호 확인 필드 등장 ── */
   const showPw2 = form.guestPw.length >= GUEST_PASSWORD_MIN_LENGTH;
 
-  /* ── 결제수단 전환 fade ── */
-  const [payFade, setPayFade] = useState(false);
-  const payFadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const handlePaymentSwitch = useCallback((method: PaymentMethod) => {
-    if (method === form.paymentMethod) return;
-    setPaymentMethod(method);
-    setPayFade(true);
-    if (payFadeTimerRef.current) clearTimeout(payFadeTimerRef.current);
-    payFadeTimerRef.current = setTimeout(() => setPayFade(false), 260);
-  }, [form.paymentMethod, setPaymentMethod]);
-  useEffect(() => () => { if (payFadeTimerRef.current) clearTimeout(payFadeTimerRef.current); }, []);
-
   /* ── 주소 검색 (Daum Postcode API) ── */
   const handleAddressSearch = useCallback(async () => {
     try {
@@ -248,11 +224,6 @@ export default function CheckoutPage() {
       toast('주소 검색을 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.');
     }
   }, [setField, toast]);
-
-  /* ── bank select ── */
-  const handleBankChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setField('bankName', e.target.value);
-  }, [setField]);
 
   /* ── 비회원으로 주문하기 ──
      버튼 클릭 = 비회원 결제 flow 선언 + 폼 펼치기.
@@ -703,63 +674,6 @@ export default function CheckoutPage() {
                   />
                 </div>
               )}
-
-              {/* 결제수단 */}
-              <div className="chp-section chp-section--no-border">
-                <h2 className="chp-section-title">결제수단</h2>
-                <div className="chp-payment-methods">
-                  <div className={`chp-payment-indicator${form.paymentMethod === 'transfer' ? ' to-transfer' : ''}`} />
-                  <div className={`chp-payment-item${form.paymentMethod === 'card' ? ' active' : ''}`}>
-                    <label className="chp-payment-method">
-                      <input type="radio" name="chp-payment" value="card" checked={form.paymentMethod === 'card'} onChange={() => handlePaymentSwitch('card')} />
-                      <span>체크 / 신용카드</span>
-                    </label>
-                  </div>
-                  <div className={`chp-payment-item${form.paymentMethod === 'transfer' ? ' active' : ''}`}>
-                    <label className="chp-payment-method">
-                      <input type="radio" name="chp-payment" value="transfer" checked={form.paymentMethod === 'transfer'} onChange={() => handlePaymentSwitch('transfer')} />
-                      <span>계좌이체 / 무통장입금</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* 카드 안내 */}
-                {form.paymentMethod === 'card' && (
-                  <div className={`chp-payment-detail${payFade ? ' fade-in' : ''}`}>
-                    <p className="chp-card-notice">
-                      <InfoIcon />
-                      결제하기 버튼 클릭 시 카드 정보를 입력합니다.
-                    </p>
-                  </div>
-                )}
-
-                {/* 계좌이체 */}
-                {form.paymentMethod === 'transfer' && (
-                  <div className={`chp-payment-detail${payFade ? ' fade-in' : ''}`}>
-                    <div className={`chp-field${form.bankName ? ' has-value' : ''}${errors.bankName ? ' input-warn' : ''}`}>
-                      <select
-                        className="chp-input chp-select"
-                        value={form.bankName}
-                        onChange={handleBankChange}
-                      >
-                        <option value="" disabled hidden />
-                        {BANKS.map((b) => <option key={b}>{b}</option>)}
-                      </select>
-                      <label className="chp-floating-label">입금은행</label>
-                      <div className="chp-error-msg">{errors.bankName}</div>
-                    </div>
-                    <TextField
-                      label="입금자명"
-                      value={form.depositorName}
-                      onChange={(v) => setField('depositorName', v)}
-                      onClear={() => setField('depositorName', '')}
-                      onKeyDown={chpNav}
-                      error={errors.depositorName}
-                      helper="입금자명을 입력하세요."
-                    />
-                  </div>
-                )}
-              </div>
 
               {/* 약관 동의 */}
               <div className={`chp-section chp-section--no-border chp-agree-section${errors.agreement ? ' error' : ''}`}>

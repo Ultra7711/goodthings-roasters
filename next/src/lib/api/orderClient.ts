@@ -164,15 +164,7 @@ export function buildOrderPayload(
         : null,
   }));
 
-  /* 결제수단 분기 */
-  const payment: OrderCreateInput['payment'] =
-    form.paymentMethod === 'transfer'
-      ? {
-          method: 'transfer',
-          bankName: form.bankName.trim(),
-          depositorName: form.depositorName.trim(),
-        }
-      : { method: 'card' };
+  const payment: OrderCreateInput['payment'] = { method: 'card' };
 
   const base: OrderCreateInput = {
     items: payloadItems,

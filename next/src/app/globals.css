@@ -6521,38 +6521,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .chp-guest-link:hover { text-decoration-color: var(--color-accent-gold); }
 
-/* 결제수단 탭 */
-.chp-payment-methods { display: flex; position: relative; margin-top: 20px; margin-bottom: 24px; }
-.chp-payment-methods::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--color-border-secondary); }
-.chp-payment-indicator {
-  position: absolute; bottom: 0; left: 0; width: 50%; height: 2px;
-  background: var(--color-accent-gold);
-  transition: transform var(--duration-transition) cubic-bezier(.4,0,.2,1);
-  z-index: 1;
-}
-.chp-payment-indicator.to-transfer { transform: translateX(100%); }
-.chp-payment-item { flex: 1; background: transparent; }
-.chp-payment-method {
-  display: flex; align-items: center; justify-content: center;
-  width: 100%; padding: 16px 0 14px; cursor: pointer; background: transparent; border: none;
-  font-family: var(--font-kr); font-size: var(--type-heading-s-size); font-weight: 400;
-  letter-spacing: var(--ls-neutral); color: var(--tab-color);
-  transition: color var(--duration-hover) ease;
-  text-align: center;
-}
-.chp-payment-item.active .chp-payment-method { font-weight: 500; color: var(--tab-color-active); }
-.chp-payment-item:hover:not(.active) .chp-payment-method { color: var(--tab-color-active); }
-.chp-payment-method input[type="radio"] { display: none; }
-.chp-payment-detail { padding: 0 0 20px; }
-@keyframes chp-fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-.chp-payment-detail.fade-in { animation: chp-fadein .25s ease; }
-.chp-card-notice {
-  display: flex; align-items: center; gap: var(--gap-xs);
-  font-family: var(--font-kr); font-size: var(--type-input-size); color: var(--color-text-secondary);
-  margin: 40px 0 0; padding-bottom: var(--font-kr-align-fix);
-}
-.chp-card-notice-icon { flex-shrink: 0; width: 20px; height: 20px; color: rgba(156,152,144,.7); }
-
 /* 약관 동의 */
 .chp-agree-all-row {
   display: flex; align-items: center; gap: 10px; cursor: pointer;

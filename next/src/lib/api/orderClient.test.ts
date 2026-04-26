@@ -28,9 +28,6 @@ const baseForm: CheckoutFormData = {
   deliveryCustom: '',
   guestPw: 'pin1234',
   guestPw2: 'pin1234',
-  paymentMethod: 'card',
-  bankName: '',
-  depositorName: '',
 };
 
 const baseItem: CartItem = {
@@ -166,34 +163,10 @@ describe('buildOrderPayload — 배송 메시지 매핑', () => {
   });
 });
 
-describe('buildOrderPayload — 결제수단 분기', () => {
-  it('card 주문 → { method: "card" } 만', () => {
-    const payload = buildOrderPayload(
-      { ...baseForm, paymentMethod: 'card' },
-      [baseItem],
-      true,
-      AGREED,
-    );
+describe('buildOrderPayload — 결제수단', () => {
+  it('항상 { method: "card" } 를 반환한다 (Toss 위젯이 수단 선택)', () => {
+    const payload = buildOrderPayload(baseForm, [baseItem], true, AGREED);
     expect(payload.payment).toEqual({ method: 'card' });
-  });
-
-  it('transfer 주문 → bankName/depositorName 포함', () => {
-    const payload = buildOrderPayload(
-      {
-        ...baseForm,
-        paymentMethod: 'transfer',
-        bankName: ' 국민은행 ',
-        depositorName: ' 홍길동 ',
-      },
-      [baseItem],
-      true,
-      AGREED,
-    );
-    expect(payload.payment).toEqual({
-      method: 'transfer',
-      bankName: '국민은행',
-      depositorName: '홍길동',
-    });
   });
 });
 
