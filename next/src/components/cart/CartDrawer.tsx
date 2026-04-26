@@ -43,18 +43,32 @@ export default function CartDrawer() {
   const router = useRouter();
   const pathname = usePathname();
   const pendingNavRef = useRef(false);
-  const [navigating, setNavigating] = useState(false);
+  /* 어느 경로로 이동 중인지 추적 — 클릭한 버튼만 "이동 중..." 텍스트 표시. */
+  const [navigatingTo, setNavigatingTo] = useState<'cart' | 'checkout' | 'shop' | null>(null);
+  const navigating = navigatingTo !== null;
 
   useDrawer({ open: isOpen, onClose: close });
 
-  /* pathname 변경(새 페이지 렌더 완료) 시 드로어 닫기 (BUG-149).
-     드로어를 새 페이지 로드까지 유지 → 이전 페이지 노출(flash) 없음.
-     동일 경로 push 는 pathname 미변경 → 이 effect 미발화 → handler 에서 close() 직접 호출. */
+  /* pathname 변경(새 페이지 렌더 완료) 시 드로어 즉시 닫기 (BUG-149).
+     transition:none → closeForNavigation() → rAF×2 후 transition 복원.
+     복원 시점에 패널은 translateX(100%) 상태이므로 다음 슬라이드인 정상 재생. */
   useEffect(() => {
     if (!pendingNavRef.current) return;
     pendingNavRef.current = false;
-    setNavigating(false);
+    setNavigatingTo(null);
+
+    const panel = document.getElementById('cart-drawer-panel');
+    const bg = document.getElementById('cart-drawer-bg');
+    panel?.style.setProperty('transition', 'none');
+    bg?.style.setProperty('transition', 'none');
     closeForNavigation();
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        panel?.style.removeProperty('transition');
+        bg?.style.removeProperty('transition');
+      });
+    });
   }, [pathname, closeForNavigation]);
 
   const isEmpty = items.length === 0;
@@ -64,21 +78,21 @@ export default function CartDrawer() {
 
   function handleCheckout() {
     if (pathname === '/checkout') { close(); return; }
-    setNavigating(true);
+    setNavigatingTo('checkout');
     pendingNavRef.current = true;
     router.push('/checkout');
   }
 
   function handleViewCart() {
     if (pathname === '/cart') { close(); return; }
-    setNavigating(true);
+    setNavigatingTo('cart');
     pendingNavRef.current = true;
     router.push('/cart');
   }
 
   function handleContinueShopping() {
     if (pathname === '/shop') { close(); return; }
-    setNavigating(true);
+    setNavigatingTo('shop');
     pendingNavRef.current = true;
     router.push('/shop');
   }
@@ -132,7 +146,7 @@ export default function CartDrawer() {
                   onClick={handleContinueShopping}
                   disabled={navigating}
                 >
-                  쇼핑 계속하기
+                  {navigatingTo === 'shop' ? '이동 중...' : '쇼핑 계속하기'}
                 </button>
               </div>
             </div>
@@ -279,7 +293,7 @@ export default function CartDrawer() {
                 disabled={navigating}
                 data-gtr-tap
               >
-                장바구니 보기
+                {navigatingTo === 'cart' ? '이동 중...' : '장바구니 보기'}
               </button>
               <button
                 className="cta-btn cta-btn-light-filled cd-cta-primary"
@@ -288,7 +302,7 @@ export default function CartDrawer() {
                 disabled={navigating}
                 data-gtr-tap
               >
-                주문하기
+                {navigatingTo === 'checkout' ? '이동 중...' : '주문하기'}
               </button>
             </div>
           </div>
