@@ -24,7 +24,7 @@ import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useDrawer } from '@/hooks/useDrawer';
 import { splitName } from '@/lib/products';
 import type { CartItem } from '@/types/cart';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 function formatWon(n: number): string {
   return `${n.toLocaleString('ko-KR')}원`;
@@ -42,46 +42,40 @@ export default function CartDrawer() {
   const removeItem = useRemoveCartItem();
   const router = useRouter();
   const pathname = usePathname();
+  const pendingNavRef = useRef(false);
 
   useDrawer({ open: isOpen, onClose: close });
 
-  /* 드로어가 다시 열릴 때 navigation 핸들러가 설정한 transition:none 을 복원.
-     복원하지 않으면 다음 오픈 시 슬라이드인 애니가 사라짐. */
+  /* pathname 변경(새 페이지 렌더 완료) 시 드로어 닫기 (BUG-149).
+     드로어를 새 페이지 로드까지 유지 → 이전 페이지 노출(flash) 없음.
+     동일 경로 push 는 pathname 미변경 → 이 effect 미발화 → handler 에서 close() 직접 호출. */
   useEffect(() => {
-    if (!isOpen) return;
-    document.getElementById('cart-drawer-panel')?.style.removeProperty('transition');
-    document.getElementById('cart-drawer-bg')?.style.removeProperty('transition');
-  }, [isOpen]);
+    if (!pendingNavRef.current) return;
+    pendingNavRef.current = false;
+    closeForNavigation();
+  }, [pathname, closeForNavigation]);
 
   const isEmpty = items.length === 0;
   const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
   const gaugePct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
   const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
-  /* transition:none 인라인 세팅 → 슬라이드 아웃 즉시 제거 → 하단 페이지 노출 차단 (BUG-149).
-     data-transitioning DOM 조작 방식 폐기: /cart 동일 경로 push 시 pathname 미변경 →
-     NavVisGate useLayoutEffect 미발화 → data-transitioning 영구 세팅 → 빈 화면 회귀. */
-  function suppressDrawerTransition() {
-    document.getElementById('cart-drawer-panel')?.style.setProperty('transition', 'none');
-    document.getElementById('cart-drawer-bg')?.style.setProperty('transition', 'none');
-  }
-
   function handleCheckout() {
-    suppressDrawerTransition();
-    closeForNavigation();
+    if (pathname === '/checkout') { close(); return; }
+    pendingNavRef.current = true;
     router.push('/checkout');
   }
 
   function handleViewCart() {
-    suppressDrawerTransition();
-    closeForNavigation();
-    if (pathname !== '/cart') router.push('/cart');
+    if (pathname === '/cart') { close(); return; }
+    pendingNavRef.current = true;
+    router.push('/cart');
   }
 
   function handleContinueShopping() {
-    suppressDrawerTransition();
-    closeForNavigation();
-    if (pathname !== '/shop') router.push('/shop');
+    if (pathname === '/shop') { close(); return; }
+    pendingNavRef.current = true;
+    router.push('/shop');
   }
 
   return (
