@@ -19,13 +19,19 @@ export default function HeroSection() {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    /* Activity visible 복귀 시 재생 보장 — autoplay 정책은 muted 속성으로 충족 */
+
+    const tryPlay = () => void video.play().catch(() => {});
+
     void video.play().catch(() => {
-      /* 일부 브라우저 autoplay 정책으로 거부될 수 있음 — 사용자 제스처 후 재시도 */
+      /* iOS 저전력 모드 등 autoplay 차단 시 — 첫 터치/스크롤에서 재시도 */
+      document.addEventListener('touchstart', tryPlay, { once: true });
+      document.addEventListener('click', tryPlay, { once: true });
     });
+
     return () => {
-      /* Activity hidden / unmount 시 일시정지 — currentTime 은 유지되어 복귀 시 이어재생 */
       video.pause();
+      document.removeEventListener('touchstart', tryPlay);
+      document.removeEventListener('click', tryPlay);
     };
   }, []);
 
