@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-26 · Session 83 (BUG-149 UX 정제 + useNavigation 훅 신규)
+> **최종 업데이트:** 2026-04-27 · Session 87 (BUG-162/163 신규 등록 · CSP 퀵계좌이체 fix)
 
 ---
 
 ## 진행률
 
-> **52 / 56 closure (92.9%)** · 2026-04-27 S85 기준 (BUG-125 ✅ · BUG-120 ✅ · BUG-161 ✅ · 로그인 비회원 박스 제거 · isFormRevealed 재진입 reset · login auto-fill race 수정)
+> **52 / 58 closure (89.7%)** · 2026-04-27 S87 기준 (BUG-162 🟠 · BUG-163 🟡 신규 등록 / BUG-115 PR1 완료 · CSP 퀵계좌이체 fix)
 >
 > 카운트 명령:
 > ```bash
@@ -613,6 +613,27 @@ React state flush: schedule 순서대로 적용
 - `sessionLoading` 가드가 대부분 케이스 차단. 잔존 race 는 cosmetic 깜빡임 가능성도 낮음.
 
 - **해결:** 2026-04-27 / S85 — `next/src/components/checkout/CheckoutPage.tsx` D-1 effect + pathname reset effect 가드 추가. inline 주석은 짧게 유지, 상세 race 분석은 본 항목에 보존.
+
+---
+
+### BUG-162 — /order-complete 에서 쇼핑 계속하기/주문 내역 보기 버튼 동작 불능 🟠
+
+- **발견:** 2026-04-27 / S87 (퀵계좌이체 결제 성공 검증 중)
+- **재현 경로:** `/checkout` → 결제 완료 → `/order-complete` → "쇼핑 계속하기" 또는 "주문 내역 보기" 버튼 클릭
+- **실제 (버그):** 버튼 클릭 후 페이지 이탈 불가. 같은 페이지에 머무름.
+- **기대:** "쇼핑 계속하기" → `/shop` 이동, "주문 내역 보기" → `/mypage` 이동.
+- **관련 코드:** `next/src/components/checkout/OrderCompletePage.tsx` line 571 (`<Link href="/shop">`), line 574 (`router.push('/mypage')`)
+- **원인 미상:** 네비게이션 가드 또는 history stack 이슈로 추정. 추가 진단 필요.
+
+---
+
+### BUG-163 — /order-complete 주문 아이템 UI — 뱃지+수량 텍스트 혼용 🟡
+
+- **발견:** 2026-04-27 / S87 (주문완료 페이지 검증 중)
+- **재현 경로:** 결제 완료 후 `/order-complete` 확인
+- **실제 (버그):** 아이템 행에 volume 뱃지(`ocp-item-badge`) + "수량 N개" 텍스트가 나란히 표시됨. 예: `[1개] 수량 1개`, `[200G] 수량 1개`
+- **기대:** 장바구니 아이템과 동일한 텍스트 스타일 — 뱃지 없이 "200g · 수량 1개" 형식 (이전 cart UI 버그픽스 참고).
+- **관련 코드:** `next/src/components/checkout/OrderCompletePage.tsx` line 557–563 (`ocp-item-badges` 블록)
 
 ---
 
