@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-26 · Session 81 (BUG-143 closure + BUG-159 등록)
+> **최종 업데이트:** 2026-04-26 · Session 82 (BUG-103 closure + BUG-105 cleanup)
 
 ---
 
 ## 진행률
 
-> **42 / 54 closure (77.8%)** · 2026-04-26 S81 기준 (BUG-159 신규 등록 — 데이터 측정 대기)
+> **43 / 54 closure (79.6%)** · 2026-04-26 S82 기준 (BUG-103 closure)
 >
 > 카운트 명령:
 > ```bash
@@ -17,11 +17,10 @@
 > ```
 >
 > **세션별 closure 누적:**
-> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143)
+> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143) · S82 (BUG-103)
 >
 > **데이터 정합 노트:**
-> - BUG-105 는 하단 `해결됨` 섹션에만 ✅ · 열린 버그 섹션은 🟠 잔존 (cleanup 후보)
-> - BUG-104/108 은 양쪽 섹션 모두 표기 (legacy `해결됨` 정리 후보)
+> - BUG-104/108/105 는 하단 `해결됨` 섹션에도 중복 기재 (legacy · 참조용)
 
 ---
 
@@ -55,11 +54,12 @@
 - **추정 범위:** `ProductDetail` 아코디언 — `overflow-x` · `width: 100%` 누락 또는 `white-space: nowrap` 잔존. Session 47~48 레시피 카드 반응형 이후 회귀 가능성.
 - **해결 (S78):** `.pd-product-info-body { overflow-x: auto }` 추가. `.pd-accordion-body`의 `overflow: hidden`이 수직 애니메이션용이지만 수평도 함께 클리핑하던 구조 — 제품 안내 전용 클래스에서 `overflow-x`만 `auto`로 오버라이드.
 
-### BUG-103 — 인풋필드 헤어라인이 iOS 모바일에서 안 보임 🟡
+### BUG-103 — ✅ 인풋필드 헤어라인이 iOS 모바일에서 안 보임 🟡
 
 - **발견:** 2026-04-21 / iOS Safari·Chrome
 - **실제:** PC 정상 · iOS 모바일에서 헤어라인 불가시
-- **추정 범위:** `border: 1px solid var(--color-line-light)` 가 iOS 고DPR 에서 sub-pixel rendering 으로 사라짐. `0.5px` · `hairline` 토큰 도입 또는 `box-shadow: inset 0 0 0 1px` 대체 검토.
+- **원인:** `border: 1px solid` 가 iOS 고DPR 에서 sub-pixel rendering 으로 소실.
+- **해결 (S54):** `box-shadow: inset 0 0 0 1px` 패턴으로 전환 — 물리 픽셀 기준 렌더링 보장. 1차: 인풋 필드 (`f74cae9e`), 2차: 전체 구분선 40곳 전수 적용 (`253ea44e`). CSS 토큰 3종 `.5px → 1px` 통일.
 
 ### BUG-104 — ✅ 카페 메뉴 바텀시트 하단 세이프티 에리어 iOS 잘림 (흰색)
 
@@ -68,14 +68,10 @@
 - **실제:** 하단 safe-area inset 영역이 바텀시트 배경으로 채워지지 않고 화이트 노출
 - **추정 범위:** 바텀시트 컨테이너 `padding-bottom: env(safe-area-inset-bottom)` 가 배경 밖에 적용. `padding` 대신 `min-height` + 내부 `padding` 또는 배경 확장 필요.
 
-### BUG-105 — 모바일 Chrome 하단 네비 영역이 히어로와 충돌 🟠
+### BUG-105 — ✅ 모바일 Chrome 하단 네비 영역이 히어로와 충돌 🟠
 
 - **발견:** 2026-04-21 / Android·iOS Chrome
-- **재현 경로:** 메인 첫 진입 (히어로 화면)
-- **실제:**
-  1. 브라우저 하단 네비가 히어로 `100vh` 를 깎음 → 하단에 흰 띠(시즌배너 배경) 노출
-  2. 스크롤 중 네비가 사라지면 히어로가 순간 확장
-- **추정 범위:** `100vh` → `100svh`/`100dvh` 전환 필요. 또는 JS 로 `--hero-h` 변수 관리. (CLAUDE.md 에 `100svh` 언급 있으나 반영 누락 가능성)
+- **해결 (S53):** `HeroSection` height `100vh` → `100svh` 전환. 오버스크롤 배경색 시스템(OverscrollColor + OverscrollTop) 도입. 커밋 `944a1c91` + `de5c8b62`. (해결됨 섹션 중복 기재 — cleanup)
 
 ### BUG-106 — ✅ iOS Chrome 자동완성 푸른색 배경 노출 🟢 — 이전 세션 closure
 
