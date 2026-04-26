@@ -43,32 +43,32 @@ export default function CartDrawer() {
   const router = useRouter();
   const pathname = usePathname();
   const pendingNavRef = useRef(false);
-  /* 어느 경로로 이동 중인지 추적 — 클릭한 버튼만 "이동 중..." 텍스트 표시. */
-  const [navigatingTo, setNavigatingTo] = useState<'cart' | 'checkout' | 'shop' | null>(null);
-  const navigating = navigatingTo !== null;
+  const [navigating, setNavigating] = useState(false);
 
-  useDrawer({ open: isOpen, onClose: close });
-
-  /* pathname 변경(새 페이지 렌더 완료) 시 드로어 즉시 닫기 (BUG-149).
-     transition:none → closeForNavigation() → rAF×2 후 transition 복원.
-     복원 시점에 패널은 translateX(100%) 상태이므로 다음 슬라이드인 정상 재생. */
-  useEffect(() => {
-    if (!pendingNavRef.current) return;
-    pendingNavRef.current = false;
-    setNavigatingTo(null);
-
+  /* transition:none → fn() → rAF×2 복원. 슬라이드 아웃 전면 제거용 공통 헬퍼.
+     닫힘 이후 패널이 translateX(100%) 상태에서 복원되므로 다음 슬라이드인 정상 재생. */
+  function closeWithoutAnimation(fn: () => void) {
     const panel = document.getElementById('cart-drawer-panel');
     const bg = document.getElementById('cart-drawer-bg');
     panel?.style.setProperty('transition', 'none');
     bg?.style.setProperty('transition', 'none');
-    closeForNavigation();
-
+    fn();
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         panel?.style.removeProperty('transition');
         bg?.style.removeProperty('transition');
       });
     });
+  }
+
+  useDrawer({ open: isOpen, onClose: () => closeWithoutAnimation(close) });
+
+  /* pathname 변경(새 페이지 렌더 완료) 시 드로어 즉시 닫기 (BUG-149). */
+  useEffect(() => {
+    if (!pendingNavRef.current) return;
+    pendingNavRef.current = false;
+    setNavigating(false);
+    closeWithoutAnimation(closeForNavigation);
   }, [pathname, closeForNavigation]);
 
   const isEmpty = items.length === 0;
@@ -77,22 +77,22 @@ export default function CartDrawer() {
   const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
   function handleCheckout() {
-    if (pathname === '/checkout') { close(); return; }
-    setNavigatingTo('checkout');
+    if (pathname === '/checkout') { closeWithoutAnimation(close); return; }
+    setNavigating(true);
     pendingNavRef.current = true;
     router.push('/checkout');
   }
 
   function handleViewCart() {
-    if (pathname === '/cart') { close(); return; }
-    setNavigatingTo('cart');
+    if (pathname === '/cart') { closeWithoutAnimation(close); return; }
+    setNavigating(true);
     pendingNavRef.current = true;
     router.push('/cart');
   }
 
   function handleContinueShopping() {
-    if (pathname === '/shop') { close(); return; }
-    setNavigatingTo('shop');
+    if (pathname === '/shop') { closeWithoutAnimation(close); return; }
+    setNavigating(true);
     pendingNavRef.current = true;
     router.push('/shop');
   }
@@ -101,7 +101,7 @@ export default function CartDrawer() {
     <div id="cart-drawer" className={isOpen ? 'open' : ''} aria-hidden={!isOpen}>
       <div
         id="cart-drawer-bg"
-        onClick={close}
+        onClick={() => closeWithoutAnimation(close)}
         style={{
           backdropFilter: 'var(--overlay-dim-blur)',
           WebkitBackdropFilter: 'var(--overlay-dim-blur)',
@@ -118,7 +118,7 @@ export default function CartDrawer() {
             className="cd-close"
             type="button"
             aria-label="장바구니 닫기"
-            onClick={close}
+            onClick={() => closeWithoutAnimation(close)}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19,5l-14,14" />
@@ -146,7 +146,7 @@ export default function CartDrawer() {
                   onClick={handleContinueShopping}
                   disabled={navigating}
                 >
-                  {navigatingTo === 'shop' ? '이동 중...' : '쇼핑 계속하기'}
+                  {navigating ? '이동 중...' : '쇼핑 계속하기'}
                 </button>
               </div>
             </div>
@@ -293,7 +293,7 @@ export default function CartDrawer() {
                 disabled={navigating}
                 data-gtr-tap
               >
-                {navigatingTo === 'cart' ? '이동 중...' : '장바구니 보기'}
+                {navigating ? '이동 중...' : '장바구니 보기'}
               </button>
               <button
                 className="cta-btn cta-btn-light-filled cd-cta-primary"
@@ -302,7 +302,7 @@ export default function CartDrawer() {
                 disabled={navigating}
                 data-gtr-tap
               >
-                {navigatingTo === 'checkout' ? '이동 중...' : '주문하기'}
+                {navigating ? '이동 중...' : '주문하기'}
               </button>
             </div>
           </div>

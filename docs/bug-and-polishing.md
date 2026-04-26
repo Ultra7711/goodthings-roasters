@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **46 / 54 closure (85.2%)** · 2026-04-26 S82 기준 (BUG-148/149/150 closure)
+> **46 / 55 closure (83.6%)** · 2026-04-26 S82 기준 (BUG-160 신규 등록)
 >
 > 카운트 명령:
 > ```bash
@@ -521,6 +521,14 @@
 - **개선안:** `navigator.connection.effectiveType` (`slow-2g` · `2g`) 감지 또는 `<main>` hidden 지속 시간 임계치 초과 시 페이지별 skeleton UI 표시. NavigationVisibilityGate 의 `data-transitioning` 분기 확장 또는 별도 `data-slow-network` 어트리뷰트 신설. 페이지 골격(헤더 영역 외) 의 placeholder 컴포넌트는 페이지 단위로 작성 필요.
 - **선제 조건 (트리거):** Vercel Speed Insights INP/LCP 데이터 4~8주 누적 → 실제 모바일 사용자 분포 확인 (3G/약전계 비율 + 평균 빈 화면 시간). 임계치 (예: P75 빈 화면 > 500ms) 초과 시 진행. 데이터 없이 미리 최적화 ❌ (YAGNI).
 - **참조:** S81 BUG-143 closure 토론 (`memory/project_session81_complete.md`).
+
+### BUG-160 — 메인 페이지 진입 시 히어로 동영상 일시정지 + 플레이 버튼 노출 🟠
+
+- **발견:** 2026-04-26 / S82
+- **재현 경로:** 메인 페이지 (`/`) 진입
+- **기대:** 히어로 동영상 자동 재생
+- **실제:** 동영상이 멈춰 있고 중앙에 플레이 버튼이 노출됨
+- **추정 범위:** 미정 (동영상 autoplay 정책 · 브라우저/기기 조건 · 컴포넌트 로직 확인 필요)
 
 ---
 
