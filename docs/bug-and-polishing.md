@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **46 / 55 closure (83.6%)** · 2026-04-26 S82 기준 (BUG-160 신규 등록)
+> **49 / 55 closure (89.1%)** · 2026-04-26 S84 기준 (BUG-112 ✅ · BUG-160 ✅ · BUG-106 회귀 재closure ✅)
 >
 > 카운트 명령:
 > ```bash
@@ -73,11 +73,12 @@
 - **발견:** 2026-04-21 / Android·iOS Chrome
 - **해결 (S53):** `HeroSection` height `100vh` → `100svh` 전환. 오버스크롤 배경색 시스템(OverscrollColor + OverscrollTop) 도입. 커밋 `944a1c91` + `de5c8b62`. (해결됨 섹션 중복 기재 — cleanup)
 
-### BUG-106 — ✅ iOS Chrome 자동완성 푸른색 배경 노출 🟢 — 이전 세션 closure
+### BUG-106 — ✅ iOS/Android Chrome 자동완성 푸른색 배경 노출 🟢
 
 - **발견:** 2026-04-21 / iOS Chrome
-- **해결:** 이전 세션. `globals.css` `-webkit-autofill` 계열 4종 오버라이드 + `-webkit-box-shadow: 0 0 0 1000px #FAFAF8 inset` + `-webkit-text-fill-color` + `transition: background-color 99999s step-end` 적용 완료. 확인 2026-04-25 / S78.
-- **회귀 (S78):** autofill `box-shadow !important` 가 `.chp-input`의 하단 라인 shadow를 통째 덮어 라인 소실 → BUG-152 로 등록·해결.
+- **해결 (S78):** `globals.css` `-webkit-autofill` 계열 오버라이드 + `-webkit-box-shadow: 0 0 0 1000px #FBF8F3 inset !important` + `transition: background-color 99999s step-end` 적용.
+- **회귀 (S78):** autofill `box-shadow !important` 가 하단 라인 소실 → BUG-152 로 등록·해결.
+- **회귀 (S84):** 모바일 Chrome compositor 레이어에서 파란색이 inset shadow 위로 노출. `chp-input` `background: transparent` → `background: #FBF8F3` 으로 교체 — 불투명 배경으로 근본 차단. 커밋 `3464e2fc`. 실기기 통과 확인 2026-04-26.
 
 ### BUG-152 — ✅ 자동완성 적용 후 인풋 하단 라인 소실 🟡
 
@@ -129,13 +130,12 @@
 - **기대:** 서브타이틀 위 분할선은 일괄 제거 (통일성)
 - **해결:** 2026-04-25 / S78 — `globals.css` `.chp-section`의 `box-shadow: inset 0 1px 0 0 var(--color-border-tertiary)` 제거. `--no-border`·`:first-child` 규칙의 사실상 no-op이던 `border-top: none` 정리. 체크아웃 전 섹션(연락처·배송지·결제수단·비회원 조회·결제) 일괄 적용.
 
-### BUG-112 — 비회원 결제에서 "로그인하고 주문하기" 클릭 후 비회원 주문 UI 재노출 🟡
+### BUG-112 — ✅ 비회원 결제에서 "로그인하고 주문하기" 클릭 후 비회원 주문 UI 재노출 🟡
 
 - **발견:** 2026-04-24
 - **재현 경로:** 비회원 주문 → 결제 1단계 → "로그인하고 주문하기" 클릭 → 로그인 복귀
 - **실제:** 복귀한 결제 페이지에 "비회원으로 주문하기" 아웃라인 박스가 여전히 노출됨
-- **기대:** 이미 로그인해서 들어온 사용자에게 비회원 재푸시 UI 제거 (불필요한 선택지)
-- **추정 범위:** `CheckoutPage` — 로그인 완료 감지 시 게스트 CTA 박스 hide 로직 누락
+- **해결:** 2026-04-26 / S84 — `CheckoutPage` 비회원 UI 조건에 `!isLoggedIn && !sessionLoading` 추가. 커밋 `22868956`.
 
 ### BUG-113 — 비회원 주문 비밀번호 헬퍼·에러 메시지 자수 기준 불일치ㅤ✅
 
@@ -526,13 +526,11 @@
 - **선제 조건 (트리거):** Vercel Speed Insights INP/LCP 데이터 4~8주 누적 → 실제 모바일 사용자 분포 확인 (3G/약전계 비율 + 평균 빈 화면 시간). 임계치 (예: P75 빈 화면 > 500ms) 초과 시 진행. 데이터 없이 미리 최적화 ❌ (YAGNI).
 - **참조:** S81 BUG-143 closure 토론 (`memory/project_session81_complete.md`).
 
-### BUG-160 — 메인 페이지 진입 시 히어로 동영상 일시정지 + 플레이 버튼 노출 🟠
+### BUG-160 — ✅ 메인 페이지 진입 시 히어로 동영상 일시정지 + 플레이 버튼 노출 🟠
 
-- **발견:** 2026-04-26 / S82
-- **재현 경로:** 메인 페이지 (`/`) 진입
-- **기대:** 히어로 동영상 자동 재생
-- **실제:** 동영상이 멈춰 있고 중앙에 플레이 버튼이 노출됨
-- **추정 범위:** 미정 (동영상 autoplay 정책 · 브라우저/기기 조건 · 컴포넌트 로직 확인 필요)
+- **발견:** 2026-04-26 / S84 (iOS 저전력 모드에서만 재현)
+- **원인:** iOS 저전력 모드에서 `muted + playsInline + autoPlay` 조합도 차단됨.
+- **해결:** 2026-04-26 / S84 — `video.play()` 실패 시 `touchstart`/`click` 첫 감지 후 재시도. 스크롤도 `touchstart` 로 감지되어 사용자가 스크롤만 해도 즉시 재생. 커밋 `699e18aa`.
 
 ---
 
