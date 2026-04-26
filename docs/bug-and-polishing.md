@@ -394,13 +394,18 @@
 - **추정 범위:** `IntersectionObserver` threshold 다단 + `scroll-timeline` (CSS) 또는 IO progress → CSS variable bind. 모바일 성능 고려 (rAF throttle).
 - **참조:** Phase 2 "Scroll Variable Font" 트랙 (`project_design_interaction_plan.md`) 과 묶음 후보.
 
-### BUG-143 — 모바일 버튼 호버 애니메이션 종료 후 액션 실행 (UX 호흡) 🟡
+### BUG-143 — 모바일 버튼 탭 시 호버 연출 재생 후 액션 실행 (UX 호흡) 🟡
 
 - **발견:** 2026-04-25 / S76
-- **현재:** 모바일 탭 시 호버 애니메이션과 액션 (네비게이션·서브밋) 이 동시 발화 → 사용자가 호버 피드백을 인지하기 전에 다음 화면 진입. "탭한 게 인식됐는지" 확신이 약함.
-- **기대:** 탭 → 호버 애니메이션 재생 → **재생 종료 후 액션 실행**. 호흡 늘리기 + 명확한 피드백.
-- **추정 범위:** 공통 CTA 컴포넌트 (`cta-btn-*`) 의 click 핸들러를 `pointercoarse` 미디어 쿼리/touch 디바이스 분기에서 `transitionend` (또는 토큰 duration) 후 액션 실행으로 래핑. desktop 동작은 즉시 유지.
-- **리스크:** 응답성 저하 체감 가능 → 토큰 duration 200~300ms 범위로 조정 필요 + double tap 차단 정책 확인.
+- **현재:** 모바일 탭 시 호버 애니메이션 없이 액션 즉시 발화 (BUG-144 이후 `@media (hover: none)`으로 CSS `:hover` 완전 차단). "탭한 게 인식됐는지" 확신이 약함.
+- **기대:** 탭 → gold 밑줄 연출 재생 → **재생 종료 후 액션 실행**. 호흡 늘리기 + 명확한 피드백.
+- **설계 방향 (S80 확정):**
+  - CSS `:hover` 방식이 아닌 **JS 클래스 토글** 방식 — `@media (hover: none)` 차단과 충돌 없음
+  - 탭 이벤트 → `.is-tapping` 클래스 추가 → `::after scaleX(1)` 트리거 → `transitionend` 대기 → 액션 실행
+  - 데스크탑은 기존 `:hover` 연출 즉시 액션 그대로 유지
+  - **참조 구현:** `MobileNavDrawer` 화살표 연출 (클릭 시 연출 재생 후 네비게이션) — 글로벌 패턴의 프로토타입
+- **적용 범위:** `cta-btn-*` 전체 + 페이지별 CTA (`chp-submit-btn` · `lp-submit-btn` · `bi-submit-btn` 등)
+- **리스크:** 응답성 저하 체감 가능 → transition duration 200~300ms 범위 조정 + double tap 차단 정책 확인.
 
 ### BUG-144 — ✅ 모바일 버튼 드래그 시 호버 애니메이션 발화 차단 🟡 — S76 closure
 
