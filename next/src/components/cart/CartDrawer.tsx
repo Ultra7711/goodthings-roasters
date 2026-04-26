@@ -76,18 +76,21 @@ export default function CartDrawer() {
   const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
   function handleCheckout() {
+    if (navigatingTo !== null) return;
     if (pathname === '/checkout') { closeWithoutAnimation(close); return; }
     drawerPendingRef.current = true;
     navigate('/checkout');
   }
 
   function handleViewCart() {
+    if (navigatingTo !== null) return;
     if (pathname === '/cart') { closeWithoutAnimation(close); return; }
     drawerPendingRef.current = true;
     navigate('/cart');
   }
 
   function handleContinueShopping() {
+    if (navigatingTo !== null) return;
     if (pathname === '/shop') { closeWithoutAnimation(close); return; }
     drawerPendingRef.current = true;
     navigate('/shop');
@@ -140,7 +143,7 @@ export default function CartDrawer() {
                   className="cd-shop-btn"
                   type="button"
                   onClick={handleContinueShopping}
-                  disabled={navigatingTo !== null}
+                  disabled={navigatingTo === '/shop'}
                 >
                   {navigatingTo === '/shop' ? '이동 중...' : '쇼핑 계속하기'}
                 </button>
@@ -286,7 +289,7 @@ export default function CartDrawer() {
                 className="cta-btn cta-btn-light-outline cd-cta-secondary"
                 type="button"
                 onClick={handleViewCart}
-                disabled={navigatingTo !== null}
+                disabled={navigatingTo === '/cart'}
                 data-gtr-tap
               >
                 {navigatingTo === '/cart' ? '이동 중...' : '장바구니 보기'}
@@ -295,7 +298,7 @@ export default function CartDrawer() {
                 className="cta-btn cta-btn-light-filled cd-cta-primary"
                 type="button"
                 onClick={handleCheckout}
-                disabled={navigatingTo !== null}
+                disabled={navigatingTo === '/checkout'}
                 data-gtr-tap
               >
                 {navigatingTo === '/checkout' ? '이동 중...' : '주문하기'}
