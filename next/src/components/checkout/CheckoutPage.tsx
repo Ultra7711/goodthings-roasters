@@ -520,7 +520,7 @@ export default function CheckoutPage() {
               error={errors.email}
               helper="이메일 주소를 입력하세요."
             />
-            {!isFormRevealed && (
+            {!isFormRevealed && !isLoggedIn && !sessionLoading && (
               <>
                 <Link href="/login?from=checkout" className="chp-login-primary-btn" data-gtr-tap>
                   로그인하고 주문하기
