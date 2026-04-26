@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **51 / 55 closure (92.7%)** · 2026-04-27 S85 기준 (BUG-125 ✅ · BUG-120 ✅ · 로그인 비회원 박스 제거 · isFormRevealed 재진입 reset)
+> **52 / 56 closure (92.9%)** · 2026-04-27 S85 기준 (BUG-125 ✅ · BUG-120 ✅ · BUG-161 ✅ · 로그인 비회원 박스 제거 · isFormRevealed 재진입 reset · login auto-fill race 수정)
 >
 > 카운트 명령:
 > ```bash
@@ -532,6 +532,77 @@
 - **발견:** 2026-04-26 / S84 (iOS 저전력 모드에서만 재현)
 - **원인:** iOS 저전력 모드에서 `muted + playsInline + autoPlay` 조합도 차단됨.
 - **해결:** 2026-04-26 / S84 — `video.play()` 실패 시 `touchstart`/`click` 첫 감지 후 재시도. 스크롤도 `touchstart` 로 감지되어 사용자가 스크롤만 해도 즉시 재생. 커밋 `699e18aa`.
+
+### BUG-161 — ✅ 로그인 후 /checkout 복귀 시 이메일 미채움 + 폼 미공개 🟠 (회귀)
+
+- **발견:** 2026-04-27 / S85
+- **재현 경로:** `/checkout` (비로그인) → "로그인하고 주문하기" → `/login` → 로그인 → `/checkout` 복귀
+- **실제 (버그):** 이메일 입력필드 비어있음. 하단 주소·전화·약관 필드 등 보이지 않음. 이메일 필드에 한 글자 입력하면 갑자기 모든 하단 필드가 한꺼번에 나타남.
+- **기대:** 로그인 사용자 이메일 자동 채움 + 폼 즉시 공개.
+- **회귀 원인:** S85 직전에 BUG-112 보강으로 추가한 pathname-based reset effect 와 기존 Stage D-1 effect 가 login auto-fill effect 와 race 발생.
+
+#### 근본 원인 — Effect declaration order race
+
+`CheckoutPage.tsx` 에 세 개의 effect 가 있음:
+
+1. **login auto-fill effect** (line ~191) — `setField('email', user.email)` + `revealForm()`
+2. **Stage D-1 effect** (line ~297) — `userChanged` 시 `resetForm()`
+3. **pathname reset effect** (line ~325) — `/login → /checkout` 시 `resetForm()`
+
+React effect 는 같은 render cycle 에서 declaration order 로 실행됨. 사용자가 로그인 후 `/checkout` 복귀 시 세 effect 가 동시 실행:
+
+```
+Render: pathname=/checkout, isLoggedIn=true, user 채워짐
+↓
+1. login auto-fill: setField('email', user.email) + revealForm() schedule
+2. D-1: userChanged=true (null→user.id) → resetForm() schedule
+3. pathname reset: prev=/login, current=/checkout → resetForm() schedule
+↓
+React state flush: schedule 순서대로 적용
+   → 결과: form.email='', isFormRevealed=false (login 작업 무효화)
+```
+
+이메일 필드에 한 글자 입력 시 `form.email` 변경 → login auto-fill effect 재실행 → `isFormRevealed=false` 보고 `revealForm()` 호출 → 하단 필드 노출. 이게 "타이핑 후 갑자기 나타나는" 증상의 원인.
+
+#### 가드 정책
+
+**D-1 effect:**
+- 비로그인(null) → 로그인 + **폼 닫힘** (`!isFormRevealed`) → `resetForm()` **생략**
+  - login auto-fill 이 채워줌. 폼이 INITIAL 상태이므로 reset 생략 안전.
+- 비로그인 → 로그인 + **폼 펼침** (`isFormRevealed=true`) → `resetForm()` **호출**
+  - 게스트 입력 데이터·이메일 stale 정리. cacheComponents stale `isFormRevealed` 도 같은 분기에서 정리.
+- 로그인 → 로그아웃 / 계정 전환 (둘 다 non-null) → `resetForm()` **호출** (기존 정책 유지)
+- cart 분기: 결제 시도 후 (`orderCartSigRef≠null`) cart 변경 → form 도 `resetForm()`. 이전엔 pathname reset 이 항상 발동해 가려졌던 케이스.
+
+**pathname reset effect:**
+- `sessionLoading=true` → effect 자체 early return (prev 갱신·판단 모두 보류). 세션 로드되어 `isLoggedIn` 확정 후에만 reset 여부 결정. race 완화.
+- `isLoggedIn=true` → reset 생략. 로그인 케이스는 D-1 이 처리.
+- 비로그인 + 다른 경로에서 진입 → reset (기존 BUG-112 보호 유지).
+
+#### 시나리오 검증 매트릭스
+
+| # | 시나리오 | D-1 | pathname | 결과 |
+|---|---------|-----|---------|------|
+| S1 | 로그인 사용자 직접 진입 | loggingIn=true·!isFormRevealed → 생략 | prev=current → 미발동 | login fill ✅ |
+| S2 | 비로그인 직접 진입 | userChanged=false | prev=current → 미발동 | 게스트 UI ✅ |
+| S3 | 비로그인 다른 페이지 → /checkout | userChanged=false | !isLoggedIn → reset | 폼 리셋 ✅ |
+| S4 | /checkout → /login → 복귀 (보고된 버그) | loggingIn=true·!isFormRevealed → 생략 | isLoggedIn=true → 생략 | login fill ✅ |
+| S5 | 로그인 사용자 페이지 이탈 후 복귀 | userChanged=false | isLoggedIn=true → 생략 | **폼 상태 유지** (의도된 UX 개선) |
+| S6 | 결제 완료 → cart 비움 → 재진입 | cart 분기에서 resetForm 호출 | isLoggedIn=true → 생략 | 폼 리셋 ✅ |
+| S7 | 게스트 폼 펼친 상태 → 로그인 → 복귀 | loggingIn=true·isFormRevealed=true → reset | isLoggedIn=true → 생략 | 폼 리셋 + login fill ✅ |
+| S8 | 로그아웃 | userChanged=true·loggingIn=false → reset | (보통 다른 경로) | 폼 리셋 ✅ |
+
+#### 의도된 부수 효과
+
+- **S5 (로그인 사용자 폼 상태 유지)**: 이전엔 페이지 이탈 후 복귀 시 폼 리셋. 새 동작은 입력값·공개 상태 유지. 자기 데이터를 다시 입력하지 않아도 되어 UX 개선. cart 변경/orderResult stale 은 D-1 cart 분기가 별도 처리하므로 안전.
+
+#### 잔존 race (실질 영향 없음)
+
+- pathname 변경이 `isLoggedIn` 변경보다 한 render 빠른 경우, 첫 render 에서 pathname reset 이 `resetForm()` 호출 가능.
+- 하지만 이 시점의 폼은 INITIAL 상태 (`!isFormRevealed` 가 "로그인하고 주문하기" 버튼 노출 조건이므로). reset 의 실질 영향 없음.
+- `sessionLoading` 가드가 대부분 케이스 차단. 잔존 race 는 cosmetic 깜빡임 가능성도 낮음.
+
+- **해결:** 2026-04-27 / S85 — `next/src/components/checkout/CheckoutPage.tsx` D-1 effect + pathname reset effect 가드 추가. inline 주석은 짧게 유지, 상세 race 분석은 본 항목에 보존.
 
 ---
 

@@ -281,23 +281,18 @@ export default function CheckoutPage() {
     return () => window.removeEventListener('pageshow', onPageShow);
   }, []);
 
-  /* ── Stage D-1 통합 reset (BUG-006, 2026-04-24) ──
-     cacheComponents 활성화로 /checkout 이 Activity hidden 상태로 보존되는 이슈 대응.
-     pageshow 이벤트는 Activity 내부 네비게이션에서 발생하지 않으므로
-     독립적 감지 경로가 필요하다.
-
-     정책:
-     - 로그인 상태 변경 (user.id 변경) → 전체 reset (form 포함).
-       로그인→로그아웃 시 개인정보(주소·연락처) 게스트 모드 유출 방지.
-     - cart 변경 + orderResult 존재 → 결제 state reset (form 유지).
-       이전 주문의 step='payment' · submitting · orderResult 가 stale 유지되어
-       잘못된 금액이 Toss 위젯에 표시되는 문제 해결. */
+  /* Stage D-1 통합 reset (BUG-006/161).
+     user.id 변화 시: 비로그인→로그인 + 폼 닫힘 케이스만 resetForm 생략
+     (login auto-fill 이 처리하므로). 그 외(로그아웃·계정전환·게스트폼 펼침)는 reset.
+     cart 변화 시: 결제 시도 후(orderCartSigRef≠null)에만 step+form reset.
+     상세 race 분석: docs/bug-and-polishing.md BUG-161 */
   const prevCartSigRef = useRef<string>(cartSig);
   const prevUserIdRef = useRef<string | null>(user?.id ?? null);
   useEffect(() => {
     const currentUserId = user?.id ?? null;
+    const prevUserId = prevUserIdRef.current;
     const cartChanged = prevCartSigRef.current !== cartSig;
-    const userChanged = prevUserIdRef.current !== currentUserId;
+    const userChanged = prevUserId !== currentUserId;
 
     if (!cartChanged && !userChanged) return;
 
@@ -305,30 +300,35 @@ export default function CheckoutPage() {
     prevUserIdRef.current = currentUserId;
 
     if (userChanged) {
+      const loggingIn = prevUserId === null && currentUserId !== null;
+      const safeToSkipReset = loggingIn && !isFormRevealed;
       setStep('form');
       setOrderResult(null);
       setSubmitting(false);
-      resetForm();
+      if (!safeToSkipReset) resetForm();
       orderCartSigRef.current = null;
     } else if (cartChanged && orderCartSigRef.current !== null && orderCartSigRef.current !== cartSig) {
       setStep('form');
       setOrderResult(null);
       setSubmitting(false);
+      resetForm();
       orderCartSigRef.current = null;
     }
-  }, [cartSig, user?.id, resetForm]);
+  }, [cartSig, user?.id, isFormRevealed, resetForm]);
 
-  /* ── 재진입 reset (cacheComponents 대응) ──
-     /checkout을 벗어났다가 돌아올 때 isFormRevealed 등 폼 상태를 초기화한다.
-     Activity hide/show 사이클에서 userChanged 가 발생하지 않는 케이스 보완. */
+  /* 재진입 reset (BUG-112/161). 비로그인 케이스만 담당.
+     로그인 케이스는 D-1 이 user.id 변화로 처리.
+     sessionLoading 가드: isLoggedIn 확정 전 prev 갱신 보류 (race 완화).
+     상세: docs/bug-and-polishing.md BUG-161 */
   const prevPathnameRef = useRef(pathname);
   useEffect(() => {
+    if (sessionLoading) return;
     const prev = prevPathnameRef.current;
     prevPathnameRef.current = pathname;
-    if (prev !== '/checkout' && pathname === '/checkout') {
+    if (prev !== '/checkout' && pathname === '/checkout' && !isLoggedIn) {
       resetForm();
     }
-  }, [pathname, resetForm]);
+  }, [pathname, resetForm, isLoggedIn, sessionLoading]);
 
   /* ── 언마운트 감시 (Pass 1 CODE/H-1, M-11 공용 훅 추출)
      B-2 이후: step 전환은 이 컴포넌트가 살아 있으므로 언마운트 위험은 낮지만,
