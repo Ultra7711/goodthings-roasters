@@ -73,7 +73,7 @@ function buildContentSecurityPolicy(isDev: boolean): string {
   // style-src 'unsafe-inline': React style={{...}} (style attribute) 허용. XSS 영향 제한적.
   const directives = [
     `default-src 'self'`,
-    `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://pay.toss.im https://dapi.kakao.com https://t1.daumcdn.net https://va.vercel-scripts.com`,
+    `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://*.toss.im https://dapi.kakao.com https://t1.daumcdn.net https://va.vercel-scripts.com`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://t1.daumcdn.net`,
     `img-src 'self' blob: data: https://*.supabase.co https://*.tosspayments.com https://*.daumcdn.net https://postfiles.pstatic.net`,
     `font-src 'self' https://fonts.gstatic.com data:`,
@@ -82,8 +82,10 @@ function buildContentSecurityPolicy(isDev: boolean): string {
     // BUG-FIX 2026-04-23: Toss SDK 내부 모니터링·로깅 엔드포인트
     // (event.tosspayments.com / log.tosspayments.com) 차단으로 위젯 로드 실패 →
     // api.* 단일 도메인 대신 *.tosspayments.com wildcard 로 확장.
-    `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.tosspayments.com https://pay.toss.im https://api.resend.com https://dapi.kakao.com https://openapi.naver.com https://accounts.google.com https://vitals.vercel-insights.com https://va.vercel-scripts.com`,
-    `frame-src 'self' https://*.tosspayments.com https://pay.toss.im https://t1.daumcdn.net https://postcode.map.daum.net https://postcode.map.kakao.com`,
+    // BUG-FIX 2026-04-27: 퀵계좌이체 CSP 차단 — pay.toss.im 단일 허용으로 인해
+    // cert.toss.im / app.toss.im 등 서브도메인 iframe 차단. *.toss.im wildcard 로 확장.
+    `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.tosspayments.com https://*.toss.im https://toss.im https://api.resend.com https://dapi.kakao.com https://openapi.naver.com https://accounts.google.com https://vitals.vercel-insights.com https://va.vercel-scripts.com`,
+    `frame-src 'self' https://*.tosspayments.com https://*.toss.im https://toss.im https://t1.daumcdn.net https://postcode.map.daum.net https://postcode.map.kakao.com`,
     `worker-src 'self' blob:`,
     `object-src 'none'`,
     `base-uri 'self'`,
