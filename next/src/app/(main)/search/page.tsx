@@ -5,6 +5,7 @@
 
 import { Suspense } from 'react';
 import SearchPage from '@/components/search/SearchPage';
+import SearchSkeleton from '@/components/search/SearchSkeleton';
 
 export const metadata = {
   title: '검색 | Good Things Roasters',
@@ -13,7 +14,7 @@ export const metadata = {
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="search-page-wrap" style={{ minHeight: '100svh' }} />}>
+    <Suspense fallback={<SearchSkeleton />}>
       <SearchPage />
     </Suspense>
   );

@@ -1,7 +1,7 @@
-﻿/* ══════════════════════════════════════════
-   MyPagePlaceholder
+/* ══════════════════════════════════════════
+   MyPageSkeleton
    /mypage 진입 시 Suspense fallback 으로 사용.
-   서버 인증(`requireAuth`) + 클라 hydration 동안 보여지는 placeholder.
+   서버 인증(`requireAuth`) + 클라 hydration 동안 보여지는 skeleton.
 
    설계 (BUG-168):
    - 미니 헤더 + 좌우 그리드를 즉시 표시 → "헤더도 안 보이는 백지" 제거
@@ -39,7 +39,7 @@ function InfoRowSkel({ labelW = 80, valueW = 200 }: { labelW?: number; valueW?: 
   );
 }
 
-export default function MyPagePlaceholder() {
+export default function MyPageSkeleton() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
       {/* 미니 헤더 — 로고만 표시. priority 금지 (RSC stuck 방지) */}

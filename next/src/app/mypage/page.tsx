@@ -19,7 +19,7 @@
 import { Suspense } from 'react';
 import { requireAuth } from '@/lib/auth/getClaims';
 import MyPagePage from '@/components/auth/MyPagePage';
-import MyPagePlaceholder from '@/components/auth/MyPagePlaceholder';
+import MyPageSkeleton from '@/components/auth/MyPageSkeleton';
 
 export const metadata = { title: '마이 페이지 — good things' };
 
@@ -30,7 +30,7 @@ async function MyPageAuthed() {
 
 export default function MyPageRoute() {
   return (
-    <Suspense fallback={<MyPagePlaceholder />}>
+    <Suspense fallback={<MyPageSkeleton />}>
       <MyPageAuthed />
     </Suspense>
   );

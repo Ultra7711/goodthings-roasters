@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **69 / 71 closure (97.2%)** · 2026-04-28 S94 기준 (S94: BUG-137 ✅ · BUG-176 ✅ · BUG-159 ✅ shimmer skeleton · BUG-101 제거 · BUG-173 미해결)
+> **69 / 73 closure (94.5%)** · 2026-04-28 S94 기준 (S94: BUG-137 ✅ · BUG-176 ✅ · BUG-159 ✅ shimmer skeleton · BUG-101 제거 · BUG-173 미해결 · BUG-177/178 신규 등록)
 >
 > 카운트 명령:
 > ```bash
@@ -524,12 +524,16 @@
 
 - **발견:** 2026-04-26 / S81 (BUG-143 closure 후 사용자 인지)
 - **closure (S94):** INP 데이터 대기 조건 철회 → 데이터 의존도 기준으로 페이지 선정 후 즉시 적용.
-- **수정 (S94 `eae18b39`):**
-  1. `globals.css`: `@keyframes skel-shimmer` + `.skel` 유틸 클래스 신규 (`prefers-reduced-motion` 대응).
-  2. `/shop` — `ShopSkeleton.tsx` 신규: 타이틀(36px)·서브타이틀(22px)·필터탭 4개·상품카드 6개(3열×2행). `#sp-body`·`#sp-grid` 실제 CSS ID 재사용 → 치수 자동 일치. Suspense fallback 교체.
-  3. `/cart` — `CartSkeleton.tsx` 신규: 테이블헤더·아이템 2행(thumb 100×100 + category 14px + name 23px + price/qty/total 컬럼)·배송비 행·푸터. `.cp-item`·`.cp-item-product` 등 실제 클래스 재사용 → `@media` 반응형 자동 적용. `CartClient` `isLoading` 시 렌더 (캐시 히트 시 즉시 실데이터 표시).
-  4. `/mypage` — `MyPagePlaceholder.tsx`: `SkelBox` 인라인 style → `.skel` 클래스 교체 → shimmer 추가 (기존 정적 placeholder에 shimmer만 합류).
-- **관련 코드:** `next/src/app/globals.css`, `next/src/components/shop/ShopSkeleton.tsx`, `next/src/components/cart/CartSkeleton.tsx`, `next/src/components/cart/CartClient.tsx`, `next/src/components/auth/MyPagePlaceholder.tsx`
+- **수정 (S94):**
+  1. `globals.css`: `@keyframes skel-shimmer` + `.skel` 유틸 클래스 신규 (`prefers-reduced-motion` 대응). shimmer 속도 `1.4s ease` → `2.4s linear` (사이트 editorial 톤 맞춤).
+  2. `/shop` — `ShopSkeleton.tsx` 신규 + Suspense fallback. `#sp-body`·`#sp-grid` 실제 CSS ID 재사용.
+  3. `/cart` — `CartSkeleton.tsx` 신규 + `app/(main)/cart/loading.tsx` 신규. `.cp-item`·`.cp-item-product` 실제 클래스 재사용.
+  4. `/mypage` — `MyPagePlaceholder.tsx` → `MyPageSkeleton.tsx` 명칭 통일 + `app/mypage/loading.tsx` 신규. `MyPagePage.tsx`·`MyPageRoute` Suspense fallback 교체.
+  5. `/menu` — `CafeMenuSkeleton.tsx` 신규. `#cm-grid`·`.cm-card-thumb`·`.cm-card-info` 실제 클래스 재사용. `CafeMenuPage` Suspense fallback 교체.
+  6. `/search` — `SearchSkeleton.tsx` 신규. `.search-result-item`·`.search-result-thumb`·`.search-result-info` 실제 클래스 재사용. `SearchPage` Suspense fallback 교체.
+  7. `/story` — `.st-hero-bg { background-color: var(--color-bg-inverse) }` 추가 → 히어로 이미지 로드 전 dark fallback.
+- **한계 (→ BUG-177/178 신규 등록):** `/mypage` skeleton은 `requireAuth()`가 동기 실행(~1ms)이라 3G에서도 loading window가 체감 불가. 스토리 `pageEnter` opacity 애니메이션으로 dark bg 이후 white flash 발생.
+- **관련 코드:** `globals.css`, `ShopSkeleton.tsx`, `CartSkeleton.tsx`, `CartClient.tsx`, `MyPageSkeleton.tsx`, `CafeMenuSkeleton.tsx`, `SearchSkeleton.tsx`
 
 ### BUG-160 — ✅ 메인 페이지 진입 시 히어로 동영상 일시정지 + 플레이 버튼 노출 🟠
 
@@ -938,6 +942,38 @@ React state flush: schedule 순서대로 적용
   4. cleanup에 신규 리스너 2개 제거 추가.
 - **관련 코드:** `next/src/components/home/HeroSection.tsx`
 - **우선순위:** 모바일 사용자 체감 이슈 → Medium.
+
+### BUG-177 — 상품·메뉴 카드 이미지 스켈레톤 해제 후 순차 로딩 노출 🟢
+
+- **발견:** 2026-04-28 / S94 (3G 에뮬레이션 테스트)
+- **재현 경로:** 3G 스로틀 → /shop 또는 /menu 진입 → ShopSkeleton/CafeMenuSkeleton 해제 직후
+- **실제 (현상):** 스켈레톤이 걷히는 순간 카드 이미지가 없는 상태(배경색만 노출)로 노출됨. 이후 이미지가 열 단위로 순차 로딩. 완전한 빈 화면은 아니나 콘텐츠가 반쯤 벗겨진 느낌.
+- **근본 원인:** `ShopCard` / `CafeMenuCard` 모두 Next.js `<Image>`가 아닌 CSS `background` shorthand(`#color url() center/contain`) 사용. `priority` prop 적용 불가. ShopPage에 `new Image()` JS 프리로드 있으나 마운트 후 실행돼 스켈레톤 노출 시간 이내에 완료 보장 없음.
+- **배경:** CSS background 선택 이유 — 프로토타입 이식 parity + background-color fallback 내장 + hover zoom 애니메이션 + Quick Add backdrop-filter 레이어 구조 유지. 전환 시 ShopCard·CafeMenuCard·CafeMenuGrid 구조 변경 필요 (3~5h 추정).
+- **임시 완화:** 카드 `bg` 속성 (예: `#f5f5f3`, `#ECEAE6`) 이 이미지 로드 전 배경색으로 표시됨 — 완전 빈 박스는 아님.
+- **후속 검토:** DB 연동 + Supabase Storage 이미지 실서비스 전환 후 실제 LCP 측정 → 개선 효과 vs 리팩터 비용 재평가.
+- **우선순위:** Low (배경색 fallback으로 CLS 없음, 이미지 서버 미정 단계).
+
+### BUG-178 — 스토리 페이지 진입 시 dark hero → 흰색 플래시 → 이미지 순차 로딩 🟡
+
+- **발견:** 2026-04-28 / S94 (No Throttling에서도 재현)
+- **재현 경로:** 다른 페이지 → /story 클릭 → 진입 애니메이션 중 흰색 배경 순간 노출 후 히어로 이미지 로딩
+- **실제 (버그):** `.st-hero-bg { background-color: var(--color-bg-inverse) }` CSS fix가 적용되어 어두운 배경이 먼저 보이지만, `#st-body`의 `pageEnter` 애니메이션(`from { opacity: 0 }`)이 시작되면서 부모 페이지 배경색(warm white `#FAFAF8`)이 350ms 동안 비쳐 보임. 이후 히어로 이미지가 개별 로딩.
+- **근본 원인:**
+  - `#st-body { animation: pageEnter var(--duration-drawer) var(--ease-spring) both }` → `from { opacity: 0; transform: translateY(12px) }` 시작 상태
+  - `fill-mode: both`로 마운트 즉시 `opacity: 0` 적용 → `.st-hero-bg` 의 어두운 배경도 함께 투명해짐
+  - `#st-body` 뒤쪽 페이지 배경(`var(--color-bg-primary)` = warm white)이 노출
+- **제안 수정:** `#st-body` 전용으로 `pageEnter` 오버라이드 — opacity 제거, transform만 유지:
+  ```css
+  #st-body { animation-name: pageEnterTransform; }
+  @keyframes pageEnterTransform {
+    from { transform: translateY(12px); }
+    to   { transform: translateY(0); }
+  }
+  ```
+  → 진입 연출 유지하면서 dark hero bg 항상 가시.
+- **관련 코드:** `next/src/app/globals.css` L1527–1535, `next/src/components/story/StoryPage.tsx`
+- **우선순위:** Medium (No Throttling에서도 재현 · 브랜드 첫인상 페이지).
 
 ----
 

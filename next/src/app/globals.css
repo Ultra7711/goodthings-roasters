@@ -5180,6 +5180,7 @@ footer.blk {
 .st-hero-bg {
   position: absolute;
   inset: 0;
+  background-color: var(--color-bg-inverse); /* 이미지 로드 전 다크 배경 유지 */
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -7138,7 +7139,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   );
   background-size: 400% 100%;
   border-radius: 4px;
-  animation: skel-shimmer 1.4s ease infinite;
+  animation: skel-shimmer 2.4s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
   .skel { animation: none; background: rgba(0, 0, 0, .06); }

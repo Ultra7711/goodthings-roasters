@@ -8,12 +8,13 @@
 
 import { Suspense } from 'react';
 import CafeMenuPage from '@/components/cafe/CafeMenuPage';
+import CafeMenuSkeleton from '@/components/cafe/CafeMenuSkeleton';
 
 export const metadata = { title: '카페 메뉴 — good things' };
 
 export default function CafeMenuRoute() {
   return (
-    <Suspense fallback={<div id="cm-body" style={{ minHeight: '100svh' }} />}>
+    <Suspense fallback={<CafeMenuSkeleton />}>
       <CafeMenuPage />
     </Suspense>
   );
