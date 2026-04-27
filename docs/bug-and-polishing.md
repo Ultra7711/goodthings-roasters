@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 90 (BUG-170 ✅ · BUG-171 신규)
+> **최종 업데이트:** 2026-04-27 · Session 92 (BUG-172 후속 정합성 노트 · BUG-173 신규)
 
 ---
 
 ## 진행률
 
-> **62 / 66 closure (93.9%)** · 2026-04-27 S90 기준 (BUG-163 ✅ · BUG-169 ✅ · BUG-170 ✅ · BUG-171 신규)
+> **63 / 68 closure (92.6%)** · 2026-04-27 S92 기준 (S91: BUG-172 ✅ · S92: BUG-173 신규)
 >
 > 카운트 명령:
 > ```bash
@@ -836,6 +836,33 @@ React state flush: schedule 순서대로 적용
   - **catch 블록 silent swallow 금지** — 운영 환경에서도 최소한 `Sentry.captureException` 또는 서버 telemetry 로 원인 노출 (현재 `CheckoutPayment.tsx` 의 빈 catch 가 이번 진단 시간 1~2시간 추가 유발)
   - **메모리 우선 참조** — 결제 관련 사고 시 `project_production_toss_key_migration.md` · `project_payment_user_guide_needed.md` 먼저 검색
 - **우선순위:** 운영 결제 전면 중단 → Critical (resolved · 즉시 복구 + 영구 해결 트리거)
+- **후속 정합성 처리 (S92 · 2026-04-27):**
+  - DB `orders` 테이블에 2026-04-27 자 다수 행이 `status='pending'` 으로 잔존 (사용자 결제 시도 → confirm 실패 → row 잔존)
+  - 사용자 영수증 메일 (예: `GT-20260427-000046` · 21,000원 계좌이체) 은 진짜 Toss 자동 발송 (사업자번호·대표이사명 명시)
+  - **Toss 본인 계정 콘솔 → 테스트 결제내역: "내역이 없습니다." 확정** — 공용 데모 키 결제는 Toss 가 운영하는 데모 계정에 귀속되어 본인 계정 콘솔에 표시 안 됨
+  - **환불 처리 결론:** 불필요 + 불가능 — 실제 자금 이동 0 (test 키 가상 결제) · 본인 계정 콘솔에서 처리 불가능 (해당 거래 자체가 본인 계정에 없음)
+  - **DB pending orders:** 옵션 A (유지) 채택 — 출시 전후 별도 cleanup 정책 (BUG-173) 으로 처리
+  - **운영 노하우 추가:** test 키여도 contact_email 로 결제완료 메일 발송됨 (Toss SDK 표준). production 환경에서는 메일 + DB INSERT 정상 흐름이라 문제 없음
+
+---
+
+### BUG-173 — Orphan pending orders 누적 정리 정책 🟡 (운영 정합성)
+
+- **발견:** 2026-04-27 / S92 (BUG-172 후속 진단 중)
+- **재현 경로:** 사용자가 결제 페이지에서 결제 시도 → `orders` row INSERT (`status='pending'`) → confirm 단계 실패 또는 사용자 이탈 → row 가 영구 `pending` 상태로 잔존
+- **영향:**
+  - DB `orders` 테이블에 사용자가 도달했지만 결제 미완료한 주문이 누적
+  - 사용자 영수증 메일은 발송됐지만 (Toss 자동) DB 는 미반영 → "결제 성공한 줄 알았는데 마이페이지 빈 화면" 혼란 유발
+  - 운영 모니터링 시 진짜 결제 실패 vs 사용자 이탈 구분 어려움
+- **현재 상태 (2026-04-27 production):** 2026-04-27 자 다수 `pending` 행 존재. 옵션 A (유지) 로 당장 손대지 않음. 출시 전 자동 cleanup 정책 도입 필요
+- **대응 방안 (3안 중 결정):**
+  - **A. confirm 미완료 30분 timeout 자동 cancel** — pg_cron 또는 Vercel Cron 으로 주기적 실행. `pending` + `created_at < now() - interval '30 minutes'` → `status='cancelled'`
+  - **B. confirm 페이지 진입 시 동일 사용자의 기존 pending 자동 cancel** — 새 결제 시도가 이전 미완료를 자연 cleanup
+  - **C. 어드민에서 수동 cleanup UI** — `docs/admin-implementation-plan.md` Group B 와 통합
+- **권장:** A + C 조합. A 로 자동 cleanup, C 로 운영자가 수동 개입 가능하도록
+- **참조:** BUG-172 후속 정합성 노트 · `docs/admin-implementation-plan.md` Group B (주문 어드민)
+- **우선순위:** 출시 전 권장 (정기배송 풀 구현 직전 S-7 단계)
+- **상태:** 미해결 (등록만 · 구현은 후속 세션)
 
 ---
 

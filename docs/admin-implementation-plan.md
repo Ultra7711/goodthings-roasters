@@ -1,0 +1,301 @@
+# 어드민 풀 구현 계획 (Admin Implementation Plan)
+
+> **작성일:** 2026-04-27 (Session 92)
+> **상태:** 출시 전 구축 확정. 정기배송 풀 구현보다 선행.
+> **결정 배경:** 클라이언트 운영 가능성 확보 — Supabase 대시보드 운영 정책 폐기, 직접 구현으로 전환.
+
+---
+
+## 1. 결정 사항 요약
+
+| 항목 | 결정 |
+|------|------|
+| **어드민 범위** | 풀 어드민 — 주문·사용자·정기배송·상품·카페 메뉴 |
+| **UI 라이브러리** | shadcn/ui 도입 확정 |
+| **인증 라우트** | `/admin/login` 별도 (메인 `/login` 과 분리) |
+| **출시 시점** | 정기배송 출시보다 먼저. 출시 전 운영 가능 상태 확보 |
+| **admin 계정 운영** | 단일 계정 시작, 보안 강도 약하면 다계정 검토 |
+| **디자인 일관성** | 메인 사이트와 무관 — 추후 개선 가능 |
+| **이미지 업로드** | Supabase Storage |
+
+### 1-1. UI 라이브러리 — shadcn/ui
+
+- 풀 어드민 50~70h 작업 규모 → 약 30% 단축 기대 (35~50h)
+- form / table / dialog / dropdown 등 표준 컴포넌트 확보
+- Tailwind 기반 (메인 사이트와 같은 빌드 파이프라인)
+- 메인 디자인 시스템과는 별도 — 어드민 전용 토큰·테마
+
+### 1-2. 이미지 업로드 — Supabase Storage 채택
+
+옵션 비교 (2026-04-27 검토):
+
+| 옵션 | 비용 | 통합성 | 변환 | 채택 사유·기각 사유 |
+|------|------|--------|------|---------------------|
+| **Supabase Storage** | Free 1GB / Pro $25 100GB | ⭐⭐⭐⭐⭐ (이미 사용 중) | 내장 | ✅ 채택 — 인증·RLS 통합 |
+| Vercel Blob | Free 1GB / Pro $20 5GB | ⭐⭐⭐⭐ | 별도 | 기각 — Supabase 탈피 의도 없음 |
+| Cloudflare R2 | Free 10GB·egress 무제한 | ⭐⭐⭐ | $5/mo 별도 | 기각 — 1만 장 미만 규모 |
+| AWS S3+CloudFront | Free 5GB | ⭐⭐ | 별도 | 기각 — 운영 복잡도 |
+| UploadThing | Free 2GB | ⭐⭐⭐⭐ | 약함 | 기각 — 자체 인증 충돌 |
+| Cloudinary | Free 25 credits | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 기각 — 변환 요구 단순 |
+
+채택 근거:
+- `is_admin()` RLS 헬퍼 (020 마이그레이션) 를 Storage 정책에 그대로 재사용
+- 이미지 transform (resize/format/webp) 내장
+- DB + Storage 백업 일원화
+- 1만 장 돌파 시 R2 마이그레이션 옵션 보유
+
+---
+
+## 2. 작업 그룹
+
+### 🔴 Group A — 어드민 인프라 (모든 작업의 전제)
+
+| # | 작업 | 추정 |
+|---|------|------|
+| **A-1** | shadcn/ui 도입 — `npx shadcn init` + 기본 컴포넌트 (Button, Input, Table, Dialog, Form, Toast) | 1~2h |
+| **A-2** | `app/admin/login/page.tsx` 신규 — Supabase auth + `is_admin()` 검증 후 진입 | 2h |
+| **A-3** | `app/admin/layout.tsx` 신규 — RBAC 가드 + 사이드바 + 헤더 (회원가입 차단) | 2h |
+| **A-4** | `lib/auth/adminAuth.ts` 점검·확장 — `requireAdmin` 가드 패턴이 layout 레벨에서 작동하도록 | 1h |
+| **A-5** | `/admin/` 진입 시 admin role 로그인 안 되어 있으면 `/admin/login` 리다이렉트 | 30m |
+| **A-6** | Supabase Storage 버킷 신규 — `product-images`, `menu-images` (admin 전용 RLS 정책) | 1h |
+
+→ **합계 7~9h**
+
+### 🟠 Group B — 주문 어드민 (출시 직후 가장 시급한 운영 작업)
+
+| # | 작업 | 추정 |
+|---|------|------|
+| **B-1** | `/admin/orders` — 주문 목록 (상태·날짜·검색 필터, 페이지네이션) | 2~3h |
+| **B-2** | `/admin/orders/[orderNumber]` — 주문 상세 (배송 정보·결제 정보·아이템) | 1~2h |
+| **B-3** | 발송 처리 UI — 기존 `/api/admin/orders/[orderNumber]/ship` API 호출 (송장번호 입력 + 상태 변경) | 1~2h |
+| **B-4** | 주문 취소·환불 안내 (Toss 콘솔 링크 + 환불 처리 절차 노트) | 1h |
+
+→ **합계 5~8h**
+
+### 🟡 Group C — 사용자 어드민
+
+| # | 작업 | 추정 |
+|---|------|------|
+| **C-1** | `/admin/users` — 사용자 목록 (이메일·가입일·역할·상태) | 2h |
+| **C-2** | `/admin/users/[id]` — 사용자 상세 (주문 내역·정기배송·주소) | 2h |
+| **C-3** | admin 승격·강등 UI — `admin_audit` 테이블 자동 기록 (020 마이그레이션 활용) | 1~2h |
+| **C-4** | (보류) 단일 계정 운영 시 C-3 보류 — SQL 수동 승격 유지 | — |
+
+→ **합계 4~6h** (C-3 포함 시)
+
+### 🟢 Group D — 정기배송 어드민 (정기배송 풀 구현과 함께)
+
+> 본 그룹은 `docs/subscription-full-implementation-plan.md` Group F 와 통합. 정기배송 출시 직전 진행.
+
+| # | 작업 | 추정 |
+|---|------|------|
+| **D-1** | `/admin/subscriptions` — 목록 (사용자·상품·cycle·상태·다음 배송일) | 2~3h |
+| **D-2** | `/admin/subscriptions/[id]` — 상세·강제 해지·일시중지·다음 배송일 수동 조정 | 2~3h |
+| **D-3** | (Phase 3) 자동 결제 실패 모니터링 대시보드 | 출시 후 |
+
+→ **합계 4~6h**
+
+### 🔵 Group E — 상품 도메인 어드민 (거대 작업)
+
+> **현재 상품은 `next/src/lib/products.ts` (295줄) 하드코딩.** DB 마이그레이션 + 데이터 이관 + fetch 전환이 어드민 UI 구현보다 큼.
+
+| # | 작업 | 추정 |
+|---|------|------|
+| **E-1** | DB 마이그레이션 신규 — `products`, `product_volumes`, `product_recipes`, `product_images`, `flavor_notes` | 3~4h |
+| **E-2** | RLS 정책 — admin 전체 권한, 사용자 read-only | 1h |
+| **E-3** | 데이터 이관 — `lib/products.ts` 의 PRODUCTS 배열 → DB seed (마이그레이션 또는 어드민 UI 통한 입력) | 2~3h |
+| **E-4** | fetch 경로 전환 — `ShopPage`, `BeansScrollSection`, `[slug]/page.tsx`, `searchData.ts`, `cartService`, `orderService` 모두 DB fetch 로 | 4~6h |
+| **E-5** | `/admin/products` — 목록 (카테고리·상태·재고 필터) | 2~3h |
+| **E-6** | `/admin/products/new` + `[id]/edit` — 등록·수정 폼 (다용량·플레이버 노트·레시피·이미지 업로드) | 4~6h |
+| **E-7** | 이미지 업로드 — Supabase Storage 통합 (다중 업로드·미리보기·삭제) | 2~3h |
+| **E-8** | 단위·통합 테스트 — 데이터 이관 정합성·fetch 흐름 | 2~3h |
+
+→ **합계 20~29h** (shadcn/ui 도입 가정)
+
+### 🟣 Group F — 카페 메뉴 도메인 어드민
+
+> 상품과 동일 구조. `next/src/lib/cafeMenu.ts` 하드코딩 → DB 전환.
+
+| # | 작업 | 추정 |
+|---|------|------|
+| **F-1** | DB 마이그레이션 — `cafe_menu_items`, `cafe_menu_categories`, `nutrition_facts` | 2~3h |
+| **F-2** | RLS 정책 + 데이터 이관 | 1~2h |
+| **F-3** | fetch 경로 전환 — `CafeMenuPage`, `CafeMenuGrid`, `CafeNutritionSheet`, `searchData` | 3~4h |
+| **F-4** | `/admin/menu` — 목록·카테고리 관리 | 2h |
+| **F-5** | `/admin/menu/new` + `[id]/edit` — 등록·수정 (영양 정보·이미지) | 3~4h |
+| **F-6** | 이미지 업로드 통합 | 1~2h |
+
+→ **합계 12~17h**
+
+### 🔘 Group G — 운영·문서
+
+| # | 작업 | 추정 |
+|---|------|------|
+| **G-1** | SOP 문서 — `docs/admin-operation-guide.md` (사업자용 운영 매뉴얼) | 2h |
+| **G-2** | 어드민 E2E 테스트 — 주문 발송·상품 등록·이미지 업로드 핵심 플로우 | 2~3h |
+
+→ **합계 4~5h**
+
+---
+
+## 3. 합계·진행 순서
+
+### 3-1. 합계
+
+| 그룹 | 추정 (shadcn/ui 도입) |
+|------|----------------------|
+| A 인프라 | 7~9h |
+| B 주문 | 5~8h |
+| C 사용자 | 4~6h |
+| D 정기배송 | 4~6h |
+| E 상품 | 20~29h |
+| F 카페 메뉴 | 12~17h |
+| G 운영·문서 | 4~5h |
+| **합계** | **56~80h** |
+
+### 3-2. 권장 진행 순서 (출시 전)
+
+| 단계 | 범위 | 추정 | 산출 |
+|------|------|------|------|
+| **S-1** | A 그룹 (인프라) | 7~9h | `/admin/login` + layout + Storage 버킷 |
+| **S-2** | B 그룹 (주문) | 5~8h | 주문 발송·취소 운영 가능 |
+| **S-3** | C-1·C-2 (사용자 목록·상세) | 4h | 사용자 조회 가능 (C-3 승격은 후속) |
+| **S-4** | E-1~E-4 (상품 DB 전환) | 9~13h | 하드코딩 → DB 전환 완료, fetch 정상 |
+| **S-5** | E-5~E-8 (상품 어드민 UI + 이미지) | 11~16h | 상품 CRUD 완료 |
+| **S-6** | F (카페 메뉴 풀 구현) | 12~17h | 메뉴 CRUD 완료 |
+| **S-7** | 정기배송 풀 구현 (`subscription-full-implementation-plan.md` Group A·B·C·D) | 14~19h | 정기배송 사용자 흐름 완성 |
+| **S-8** | D (정기배송 어드민) | 4~6h | 정기배송 운영 가능 |
+| **S-9** | G (SOP·E2E) + 인수 검증 | 4~5h | 출시 가능 |
+
+→ **출시 전 합계 약 70~97h. 1.5~2주 풀타임 작업.**
+
+### 3-3. 출시 후 V2 (별도 계획)
+
+- 자동 결제 (Toss 빌링키·스케줄러·재시도) — `subscription-full-implementation-plan.md` Group E
+- 알림 메일 (Resend) — `subscription-full-implementation-plan.md` Group G
+- 어드민 대시보드 통계 (LTV·해지율·매출)
+
+---
+
+## 4. 기술 결정 상세
+
+### 4-1. 라우팅 구조
+
+```
+app/
+  admin/
+    login/
+      page.tsx         # 별도 로그인 (메인 /login 과 분리)
+    layout.tsx         # RBAC 가드 + 사이드바
+    page.tsx           # 대시보드 (간단한 통계)
+    orders/
+      page.tsx         # 목록
+      [orderNumber]/page.tsx
+    users/
+      page.tsx
+      [id]/page.tsx
+    products/
+      page.tsx
+      new/page.tsx
+      [id]/edit/page.tsx
+    menu/
+      page.tsx
+      new/page.tsx
+      [id]/edit/page.tsx
+    subscriptions/
+      page.tsx
+      [id]/page.tsx
+```
+
+### 4-2. 인증 흐름
+
+- `/admin/login` 진입 → Supabase auth 로그인
+- 로그인 성공 → `is_admin(user.id)` 검증
+- admin 이면 `/admin` 리다이렉트, 아니면 403 + 자동 로그아웃
+- `/admin/*` 모든 라우트 → `app/admin/layout.tsx` 에서 `requireAdmin` 가드
+- 메인 사이트 `/login` 으로 admin 이 로그인하면 → 메인 사이트 정상 사용 가능 (admin 도 일반 사용자 권한 보유). 단 `/admin/*` 진입 시 `is_admin()` 추가 검증
+
+### 4-3. Supabase Storage 버킷 구조
+
+```
+product-images/
+  {product_slug}/
+    main.webp
+    detail-1.webp
+    detail-2.webp
+menu-images/
+  {menu_slug}/
+    main.webp
+```
+
+RLS 정책:
+- INSERT/UPDATE/DELETE — `is_admin(auth.uid())` 만
+- SELECT — public (이미지는 공개)
+
+### 4-4. shadcn/ui 도입
+
+```bash
+cd next
+npx shadcn@latest init
+npx shadcn@latest add button input label table dialog dropdown-menu form toast
+```
+
+- 어드민 전용 — `app/admin/**/*` 에서만 사용
+- 메인 사이트는 기존 디자인 시스템 유지
+- 어드민 색상 토큰은 shadcn 기본 (회색 위주) 사용
+
+---
+
+## 5. 클라이언트 의사결정 필요 항목
+
+S-1 진입 전·중에 확정 받을 사항:
+
+1. **admin 계정 운영** — 단일 계정 시작 OK? 다계정 필요 시점·기준?
+2. **상품 카테고리 확장** — 현재 `Coffee Bean` / `Drip Bag` 만. 향후 추가 카테고리 (굿즈·기프트셋 등) 계획?
+3. **카페 메뉴 카테고리** — 현재 카테고리 구조 유지? 어드민에서 카테고리도 편집 가능해야 하는지?
+4. **재고 관리 정밀도** — 단순 재고 수량? 또는 옵션별 (200g/500g/1kg) 개별 재고? 또는 품절 토글만?
+5. **상품 이미지 정책** — 단일 메인 이미지? 또는 다중 갤러리?
+6. **어드민 다국어** — 한국어만? 또는 영어·일본어 등?
+
+---
+
+## 6. 영향받는 기존 자산
+
+### 6-1. 재사용 가능
+
+- `020_profiles_role_rbac.sql` — `is_admin()` 헬퍼·`admin_audit` 테이블
+- `next/src/lib/auth/adminAuth.ts` — `requireAdmin` / `getAdminClaims`
+- `next/src/app/api/admin/me/route.ts` — admin 인증 확인
+- `next/src/app/api/admin/orders/[orderNumber]/ship/route.ts` — 발송 처리 API
+
+### 6-2. 도메인 전환 대상 (하드코딩 → DB)
+
+- `next/src/lib/products.ts` (295줄) — Group E
+- `next/src/lib/cafeMenu.ts` — Group F
+
+### 6-3. fetch 전환 영향 파일
+
+상품 (E-4):
+- `next/src/components/shop/ShopPage.tsx`
+- `next/src/components/home/BeansScrollSection.tsx`
+- `next/src/app/(main)/shop/[slug]/page.tsx`
+- `next/src/lib/search/searchData.ts`
+- `next/src/lib/services/cartService.ts`
+- `next/src/lib/services/orderService.ts`
+
+카페 메뉴 (F-3):
+- `next/src/components/cafe/CafeMenuPage.tsx`
+- `next/src/components/cafe/CafeMenuGrid.tsx`
+- `next/src/components/cafe/CafeMenuCard.tsx`
+- `next/src/components/cafe/CafeNutritionSheet.tsx`
+- `next/src/components/cafe/CafeFilterTabs.tsx`
+- `next/src/components/home/CafeMenuSection.tsx`
+- `next/src/lib/search/searchData.ts`
+
+---
+
+## 7. 변경 이력
+
+| 날짜 | 세션 | 변경 내용 |
+|------|------|----------|
+| 2026-04-27 | S92 | 초기 작성 — 정책 변경 (Supabase 대시보드 → 직접 구현) 반영 + 풀 어드민 작업 그룹 7개 + 출시 전 9단계 진행 순서 |

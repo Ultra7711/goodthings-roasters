@@ -22,7 +22,8 @@
 | 프로토타입 | HTML 단일 파일 | 현재 단계 (`goodthings_v1.0.html`) |
 | 프론트엔드 | React + Next.js + Tailwind CSS | |
 | DB | Supabase (PostgreSQL) | |
-| 어드민 UI | 초기: Supabase 대시보드 → 필요 시 직접 구현 | |
+| 어드민 UI | 직접 구현 (Next.js + shadcn/ui · `/admin/login` 별도) | 출시 전 풀 구축 — `docs/admin-implementation-plan.md` |
+| 어드민 이미지 업로드 | Supabase Storage (`product-images` · `menu-images` 버킷) | `is_admin()` RLS 재사용 |
 | 결제 | 토스페이먼츠 API | |
 | 인증 | Supabase Auth | |
 | 배포 | Vercel | |
