@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 88 (BUG-167 신규 등록 + closure · BUG-162/164/165/166 closure)
+> **최종 업데이트:** 2026-04-27 · Session 88 (BUG-167 신규+closure · BUG-168/169 신규 · BUG-162/164/165/166 closure)
 
 ---
 
 ## 진행률
 
-> **58 / 62 closure (93.5%)** · 2026-04-27 S88 기준 (BUG-166 ✅ · BUG-162 ✅ · BUG-167 ✅ · BUG-164 ✅ · BUG-165 ✅ closure)
+> **58 / 64 closure (90.6%)** · 2026-04-27 S88 기준 (BUG-166/162/167/164/165 ✅ closure · BUG-168/169 신규 등록)
 >
 > 카운트 명령:
 > ```bash
@@ -699,6 +699,41 @@ React state flush: schedule 순서대로 적용
   ```
 - **관련 코드:** `next/src/lib/daumPostcode.ts` `loadDaumPostcode()` `existing` 분기 (L38~44)
 - **우선순위:** 주소 입력 필수 경로 (체크아웃 완료 불가) → High.
+
+---
+
+### BUG-168 — 마이페이지 로딩 속도 다른 페이지 대비 현격히 저하 🟡
+
+- **발견:** 2026-04-27 / S88
+- **재현 경로:** `/mypage` 진입 (다른 페이지 `/shop` · `/menu` · `/story` 등과 비교)
+- **실제 (버그):** 마이페이지 로딩이 체감상 다른 페이지에 비해 현저히 느림.
+- **원인 후보 (작업 시 분석 필요):**
+  - `requireAuth()` 서버 가드 + `useAuthGuard` 클라 가드 이중 체크 (Suspense fallback 동안 await getClaims())
+  - `MOCK_ORDERS` · `MOCK_SUBSCRIPTIONS` lazy import 미적용 (모듈 즉시 로드 시 번들 비대화)
+  - `useSupabaseSession` + Supabase 클라이언트 초기화 비용
+  - 4개 mp-section 동시 렌더 + 각 폼 훅(`useAddressForm` · `usePasswordChangeForm` · `usePhoneFormat`) 동시 마운트
+  - `mp-right` sticky 주문내역 — `MOCK_ORDERS` 전체 매핑이 SSR 단계에서 차단 가능성
+- **수행 작업:** 코드 원인 분석 + 개선 제안 (작업 시점에 진행)
+- **우선순위:** 사용자 체감 명확 → Medium (성능 카테고리)
+- **관련 코드:** `next/src/components/auth/MyPagePage.tsx`, `next/src/app/mypage/page.tsx`, `next/src/lib/mockMyPageData.ts`
+
+---
+
+### BUG-169 — 로그인 페이지 푸터 위치 점프 🟡 (회귀)
+
+- **발견:** 2026-04-27 / S88 (BUG-148 S82 closure 후 회귀)
+- **이전 픽스 참조:** BUG-148 (`#main-content { min-height: calc(100svh - ...) }` 추가) — `dvh` → `svh` 로 iOS Safari 주소 표시줄 토글 시 dvh 재계산 점프 방지.
+- **재현 경로:** `/login` 진입 → 하단으로 스크롤 → 다시 상단으로 스크롤
+- **실제 (버그):**
+  1. 진입 시: 푸터는 `100vh` 적용된 화면 바깥에 위치 (정상)
+  2. 하단 스크롤 시: 간격 유지 (정상)
+  3. 상단 스크롤 복귀 시: **푸터 위치가 점프** (회귀)
+- **원인 후보 (작업 시 분석 필요):**
+  - `LoginPage.tsx` 의 `<div style={{ minHeight: '100dvh' }}>` — `dvh` 사용 → iOS Safari 주소 표시줄 collapse/expand 시 viewport 재계산 → 레이아웃 점프 발생.
+  - BUG-148 fix 는 `#main-content` 에만 `svh` 적용. LoginPage 컨테이너 자체는 `dvh` 그대로 → main-content 의 안정 높이를 LoginPage 가 무시함.
+  - 수정 방향: `LoginPage` 의 `minHeight: '100dvh'` → `'100svh'` (또는 제거 — `#main-content` 의 svh min-height 가 이미 부모 단에서 적용됨).
+- **관련 코드:** `next/src/components/auth/LoginPage.tsx` L319 (outer div)
+- **우선순위:** UX 저하, 단일 페이지 → Medium
 
 ---
 
