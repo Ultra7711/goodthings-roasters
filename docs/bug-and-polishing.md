@@ -726,6 +726,11 @@ React state flush: schedule 순서대로 적용
 - **관련 코드:** `next/src/app/mypage/page.tsx`, `next/src/components/auth/MyPagePage.tsx`, `next/src/components/auth/MyPagePlaceholder.tsx` (신규)
 - **우선순위:** 사용자 체감 명확 → Medium (성능/UX).
 - **후속 작업:** BUG-159 (스켈레톤 도입) 통합 시 shimmer 애니메이션 등 정교한 스켈레톤 시스템 검토 — 본 fix 의 단순 placeholder 는 그 사이의 가성비 솔루션.
+- **후속 조사 (심화 단계 · S90+):** placeholder/스켈레톤이 보여야 할 타이밍에 **흰 배경이 먼저 한참 보이는 현상** 잔존 여부 검증. 조사 포인트:
+  1. `mypage/page.tsx` 가 server component → `requireAuth()` await 동안 브라우저는 직전 페이지 상태 유지 + 응답 직전 흰 배경 노출 가능성 (Next.js navigation 의 기본 동작).
+  2. Suspense fallback 이 실제로 그려지는 시점 측정 (Performance 탭 paint 이벤트). `loading.tsx` 로 이관 시 fallback 이 더 빠르게 commit 되는지 비교.
+  3. View Transitions API 또는 `useTransition` + 수동 pending UI 로 흰 배경 구간 자체를 placeholder 로 대체 가능한지 검토.
+  4. 흰 배경 노출이 OS/브라우저 navigation paint 의 **불가피한 구간**인지, 우리 제어로 줄일 수 있는지 결론 도출.
 
 ---
 

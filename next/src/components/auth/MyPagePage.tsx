@@ -694,7 +694,6 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                               </span>
                             </div>
                             <div className="ocp-item-badges">
-                              <span className="ocp-item-badge">{item.volume}</span>
                               <span className="ocp-item-qty">수량 {item.qty}개</span>
                               <span className="ocp-item-price">{formatPrice(item.priceNum)}</span>
                             </div>

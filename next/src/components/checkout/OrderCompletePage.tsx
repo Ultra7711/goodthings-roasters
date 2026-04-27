@@ -566,11 +566,9 @@ export default function OrderCompletePage() {
                   <div className="ocp-item-category">{item.category}</div>
                   <div className="ocp-item-name">{extractKrName(item.name)}</div>
                   <div className="ocp-item-badges">
-                    {item.volume && <span className="ocp-item-badge">{item.volume}</span>}
-                    {item.type === 'subscription' && item.period && (
-                      <span className="ocp-item-badge">정기배송 {item.period}</span>
-                    )}
-                    <span className="ocp-item-qty">수량 {item.qty}개</span>
+                    <span className="ocp-item-qty">
+                      {[item.volume, item.type === 'subscription' && item.period ? `정기배송 ${item.period}` : null, `수량 ${item.qty}개`].filter(Boolean).join(' · ')}
+                    </span>
                     <span className="ocp-item-price">{formatPrice(item.priceNum * item.qty)}</span>
                   </div>
                 </div>

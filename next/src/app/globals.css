@@ -6799,13 +6799,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-primary); margin-top: 6px;
 }
 .ocp-item-badges { display: flex; align-items: center; gap: var(--gap-xs); margin-top: 8px; }
-.ocp-item-badge {
-  display: inline-flex; align-items: center; justify-content: center;
-  font-family: var(--font-en); font-size: var(--type-body-s-size); font-weight: 500;
-  letter-spacing: var(--ls-button); text-transform: uppercase;
-  color: var(--color-text-inverse); background: #9C9890;
-  padding: 0 10px; height: 20px; line-height: 1; border-radius: 3px;
-}
 .ocp-item-qty { font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 400; color: #9C9891; }
 .ocp-item-price { font-family: var(--font-en); font-size: var(--type-body-m-size); font-weight: 400; color: #9C9891; margin-left: auto; flex-shrink: 0; }
 
@@ -7669,9 +7662,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     align-items: baseline;
     justify-content: space-between;
     gap: 12px;
-  }
-  .mp-order-items .ocp-item-badge {
-    display: none;
   }
   .mp-order-items .ocp-item-qty {
     display: inline;
