@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 88 (BUG-167 신규 등록 + closure · BUG-162/164/166 closure)
+> **최종 업데이트:** 2026-04-27 · Session 88 (BUG-167 신규 등록 + closure · BUG-162/164/165/166 closure)
 
 ---
 
 ## 진행률
 
-> **57 / 62 closure (91.9%)** · 2026-04-27 S88 기준 (BUG-166 ✅ · BUG-162 ✅ · BUG-167 ✅ · BUG-164 ✅ closure)
+> **58 / 62 closure (93.5%)** · 2026-04-27 S88 기준 (BUG-166 ✅ · BUG-162 ✅ · BUG-167 ✅ · BUG-164 ✅ · BUG-165 ✅ closure)
 >
 > 카운트 명령:
 > ```bash
@@ -655,16 +655,24 @@ React state flush: schedule 순서대로 적용
 
 ---
 
-### BUG-165 — 로그인 페이지 상하단 overscroll 경계 처리 누락 🟡
+### BUG-165 — ✅ 페이지 overscroll 색상 부조화 (login + 독립 레이아웃 3종) 🟡
 
 - **발견:** 2026-04-27 / S87
-- **재현 경로:** `/login` 진입 → 상단 또는 하단으로 overscroll
-- **실제 (버그):** 다른 페이지(메인/스토리/메뉴/샵/굿데이즈)는 overscroll 시 상하단 배경색이 콘텐츠와 자연스럽게 연결되지만, 로그인 페이지는 overscroll 시 배경색이 끊기거나 다른 색으로 보임.
-- **기대:** overscroll 상단·하단 모두 로그인 페이지 배경색(`#FBF8F3`)으로 자연스럽게 연결.
-- **원인 분석:**
-  - `login/page.tsx`에 `<OverscrollTop top="#FBF8F3" bottom="#FBF8F3" />`는 존재하나, `OverscrollColor` 컴포넌트(동적 스크롤 위치 기반 html bgcolor 전환)와 `minHeight: 100dvh` 레이아웃이 충돌할 가능성.
-  - 로그인 페이지는 `(main)` layout 안에서 일반 문서 흐름으로 렌더되므로 별도 진단 필요.
-- **관련 코드:** `next/src/app/(main)/login/page.tsx`, `next/src/components/ui/OverscrollTop.tsx`, `next/src/components/ui/OverscrollColor.tsx`
+- **재현 경로:**
+  1. `/login` 진입 → 상단/하단 overscroll → light(`#FBF8F3`) 노출 ↔ AnnouncementBar(`#1E1B16`) / SiteFooter(`#4A4845`) 와 단절
+  2. `/checkout` · `/mypage` · `/order-complete` 진입 → 상단/하단 overscroll → 기본 dark(`#1E1B16`)/stone(`#4A4845`) 노출 ↔ light 페이지 bg(`#FBF8F3`) 와 단절
+- **원인 (전수 조사 결과):**
+  - OverscrollColor 글로벌 시스템은 `<html>` bg 를 동적 전환. 기본값 `TOP_DEFAULT=#1E1B16` / `BOTTOM_DEFAULT=#4A4845` 는 `(main)` layout 의 AnnouncementBar(dark) + SiteFooter(stone) 와 매치되도록 설계.
+  - **`/login` 케이스**: `(main)` layout 안임에도 OverscrollTop 으로 `top=bottom=#FBF8F3` 강제 → announcement/footer 와 단절.
+  - **독립 레이아웃 3종 (`/checkout` · `/mypage` · `/order-complete`)**: AnnouncementBar/SiteFooter 없이 자체 미니 헤더 + light bg(`#FBF8F3`) 로 구성. OverscrollTop 미적용 → 기본 dark/stone overscroll 노출 ↔ light bg 와 단절.
+- **해결 (S88, 4 커밋 분리):**
+  1. `next/src/app/(main)/login/page.tsx` — OverscrollTop 제거 → 기본값(`(main)` 매치) 사용 (`69ea77fd`)
+  2. `next/src/app/checkout/layout.tsx` — `<OverscrollTop top="#FBF8F3" bottom="#FBF8F3" />` 추가 (`14e72bab`)
+  3. `next/src/app/mypage/layout.tsx` — 동일 추가 (`ccda1ab8`)
+  4. `next/src/app/order-complete/layout.tsx` — 동일 추가 (`fe1c5772`)
+- **설계 일관성**: `(main)` 페이지는 OverscrollTop 미사용(home 만 top 다크 명시), 독립 레이아웃은 layout 단위로 light 오버라이드. layout 단위 mount/unmount 라이프사이클로 cleanup 자동.
+- **검증:** 387/387 vitest · tsc 통과 + 데스크탑 Chrome `/login` 시각 통과 (S88).
+- **관련 코드:** `next/src/app/(main)/login/page.tsx`, `next/src/app/{checkout,mypage,order-complete}/layout.tsx`, `next/src/components/ui/OverscrollTop.tsx`, `next/src/components/ui/OverscrollColor.tsx`, `next/src/components/ui/overscrollState.ts`
 
 ---
 
