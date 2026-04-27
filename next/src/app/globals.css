@@ -3125,6 +3125,8 @@ footer.blk {
   touch-action: pan-y;
 }
 #cafe-nutrition-sheet.open #cns-panel { transform: translateX(0); }
+/* 드래그 핸들 — 데스크탑/태블릿 숨김 (≥480px). <480 미디어쿼리에서 활성화. */
+.cns-drag-handle { display: none; }
 /* 모바일: <768 풀스크린 (Session 38 Step C) */
 @media (max-width: 767px) {
   #cns-panel { width: 100vw; }
@@ -3281,18 +3283,31 @@ footer.blk {
     transform: translateY(100%);
     padding-bottom: 0;
   }
-  /* 드래그 핸들 — 시각적 힌트만, 실제 드래그 기능은 아님 */
-  #cns-panel::before {
-    content: '';
+  /* 모바일 바텀시트 드래그 핸들 (실제 DOM 요소).
+     - hit area 24px 로 충분히 크게 (시각 핸들 4px + 위아래 여유)
+     - touch-action:none → 핸들 위 모든 터치 제스처를 JS 로 가로채기
+       (브라우저 기본 스크롤 차단 → scrollTop 무관 드래그 허용)
+     - 핸들 바(.cns-drag-handle-bar) 는 시각만, pointer-events:none */
+  .cns-drag-handle {
+    display: flex;
     position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    z-index: 4;
+    background: transparent;
+    touch-action: none;
+    cursor: grab;
+  }
+  .cns-drag-handle:active { cursor: grabbing; }
+  .cns-drag-handle-bar {
     width: 40px;
     height: 4px;
     border-radius: 999px;
     background: rgba(28, 27, 25, 0.2);
-    z-index: 3;
     pointer-events: none;
   }
   #cafe-nutrition-sheet.open #cns-panel { transform: translateY(0); }
