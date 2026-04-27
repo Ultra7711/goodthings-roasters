@@ -17,7 +17,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -115,15 +115,17 @@ export default function OrderCompletePage() {
   } | null>(null);
   const clearCart = useClearCart();
 
-  /* sessionStorage 에서 주문 정보 읽기 */
-  const order = useMemo<LastOrder | null>(() => {
-    if (typeof window === 'undefined') return null;
+  /* sessionStorage 에서 주문 정보 읽기 —
+     useMemo 는 SSR=null · hydration=값 불일치로 React #418 hydration error 유발.
+     useState+useEffect 로 첫 render 를 SSR 과 동일하게 null 유지. (BUG-162) */
+  const [order, setOrder] = useState<LastOrder | null>(null);
+  useEffect(() => {
     try {
       const raw = sessionStorage.getItem('gtr-last-order');
-      if (!raw) return null;
-      return JSON.parse(raw) as LastOrder;
+      if (!raw) return;
+      setOrder(JSON.parse(raw) as LastOrder);
     } catch {
-      return null;
+      /* 손상된 JSON — null 유지 */
     }
   }, []);
 
