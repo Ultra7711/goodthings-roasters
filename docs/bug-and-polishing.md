@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **54 / 61 closure (88.5%)** · 2026-04-27 S88 기준 (BUG-166 ✅ closure)
+> **55 / 61 closure (90.2%)** · 2026-04-27 S88 기준 (BUG-166 ✅ · BUG-162 ✅ closure)
 >
 > 카운트 명령:
 > ```bash
@@ -616,14 +616,13 @@ React state flush: schedule 순서대로 적용
 
 ---
 
-### BUG-162 — /order-complete 에서 쇼핑 계속하기/주문 내역 보기 버튼 동작 불능 🟠
+### BUG-162 — ✅ /order-complete 에서 쇼핑 계속하기/주문 내역 보기 버튼 동작 불능 🟠
 
 - **발견:** 2026-04-27 / S87 (퀵계좌이체 결제 성공 검증 중)
 - **재현 경로:** `/checkout` → 결제 완료 → `/order-complete` → "쇼핑 계속하기" 또는 "주문 내역 보기" 버튼 클릭
-- **실제 (버그):** 버튼 클릭 후 페이지 이탈 불가. 같은 페이지에 머무름.
-- **기대:** "쇼핑 계속하기" → `/shop` 이동, "주문 내역 보기" → `/mypage` 이동.
-- **관련 코드:** `next/src/components/checkout/OrderCompletePage.tsx` line 571 (`<Link href="/shop">`), line 574 (`router.push('/mypage')`)
-- **원인 미상:** 네비게이션 가드 또는 history stack 이슈로 추정. 추가 진단 필요.
+- **실제 (버그):** 버튼 클릭 후 페이지 이탈 불가. NextTopLoader 바가 끝까지 채워진 채 hang, 화면 간헐적 깜빡거림.
+- **원인:** `order`를 `useMemo`로 계산 — SSR에서 `null`, 클라이언트 hydration 시점에 sessionStorage 값이 있어 React #418 hydration error 발생 → router 불안정 → navigation hang.
+- **해결 (S88):** `useMemo` → `useState(null) + useEffect`로 교체. 첫 render를 SSR과 동일하게 `null` 유지, mount 후 sessionStorage 읽기. 커밋 `ab1ed388`.
 
 ---
 
