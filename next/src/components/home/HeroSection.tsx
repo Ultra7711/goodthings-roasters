@@ -22,16 +22,26 @@ export default function HeroSection() {
 
     const tryPlay = () => void video.play().catch(() => {});
 
-    void video.play().catch(() => {
-      /* iOS 저전력 모드 등 autoplay 차단 시 — 첫 터치/스크롤에서 재시도 */
-      document.addEventListener('touchstart', tryPlay, { once: true });
-      document.addEventListener('click', tryPlay, { once: true });
-    });
+    void video.play().catch(() => {});
+
+    /* 탭·앱 백그라운드 복귀 시 재개 (visibilitychange) */
+    const onVisibilityChange = () => { if (!document.hidden) tryPlay(); };
+
+    /* 예상 외 pause 이벤트 자동 재개 (rotate, stall 등) */
+    const onPause = () => { if (!document.hidden) tryPlay(); };
+
+    /* iOS 저전력 모드 등 최초 autoplay 차단 시 — 첫 터치/스크롤에서 재시도 */
+    document.addEventListener('touchstart', tryPlay, { once: true });
+    document.addEventListener('click', tryPlay, { once: true });
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    video.addEventListener('pause', onPause);
 
     return () => {
       video.pause();
       document.removeEventListener('touchstart', tryPlay);
       document.removeEventListener('click', tryPlay);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      video.removeEventListener('pause', onPause);
     };
   }, []);
 

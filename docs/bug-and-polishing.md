@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **67 / 71 closure (94.4%)** · 2026-04-28 S94 기준 (S93: BUG-166 ✅ 재closure · BUG-174/175 ✅ 신규+closure · S94: BUG-137 ✅ BUG-160과 동일 근본원인 closure · BUG-173 미해결)
+> **68 / 72 closure (94.4%)** · 2026-04-28 S94 기준 (S93: BUG-174/175 ✅ · S94: BUG-137 ✅ BUG-160 동일원인 · BUG-176 ✅ 신규+closure visibilitychange · BUG-173 미해결)
 >
 > 카운트 명령:
 > ```bash
@@ -929,6 +929,22 @@ React state flush: schedule 순서대로 적용
 - **우선순위:** 코스메틱·접근성 → Low.
 
 ---
+
+### BUG-176 — ✅ 히어로 동영상 탭/앱 복귀 후 멈춤 (visibilitychange 미처리) 🟡
+
+- **발견:** 2026-04-28 / S94
+- **재현 경로:** 홈 히어로 동영상 재생 중 → 다른 탭으로 전환 후 복귀 / iOS 홈 화면 전환 후 복귀 / 화면 회전
+- **실제 (버그):** 동영상이 재생 버튼 없이 멈춘 상태로 잔존. 터치/클릭 이벤트가 `{ once: true }` 로만 등록되어 있어, 초기 autoplay 성공 후 발생하는 pause는 재개 불가.
+- **근본 원인:** BUG-160(S84)에서 추가된 touchstart/click 재시도가 초기 autoplay 실패 케이스만 처리. 탭 복귀(`visibilitychange`), rotate, 예상 외 `pause` 이벤트에 대한 재개 로직 없음.
+- **수정 (S94):**
+  1. `visibilitychange` 리스너 추가 — `!document.hidden` 시 `tryPlay()` 호출.
+  2. video `pause` 이벤트 리스너 추가 — `document.hidden`이 아닐 때 자동 재개 (rotate, stall 등 예상 외 pause 커버).
+  3. 초기 `play()` catch에서 touchstart/click 조건부 등록을 unconditional로 변경 (catch 여부와 무관하게 등록).
+  4. cleanup에 신규 리스너 2개 제거 추가.
+- **관련 코드:** `next/src/components/home/HeroSection.tsx`
+- **우선순위:** 모바일 사용자 체감 이슈 → Medium.
+
+----
 
 ### BUG-130 — ✅ 헤더 다크↔라이트 모드 전환 깜빡임
 
