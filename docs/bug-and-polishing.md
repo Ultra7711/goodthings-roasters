@@ -748,10 +748,10 @@ React state flush: schedule 순서대로 적용
   2. 하단 스크롤 시: 간격 유지 (정상)
   3. 상단 스크롤 복귀 시: **푸터 위치가 점프** (회귀)
 - **원인:** `LoginPage.tsx` outer div `minHeight: '100dvh'` — BUG-148 fix 가 `#main-content` 에만 svh 적용했고 LoginPage 컨테이너는 dvh 그대로 → iOS Safari address bar 토글 시 dvh 재계산 → 점프.
-- **수정:** `LoginPage.tsx` outer div `minHeight: '100dvh'` → `'100svh'` (1줄).
-- **dvh 잔존 현황:** `MyPagePage`, `CheckoutPage`, `OrderCompletePage` outer div 도 `100dvh` 사용. `/login` 과 동일 증상 발생 가능하나 현재 별도 리포트 없음 — 향후 확인 시 동일 패턴 적용.
-- **검증:** 387/387 vitest · tsc clean.
-- **관련 코드:** `next/src/components/auth/LoginPage.tsx` L319 (outer div)
+- **수정 1 (S90):** `LoginPage.tsx` outer div `minHeight: '100dvh'` → `'100svh'` (1줄). 커밋 `0a5fc0ec`.
+- **수정 2 (S90 후속):** 전 페이지 inline `minHeight:'100dvh'` 일괄 `svh` 전환. 커밋 `9249d40a`. 대상 10개 파일 — `MyPagePage`, `MyPagePlaceholder`, `CheckoutPage`, `OrderCompletePage`, Suspense fallback 6종(gooddays · menu · search · shop · checkout · order-complete).
+- **검증:** 387/387 vitest · tsc clean. inline dvh 잔존 없음 확인.
+- **관련 코드:** `next/src/components/auth/LoginPage.tsx` L319 (outer div) + 위 10개 파일
 - **우선순위:** UX 저하, 단일 페이지 → Medium
 
 ---
