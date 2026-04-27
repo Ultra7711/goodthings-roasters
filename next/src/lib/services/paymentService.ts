@@ -368,9 +368,16 @@ function deriveRpcParams(
     throw new PaymentServiceError('method_mismatch', tossResponse.method ?? 'unknown');
   }
 
-  const webhookSecret =
-    method === 'transfer' ? (tossResponse.virtualAccount?.secret ?? null) : null;
-  if (method === 'transfer' && !webhookSecret) {
+  /* S91 사고 (2026-04-27): 계좌이체(`transfer`)와 가상계좌(`virtualAccount`)는
+     DB enum 상 'transfer' 로 통합되지만, Toss 응답 객체 구조와 secret 유무는 다름.
+     - 계좌이체 (실시간 즉시 이체): tossResponse.virtualAccount 없음 → secret 없음
+     - 가상계좌 (입금 대기): tossResponse.virtualAccount 존재 + secret 필수
+     이전 코드는 두 케이스를 모두 secret 필수로 처리해 계좌이체 결제가 항상 실패했음. */
+  const hasVirtualAccount = !!tossResponse.virtualAccount;
+  const webhookSecret = hasVirtualAccount
+    ? (tossResponse.virtualAccount?.secret ?? null)
+    : null;
+  if (hasVirtualAccount && !webhookSecret) {
     throw new PaymentServiceError('toss_failed', 'virtual_account_secret_missing');
   }
 
