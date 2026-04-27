@@ -810,6 +810,35 @@ React state flush: schedule 순서대로 적용
 
 ---
 
+### BUG-172 — ✅ 결제 위젯 키 회전 사고 + 본인 계정 키 호환성 진단 🔴 (운영 사고)
+
+- **발견:** 2026-04-27 / S91 (production)
+- **재현 경로:** 새벽까지 정상 결제 → 갑자기 `/order-complete` 에서 "결제 오류 / 오류 코드: server_error" → 본인 계정 키 교체 후 결제 페이지에서 "결제 위젯을 불러오지 못했습니다"
+- **시간 손실:** 약 3시간 (진단 + 잘못된 가설 검증)
+- **사고 경위:**
+  1. 새벽까지 Toss 공용 데모 키 (`test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm` / `test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6`) 로 정상 작동
+  2. 오후 갑자기 `server_error` — Toss 가 공용 데모 키를 회전·리셋한 것으로 추정 (Toss 가 주기적으로 공용 키를 회전시킴)
+  3. 본인 계정 키 (`test_ck_EP59...` / `test_sk_BX7z...`) 로 Vercel 환경변수 교체 + 재배포 → 위젯 로드 실패
+  4. 캐시·빌드 문제로 오진 → 시크릿 창 검증 (카트가 비어 진단 무효) · Sources 검색 (CheckoutPayment 청크 미로드 상태) 등 잘못된 경로 추적
+  5. 빌드 청크 직접 확인으로 결정적 단서 확보 — 키는 `test_ck_EP59...` 로 정상 인라인됐는데도 위젯 catch 블록 진입
+- **근본 원인 (이미 알려진 사실 망각):**
+  - 본인 계정의 `test_ck_*` 는 **API 개별 연동 키** (REST API 직접 호출용)
+  - `loadTossPayments()` + `widgets()` SDK 패턴은 **결제위젯 클라이언트 키** (`test_gck_*`) 필요
+  - 결제위젯은 Toss 콘솔에서 별도 "이용 신청" 후 발급되는데 미신청 상태였음 → 위젯 키 부재
+  - 공용 데모 키는 Toss 가 운영하는 위젯 데모 키라 모든 계정에서 동작했던 것
+  - **이 사실은 `memory/project_production_toss_key_migration.md` (2026-04-23) 에 이미 기록되어 있었음** — 사고 당시 메모리 미참조
+- **즉시 복구:** Vercel 환경변수를 다시 공용 데모 키 (`test_gck_docs_*` / `test_gsk_docs_*`) 로 복귀 + 재배포 → 결제 정상화 (단, 또 회전될 위험 잔존)
+- **영구 해결 트리거:** Toss 개발자 콘솔에서 결제위젯 "이용 신청하기" → 발급 완료 후 본인 계정 위젯 전용 키로 교체 (이번 사건이 미루던 신청을 강제로 트리거함)
+- **관련 코드:** `next/src/components/checkout/CheckoutPayment.tsx` (catch 블록이 SDK 에러를 완전히 삼키는 패턴 — 진단 어렵게 만든 부차 원인)
+- **재발 방지 (운영 노하우):**
+  - **공용 데모 키는 임시방편** — 프로토타입·시연 단계 한정. 본인 계정 위젯 키 신청은 실서비스 도메인 연결 전 반드시 완료
+  - **위젯 SDK ↔ 키 종류 매트릭스:** `loadTossPayments() + widgets()` = 위젯 키 필수 / `loadTossPayments() + payment()` = 개별 연동 키 가능
+  - **catch 블록 silent swallow 금지** — 운영 환경에서도 최소한 `Sentry.captureException` 또는 서버 telemetry 로 원인 노출 (현재 `CheckoutPayment.tsx` 의 빈 catch 가 이번 진단 시간 1~2시간 추가 유발)
+  - **메모리 우선 참조** — 결제 관련 사고 시 `project_production_toss_key_migration.md` · `project_payment_user_guide_needed.md` 먼저 검색
+- **우선순위:** 운영 결제 전면 중단 → Critical (resolved · 즉시 복구 + 영구 해결 트리거)
+
+---
+
 ### BUG-130 — ✅ 헤더 다크↔라이트 모드 전환 깜빡임
 
 - **발견:** 2026-04-24 / S72 (가칭 등록)

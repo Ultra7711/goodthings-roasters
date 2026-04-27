@@ -143,6 +143,14 @@ export function safeErrorMessage(err: unknown): string {
     }
     return msg;
   }
+  /* S91 사고 (2026-04-27) 후속: plain object throw 시 String(err) 결과가
+     "[object Object]" 가 되어 진짜 원인을 알 수 없음. JSON 직렬화 우선 시도. */
+  try {
+    const json = JSON.stringify(err);
+    if (json && json !== '{}') return json;
+  } catch {
+    /* circular ref 등 — 아래 String fallback */
+  }
   try {
     return String(err);
   } catch {
