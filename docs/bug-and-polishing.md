@@ -682,25 +682,20 @@ React state flush: schedule 순서대로 적용
 ### BUG-166 — ✅ Daum Postcode `openPostcode()` 간헐적 팝업 미호출 🟠
 
 - **발견:** 2026-04-27 / S87 (체크아웃 주소 검색 반복 테스트 중)
-- **재현 경로:** `/checkout` → 주소 검색 인풋 클릭 → 필드는 활성화(포커스·라인 강조)되나 Daum Postcode 팝업 미호출.
-- **재현 빈도:** 간헐적 (여러 번 중 1~2회). 특히 첫 번째 이후 재호출 시 발생 빈도 높음.
-- **실제 (버그):** 인풋이 포커스된 것처럼 보이지만 팝업이 열리지 않고, 키보드 입력 가능 상태도 아님. 클릭 이벤트는 정상 발생하나 `openPostcode()` Promise가 hang.
-- **원인 분석 (race condition):**
-  - `daumPostcode.ts`의 `loadDaumPostcode()` 내 `existing` 분기 문제.
-  - 스크립트 태그가 이미 `document.head`에 존재하고 `load` 이벤트가 이미 fired된 상태에서 두 번째 호출 시, `addEventListener('load', resolve, { once: true })`를 붙여도 이미 fired된 이벤트를 받지 못함 → `resolve()` 영원히 미호출 → Promise hang.
-  - `window.daum?.Postcode` 체크는 통과했으나 실제 객체가 준비되기 전 타이밍에 진입하는 경우 포함.
-- **기대:** 주소 검색 클릭마다 안정적으로 Daum Postcode 팝업 호출.
-- **수정 방향:** `existing` 분기에서 스크립트의 `readyState` 또는 `window.daum?.Postcode` 재확인 후 즉시 resolve 처리 추가.
-  ```typescript
-  if (existing) {
-    // 이미 load가 완료된 경우 (이벤트 이미 fired) → 즉시 resolve
-    if (window.daum?.Postcode) { resolve(); return; }
-    existing.addEventListener('load', () => resolve(), { once: true });
-    existing.addEventListener('error', () => reject(...), { once: true });
-    return;
-  }
-  ```
-- **관련 코드:** `next/src/lib/daumPostcode.ts` `loadDaumPostcode()` `existing` 분기 (L38~44)
+- **재현 경로:** `/checkout` 또는 마이페이지 주소 편집 → 주소 검색 클릭 → 필드 포커스 활성화되나 팝업 미호출.
+- **재현 빈도:** 간헐적. 특히 iOS Chrome 첫 터치에서 빈번.
+- **실제 (버그):** 인풋이 포커스된 것처럼 보이지만 팝업이 열리지 않음. 클릭 이벤트는 정상 발생.
+- **원인 분석 (S93 재진단 — iOS 팝업 차단):**
+  - `openPostcode()`가 `async` 함수로 선언되어 내부에서 `await loadDaumPostcode()` 실행.
+  - iOS WKWebView(Safari/Chrome)는 `window.open()`이 **사용자 제스처에서 동기 호출**되지 않으면 팝업 차단. `await` 이후는 제스처 컨텍스트 밖으로 판단.
+  - 스크립트 로드 시간이 짧으면 우연히 열리고, 길면 차단 → 간헐적 재현.
+  - 1차 fix(S88)의 race condition 수정은 별개 문제를 부분 해결했으나 iOS 차단 근본 원인 미처리.
+- **기대:** 주소 검색 클릭마다 iOS/Android 모두 안정적으로 팝업 호출.
+- **수정 (S93 재수정 · `5a8d2c81`):**
+  - `openPostcode()`를 일반 함수로 전환. 스크립트 로드 완료 시 Promise 생성자 내부에서 `.open()` 동기 호출 (생성자 콜백은 동기 실행 → 제스처 컨텍스트 유지).
+  - `_loadPromise` 모듈-레벨 싱글턴 추가: race condition 원천 차단.
+  - `preloadPostcode()` export 추가. CheckoutPage·useAddressForm 마운트 시 선제 로드 → 첫 터치에서도 동기 경로 진입 보장.
+- **관련 코드:** `next/src/lib/daumPostcode.ts` · `CheckoutPage.tsx` · `useAddressForm.ts`
 - **우선순위:** 주소 입력 필수 경로 (체크아웃 완료 불가) → High.
 
 ---
