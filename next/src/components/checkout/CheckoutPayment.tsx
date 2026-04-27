@@ -110,11 +110,11 @@ export default function CheckoutPayment({
 
         widgetsRef.current = widgets;
         setReady(true);
-      } catch {
-        /* BUG-FIX 2026-04-23: 원래 catch{} 에 error 바인딩이 없어 실패 원인이
-           콘솔에 전혀 노출되지 않았었음. 재발 시 진단을 위해 임시로
-           `catch (err) { console.error(err); ... }` 로 바꾸거나 Sentry 로
-           error 를 전송할 것 (상시 console.error 는 프로젝트 규칙에서 지양). */
+      } catch (err) {
+        /* S91 사고 진단: silent catch 가 에러 원인 파악 불가하게 만듬.
+           console.error 로 항상 노출 (운영 환경 포함). */
+        // eslint-disable-next-line no-console
+        console.error('[Toss Widget Load] failed:', err);
         if (cancelled) return;
         setLoadFailed(true);
       }
@@ -151,6 +151,12 @@ export default function CheckoutPayment({
       /* 성공 경로는 리다이렉트 — 도달하면 redirect 전 cleanup 으로 처리 */
     } catch (err) {
       const name = err instanceof Error ? err.name : '';
+      /* S91 사고 진단: silent catch 가 에러를 삼켜 원인 파악 불가했음.
+         사용자 취소 외 모든 에러를 콘솔에 노출. */
+      if (name !== 'UserCancelError') {
+        // eslint-disable-next-line no-console
+        console.error('[Toss requestPayment] failed:', err);
+      }
       if (name === 'UserCancelError') {
         /* 사용자 취소 — 조용히 복구 */
       } else if (name === 'NotSelectedPaymentMethodError') {
