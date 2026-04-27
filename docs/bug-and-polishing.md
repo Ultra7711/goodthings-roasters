@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **53 / 61 closure (86.9%)** · 2026-04-27 S87 기준 (BUG-164 🟡 · BUG-165 🟡 · BUG-166 🟠 신규 등록)
+> **54 / 61 closure (88.5%)** · 2026-04-27 S88 기준 (BUG-166 ✅ closure)
 >
 > 카운트 명령:
 > ```bash
@@ -663,7 +663,7 @@ React state flush: schedule 순서대로 적용
 
 ---
 
-### BUG-166 — Daum Postcode `openPostcode()` 간헐적 팝업 미호출 🟠
+### BUG-166 — ✅ Daum Postcode `openPostcode()` 간헐적 팝업 미호출 🟠
 
 - **발견:** 2026-04-27 / S87 (체크아웃 주소 검색 반복 테스트 중)
 - **재현 경로:** `/checkout` → 주소 검색 인풋 클릭 → 필드는 활성화(포커스·라인 강조)되나 Daum Postcode 팝업 미호출.
