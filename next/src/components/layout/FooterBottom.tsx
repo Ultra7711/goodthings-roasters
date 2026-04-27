@@ -37,6 +37,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { BUSINESS_INFO } from '@/lib/constants';
 
 /* 공정거래위원회 통신판매 사업자정보 조회 (전자상거래법 §13 의무) */
@@ -54,11 +55,21 @@ const MAX_SCROLL_DURATION_MS = 800;
 
 export default function FooterBottom() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const bizRef = useRef<HTMLDivElement>(null);
   // rapid re-toggle 방어: 각 rAF 루프는 자기 token 을 소유, tokenRef 가 달라지면 즉시 종료
   const scrollTokenRef = useRef(0);
   // rAF id 를 ref 로 유지 — 클로저 stale 가능성 차단, cleanup 취소 명시성 향상
   const rafIdRef = useRef(0);
+
+  // 라우트 전환 시 rAF 루프 취소 + 토글 닫기 (BUG-170)
+  // FooterBottom 은 레이아웃에 위치해 언마운트되지 않으므로 open=true + rAF 루프가
+  // 새 페이지에서도 계속 실행 → NavigationScrollReset 이후 최종 scrollBy 가 발사되는 버그.
+  useEffect(() => {
+    cancelAnimationFrame(rafIdRef.current);
+    scrollTokenRef.current++;
+    setOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     // 닫힐 때는 아무 것도 하지 않음 — cleanup 이 이전 루프를 취소한다
