@@ -9,12 +9,13 @@
 
 import { Suspense } from 'react';
 import ShopPage from '@/components/shop/ShopPage';
+import ShopSkeleton from '@/components/shop/ShopSkeleton';
 
 export const metadata = { title: '모든 상품 — good things' };
 
 export default function ShopRoute() {
   return (
-    <Suspense fallback={<div className="sp-page-bg" style={{ minHeight: '100svh' }} />}>
+    <Suspense fallback={<ShopSkeleton />}>
       <ShopPage />
     </Suspense>
   );

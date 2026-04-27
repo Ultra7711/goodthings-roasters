@@ -7124,6 +7124,71 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   letter-spacing: 0.04em;
 }
 
+/* ══ 스켈레톤 shimmer — BUG-159 (S94) ══ */
+@keyframes skel-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skel {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, .06) 25%,
+    rgba(0, 0, 0, .10) 37%,
+    rgba(0, 0, 0, .06) 63%
+  );
+  background-size: 400% 100%;
+  border-radius: 4px;
+  animation: skel-shimmer 1.4s ease infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skel { animation: none; background: rgba(0, 0, 0, .06); }
+}
+
+/* ── Shop skeleton ── */
+.sp-skel-filter {
+  display: flex;
+  border-bottom: 2px solid var(--color-border-tertiary);
+  margin-bottom: 48px;
+}
+.sp-skel-tab { padding: 20px 30px 16px; min-width: 72px; display: flex; align-items: center; }
+.sp-skel-card { display: flex; flex-direction: column; }
+.sp-skel-thumb { position: absolute; inset: 0; border-radius: 0; }
+.sp-skel-name  { height: 26px; width: 55%; margin: 0 auto 6px; }
+.sp-skel-price { height: 22px; width: 35%; margin: 0 auto; }
+@media (max-width: 767px) {
+  .sp-skel-tab { padding: 16px 18px 14px; min-width: 0; flex-shrink: 0; }
+  .sp-skel-filter { margin-bottom: 32px; }
+}
+
+/* ── Cart skeleton ── */
+.cp-skel-footer {
+  position: relative;
+  height: 176px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+}
+.cp-skel-subtotal { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.cp-skel-footer-btn { height: 52px; width: 220px; border-radius: 0; }
+@media (max-width: 767px) {
+  .cp-skel-footer {
+    position: sticky;
+    bottom: 0;
+    height: auto;
+    margin-left: -24px;
+    margin-right: -24px;
+    padding: 16px 24px max(20px, env(safe-area-inset-bottom));
+    background: var(--color-background-primary);
+    box-shadow: inset 0 1px 0 0 var(--color-border-secondary);
+    align-items: stretch;
+    gap: 16px;
+  }
+  .cp-skel-subtotal { flex-direction: row; justify-content: space-between; align-items: center; }
+  .cp-skel-footer-btn { width: 100%; border-radius: 0; }
+}
+
 /* ══ 페이지 전환 로딩 셸 ══ */
 .page-loading-shell {
   min-height: 100dvh;

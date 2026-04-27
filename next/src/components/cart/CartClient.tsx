@@ -18,6 +18,7 @@ import {
   FREE_SHIPPING_THRESHOLD,
   SHIPPING_FEE,
 } from '@/hooks/useCart';
+import CartSkeleton from './CartSkeleton';
 import { splitName } from '@/lib/products';
 import type { CartItem } from '@/types/cart';
 
@@ -31,7 +32,7 @@ function subBadgeLabel(item: CartItem): string | null {
 }
 
 export default function CartClient() {
-  const { items, subtotal, totalPrice } = useCartQuery();
+  const { items, subtotal, totalPrice, isLoading } = useCartQuery();
   const updateQty = useUpdateCartQty();
   const removeItem = useRemoveCartItem();
   const router = useRouter();
@@ -44,6 +45,8 @@ export default function CartClient() {
     void el.offsetHeight;
     el.classList.add('cp-anim');
   }, []);
+
+  if (isLoading) return <CartSkeleton />;
 
   const isEmpty = items.length === 0;
   const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;

@@ -17,9 +17,6 @@
 
 import Image from 'next/image';
 
-const SKELETON_BG = 'rgba(0, 0, 0, 0.06)';
-const SKELETON_RADIUS = 4;
-
 /* 텍스트 line-height 기준 placeholder 높이 (px) */
 const H_BODY_M = 22; /* var(--type-body-m-size)=15px × 1.5 ≈ 22.5 */
 const H_BODY_UI = 16; /* 작은 보조 텍스트 (date·status·vol) */
@@ -30,16 +27,7 @@ type BoxProps = {
 };
 
 function SkelBox({ height, width = '100%' }: BoxProps) {
-  return (
-    <div
-      style={{
-        height,
-        width,
-        background: SKELETON_BG,
-        borderRadius: SKELETON_RADIUS,
-      }}
-    />
-  );
+  return <div className="skel" style={{ height, width }} />;
 }
 
 function InfoRowSkel({ labelW = 80, valueW = 200 }: { labelW?: number; valueW?: number }) {
