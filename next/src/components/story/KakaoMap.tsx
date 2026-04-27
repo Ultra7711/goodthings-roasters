@@ -75,9 +75,10 @@ function loadSdk(appkey: string): Promise<void> {
     'script[data-kakao-maps-sdk]',
   );
   if (existing) {
+    if (window.kakao?.maps) return Promise.resolve();
     return new Promise((resolve, reject) => {
-      existing.addEventListener('load', () => resolve());
-      existing.addEventListener('error', () => reject(new Error('kakao sdk load failed')));
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(new Error('kakao sdk load failed')), { once: true });
     });
   }
 
