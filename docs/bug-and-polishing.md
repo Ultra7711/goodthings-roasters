@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **68 / 71 closure (95.8%)** · 2026-04-28 S94 기준 (S93: BUG-174/175 ✅ · S94: BUG-137 ✅ BUG-160 동일원인 · BUG-176 ✅ 신규+closure · BUG-101 제거 · BUG-173 미해결)
+> **69 / 71 closure (97.2%)** · 2026-04-28 S94 기준 (S94: BUG-137 ✅ · BUG-176 ✅ · BUG-159 ✅ shimmer skeleton · BUG-101 제거 · BUG-173 미해결)
 >
 > 카운트 명령:
 > ```bash
@@ -520,13 +520,16 @@
 - **추정 범위:** `SiteHeader.tsx` `isLoggedIn` 참조 구간 (`mounted && isLoggedIn`) + `useSupabaseSession` `isLoading` 반환값 활용
 - **해결 (S80):** `useSupabaseSession`에서 `isLoading`(`sessionLoading`)도 구조분해. 유저 아이콘 Link에 `visibility: mounted && sessionLoading ? 'hidden' : 'visible'` 추가 → 세션 확정 전 아이콘 완전 숨김(레이아웃 유지). `href` / `aria-label` / `MobileNavDrawer isLoggedIn` prop도 `!sessionLoading` 조건 추가.
 
-### BUG-159 — 모바일 페이지 전환 로딩 스켈레톤 도입 🟢 ⏸️ 데이터 측정 대기
+### BUG-159 — ✅ 페이지 로딩 shimmer skeleton UI 도입 🟢
 
 - **발견:** 2026-04-26 / S81 (BUG-143 closure 후 사용자 인지)
-- **현재:** 모바일 탭 → 350ms 골드 라인 흐름 (BUG-143 lane fill) → `target.click()` → NavigationVisibilityGate 가 `<main>` `visibility:hidden` → React 새 트리 commit + paint. Wi-Fi/5G/빠른 4G 환경에선 prefetch 흡수로 자연스럽게 화면 전환되나, 3G/약전계 또는 prefetch 미완료 케이스에서는 라인 도달 후 warm-white (`.root` 배경 + 헤더/푸터만) 빈 화면이 수백ms~수초 보일 가능성.
-- **개선안:** `navigator.connection.effectiveType` (`slow-2g` · `2g`) 감지 또는 `<main>` hidden 지속 시간 임계치 초과 시 페이지별 skeleton UI 표시. NavigationVisibilityGate 의 `data-transitioning` 분기 확장 또는 별도 `data-slow-network` 어트리뷰트 신설. 페이지 골격(헤더 영역 외) 의 placeholder 컴포넌트는 페이지 단위로 작성 필요.
-- **선제 조건 (트리거):** Vercel Speed Insights INP/LCP 데이터 4~8주 누적 → 실제 모바일 사용자 분포 확인 (3G/약전계 비율 + 평균 빈 화면 시간). 임계치 (예: P75 빈 화면 > 500ms) 초과 시 진행. 데이터 없이 미리 최적화 ❌ (YAGNI).
-- **참조:** S81 BUG-143 closure 토론 (`memory/project_session81_complete.md`).
+- **closure (S94):** INP 데이터 대기 조건 철회 → 데이터 의존도 기준으로 페이지 선정 후 즉시 적용.
+- **수정 (S94 `eae18b39`):**
+  1. `globals.css`: `@keyframes skel-shimmer` + `.skel` 유틸 클래스 신규 (`prefers-reduced-motion` 대응).
+  2. `/shop` — `ShopSkeleton.tsx` 신규: 타이틀(36px)·서브타이틀(22px)·필터탭 4개·상품카드 6개(3열×2행). `#sp-body`·`#sp-grid` 실제 CSS ID 재사용 → 치수 자동 일치. Suspense fallback 교체.
+  3. `/cart` — `CartSkeleton.tsx` 신규: 테이블헤더·아이템 2행(thumb 100×100 + category 14px + name 23px + price/qty/total 컬럼)·배송비 행·푸터. `.cp-item`·`.cp-item-product` 등 실제 클래스 재사용 → `@media` 반응형 자동 적용. `CartClient` `isLoading` 시 렌더 (캐시 히트 시 즉시 실데이터 표시).
+  4. `/mypage` — `MyPagePlaceholder.tsx`: `SkelBox` 인라인 style → `.skel` 클래스 교체 → shimmer 추가 (기존 정적 placeholder에 shimmer만 합류).
+- **관련 코드:** `next/src/app/globals.css`, `next/src/components/shop/ShopSkeleton.tsx`, `next/src/components/cart/CartSkeleton.tsx`, `next/src/components/cart/CartClient.tsx`, `next/src/components/auth/MyPagePlaceholder.tsx`
 
 ### BUG-160 — ✅ 메인 페이지 진입 시 히어로 동영상 일시정지 + 플레이 버튼 노출 🟠
 
