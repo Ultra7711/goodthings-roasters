@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **66 / 71 closure (92.9%)** · 2026-04-28 S93 기준 (S92: BUG-171 ✅ · S93: BUG-166 ✅ 재closure · BUG-174/175 ✅ 신규+closure · BUG-173 미해결)
+> **67 / 71 closure (94.4%)** · 2026-04-28 S94 기준 (S93: BUG-166 ✅ 재closure · BUG-174/175 ✅ 신규+closure · S94: BUG-137 ✅ BUG-160과 동일 근본원인 closure · BUG-173 미해결)
 >
 > 카운트 명령:
 > ```bash
@@ -320,14 +320,13 @@
 - **1차 수정 (S66 `e37a6555`):** `html { scroll-padding-top: calc(var(--ann-bar-height) + var(--header-height)) }`. 모니터링 중 — 재발 시 post-auth redirect 경로 분석 필요
 - **상세:** `memory/project_bug006_deferred_bugs.md` DB-01 (원본 기록 유지)
 
-### BUG-137 — Hero video 간헐 정지 🟡
+### BUG-137 — ✅ Hero video 간헐 정지 🟡
 
 - **발견:** 2026-04-24 / S66 (BUG-006 DB-02 승격)
 - **재현 경로:** 홈으로 복귀 시 `<video>` 가 멈춘 상태로 잔존 (재현 스텝 불명)
 - **가설:** `play()` Promise rejection 후 재시도 없음 · HTML5 video play/pause race · iOS Safari 페이지 복귀 시 inline video unload
-- **코드 위치:** `src/components/home/HeroSection.tsx`
-- **진행 원칙:** 재현 조건 확보 우선 (North Star #1 "측정 없는 재설계 금지")
-- **상세:** `memory/project_bug006_deferred_bugs.md` DB-02
+- **closure (BUG-160 · S84):** iOS 저전력 모드에서 재현 조건 확보 → 근본 원인 = `play()` Promise rejection 후 재시도 없음 (BUG-137 가설 일치). `video.play()` 실패 시 `touchstart`/`click` 첫 감지 후 재시도 로직 추가 — 스크롤(touchstart)만으로도 즉시 재생. 커밋 `699e18aa` (S84).
+- **상세:** `memory/project_bug006_deferred_bugs.md` DB-02 · BUG-160
 
 ### BUG-138 — ✅ 검색 패널 outside tap close + iOS background scroll 관통
 
