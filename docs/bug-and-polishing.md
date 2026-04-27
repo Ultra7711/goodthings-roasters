@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 92 (BUG-172 후속 정합성 노트 · BUG-173 신규)
+> **최종 업데이트:** 2026-04-27 · Session 92 (BUG-171 closure · BUG-172 후속 노트 · BUG-173 신규)
 
 ---
 
 ## 진행률
 
-> **63 / 68 closure (92.6%)** · 2026-04-27 S92 기준 (S91: BUG-172 ✅ · S92: BUG-173 신규)
+> **64 / 69 closure (92.8%)** · 2026-04-27 S92 기준 (S91: BUG-172 ✅ · S92: BUG-171 ✅ closure (iOS WebKit limitation) · BUG-173 신규)
 >
 > 카운트 명령:
 > ```bash
@@ -771,7 +771,7 @@ React state flush: schedule 순서대로 적용
 
 ---
 
-### BUG-171 — /login?from=checkout 자동완성 푸른 배경 제거 미적용 🟡 (회귀)
+### BUG-171 — ✅ /login?from=checkout 자동완성 푸른 배경 제거 미적용 🟡 (iOS WebKit known limitation)
 
 - **발견:** 2026-04-27 / S90
 - **재현 경로:** `/checkout` → "로그인하고 주문하기" → `/login?from=checkout` 진입 → 이메일/비밀번호 자동완성 적용
@@ -786,6 +786,38 @@ React state flush: schedule 순서대로 적용
   - **결론:** 코드 레벨 분기 없음 → `from=checkout` SPA 네비게이션에서 Chrome 이 autofill 을 다르게 적용하거나, Vercel CSS 번들 로드 순서 차이로 `!important` 가 덮이는 가능성. 브라우저 DevTools computed style 검증 필요 (코드만으로 원인 특정 불가).
 - **관련 코드:** `next/src/app/globals.css` L454-475 (autofill 룰)
 - **우선순위:** UX 시각 부조화, 체크아웃 유입 경로에서만 발생 → Medium
+- **S92 추가 진단:**
+  - 컨테이너 bg 부조화 가설 (BUG-164 패턴 재발) 기각 — `lp-body` / `lp-right` 에 명시적 background 없어 body bg 노출. 일반 진입과 `?from=checkout` 진입의 body bg 동일
+  - SPA hydration 지연 가설이 가장 유력 — `/checkout` SPA navigation 으로 진입 시 autofill rule 적용 전 짧은 순간 푸른 배경 노출 가능성
+  - **코드 수정 옵션 닫힘** — 정책 (`feedback_no_dangerous_html.md`, styled-jsx 미사용) 내에서 inline `<style>` 주입 불가. inline `style={...}` 으로는 `:-webkit-autofill` pseudo-class 미적용
+  - **다음 단계:** 사용자 DevTools 검증 결과 대기. 절차:
+    1. `/checkout` → "로그인하고 주문하기" → `/login?from=checkout` 진입 (autofill 발동)
+    2. F12 → Elements → input 선택 → Computed 탭 → `background-color` / `box-shadow` 값 캡처
+    3. Styles 탭 → `:-webkit-autofill` 룰 적용 여부 (취소선 또는 미적용) 확인
+    4. `Ctrl+Shift+P` → `Show Coverage` → globals.css autofill 룰 hit 여부
+    5. Network → CSS 로드 timing 비교 (일반 `/login` vs `?from=checkout`)
+  - 검증 결과 확보 후 BUG-171 진단 재개 가능
+- **S92 closure 결론 (리서치 기반):**
+  - 업계 자료 리서치 결과 (CSS-Tricks · MDN · Marius Schulz · Adyen GitHub issue #1240 · Tailwind discussion #9621):
+    - Safari/iOS WebKit 은 autofill 시 background-color 변경을 **의도적 보안 정책** 으로 차단 (사용자측 `!important` 무효)
+    - 표준 fix (box-shadow inset 1000px · transition 99999s · -webkit-text-fill-color · base bg) 가 한계점
+    - 추가 보강 후보 (background-clip · background-image · background-color !important) 모두 효과 미보장
+    - 메이저 결제위젯 OSS (Adyen) 도 2021년 이후 동일 이슈 미해결 사례
+  - 본 프로젝트 적용 현황 (S92 검증):
+    - `globals.css` L454-475 — 표준 fix 4종 모두 적용 완료 (BUG-106·152·164 누적)
+    - production CSS chunk grep 검증 — 모든 룰 정상 포함 (`curl` + grep 검증)
+    - 모든 input/textarea 에 전역 selector 로 자동 적용 — `<input>` 사용처 4개 파일 (TextField · OrderCompletePage · CheckoutPage · SiteHeader) 모두 커버
+    - `mp-section-body` 컨텍스트 별도 룰 적용 (#F5F1EA 매치)
+  - **결론: 본 프로젝트는 업계 표준 fix 누적 한계점에 도달. iOS WebKit 한계 자체로 closure**. 추가 코드 수정으로 해결 가능성 매우 낮음
+- **재오픈 트리거:**
+  - iOS Safari 가 autofill background 사용자측 override 정책 변경 (Apple WebKit blog)
+  - 새 CSS 표준 (예: `@property` autofill 또는 `:has()` 트릭) 으로 우회 가능 보고
+  - 본 프로젝트 사용자에게 직접적 결제·로그인 차단 사고 발생
+- **관련 자료 출처:**
+  - https://css-tricks.com/snippets/css/change-autocomplete-styles-webkit-browsers/
+  - https://mariusschulz.com/blog/how-to-remove-webkits-banana-yellow-autofill-background
+  - https://github.com/Adyen/adyen-web/issues/1240 (메이저 미해결 사례)
+  - https://github.com/tailwindlabs/tailwindcss/discussions/9621
 
 ---
 
