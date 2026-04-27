@@ -21,6 +21,7 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useAtTop } from '@/hooks/useAtTop';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { supabase } from '@/lib/supabase';
+import type { AuthClaims } from '@/lib/auth/getClaims';
 import type { UserAddress } from '@/types/address';
 import { useAddressForm } from '@/hooks/useAddressForm';
 import { usePasswordChangeForm } from '@/hooks/usePasswordChangeForm';
@@ -60,17 +61,28 @@ function CopyIcon() {
   );
 }
 
+type MyPagePageProps = {
+  /** 서버 가드(`requireAuth`) 결과 — SSR 단계 fallback 으로 사용
+   *  (BUG-168 Fix C: hydration 전에도 사용자 데이터 즉시 표시) */
+  initialClaims: AuthClaims;
+};
+
 /* ══════════════════════════════════════════ */
-export default function MyPagePage() {
+export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const router = useRouter();
   const { show: toast } = useToast();
-  const { ready, authorized, bypassRedirect } = useAuthGuard();
+  /* useAuthGuard: 로그아웃 감지 시 router.replace(/login) 자동 동작.
+     BUG-168 Fix B: ready/authorized 분기 제거 — 서버 가드가 이미 인증 보장. */
+  const { bypassRedirect } = useAuthGuard();
 
-  /* ── Supabase session 기반 user 정보 ── */
+  /* ── Supabase session 기반 user 정보 ──
+     hydration 전: supabaseUser=null → initialClaims 사용 (SSR fallback)
+     hydration 후: supabaseUser 우선 사용 */
   const { user: supabaseUser } = useSupabaseSession();
-  const meta = supabaseUser?.user_metadata ?? {};
+  const meta = (supabaseUser?.user_metadata ?? initialClaims.metadata) as Record<string, unknown>;
   const metaName = (meta.full_name as string | undefined) ?? (meta.name as string | undefined);
-  const emailHandle = supabaseUser?.email?.split('@')[0];
+  const effectiveEmail = supabaseUser?.email ?? initialClaims.email;
+  const emailHandle = effectiveEmail.split('@')[0];
   const displayName = metaName ?? emailHandle ?? null;
 
   /* 주소는 DB persist 미도입 — 로컬 state (세션 내 임시).
@@ -78,14 +90,13 @@ export default function MyPagePage() {
   const [address, setAddress] = useState<UserAddress | null>(null);
   const updateAddress = setAddress;
 
-  const user = supabaseUser
-    ? {
-        id: supabaseUser.id,
-        email: supabaseUser.email ?? '',
-        name: metaName ?? emailHandle ?? '',
-        address,
-      }
-    : null;
+  /* SSR/hydration 양쪽에서 user 가 항상 존재하도록 initialClaims fallback */
+  const user = {
+    id: supabaseUser?.id ?? initialClaims.userId,
+    email: effectiveEmail,
+    name: metaName ?? emailHandle ?? '',
+    address,
+  };
 
   /* ── 아코디언 상태 ── */
   const [addrOpen, setAddrOpen] = useState(false);
@@ -264,13 +275,13 @@ export default function MyPagePage() {
     }
   }, [toast]);
 
-  /* ── 가드 대기 ── */
-  if (!ready) return null;
-  if (!authorized) return null;
+  /* BUG-168 Fix B: ready/authorized 분기 제거.
+     서버 `requireAuth` 가 이미 인증 보장 → 클라 가드 분기는 paranoid check.
+     useAuthGuard 의 useEffect 가 logout 시 redirect 자동 처리. */
 
-  const hasAddress = !!user?.address;
+  const hasAddress = !!user.address;
   const addrDisplay = hasAddress
-    ? `(${user!.address!.zipcode}) ${user!.address!.addr1}${user!.address!.addr2 ? ` ${user!.address!.addr2}` : ''}`
+    ? `(${user.address!.zipcode}) ${user.address!.addr1}${user.address!.addr2 ? ` ${user.address!.addr2}` : ''}`
     : '등록된 배송지 정보가 없습니다.';
 
   return (

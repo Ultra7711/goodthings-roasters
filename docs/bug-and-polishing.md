@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 88 (BUG-167 신규+closure · BUG-168/169 신규 · BUG-162/164/165/166 closure)
+> **최종 업데이트:** 2026-04-27 · Session 89 (BUG-168 closure)
 
 ---
 
 ## 진행률
 
-> **58 / 64 closure (90.6%)** · 2026-04-27 S88 기준 (BUG-166/162/167/164/165 ✅ closure · BUG-168/169 신규 등록)
+> **59 / 64 closure (92.2%)** · 2026-04-27 S89 기준 (BUG-168 ✅ closure — A+B+C UX 레이어 fix)
 >
 > 카운트 명령:
 > ```bash
@@ -702,20 +702,30 @@ React state flush: schedule 순서대로 적용
 
 ---
 
-### BUG-168 — 마이페이지 로딩 속도 다른 페이지 대비 현격히 저하 🟡
+### BUG-168 — ✅ 마이페이지 로딩 속도 다른 페이지 대비 현격히 저하 🟡
 
 - **발견:** 2026-04-27 / S88
+- **해결:** 2026-04-27 / S89
 - **재현 경로:** `/mypage` 진입 (다른 페이지 `/shop` · `/menu` · `/story` 등과 비교)
-- **실제 (버그):** 마이페이지 로딩이 체감상 다른 페이지에 비해 현저히 느림.
-- **원인 후보 (작업 시 분석 필요):**
-  - `requireAuth()` 서버 가드 + `useAuthGuard` 클라 가드 이중 체크 (Suspense fallback 동안 await getClaims())
-  - `MOCK_ORDERS` · `MOCK_SUBSCRIPTIONS` lazy import 미적용 (모듈 즉시 로드 시 번들 비대화)
-  - `useSupabaseSession` + Supabase 클라이언트 초기화 비용
-  - 4개 mp-section 동시 렌더 + 각 폼 훅(`useAddressForm` · `usePasswordChangeForm` · `usePhoneFormat`) 동시 마운트
-  - `mp-right` sticky 주문내역 — `MOCK_ORDERS` 전체 매핑이 SSR 단계에서 차단 가능성
-- **수행 작업:** 코드 원인 분석 + 개선 제안 (작업 시점에 진행)
-- **우선순위:** 사용자 체감 명확 → Medium (성능 카테고리)
-- **관련 코드:** `next/src/components/auth/MyPagePage.tsx`, `next/src/app/mypage/page.tsx`, `next/src/lib/mockMyPageData.ts`
+- **실제 (버그):** "헤더도 안 보이는 웜화이트 기본색 배경"이 한참 표시 후 "짠 하고 모두 표시" — 다른 페이지는 사이트 헤더가 즉시 SSR 되어 백지감 없음.
+- **진단 (S89):**
+  - `mypage/page.tsx` Suspense fallback 이 빈 div → 서버 `requireAuth()` 라운드트립 + 클라 hydration 동안 백지
+  - `MyPagePage.tsx` 의 클라 가드 분기 (`if (!ready) return null`) 가 `INITIAL_SESSION` 수신 전까지 또 null → 두 번째 백지 구간
+  - `/shop` 등 비가드 페이지는 root layout 의 사이트 헤더가 즉시 SSR → 백지 0
+- **수정 (3-레이어 UX 패치):**
+  1. **Fix A** — `mypage/page.tsx` Suspense fallback 을 `MyPagePlaceholder` 신규 컴포넌트로 교체. 미니 헤더 + 차등 placeholder (고정 섹션은 정확한 회색 박스, 가변 섹션은 1개 카드 placeholder).
+  2. **Fix B** — `MyPagePage.tsx` 의 `if (!ready) return null` / `if (!authorized) return null` 분기 제거. 서버 가드가 이미 인증 보장 → 클라 가드는 `useAuthGuard` 의 logout-redirect useEffect 만 유지.
+  3. **Fix C** — `requireAuth()` 의 claims 를 `<MyPagePage initialClaims={claims} />` prop 으로 전달. SSR 단계에서 `supabaseUser` 가 null 이어도 `initialClaims.email/metadata` 사용 → hydration 깜빡임 제거.
+- **D 옵션 (인프라 레이어) 보류:** `requireAuth()` 자체 비용은 측정상 91~156ms 로 빠름. UX 인지 시간이 0 에 가까워지면 한계 효용 작음. 보안 리스크 (`getClaims` 주석 명시) + Supabase 공식 권장 패턴 위반 → 오버엔지니어링 판정.
+- **디버깅 회귀 (S89 발견 + 즉시 fix):**
+  - 초기 `MyPagePlaceholder` 가 `<Image priority>` 사용 → dev 서버에서 5+ 회 navigation 반복 시 RSC payload pending 으로 페이지 먹통.
+  - 진단: fallback 을 빈 div 롤백 후 8회 반복 → stuck 사라짐 → placeholder 가 원인 확정.
+  - 수정: `priority` 제거 + `style={{ width: '150px', height: 'auto' }}` 추가 (비율 경고 해소).
+  - 추가 폴리싱: SkelBox 높이를 실제 line-height 토큰 기준 (body-m=22, body-ui=16) 으로 매칭, mp-section-body 내 padding 도 실제 컴포넌트 매칭 (mp-sub-item=16, mp-order-card=20) → swap 시 layout shift 최소화.
+- **검증:** 387/387 vitest · tsc clean · 사용자 시각 확인 (백지 사라짐 · stuck 회귀 없음).
+- **관련 코드:** `next/src/app/mypage/page.tsx`, `next/src/components/auth/MyPagePage.tsx`, `next/src/components/auth/MyPagePlaceholder.tsx` (신규)
+- **우선순위:** 사용자 체감 명확 → Medium (성능/UX).
+- **후속 작업:** BUG-159 (스켈레톤 도입) 통합 시 shimmer 애니메이션 등 정교한 스켈레톤 시스템 검토 — 본 fix 의 단순 placeholder 는 그 사이의 가성비 솔루션.
 
 ---
 
