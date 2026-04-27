@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 90 (BUG-170, BUG-171 신규 등록)
+> **최종 업데이트:** 2026-04-27 · Session 90 (BUG-170 ✅ · BUG-171 신규)
 
 ---
 
 ## 진행률
 
-> **61 / 66 closure (92.4%)** · 2026-04-27 S90 기준 (BUG-163 ✅ · BUG-169 ✅ · BUG-170/171 신규)
+> **62 / 66 closure (93.9%)** · 2026-04-27 S90 기준 (BUG-163 ✅ · BUG-169 ✅ · BUG-170 ✅ · BUG-171 신규)
 >
 > 카운트 명령:
 > ```bash
@@ -17,7 +17,7 @@
 > ```
 >
 > **세션별 closure 누적:**
-> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143) · S82 (BUG-103) · S83 (신규 closure 없음 · BUG-149 UX 정제 · useNavigation 훅)
+> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143) · S82 (BUG-103) · S83 (신규 closure 없음 · BUG-149 UX 정제 · useNavigation 훅) · S90 (BUG-163/169/170)
 >
 > **데이터 정합 노트:**
 > - BUG-104/108/105 는 하단 `해결됨` 섹션에도 중복 기재 (legacy · 참조용)
@@ -756,17 +756,17 @@ React state flush: schedule 순서대로 적용
 
 ---
 
-### BUG-170 — /login 진입 시 뷰포트 하단 자동 스크롤 🟡
+### BUG-170 — ✅ /login 진입 시 뷰포트 하단 자동 스크롤 🟡
 
 - **발견:** 2026-04-27 / S90
-- **재현 경로:** 체크아웃 → "로그인하고 주문하기" → `/login?from=checkout` 진입 (또는 특정 조건에서 일반 `/login` 진입)
+- **해결:** 2026-04-27 / S90
+- **재현 경로:** 체크아웃 → "로그인하고 주문하기" → `/login?from=checkout` 진입, 사업자 정보 토글이 열린 상태에서 다른 페이지로 이동
 - **실제 (버그):** 페이지 진입 직후 스크롤이 하단으로 자동 포커싱 — 푸터 전체가 화면에 들어오는 상태로 시작.
-- **단서:** 버그 발생 시점에 **푸터의 사업자 정보 토글이 열려 있는 상태**였음. 토글 열림 → 푸터 높이 증가 → 이전 스크롤 포지션(또는 `scrollIntoView`) 이 변경된 높이 기준으로 잘못 계산될 가능성.
-- **원인 후보:**
-  1. `NavigationScrollReset` 이 route 전환 시 scroll top 0 으로 리셋하는데, 토글 열림 상태의 레이아웃 반영 전·후 타이밍 문제로 잘못된 위치로 복귀.
-  2. 브라우저의 focus restore (이전 focus element 가 입력 필드 등) 가 뷰포트를 스크롤.
-  3. `from=checkout` 파라미터 처리 중 특정 DOM 요소로 `scrollIntoView` 또는 `focus()` 호출.
-- **관련 코드:** `next/src/components/layout/NavigationScrollReset.tsx`, `next/src/components/auth/LoginPage.tsx` (from 파라미터 처리부)
+- **원인:** `FooterBottom` 은 레이아웃에 위치해 라우트 전환 시 **언마운트되지 않음**. `open=true` + rAF 루프가 새 페이지에서도 계속 실행 → `NavigationScrollReset` 이 scroll top 0 리셋한 뒤에도, rAF 루프가 ~417ms(25프레임) 후 최종 `scrollBy` 를 발사해 푸터를 뷰포트로 당김.
+- **수정 (S90):** `FooterBottom.tsx` 에 `usePathname()` effect 추가 — 라우트 전환 시 rAF 루프 즉시 취소 + `scrollTokenRef` 무효화 + `open=false` (토글 닫기). 어떤 페이지에서든 사업자 정보 토글은 네비게이션 시 항상 닫힘 (의도된 동작 — 페이지 간 토글 상태 유지는 어색함).
+- **커밋:** `d48ffb0c`
+- **검증:** 387/387 vitest · tsc clean
+- **관련 코드:** `next/src/components/layout/FooterBottom.tsx` (usePathname effect, L68-72)
 - **우선순위:** UX 진입 경험 저하 → Medium
 
 ---
@@ -777,8 +777,14 @@ React state flush: schedule 순서대로 적용
 - **재현 경로:** `/checkout` → "로그인하고 주문하기" → `/login?from=checkout` 진입 → 이메일/비밀번호 자동완성 적용
 - **실제 (버그):** `from=checkout` 경유 로그인 페이지에서 자동완성 시 **브라우저 기본 푸른 배경(`:-webkit-autofill`)이 제거되지 않음**. 일반 `/login` 직접 진입 시에는 정상 제거됨.
 - **이전 픽스 참조:** BUG-164 (S88) — `globals.css` 에 `.chp-input:-webkit-autofill ~ .chp-floating-label` + `input:-webkit-autofill` 계열 4종 룰 추가로 autofill 배경 제거.
-- **원인 후보:** `from=checkout` 경로에서 컴포넌트 마운트 시점 또는 CSS 적용 시점 차이. `LoginPage` 내 `from` 파라미터에 따라 렌더되는 폼 분기가 있다면 해당 분기의 클래스가 다를 가능성.
-- **관련 코드:** `next/src/components/auth/LoginPage.tsx` (from 파라미터 분기), `next/src/app/globals.css` (autofill 룰)
+- **S90 조사 결과:**
+  - `globals.css` L454-475: `input:-webkit-autofill` 에 `box-shadow: 0 0 0 1000px #FBF8F3 inset !important` + `transition: background-color 99999s step-end` 전역 적용 확인.
+  - `LoginPage.tsx`: `fromCheckout` prop 은 `router.push` 리다이렉트 경로 결정에만 사용. 폼 마크업·클래스에는 영향 없음.
+  - `useLoginForm.ts`: `fromCheckout` 은 로그인 성공 후 이동 경로에만 사용.
+  - `TextField.tsx`: 항상 `className="chp-input"` + `autoComplete` props 그대로 통과. `from=checkout` 분기 없음.
+  - checkout 전용 CSS overscroll/override 없음 — `globals.css` 룰이 항상 적용되어야 함.
+  - **결론:** 코드 레벨 분기 없음 → `from=checkout` SPA 네비게이션에서 Chrome 이 autofill 을 다르게 적용하거나, Vercel CSS 번들 로드 순서 차이로 `!important` 가 덮이는 가능성. 브라우저 DevTools computed style 검증 필요 (코드만으로 원인 특정 불가).
+- **관련 코드:** `next/src/app/globals.css` L454-475 (autofill 룰)
 - **우선순위:** UX 시각 부조화, 체크아웃 유입 경로에서만 발생 → Medium
 
 ---
