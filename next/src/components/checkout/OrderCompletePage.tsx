@@ -113,6 +113,11 @@ export default function OrderCompletePage() {
     amount: number;
     flagKey: string;
   } | null>(null);
+  /* BUG-167: confirm 진행 중 effect 재실행 시 추가 POST 차단.
+     sessionStorage 의 flagKey 는 confirm 성공 응답 후에만 set 되므로,
+     in-flight 동안 effect 가 deps 변경으로 재실행되면 또 POST 가 발사된다.
+     paymentKey 별로 1회만 호출되도록 ref 가드. */
+  const confirmingRef = useRef(false);
   const clearCart = useClearCart();
 
   /* sessionStorage 에서 주문 정보 읽기 —
@@ -228,6 +233,10 @@ export default function OrderCompletePage() {
       /* 이미 처리됨 — 기존 상태 유지 */
       return;
     }
+
+    /* BUG-167 in-flight guard — 진행 중인 confirm 이 있으면 추가 POST 차단 */
+    if (confirmingRef.current) return;
+    confirmingRef.current = true;
 
     try {
       sessionStorage.setItem(

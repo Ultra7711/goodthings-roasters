@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 87 (BUG-164/165/166 신규 등록)
+> **최종 업데이트:** 2026-04-27 · Session 88 (BUG-167 신규 등록 + closure · BUG-162/166 closure)
 
 ---
 
 ## 진행률
 
-> **55 / 61 closure (90.2%)** · 2026-04-27 S88 기준 (BUG-166 ✅ · BUG-162 ✅ closure)
+> **56 / 62 closure (90.3%)** · 2026-04-27 S88 기준 (BUG-166 ✅ · BUG-162 ✅ · BUG-167 ✅ closure)
 >
 > 카운트 명령:
 > ```bash
@@ -685,6 +685,27 @@ React state flush: schedule 순서대로 적용
   ```
 - **관련 코드:** `next/src/lib/daumPostcode.ts` `loadDaumPostcode()` `existing` 분기 (L38~44)
 - **우선순위:** 주소 입력 필수 경로 (체크아웃 완료 불가) → High.
+
+---
+
+### BUG-167 — ✅ /api/payments/confirm 무한 루프 → 500 + ERR_INSUFFICIENT_RESOURCES 🔴
+
+- **발견:** 2026-04-27 / S88 (BUG-162 closure 직후 재테스트 중)
+- **재현 경로:** `/checkout` → 결제 완료 → Toss successUrl 로 `/order-complete?paymentKey=...` 진입
+- **실제 (버그):** `POST /api/payments/confirm` 가 수백 번 반복 호출되며 모두 `net::ERR_INSUFFICIENT_RESOURCES` (브라우저 socket 고갈), 이후 서버 응답이 `500 Internal Server Error`. 콘솔 스택 트레이스에 `sp`/`sf` (React scheduler) 가 `postMessage` 와 함께 타이트 루프.
+- **근본 원인 (Render dep loop):**
+  1. `useCart.ts` 의 `useClearCart()` 가 매 렌더마다 새 함수 레퍼런스를 반환 (useCallback 미적용).
+  2. `OrderCompletePage` 의 `callConfirm = useCallback(..., [clearCart])` → `clearCart` 변경 → `callConfirm` 재생성.
+  3. confirm `useEffect` deps `[searchParams, callConfirm]` → `callConfirm` 변경 → effect 재실행.
+  4. effect 안 `setConfirmState({ kind: 'pending' })` → 재렌더 → 새 `clearCart` → 무한 루프.
+  5. sessionStorage idempotency 플래그 `gtr-confirmed:{paymentKey}` 는 confirm **성공 응답 후** 에만 set 되므로 in-flight 동안 효과 없음 → 매 effect 실행마다 새 POST 발사.
+- **왜 BUG-162 수정 후에야 발현됐나:** 이전엔 `useMemo(() => sessionStorage.getItem(...), [])` 가 SSR=null / hydration=값 mismatch 로 React #418 hydration error → 컴포넌트 crash → confirm useEffect 미실행. BUG-162 수정으로 hydration 정상화되어 잠재 루프가 노출됨.
+- **수정 (S88):**
+  1. `next/src/hooks/useCart.ts` — `useClearCart` 반환을 `useCallback(..., [queryClient])` 로 안정화 (근본 원인 차단).
+  2. `next/src/components/checkout/OrderCompletePage.tsx` — `confirmingRef = useRef(false)` 추가하여 in-flight 동안 effect 재실행 시 추가 POST 차단 (defense-in-depth, 회귀 방지).
+- **검증:** 387/387 vitest 통과 · tsc 통과.
+- **관련 코드:** `next/src/hooks/useCart.ts` L342~350, `next/src/components/checkout/OrderCompletePage.tsx` L110~120, L227~230
+- **우선순위:** 결제 승인 절대 불가 + 서버 부하 (Rate Limit 트리거) → Critical.
 
 ---
 

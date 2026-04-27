@@ -17,6 +17,7 @@
 
 'use client';
 
+import { useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CartItem, AddToCartPayload } from '@/types/cart';
 import type { SubscriptionPeriod } from '@/lib/schemas/order';
@@ -338,11 +339,15 @@ export function useRemoveCartItem() {
 
 /** 로컬 캐시·스토리지만 비움. 서버 카트는 주문 RPC 가 이미 정리.
  *  로그인 모드 invalidate 제거 — setQueryData([]) 직후 refetch 가 서버
- *  정리 완료 전 시점이면 빈 카트를 이전 데이터로 덮을 수 있음 (TS H-2). */
+ *  정리 완료 전 시점이면 빈 카트를 이전 데이터로 덮을 수 있음 (TS H-2).
+ *
+ *  BUG-167: useCallback 으로 안정화. 미적용 시 매 렌더마다 새 함수 레퍼런스를
+ *  반환하여 소비자(예: OrderCompletePage)의 useCallback/useEffect 의존성을
+ *  매 렌더마다 무효화 → /api/payments/confirm 무한 루프 트리거. */
 export function useClearCart() {
   const queryClient = useQueryClient();
-  return () => {
+  return useCallback(() => {
     queryClient.setQueryData<CartItem[]>(CART_QUERY_KEY, []);
     if (!getSessionSnapshot().isLoggedIn) clearGuestCart();
-  };
+  }, [queryClient]);
 }
