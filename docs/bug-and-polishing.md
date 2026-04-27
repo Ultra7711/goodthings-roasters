@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 88 (BUG-167 신규 등록 + closure · BUG-162/166 closure)
+> **최종 업데이트:** 2026-04-27 · Session 88 (BUG-167 신규 등록 + closure · BUG-162/164/166 closure)
 
 ---
 
 ## 진행률
 
-> **56 / 62 closure (90.3%)** · 2026-04-27 S88 기준 (BUG-166 ✅ · BUG-162 ✅ · BUG-167 ✅ closure)
+> **57 / 62 closure (91.9%)** · 2026-04-27 S88 기준 (BUG-166 ✅ · BUG-162 ✅ · BUG-167 ✅ · BUG-164 ✅ closure)
 >
 > 카운트 명령:
 > ```bash
@@ -636,16 +636,22 @@ React state flush: schedule 순서대로 적용
 
 ---
 
-### BUG-164 — 로그인 페이지 인풋 자동완성 파란 배경 미제거 + 필드 레이아웃 이탈 🟡
+### BUG-164 — ✅ 로그인 + MyPage 주소 폼 인풋 자동완성 라벨 위치 + 배경 부조화 🟡
 
 - **발견:** 2026-04-27 / S87
-- **재현 경로:** `/login` 진입 → 브라우저 자동완성(autofill) 적용
-- **실제 (버그):**
-  1. 자동완성 시 인풋 배경이 브라우저 기본 파란색으로 표시됨 (글로벌 `-webkit-autofill` 규칙 미적용 또는 색 불일치).
-  2. 자동완성 후 인풋 필드들이 예상 레이아웃에서 벗어나 있음 (floating label 위치 불일치 추정).
-- **기대:** 다른 페이지 인풋과 동일하게 `#FBF8F3` 배경 유지, floating label 정상 위치.
-- **참고:** 글로벌 autofill 룰(`globals.css` L454~474)은 `#FBF8F3` 배경 고정. 로그인 페이지 TextField의 실제 배경색과 일치 여부 확인 필요. 체크아웃 autofill fix(BUG-160)와 동일 패턴 적용 검토.
-- **관련 코드:** `next/src/components/auth/LoginPage.tsx`, `next/src/app/globals.css` L454~474
+- **재현 경로:**
+  1. `/login` 진입 → 브라우저 자동완성 적용 → floating label 위치 이탈
+  2. `/mypage` → 주소 편집 아코디언 → 자동완성 적용 → 입력 사각형 배경(`#FBF8F3`)이 컨테이너 배경(`#F5F1EA`)과 부조화
+- **원인:**
+  1. **floating label 위치 이탈**: `.chp-input ~ .chp-floating-label` 의 "올라간 상태" 셀렉터가 `:focus` + `:not(:placeholder-shown)` 만 검사. 자동완성은 placeholder-shown 판정에 영향을 주지 않아 라벨이 입력값과 겹침.
+  2. **MyPage section-body 배경 부조화**: `.mp-section-body` 컨테이너 bg = `#F5F1EA` (`--color-surface-subtle`), 그러나 `.chp-input` bg + 글로벌 autofill bg = `#FBF8F3` → 자동완성 시 입력 사각형이 컨테이너보다 밝게 노출.
+- **해결 (S88):** `next/src/app/globals.css` 2부 수정.
+  1. `.chp-input:-webkit-autofill ~ .chp-floating-label` 셀렉터를 "올라간 상태" 룰에 추가 → 자동완성 시에도 라벨 위로 이동.
+  2. `.mp-section-body .chp-input` 배경을 `#F5F1EA` 로 오버라이드 + `.mp-section-body input:-webkit-autofill` 계열 4종 룰 추가하여 autofill box-shadow inset 도 `#F5F1EA` 매치.
+- **검증:** 데스크탑 Chrome (`localhost:3000`) `/login` · `/mypage` 자동완성 시각 통과 + DevTools Computed cascade 확인:
+  - Login: `background-color: rgb(251, 248, 243)` (UA `:-internal-autofill-selected !important` blue → `transition step-end` 로 차단 + box-shadow inset 으로 시각 덮음)
+  - MyPage: `background-color: rgb(245, 241, 234)` (`.mp-section-body .chp-input` 새 룰 winning).
+- **관련 코드:** `next/src/app/globals.css` (L454~497, L6317~6321)
 
 ---
 

@@ -474,6 +474,25 @@ textarea:-webkit-autofill:focus {
   box-shadow: 0 -2px 0 0 #1C1B19 inset, 0 0 0 1000px #FBF8F3 inset !important;
 }
 
+/* BUG-164: MyPage section-body 컨텍스트는 컨테이너 bg 가 #F5F1EA 라
+   기본 autofill 룰(#FBF8F3)이 컨테이너와 부조화. chp-input 기본 bg 와
+   autofill bg 를 모두 컨테이너 색상으로 덮어 시각적 일관성 유지. */
+.mp-section-body .chp-input { background: #F5F1EA; }
+.mp-section-body input:-webkit-autofill,
+.mp-section-body input:-webkit-autofill:hover,
+.mp-section-body input:-webkit-autofill:active,
+.mp-section-body textarea:-webkit-autofill,
+.mp-section-body textarea:-webkit-autofill:hover,
+.mp-section-body textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 -1px 0 0 rgba(28,27,25,.12) inset, 0 0 0 1000px #F5F1EA inset !important;
+  box-shadow: 0 -1px 0 0 rgba(28,27,25,.12) inset, 0 0 0 1000px #F5F1EA inset !important;
+}
+.mp-section-body input:-webkit-autofill:focus,
+.mp-section-body textarea:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 -2px 0 0 #1C1B19 inset, 0 0 0 1000px #F5F1EA inset !important;
+  box-shadow: 0 -2px 0 0 #1C1B19 inset, 0 0 0 1000px #F5F1EA inset !important;
+}
+
 .root {
   font-family: var(--font-en);
   background: var(--color-background-primary);
@@ -6315,7 +6334,8 @@ footer.blk {
   transform-origin: left top;
 }
 .chp-input:focus ~ .chp-floating-label,
-.chp-input:not(:placeholder-shown) ~ .chp-floating-label {
+.chp-input:not(:placeholder-shown) ~ .chp-floating-label,
+.chp-input:-webkit-autofill ~ .chp-floating-label {
   top: 4px; transform: translateY(0) scale(.75);
   color: var(--color-text-caption);
 }
