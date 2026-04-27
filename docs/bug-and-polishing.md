@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **69 / 73 closure (94.5%)** · 2026-04-28 S94 기준 (S94: BUG-137 ✅ · BUG-176 ✅ · BUG-159 ✅ shimmer skeleton · BUG-101 제거 · BUG-173 미해결 · BUG-177/178 신규 등록)
+> **70 / 73 closure (95.9%)** · 2026-04-28 S94 기준 (S94: BUG-137 ✅ · BUG-176 ✅ · BUG-159 ✅ shimmer skeleton · BUG-178 ✅ story 플래시 · BUG-101 제거 · BUG-173 미해결 · BUG-177 신규 등록)
 >
 > 카운트 명령:
 > ```bash
@@ -17,7 +17,7 @@
 > ```
 >
 > **세션별 closure 누적:**
-> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143) · S82 (BUG-103) · S83 (신규 closure 없음 · BUG-149 UX 정제 · useNavigation 훅) · S90 (BUG-163/169/170) · S93 (BUG-166 재closure · BUG-174/175)
+> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143) · S82 (BUG-103) · S83 (신규 closure 없음 · BUG-149 UX 정제 · useNavigation 훅) · S90 (BUG-163/169/170) · S93 (BUG-166 재closure · BUG-174/175) · S94 (BUG-137/176/159/178)
 >
 > **데이터 정합 노트:**
 > - BUG-104/108/105 는 하단 `해결됨` 섹션에도 중복 기재 (legacy · 참조용)
@@ -954,7 +954,7 @@ React state flush: schedule 순서대로 적용
 - **후속 검토:** DB 연동 + Supabase Storage 이미지 실서비스 전환 후 실제 LCP 측정 → 개선 효과 vs 리팩터 비용 재평가.
 - **우선순위:** Low (배경색 fallback으로 CLS 없음, 이미지 서버 미정 단계).
 
-### BUG-178 — 스토리 페이지 진입 시 dark hero → 흰색 플래시 → 이미지 순차 로딩 🟡
+### BUG-178 — ✅ 스토리 페이지 진입 시 dark hero → 흰색 플래시 → 이미지 순차 로딩 🟡
 
 - **발견:** 2026-04-28 / S94 (No Throttling에서도 재현)
 - **재현 경로:** 다른 페이지 → /story 클릭 → 진입 애니메이션 중 흰색 배경 순간 노출 후 히어로 이미지 로딩
@@ -963,7 +963,8 @@ React state flush: schedule 순서대로 적용
   - `#st-body { animation: pageEnter var(--duration-drawer) var(--ease-spring) both }` → `from { opacity: 0; transform: translateY(12px) }` 시작 상태
   - `fill-mode: both`로 마운트 즉시 `opacity: 0` 적용 → `.st-hero-bg` 의 어두운 배경도 함께 투명해짐
   - `#st-body` 뒤쪽 페이지 배경(`var(--color-bg-primary)` = warm white)이 노출
-- **제안 수정:** `#st-body` 전용으로 `pageEnter` 오버라이드 — opacity 제거, transform만 유지:
+  - 사용자 체감: "번쩍" 플래시로만 인식 — opacity fade 연출 효과 없음, 결함만 존재
+- **수정 (S94):** `#st-body` 전용 `animation-name` 오버라이드 — opacity 제거, transform만 유지:
   ```css
   #st-body { animation-name: pageEnterTransform; }
   @keyframes pageEnterTransform {
@@ -971,9 +972,9 @@ React state flush: schedule 순서대로 적용
     to   { transform: translateY(0); }
   }
   ```
-  → 진입 연출 유지하면서 dark hero bg 항상 가시.
-- **관련 코드:** `next/src/app/globals.css` L1527–1535, `next/src/components/story/StoryPage.tsx`
-- **우선순위:** Medium (No Throttling에서도 재현 · 브랜드 첫인상 페이지).
+  duration(`var(--duration-drawer)`) · easing(`var(--ease-spring)`) · `fill-mode: both` 는 shorthand에서 그대로 상속. dark hero bg 마운트 즉시 가시 → 플래시 제거.
+- **관련 코드:** `next/src/app/globals.css` (#st-body 섹션 / Story PAGE 구역)
+- **우선순위:** Medium → ✅ closure.
 
 ----
 

@@ -5164,6 +5164,11 @@ footer.blk {
   flex: 1;
   position: relative;
   z-index: 1;
+  animation-name: pageEnterTransform; /* opacity 제거: BUG-178 — opacity:0 시 .root #FBF8F3 노출 플래시 */
+}
+@keyframes pageEnterTransform {
+  from { transform: translateY(12px); }
+  to   { transform: translateY(0); }
 }
 
 /* ── Hero (100svh, 센터 정렬, 헤더 뒤로 확장) ── */
