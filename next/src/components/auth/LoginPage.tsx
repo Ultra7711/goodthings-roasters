@@ -316,7 +316,7 @@ export default function LoginPage() {
     socialLoading === 'naver' ? '네이버' : 'Google';
 
   return (
-    <div style={{ minHeight: '100dvh' }}>
+    <div style={{ minHeight: '100svh' }}>
       {/* ── 본문 ── */}
       <div className="lp-body">
         {/* 타이틀 영역 */}

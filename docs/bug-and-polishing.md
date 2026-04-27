@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 89 (BUG-168 closure)
+> **최종 업데이트:** 2026-04-27 · Session 90 (BUG-163, BUG-169 closure)
 
 ---
 
 ## 진행률
 
-> **59 / 64 closure (92.2%)** · 2026-04-27 S89 기준 (BUG-168 ✅ closure — A+B+C UX 레이어 fix)
+> **61 / 64 closure (95.3%)** · 2026-04-27 S90 기준 (BUG-163 ✅ · BUG-169 ✅ closure)
 >
 > 카운트 명령:
 > ```bash
@@ -626,13 +626,16 @@ React state flush: schedule 순서대로 적용
 
 ---
 
-### BUG-163 — /order-complete 주문 아이템 UI — 뱃지+수량 텍스트 혼용 🟡
+### BUG-163 — ✅ /order-complete 주문 아이템 UI — 뱃지+수량 텍스트 혼용 🟡
 
 - **발견:** 2026-04-27 / S87 (주문완료 페이지 검증 중)
+- **해결:** 2026-04-27 / S90
 - **재현 경로:** 결제 완료 후 `/order-complete` 확인
 - **실제 (버그):** 아이템 행에 volume 뱃지(`ocp-item-badge`) + "수량 N개" 텍스트가 나란히 표시됨. 예: `[1개] 수량 1개`, `[200G] 수량 1개`
 - **기대:** 장바구니 아이템과 동일한 텍스트 스타일 — 뱃지 없이 "200g · 수량 1개" 형식 (이전 cart UI 버그픽스 참고).
-- **관련 코드:** `next/src/components/checkout/OrderCompletePage.tsx` line 557–563 (`ocp-item-badges` 블록)
+- **수정:** `ocp-item-badge` 2종(volume·구독기간) 제거 → `ocp-item-qty` 단일 인라인 메타(`[volume, 정기배송 period, 수량 Qty개].join(' · ')`). `MyPagePage` 주문내역도 동일 패턴 적용 (volume 중복 뱃지 제거). `globals.css` `.ocp-item-badge` 룰 삭제.
+- **검증:** 387/387 vitest · tsc clean.
+- **관련 코드:** `next/src/components/checkout/OrderCompletePage.tsx`, `next/src/components/auth/MyPagePage.tsx`, `next/src/app/globals.css`
 
 ---
 
@@ -734,19 +737,20 @@ React state flush: schedule 순서대로 적용
 
 ---
 
-### BUG-169 — 로그인 페이지 푸터 위치 점프 🟡 (회귀)
+### BUG-169 — ✅ 로그인 페이지 푸터 위치 점프 🟡 (회귀)
 
 - **발견:** 2026-04-27 / S88 (BUG-148 S82 closure 후 회귀)
+- **해결:** 2026-04-27 / S90
 - **이전 픽스 참조:** BUG-148 (`#main-content { min-height: calc(100svh - ...) }` 추가) — `dvh` → `svh` 로 iOS Safari 주소 표시줄 토글 시 dvh 재계산 점프 방지.
 - **재현 경로:** `/login` 진입 → 하단으로 스크롤 → 다시 상단으로 스크롤
 - **실제 (버그):**
   1. 진입 시: 푸터는 `100vh` 적용된 화면 바깥에 위치 (정상)
   2. 하단 스크롤 시: 간격 유지 (정상)
   3. 상단 스크롤 복귀 시: **푸터 위치가 점프** (회귀)
-- **원인 후보 (작업 시 분석 필요):**
-  - `LoginPage.tsx` 의 `<div style={{ minHeight: '100dvh' }}>` — `dvh` 사용 → iOS Safari 주소 표시줄 collapse/expand 시 viewport 재계산 → 레이아웃 점프 발생.
-  - BUG-148 fix 는 `#main-content` 에만 `svh` 적용. LoginPage 컨테이너 자체는 `dvh` 그대로 → main-content 의 안정 높이를 LoginPage 가 무시함.
-  - 수정 방향: `LoginPage` 의 `minHeight: '100dvh'` → `'100svh'` (또는 제거 — `#main-content` 의 svh min-height 가 이미 부모 단에서 적용됨).
+- **원인:** `LoginPage.tsx` outer div `minHeight: '100dvh'` — BUG-148 fix 가 `#main-content` 에만 svh 적용했고 LoginPage 컨테이너는 dvh 그대로 → iOS Safari address bar 토글 시 dvh 재계산 → 점프.
+- **수정:** `LoginPage.tsx` outer div `minHeight: '100dvh'` → `'100svh'` (1줄).
+- **dvh 잔존 현황:** `MyPagePage`, `CheckoutPage`, `OrderCompletePage` outer div 도 `100dvh` 사용. `/login` 과 동일 증상 발생 가능하나 현재 별도 리포트 없음 — 향후 확인 시 동일 패턴 적용.
+- **검증:** 387/387 vitest · tsc clean.
 - **관련 코드:** `next/src/components/auth/LoginPage.tsx` L319 (outer div)
 - **우선순위:** UX 저하, 단일 페이지 → Medium
 
