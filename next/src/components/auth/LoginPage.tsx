@@ -393,7 +393,7 @@ export default function LoginPage() {
                   비밀번호를 잊으셨나요?
                 </span>
               </div>
-              <button className="lp-submit-btn" type="submit" disabled={loginForm.isLoading} data-gtr-tap>
+              <button className="lp-submit-btn" type="submit" disabled={loginForm.isLoading} aria-busy={loginForm.isLoading} data-gtr-tap>
                 {loginForm.isLoading ? '로그인 중…' : '로그인'}
               </button>
             </form>
@@ -454,7 +454,7 @@ export default function LoginPage() {
               {registerForm.notice && (
                 <div className="lp-submit-notice">{registerForm.notice}</div>
               )}
-              <button className="lp-submit-btn" type="submit" disabled={registerForm.isLoading} data-gtr-tap>
+              <button className="lp-submit-btn" type="submit" disabled={registerForm.isLoading} aria-busy={registerForm.isLoading} data-gtr-tap>
                 {registerForm.isLoading ? '처리 중…' : '계정 만들기'}
               </button>
             </form>

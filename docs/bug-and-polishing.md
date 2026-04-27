@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 92 (BUG-171 closure · BUG-172 후속 노트 · BUG-173 신규)
+> **최종 업데이트:** 2026-04-28 · Session 93 (BUG-174/175 신규+closure · 골드 라인 방향 통일 · 버튼 로딩 상태 통일)
 
 ---
 
 ## 진행률
 
-> **64 / 69 closure (92.8%)** · 2026-04-27 S92 기준 (S91: BUG-172 ✅ · S92: BUG-171 ✅ closure (iOS WebKit limitation) · BUG-173 신규)
+> **66 / 71 closure (92.9%)** · 2026-04-28 S93 기준 (S92: BUG-171 ✅ · S93: BUG-166 ✅ 재closure · BUG-174/175 ✅ 신규+closure · BUG-173 미해결)
 >
 > 카운트 명령:
 > ```bash
@@ -17,7 +17,7 @@
 > ```
 >
 > **세션별 closure 누적:**
-> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143) · S82 (BUG-103) · S83 (신규 closure 없음 · BUG-149 UX 정제 · useNavigation 훅) · S90 (BUG-163/169/170)
+> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143) · S82 (BUG-103) · S83 (신규 closure 없음 · BUG-149 UX 정제 · useNavigation 훅) · S90 (BUG-163/169/170) · S93 (BUG-166 재closure · BUG-174/175)
 >
 > **데이터 정합 노트:**
 > - BUG-104/108/105 는 하단 `해결됨` 섹션에도 중복 기재 (legacy · 참조용)
@@ -890,6 +890,44 @@ React state flush: schedule 순서대로 적용
 - **참조:** BUG-172 후속 정합성 노트 · `docs/admin-implementation-plan.md` Group B (주문 어드민)
 - **우선순위:** 출시 전 권장 (정기배송 풀 구현 직전 S-7 단계)
 - **상태:** 미해결 (등록만 · 구현은 후속 세션)
+
+---
+
+### BUG-174 — ✅ 골드 라인 호버 아웃 시 방향 오류 (우→좌 역방향 사라짐) 🟡
+
+- **발견:** 2026-04-28 / S93
+- **재현 경로:** 데스크탑 CTA 버튼 호버 → 호버 아웃 · 또는 모바일 탭 완료 후
+- **실제 (버그):** 골드 라인이 좌→우로 fill 된 후, 아웃/탭 완료 시 좌측부터 사라지거나 우→좌로 역방향 진행하는 등 연출 제각각.
+- **근본 원인:** CSS `transform-origin` 보간 불가 문제.
+  - base `::after`: `transform-origin: right` (scaleX(0) 초기 상태의 기준점)
+  - `:hover::after`: `transform-origin: left` (scaleX(1) 상태의 기준점)
+  - 호버 아웃 시: `transform-origin`이 `right`로 즉시 스냅 → scaleX가 오른쪽 기준점에서 0으로 수축 → 좌측부터 사라지는 연출.
+  - `transform-origin`은 CSS transition 보간 대상이 아님 (즉시 스냅).
+- **수정 (S93):** 전체 base `transform-origin: right` → `left` 통일.
+  - `season-cta::after`, `roastery-cta-btn::after`, dark bg 버튼군, light bg 버튼군 모두 `transform-origin: left` 고정.
+  - `:hover::after`, `[data-gtr-tap].is-tapping::after`의 중복 `transform-origin: left` 제거 (base 상속).
+  - 결과: 좌→우 fill(scaleX 0→1) + 우→좌 shrink(scaleX 1→0) 일관성 확보.
+- **관련 코드:** `next/src/app/globals.css` §BUG-143 CTA gold section
+- **우선순위:** 데스크탑·모바일 모든 CTA 영향 → Medium.
+
+---
+
+### BUG-175 — ✅ 모바일 CTA 버튼 로딩 상태 혼재 + `data-gtr-tap` 누락 🟢
+
+- **발견:** 2026-04-28 / S93
+- **재현 경로:** 장바구니 드로어 "쇼핑 계속하기" 탭 / "장바구니 보기·주문하기" 네비게이션 진행 중
+- **실제 (버그):**
+  1. `'이동 중...'` (ASCII 점 3개) vs `'이동 중…'` (유니코드 ellipsis) 혼재.
+  2. 네비게이션 진행 중 CTA에 `aria-busy` 미적용 → 보조 기술 상태 미전달.
+  3. `cd-shop-btn`에 `data-gtr-tap` 누락 → 탭 피드백 연출 빠짐.
+  4. 로딩/disabled 상태에서 골드 라인이 scaleX(0)으로 즉시 리셋 → 진행 중임을 인지하기 어려움.
+- **수정 (S93):**
+  1. CartDrawer `cd-shop-btn`: `data-gtr-tap` + `aria-busy` 추가, `'이동 중…'` 통일.
+  2. CartDrawer CTA 버튼 2종: `aria-busy` 추가, `'이동 중…'` 통일.
+  3. LoginPage 로그인·회원가입 submit 버튼: `aria-busy` 추가.
+  4. `globals.css`: disabled/로딩 상태에서 골드 라인 fill 유지 규칙 추가 (`transform: scaleX(1); transition: none`). 기존 CartDrawer 드로어 버튼 규칙(S70)과 동일 패턴을 전체 CTA로 확장.
+- **관련 코드:** `next/src/components/cart/CartDrawer.tsx`, `next/src/components/auth/LoginPage.tsx`, `next/src/app/globals.css`
+- **우선순위:** 코스메틱·접근성 → Low.
 
 ---
 

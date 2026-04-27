@@ -8411,13 +8411,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   height: 2px;
   background: var(--color-accent-gold-on-dark);
   transform: scaleX(0);
-  transform-origin: right;
+  transform-origin: left;
   transition: transform 350ms var(--sr-easing);
 }
 .season-cta:hover::after,
 .roastery-cta-btn:hover::after {
   transform: scaleX(1);
-  transform-origin: left;
 }
 @media (prefers-reduced-motion: reduce) {
   .season-cta::after, .roastery-cta-btn::after { transition: none; }
@@ -8467,7 +8466,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   height: 2px;
   background: var(--color-accent-gold-on-dark);
   transform: scaleX(0);
-  transform-origin: right;
+  transform-origin: left;
   transition: transform 350ms var(--sr-easing);
 }
 .cta-btn-light-filled:hover::after,
@@ -8484,7 +8483,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-modal-confirm:hover::after,
 .st-map-overlay-btn--primary:hover::after {
   transform: scaleX(1);
-  transform-origin: left;
 }
 
 /* 라이트 bg 버튼 → gold */
@@ -8501,7 +8499,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   height: 2px;
   background: var(--color-accent-gold);
   transform: scaleX(0);
-  transform-origin: right;
+  transform-origin: left;
   transition: transform 350ms var(--sr-easing);
 }
 .cta-btn-dark-filled:hover::after,
@@ -8510,7 +8508,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-modal-cancel:hover::after,
 .st-map-overlay-btn:hover::after {
   transform: scaleX(1);
-  transform-origin: left;
 }
 
 /* BUG-127 (S70): outline 변종의 hover 밑줄을 outline 경계에 붙임.
@@ -8608,6 +8605,25 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .st-map-overlay-btn::after, .st-map-overlay-btn--primary::after { transition: none; }
 }
 
+/* 로딩·disabled 상태: 골드 라인 fill 유지 (hover-out 애니 차단) */
+.cta-btn-light-filled:disabled::after,
+.cta-btn-dark-outline:disabled::after,
+.cta-btn-dark-filled:disabled::after,
+.cta-btn-light-outline:disabled::after,
+.lp-submit-btn:disabled::after,
+.lp-guest-buy-btn:disabled::after,
+.chp-submit-btn:disabled::after,
+.chp-login-primary-btn:disabled::after,
+.ocp-btn-primary:disabled::after,
+.cp-order-btn:disabled::after,
+.bi-submit-btn:disabled::after,
+.mp-save-btn:disabled::after,
+.mp-cancel-btn:disabled::after,
+.mp-modal-confirm:disabled::after,
+.mp-modal-cancel:disabled::after,
+.st-map-overlay-btn:disabled::after,
+.st-map-overlay-btn--primary:disabled::after { transform: scaleX(1); transition: none; }
+
 /* ══ BUG-143 — 모바일 탭 피드백 (.is-tapping)
    TouchHoverGuard.tsx 의 [data-gtr-tap] 핸들러가 주입하는 클래스.
    새 CTA 추가 방법: JSX에 data-gtr-tap 속성 추가 → ::after gold 자동 처리.
@@ -8618,7 +8634,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    base rule 의 `transition: transform 350ms var(--sr-easing)` 자동 상속. */
 [data-gtr-tap].is-tapping::after {
   transform: scaleX(1);
-  transform-origin: left;
 }
 
 /* cat-card 탭: 이미지 줌 + 오버레이 + 화살표 350ms 완성 */

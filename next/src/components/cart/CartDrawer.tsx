@@ -144,8 +144,10 @@ export default function CartDrawer() {
                   type="button"
                   onClick={handleContinueShopping}
                   disabled={navigatingTo === '/shop'}
+                  aria-busy={navigatingTo === '/shop'}
+                  data-gtr-tap
                 >
-                  {navigatingTo === '/shop' ? '이동 중...' : '쇼핑 계속하기'}
+                  {navigatingTo === '/shop' ? '이동 중…' : '쇼핑 계속하기'}
                 </button>
               </div>
             </div>
@@ -290,18 +292,20 @@ export default function CartDrawer() {
                 type="button"
                 onClick={handleViewCart}
                 disabled={navigatingTo === '/cart'}
+                aria-busy={navigatingTo === '/cart'}
                 data-gtr-tap
               >
-                {navigatingTo === '/cart' ? '이동 중...' : '장바구니 보기'}
+                {navigatingTo === '/cart' ? '이동 중…' : '장바구니 보기'}
               </button>
               <button
                 className="cta-btn cta-btn-light-filled cd-cta-primary"
                 type="button"
                 onClick={handleCheckout}
                 disabled={navigatingTo === '/checkout'}
+                aria-busy={navigatingTo === '/checkout'}
                 data-gtr-tap
               >
-                {navigatingTo === '/checkout' ? '이동 중...' : '주문하기'}
+                {navigatingTo === '/checkout' ? '이동 중…' : '주문하기'}
               </button>
             </div>
           </div>
