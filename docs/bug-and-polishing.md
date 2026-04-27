@@ -2,13 +2,13 @@
 
 > 프로덕션 배포(`goodthings-roasters.vercel.app`) 이후 발견된 버그·UX·폴리싱 이슈를 누적 기록. 일정 개수 누적 시 일괄 해결 세션 진행.
 >
-> **최종 업데이트:** 2026-04-27 · Session 90 (BUG-163, BUG-169 closure)
+> **최종 업데이트:** 2026-04-27 · Session 90 (BUG-170, BUG-171 신규 등록)
 
 ---
 
 ## 진행률
 
-> **61 / 64 closure (95.3%)** · 2026-04-27 S90 기준 (BUG-163 ✅ · BUG-169 ✅ closure)
+> **61 / 66 closure (92.4%)** · 2026-04-27 S90 기준 (BUG-163 ✅ · BUG-169 ✅ · BUG-170/171 신규)
 >
 > 카운트 명령:
 > ```bash
@@ -753,6 +753,33 @@ React state flush: schedule 순서대로 적용
 - **검증:** 387/387 vitest · tsc clean. inline dvh 잔존 없음 확인.
 - **관련 코드:** `next/src/components/auth/LoginPage.tsx` L319 (outer div) + 위 10개 파일
 - **우선순위:** UX 저하, 단일 페이지 → Medium
+
+---
+
+### BUG-170 — /login 진입 시 뷰포트 하단 자동 스크롤 🟡
+
+- **발견:** 2026-04-27 / S90
+- **재현 경로:** 체크아웃 → "로그인하고 주문하기" → `/login?from=checkout` 진입 (또는 특정 조건에서 일반 `/login` 진입)
+- **실제 (버그):** 페이지 진입 직후 스크롤이 하단으로 자동 포커싱 — 푸터 전체가 화면에 들어오는 상태로 시작.
+- **단서:** 버그 발생 시점에 **푸터의 사업자 정보 토글이 열려 있는 상태**였음. 토글 열림 → 푸터 높이 증가 → 이전 스크롤 포지션(또는 `scrollIntoView`) 이 변경된 높이 기준으로 잘못 계산될 가능성.
+- **원인 후보:**
+  1. `NavigationScrollReset` 이 route 전환 시 scroll top 0 으로 리셋하는데, 토글 열림 상태의 레이아웃 반영 전·후 타이밍 문제로 잘못된 위치로 복귀.
+  2. 브라우저의 focus restore (이전 focus element 가 입력 필드 등) 가 뷰포트를 스크롤.
+  3. `from=checkout` 파라미터 처리 중 특정 DOM 요소로 `scrollIntoView` 또는 `focus()` 호출.
+- **관련 코드:** `next/src/components/layout/NavigationScrollReset.tsx`, `next/src/components/auth/LoginPage.tsx` (from 파라미터 처리부)
+- **우선순위:** UX 진입 경험 저하 → Medium
+
+---
+
+### BUG-171 — /login?from=checkout 자동완성 푸른 배경 제거 미적용 🟡 (회귀)
+
+- **발견:** 2026-04-27 / S90
+- **재현 경로:** `/checkout` → "로그인하고 주문하기" → `/login?from=checkout` 진입 → 이메일/비밀번호 자동완성 적용
+- **실제 (버그):** `from=checkout` 경유 로그인 페이지에서 자동완성 시 **브라우저 기본 푸른 배경(`:-webkit-autofill`)이 제거되지 않음**. 일반 `/login` 직접 진입 시에는 정상 제거됨.
+- **이전 픽스 참조:** BUG-164 (S88) — `globals.css` 에 `.chp-input:-webkit-autofill ~ .chp-floating-label` + `input:-webkit-autofill` 계열 4종 룰 추가로 autofill 배경 제거.
+- **원인 후보:** `from=checkout` 경로에서 컴포넌트 마운트 시점 또는 CSS 적용 시점 차이. `LoginPage` 내 `from` 파라미터에 따라 렌더되는 폼 분기가 있다면 해당 분기의 클래스가 다를 가능성.
+- **관련 코드:** `next/src/components/auth/LoginPage.tsx` (from 파라미터 분기), `next/src/app/globals.css` (autofill 룰)
+- **우선순위:** UX 시각 부조화, 체크아웃 유입 경로에서만 발생 → Medium
 
 ---
 
