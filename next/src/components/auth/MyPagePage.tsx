@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════
+﻿/* ══════════════════════════════════════════
    MyPagePage — /mypage
    프로토타입 #my-page 이식 (RP-8).
 
@@ -285,7 +285,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
     : '등록된 배송지 정보가 없습니다.';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
       {/* ── 미니 헤더 ── */}
       <div
         className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}

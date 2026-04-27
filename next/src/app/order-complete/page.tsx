@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════
+﻿/* ══════════════════════════════════════════
    Order Complete Route — /order-complete
    RP-7: 주문완료 페이지 이식.
    - 자체 미니 헤더 사용 (사이트 헤더 미표시)
@@ -37,7 +37,7 @@ async function OrderCompleteInner({ searchParams }: PageProps) {
 
 export default function OrderCompleteRoute({ searchParams }: PageProps) {
   return (
-    <Suspense fallback={<div className="oc-page" style={{ minHeight: '100dvh' }} />}>
+    <Suspense fallback={<div className="oc-page" style={{ minHeight: '100svh' }} />}>
       <OrderCompleteInner searchParams={searchParams} />
     </Suspense>
   );

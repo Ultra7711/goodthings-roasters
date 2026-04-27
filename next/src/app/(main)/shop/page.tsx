@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════
+﻿/* ══════════════════════════════════════════
    Shop Route — /shop (S69)
    /menu 패턴으로 통일 — Suspense + client useSearchParams.
    - 이전: `async` + `await searchParams` → dynamic 요소로 PPR (◐)
@@ -14,7 +14,7 @@ export const metadata = { title: '모든 상품 — good things' };
 
 export default function ShopRoute() {
   return (
-    <Suspense fallback={<div className="sp-page-bg" style={{ minHeight: '100dvh' }} />}>
+    <Suspense fallback={<div className="sp-page-bg" style={{ minHeight: '100svh' }} />}>
       <ShopPage />
     </Suspense>
   );

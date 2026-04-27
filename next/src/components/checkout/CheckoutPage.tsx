@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════
+﻿/* ══════════════════════════════════════════
    CheckoutPage — /checkout
    프로토타입 #checkout-page 이식 (RP-7).
 
@@ -421,7 +421,7 @@ export default function CheckoutPage() {
      ['cart'] 최초 로드 중엔 items 판정 불가. 미니 헤더만 그린다. */
   if (!mounted || cartLoading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
         <div
           className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
           style={{
@@ -442,7 +442,7 @@ export default function CheckoutPage() {
   /* ── 빈 장바구니 보호 ── */
   if (items.length === 0) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
         <div
           className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
           style={{
@@ -466,7 +466,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
       {/* ── 미니 헤더 ── */}
       <div
           className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}

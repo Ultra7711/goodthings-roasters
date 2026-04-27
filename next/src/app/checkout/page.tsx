@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════
+﻿/* ══════════════════════════════════════════
    Checkout Route — /checkout
    RP-7: 체크아웃 페이지 이식.
    - 자체 미니 헤더 사용 (사이트 헤더 미표시)
@@ -22,7 +22,7 @@ export default function CheckoutRoute() {
      대상이 되므로, Suspense 없이 useSearchParams 를 렌더하면 CSR bailout
      에 실패해 빌드 오류가 발생한다. (BUG-006 Phase 2B 선행 조치) */
   return (
-    <Suspense fallback={<div className="chp-page" style={{ minHeight: '100dvh' }} />}>
+    <Suspense fallback={<div className="chp-page" style={{ minHeight: '100svh' }} />}>
       <CheckoutPage />
     </Suspense>
   );

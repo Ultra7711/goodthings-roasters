@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════
+﻿/* ══════════════════════════════════════════
    /search — SRP 라우트
    Next.js 16: useSearchParams() 는 Suspense 경계 필수.
    ══════════════════════════════════════════ */
@@ -13,7 +13,7 @@ export const metadata = {
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="search-page-wrap" style={{ minHeight: '100dvh' }} />}>
+    <Suspense fallback={<div className="search-page-wrap" style={{ minHeight: '100svh' }} />}>
       <SearchPage />
     </Suspense>
   );

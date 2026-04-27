@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════
+﻿/* ══════════════════════════════════════════
    MyPagePlaceholder
    /mypage 진입 시 Suspense fallback 으로 사용.
    서버 인증(`requireAuth`) + 클라 hydration 동안 보여지는 placeholder.
@@ -53,7 +53,7 @@ function InfoRowSkel({ labelW = 80, valueW = 200 }: { labelW?: number; valueW?: 
 
 export default function MyPagePlaceholder() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
       {/* 미니 헤더 — 로고만 표시. priority 금지 (RSC stuck 방지) */}
       <div className="chp-hdr-wrap hdr-at-top">
         <div className="chp-hdr-inner">

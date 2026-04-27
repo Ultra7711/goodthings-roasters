@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════
+﻿/* ══════════════════════════════════════════
    Cafe Menu Route — /menu
    RP-5 재이식: 프로토타입 #cafe-menu-page 이식.
    - URL query 로 초기 필터/타겟 복구 (`?cat=brewing&item=b04`)
@@ -13,7 +13,7 @@ export const metadata = { title: '카페 메뉴 — good things' };
 
 export default function CafeMenuRoute() {
   return (
-    <Suspense fallback={<div id="cm-body" style={{ minHeight: '100dvh' }} />}>
+    <Suspense fallback={<div id="cm-body" style={{ minHeight: '100svh' }} />}>
       <CafeMenuPage />
     </Suspense>
   );

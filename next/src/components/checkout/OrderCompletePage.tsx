@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════
+﻿/* ══════════════════════════════════════════
    OrderCompletePage — /order-complete
    프로토타입 #order-complete-page 이식 (RP-7) + B-3 confirm 연동.
 
@@ -346,7 +346,7 @@ export default function OrderCompletePage() {
   /* 주문 정보 없음 보호 */
   if (!order) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
         <div className="ocp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
           <div className="chp-hdr-inner">
             <Link href="/">
@@ -376,7 +376,7 @@ export default function OrderCompletePage() {
   if (confirmState.kind === 'email_mismatch') {
     const remaining = MAX_EMAIL_RETRIES - confirmState.attempts;
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
         <div className="ocp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
           <div className="chp-hdr-inner">
             <Link href="/">
@@ -455,7 +455,7 @@ export default function OrderCompletePage() {
   if (confirmState.kind === 'failed') {
     const isExceeded = confirmState.detail === 'guest_email_mismatch_exceeded';
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
         <div className="ocp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
           <div className="chp-hdr-inner">
             <Link href="/">
@@ -529,7 +529,7 @@ export default function OrderCompletePage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
       {/* ── 미니 헤더 ── */}
       <div className="ocp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
         <div className="chp-hdr-inner">
