@@ -39,7 +39,8 @@ function loadDaumPostcode(): Promise<void> {
 
     const existing = document.getElementById(SCRIPT_ID);
     if (existing) {
-      // 로드 중인 태그에 이벤트 재부착
+      // 태그 발견 후 이벤트 등록 전 사이에 로드가 완료될 수 있으므로 재확인
+      if (window.daum?.Postcode) { resolve(); return; }
       existing.addEventListener('load', () => resolve(), { once: true });
       existing.addEventListener('error', () => reject(new Error('Daum Postcode 스크립트 로드 실패')), { once: true });
       return;
