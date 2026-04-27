@@ -28,21 +28,25 @@ declare global {
 
 /* ── 스크립트 로더 ── */
 
-/** Daum 우편번호 스크립트를 동적 로드합니다. 이미 로드된 경우 즉시 resolve. */
-function loadDaumPostcode(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    // 이미 window.daum이 존재하면 재로드 불필요
-    if (typeof window !== 'undefined' && window.daum?.Postcode) {
-      resolve();
-      return;
-    }
+/**
+ * 모듈-레벨 싱글턴 Promise.
+ * 동시 다중 호출 시 동일 Promise를 공유하여 race condition 원천 차단.
+ */
+let _loadPromise: Promise<void> | null = null;
 
+function loadDaumPostcode(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.resolve();
+  if (window.daum?.Postcode) return Promise.resolve();
+  if (_loadPromise) return _loadPromise;
+
+  _loadPromise = new Promise<void>((resolve, reject) => {
     const existing = document.getElementById(SCRIPT_ID);
     if (existing) {
-      // 태그 발견 후 이벤트 등록 전 사이에 로드가 완료될 수 있으므로 재확인
-      if (window.daum?.Postcode) { resolve(); return; }
       existing.addEventListener('load', () => resolve(), { once: true });
-      existing.addEventListener('error', () => reject(new Error('Daum Postcode 스크립트 로드 실패')), { once: true });
+      existing.addEventListener('error', () => {
+        _loadPromise = null;
+        reject(new Error('Daum Postcode 스크립트 로드 실패'));
+      }, { once: true });
       return;
     }
 
@@ -51,9 +55,23 @@ function loadDaumPostcode(): Promise<void> {
     script.src = SCRIPT_URL;
     script.async = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Daum Postcode 스크립트 로드 실패'));
+    script.onerror = () => {
+      _loadPromise = null;
+      reject(new Error('Daum Postcode 스크립트 로드 실패'));
+    };
     document.head.appendChild(script);
   });
+
+  return _loadPromise;
+}
+
+/**
+ * 컴포넌트 마운트 시 스크립트를 미리 로드합니다.
+ * openPostcode() 첫 호출 시 스크립트가 준비된 상태를 보장하여
+ * iOS 팝업 차단 없이 동기 경로로 진입할 수 있게 합니다.
+ */
+export function preloadPostcode(): void {
+  void loadDaumPostcode();
 }
 
 /* ── 공개 API ── */
@@ -63,29 +81,34 @@ export type PostcodeResult = {
   addr1: string;
 };
 
+function createPostcodePromise(): Promise<PostcodeResult | null> {
+  return new Promise((resolve) => {
+    let selected = false;
+    new window.daum!.Postcode({
+      oncomplete(data) {
+        selected = true;
+        resolve({ zipcode: data.zonecode, addr1: data.roadAddress || data.jibunAddress });
+      },
+      onclose() {
+        if (!selected) resolve(null);
+      },
+    }).open();
+  });
+}
+
 /**
  * Daum 우편번호 검색 팝업을 열고 사용자가 선택한 결과를 반환합니다.
  * - 주소 선택 시: `{ zipcode, addr1 }` 반환
  * - 팝업 닫기(취소) 시: `null` 반환
  * - 스크립트 로드 실패 시: 예외 throw
+ *
+ * 스크립트 로드 완료 시 Promise 생성자 내부에서 .open()을 동기 호출하여
+ * iOS WKWebView의 팝업 차단을 방지합니다 (생성자 콜백은 동기 실행).
+ * preloadPostcode()로 마운트 시 선제 로드하면 첫 터치에서도 동기 경로 진입 보장.
  */
-export async function openPostcode(): Promise<PostcodeResult | null> {
-  await loadDaumPostcode();
-
-  return new Promise((resolve) => {
-    let selected = false;
-
-    new window.daum!.Postcode({
-      oncomplete(data) {
-        selected = true;
-        const addr1 = data.roadAddress || data.jibunAddress;
-        resolve({ zipcode: data.zonecode, addr1 });
-      },
-      onclose() {
-        if (!selected) {
-          resolve(null);
-        }
-      },
-    }).open();
-  });
+export function openPostcode(): Promise<PostcodeResult | null> {
+  if (typeof window !== 'undefined' && window.daum?.Postcode) {
+    return createPostcodePromise();
+  }
+  return loadDaumPostcode().then(() => createPostcodePromise());
 }

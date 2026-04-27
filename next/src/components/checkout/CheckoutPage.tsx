@@ -23,7 +23,7 @@ import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { useAtTop } from '@/hooks/useAtTop';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
-import { openPostcode } from '@/lib/daumPostcode';
+import { openPostcode, preloadPostcode } from '@/lib/daumPostcode';
 import { useInputNav } from '@/hooks/useInputNav';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { useCartQuery } from '@/hooks/useCart';
@@ -99,6 +99,8 @@ export default function CheckoutPage() {
      서버는 cart 상태를 알 수 없으므로 마운트 전에는 항상 로딩 스켈레톤을 표시. */
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => { preloadPostcode(); }, []);
 
   /* ── 장바구니 (ADR-004 Step B: TanStack Query) ──
      isLoading: 최초 로드 중 — 스켈레톤 UI. BUG-003 근본 해결. */

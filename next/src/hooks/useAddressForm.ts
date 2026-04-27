@@ -9,11 +9,11 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { UserAddress } from '@/types/address';
 import { EMPTY_ADDRESS } from '@/types/address';
 import { isValidPhone, isValidZipcode } from '@/lib/validation';
-import { openPostcode } from '@/lib/daumPostcode';
+import { openPostcode, preloadPostcode } from '@/lib/daumPostcode';
 import { showToast } from '@/lib/toastStore';
 
 export type AddressFormErrors = Partial<Record<keyof UserAddress, string>>;
@@ -28,6 +28,8 @@ type UseAddressFormOptions = {
 export function useAddressForm({ initial, onSave }: UseAddressFormOptions) {
   const [form, setForm] = useState<UserAddress>(initial ?? EMPTY_ADDRESS);
   const [errors, setErrors] = useState<AddressFormErrors>({});
+
+  useEffect(() => { preloadPostcode(); }, []);
 
   const setField = useCallback(
     <K extends keyof UserAddress>(field: K, value: UserAddress[K]) => {
