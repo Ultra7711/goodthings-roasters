@@ -126,7 +126,7 @@ export default function CartClient() {
                         <span className="cp-item-name-kr">{krName}</span>
                         {[item.volume, subBadge].some(Boolean) && (
                           <span className="cp-item-meta-inline">
-                            {` ${[item.volume, subBadge].filter(Boolean).join(' · ')}`}
+                            {' · '}{[item.volume, subBadge].filter(Boolean).join(' · ')}
                           </span>
                         )}
                       </div>

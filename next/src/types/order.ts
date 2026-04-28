@@ -26,6 +26,10 @@ export type OrderItem = {
     /** 이미지 배경색 */
     bg: string;
   };
+  /** 주문 유형 (예: "subscription") — 정기배송 식별용 */
+  type?: string;
+  /** 정기배송 주기 (예: "4주") — type === 'subscription' 일 때 유효 */
+  period?: string | null;
 };
 
 export type Order = {

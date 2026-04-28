@@ -191,7 +191,7 @@ export default function CartDrawer() {
                         <span className="cd-item-name-kr">{krName}</span>
                         {[item.volume, subBadge].filter(Boolean).length > 0 && (
                           <span className="cd-item-meta-inline">
-                            {` ${[item.volume, subBadge].filter(Boolean).join(' · ')}`}
+                            {' · '}{[item.volume, subBadge].filter(Boolean).join(' · ')}
                           </span>
                         )}
                       </div>

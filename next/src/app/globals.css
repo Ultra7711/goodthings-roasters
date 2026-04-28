@@ -233,7 +233,7 @@
   --color-border-strong: rgba(28,27,25,.20);
   --color-border-input: #D9D6D2;
   /* 이미지가 배경과 직접 맞닿는 표면(썸네일·맵 오버레이 등)의 외곽선 — 웜 그레이 솔리드 */
-  --color-border-surface: var(--color-border-surface);
+  --color-border-surface: #E0DED9;
   --color-focus-ring: rgba(74,72,69,.40);
 
   /* ── Input Box (상품 상세 구매 옵션 박스) ── */
@@ -3547,27 +3547,21 @@ footer.blk {
   position: static;
   grid-row: 2;
   grid-column: 2 / 4;
-  display: flex;
-  align-items: baseline;
-  gap: var(--gap-xs);
   min-width: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 #cart-drawer-panel .cd-item-name-kr {
   font-family: var(--font-kr);
   font-size: var(--type-body-l-size);
   font-weight: 500;
   color: var(--color-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 #cart-drawer-panel .cd-item-meta-inline {
   display: inline;
-  flex-shrink: 0;
   color: var(--color-text-secondary);
   font-size: var(--type-body-s-size);
-  white-space: nowrap;
 }
 #cart-drawer-panel .cd-item-bottom {
   position: static;
@@ -3684,7 +3678,6 @@ footer.blk {
   #cart-drawer-panel .cd-item-thumb { width: 96px; height: 96px; }
   #cart-drawer-panel .cd-item-category { font-size: 12px; line-height: 1; }
   #cart-drawer-panel .cd-item-name {
-    gap: 4px;
     line-height: 1.4;
     margin-top: 2px;
     margin-bottom: 8px;
@@ -6703,7 +6696,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-sum-item-img-wrap { position: relative; flex-shrink: 0; }
 .chp-sum-item-img {
   width: 56px; height: 56px; background: var(--color-background-secondary);
-  box-shadow: 0 0 0 1px #e0ded9; position: relative; overflow: hidden;
+  box-shadow: 0 0 0 1px var(--color-border-surface); position: relative; overflow: hidden;
 }
 .chp-sum-item-img img { width: 100%; height: 100%; object-fit: contain; }
 .chp-sum-item-info { flex: 1; }
@@ -6840,8 +6833,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-primary); margin-top: 6px;
 }
 .ocp-item-badges { display: flex; align-items: center; gap: var(--gap-xs); margin-top: 8px; }
-.ocp-item-qty { font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 400; color: #9C9891; }
-.ocp-item-price { font-family: var(--font-en); font-size: var(--type-body-m-size); font-weight: 400; color: #9C9891; margin-left: auto; flex-shrink: 0; }
+.ocp-item-qty { font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 400; color: var(--color-text-caption); }
+.ocp-item-price { font-family: var(--font-en); font-size: var(--type-body-m-size); font-weight: 400; color: var(--color-text-caption); margin-left: auto; flex-shrink: 0; }
 
 /* CTA */
 .ocp-actions { width: 100%; margin-top: 48px; display: flex; flex-direction: column; align-items: center; gap: var(--gap-xl); }
@@ -7551,7 +7544,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-order-items .ocp-item { min-width: 0; height: auto; padding: 16px 0; }
 .mp-order-items .ocp-item-img { width: 80px; height: 80px; cursor: pointer; }
 .mp-order-items .ocp-item-category { font-size: 12px; }
-.mp-order-items .ocp-item-name { font-size: 16px; margin-top: 4px; }
+.mp-order-items .ocp-item-name { font-size: var(--type-body-l-size); margin-top: 4px; }
 .mp-order-items .ocp-item-badges { margin-top: 6px; }
 
 /* 구독 해지 — subtle 밑줄 링크 토큰 */
@@ -7749,27 +7742,19 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     grid-column: 2 / 4;
     min-width: 0;
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     line-height: 1.4;
     margin: 2px 0 4px;
     font-size: 16px;
-    display: flex;
-    align-items: baseline;
-    gap: 0;
   }
   .mp-order-items .ocp-item-name-kr {
-    flex: 0 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     font-size: 16px;
   }
   .mp-order-items .ocp-item-meta-inline {
     display: inline;
-    flex-shrink: 0;
     color: var(--color-text-secondary);
     font-size: var(--type-body-s-size);
-    white-space: nowrap;
   }
   /* 기존 badge 행 재활용 → 수량(좌) + 가격(우) 배치
      장바구니 하단 스텝퍼 자리를 수량 텍스트로 대체 */
@@ -8095,16 +8080,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
-.cp-item-name { display: flex; align-items: baseline; gap: 8px; line-height: 1.35; }
+.cp-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; line-height: 1.35; }
 .cp-item-name-kr {
   font-family: var(--font-kr);
   font-size: var(--type-body-l-size);
   font-weight: 500;
   color: var(--color-text-primary);
-  white-space: nowrap;
 }
-.cp-item-badges { display: flex; align-items: center; gap: var(--gap-xs); margin-top: 4px; }
-.cp-item-meta-inline { display: none; }
+.cp-item-badges { display: none; }
+.cp-item-meta-inline { display: inline; color: var(--color-text-secondary); font-size: var(--type-body-s-size); }
 .cp-item-badge {
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
@@ -8378,27 +8362,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     grid-column: 2 / 4;
     min-width: 0;
     overflow: hidden;
-    gap: var(--gap-xs);
     line-height: 1.4;
     margin-top: 2px;
     margin-bottom: 8px;
   }
-  .cp-item-name-kr {
-    flex: 0 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 16px;
-  }
-  .cp-item-meta-inline {
-    display: inline;
-    flex-shrink: 0;
-    color: var(--color-text-secondary);
-    font-size: var(--type-body-s-size);
-    white-space: nowrap;
-  }
-  .cp-item-badges { display: none; }
+  .cp-item-name-kr { font-size: 16px; }
+  .cp-item-meta-inline { white-space: nowrap; }
   .cp-item-price { display: none; }
   .cp-item-qty {
     grid-row: 3;

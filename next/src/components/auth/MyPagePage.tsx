@@ -662,13 +662,15 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                           <div className="ocp-item-info">
                             <div className="ocp-item-category">{item.category}</div>
                             <div className="ocp-item-name">
-                              <span className="ocp-item-name-kr">{extractKrName(item.name)}</span>
-                              <span className="ocp-item-meta-inline">
-                                {` · ${item.volume}`}
+                              <span className="ocp-item-name-kr">
+                                {extractKrName(item.name)}
+                                <span className="ocp-item-meta-inline"> · {item.volume}</span>
                               </span>
                             </div>
                             <div className="ocp-item-badges">
-                              <span className="ocp-item-qty">수량 {item.qty}개</span>
+                              <span className="ocp-item-qty">
+                                {[item.type === 'subscription' && item.period ? `정기배송 ${item.period}` : null, `수량 ${item.qty}개`].filter(Boolean).join(' · ')}
+                              </span>
                               <span className="ocp-item-price">{formatPrice(item.priceNum)}</span>
                             </div>
                           </div>
