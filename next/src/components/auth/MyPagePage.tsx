@@ -36,14 +36,6 @@ import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
 import SiteHeader from '@/components/layout/SiteHeader';
 
 /* ── SVG 아이콘 ── */
-function ChevronDown() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6,9l6,6,6-6" />
-    </svg>
-  );
-}
-
 function ChevronRight() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -58,6 +50,20 @@ function CopyIcon() {
       <rect x="9" y="9" width="12" height="12" rx="2" ry="2" /><path d="M5,15c-1.1,0-2-.9-2-2V5c0-1.1.9-2,2-2h8c1.1,0,2,.9,2,2" />
     </svg>
   );
+}
+
+const CYCLE_DAYS: Record<SubscriptionCycle, number> = {
+  '2주': 14, '3주': 21, '4주': 28, '6주': 42, '8주': 56,
+};
+
+function calcNextDate(currentDate: string, cycle: SubscriptionCycle): string {
+  const [y, m, d] = currentDate.split('.').map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + CYCLE_DAYS[cycle]);
+  const yy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yy}.${mm}.${dd}`;
 }
 
 type MyPagePageProps = {
@@ -104,6 +110,10 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
 
   /* ── 회원 탈퇴 모달 ── */
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+
+  /* ── 구독 모달 ── */
+  const [skipConfirmSubId, setSkipConfirmSubId] = useState<string | null>(null);
+  const [cancelConfirmSubId, setCancelConfirmSubId] = useState<string | null>(null);
 
   /* 헤더는 SiteHeader 컴포넌트가 sticky/atTop/검색/모바일 드로어/카트 드로어를 자체 관리.
      마이페이지는 메인 라우트와 동일한 로고 + nav + 검색·마이페이지·카트 아이콘 구조. */
@@ -165,11 +175,12 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
 
   /* 모달 오픈 시 스크롤 잠금 */
   useEffect(() => {
-    if (!withdrawOpen) return;
+    const anyOpen = withdrawOpen || !!skipConfirmSubId || !!cancelConfirmSubId;
+    if (!anyOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = prev; };
-  }, [withdrawOpen]);
+  }, [withdrawOpen, skipConfirmSubId, cancelConfirmSubId]);
 
   /* 커스텀 드롭다운 외부 클릭 닫기
      capture 단계 stopPropagation 으로 하단 아코디언 관통 차단 (BUG-125) */
@@ -203,7 +214,16 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const cancelSub = useCallback((subId: string) => {
     setSubscriptions((prev) => prev.filter((s) => s.id !== subId));
     setSubEditId(null);
+    setCancelConfirmSubId(null);
     toast('구독이 해지되었습니다.');
+  }, [toast]);
+
+  const skipDelivery = useCallback((subId: string) => {
+    setSubscriptions((prev) =>
+      prev.map((s) => s.id === subId ? { ...s, nextDate: calcNextDate(s.nextDate, s.cycle) } : s),
+    );
+    setSkipConfirmSubId(null);
+    toast('다음 배송일이 변경되었습니다.');
   }, [toast]);
 
   /* ── 로그아웃 ──
@@ -345,7 +365,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                     {addrDisplay}
                   </span>
                   <span className="mp-addr-icon-btn" aria-hidden="true">
-                    {addrOpen ? <ChevronDown /> : <ChevronRight />}
+                    <span className={`mp-chevron${addrOpen ? ' open' : ''}`}><ChevronRight /></span>
                   </span>
                 </div>
               </div>
@@ -441,11 +461,14 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                       role="button"
                       tabIndex={0}
                       aria-label={subEditId === sub.id ? '닫기' : '편집'}
-                      onClick={() => subEditId === sub.id ? setSubEditId(null) : openSubAccordion(sub)}
+                      onClick={() => {
+                        if (subEditId === sub.id) { setSubEditId(null); setSubCycleEdit(null); }
+                        else openSubAccordion(sub);
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          if (subEditId === sub.id) setSubEditId(null);
+                          if (subEditId === sub.id) { setSubEditId(null); setSubCycleEdit(null); }
                           else openSubAccordion(sub);
                         }
                       }}
@@ -458,7 +481,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                         <span className="mp-sub-item-status">다음 배송 {sub.nextDate}</span>
                       </div>
                       <span className="mp-icon-btn mp-sub-edit-btn" aria-hidden="true">
-                        {subEditId === sub.id ? <ChevronDown /> : <ChevronRight />}
+                        <span className={`mp-chevron${subEditId === sub.id ? ' open' : ''}`}><ChevronRight /></span>
                       </span>
                     </div>
                     <div className={`mp-accordion mp-sub-accordion${subEditId === sub.id ? ' open' : ''}`}>
@@ -492,10 +515,14 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                           <span className="mp-info-label">다음 배송일</span>
                           <span className="mp-info-value">{sub.nextDate}</span>
                         </div>
-                        <div className="mp-accordion-actions">
-                          <button className="mp-save-btn mp-sub-save-btn" type="button" onClick={() => saveSubCycle(sub.id)} data-gtr-tap>저장</button>
-                          <button className="mp-cancel-btn" type="button" onClick={() => setSubEditId(null)} data-gtr-tap>취소</button>
-                          <button className="mp-sub-unsubscribe" type="button" onClick={() => cancelSub(sub.id)}>구독 해지</button>
+                        <div className="mp-accordion-actions mp-sub-accordion-actions">
+                          <button className="mp-cancel-btn" type="button" onClick={() => setSkipConfirmSubId(sub.id)} data-gtr-tap>배송 건너뛰기</button>
+                          <button className="mp-cancel-btn" type="button" onClick={() => setCancelConfirmSubId(sub.id)} data-gtr-tap>구독 해지</button>
+                          {subEditId === sub.id && subCycleEdit !== null && subCycleEdit !== sub.cycle ? (
+                            <button className="mp-save-btn" type="button" onClick={() => saveSubCycle(sub.id)} data-gtr-tap>저장</button>
+                          ) : (
+                            <button className="mp-cancel-btn" type="button" onClick={() => { setSubEditId(null); setSubCycleEdit(null); }} data-gtr-tap>취소</button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -530,7 +557,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
             >
               <span className="mp-info-label">비밀번호 변경</span>
               <span className="mp-icon-btn" aria-hidden="true" style={{ position: 'relative', top: 4 }}>
-                {pwOpen ? <ChevronDown /> : <ChevronRight />}
+                <span className={`mp-chevron${pwOpen ? ' open' : ''}`}><ChevronRight /></span>
               </span>
             </div>
             {/* 비밀번호 변경 아코디언 */}
@@ -702,6 +729,49 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
           </div>
         </div>
       )}
+
+      {/* ── 배송 건너뛰기 확인 모달 ── */}
+      {skipConfirmSubId && (() => {
+        const sub = subscriptions.find((s) => s.id === skipConfirmSubId);
+        if (!sub) return null;
+        const nextDate = calcNextDate(sub.nextDate, sub.cycle);
+        return (
+          <div className="mp-modal-overlay" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} onClick={() => setSkipConfirmSubId(null)}>
+            <div className="mp-modal mp-modal--calm" onClick={(e) => e.stopPropagation()}>
+              <p className="mp-modal-title">배송을 건너뛸까요?</p>
+              <p className="mp-modal-desc">
+                이번 배송을 건너뛰면 다음 배송일이<br />
+                <strong>{nextDate}</strong>으로 변경됩니다.
+              </p>
+              <div className="mp-modal-actions">
+                <button className="mp-modal-confirm" type="button" onClick={() => skipDelivery(skipConfirmSubId)} data-gtr-tap>건너뛰기</button>
+                <button className="mp-modal-cancel" type="button" onClick={() => setSkipConfirmSubId(null)} data-gtr-tap>취소</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── 구독 해지 확인 모달 ── */}
+      {cancelConfirmSubId && (() => {
+        const sub = subscriptions.find((s) => s.id === cancelConfirmSubId);
+        if (!sub) return null;
+        return (
+          <div className="mp-modal-overlay" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} onClick={() => setCancelConfirmSubId(null)}>
+            <div className="mp-modal mp-modal--calm" onClick={(e) => e.stopPropagation()}>
+              <p className="mp-modal-title">구독을 해지할까요?</p>
+              <p className="mp-modal-desc">
+                {extractKrName(sub.name)} 정기배송이 해지됩니다.<br />
+                해지 후에는 복구되지 않습니다.
+              </p>
+              <div className="mp-modal-actions">
+                <button className="mp-modal-confirm" type="button" onClick={() => cancelSub(cancelConfirmSubId)} data-gtr-tap>해지</button>
+                <button className="mp-modal-cancel" type="button" onClick={() => setCancelConfirmSubId(null)} data-gtr-tap>취소</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
