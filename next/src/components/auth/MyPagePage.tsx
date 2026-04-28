@@ -437,8 +437,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                     />
                   )}
                   <div className="mp-accordion-actions">
-                    <button className="mp-save-btn" type="button" onClick={() => { addressForm.submit(); setTimeout(() => shakeFields(addrFormRef.current), 0); }} data-gtr-tap>저장</button>
                     <button className="mp-cancel-btn" type="button" onClick={() => setAddrOpen(false)} data-gtr-tap>취소</button>
+                    <button className="mp-save-btn" type="button" onClick={() => { addressForm.submit(); setTimeout(() => shakeFields(addrFormRef.current), 0); }} data-gtr-tap>저장</button>
                   </div>
                 </div>
               </div>
@@ -598,8 +598,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                   wrapperClass={`pw2-field${pwForm.next ? ' pw2-visible' : ''}`}
                 />
                 <div className="mp-accordion-actions">
-                  <button className="mp-save-btn" type="button" onClick={() => { void pwForm.submit(); setTimeout(() => shakeFields(pwFormRef.current), 0); }} data-gtr-tap>변경</button>
                   <button className="mp-cancel-btn" type="button" onClick={() => { pwForm.reset(); setPwOpen(false); }} data-gtr-tap>취소</button>
+                  <button className="mp-save-btn" type="button" onClick={() => { void pwForm.submit(); setTimeout(() => shakeFields(pwFormRef.current), 0); }} data-gtr-tap>변경</button>
                 </div>
               </div>
             </div>
@@ -723,8 +723,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
               재가입하시더라도 기존 주문 내역은 복구되지 않습니다.
             </p>
             <div className="mp-modal-actions">
-              <button className="mp-modal-confirm" type="button" onClick={() => void confirmWithdraw()} data-gtr-tap>탈퇴</button>
               <button className="mp-modal-cancel" type="button" onClick={() => setWithdrawOpen(false)} data-gtr-tap>취소</button>
+              <button className="mp-modal-confirm mp-modal-confirm--danger" type="button" onClick={() => void confirmWithdraw()} data-gtr-tap>탈퇴</button>
             </div>
           </div>
         </div>
@@ -744,8 +744,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                 <strong>{nextDate}</strong>으로 변경됩니다.
               </p>
               <div className="mp-modal-actions">
-                <button className="mp-modal-confirm" type="button" onClick={() => skipDelivery(skipConfirmSubId)} data-gtr-tap>건너뛰기</button>
                 <button className="mp-modal-cancel" type="button" onClick={() => setSkipConfirmSubId(null)} data-gtr-tap>취소</button>
+                <button className="mp-modal-confirm" type="button" onClick={() => skipDelivery(skipConfirmSubId)} data-gtr-tap>건너뛰기</button>
               </div>
             </div>
           </div>
@@ -765,8 +765,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                 해지 후에는 복구되지 않습니다.
               </p>
               <div className="mp-modal-actions">
-                <button className="mp-modal-confirm" type="button" onClick={() => cancelSub(cancelConfirmSubId)} data-gtr-tap>해지</button>
                 <button className="mp-modal-cancel" type="button" onClick={() => setCancelConfirmSubId(null)} data-gtr-tap>취소</button>
+                <button className="mp-modal-confirm mp-modal-confirm--danger" type="button" onClick={() => cancelSub(cancelConfirmSubId)} data-gtr-tap>해지</button>
               </div>
             </div>
           </div>

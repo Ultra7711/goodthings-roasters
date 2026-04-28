@@ -7640,6 +7640,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-inverse); background-color: var(--color-background-inverse);
   border: none; cursor: pointer; transition: opacity var(--duration-hover) ease;
 }
+.mp-modal-confirm--danger { background-color: var(--color-error); }
 
 /* 비밀번호 펼침 시 회원 탈퇴 구분선 (버튼~구분선 간격 확보) */
 .mp-info-row.mp-info-row--withdraw.mp-withdraw-divider {
