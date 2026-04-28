@@ -832,13 +832,13 @@ button.hdr-icon-btn { background: none; border: none; }
   align-items: center;
   justify-content: space-between;
   height: var(--header-height);
-  padding: 0 20px;
+  padding: 0 28px; /* 일반 헤더 모바일 padding 과 동일 */
 }
 .mn-logo {
   display: inline-flex;
   align-items: center;
   color: var(--color-text-primary);
-  margin-left: -4px; /* 로고 SVG 좌측 여백 보정 */
+  margin-left: -4px; /* 로고 SVG 좌측 광학 보정 — .hdr-left 와 동일 */
 }
 .mn-logo img {
   height: 30px;
@@ -849,7 +849,7 @@ button.hdr-icon-btn { background: none; border: none; }
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-right: -8px; /* hdr-icons margin-right:-4px + icon padding 8px 에 맞춤 */
+  margin-right: -4px; /* 아이콘 버튼 우측 광학 보정 — .hdr-icons 와 동일 */
 }
 .mn-cart {
   position: relative;
