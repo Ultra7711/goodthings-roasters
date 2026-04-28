@@ -13,7 +13,7 @@ import RoasterySection from '@/components/home/RoasterySection';
 import GoodDaysSection from '@/components/home/GoodDaysSection';
 export default function HomePage() {
   return (
-    <>
+    <div id="home-body">
       <OverscrollTop top="#1E1B16" />
       {/* #hero-blk margin-top:-96px는 globals.css에서 적용 */}
       <HeroSection />
@@ -23,6 +23,6 @@ export default function HomePage() {
       <TwoColSection />
       <RoasterySection />
       <GoodDaysSection />
-    </>
+    </div>
   );
 }

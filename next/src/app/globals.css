@@ -1534,6 +1534,13 @@ footer.blk {
   animation: pageEnter var(--duration-drawer) var(--ease-spring) both;
 }
 
+/* ══ #home-body — 홈 페이지 진입 페이드인 (BUG-178 동일 패턴)
+     data-dest-dark 가 .root 배경을 dark 로 유지하는 400ms 동안
+     opacity:0→1 전환 → 히어로 영상 부드러운 등장 + 흰 플래시 차단. ══ */
+#home-body {
+  animation: stFadeIn var(--duration-drawer) var(--ease-spring) both;
+}
+
 /* ══ #hero-blk ══ */
 /* 어나운스 + 헤더 높이만큼 위로 당겨 전체화면 덮음 — clamp 값이 뷰포트마다 달라 고정값 대신 변수 사용 */
 #hero-blk { margin-top: calc(-1 * (var(--ann-bar-height) + var(--header-height))); }
