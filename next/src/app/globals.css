@@ -3110,6 +3110,80 @@ footer.blk {
   animation: cm-thumb-flash .7s ease 2;
 }
 
+/* ── 카드 좋아요 버튼 ── */
+.cm-card-badges {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cm-card-badges .sp-card-badge {
+  position: relative;
+  top: auto;
+  left: auto;
+}
+.cm-popular-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: var(--color-accent-gold);
+  color: #fff;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.cm-like-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.88);
+  border: none;
+  border-radius: 20px;
+  padding: 6px 7px;
+  cursor: pointer;
+  z-index: 2;
+  min-width: 32px;
+  transition: background 150ms ease, transform 100ms ease;
+}
+.cm-like-btn:hover { background: rgba(255, 255, 255, 0.98); }
+.cm-like-btn:active { transform: scale(0.92); }
+.cm-like-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-tertiary);
+  transition: color 200ms ease;
+  flex-shrink: 0;
+}
+.cm-like-btn--liked .cm-like-icon { color: #E84E4E; }
+.cm-like-count {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  line-height: 1;
+}
+/* 인스타그램 스타일 탭 pop 애니메이션 — like 시에만 실행 */
+.cm-like-btn--popping .cm-like-icon {
+  animation: cmHeartPop 360ms cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+@keyframes cmHeartPop {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(0.85); }
+  50%  { transform: scale(1.35); }
+  70%  { transform: scale(0.92); }
+  85%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
 /* ── NUTRITION SHEET (우측 슬라이드인 드로어) ── */
 #cafe-nutrition-sheet {
   position: fixed;

@@ -22,6 +22,10 @@ type Props = {
   baseDelay?: number;
   instant?: boolean;
   onOpenNutrition: (id: string) => void;
+  likeCounts: Record<string, number>;
+  likedSet: Set<string>;
+  popularRanks: Record<string, 1 | 2 | 3>;
+  onToggleLike: (menuId: string) => void;
 };
 
 export default function CafeMenuGrid({
@@ -33,6 +37,10 @@ export default function CafeMenuGrid({
   baseDelay = 0,
   instant = false,
   onOpenNutrition,
+  likeCounts,
+  likedSet,
+  popularRanks,
+  onToggleLike,
 }: Props) {
   return (
     <div id="cm-grid">
@@ -47,6 +55,10 @@ export default function CafeMenuGrid({
           baseDelay={baseDelay}
           instant={instant}
           onOpenNutrition={onOpenNutrition}
+          likeCount={likeCounts[item.id] ?? 0}
+          isLiked={likedSet.has(item.id)}
+          onToggleLike={onToggleLike}
+          popularRank={popularRanks[item.id] ?? null}
         />
       ))}
     </div>

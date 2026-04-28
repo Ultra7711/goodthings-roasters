@@ -27,6 +27,7 @@ import {
   type CafeMenuItem,
 } from '@/lib/cafeMenu';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useMenuLikes } from '@/hooks/useMenuLikes';
 
 const HIGHLIGHT_MS = 1500;
 // ShopPage 와 동일 — 탭(0.3s) 등장 후 카드 시작, 진입 후엔 0
@@ -58,6 +59,8 @@ export default function CafeMenuPage() {
 
   const isMobile = useMediaQuery('(max-width: 479px)');
   const perPage = isMobile ? CM_PER_PAGE_MOBILE : CM_PER_PAGE;
+
+  const { counts: likeCounts, liked: likedSet, toggle: toggleLike } = useMenuLikes();
 
   // ───────────────────────────────────────────
   // Adjusting state during render — urlFilter / searchParams prop 동기화
@@ -185,6 +188,18 @@ export default function CafeMenuPage() {
     };
   }, [highlightId]);
 
+  // 인기 순위 — 좋아요 1개 이상인 메뉴 중 상위 3위 (옵션 A: 절대값 임계값 없음)
+  const popularRanks = useMemo<Record<string, 1 | 2 | 3>>(() => {
+    const sorted = Object.entries(likeCounts)
+      .filter(([, count]) => count > 0)
+      .sort(([, a], [, b]) => b - a);
+    const ranks: Record<string, 1 | 2 | 3> = {};
+    sorted.slice(0, 3).forEach(([menuId], i) => {
+      ranks[menuId] = (i + 1) as 1 | 2 | 3;
+    });
+    return ranks;
+  }, [likeCounts]);
+
   // 필터/페이징 파생 상태
   const filtered: CafeMenuItem[] = useMemo(
     () => sortCafeMenu(filterCafeMenu(CAFE_MENU, filter)),
@@ -251,6 +266,10 @@ export default function CafeMenuPage() {
         baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
         instant={!isInitRef.current}
         onOpenNutrition={handleOpenNutrition}
+        likeCounts={likeCounts}
+        likedSet={likedSet}
+        popularRanks={popularRanks}
+        onToggleLike={toggleLike}
       />
       {/* eslint-enable react-hooks/refs */}
 

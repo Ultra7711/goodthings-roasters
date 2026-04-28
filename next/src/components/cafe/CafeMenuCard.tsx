@@ -13,6 +13,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { CafeMenuItem, CafeMenuStatus, CafeMenuTemp } from '@/lib/cafeMenu';
+import MenuLikeButton from './MenuLikeButton';
 
 const SCROLL_REVEAL_THRESHOLD = 0.15;
 const STAGGER_MS = 70;
@@ -60,6 +61,10 @@ type Props = {
   baseDelay?: number; // 초기 로드 시 추가 딜레이(ms) — 필터 전환 시는 0 (ShopCard 와 동일)
   instant?: boolean; // 탭 전환 후 새 카드 mount 시 true — entry 애니메이션 완전 스킵
   onOpenNutrition: (id: string) => void;
+  likeCount: number;
+  isLiked: boolean;
+  onToggleLike: (menuId: string) => void;
+  popularRank?: 1 | 2 | 3 | null;
 };
 
 export default function CafeMenuCard({
@@ -70,6 +75,10 @@ export default function CafeMenuCard({
   baseDelay = 0,
   instant = false,
   onOpenNutrition,
+  likeCount,
+  isLiked,
+  onToggleLike,
+  popularRank = null,
 }: Props) {
   const [visible, setVisible] = useState(instant);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -129,7 +138,21 @@ export default function CafeMenuCard({
       <div className="cm-card-thumb">
         <div className="cm-card-img" style={{ background: thumbStyle }} />
 
-        {badgeClass && <span className={badgeClass}>{item.status}</span>}
+        {(badgeClass || popularRank) && (
+          <div className="cm-card-badges">
+            {badgeClass && <span className={badgeClass}>{item.status}</span>}
+            {popularRank && (
+              <span className="cm-popular-badge">인기 No.{popularRank}</span>
+            )}
+          </div>
+        )}
+
+        <MenuLikeButton
+          menuId={item.id}
+          count={likeCount}
+          isLiked={isLiked}
+          onToggle={onToggleLike}
+        />
 
         {tempBadge && (
           <div className="cm-temp-badges">
