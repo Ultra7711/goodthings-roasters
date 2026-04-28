@@ -69,16 +69,24 @@
 
 ### 🟡 Group C — 마이페이지 연동 (사용자 관리 API)
 
-| # | 작업 | 추정 |
-|---|------|------|
-| **C-1** | `GET /api/orders` (사용자별, 페이지네이션, RLS) | 1~2h |
-| **C-2** | `GET /api/subscriptions` (사용자별, 활성·일시중지·해지 분리) | 1h |
-| **C-3** | `PATCH /api/subscriptions/:id` (cycle 변경 + `next_delivery_at` 재계산) | 1h |
-| **C-4** | `DELETE /api/subscriptions/:id` (soft cancel — `status='cancelled'` + `cancelled_at`) | 30m |
-| **C-5** | `POST /api/subscriptions/:id/pause` + `/resume` (일시중지·재개) | 1h |
-| **C-6** | `MyPagePage` MOCK_ORDERS·MOCK_SUBSCRIPTIONS → `useQuery`/`useMutation` 교체 | 2h |
-| **C-7** | 빈 상태·로딩·에러 UI + 낙관적 업데이트 | 1h |
-| **C-8** | 회원 탈퇴 흐름 — 활성 구독 있을 시 차단 (이미 `confirmWithdraw` 에 409 분기 있음, 검증만) | 30m |
+> **S99 UI 선행 완료 (2026-04-29):**
+> `MyPagePage.tsx` 에 다음 UI 가 MOCK 상태로 구현됨. 백엔드 API 완성 후 C-6 에서 실제 연동 교체.
+> - 구독 아코디언 3버튼 레이아웃 `[배송 건너뛰기 | 구독 해지 | 취소/저장]` (flex 2:1.5:1)
+> - 배송 건너뛰기 확인 모달 — `calcNextDate(currentDate, cycle)` 헬퍼로 다음 배송일 계산 후 표시
+> - 구독 해지 확인 모달 — danger CTA (`--color-error` 배경)
+> - `CYCLE_DAYS` 상수 및 `calcNextDate()` 순수 함수 컴포넌트 상단에 정의
+
+| # | 작업 | 추정 | 비고 |
+|---|------|------|------|
+| **C-1** | `GET /api/orders` (사용자별, 페이지네이션, RLS) | 1~2h | |
+| **C-2** | `GET /api/subscriptions` (사용자별, 활성·일시중지·해지 분리) | 1h | |
+| **C-3** | `PATCH /api/subscriptions/:id` (cycle 변경 + `next_delivery_at` 재계산) | 1h | UI 완료 (S99 MOCK) |
+| **C-4** | `DELETE /api/subscriptions/:id` (soft cancel — `status='cancelled'` + `cancelled_at`) | 30m | UI 완료 (S99 MOCK — 해지 확인 모달) |
+| **C-5** | `POST /api/subscriptions/:id/skip` (1회 배송 건너뛰기 — `next_delivery_at` += cycle_days, `skip_count` 증가) | 1h | UI 완료 (S99 MOCK — 다음 배송일 표시 확인 모달). cycle_days 는 `CYCLE_DAYS` 상수 기준 (14/21/28/42/56일) |
+| **C-6** | `POST /api/subscriptions/:id/pause` + `/resume` (일시중지·재개) | 1h | |
+| **C-7** | `MyPagePage` MOCK_ORDERS·MOCK_SUBSCRIPTIONS → `useQuery`/`useMutation` 교체 | 2h | C-3~C-5 UI 는 이미 완성 — API 연결만 교체 |
+| **C-8** | 빈 상태·로딩·에러 UI + 낙관적 업데이트 | 1h | |
+| **C-9** | 회원 탈퇴 흐름 — 활성 구독 있을 시 차단 (이미 `confirmWithdraw` 에 409 분기 있음, 검증만) | 30m | |
 
 ### 🟢 Group D — 도메인 정합성 보강 (출시 전 필수)
 
@@ -131,8 +139,8 @@
 | **(어드민 S-1~S-6 후)** | 어드민 인프라·주문·사용자·상품 DB 전환·메뉴 완료 (`admin-implementation-plan.md` 참조) | 56~80h | 상품 DB 전환 완료, 어드민 출시 가능 |
 | **S-7-1** | A-1 + A-2 (정기배송 인프라 정합성) | 1~1.5h | enum 정합 + production 마이그 동기화 |
 | **S-7-2** | B-1 + B-2 + B-3 + B-5 (결제→subscriptions INSERT) | 4~6h | 정기배송 결제 흐름 백엔드 완성 |
-| **S-7-3** | C-1 + C-2~C-5 (사용자 API 7종) | 4~5h | 사용자 관리 API 완성 |
-| **S-7-4** | C-6 + C-7 + B-4 + D-1 (마이페이지 UI 교체 + 할인 UI) | 4~5h | 마이페이지 정기배송 풀 작동 |
+| **S-7-3** | C-1 + C-2~C-6 (사용자 API 8종 — 건너뛰기 포함) | 5~6h | 사용자 관리 API 완성 |
+| **S-7-4** | C-7 + C-8 + B-4 + D-1 (마이페이지 UI 교체 + 할인 UI) | 3~4h | C-3~C-5 UI 완성(S99)으로 단축 |
 | **S-7-5** | D-2 + D-3 + D-4 + 인수 검증 | 2~3h | 정기배송 사용자 흐름 출시 가능 |
 | **S-8** | 어드민 정기배송 UI (admin plan Group D) | 4~6h | 정기배송 운영 가능 |
 | **(보류)** | E·G — 자동 결제·알림 | 큼 | Phase 3 (출시 후 V2) |
@@ -188,3 +196,4 @@ S92~S95 진행 중·후에 클라이언트(사업자)에게 확정 받을 사항
 |------|------|----------|
 | 2026-04-27 | S92 | 초기 작성 (진단 + 작업 리스트 + 권장 순서) |
 | 2026-04-27 | S92 | 어드민 풀 구현 정책 변경 반영 — Group F (어드민) 를 `admin-implementation-plan.md` 로 이관, 진행 순서를 어드민 후속으로 재배치 |
+| 2026-04-29 | S99 | Group C UI 선행 완료 반영 — 구독 아코디언 3버튼(배송 건너뛰기·구독 해지·취소/저장) + 확인 모달 2종(S99 MOCK). C-5 배송 건너뛰기 API 항목 신규 추가. C-7→C-8(UI), C-6→C-7(pause/resume) 번호 재정렬. S-7-3·S-7-4 추정 시간 보정 |
