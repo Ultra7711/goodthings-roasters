@@ -270,6 +270,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
                   href="/mypage"
                   className="mn-account-link-inline"
                   onClick={handleAccountClick}
+                  data-gtr-tap
                 >
                   <span className="mn-account-link-text">마이페이지</span>
                   <span className="mn-link-arrow mn-link-arrow-inline" aria-hidden="true">
@@ -297,6 +298,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
               href="/login"
               className="mn-link"
               onClick={handleAccountClick}
+              data-gtr-tap
             >
               <span className="mn-link-text">로그인</span>
               <span className="mn-link-arrow" aria-hidden="true">
@@ -318,6 +320,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
                 className="mn-link"
                 aria-current={isActive ? 'page' : undefined}
                 onClick={(e) => handleNavClick(e, item)}
+                data-gtr-tap
               >
                 <span className="mn-link-text">{item.label}</span>
                 <span className="mn-link-arrow" aria-hidden="true">
@@ -335,6 +338,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
             href="/biz-inquiry"
             className="mn-account-link"
             onClick={handleWholesaleClick}
+            data-gtr-tap
           >
             Wholesale
             <span className="mn-link-arrow" aria-hidden="true">

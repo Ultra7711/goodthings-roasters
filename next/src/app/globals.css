@@ -929,7 +929,7 @@ button.hdr-icon-btn { background: none; border: none; }
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
   transition: color var(--duration-hover) ease;
 }
 .mn-account-link-inline:hover { color: var(--color-text-primary); }
@@ -940,13 +940,16 @@ button.hdr-icon-btn { background: none; border: none; }
   width: 0;
   overflow: hidden;
   opacity: 0;
+  margin-left: 0;
   transition:
     width var(--duration-hover) ease,
-    opacity var(--duration-hover) ease;
+    opacity var(--duration-hover) ease,
+    margin-left var(--duration-hover) ease;
 }
 .mn-account-link-inline:hover .mn-link-arrow.mn-link-arrow-inline {
   width: 24px;
   opacity: 1;
+  margin-left: 8px;
   animation: cat-arrow-slide var(--duration-hover) ease-out;
 }
 /* 골드 세로 라인 — .st-location-hours border-left 2px gold 패턴 차용 (BUG-140 · S77).
@@ -1015,6 +1018,19 @@ button.hdr-icon-btn { background: none; border: none; }
   opacity: 1;
   transition: opacity var(--duration-hover) ease;
   animation: cat-arrow-slide var(--duration-hover) ease-out;
+}
+/* 모바일 탭 피드백 (TouchHoverGuard [data-gtr-tap] 패턴): --duration-tap 350ms 로 통일 */
+.mn-link.is-tapping .mn-link-arrow,
+.mn-account-link.is-tapping .mn-link-arrow {
+  opacity: 1;
+  transition: opacity var(--duration-tap) ease;
+  animation: cat-arrow-slide var(--duration-tap) ease-out;
+}
+.mn-account-link-inline.is-tapping .mn-link-arrow.mn-link-arrow-inline {
+  width: 24px;
+  opacity: 1;
+  margin-left: 8px;
+  animation: cat-arrow-slide var(--duration-tap) ease-out;
 }
 .mn-footer {
   flex-shrink: 0;
@@ -1751,7 +1767,7 @@ footer.blk {
     flex-direction: column;
     aspect-ratio: auto;
     gap: 32px;
-    padding: 80px 24px 80px;
+    padding: 160px 24px 80px;
   }
   .season-banner-img {
     flex: 0 0 auto;
@@ -1817,9 +1833,9 @@ footer.blk {
     aspect-ratio: 3/2;
   }
   .cafe-menu-header {
-    padding: 64px 24px 0;
+    padding: 160px 24px 0;
   }
-  .cafe-menu-blk { padding-bottom: 120px; }
+  .cafe-menu-blk { padding-bottom: 200px; }
 }
 .cat-img::before {
   content: '';
@@ -1978,7 +1994,7 @@ footer.blk {
   .phil {
     flex-direction: column;
     height: auto;
-    padding: 0 0 64px;
+    padding: 0 0 80px;
     gap: 48px;
   }
   .phil-img {
@@ -1995,9 +2011,9 @@ footer.blk {
 }
 
 /* ══ .blk-scroll (Featured Beans) ══ */
-.beans-blk { padding: 117px 0 120px; }
+.beans-blk { padding: 120px 0; }
 @media (max-width: 767px) {
-  .beans-blk { padding: 64px 0 64px; }
+  .beans-blk { padding: 160px 0 80px; }
 }
 /* overflow:visible — 카드가 섹션 경계에서 잘리지 않도록 (프로토타입 라인 536) */
 .blk-scroll { overflow: visible; }
@@ -2117,7 +2133,7 @@ footer.blk {
 /* ══ .two-col (서비스 카드) ══ */
 .two-col-blk { padding: 120px 0; }
 @media (max-width: 767px) {
-  .two-col-blk { padding: 80px 0 96px; }
+  .two-col-blk { padding: 120px 0 200px; }
 }
 .two-col {
   display: grid;
@@ -2333,8 +2349,7 @@ footer.blk {
     width: 100%;
     padding: 0 24px 48px;
   }
-  .roastery-lbl { color: var(--color-accent-gold-on-image); }
-  .roastery-lbl::before { background: var(--color-accent-gold-on-image); }
+  .roastery-lbl { color: var(--color-label-on-dark); }
   .roastery-h { color: var(--color-text-inverse); }
   .roastery-body,
   .roastery-hours { color: rgba(250, 250, 248, 0.82); }
@@ -4981,7 +4996,7 @@ footer.blk {
 }
 @media (max-width: 767px) {
   #pd-accordions {
-    padding: 0 20px 64px;
+    padding: 0 20px 80px;
   }
 }
 .pd-accordion {
@@ -5509,7 +5524,7 @@ footer.blk {
 @media (max-width: 767px) {
   .st-location {
     margin-top: 80px;
-    margin-bottom: 64px;
+    margin-bottom: 80px;
   }
   .st-location-inner {
     grid-template-columns: 1fr;
@@ -5890,7 +5905,7 @@ footer.blk {
 }
 @media (max-width: 767px) {
   #bi-body {
-    padding-bottom: 64px;
+    padding-bottom: 80px;
     gap: 64px;
   }
   .bi-form-section {
@@ -7939,6 +7954,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 /* 모바일 검색 결과 */
 @media (max-width: 767px) {
+  .search-page-wrap {
+    padding-bottom: 80px;
+  }
   .search-page-inner {
     padding: 0 24px;
   }
@@ -8770,6 +8788,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .tci-lbl::before {
   background: var(--color-accent-gold-on-image);
 }
+/* 모바일 Visit 섹션: 풀블리드 이미지 배경 → tci-lbl 과 동일 처리 */
+@media (max-width: 767px) {
+  .roastery-lbl::before { background: var(--color-accent-gold-on-image); }
+}
 
 /* ══ Eyebrow Slide-in (design-interaction-plan §4 ⑧ 최종안) ══
    sr-txt 가 붙은 label 은 eyebrow 가 박스 좌측 외부에서 진입.
@@ -8880,5 +8902,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   #bi-body,
   .cp-root {
     padding-top: 56px;
+  }
+  #sp-body,
+  #cm-body,
+  #gd-inner {
+    padding-bottom: 80px;
   }
 }

@@ -6,7 +6,6 @@ import { type Product, extractKrName, formatStartPrice, getStatusBadgeClass } fr
 import { useAddCartItem } from '@/hooks/useCart';
 
 const HOVER_DELAY_MS = 400;
-const QA_TEXT_DELAY_MS = 150;
 const SCROLL_REVEAL_THRESHOLD = 0.15;
 
 /** 첫 번째 가용(품절 아닌) 볼륨 인덱스 — 전부 품절이면 0 */
@@ -36,12 +35,10 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
 
   const cardRef = useRef<HTMLDivElement>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const qaTextTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function clearTimers() {
     if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
-    if (qaTextTimerRef.current) { clearTimeout(qaTextTimerRef.current); qaTextTimerRef.current = null; }
     if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
   }
 
@@ -96,7 +93,6 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   useEffect(() => {
     return () => {
       if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
-      if (qaTextTimerRef.current) { clearTimeout(qaTextTimerRef.current); qaTextTimerRef.current = null; }
       if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
     };
   }, []);
@@ -121,7 +117,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
       bar.style.opacity = '';
       bar.style.pointerEvents = '';
     }
-    qaTextTimerRef.current = setTimeout(() => setQaBarText('장바구니에 담기'), QA_TEXT_DELAY_MS);
+    setQaBarText('장바구니에 담기');
   }
 
   function handleMouseEnter() {
