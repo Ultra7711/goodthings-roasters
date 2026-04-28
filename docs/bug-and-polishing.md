@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **71 / 73 closure (97.3%)** · 2026-04-28 S96 기준 (S96: BUG-178 ✅ 확정 closure · S94: BUG-137 ✅ · BUG-176 ✅ · BUG-159 ✅ shimmer skeleton · BUG-101 제거 · BUG-173 미해결 · BUG-177 신규 등록)
+> **71 / 73 closure (97.3%)** · 2026-04-28 S96 기준 (S96: BUG-178 ✅ 확정 closure · BUG-130 접근 C 재수정 · S94: BUG-137 ✅ · BUG-176 ✅ · BUG-159 ✅ shimmer skeleton · BUG-101 제거 · BUG-173 미해결 · BUG-177 신규 등록)
 >
 > 카운트 명령:
 > ```bash
@@ -17,7 +17,7 @@
 > ```
 >
 > **세션별 closure 누적:**
-> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143) · S82 (BUG-103) · S83 (신규 closure 없음 · BUG-149 UX 정제 · useNavigation 훅) · S90 (BUG-163/169/170) · S93 (BUG-166 재closure · BUG-174/175) · S94 (BUG-137/176/159/178)
+> - S53 (legacy `해결됨` 섹션 · BUG-104/105/108) · S70 (BUG-127) · S71 (BUG-109/110) · S72 (BUG-128) · S73 (BUG-130/131/132/135) · S74 (BUG-121/122/123/133/138) · S75 (BUG-134/139) · S76 (BUG-144/145/146) · S77 (BUG-140/147) · S78 (BUG-102/106/107/111/113/114/116/117/118/119/126/141/151/152) · S80 (BUG-154/155/156/157) · S81 (BUG-143) · S82 (BUG-103) · S83 (신규 closure 없음 · BUG-149 UX 정제 · useNavigation 훅) · S90 (BUG-163/169/170) · S93 (BUG-166 재closure · BUG-174/175) · S94 (BUG-137/176/159/178) · S96 (BUG-178 확정 closure · BUG-130 접근 C 재수정)
 >
 > **데이터 정합 노트:**
 > - BUG-104/108/105 는 하단 `해결됨` 섹션에도 중복 기재 (legacy · 참조용)
@@ -983,6 +983,7 @@ React state flush: schedule 순서대로 적용
 - **근본 원인 (§11-H1 측정 · M-006):** SiteHeader 의 useHeaderTheme useLayoutEffect 가 NavigationVisibilityGate 의 useLayoutEffect 보다 React 컴포넌트 트리 순서상 2~15ms 먼저 commit. pathname 변경 즉시 헤더 색이 new theme 으로 전환 · 본문은 여전히 `data-transitioning=true` 로 hidden. 시각 순서 불일치 발생.
 - **수정 (Prototype A):** SiteHeader 에 `effectivePath` state 추가. NavigationVisibilityGate 가 이미 dispatch 중인 `gtr:route-change` 이벤트 (S72 DB-06 해결용 자산) 를 수신하여 effectivePath 갱신. 테마 계산이 gate-LE 와 동일 tick 에 commit → 본문-헤더 동시 전환.
 - **측정 후 결과:** 순서 역전 성공 (gate-LE → hdr-LE +4.6~5.3ms). 5ms 는 paint frame 내 처리 → 시각적 동시. 사용자 체감 통과.
+- **재수정 (접근 C · S96 · `81191833`):** Prototype A 잔존 플래시 추가 개선. NavigationVisibilityGate click handler 에서 `#site-hdr-wrap` 클래스를 DOM 직접 조작하여 React state 경유(2 render cycle) 없이 배경 전환과 동일 tick 에 헤더 테마 전환. `hdr-instant` 로 transition 억제 후 `useLayoutEffect` 에서 제거.
 - **상세:** `memory/project_bug006_decisions_log.md` D-024 · `memory/project_bug006_measurement_log.md` M-006
 
 ---
