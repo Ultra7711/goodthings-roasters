@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════
    NavigationVisibilityGate
    BUG-007 / H8 — prev-page 2-frame 잔상 차단 prototype A (S71)
+   BUG-178 접근 B — .root background route-aware (다크 진입 보정, S94)
 
    문제: Next.js 16 + React 19 의 startTransition 기반 navigation 에서
          click → React new tree build → commit 사이 ~34.7ms 동안 prev DOM
@@ -17,9 +18,11 @@
          prev DOM 즉시 비가시 → useLayoutEffect (new pathname commit) 에서
          속성 제거 → paint 전 새 DOM 가시.
 
-   비교 후보 (회귀 발견 시 단계 업그레이드):
-         접근 B = visibility + .root background route-aware (다크 진입 case
-         정밀 보정)
+   접근 B (다크 진입 보정):
+         destination 이 DARK_ROUTES (/ · /story) 이면 .root 에
+         data-dest-dark="true" 추가 → CSS background 즉시 다크 전환 →
+         #main-content visibility:hidden 중 흰색 배경 노출 차단.
+         useLayoutEffect 에서 pathname 변경 시 속성 제거.
 
    SR / IO 영향: visibility 는 IntersectionObserver 와 무관 (IO 는 viewport
    intersection 기반) → SR reveal 정상 fire. 안전.
@@ -37,11 +40,13 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
+const DARK_ROUTES = new Set(['/', '/story']);
+
 export default function NavigationVisibilityGate() {
   const pathname = usePathname();
   const prevPathRef = useRef<string | null>(null);
 
-  /* capture-phase click → destination Link 감지 → main hide */
+  /* capture-phase click → destination Link 감지 → main hide + dark-route 보정 */
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       // 좌클릭만 + 수정자 키 없음 (ctrl/cmd 클릭 새 탭 case 제외)
@@ -72,6 +77,15 @@ export default function NavigationVisibilityGate() {
         return;
       const main = document.getElementById('main-content');
       if (main) main.setAttribute('data-transitioning', 'true');
+      // 접근 B: 다크 라우트 진입 시 .root 배경 즉시 다크 전환 (BUG-178)
+      const root = document.querySelector<HTMLElement>('.root');
+      if (root) {
+        if (DARK_ROUTES.has(href)) {
+          root.setAttribute('data-dest-dark', 'true');
+        } else {
+          root.removeAttribute('data-dest-dark');
+        }
+      }
     };
     document.addEventListener('click', onClick, { capture: true });
     return () =>
@@ -92,12 +106,24 @@ export default function NavigationVisibilityGate() {
   useLayoutEffect(() => {
     const main = document.getElementById('main-content');
     if (main) main.removeAttribute('data-transitioning');
+    // 비다크 라우트 진입 시에만 즉시 제거. 다크 라우트는 pageEnter 완료 후 제거 (↓ useEffect)
+    const root = document.querySelector<HTMLElement>('.root');
+    if (root && !DARK_ROUTES.has(pathname)) root.removeAttribute('data-dest-dark');
     if (prevPathRef.current !== pathname) {
       window.dispatchEvent(
         new CustomEvent<string>('gtr:route-change', { detail: pathname }),
       );
     }
     prevPathRef.current = pathname;
+  }, [pathname]);
+
+  /* pageEnter 완료(350ms) + 여유(50ms) 후 data-dest-dark 제거 — 다크 루트 진입 시만 */
+  useEffect(() => {
+    if (!DARK_ROUTES.has(pathname)) return;
+    const root = document.querySelector<HTMLElement>('.root');
+    if (!root || !root.hasAttribute('data-dest-dark')) return;
+    const timer = setTimeout(() => root.removeAttribute('data-dest-dark'), 400);
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   return null;
