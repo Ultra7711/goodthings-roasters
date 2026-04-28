@@ -4,18 +4,16 @@
    서버 인증(`requireAuth`) + 클라 hydration 동안 보여지는 skeleton.
 
    설계 (BUG-168):
-   - 미니 헤더 + 좌우 그리드를 즉시 표시 → "헤더도 안 보이는 백지" 제거
+   - 헤더 + 좌우 그리드를 즉시 표시 → "헤더도 안 보이는 백지" 제거
    - 고정 섹션(계정 정보·계정 관리)은 정확한 placeholder → swap 시 layout shift 없음
    - 가변 섹션(정기배송·주문 내역)은 1개 카드만 표시 → 실데이터 N개와 차이 작음
    - SkelBox 높이는 실제 텍스트 line-height 기준 (body-m=22, body-ui=16)
    - mp-section-body 내 padding 은 실제 컴포넌트 매칭 (mp-info-row=14, mp-sub-item=16, mp-order-card=20)
 
-   주의 (S89 디버깅 결과):
-   - <Image priority> 사용 시 dev 서버에서 RSC stream 누적 stuck → priority 금지
-   - logo SVG 비율 경고 방지 위해 height auto 명시
+   헤더: SiteHeader 직접 사용 (메인 라우트와 픽셀 단위 동일 → swap 시 헤더 layout shift 0)
    ══════════════════════════════════════════ */
 
-import Image from 'next/image';
+import SiteHeader from '@/components/layout/SiteHeader';
 
 /* 텍스트 line-height 기준 placeholder 높이 (px) */
 const H_BODY_M = 22; /* var(--type-body-m-size)=15px × 1.5 ≈ 22.5 */
@@ -42,26 +40,7 @@ function InfoRowSkel({ labelW = 80, valueW = 200 }: { labelW?: number; valueW?: 
 export default function MyPageSkeleton() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-      {/* 미니 헤더 — 로고 + 우측 아이콘 플레이스홀더 */}
-      <div className="chp-hdr-wrap hdr-at-top">
-        <div className="chp-hdr-inner">
-          <Image
-            src="/images/icons/logo.svg"
-            alt="GOOD THINGS"
-            width={150}
-            height={30}
-            className="chp-logo-img"
-            style={{ width: '150px', height: 'auto' }}
-          />
-          {/* 우측 아이콘 그룹 플레이스홀더 — layout shift 방지 */}
-          <div className="mp-hdr-right">
-            <div className="hdr-icons mp-hdr-icons" aria-hidden="true">
-              <div style={{ width: 40, height: 40 }} />
-              <div style={{ width: 40, height: 40 }} />
-            </div>
-          </div>
-        </div>
-      </div>
+      <SiteHeader />
 
       {/* 본문 — 실제 mp-body 와 동일 그리드 */}
       <div className="mp-body">

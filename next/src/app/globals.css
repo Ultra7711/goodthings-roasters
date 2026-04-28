@@ -6249,16 +6249,7 @@ footer.blk {
 .chp-hdr-inner > .hdr-icon-btn { margin-right: -8px; }
 .chp-logo-img { cursor: pointer; }
 
-/* ── 마이페이지 전용 헤더 우측 ── */
-.mp-hdr-right {
-  display: flex;
-  align-items: center;
-  margin-right: -8px; /* hdr-icon-btn 40px tap-area → 시각 edge 를 gutter 에 정렬 */
-}
-/* nav 와 아이콘 사이 간격 */
-.mp-hdr-nav { margin-right: 8px; }
-/* 아이콘 그룹: hdr-icons 의 flex:1/justify-content:flex-end 는 mp-hdr-right 안에서 불필요 */
-.mp-hdr-icons { flex: 0; }
+/* (마이페이지 전용 헤더 mp-hdr-* 클래스는 SiteHeader 직접 사용으로 폐기됨) */
 
 /* 빈 장바구니 상태 */
 .chp-empty {
@@ -7475,8 +7466,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-caption); padding: 24px 0;
 }
 
-/* 우측: 주문 내역 — #12: 컨텐츠만 흰 박스 (타이틀 제외) */
-.mp-right { padding-top: 125px; position: sticky; top: 80px; align-self: start; }
+/* 우측: 주문 내역 — #12: 컨텐츠만 흰 박스 (타이틀 제외)
+   padding-top 119px: 좌측 첫 mp-section ("계정 정보") title 위치와 정렬.
+   참고: .mp-section:first-of-type{margin-top:24px} 가 mp-title-row/mp-welcome-wrap
+   div 들 때문에 :first-of-type 매칭 실패 → 32px 가 적용된 상태 기준 fine-tune. */
+.mp-right { padding-top: 119px; position: sticky; top: 80px; align-self: start; }
 .mp-right .mp-section-title { margin-bottom: 24px; }
 
 /* 주문 카드 — #14: 단일 박스 내 hairline 구분 */
@@ -7486,7 +7480,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   box-shadow: inset 0 -1px 0 0 var(--color-border-hairline);
   cursor: pointer; overflow: hidden;
 }
-.mp-order-card:last-child { border-bottom: none; }
+/* 마지막 카드는 mp-section-body 박스 경계가 구분 역할을 대체하므로 hairline 제거 */
+.mp-order-card:last-child { border-bottom: none; box-shadow: none; }
 @media (min-width: 1024px) {
   .mp-order-card { min-width: 340px; }
 }

@@ -13,12 +13,10 @@
 
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { useAtTop } from '@/hooks/useAtTop';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { supabase } from '@/lib/supabase';
 import type { AuthClaims } from '@/lib/auth/getClaims';
@@ -35,9 +33,7 @@ import { MOCK_ORDERS, MOCK_SUBSCRIPTIONS } from '@/lib/mockMyPageData';
 import { extractKrName, formatPrice } from '@/lib/utils';
 import type { Subscription, SubscriptionCycle } from '@/types/subscription';
 import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
-import { useCartQuery } from '@/hooks/useCart';
-import { useCartDrawer } from '@/contexts/CartDrawerContext';
-import MobileNavDrawer from '@/components/layout/MobileNavDrawer';
+import SiteHeader from '@/components/layout/SiteHeader';
 
 /* ── SVG 아이콘 ── */
 function ChevronDown() {
@@ -73,7 +69,6 @@ type MyPagePageProps = {
 /* ══════════════════════════════════════════ */
 export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const { show: toast } = useToast();
   /* useAuthGuard: 로그아웃 감지 시 router.replace(/login) 자동 동작.
      BUG-168 Fix B: ready/authorized 분기 제거 — 서버 가드가 이미 인증 보장. */
@@ -110,37 +105,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   /* ── 회원 탈퇴 모달 ── */
   const [withdrawOpen, setWithdrawOpen] = useState(false);
 
-  /* ── 헤더 atTop 토글 (scrollY=0 → solid bg1, 스크롤 시 glass) ── */
-  const atTop = useAtTop();
-
-  /* ── 모바일 네비 드로어 ── */
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const { totalQty } = useCartQuery();
-  const { open: openCartDrawer } = useCartDrawer();
-
-  useLayoutEffect(() => { setMounted(true); }, []);
-  useEffect(() => { setIsMobileNavOpen(false); }, [pathname]);
-  useEffect(() => {
-    function onPopState() { setIsMobileNavOpen(false); }
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-  }, []);
-
-  const openMobileNav = useCallback(() => {
-    window.history.pushState({ gtrMobileNav: true }, '', window.location.href);
-    setIsMobileNavOpen(true);
-  }, []);
-
-  const closeMobileNav = useCallback(() => {
-    const state = (window.history.state as { gtrMobileNav?: boolean } | null);
-    if (state?.gtrMobileNav) { window.history.back(); }
-    else { setIsMobileNavOpen(false); }
-  }, []);
-
-  const closeMobileNavForNavigation = useCallback(() => {
-    setIsMobileNavOpen(false);
-  }, []);
+  /* 헤더는 SiteHeader 컴포넌트가 sticky/atTop/검색/모바일 드로어/카트 드로어를 자체 관리.
+     마이페이지는 메인 라우트와 동일한 로고 + nav + 검색·마이페이지·카트 아이콘 구조. */
 
   /* ── 주문 카드 열림 상태 ── */
   const [openOrders, setOpenOrders] = useState<Set<string>>(new Set());
@@ -319,57 +285,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-      {/* ── 미니 헤더 ── */}
-      <div
-        className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
-        style={{
-          backdropFilter: atTop ? 'none' : 'blur(16px)',
-          WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
-        }}
-      >
-        <div className="chp-hdr-inner">
-          <Link href="/">
-            <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={150} height={30} className="chp-logo-img" />
-          </Link>
-          {/* 우측: 데스크탑 nav + 아이콘 그룹 */}
-          <div className="mp-hdr-right">
-            <nav className="hdr-nav mp-hdr-nav" aria-label="메인 내비게이션">
-              <Link href="/story" className="nav-link">The Story</Link>
-              <Link href="/menu" className="nav-link">Menu</Link>
-              <Link href="/shop" className="nav-link">Shop</Link>
-              <Link href="/gooddays" className="nav-link">Good Days</Link>
-            </nav>
-            <div className="hdr-icons mp-hdr-icons">
-              {/* 마이페이지 아이콘 (active) — 데스크탑 전용, hdr-icon-user 는 모바일 미표시 */}
-              <Link href="/mypage" className="hdr-icon-btn hdr-icon-user" aria-label="마이페이지">
-                <svg className="hi" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12,0C5.37,0,0,5.37,0,12s5.37,12,12,12,12-5.37,12-12S18.63,0,12,0ZM11.39,2.03c.2-.01.41-.03.61-.03s.41.02.61.03c3.02.31,5.39,2.87,5.39,5.97,0,3.31-2.69,6-6,6s-6-2.69-6-6c0-3.1,2.37-5.66,5.39-5.97ZM12,22c-2.93,0-5.57-1.28-7.4-3.3.9-1.49,2.98-2.7,7.4-2.7s6.5,1.22,7.4,2.7c-1.83,2.02-4.46,3.3-7.4,3.3Z" />
-                </svg>
-              </Link>
-              {/* 장바구니 */}
-              <button className="hdr-icon-btn" type="button" aria-label="장바구니" onClick={openCartDrawer}>
-                <svg className="hi" viewBox="0 1 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" />
-                  <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-                </svg>
-                {mounted && totalQty > 0 && <span className="cart-badge visible">{totalQty}</span>}
-              </button>
-              {/* 햄버거 — 모바일 전용 (.hdr-menu-toggle 데스크탑 display:none) */}
-              <button
-                type="button"
-                className="hdr-menu-toggle"
-                aria-label="메뉴 열기"
-                aria-expanded={isMobileNavOpen}
-                onClick={openMobileNav}
-              >
-                <svg className="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4,5h16" /><path d="M4,12h16" /><path d="M4,19h16" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SiteHeader />
 
       {/* ── 본문 3:2 그리드 ── */}
       <div className="mp-body">
@@ -767,14 +683,6 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
           </div>
         </div>
       </div>
-
-      {/* ── 모바일 네비 드로어 ── */}
-      <MobileNavDrawer
-        open={isMobileNavOpen}
-        onClose={closeMobileNav}
-        onNavigate={closeMobileNavForNavigation}
-        isLoggedIn={true}
-      />
 
       {/* ── 회원 탈퇴 모달 ── */}
       {withdrawOpen && (
