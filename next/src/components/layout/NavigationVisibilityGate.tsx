@@ -2,6 +2,7 @@
    NavigationVisibilityGate
    BUG-007 / H8 — prev-page 2-frame 잔상 차단 prototype A (S71)
    BUG-178 접근 B — .root background route-aware (다크 진입 보정, S94)
+   BUG-130 접근 C — 헤더 테마 클래스 DOM 직접 선제 토글 (S96)
 
    문제: Next.js 16 + React 19 의 startTransition 기반 navigation 에서
          click → React new tree build → commit 사이 ~34.7ms 동안 prev DOM
@@ -24,6 +25,15 @@
          #main-content visibility:hidden 중 흰색 배경 노출 차단.
          useLayoutEffect 에서 pathname 변경 시 속성 제거.
 
+   접근 C (헤더 테마 선제 토글, S96):
+         React useHeaderTheme 은 route-change event → effectivePath state →
+         re-render 경로를 거쳐 2 render cycle 지연이 발생.
+         click handler 에서 #site-hdr-wrap 헤더 클래스를 DOM 직접 조작하여
+         배경과 동일 tick 에 전환. hdr-instant 로 transition 억제 후
+         useLayoutEffect 에서 제거 (새 pathname commit 시점 = 첫 paint 전).
+         React 의 className reconciliation 이 덮어쓸 수 있지만
+         실제로는 startTransition 완료 전까지 헤더 re-render 가 없어 안전.
+
    SR / IO 영향: visibility 는 IntersectionObserver 와 무관 (IO 는 viewport
    intersection 기반) → SR reveal 정상 fire. 안전.
 
@@ -41,6 +51,11 @@ import { useEffect, useLayoutEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
 const DARK_ROUTES = new Set(['/', '/story']);
+const SECONDARY_ROUTES = new Set(['/shop']);
+
+const HDR_DARK = 'hdr-dark';
+const HDR_INSTANT = 'hdr-instant';
+const HDR_ON_SECONDARY = 'hdr-on-secondary';
 
 export default function NavigationVisibilityGate() {
   const pathname = usePathname();
@@ -86,6 +101,22 @@ export default function NavigationVisibilityGate() {
           root.removeAttribute('data-dest-dark');
         }
       }
+      // 접근 C: 헤더 테마 클래스 선제 토글 (BUG-130, S96)
+      // React state 경로(2 render cycle 지연) 없이 배경과 동일 tick에 전환.
+      // hdr-instant로 transition 억제 → useLayoutEffect에서 제거.
+      const header = document.getElementById('site-hdr-wrap');
+      if (header) {
+        header.classList.add(HDR_INSTANT);
+        if (DARK_ROUTES.has(href)) {
+          header.classList.add(HDR_DARK);
+          header.classList.remove(HDR_ON_SECONDARY);
+        } else if (SECONDARY_ROUTES.has(href)) {
+          header.classList.remove(HDR_DARK);
+          header.classList.add(HDR_ON_SECONDARY);
+        } else {
+          header.classList.remove(HDR_DARK, HDR_ON_SECONDARY);
+        }
+      }
     };
     document.addEventListener('click', onClick, { capture: true });
     return () =>
@@ -109,6 +140,9 @@ export default function NavigationVisibilityGate() {
     // 비다크 라우트 진입 시에만 즉시 제거. 다크 라우트는 pageEnter 완료 후 제거 (↓ useEffect)
     const root = document.querySelector<HTMLElement>('.root');
     if (root && !DARK_ROUTES.has(pathname)) root.removeAttribute('data-dest-dark');
+    // 접근 C: hdr-instant 제거 → 이후 React re-render부터 transition 복원
+    const header = document.getElementById('site-hdr-wrap');
+    if (header) header.classList.remove(HDR_INSTANT);
     if (prevPathRef.current !== pathname) {
       window.dispatchEvent(
         new CustomEvent<string>('gtr:route-change', { detail: pathname }),
