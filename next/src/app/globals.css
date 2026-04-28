@@ -3499,6 +3499,7 @@ footer.blk {
   grid-template-rows: auto auto auto;
   column-gap: 20px;
   row-gap: 4px;
+  align-items: center;
 }
 #cart-drawer-panel .cd-item::after {
   content: '';
@@ -3570,6 +3571,7 @@ footer.blk {
   height: auto;
   display: flex;
   align-items: center;
+  align-self: end;
   gap: 10px;
   margin-top: 8px;
 }
@@ -3594,19 +3596,17 @@ footer.blk {
   position: static;
   margin-left: 0;
   width: 104px;
-  height: 32px;
-  padding: 0 4px;
+  height: 36px;
   background: transparent;
-  border: 1px solid var(--color-input-box-border);
+  border: 1px solid var(--color-border-surface);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--gap-xs);
   transition: border-color var(--duration-hover) ease;
 }
 #cart-drawer-panel .cd-qty-btn {
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3633,7 +3633,7 @@ footer.blk {
 #cart-drawer-panel .cd-item-price {
   position: static;
   margin-left: auto;
-  height: 24px;
+  height: 36px;
   display: flex;
   align-items: center;
   font-family: var(--font-en);
@@ -3675,15 +3675,17 @@ footer.blk {
     column-gap: 16px;
   }
   #cart-drawer-panel .cd-item::after { left: 0; right: 0; }
-  #cart-drawer-panel .cd-item-thumb { width: 96px; height: 96px; }
+  #cart-drawer-panel .cd-item-thumb { width: 96px; height: 96px; align-self: end; }
   #cart-drawer-panel .cd-item-category { font-size: 12px; line-height: 1; }
   #cart-drawer-panel .cd-item-name {
     line-height: 1.4;
     margin-top: 2px;
     margin-bottom: 8px;
+    align-self: center;
   }
   #cart-drawer-panel .cd-item-name-kr { font-size: 16px; line-height: 1.4; }
   #cart-drawer-panel .cd-item-bottom { gap: 12px; margin-top: 0; }
+  #cart-drawer-panel .cd-qty-btn { height: 44px; }
 }
 
 /* 빈 상태 */
@@ -8110,8 +8112,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .cp-qty {
   display: inline-flex; align-items: center;
-  border: 1px solid var(--color-border-primary);
+  justify-content: space-between;
+  border: 1px solid var(--color-border-surface);
   height: 36px;
+  width: 104px;
 }
 .cp-qty-btn {
   width: 36px; height: 100%;
@@ -8342,7 +8346,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     grid-column: 1;
     width: 96px; height: 96px;
     margin-right: 0;
-    align-self: center;
+    align-self: end;
   }
   .cp-item-category {
     grid-row: 1;
@@ -8356,6 +8360,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     grid-column: 3;
     align-self: center;
     justify-self: end;
+    height: 24px;
   }
   .cp-item-name {
     grid-row: 2;
@@ -8365,6 +8370,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     line-height: 1.4;
     margin-top: 2px;
     margin-bottom: 8px;
+    align-self: center;
   }
   .cp-item-name-kr { font-size: 16px; }
   .cp-item-meta-inline { white-space: nowrap; }
@@ -8375,13 +8381,20 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     width: auto;
     margin-right: 0;
     justify-content: flex-start;
+    align-self: end;
   }
+  .cp-qty-btn { height: 44px; }
   .cp-item-total {
     grid-row: 3;
     grid-column: 3;
     width: auto;
     margin-right: 0;
     text-align: right;
+    align-self: end;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
   }
 
   /* 배송비 행: 1행(라벨·가격) + 2행(안내문·게이지) 로 재배치
