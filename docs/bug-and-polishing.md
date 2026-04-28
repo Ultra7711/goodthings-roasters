@@ -8,7 +8,7 @@
 
 ## 진행률
 
-> **70 / 73 closure (95.9%)** · 2026-04-28 S94 기준 (S94: BUG-137 ✅ · BUG-176 ✅ · BUG-159 ✅ shimmer skeleton · BUG-178 ✅ story 플래시 · BUG-101 제거 · BUG-173 미해결 · BUG-177 신규 등록)
+> **71 / 73 closure (97.3%)** · 2026-04-28 S96 기준 (S96: BUG-178 ✅ 확정 closure · S94: BUG-137 ✅ · BUG-176 ✅ · BUG-159 ✅ shimmer skeleton · BUG-101 제거 · BUG-173 미해결 · BUG-177 신규 등록)
 >
 > 카운트 명령:
 > ```bash
@@ -964,17 +964,14 @@ React state flush: schedule 순서대로 적용
   - `fill-mode: both`로 마운트 즉시 `opacity: 0` 적용 → `.st-hero-bg` 의 어두운 배경도 함께 투명해짐
   - `#st-body` 뒤쪽 페이지 배경(`var(--color-bg-primary)` = warm white)이 노출
   - 사용자 체감: "번쩍" 플래시로만 인식 — opacity fade 연출 효과 없음, 결함만 존재
-- **수정 (S94):** `#st-body` 전용 `animation-name` 오버라이드 — opacity 제거, transform만 유지:
-  ```css
-  #st-body { animation-name: pageEnterTransform; }
-  @keyframes pageEnterTransform {
-    from { transform: translateY(12px); }
-    to   { transform: translateY(0); }
-  }
-  ```
-  duration(`var(--duration-drawer)`) · easing(`var(--ease-spring)`) · `fill-mode: both` 는 shorthand에서 그대로 상속. dark hero bg 마운트 즉시 가시 → 플래시 제거.
-- **관련 코드:** `next/src/app/globals.css` (#st-body 섹션 / Story PAGE 구역)
-- **우선순위:** Medium → ✅ closure.
+- **수정 (S94, 불완전):** `#st-body animation-name: pageEnterTransform` (transform-only) — opacity 제거했으나 translateY 슬라이드 잔존 + 페이드인 없음 → HMR 캐시 문제로 실제 미적용 확인.
+- **수정 (S96, 확정):**
+  1. `globals.css` — `@keyframes stFadeIn { from { opacity:0 } to { opacity:1 } }` + `#st-body { animation: stFadeIn var(--duration-drawer) var(--ease-spring) both }` (translateY 없는 순수 opacity 페이드)
+  2. `NavigationVisibilityGate.tsx` — DARK_ROUTES 진입 시 `data-dest-dark` 클릭 즉시 부여 → `useLayoutEffect`(pathname 변경)에서 제거 안 함 → 별도 `useEffect` 400ms 후 제거. pageEnter 350ms 완료 후 warm-white 배경 복원 → 흰 플래시 차단.
+  - `.next/` 완전 삭제 + 서버 재시작 후 확인 필수 (Turbopack HMR 캐시 문제로 이전 시도에서 적용 안 됨)
+- **관련 코드:** `next/src/app/globals.css` (#st-body 섹션) · `next/src/components/layout/NavigationVisibilityGate.tsx`
+- **커밋:** `f35bf6f2`
+- **우선순위:** Medium → ✅ closure (S96 확정).
 
 ----
 
