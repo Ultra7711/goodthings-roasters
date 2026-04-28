@@ -7390,6 +7390,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: var(--type-body-m-weight);
   color: var(--color-text-primary); text-align: right;
 }
+/* Android 데이터 디텍터 안전망 — 자동 생성된 mailto 링크 스타일 초기화 */
+.mp-info-value a[href^="mailto"] {
+  color: inherit; text-decoration: none; pointer-events: none; cursor: default;
+}
 .mp-info-addr-text {
   text-align: right; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }

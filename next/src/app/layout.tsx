@@ -41,6 +41,8 @@ export default function RootLayout({
     <html lang="ko" className={`${inter.variable} ${pretendard.variable} antialiased`}>
       <head>
         <link rel="preload" as="image" href="/images/hero/hero-poster.jpg" fetchPriority="high" />
+        {/* iOS Safari 데이터 디텍터 — 이메일·전화번호 자동 링크 변환 방지 */}
+        <meta name="format-detection" content="telephone=no, email=no, address=no" />
       </head>
       {/* Providers: QueryClientProvider + CartDrawerProvider (ADR-004 Step B).
           AuthSyncProvider: Supabase 세션 → Zustand 동기화 브리지 (P0-2) +
