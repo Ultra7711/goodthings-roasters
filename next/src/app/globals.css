@@ -2333,8 +2333,8 @@ footer.blk {
     width: 100%;
     padding: 0 24px 48px;
   }
-  .roastery-lbl { color: var(--color-text-inverse); }
-  .roastery-lbl::before { background: var(--color-accent-gold-on-dark); }
+  .roastery-lbl { color: var(--color-accent-gold-on-image); }
+  .roastery-lbl::before { background: var(--color-accent-gold-on-image); }
   .roastery-h { color: var(--color-text-inverse); }
   .roastery-body,
   .roastery-hours { color: rgba(250, 250, 248, 0.82); }
@@ -2397,6 +2397,7 @@ footer.blk {
    `lp-*` / `mp-*` / `bi-*` prefix 격리 유지. (D-025 · 2026-04-25)
    ══════════════════════════════════════════ */
 .page-title-area { margin-bottom: 48px; }
+@media (max-width: 767px) { .page-title-area { margin-bottom: 28px; } }
 .page-title {
   font-family: var(--font-kr);
   font-size: var(--type-h1-size);
@@ -2424,6 +2425,7 @@ footer.blk {
   opacity: 0;
   transform: translateY(16px);
 }
+@media (max-width: 767px) { .page-filter-wrap { margin-bottom: 32px; } }
 .page-filter-wrap::after {
   content: '';
   position: absolute;
@@ -2524,7 +2526,7 @@ footer.blk {
   }
   #sp-filter-tabs::-webkit-scrollbar { display: none; }
   .sp-filter-tab {
-    padding: 16px 18px 14px;
+    padding: 12px 18px 10px;
     min-width: auto;
     flex-shrink: 0;
   }
@@ -2978,7 +2980,7 @@ footer.blk {
   }
   #cm-filter-tabs::-webkit-scrollbar { display: none; }
   .cm-filter-tab {
-    padding: 16px 18px 14px;
+    padding: 12px 18px 10px;
     min-width: auto;
     flex-shrink: 0;
   }
@@ -8868,14 +8870,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 
 /* ══════════════════════════════════════════
-   BUG-134 — 모바일 전용 Shop/Menu/GoodDays 상단 여백 30px 축소
-   데스크탑 100px 유지 · 모바일에서만 70px 로 축소 → 타이틀 이하 모든 콘텐츠가 30px 위로 이동.
+   BUG-134 — 모바일 전용 상단 여백 축소
+   데스크탑 100px 유지 · 모바일에서만 56px 로 축소 (BUG-134 30px → S96 44px).
    ══════════════════════════════════════════ */
 @media (max-width: 767px) {
   #sp-body,
   #cm-body,
   #gd-inner,
+  #bi-body,
   .cp-root {
-    padding-top: 70px;
+    padding-top: 56px;
   }
 }
