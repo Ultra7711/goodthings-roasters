@@ -142,7 +142,9 @@ export default function CafeMenuCard({
           <div className="cm-card-badges">
             {badgeClass && <span className={badgeClass}>{item.status}</span>}
             {popularRank && (
-              <span className="cm-popular-badge">인기 No.{popularRank}</span>
+              <span className={`sp-card-badge cm-popular-badge--${popularRank}`}>
+                인기 No.{popularRank}
+              </span>
             )}
           </div>
         )}

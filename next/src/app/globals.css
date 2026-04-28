@@ -3124,19 +3124,10 @@ footer.blk {
   top: auto;
   left: auto;
 }
-.cm-popular-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 7px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  background: var(--color-accent-gold);
-  color: #fff;
-  white-space: nowrap;
-  line-height: 1.4;
-}
+/* 인기 순위 뱃지 — sp-card-badge 베이스 + 순위별 컬러 */
+.cm-popular-badge--1 { background: #B8943F; } /* 골드 */
+.cm-popular-badge--2 { background: #8C9BB5; } /* 실버 */
+.cm-popular-badge--3 { background: #A07850; } /* 브론즈 */
 .cm-like-btn {
   position: absolute;
   top: 8px;
@@ -3182,6 +3173,20 @@ footer.blk {
   70%  { transform: scale(0.92); }
   85%  { transform: scale(1.1); }
   100% { transform: scale(1); }
+}
+/* 하트 파티클 — JS로 document.body에 동적 생성 */
+.cm-like-particle {
+  position: fixed;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999;
+  animation: cmParticleBurst 560ms ease-out forwards;
+}
+@keyframes cmParticleBurst {
+  0%   { transform: translate(-50%, -50%) translate(0, 0) scale(1); opacity: 1; }
+  50%  { opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(0.1); opacity: 0; }
 }
 
 /* ── NUTRITION SHEET (우측 슬라이드인 드로어) ── */
