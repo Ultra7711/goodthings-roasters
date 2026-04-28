@@ -7402,9 +7402,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-accordion.open { max-height: 600px; opacity: 1; display: block !important; overflow: visible; }
 .mp-accordion-inner { padding: 24px 0 8px; }
 .mp-accordion-actions { display: flex; gap: var(--gap-sm); margin-top: 12px; }
-/* 정기배송 3버튼: 2:1:1 비율, full-row fill */
+/* 정기배송 3버튼: 2:1.5:1 비율, full-row fill */
 .mp-sub-accordion-actions > :nth-child(1) { flex: 2 1 0; min-width: 0; padding: 0; }
-.mp-sub-accordion-actions > :nth-child(2) { flex: 1 1 0; min-width: 0; padding: 0; }
+.mp-sub-accordion-actions > :nth-child(2) { flex: 1.5 1 0; min-width: 0; padding: 0; }
 .mp-sub-accordion-actions > :nth-child(3) { flex: 1 1 0; min-width: 0; padding: 0; }
 .mp-sub-accordion .mp-info-row { border-bottom: none; }
 /* 정기배송 커스텀 드롭다운 — chp-field 인풋 + pd-dropdown-panel 메뉴 */
