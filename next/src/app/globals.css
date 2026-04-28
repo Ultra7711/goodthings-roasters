@@ -2823,8 +2823,8 @@ footer.blk {
   font-weight: 600;
   letter-spacing: var(--ls-body);
   color: var(--color-text-inverse);
-  height: 23px;
-  min-width: 60px;
+  height: 22px;
+  min-width: 78px;
   padding: 0 10px;
   border-radius: 3px;
   display: inline-flex;
@@ -3125,44 +3125,75 @@ footer.blk {
   left: auto;
 }
 /* 인기 순위 뱃지 — sp-card-badge 베이스 + 순위별 컬러 */
+.cm-popular-badge--1,
+.cm-popular-badge--2,
+.cm-popular-badge--3 { padding: 0 7px; min-width: 0; }
 .cm-popular-badge--1 { background: #B8943F; } /* 골드 */
 .cm-popular-badge--2 { background: #8C9BB5; } /* 실버 */
 .cm-popular-badge--3 { background: #A07850; } /* 브론즈 */
 .cm-like-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  right: 10px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 2px;
-  background: rgba(255, 255, 255, 0.88);
+  justify-content: flex-start;
+  height: 48px;
+  min-width: 48px;
+  max-width: 48px;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 0 14px 0 12px;
+  gap: 6px;
   border: none;
-  border-radius: 20px;
-  padding: 6px 7px;
   cursor: pointer;
   z-index: 2;
-  min-width: 32px;
-  transition: background 150ms ease, transform 100ms ease;
+  background: rgba(255, 255, 255, 0.28);
+  will-change: max-width, background;
+  transition: max-width 380ms cubic-bezier(0.16, 1, 0.3, 1), background 280ms ease;
 }
-.cm-like-btn:hover { background: rgba(255, 255, 255, 0.98); }
 .cm-like-btn:active { transform: scale(0.92); }
+.cm-like-btn--has-count {
+  max-width: 200px;
+}
+.cm-like-btn--liked {
+  max-width: 200px;
+  background: #E84E4E;
+}
 .cm-like-icon {
   display: block;
-  width: 18px;
-  height: 18px;
-  color: var(--color-text-tertiary);
-  transition: color 200ms ease;
+  width: 24px;
+  height: 24px;
+  color: #fff;
   flex-shrink: 0;
 }
-.cm-like-btn--liked .cm-like-icon { color: #E84E4E; }
 .cm-like-count {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--color-text-tertiary);
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
   line-height: 1;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transform: translateX(4px);
+  /* like 방향: max-width 즉시 스냅, opacity/transform 부드럽게 */
+  transition: max-width 0ms,
+              opacity 200ms ease 80ms,
+              transform 280ms cubic-bezier(0.16, 1, 0.3, 1) 80ms;
 }
-/* 인스타그램 스타일 탭 pop 애니메이션 — like 시에만 실행 */
+.cm-like-btn--has-count .cm-like-count,
+.cm-like-btn--liked .cm-like-count {
+  max-width: 60px;
+  opacity: 1;
+  transform: translateX(0);
+  /* unlike 방향: max-width 서서히 (opacity가 먼저 사라진 뒤 레이아웃 정리) */
+  transition: max-width 360ms cubic-bezier(0.16, 1, 0.3, 1) 40ms,
+              opacity 160ms ease,
+              transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* like 시에만 pop 애니메이션 */
 .cm-like-btn--popping .cm-like-icon {
   animation: cmHeartPop 360ms cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
 }

@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════
    MenuLikeButton — 카페 메뉴 카드 좋아요 버튼
-   - 카드 우측 상단에 하트 아이콘 + 카운트
+   - 미클릭: 48px 원형, 글래스모피즘 배경, 흰색 솔리드 하트
+   - 클릭됨: 붉은 솔리드 배경, 하트 좌측 + 카운트 슬라이드인
    - like 시: pop 애니메이션 + 파티클 버스트 (8개 원형 dot)
    - e.stopPropagation() 으로 영양 시트 오픈 방지
    ══════════════════════════════════════════ */
@@ -15,6 +16,11 @@ type Props = {
   isLiked: boolean;
   onToggle: (menuId: string) => void;
 };
+
+function formatCount(n: number): string {
+  if (n >= 1000) return `${+(n / 1000).toFixed(1)}K`;
+  return String(n);
+}
 
 const PARTICLE_COLORS = ['#E84E4E', '#FF7070', '#F0B849', '#FF8C69', '#E84E4E', '#F0B849', '#FF7070', '#FF8C69'];
 const PARTICLE_COUNT = 8;
@@ -31,7 +37,7 @@ function spawnParticles(btn: HTMLButtonElement) {
     const rad = (angle * Math.PI) / 180;
     const dx = Math.cos(rad) * distance;
     const dy = Math.sin(rad) * distance;
-    const size = 4 + Math.random() * 4; // 4~8px
+    const size = 6 + Math.random() * 6; // 6~12px
 
     const el = document.createElement('span');
     el.className = 'cm-like-particle';
@@ -66,9 +72,14 @@ export default function MenuLikeButton({ menuId, count, isLiked, onToggle }: Pro
       ref={btnRef}
       className={
         'cm-like-btn' +
+        (count > 0 ? ' cm-like-btn--has-count' : '') +
         (isLiked ? ' cm-like-btn--liked' : '') +
         (popping ? ' cm-like-btn--popping' : '')
       }
+      style={{
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+      }}
       onClick={handleClick}
       onAnimationEnd={() => setPopping(false)}
       onKeyDown={(e) => {
@@ -83,19 +94,16 @@ export default function MenuLikeButton({ menuId, count, isLiked, onToggle }: Pro
     >
       <svg
         className="cm-like-icon"
-        width="18"
-        height="18"
+        width="24"
+        height="24"
         viewBox="0 0 24 24"
-        fill={isLiked ? 'currentColor' : 'none'}
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        fill="currentColor"
+        stroke="none"
         aria-hidden="true"
       >
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
       </svg>
-      {count > 0 && <span className="cm-like-count">{count}</span>}
+      <span className="cm-like-count">{count > 0 ? formatCount(count) : ''}</span>
     </button>
   );
 }
