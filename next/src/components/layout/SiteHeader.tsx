@@ -38,27 +38,24 @@ export default function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
 
-  /* BUG-130 Prototype A (S73): 헤더 테마 전환 타이밍을 본문 visibility 복원과 동기화.
-     기존에는 pathname 변경 즉시 initialTheme 재계산 → useHeaderTheme 의 useLayoutEffect
-     가 즉시 발화 → 헤더 색이 new theme 으로 전환. 그러나 NavigationVisibilityGate 가
-     본문 visibility 를 복원하기 전이라 "헤더만 먼저 색 반전 → 본문 뒤따라 전환" 의
-     시각 순서 불일치가 사용자에게 깜빡임으로 체감 (§11-H1 측정 case 1 에서 14ms gap).
+  /* BUG-130 fix (S96 후속): effectivePath = pathname 직접 사용.
+     이전 구조 (S73): gtr:route-change 이벤트 → setEffectivePath useEffect listener.
+     문제: useEffect 안의 setState 는 react batching 으로 다음 commit cycle 에 처리됨.
+     즉, pathname 변경 → 첫 commit 에서 effectivePath 가 stale → initialTheme stale
+     → useHeaderTheme 의 useLayoutEffect 가 setIsDark 호출하지 않음 → 첫 paint 에
+     잘못된 헤더 테마 → 다음 commit 에서 보정 → 라이트↔다크 양방향 플래시 발생.
 
-     해결: NavigationVisibilityGate 의 useLayoutEffect 에서 dispatch 하는 'gtr:route-change'
-     이벤트 (기존 자산) 를 수신하여 effectivePath 갱신. gate-LE 와 동일 tick 에 테마 전환
-     → 본문-헤더 동시 snap.
+     해결: NVG 접근 B (.root data-dest-dark, S94) + 접근 C (#site-hdr-wrap manual
+     class, S96) 가 이미 click 시점에 본문 배경 + 헤더를 동기 토글하므로,
+     "헤더만 먼저 색 반전" 시나리오 (S73 14ms gap) 는 더 이상 발생하지 않음.
+     effectivePath 를 pathname 직접 참조로 단순화 → 첫 commit 부터 올바른
+     initialTheme → useHeaderTheme 의 useLayoutEffect 가 동기 발화 →
+     setIsDark + setSkipTransition → paint 전 React JSX className 이 NVG manual
+     class 와 일치 → 덮어쓰기 충돌 없음.
 
-     주의: effectivePath 는 테마 계산에만 사용. pathname 자체는 aria-current 표시·
-     same-path 클릭 판정 등에서 즉시 반영 필요하므로 그대로 유지. */
-  const [effectivePath, setEffectivePath] = useState(pathname);
-  useEffect(() => {
-    function onRouteChange(e: Event) {
-      const detail = (e as CustomEvent<string>).detail;
-      if (typeof detail === 'string') setEffectivePath(detail);
-    }
-    window.addEventListener('gtr:route-change', onRouteChange);
-    return () => window.removeEventListener('gtr:route-change', onRouteChange);
-  }, []);
+     gtr:route-change 이벤트는 NVG 가 계속 dispatch 하며 ShopPage·CafeMenuPage·
+     StoryPage·GoodDaysPage 등 페이지 진입 연출 listener 가 그대로 사용. */
+  const effectivePath = pathname;
 
   const initialTheme = getInitialHeaderTheme(effectivePath);
   const { isDark, skipTransition, atTop } = useHeaderTheme(headerRef, initialTheme, effectivePath);

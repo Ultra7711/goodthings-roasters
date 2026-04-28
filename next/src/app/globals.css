@@ -579,6 +579,14 @@ textarea:-webkit-autofill:focus {
   /* backdrop-filter는 inline style에서 관리 (light/dark 모두 동일 blur 값) */
   border-color: transparent;
 }
+/* 라이트→다크 라우트 전환 transient 시 specificity 보강.
+   NVG click handler 가 hdr-dark 를 추가해도 출발 라우트의 hdr-at-top 이
+   남아 있으면 line 588 후행 우선 규칙으로 cream background 가 hdr-dark 를
+   덮어써 light flash → fade 발생. 결합 selector 로 specificity (1,2,0)
+   확보하여 transient 시점에도 dark background 보장. */
+#site-hdr-wrap.hdr-dark.hdr-at-top {
+  background: rgba(28,27,25,.75);
+}
 /* 라이트 헤더가 secondary 배경 페이지 위에 올라갈 때 — Shop 등 */
 #site-hdr-wrap.hdr-on-secondary {
   background: rgba(245,243,240,.72);
