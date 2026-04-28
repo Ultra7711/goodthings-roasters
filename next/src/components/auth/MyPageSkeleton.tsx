@@ -42,7 +42,7 @@ function InfoRowSkel({ labelW = 80, valueW = 200 }: { labelW?: number; valueW?: 
 export default function MyPageSkeleton() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-      {/* 미니 헤더 — 로고만 표시. priority 금지 (RSC stuck 방지) */}
+      {/* 미니 헤더 — 로고 + 우측 아이콘 플레이스홀더 */}
       <div className="chp-hdr-wrap hdr-at-top">
         <div className="chp-hdr-inner">
           <Image
@@ -53,7 +53,13 @@ export default function MyPageSkeleton() {
             className="chp-logo-img"
             style={{ width: '150px', height: 'auto' }}
           />
-          <div style={{ width: 24, height: 24 }} aria-hidden="true" />
+          {/* 우측 아이콘 그룹 플레이스홀더 — layout shift 방지 */}
+          <div className="mp-hdr-right">
+            <div className="hdr-icons mp-hdr-icons" aria-hidden="true">
+              <div style={{ width: 40, height: 40 }} />
+              <div style={{ width: 40, height: 40 }} />
+            </div>
+          </div>
         </div>
       </div>
 

@@ -6241,6 +6241,17 @@ footer.blk {
 .chp-hdr-inner > .hdr-icon-btn { margin-right: -8px; }
 .chp-logo-img { cursor: pointer; }
 
+/* ── 마이페이지 전용 헤더 우측 ── */
+.mp-hdr-right {
+  display: flex;
+  align-items: center;
+  margin-right: -8px; /* hdr-icon-btn 40px tap-area → 시각 edge 를 gutter 에 정렬 */
+}
+/* nav 와 아이콘 사이 간격 */
+.mp-hdr-nav { margin-right: 8px; }
+/* 아이콘 그룹: hdr-icons 의 flex:1/justify-content:flex-end 는 mp-hdr-right 안에서 불필요 */
+.mp-hdr-icons { flex: 0; }
+
 /* 빈 장바구니 상태 */
 .chp-empty {
   flex: 1;
