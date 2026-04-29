@@ -29,6 +29,8 @@ export type CreateOrderResponse = {
   totalAmount: number;
   /** 서버 기준 주문 생성 시각 (ISO-8601). create_order RPC 반환값 (017 마이그레이션). */
   createdAt: string;
+  /** 이번 주문으로 생성된 정기배송 건수 (026 마이그레이션). 게스트·일반 주문은 0. */
+  subscriptionCount: number;
 };
 
 /**

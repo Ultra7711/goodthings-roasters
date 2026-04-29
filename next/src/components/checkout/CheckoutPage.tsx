@@ -333,6 +333,8 @@ export default function CheckoutPage() {
         createdAt: string;
         /** 게스트 주문만 세팅. 로그인 사용자는 undefined. */
         guestEmail?: string;
+        /** 이번 주문으로 생성된 정기배송 건수. 026 마이그레이션 기준. */
+        subscriptionCount: number;
         items: Array<{
           name: string; slug: string; category: string;
           volume: string | null; qty: number; priceNum: number;
@@ -344,6 +346,7 @@ export default function CheckoutPage() {
         number: result.orderNumber,
         createdAt: result.createdAt,
         guestEmail: isLoggedIn ? undefined : form.email.trim().toLowerCase(),
+        subscriptionCount: result.subscriptionCount,
         items: items.map((i) => ({
           name: i.name,
           slug: i.slug,
@@ -377,8 +380,11 @@ export default function CheckoutPage() {
             toast('필수 약관에 동의해 주세요.');
             break;
           case 'conflict':
-            /* product_not_found / volume_not_found / volume_sold_out */
-            toast('상품 정보가 변경되었습니다. 장바구니를 확인해 주세요.');
+            if (err.detail?.includes('duplicate_subscription')) {
+              toast('이미 동일 상품을 정기배송 중입니다. 마이페이지에서 확인해 주세요.');
+            } else {
+              toast('상품 정보가 변경되었습니다. 장바구니를 확인해 주세요.');
+            }
             break;
           case 'validation_failed':
             toast('입력 정보를 확인해 주세요.');

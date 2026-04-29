@@ -71,6 +71,8 @@ export async function POST(request: Request): Promise<Response> {
         case 'volume_not_found':
         case 'volume_sold_out':
           return apiError('conflict', { detail: `${err.code}:${err.detail ?? ''}` });
+        case 'duplicate_subscription':
+          return apiError('conflict', { detail: 'duplicate_subscription', status: 409 });
         case 'subscription_not_allowed':
         case 'guest_pin_required':
         case 'guest_email_required':

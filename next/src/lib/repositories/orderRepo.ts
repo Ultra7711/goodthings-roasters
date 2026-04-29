@@ -66,6 +66,8 @@ export type CreateOrderRpcResult = {
   totalAmount: number;
   /** 서버 기준 주문 생성 시각 (ISO-8601). 017 마이그레이션에서 RPC 반환값에 추가. */
   createdAt: string;
+  /** 이번 주문으로 생성된 정기배송 건수. 026 마이그레이션에서 추가. 게스트 주문은 0. */
+  subscriptionCount: number;
 };
 
 /* ── 주문 DTO (조회용) ────────────────────────────────────────────────── */
@@ -179,9 +181,21 @@ export async function createOrder(
       order_number: string;
       total_amount: number;
       created_at: string;
+      subscription_count: number;
     }>();
 
-  if (error) throw error;
+  if (error) {
+    // B-5: 중복 구독 unique constraint (subscriptions_active_unique) 감지 → 상위에서 처리
+    if (
+      (error as { code?: string }).code === '23505' &&
+      error.message?.includes('subscriptions_active_unique')
+    ) {
+      throw Object.assign(new Error('duplicate_subscription'), {
+        isDuplicateSubscription: true,
+      });
+    }
+    throw error;
+  }
   if (!data) throw new Error('create_order_rpc_empty_result');
 
   return {
@@ -189,6 +203,7 @@ export async function createOrder(
     orderNumber: data.order_number,
     totalAmount: data.total_amount,
     createdAt: data.created_at,
+    subscriptionCount: data.subscription_count,
   };
 }
 

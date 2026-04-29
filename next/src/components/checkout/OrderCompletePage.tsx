@@ -53,6 +53,8 @@ type LastOrder = {
   number: string;
   /** 게스트 주문만 세팅. 로그인 사용자는 undefined — user_id 로 소유권 식별. */
   guestEmail?: string;
+  /** 이번 주문으로 생성된 정기배송 건수 (026 마이그레이션). 게스트·없으면 0. */
+  subscriptionCount?: number;
   items: OrderItemData[];
 };
 
@@ -553,6 +555,19 @@ export default function OrderCompletePage() {
           </div>
 
           <p className="ocp-subtitle">주문번호는 배송조회하실 때 필요합니다.</p>
+
+          {(order.subscriptionCount ?? 0) > 0 && (
+            <p
+              style={{
+                fontFamily: 'var(--font-kr)',
+                fontSize: 'var(--type-body-s-size)',
+                color: 'var(--color-success)',
+                marginTop: 12,
+              }}
+            >
+              정기배송 {order.subscriptionCount}건이 등록되었습니다. 마이페이지에서 확인하세요.
+            </p>
+          )}
 
           <div className="ocp-summary">
             {order.items.map((item, idx) => (

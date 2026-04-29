@@ -37,7 +37,7 @@ import SiteHeader from '@/components/layout/SiteHeader';
 import { ChevronRight, CopyIcon } from '@/components/ui/Icons';
 
 const CYCLE_DAYS: Record<SubscriptionCycle, number> = {
-  '2주': 14, '3주': 21, '4주': 28, '6주': 42, '8주': 56,
+  '2주': 14, '4주': 28, '6주': 42, '8주': 56,
 };
 
 function calcNextDate(currentDate: string, cycle: SubscriptionCycle): string {
