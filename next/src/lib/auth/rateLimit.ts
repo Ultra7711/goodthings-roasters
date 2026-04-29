@@ -57,6 +57,19 @@ const LIMITS: Record<RateLimitPreset, { requests: number; window: string }> = {
   cart_write: { requests: 60, window: '1 m' },
 };
 
+/* ── M-5: 프로덕션 환경 CARDING_LIMIT_ENABLED 미설정 경고 ──
+   모듈 초기화 시 1회 실행. CARDING_LIMIT_ENABLED 가 'true' 가 아닌 상태로
+   프로덕션에 배포되면 carding 방어가 dry-run 상태임을 운영자에게 알린다. */
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env.CARDING_LIMIT_ENABLED !== 'true'
+) {
+  console.warn(
+    '[rateLimit] CARDING_LIMIT_ENABLED is not "true" — ' +
+    'carding protection is in dry-run mode. Set CARDING_LIMIT_ENABLED=true in production.',
+  );
+}
+
 /* ── 모듈 수준 singleton (Next.js 워커 재사용) ── */
 let _redis: Redis | null | undefined = undefined;
 

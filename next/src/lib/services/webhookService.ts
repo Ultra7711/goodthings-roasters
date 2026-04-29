@@ -61,6 +61,7 @@ import type { DbPaymentEventType } from '@/types/db';
 export type WebhookResultKind =
   | 'ok'                // 정상/멱등 — 200
   | 'timing_inversion'  // 카드: payments 없음 / 가상계좌: webhook_secret 없음 — 503
+  | 'retryable'         // DB/인프라 일시 오류 — 503 + Retry-After (Toss 재시도 유도)
   | 'auth_failed'       // secret 불일치 · 위조 의심(총액 mismatch) — 401
   | 'bad_request';      // 페이로드 내 order 조회 실패 등 — 400
 
@@ -223,7 +224,8 @@ export async function handleCardWebhook(
     return OK;
   } catch (err) {
     if (isPgUniqueViolation(err)) return OK; // 이미 처리된 웹훅
-    throw err;
+    /* DB/인프라 일시 오류 — 503 으로 Toss 재시도 유도 (M-2) */
+    return { kind: 'retryable', detail: 'db_write_failed' };
   }
 }
 
@@ -287,7 +289,8 @@ export async function handleVirtualAccountWebhook(
     return OK;
   } catch (err) {
     if (isPgUniqueViolation(err)) return OK;
-    throw err;
+    /* DB/인프라 일시 오류 — 503 으로 Toss 재시도 유도 (M-2) */
+    return { kind: 'retryable', detail: 'db_write_failed' };
   }
 }
 

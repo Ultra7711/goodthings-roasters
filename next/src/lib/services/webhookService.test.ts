@@ -346,6 +346,17 @@ describe('handleCardWebhook', () => {
     expect(result.kind).toBe('ok');
   });
 
+  it('DB 일시 오류(23505 외) → retryable (M-2)', async () => {
+    vi.mocked(tossGetPayment).mockResolvedValue(makeTossGetResponse());
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(makeCombo());
+    vi.mocked(applyWebhookEventRpc).mockRejectedValue(new Error('connection timeout'));
+
+    const result = await handleCardWebhook(makeCardPayload());
+
+    expect(result.kind).toBe('retryable');
+    expect(result.detail).toBe('db_write_failed');
+  });
+
   it('Toss 4xx → auth_failed', async () => {
     vi.mocked(tossGetPayment).mockRejectedValue(
       new TossApiError(404, 'NOT_FOUND_PAYMENT', 'not found'),
@@ -448,6 +459,16 @@ describe('handleVirtualAccountWebhook', () => {
     const result = await handleVirtualAccountWebhook(makeDepositPayload());
 
     expect(result.kind).toBe('ok');
+  });
+
+  it('DB 일시 오류(23505 외) → retryable (M-2)', async () => {
+    vi.mocked(findOrderWithPaymentByOrderNumber).mockResolvedValue(virtualCombo());
+    vi.mocked(applyWebhookEventRpc).mockRejectedValue(new Error('db pool exhausted'));
+
+    const result = await handleVirtualAccountWebhook(makeDepositPayload());
+
+    expect(result.kind).toBe('retryable');
+    expect(result.detail).toBe('db_write_failed');
   });
 });
 

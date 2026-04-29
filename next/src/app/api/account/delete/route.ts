@@ -95,10 +95,10 @@ export async function POST(request: Request): Promise<Response> {
       return apiError('conflict', { detail: 'subscription_active' });
     }
 
-    /* 그 외 RPC 오류는 내부 에러 — 로그에 code 만 남기고 detail 노출 금지 */
+    /* 그 외 RPC 오류는 내부 에러 — 프로덕션에서는 code 만, dev/staging 에서 msg 포함 (L-1) */
     console.error('[account.delete] RPC failed', {
       code: rpcError.code,
-      msg: msg.slice(0, 200),
+      ...(process.env.NODE_ENV !== 'production' && { msg: msg.slice(0, 200) }),
     });
     logAuthEvent({
       event: 'account.delete.failed',

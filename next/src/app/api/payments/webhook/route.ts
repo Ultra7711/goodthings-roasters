@@ -13,6 +13,7 @@
    5) WebhookResult → HTTP 응답 매핑:
       - ok              → 200 `{ received: true }`
       - timing_inversion → 503 + Retry-After: 30 + x-webhook-timing-inversion: true
+      - retryable       → 503 + Retry-After: 30 (DB/인프라 일시 오류 — Toss 재시도 유도)
       - auth_failed     → 401
       - bad_request     → 400
 
@@ -66,12 +67,28 @@ function timingInversionResponse(): Response {
   );
 }
 
+/** DB/인프라 일시 오류 503 — Toss 재시도 명시 유도 (M-2). */
+function retryableResponse(): Response {
+  return new Response(
+    JSON.stringify({ error: 'transient_error_retry' }),
+    {
+      status: 503,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': '30',
+      },
+    },
+  );
+}
+
 function resultToResponse(result: WebhookResult): Response {
   switch (result.kind) {
     case 'ok':
       return okResponse();
     case 'timing_inversion':
       return timingInversionResponse();
+    case 'retryable':
+      return retryableResponse();
     case 'auth_failed':
       return apiError('unauthorized', { detail: result.detail });
     case 'bad_request':

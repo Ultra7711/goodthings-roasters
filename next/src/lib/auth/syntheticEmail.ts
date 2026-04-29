@@ -19,10 +19,16 @@ export function isSyntheticEmail(email: string | null | undefined): boolean {
   return email.endsWith(SYNTHETIC_EMAIL_SUFFIX);
 }
 
+/** providerUserId 허용 문자 패턴 — `@` 등 특수문자 포함 시 이메일 형식 파괴 방지 (L-3) */
+const PROVIDER_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
+
 /** provider별 가상 이메일 생성 */
 export function buildSyntheticEmail(
   provider: 'kakao' | 'naver',
   providerUserId: string,
 ): string {
+  if (!PROVIDER_ID_PATTERN.test(providerUserId)) {
+    throw new Error(`[syntheticEmail] invalid providerUserId characters for ${provider}`);
+  }
   return `${provider}_${providerUserId}@${provider}${SYNTHETIC_EMAIL_SUFFIX}`;
 }
