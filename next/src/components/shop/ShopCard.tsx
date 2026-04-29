@@ -121,7 +121,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     if (addCart.isPending) return;
 
     const vol = p.volumes[activeVolIdx];
-    if (vol?.soldOut) { closeQa(); return; }
+    if (!vol || vol.soldOut) { closeQa(); return; }
     addCart.mutate({
       slug: p.slug,
       name: p.name,

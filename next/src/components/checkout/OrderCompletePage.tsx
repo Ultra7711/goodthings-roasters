@@ -394,9 +394,12 @@ export default function OrderCompletePage() {
             </p>
             <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <input
+                id="email-retry-input"
                 type="email"
                 inputMode="email"
                 autoComplete="email"
+                aria-label="이메일 주소"
+                aria-describedby="email-retry-hint"
                 placeholder="example@domain.com"
                 value={emailRetryInput}
                 onChange={(e) => setEmailRetryInput(e.target.value)}
@@ -419,6 +422,7 @@ export default function OrderCompletePage() {
                 }}
               />
               <p
+                id="email-retry-hint"
                 style={{
                   fontFamily: 'var(--font-kr)',
                   fontSize: 'var(--type-body-s-size)',

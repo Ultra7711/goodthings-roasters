@@ -57,6 +57,7 @@ export function useProductPurchase(product: Product) {
 
   const handleAddToCart = useCallback(() => {
     if (isSoldOut) return;
+    if (!selectedVolume) return;
 
     const isSubscription = orderType === 'subscription' && product.subscription;
     const type: CartItemType = isSubscription ? 'subscription' : 'normal';

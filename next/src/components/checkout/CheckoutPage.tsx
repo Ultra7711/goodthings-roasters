@@ -425,6 +425,12 @@ export default function CheckoutPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submitting, clearErrors, validate, isLoggedIn, form, items, agreements, toast]);
 
+  /* backdrop-filter는 Lightning CSS가 CSS 파일에서 드롭하므로 inline style 유지 (web/lessons.md §6) */
+  const headerBlurStyle = {
+    backdropFilter: atTop ? 'none' : 'blur(16px)',
+    WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
+  };
+
   /* ── 하이드레이션 대기 스켈레톤 ──
      ['cart'] 최초 로드 중엔 items 판정 불가. 미니 헤더만 그린다. */
   if (!mounted || cartLoading) {
@@ -432,10 +438,7 @@ export default function CheckoutPage() {
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
         <div
           className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
-          style={{
-            backdropFilter: atTop ? 'none' : 'blur(16px)',
-            WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
-          }}
+          style={headerBlurStyle}
         >
           <div className="chp-hdr-inner">
             <Link href="/">
@@ -453,10 +456,7 @@ export default function CheckoutPage() {
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
         <div
           className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
-          style={{
-            backdropFilter: atTop ? 'none' : 'blur(16px)',
-            WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
-          }}
+          style={headerBlurStyle}
         >
           <div className="chp-hdr-inner">
             <Link href="/">
@@ -478,10 +478,7 @@ export default function CheckoutPage() {
       {/* ── 미니 헤더 ── */}
       <div
           className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
-          style={{
-            backdropFilter: atTop ? 'none' : 'blur(16px)',
-            WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
-          }}
+          style={headerBlurStyle}
         >
         <div className="chp-hdr-inner">
           <Link href="/">

@@ -24,7 +24,7 @@ import { useDrawer } from '@/hooks/useDrawer';
 import { useNavigation } from '@/hooks/useNavigation';
 import { splitName, getSubscriptionBadge } from '@/lib/products';
 import { formatPrice } from '@/lib/utils';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 export default function CartDrawer() {
   const { isOpen, close, closeForNavigation } = useCartDrawer();
@@ -35,9 +35,15 @@ export default function CartDrawer() {
   const { navigate, navigatingTo } = useNavigation();
   const drawerPendingRef = useRef(false);
 
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
   /* transition:none → fn() → rAF×2 복원. 슬라이드 아웃 전면 제거용 공통 헬퍼.
      닫힘 이후 패널이 translateX(100%) 상태에서 복원되므로 다음 슬라이드인 정상 재생. */
-  function closeWithoutAnimation(fn: () => void) {
+  const closeWithoutAnimation = useCallback((fn: () => void) => {
     const panel = document.getElementById('cart-drawer-panel');
     const bg = document.getElementById('cart-drawer-bg');
     panel?.style.setProperty('transition', 'none');
@@ -45,11 +51,12 @@ export default function CartDrawer() {
     fn();
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
+        if (!mountedRef.current) return;
         panel?.style.removeProperty('transition');
         bg?.style.removeProperty('transition');
       });
     });
-  }
+  }, []);
 
   useDrawer({ open: isOpen, onClose: () => closeWithoutAnimation(close) });
 
@@ -58,7 +65,7 @@ export default function CartDrawer() {
     if (!drawerPendingRef.current) return;
     drawerPendingRef.current = false;
     closeWithoutAnimation(closeForNavigation);
-  }, [pathname, closeForNavigation]);
+  }, [pathname, closeForNavigation, closeWithoutAnimation]);
 
   const isEmpty = items.length === 0;
 
@@ -274,7 +281,7 @@ export default function CartDrawer() {
                 className="cta-btn cta-btn-light-outline cd-cta-secondary"
                 type="button"
                 onClick={handleViewCart}
-                disabled={navigatingTo === '/cart'}
+                disabled={navigatingTo !== null}
                 aria-busy={navigatingTo === '/cart'}
                 data-gtr-tap
               >
@@ -284,7 +291,7 @@ export default function CartDrawer() {
                 className="cta-btn cta-btn-light-filled cd-cta-primary"
                 type="button"
                 onClick={handleCheckout}
-                disabled={navigatingTo === '/checkout'}
+                disabled={navigatingTo !== null}
                 aria-busy={navigatingTo === '/checkout'}
                 data-gtr-tap
               >

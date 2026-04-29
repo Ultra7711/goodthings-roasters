@@ -51,6 +51,9 @@ export default function CheckoutPayment({
 }: CheckoutPaymentProps) {
   const { show: toast } = useToast();
   const widgetsRef = useRef<TossPaymentsWidgets | null>(null);
+  /* amount는 위젯 초기화 후에도 변경될 수 있으므로 ref로 최신값 유지 */
+  const amountRef = useRef(amount);
+  amountRef.current = amount;
   const [ready, setReady] = useState(false);
   const [requesting, setRequesting] = useState(false);
   /* CLIENT_KEY 부재는 환경 상수이므로 초기 렌더에서 바로 실패 상태로 시작.
@@ -93,7 +96,7 @@ export default function CheckoutPayment({
         if (cancelled) return;
 
         const widgets = tossPayments.widgets({ customerKey: ANONYMOUS });
-        await widgets.setAmount({ currency: 'KRW', value: amount });
+        await widgets.setAmount({ currency: 'KRW', value: amountRef.current });
         if (cancelled) return;
 
         await Promise.all([
@@ -129,7 +132,22 @@ export default function CheckoutPayment({
       if (pm) pm.innerHTML = '';
       if (ag) ag.innerHTML = '';
     };
-  }, [amount]);
+    // amountRef.current 로 초기값 참조 — amount prop 변경 시 별도 effect 에서 setAmount 호출
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* amount 변경 시 기존 위젯에만 setAmount 호출 — 위젯 remount 없이 결제수단 유지 */
+  useEffect(() => {
+    if (!widgetsRef.current || !ready) return;
+    widgetsRef.current
+      .setAmount({ currency: 'KRW', value: amount })
+      .catch((err) => {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[Toss setAmount update] failed:', err);
+        }
+      });
+  }, [amount, ready]);
 
   /* ── 결제 요청 ──
      성공 시 Toss 가 successUrl 로 redirect → 이 라인 이후 실행되지 않음.

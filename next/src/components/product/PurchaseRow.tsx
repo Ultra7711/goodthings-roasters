@@ -143,6 +143,7 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
   function handleCart() {
     if (disabled) return;
     const vol = hasVolumes ? product.volumes[volIdx] : null;
+    if (hasVolumes && !vol) return;
     const priceNum = vol?.price ?? 0;
     const priceStr = `${priceNum.toLocaleString('ko-KR')}원`;
     const mainImg = product.images[0]?.src ?? null;

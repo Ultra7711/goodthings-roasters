@@ -9,7 +9,7 @@
 
    낙관적 업데이트:
    - onMutate: 캐시 스냅샷 + 즉시 업데이트 + wasLoggedIn 캡처 → context
-   - onError: 스냅샷 복원 + console.error (호출부 toast 는 mutation.isError 관찰)
+   - onError: 스냅샷 복원 + showToast 사용자 피드백 + console.error
    - onSettled: 로그인 모드만 invalidateQueries (게스트는 localStorage 원천)
    - auth race 방어: onError/onSettled 는 context.wasLoggedIn 참조. mutationFn 만
      fresh read (실제 race window 는 onMutate → mutationFn enqueue 사이 sub-ms).
@@ -25,6 +25,7 @@ import { SUBSCRIPTION_PERIODS } from '@/lib/schemas/order';
 import { PRODUCTS } from '@/lib/products';
 import { parsePrice } from '@/lib/utils';
 import { getSessionSnapshot } from '@/hooks/useSupabaseSession';
+import { showToast } from '@/lib/toastStore';
 import {
   readGuestCart,
   writeGuestCart,
@@ -235,7 +236,8 @@ export function useAddCartItem() {
       return { previous, wasLoggedIn };
     },
     onError: (err, _payload, context) => {
-      console.error('[useAddCartItem] failed', err);
+      if (process.env.NODE_ENV === 'development') console.error('[useAddCartItem] failed', err);
+      showToast('장바구니 추가에 실패했습니다. 다시 시도해 주세요.');
       if (context?.previous !== undefined) {
         queryClient.setQueryData(CART_QUERY_KEY, context.previous);
         if (!context.wasLoggedIn) writeGuestCart(context.previous);
@@ -292,7 +294,8 @@ export function useUpdateCartQty() {
       return { previous, wasLoggedIn, nextQty };
     },
     onError: (err, _vars, context) => {
-      console.error('[useUpdateCartQty] failed', err);
+      if (process.env.NODE_ENV === 'development') console.error('[useUpdateCartQty] failed', err);
+      showToast('수량 변경에 실패했습니다. 다시 시도해 주세요.');
       if (context?.previous !== undefined) {
         queryClient.setQueryData(CART_QUERY_KEY, context.previous);
         if (!context.wasLoggedIn) writeGuestCart(context.previous);
@@ -331,7 +334,8 @@ export function useRemoveCartItem() {
       return { previous, wasLoggedIn };
     },
     onError: (err, _id, context) => {
-      console.error('[useRemoveCartItem] failed', err);
+      if (process.env.NODE_ENV === 'development') console.error('[useRemoveCartItem] failed', err);
+      showToast('상품 삭제에 실패했습니다. 다시 시도해 주세요.');
       if (context?.previous !== undefined) {
         queryClient.setQueryData(CART_QUERY_KEY, context.previous);
         if (!context.wasLoggedIn) writeGuestCart(context.previous);
