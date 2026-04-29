@@ -34,23 +34,7 @@ import { extractKrName, formatPrice } from '@/lib/utils';
 import type { Subscription, SubscriptionCycle } from '@/types/subscription';
 import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
 import SiteHeader from '@/components/layout/SiteHeader';
-
-/* ── SVG 아이콘 ── */
-function ChevronRight() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9,6l6,6-6,6" />
-    </svg>
-  );
-}
-
-function CopyIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="9" width="12" height="12" rx="2" ry="2" /><path d="M5,15c-1.1,0-2-.9-2-2V5c0-1.1.9-2,2-2h8c1.1,0,2,.9,2,2" />
-    </svg>
-  );
-}
+import { ChevronRight, CopyIcon } from '@/components/ui/Icons';
 
 const CYCLE_DAYS: Record<SubscriptionCycle, number> = {
   '2주': 14, '3주': 21, '4주': 28, '6주': 42, '8주': 56,

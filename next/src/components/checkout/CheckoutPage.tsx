@@ -52,19 +52,13 @@ const DELIVERY_OPTIONS = [
   { value: 'direct', label: '직접 입력' },
 ] as const;
 
+import { ChevronRight } from '@/components/ui/Icons';
+
 /* ── SVG 아이콘 ── */
 function ChevronDown({ size = 24 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M6,9l6,6,6-6" />
-    </svg>
-  );
-}
-
-function ChevronRight({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9,18l6-6-6-6" />
     </svg>
   );
 }
@@ -701,7 +695,7 @@ export default function CheckoutPage() {
                         <CheckboxIcon />
                       </span>
                       <span className="chp-agree-item-label">{label}</span>
-                      <span className="chp-agree-arrow" aria-hidden="true"><ChevronRight /></span>
+                      <span className="chp-agree-arrow" aria-hidden="true"><ChevronRight size={20} /></span>
                     </label>
                   ))}
                 </div>

@@ -24,6 +24,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
 import { useClearCart } from '@/hooks/useCart';
+import { CopyIcon } from '@/components/ui/Icons';
 
 /* H-1 폴백 UX — 게스트 이메일 불일치 재입력 허용 한도.
    3회 초과 시 주문조회(B-6) 분기로 안내. */
@@ -59,16 +60,6 @@ type LastOrder = {
 function extractKrName(name: string): string {
   const m = name.match(/^(.*[\uAC00-\uD7AF](?:\s+[A-Z0-9]+)*)\s+([A-Z][a-z].*)$/);
   return m ? m[1].trim() : name;
-}
-
-/* ── 복사 아이콘 ── */
-function CopyIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="9" width="12" height="12" rx="2" ry="2" />
-      <path d="M5,15c-1.1,0-2-.9-2-2V5c0-1.1.9-2,2-2h8c1.1,0,2,.9,2,2" />
-    </svg>
-  );
 }
 
 /* ── confirm 상태 ── */
