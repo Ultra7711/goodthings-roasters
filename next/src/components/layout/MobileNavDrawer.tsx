@@ -190,10 +190,6 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
       <div
         id="mobile-nav-bg"
         onClick={onClose}
-        style={{
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
-        }}
       />
       <aside
         id="mobile-nav-panel"

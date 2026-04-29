@@ -407,7 +407,6 @@
 
   /* ── 오버레이 딤 ── */
   --overlay-dim-bg: rgba(0,0,0,.35);
-  --overlay-dim-blur: blur(4px);
   --overlay-lightbox-bg: rgba(0,0,0,.9);
 }
 

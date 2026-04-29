@@ -101,10 +101,6 @@ export default function CartDrawer() {
       <div
         id="cart-drawer-bg"
         onClick={() => closeWithoutAnimation(close)}
-        style={{
-          backdropFilter: 'var(--overlay-dim-blur)',
-          WebkitBackdropFilter: 'var(--overlay-dim-blur)',
-        }}
       />
       <div id="cart-drawer-panel" role="dialog" aria-modal="true" aria-label="장바구니">
         {/* 헤더 */}

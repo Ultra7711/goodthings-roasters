@@ -142,14 +142,9 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
 
   return (
     <div id="cafe-nutrition-sheet" className={open ? 'open' : ''} aria-hidden={!open}>
-      {/* backdrop-filter 는 inline style 로 주입 — Tailwind v4 + Lightning CSS drop 이슈 회피 */}
       <div
         id="cns-bg"
         onClick={onClose}
-        style={{
-          backdropFilter: 'var(--overlay-dim-blur)',
-          WebkitBackdropFilter: 'var(--overlay-dim-blur)',
-        }}
       />
       <div id="cns-panel" role="dialog" aria-label="메뉴 영양정보">
         {/* 모바일 바텀시트 드래그 핸들 — 데스크탑에선 CSS 로 숨김.

@@ -488,10 +488,6 @@ export default function SiteHeader() {
             id="search-dim"
             className={isSearchOpen ? 'open' : ''}
             onClick={closeSearch}
-            style={{
-              backdropFilter: 'blur(4px)',
-              WebkitBackdropFilter: 'blur(4px)',
-            }}
           />,
           document.body,
         )}

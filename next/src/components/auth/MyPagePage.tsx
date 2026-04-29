@@ -717,7 +717,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
 
       {/* ── 회원 탈퇴 모달 ── */}
       {withdrawOpen && (
-        <div className="mp-modal-overlay" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} onClick={() => setWithdrawOpen(false)}>
+        <div className="mp-modal-overlay" onClick={() => setWithdrawOpen(false)}>
           <div className="mp-modal" onClick={(e) => e.stopPropagation()}>
             <p className="mp-modal-title">떠나시는 건가요?</p>
             <p className="mp-modal-desc">
@@ -738,7 +738,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
         if (!sub) return null;
         const nextDate = calcNextDate(sub.nextDate, sub.cycle);
         return (
-          <div className="mp-modal-overlay" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} onClick={() => setSkipConfirmSubId(null)}>
+          <div className="mp-modal-overlay" onClick={() => setSkipConfirmSubId(null)}>
             <div className="mp-modal mp-modal--calm" onClick={(e) => e.stopPropagation()}>
               <p className="mp-modal-title">배송을 건너뛸까요?</p>
               <p className="mp-modal-desc">
@@ -759,7 +759,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
         const sub = subscriptions.find((s) => s.id === cancelConfirmSubId);
         if (!sub) return null;
         return (
-          <div className="mp-modal-overlay" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} onClick={() => setCancelConfirmSubId(null)}>
+          <div className="mp-modal-overlay" onClick={() => setCancelConfirmSubId(null)}>
             <div className="mp-modal mp-modal--calm" onClick={(e) => e.stopPropagation()}>
               <p className="mp-modal-title">구독을 해지할까요?</p>
               <p className="mp-modal-desc">
