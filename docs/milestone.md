@@ -72,7 +72,7 @@
 | R-5 | 2-E 플로우 복구 + `/biz-inquiry` | ⬜ | RP 재이식 이후 필요 시 |
 | Session 50 | 반응형 1차 리뷰 (Sessions 37~49) | ✅ | 2026-04-20 — `memory/review_session37_49_responsive.md` (HIGH 4·MED 5·LOW 3 · HIGH-1 즉시 수정) |
 | R-7 | 2-G3 프로덕션 마감 (CSP·env·빌드) | ⬜ | |
-| R-SEC | API Routes + 인증 + 결제 보안 리뷰 | 🟡 | S104 1차 완료 (2026-04-29) — CRITICAL 0 · HIGH 2/MEDIUM 3 closure · `memory/review_rsec_20260429.md` · 잔여 M-2/M-5~M-9·L-1~L-4 다음 라운드 |
+| R-SEC | API Routes + 인증 + 결제 보안 리뷰 | 🟡 | S104 1차 + S109 2차 완료 (2026-04-30) — M-2/M-5/L-1/L-3 closure · M-9 verified (로컬 이미지) · 잔여 M-6/M-7/M-8/L-2/L-4(Phase 3) |
 | R-FE1 | Cart + Checkout UI 도메인 리뷰 | ✅ | S105~S107 완료 (2026-04-29) — CRITICAL 0 · HIGH 4/MEDIUM 15/LOW 8 전체 closure · `memory/review_fe1_20260429.md` · 스킵 C-L-5(선형탐색)/C-L-6(추상화)/CH-L-1(Radix Select 교체 — 별도)/CH-L-2(메시지 충분) |
 | R-FE2 | 정기배송 백엔드 리뷰 | ⬜ | 구현 직후 즉시 · security-reviewer + code-reviewer |
 | R-FE3 | MyPage · Cafe · Shop 도메인 리뷰 | ✅ | S108 완료 (2026-04-29) — CRITICAL 0 · HIGH 2/MEDIUM 3/LOW 5 전체 closure · `memory/review_fe3_20260429.md` · 스킵 SH-H-1(문서화된 deps disable)/CA-M-1·MP-C-1(에이전트 오분류) |
