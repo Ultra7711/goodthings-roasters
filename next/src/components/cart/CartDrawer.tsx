@@ -17,28 +17,18 @@ import {
   useCartQuery,
   useUpdateCartQty,
   useRemoveCartItem,
-  FREE_SHIPPING_THRESHOLD,
   SHIPPING_FEE,
 } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useDrawer } from '@/hooks/useDrawer';
 import { useNavigation } from '@/hooks/useNavigation';
-import { splitName } from '@/lib/products';
-import type { CartItem } from '@/types/cart';
+import { splitName, getSubscriptionBadge } from '@/lib/products';
+import { formatPrice } from '@/lib/utils';
 import { useEffect, useRef } from 'react';
-
-function formatWon(n: number): string {
-  return `${n.toLocaleString('ko-KR')}원`;
-}
-
-function subBadgeLabel(item: CartItem): string | null {
-  if (item.type !== 'subscription' || !item.period) return null;
-  return item.period;
-}
 
 export default function CartDrawer() {
   const { isOpen, close, closeForNavigation } = useCartDrawer();
-  const { items, totalQty, subtotal, totalPrice } = useCartQuery();
+  const { items, totalQty, subtotal, totalPrice, isFreeShipping, gaugePct, remainForFree } = useCartQuery();
   const updateQty = useUpdateCartQty();
   const removeItem = useRemoveCartItem();
   const pathname = usePathname();
@@ -71,9 +61,6 @@ export default function CartDrawer() {
   }, [pathname, closeForNavigation]);
 
   const isEmpty = items.length === 0;
-  const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
-  const gaugePct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
-  const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
   function handleCheckout() {
     if (navigatingTo !== null) return;
@@ -152,7 +139,7 @@ export default function CartDrawer() {
               <div className="cd-items">
                 {items.map((item) => {
                   const { kr: krName } = splitName(item.name);
-                  const subBadge = subBadgeLabel(item);
+                  const subBadge = getSubscriptionBadge(item);
                   const unitTotal = item.priceNum * item.qty;
                   const minusDisabled = item.qty <= 1;
                   return (
@@ -228,7 +215,7 @@ export default function CartDrawer() {
                             </svg>
                           </button>
                         </div>
-                        <span className="cd-item-price">{formatWon(unitTotal)}</span>
+                        <span className="cd-item-price">{formatPrice(unitTotal)}</span>
                       </div>
                       <button
                         type="button"
@@ -260,7 +247,7 @@ export default function CartDrawer() {
                       : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하시면 무료 배송됩니다.`}
                   </span>
                   <span className={`cd-si-price${isFreeShipping ? ' free' : ''}`}>
-                    {isFreeShipping ? '무료' : formatWon(SHIPPING_FEE)}
+                    {isFreeShipping ? '무료' : formatPrice(SHIPPING_FEE)}
                   </span>
                 </div>
                 {subtotal > 0 && (
@@ -279,7 +266,7 @@ export default function CartDrawer() {
           <div className="cd-footer">
             <div className="cd-total-row">
               <span className="cd-subtotal-label">결제예정금액</span>
-              <span className="cd-subtotal-price">{formatWon(totalPrice)}</span>
+              <span className="cd-subtotal-price">{formatPrice(totalPrice)}</span>
             </div>
             <div className="cd-note">부가세 포함</div>
             <div className="cd-cta-row">

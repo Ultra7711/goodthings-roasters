@@ -67,7 +67,11 @@ function toSubscriptionPeriod(
 
 function mapRowToCartItem(row: ServerCartRow): CartItem | null {
   const product = PRODUCTS.find((p) => p.slug === row.product_slug);
-  if (!product) return null;
+  if (!product) {
+    // eslint-disable-next-line no-console
+    console.warn('[cart] product not found: slug="%s"', row.product_slug);
+    return null;
+  }
   const firstImage = product.images?.[0];
   return {
     id: row.id,
@@ -168,6 +172,9 @@ export function useCartQuery() {
   const shippingFee =
     subtotal === 0 ? 0 : subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
   const totalPrice = subtotal + shippingFee;
+  const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
+  const gaugePct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
+  const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
   return {
     items,
@@ -175,6 +182,9 @@ export function useCartQuery() {
     subtotal,
     shippingFee,
     totalPrice,
+    isFreeShipping,
+    gaugePct,
+    remainForFree,
     isLoading: query.isLoading,
     isError: query.isError,
     refetch: query.refetch,

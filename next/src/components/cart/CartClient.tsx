@@ -15,24 +15,18 @@ import {
   useCartQuery,
   useUpdateCartQty,
   useRemoveCartItem,
-  FREE_SHIPPING_THRESHOLD,
   SHIPPING_FEE,
 } from '@/hooks/useCart';
 import CartSkeleton from './CartSkeleton';
-import { splitName } from '@/lib/products';
-import type { CartItem } from '@/types/cart';
-
-function formatWon(n: number): string {
-  return `${n.toLocaleString('ko-KR')}원`;
-}
-
-function subBadgeLabel(item: CartItem): string | null {
-  if (item.type !== 'subscription' || !item.period) return null;
-  return item.period;
-}
+import { splitName, getSubscriptionBadge } from '@/lib/products';
+import { formatPrice } from '@/lib/utils';
 
 export default function CartClient() {
-  const { items, subtotal, totalPrice, isLoading } = useCartQuery();
+  const {
+    items, subtotal, totalPrice,
+    isFreeShipping, gaugePct, remainForFree,
+    isLoading,
+  } = useCartQuery();
   const updateQty = useUpdateCartQty();
   const removeItem = useRemoveCartItem();
   const router = useRouter();
@@ -49,9 +43,6 @@ export default function CartClient() {
   if (isLoading) return <CartSkeleton />;
 
   const isEmpty = items.length === 0;
-  const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
-  const gaugePct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
-  const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
   function handleCheckout() {
     router.push('/checkout');
@@ -90,7 +81,7 @@ export default function CartClient() {
           <div className="cp-items-list">
             {items.map((item) => {
               const { kr: krName } = splitName(item.name);
-              const subBadge = subBadgeLabel(item);
+              const subBadge = getSubscriptionBadge(item);
               const unitTotal = item.priceNum * item.qty;
               const minusDisabled = item.qty <= 1;
               return (
@@ -174,7 +165,7 @@ export default function CartClient() {
                       </button>
                     </div>
                   </div>
-                  <span className="cp-item-total">{formatWon(unitTotal)}</span>
+                  <span className="cp-item-total">{formatPrice(unitTotal)}</span>
                   <button
                     type="button"
                     className="cp-remove"
@@ -204,7 +195,7 @@ export default function CartClient() {
                   : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하시면 무료 배송됩니다.`}
               </span>
               <span className={`cp-shipping-price${isFreeShipping ? ' free' : ''}`}>
-                {isFreeShipping ? '무료' : formatWon(SHIPPING_FEE)}
+                {isFreeShipping ? '무료' : formatPrice(SHIPPING_FEE)}
               </span>
             </div>
             {subtotal > 0 && (
@@ -219,7 +210,7 @@ export default function CartClient() {
 
           <div className="cp-footer">
             <span className="cp-subtotal-label">결제예정금액</span>
-            <span className="cp-subtotal-price">{formatWon(totalPrice)}</span>
+            <span className="cp-subtotal-price">{formatPrice(totalPrice)}</span>
             <div className="cp-tax-note">부가세 포함</div>
             <div className="cp-cta-area">
               <Link href="/shop" className="cp-continue-link">

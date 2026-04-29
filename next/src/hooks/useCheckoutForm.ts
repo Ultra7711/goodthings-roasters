@@ -50,9 +50,10 @@ export function useCheckoutForm(): UseCheckoutFormReturn {
     <K extends keyof CheckoutFormData>(key: K, value: CheckoutFormData[K]) => {
       setForm((prev) => ({ ...prev, [key]: value }));
       setErrors((prev) => {
-        if (!prev[key]) return prev;
         const next = { ...prev };
         delete next[key];
+        /* deliveryMessage 변경 시 deliveryCustom 에러도 함께 제거 */
+        if (key === 'deliveryMessage') delete next.deliveryCustom;
         return next;
       });
     },

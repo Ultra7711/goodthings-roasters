@@ -285,6 +285,12 @@ export const FILTER_TABS: { key: FilterKey; label: string; titleKr: string; subt
 export const SP_PER_PAGE = 20;
 export const SP_PER_PAGE_MOBILE = 10;
 
+/** 카트 아이템의 정기배송 뱃지 라벨. 정기배송이 아니면 null. */
+export function getSubscriptionBadge(item: { type: string; period?: string | null }): string | null {
+  if (item.type !== 'subscription' || !item.period) return null;
+  return item.period;
+}
+
 export function filterProducts(products: Product[], filter: FilterKey): Product[] {
   switch (filter) {
     case 'bean': return products.filter((p) => p.category === 'Coffee Bean');

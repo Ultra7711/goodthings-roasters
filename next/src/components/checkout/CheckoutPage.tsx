@@ -215,6 +215,12 @@ export default function CheckoutPage() {
   /* ── 비밀번호 확인 필드 등장 ── */
   const showPw2 = form.guestPw.length >= GUEST_PASSWORD_MIN_LENGTH;
 
+  /* 비밀번호 필드가 사라질 때 pw2 값·에러 초기화 — 이전 입력이 잔류하면
+     다시 표시될 때 불일치 에러가 의도치 않게 나타날 수 있음 */
+  useEffect(() => {
+    if (!showPw2 && form.guestPw2) setField('guestPw2', '');
+  }, [showPw2, form.guestPw2, setField]);
+
   /* ── 주소 검색 (Daum Postcode API) ── */
   const handleAddressSearch = useCallback(async () => {
     try {
@@ -737,7 +743,7 @@ export default function CheckoutPage() {
             orderNumber={orderResult.orderNumber}
             orderName={orderName}
             amount={orderResult.totalAmount}
-            customerEmail={form.email.trim()}
+            customerEmail={form.email.trim().toLowerCase()}
             customerName={form.firstname.trim()}
             customerMobilePhone={(() => {
               const digits = form.phone.replace(/\D/g, '');
