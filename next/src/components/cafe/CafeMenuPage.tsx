@@ -33,7 +33,11 @@ const HIGHLIGHT_MS = 1500;
 // ShopPage 와 동일 — 탭(0.3s) 등장 후 카드 시작, 진입 후엔 0
 const CARD_BASE_DELAY_INIT = 420;
 
-export default function CafeMenuPage() {
+type Props = {
+  initialLikes?: { counts: Record<string, number>; liked: string[] };
+};
+
+export default function CafeMenuPage({ initialLikes }: Props) {
   const searchParams = useSearchParams();
 
   // URL `?cat=` 파싱 — searchParams 가 바뀔 때마다 재평가
@@ -60,7 +64,7 @@ export default function CafeMenuPage() {
   const isMobile = useMediaQuery('(max-width: 479px)');
   const perPage = isMobile ? CM_PER_PAGE_MOBILE : CM_PER_PAGE;
 
-  const { counts: likeCounts, liked: likedSet, toggle: toggleLike } = useMenuLikes();
+  const { counts: likeCounts, liked: likedSet, toggle: toggleLike } = useMenuLikes(initialLikes);
 
   // ───────────────────────────────────────────
   // Adjusting state during render — urlFilter / searchParams prop 동기화

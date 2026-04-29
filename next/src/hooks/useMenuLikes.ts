@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSessionSnapshot } from '@/hooks/useSupabaseSession';
 import { showToast } from '@/lib/toastStore';
 
@@ -18,6 +18,11 @@ type MenuLikesResponse = {
   };
 };
 
+type InitialData = {
+  counts: Record<string, number>;
+  liked: string[];
+};
+
 type ToggleResponse = {
   data: {
     liked: boolean;
@@ -25,12 +30,22 @@ type ToggleResponse = {
   };
 };
 
-export function useMenuLikes() {
-  const [counts, setCounts] = useState<Record<string, number>>({});
-  const [liked, setLiked] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
+export function useMenuLikes(initialData?: InitialData) {
+  /* initialData 는 마운트 시 1회만 참조 — ref 로 고정해 effect deps 안정화 */
+  const initialDataRef = useRef(initialData);
+
+  const [counts, setCounts] = useState<Record<string, number>>(
+    initialDataRef.current?.counts ?? {},
+  );
+  const [liked, setLiked] = useState<Set<string>>(
+    new Set(initialDataRef.current?.liked ?? []),
+  );
+  /* SSR 초기 데이터가 있으면 로딩 완료 상태로 시작 */
+  const [loading, setLoading] = useState(!initialDataRef.current);
 
   useEffect(() => {
+    /* SSR 에서 이미 데이터를 받았으면 클라이언트 fetch 생략 */
+    if (initialDataRef.current) return;
     fetch('/api/menu-likes')
       .then((r) => r.json() as Promise<MenuLikesResponse>)
       .then(({ data }) => {
