@@ -59,8 +59,14 @@ export default function GoodDaysPage() {
   /* instant 모드 — 메인 페이지 갤러리에서 진입 시 transition 없이 즉시 표시.
      프로토타입 L2463 gd-lb-instant 클래스 동일. 화이트 flash 차단. */
   const [lbInstant, setLbInstant] = useState(false);
-  /* 화살표 클릭 직후 즉시 숨김 — pointerMove 로 복원 */
-  const [arrowsHidden, setArrowsHidden] = useState(false);
+  /* 클릭 방향 피드백 — null=숨김, 'prev'/'next'=해당 화살표 600ms 표시 후 fade-out */
+  const [flashDir, setFlashDir] = useState<'prev' | 'next' | null>(null);
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* 핀치 줌 — 모바일 두 손가락 확대/축소 */
+  const [pinchScale, setPinchScale] = useState(1);
+  const pinchScaleRef = useRef(1);
+  const pinchStartDistRef = useRef<number | null>(null);
+  const pinchStartScaleRef = useRef(1);
   /* 라이트박스 settled 타이머 ref — 빠른 열기/닫기 시 stale state update 방지 */
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /* ?img= query 마지막 처리 src — 중복 실행 방지 + Activity 복귀 시 stale 판정.
@@ -197,10 +203,17 @@ export default function GoodDaysPage() {
       clearTimeout(settleTimerRef.current);
       settleTimerRef.current = null;
     }
+    if (flashTimerRef.current) {
+      clearTimeout(flashTimerRef.current);
+      flashTimerRef.current = null;
+    }
     setLightboxIdx(null);
     setLbSettled(false);
     setLbInstant(false);
-    setArrowsHidden(false);
+    setFlashDir(null);
+    setPinchScale(1);
+    pinchScaleRef.current = 1;
+    pinchStartDistRef.current = null;
     /* Stage D-2: 다음 동일 ?img= 재진입을 허용하려면 ref 도 리셋 */
     lastHandledImgSrcRef.current = null;
     /* ?img= 파라미터가 남아 있으면 제거 — 새로고침 시 라이트박스 재오픈 방지 */
@@ -209,18 +222,26 @@ export default function GoodDaysPage() {
     }
   }, [router, searchParams]);
 
-  /* 언마운트 시 settled 타이머 정리 */
+  /* 언마운트 시 타이머 정리 */
   useEffect(() => {
     return () => {
       if (settleTimerRef.current) {
         clearTimeout(settleTimerRef.current);
         settleTimerRef.current = null;
       }
+      if (flashTimerRef.current) {
+        clearTimeout(flashTimerRef.current);
+        flashTimerRef.current = null;
+      }
     };
   }, []);
 
   const navLightbox = useCallback(
     (delta: number) => {
+      /* 이미지 전환 시 핀치 줌 초기화 */
+      setPinchScale(1);
+      pinchScaleRef.current = 1;
+      pinchStartDistRef.current = null;
       setLightboxIdx((prev) => {
         if (prev === null) return prev;
         return (prev + delta + ordered.length) % ordered.length;
@@ -228,6 +249,59 @@ export default function GoodDaysPage() {
     },
     [ordered.length],
   );
+
+  /* 방향 피드백 flash — 클릭한 방향 화살표를 600ms 표시 후 fade-out */
+  function flashArrow(dir: 'prev' | 'next') {
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+    setFlashDir(dir);
+    flashTimerRef.current = setTimeout(() => {
+      setFlashDir(null);
+      flashTimerRef.current = null;
+    }, 600);
+  }
+
+  /* 핀치 줌 — passive: false 로 등록해야 preventDefault 허용 (iOS Safari) */
+  useEffect(() => {
+    if (lightboxIdx === null) return;
+    const el = document.getElementById('gd-lb-img') as HTMLImageElement | null;
+    if (!el) return;
+
+    function dist(t: TouchList) {
+      return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    }
+    function onStart(e: TouchEvent) {
+      if (e.touches.length === 2) {
+        pinchStartDistRef.current = dist(e.touches);
+        pinchStartScaleRef.current = pinchScaleRef.current;
+      }
+    }
+    function onMove(e: TouchEvent) {
+      if (e.touches.length === 2 && pinchStartDistRef.current !== null) {
+        e.preventDefault();
+        const next = Math.min(4, Math.max(1,
+          pinchStartScaleRef.current * (dist(e.touches) / pinchStartDistRef.current)
+        ));
+        pinchScaleRef.current = next;
+        setPinchScale(next);
+      }
+    }
+    function onEnd() {
+      pinchStartDistRef.current = null;
+      if (pinchScaleRef.current < 1.05) {
+        pinchScaleRef.current = 1;
+        setPinchScale(1);
+      }
+    }
+
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+    };
+  }, [lightboxIdx]);
 
   /* 라이트박스 오픈 중 키보드 컨트롤 */
   useEffect(() => {
@@ -254,23 +328,13 @@ export default function GoodDaysPage() {
     };
   }, [lightboxIdx]);
 
-  /* 투핑거 핀치 줌 차단 — iOS Safari 는 touch-action: pan-y 만으로 부족.
-     viewport maximum-scale=1 / user-scalable=no 로 열린 동안만 줌 비활성화. */
-  useEffect(() => {
-    if (lightboxIdx === null) return;
-    const viewport = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
-    if (!viewport) return;
-    const orig = viewport.content;
-    viewport.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
-    return () => { viewport.content = orig; };
-  }, [lightboxIdx]);
-
   const currentImg = lightboxIdx !== null ? ordered[lightboxIdx] : null;
 
   /* 라이트박스 — 프로토타입 L4193 처럼 body 직계로 렌더해야
      #gd-page 의 pageEnter transform 이 만드는 stacking context 에 갇히지 않음
      (헤더/어나운스 바 위로 정상 노출). architect M2 권고. */
-  const arrowCls = arrowsHidden ? ' gd-lb-arrow--hidden' : '';
+  const prevArrowCls = flashDir === 'prev' ? ' gd-lb-arrow--flash' : '';
+  const nextArrowCls = flashDir === 'next' ? ' gd-lb-arrow--flash' : '';
 
   const lightbox = (
     <div
@@ -281,18 +345,17 @@ export default function GoodDaysPage() {
       onClick={(e) => {
         if (e.target === e.currentTarget) closeLightbox();
       }}
-      onPointerMove={() => { if (arrowsHidden) setArrowsHidden(false); }}
     >
       {/* 좌우 탭존 — 이미지 세로 전체 범위에서 prev/next 탭 허용 */}
       <div
         className="gd-lb-zone gd-lb-zone--prev"
         aria-hidden="true"
-        onClick={(e) => { e.stopPropagation(); setArrowsHidden(true); navLightbox(-1); }}
+        onClick={(e) => { e.stopPropagation(); flashArrow('prev'); navLightbox(-1); }}
       />
       <div
         className="gd-lb-zone gd-lb-zone--next"
         aria-hidden="true"
-        onClick={(e) => { e.stopPropagation(); setArrowsHidden(true); navLightbox(1); }}
+        onClick={(e) => { e.stopPropagation(); flashArrow('next'); navLightbox(1); }}
       />
       <button
         type="button"
@@ -317,12 +380,12 @@ export default function GoodDaysPage() {
       </button>
       <button
         type="button"
-        className={`gd-lb-arrow gd-lb-prev arrow-btn arrow-btn-primary arrow-btn-dark${arrowCls}`}
+        className={`gd-lb-arrow gd-lb-prev arrow-btn arrow-btn-primary arrow-btn-dark${prevArrowCls}`}
         id="gd-lb-prev"
         aria-label="이전 이미지"
         onClick={(e) => {
           e.stopPropagation();
-          setArrowsHidden(true);
+          flashArrow('prev');
           navLightbox(-1);
         }}
       >
@@ -343,16 +406,21 @@ export default function GoodDaysPage() {
           id="gd-lb-img"
           src={currentImg}
           alt={`갤러리 이미지 ${(lightboxIdx ?? 0) + 1}`}
+          style={{
+            transform: `scale(${pinchScale})`,
+            transformOrigin: 'center center',
+            transition: pinchStartDistRef.current !== null ? 'none' : 'transform 0.2s ease-out',
+          }}
         />
       )}
       <button
         type="button"
-        className={`gd-lb-arrow gd-lb-next arrow-btn arrow-btn-primary arrow-btn-dark${arrowCls}`}
+        className={`gd-lb-arrow gd-lb-next arrow-btn arrow-btn-primary arrow-btn-dark${nextArrowCls}`}
         id="gd-lb-next"
         aria-label="다음 이미지"
         onClick={(e) => {
           e.stopPropagation();
-          setArrowsHidden(true);
+          flashArrow('next');
           navLightbox(1);
         }}
       >
