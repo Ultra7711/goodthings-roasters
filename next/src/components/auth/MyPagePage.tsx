@@ -656,23 +656,25 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                         </button>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span className={`mp-order-status${order.status === '배송중' ? ' mp-order-status--shipping' : ' mp-order-status--delivered'}`}>
-                        {order.status}
-                      </span>
-                      <span className="mp-order-toggle">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M9,6l6,6-6,6" />
-                        </svg>
-                      </span>
+                    <span className="mp-order-toggle">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9,6l6,6-6,6" />
+                      </svg>
+                    </span>
+                  </div>
+                  <div className="mp-order-content">
+                    <div className="mp-order-content-left">
+                      <div className="mp-order-summary">
+                        {extractKrName(order.name)}
+                        <span className="mp-order-detail"> · {order.detail}</span>
+                      </div>
+                      <div className="mp-order-price-row">
+                        <span className="mp-order-price">{order.price}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="mp-order-summary">
-                    {extractKrName(order.name)}
-                    <span className="mp-order-detail"> · {order.detail}</span>
-                  </div>
-                  <div className="mp-order-price-row">
-                    <span className="mp-order-price">{order.price}</span>
+                    <span className={`mp-order-status${order.status === '배송중' ? ' mp-order-status--shipping' : ' mp-order-status--delivered'}`}>
+                      {order.status}
+                    </span>
                   </div>
                   {/* 아이템 아코디언 */}
                   <div className="mp-order-items">

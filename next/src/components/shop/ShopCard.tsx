@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { type Product, extractKrName, formatStartPrice, getStatusBadgeClass } from '@/lib/products';
 import { useAddCartItem } from '@/hooks/useCart';
 
-const HOVER_DELAY_MS = 400;
 const SCROLL_REVEAL_THRESHOLD = 0.15;
 
 /** 첫 번째 가용(품절 아닌) 볼륨 인덱스 — 전부 품절이면 0 */
@@ -34,11 +33,9 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   const [visible, setVisible] = useState(instant);
 
   const cardRef = useRef<HTMLDivElement>(null);
-  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function clearTimers() {
-    if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
     if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
   }
 
@@ -50,7 +47,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     setQaBarText('빠른 추가');
     setActiveVolIdx(findFirstAvailVolIdx(p));
     clearTimers();
-    // 250ms: bar 수축 완료 → closing 클래스 제거 → CSS base opacity:0으로 페이드 아웃
+    // 250ms: bar 수축 완료 → closing 클래스 제거 → CSS base(48px 아이콘) 상태 복원
     closeTimerRef.current = setTimeout(() => setQaClosing(false), 250);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -87,12 +84,10 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   }, [qaOpen, closeQa]);
 
   // Unmount cleanup — resetTick 증가 또는 필터 전환 시 ShopCard 가 remount 되는데,
-  // 이때 진행 중이던 hover/close 타이머가 unmounted 인스턴스에서 setState 를 호출하면
-  // 메모리 leak + React warning 발생. 또한 momentum scroll 로 mouseleave 가 누락된
-  // 케이스에서 bar inline style 이 다음 생애에 전파되지 않도록 명시적으로 초기화한다.
+  // 이때 진행 중이던 close 타이머가 unmounted 인스턴스에서 setState 를 호출하면
+  // 메모리 leak + React warning 발생.
   useEffect(() => {
     return () => {
-      if (hoverTimerRef.current) { clearTimeout(hoverTimerRef.current); hoverTimerRef.current = null; }
       if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
     };
   }, []);
@@ -103,47 +98,10 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   const showQaBar = !isSubFilter;
   const thumbStyle = `${img?.bg ?? '#f5f5f3'}${img?.src ? ` url('${img.src}') center/contain no-repeat` : ''}`;
 
-  function getBar() {
-    return cardRef.current?.querySelector<HTMLElement>('.sp-qa-bar') ?? null;
-  }
-
   function openQa() {
     clearTimers();
     setQaOpen(true);
-    // closeQa 중 남아 있을 수 있는 inline style 초기화 (opacity/pointer-events 모두)
-    const bar = getBar();
-    if (bar) {
-      bar.style.transition = '';
-      bar.style.opacity = '';
-      bar.style.pointerEvents = '';
-    }
     setQaBarText('장바구니에 담기');
-  }
-
-  function handleMouseEnter() {
-    // 품절 카드도 hover 시 바가 등장하도록 isSoldOut 분기 제거.
-    // 품절 상태에서는 빠른 추가 기능(openQa) 만 동작하지 않으며,
-    // 바 자체의 등장/퇴장 모션은 일반 카드와 동일하게 유지한다.
-    if (qaOpen || !showQaBar) return;
-    hoverTimerRef.current = setTimeout(() => {
-      const bar = getBar();
-      if (bar) {
-        bar.style.opacity = '1';
-        // 투명 상태의 pointer-events:none 해제 — hover 로 실제 보이는 동안만 클릭 가능
-        bar.style.pointerEvents = 'auto';
-      }
-    }, HOVER_DELAY_MS);
-  }
-
-  function handleMouseLeave() {
-    clearTimers();
-    if (!qaOpen) {
-      const bar = getBar();
-      if (bar) {
-        bar.style.opacity = '';
-        bar.style.pointerEvents = '';
-      }
-    }
   }
 
   function handleCardClick(e: React.MouseEvent) {
@@ -182,8 +140,6 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
       className={`sp-card${visible ? ' sp-visible' : ''}${qaOpen ? ' sp-card--qa-open' : ''}${qaClosing ? ' sp-card--qa-closing' : ''}`}
       style={{ transitionDelay: `${baseDelay + colIndex * 70}ms` }}
       onClick={handleCardClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       data-slug={p.slug}
     >
       <div className="sp-card-thumb">

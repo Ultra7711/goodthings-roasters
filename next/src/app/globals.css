@@ -2654,7 +2654,8 @@ footer.blk {
   flex: 1;
   min-width: 40px;
   height: 48px;
-  box-shadow: 0 0 0 1px var(--color-text-tertiary);
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--color-border-secondary);
   background: var(--color-background-primary);
   font-family: var(--font-en);
   font-size: var(--type-body-ui-size);
@@ -2671,7 +2672,7 @@ footer.blk {
   opacity: 1; transform: translateY(0);
   transition: opacity .18s ease .12s, transform .18s ease .12s;
 }
-.sp-qa-vol-btn.active { border-color: var(--color-text-primary); font-weight: 600; }
+.sp-qa-vol-btn.active { box-shadow: inset 0 0 0 2px var(--color-text-primary); font-weight: 600; }
 /* 품목별 품절 — 선택 불가, 텍스트 취소선 + 흐리게 */
 .sp-qa-vol-btn.sold-out {
   color: var(--color-text-caption);
@@ -2680,141 +2681,70 @@ footer.blk {
   opacity: .55;
 }
 .sp-qa-vol-btn.sold-out.active {
-  border-color: var(--color-border-secondary);
+  box-shadow: inset 0 0 0 1px var(--color-border-secondary);
   font-weight: 400;
 }
+/* 빠른 추가 바 — 우하단 정사각형 아이콘 버튼, 상시 노출 */
 .sp-qa-bar {
   position: absolute;
   bottom: 0;
-  left: 0;
   right: 0;
+  left: auto;
+  width: 48px;
   height: 48px;
-  width: 124px;
-  margin: 0 auto;
+  margin: 0;
   background: var(--color-btn-primary-bg);
   color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0;
-  /* 투명한 상태에서 클릭을 가로채지 못하도록 차단 — 닫힘 후 페이드아웃 상태
-     (또는 base 상태) 의 보이지 않는 바가 카드 클릭(router.push)을 먹어서
-     다시 openQa 를 트리거하던 버그 방지. 보이는 동안만 아래에서 override. */
-  pointer-events: none;
-  transition: opacity var(--duration-transition), width var(--duration-hover) ease;
+  opacity: 1;
+  pointer-events: auto;
+  transition: width var(--duration-hover) ease, opacity var(--duration-transition);
   z-index: 4;
   border: none;
 }
-/* hover는 JS 인라인 스타일(400ms 딜레이)로만 제어 — CSS hover 룰 없음 (닫힌 직후 재등장 방지).
-   hover 타이머가 opacity:1 을 세팅할 때 pointer-events:auto 도 함께 세팅함(JS). */
-.sp-card--qa-open .sp-qa-bar { width: 100%; opacity: 1; pointer-events: auto; }
-/* 닫힘 트랜지션 중에는 보이지만 클릭 불가 — 이미 close 가 확정된 상태이므로
-   재오픈을 방지하고 카드 클릭도 이 영역에서 블로킹되지 않도록 함. */
+/* 오픈 상태 — 우측 앵커 유지하며 좌측으로 풀바 확장 */
+.sp-card--qa-open .sp-qa-bar { left: auto; right: 0; width: 100%; opacity: 1; pointer-events: auto; }
 .sp-card--qa-closing .sp-qa-bar { opacity: 1; pointer-events: none; transition: width var(--duration-hover) ease, opacity var(--duration-transition); }
-.sp-qa-bar--disabled {
-  background: rgba(28,27,25,.42);
-  cursor: default;
-  /* opacity 는 base .sp-qa-bar 의 0 을 상속 — 빠른 추가 바와 동일하게
-     hover 시에만 JS 에서 opacity:1 을 세팅해 등장한다. 품절 카드에서도
-     hover 동작 자체는 동일하고, 다만 빠른 추가 기능(클릭 → QA 오픈)만
-     비활성화된다. width 는 base 의 124px 유지. */
-}
+/* 품절 바 — 뱃지로 상태 표시가 충분하므로 숨김 */
+.sp-qa-bar--disabled { display: none; }
 .sp-qa-bar-text {
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   font-weight: 500;
   letter-spacing: var(--ls-body);
   pointer-events: none;
+  display: none;
 }
-.sp-qa-close {
-  /* sp-qa-bar(position:absolute) 기준 절대 배치 — 바 우측 끝에 위치, 바 확장 시 함께 이동 */
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 48px;
-  height: 48px;
-  background: none;
-  border: none;
-  color: var(--color-text-inverse);
-  opacity: .6;
-  cursor: pointer;
-  display: flex;
+/* 아이콘 — 기본 표시 */
+.sp-qa-bar-icon {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  transition: opacity var(--duration-hover) linear;
 }
-.sp-card--qa-open .sp-qa-close { pointer-events: auto; }
-.sp-qa-close:hover { opacity: 1; }
-.sp-qa-close svg { opacity: 0; transition: opacity .15s; }
-.sp-card--qa-open .sp-qa-close svg { opacity: 1; transition: opacity var(--duration-transition) ease; }
+.sp-qa-bar-icon svg { transition: transform 250ms ease; }
+/* sp-qa-close — 아이콘이 대체하므로 숨김 */
+.sp-qa-close { display: none; }
 
-/* 빠른 추가 바 — 데스크탑 기본: 아이콘 숨김 */
-.sp-qa-bar-icon { display: none; }
+/* 오픈 상태 — 아이콘이 우측으로 이동하여 × 닫기로 전환 */
+.sp-card--qa-open .sp-qa-bar-icon {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  pointer-events: auto;
+}
+.sp-card--qa-open .sp-qa-bar-icon svg { transform: rotate(45deg) scale(1.143); }
+.sp-card--qa-open .sp-qa-bar-text { display: inline; }
 
-/* a11y: 빠른 추가 바 키보드 포커스 가시화 (role="button" + tabIndex=0) — Session 51 */
+/* a11y: 빠른 추가 바 키보드 포커스 가시화 */
 .sp-card--qa-open .sp-qa-bar:focus-visible {
   outline: 2px solid var(--color-accent-gold);
   outline-offset: -2px;
-}
-
-/* 터치 기기 — hover 불가이므로 "빠른 추가" 바를 상시 노출 */
-@media (hover: none) {
-  .sp-qa-bar { opacity: 1; pointer-events: auto; }
-  .sp-qa-bar--disabled { opacity: 1; }
-}
-
-/* 모바일(<480) — 우하단 정사각형 아이콘 버튼 · 오픈 시 풀바 확장 */
-@media (max-width: 479px) {
-  .sp-qa-bar {
-    left: auto;
-    right: 0;
-    bottom: 0;
-    width: 48px;
-    height: 48px;
-    margin: 0;
-    border-radius: 0;
-    opacity: 1;
-    pointer-events: auto;
-    transition: width var(--duration-hover) ease,
-                opacity var(--duration-transition);
-  }
-  .sp-qa-bar--disabled { opacity: 1; }
-  .sp-qa-bar-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
-  .sp-qa-bar-icon svg { transition: transform 250ms ease; }
-  .sp-qa-bar-text { display: none; }
-  .sp-qa-close { display: none; }
-
-  /* 오픈 상태 — 우측 앵커 유지하며 좌측으로 풀바 확장 */
-  .sp-card--qa-open .sp-qa-bar {
-    left: auto;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 48px;
-    border-radius: 0;
-  }
-  /* + 아이콘을 우측으로 절대 배치하여 × 닫기 버튼으로 전환 (sp-qa-close 대체) */
-  .sp-card--qa-open .sp-qa-bar-icon {
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 48px;
-    pointer-events: auto;
-  }
-  .sp-card--qa-open .sp-qa-bar-icon svg { transform: rotate(45deg) scale(1.143); }
-  .sp-card--qa-open .sp-qa-bar-text { display: inline; }
-  /* sp-qa-close 모바일 open 시에도 숨김 유지 — 아이콘이 대체 */
-
-  /* 품절 바 — 모바일에서는 뱃지로 상태 표시 충분하므로 숨김 */
-  .sp-qa-bar--disabled { display: none; }
 }
 
 /* 배지 */
@@ -7509,6 +7439,19 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-sub-accordion-actions > :nth-child(1) { flex: 2 1 0; min-width: 0; padding: 0; }
 .mp-sub-accordion-actions > :nth-child(2) { flex: 1.5 1 0; min-width: 0; padding: 0; }
 .mp-sub-accordion-actions > :nth-child(3) { flex: 1 1 0; min-width: 0; padding: 0; }
+/* 배송지/비밀번호 actions: 정기배송 큰 버튼(~252px) 폭 매치 + 좌측 정렬 (S103)
+   가로 폭만 크지 않게 부모 일부만 차지. flex-grow=0 → 부모 가득 안 채움. */
+@media (min-width: 768px) {
+  .mp-accordion-actions:not(.mp-sub-accordion-actions) {
+    justify-content: flex-start;
+  }
+  .mp-accordion-actions:not(.mp-sub-accordion-actions) > .mp-cancel-btn,
+  .mp-accordion-actions:not(.mp-sub-accordion-actions) > .mp-save-btn {
+    flex: 0 1 240px;
+    min-width: 0;
+    padding: 0;
+  }
+}
 .mp-sub-accordion .mp-info-row { border-bottom: none; }
 /* 정기배송 커스텀 드롭다운 — chp-field 인풋 + pd-dropdown-panel 메뉴 */
 .mp-cycle-dropdown-wrap { position: relative; }
@@ -7598,7 +7541,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .mp-order-card { min-width: 340px; }
 }
 .mp-order-meta { display: flex; align-items: flex-start; justify-content: space-between; }
-.mp-order-meta-left { display: flex; flex-direction: column; gap: 2px; }
+.mp-order-meta-left { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; overflow: hidden; }
 .mp-order-date {
   font-family: var(--font-en); font-size: var(--type-body-s-size); font-weight: 400;
   color: var(--color-text-primary); letter-spacing: var(--ls-body);
@@ -7628,9 +7571,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .mp-order-status--shipping { color: var(--color-text-inverse); background: var(--color-status-live); }
 .mp-order-status--delivered { color: var(--color-text-inverse); background: var(--color-status-done); }
+.mp-order-content { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.mp-order-content-left { flex: 1; min-width: 0; }
 .mp-order-summary {
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 500;
-  color: var(--color-text-primary); margin-top: 12px;
+  color: var(--color-text-primary);
 }
 .mp-order-detail {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: var(--type-body-ui-weight);
