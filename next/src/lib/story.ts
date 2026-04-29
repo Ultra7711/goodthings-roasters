@@ -18,7 +18,7 @@ export type StoryTwoColItem = {
    StoryTwoCol 컴포넌트에서 paragraph 로 분리한다. */
 export const STORY_TWO_COL: StoryTwoColItem[] = [
   {
-    label: 'Coffee',
+    label: 'Beans',
     heading: '좋은 원두를 씁니다.',
     body: '이름값이 아닌 맛으로 선택합니다.\n\n굳띵즈의 모든 원두는 산지 농장과의 직접 교류를 통해 선별됩니다. 수확 시기, 가공 방식, 건조 환경까지 확인한 생두만을 소량 입고하며, 로스팅 프로파일은 원두마다 개별적으로 설계합니다.',
     image: '/images/story/story_coffee.webp',
