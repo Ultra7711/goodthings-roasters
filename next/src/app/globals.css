@@ -1119,7 +1119,7 @@ button.hdr-icon-btn { background: none; border: none; }
   position: fixed;
   top: var(--search-drop-top, 96px);
   left: 0;
-  right: 0;
+  right: var(--scrollbar-w, 0px);
   background: var(--search-panel-bg);
   /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 */
   overflow: hidden;
@@ -1193,7 +1193,7 @@ button.hdr-icon-btn { background: none; border: none; }
   position: fixed;
   top: var(--dim-top, 60px);
   left: 0;
-  right: 0;
+  right: var(--scrollbar-w, 0px);
   bottom: 0;
   background: var(--overlay-dim-bg);
   /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 */

@@ -17,6 +17,18 @@ export default function SRInitializer() {
   const pathname = usePathname();
   const isFirstRunRef = useRef(true);
 
+  /* 스크롤바 거터 폭을 CSS 변수로 설정 — 마운트 1회.
+     html { scrollbar-gutter: stable } 이 항상 거터 공간을 예약하므로
+     overflow 유무와 무관하게 innerWidth - clientWidth = 거터 폭.
+     #search-drop / #search-dim 의 right 오프셋에 활용해
+     패널이 스크롤바 영역으로 삐져 나가지 않도록 한다. */
+  useEffect(() => {
+    const sw = window.innerWidth - document.documentElement.clientWidth;
+    if (sw > 0) {
+      document.documentElement.style.setProperty('--scrollbar-w', `${sw}px`);
+    }
+  }, []);
+
   useEffect(() => {
     let ioOneShot: IntersectionObserver | null = null;
     let ioToggle: IntersectionObserver | null = null;
