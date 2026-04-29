@@ -104,12 +104,12 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   };
 
   /* ── 아코디언 상태 ── */
-  const [addrOpen, setAddrOpen] = useState(false);
-  const [pwOpen, setPwOpen] = useState(false);
+  const [isAddrOpen, setAddrOpen] = useState(false);
+  const [isPwOpen, setPwOpen] = useState(false);
   const [subEditId, setSubEditId] = useState<string | null>(null);
 
   /* ── 회원 탈퇴 모달 ── */
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [isWithdrawOpen, setWithdrawOpen] = useState(false);
 
   /* ── 구독 모달 ── */
   const [skipConfirmSubId, setSkipConfirmSubId] = useState<string | null>(null);
@@ -166,7 +166,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   /* ── 정기배송 상태 ── */
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(MOCK_SUBSCRIPTIONS);
   const [subCycleEdit, setSubCycleEdit] = useState<SubscriptionCycle | null>(null);
-  const [cycleDropdownOpen, setCycleDropdownOpen] = useState(false);
+  const [isCycleDropdownOpen, setCycleDropdownOpen] = useState(false);
   const cycleDropdownRef = useRef<HTMLDivElement>(null);
   const addrFormRef = useRef<HTMLDivElement>(null);
   const pwFormRef = useRef<HTMLDivElement>(null);
@@ -175,17 +175,17 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
 
   /* 모달 오픈 시 스크롤 잠금 */
   useEffect(() => {
-    const anyOpen = withdrawOpen || !!skipConfirmSubId || !!cancelConfirmSubId;
+    const anyOpen = isWithdrawOpen || !!skipConfirmSubId || !!cancelConfirmSubId;
     if (!anyOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = prev; };
-  }, [withdrawOpen, skipConfirmSubId, cancelConfirmSubId]);
+  }, [isWithdrawOpen, skipConfirmSubId, cancelConfirmSubId]);
 
   /* 커스텀 드롭다운 외부 클릭 닫기
      capture 단계 stopPropagation 으로 하단 아코디언 관통 차단 (BUG-125) */
   useEffect(() => {
-    if (!cycleDropdownOpen) return;
+    if (!isCycleDropdownOpen) return;
     const onCapture = (e: MouseEvent) => {
       if (cycleDropdownRef.current && !cycleDropdownRef.current.contains(e.target as Node)) {
         e.stopPropagation();
@@ -194,7 +194,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
     };
     document.addEventListener('click', onCapture, true);
     return () => document.removeEventListener('click', onCapture, true);
-  }, [cycleDropdownOpen]);
+  }, [isCycleDropdownOpen]);
 
   const openSubAccordion = useCallback((sub: Subscription) => {
     setSubEditId(sub.id);
@@ -347,12 +347,12 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                 className="mp-info-row-top"
                 role="button"
                 tabIndex={0}
-                aria-label={addrOpen ? '닫기' : hasAddress ? '주소 편집' : '새 주소 추가'}
-                onClick={() => addrOpen ? setAddrOpen(false) : openAddrAccordion()}
+                aria-label={isAddrOpen ? '닫기' : hasAddress ? '주소 편집' : '새 주소 추가'}
+                onClick={() => isAddrOpen ? setAddrOpen(false) : openAddrAccordion()}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    if (addrOpen) setAddrOpen(false);
+                    if (isAddrOpen) setAddrOpen(false);
                     else openAddrAccordion();
                   }
                 }}
@@ -366,12 +366,12 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                     {addrDisplay}
                   </span>
                   <span className="mp-addr-icon-btn" aria-hidden="true">
-                    <span className={`mp-chevron${addrOpen ? ' open' : ''}`}><ChevronRight /></span>
+                    <span className={`mp-chevron${isAddrOpen ? ' open' : ''}`}><ChevronRight /></span>
                   </span>
                 </div>
               </div>
               {/* 주소 아코디언 */}
-              <div className={`mp-accordion${addrOpen ? ' open' : ''}`}>
+              <div className={`mp-accordion${isAddrOpen ? ' open' : ''}`}>
                 <div className="mp-accordion-inner" ref={addrFormRef}>
                   <TextField
                     label="받는 분"
@@ -494,12 +494,12 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                             onClick={() => setCycleDropdownOpen((p) => !p)}
                           >
                             <span>{subCycleEdit ? `${subCycleEdit}마다 배송` : `${sub.cycle}마다 배송`}</span>
-                            <svg className={`mp-cycle-chevron${cycleDropdownOpen && subEditId === sub.id ? ' open' : ''}`} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg className={`mp-cycle-chevron${isCycleDropdownOpen && subEditId === sub.id ? ' open' : ''}`} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M6,10l6,6,6-6" />
                             </svg>
                           </button>
                           <label className="chp-floating-label">배송 주기</label>
-                          <div className={`pd-dropdown-panel${cycleDropdownOpen && subEditId === sub.id ? ' open' : ''}`}>
+                          <div className={`pd-dropdown-panel${isCycleDropdownOpen && subEditId === sub.id ? ' open' : ''}`}>
                             <div className="pd-dropdown-hint">배송 주기 선택</div>
                             {SUBSCRIPTION_CYCLES.map((c) => (
                               <div
@@ -542,12 +542,12 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
               className="mp-info-row mp-info-row--action"
               role="button"
               tabIndex={0}
-              aria-label={pwOpen ? '닫기' : '비밀번호 변경'}
-              onClick={() => pwOpen ? (pwForm.reset(), setPwOpen(false)) : openPwAccordion()}
+              aria-label={isPwOpen ? '닫기' : '비밀번호 변경'}
+              onClick={() => isPwOpen ? (pwForm.reset(), setPwOpen(false)) : openPwAccordion()}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  if (pwOpen) {
+                  if (isPwOpen) {
                     pwForm.reset();
                     setPwOpen(false);
                   } else {
@@ -558,11 +558,11 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
             >
               <span className="mp-info-label">비밀번호 변경</span>
               <span className="mp-icon-btn" aria-hidden="true" style={{ position: 'relative', top: 4 }}>
-                <span className={`mp-chevron${pwOpen ? ' open' : ''}`}><ChevronRight /></span>
+                <span className={`mp-chevron${isPwOpen ? ' open' : ''}`}><ChevronRight /></span>
               </span>
             </div>
             {/* 비밀번호 변경 아코디언 */}
-            <div className={`mp-accordion${pwOpen ? ' open' : ''}`}>
+            <div className={`mp-accordion${isPwOpen ? ' open' : ''}`}>
               <div className="mp-accordion-inner" ref={pwFormRef}>
                 <TextField
                   type="password"
@@ -604,7 +604,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                 </div>
               </div>
             </div>
-            <div className={`mp-info-row mp-info-row--withdraw${pwOpen ? ' mp-withdraw-divider' : ''}`} style={{ borderBottom: 'none' }}>
+            <div className={`mp-info-row mp-info-row--withdraw${isPwOpen ? ' mp-withdraw-divider' : ''}`} style={{ borderBottom: 'none' }}>
               <span className="mp-info-label">회원 탈퇴</span>
               <button
                 className="mp-icon-btn"
@@ -717,7 +717,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
       </div>
 
       {/* ── 회원 탈퇴 모달 ── */}
-      {withdrawOpen && (
+      {isWithdrawOpen && (
         <div className="mp-modal-overlay" onClick={() => setWithdrawOpen(false)}>
           <div className="mp-modal" onClick={(e) => e.stopPropagation()}>
             <p className="mp-modal-title">떠나시는 건가요?</p>

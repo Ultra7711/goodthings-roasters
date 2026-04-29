@@ -25,11 +25,11 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   const router = useRouter();
   const addCart = useAddCartItem();
 
-  const [qaOpen, setQaOpen] = useState(false);
-  const [qaClosing, setQaClosing] = useState(false);
+  const [isQaOpen, setQaOpen] = useState(false);
+  const [isQaClosing, setQaClosing] = useState(false);
   const [qaBarText, setQaBarText] = useState('빠른 추가');
   const [activeVolIdx, setActiveVolIdx] = useState(() => findFirstAvailVolIdx(p));
-  const [visible, setVisible] = useState(instant);
+  const [isVisible, setIsVisible] = useState(instant);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -54,11 +54,11 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   // 스크롤 reveal — one-shot IntersectionObserver
   useEffect(() => {
     const el = cardRef.current;
-    if (!el || visible) return;
+    if (!el || isVisible) return;
     const io = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setVisible(true);
+          setIsVisible(true);
           io.disconnect();
         }
       },
@@ -66,11 +66,11 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [scrollRoot, visible]);
+  }, [scrollRoot, isVisible]);
 
   // qa 열릴 때 외부 클릭 감지 — capture 페이즈로 다른 요소 이벤트 관통 차단
   useEffect(() => {
-    if (!qaOpen) return;
+    if (!isQaOpen) return;
     const onDoc = (e: MouseEvent) => {
       if (cardRef.current?.contains(e.target as Node)) return;
       // 다른 카드의 sp-qa-bar 클릭: 해당 바가 열리도록 propagation 허용.
@@ -82,7 +82,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     };
     document.addEventListener('click', onDoc, true);
     return () => document.removeEventListener('click', onDoc, true);
-  }, [qaOpen, closeQa]);
+  }, [isQaOpen, closeQa]);
 
   // Unmount cleanup — resetTick 증가 또는 필터 전환 시 ShopCard 가 remount 되는데,
   // 이때 진행 중이던 close 타이머가 unmounted 인스턴스에서 setState 를 호출하면
@@ -107,13 +107,13 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
 
   function handleCardClick(e: React.MouseEvent) {
     if ((e.target as HTMLElement).closest('.sp-qa-content, .sp-qa-bar')) return;
-    if (qaOpen) { closeQa(); return; }
+    if (isQaOpen) { closeQa(); return; }
     router.push(`/shop/${p.slug}`);
   }
 
   function handleBarClick(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!qaOpen) { openQa(); return; }
+    if (!isQaOpen) { openQa(); return; }
 
     /* 중복 클릭 가드 — closeQa() 250ms 트랜지션 동안 같은 mutate 가
        이중 호출되어 카트 수량이 +2 되는 것을 막는다. (Session 15 code M-2) */
@@ -138,7 +138,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
   return (
     <div
       ref={cardRef}
-      className={`sp-card${visible ? ' sp-visible' : ''}${qaOpen ? ' sp-card--qa-open' : ''}${qaClosing ? ' sp-card--qa-closing' : ''}`}
+      className={`sp-card${isVisible ? ' sp-visible' : ''}${isQaOpen ? ' sp-card--qa-open' : ''}${isQaClosing ? ' sp-card--qa-closing' : ''}`}
       style={{ transitionDelay: `${baseDelay + colIndex * 70}ms` }}
       onClick={handleCardClick}
       data-slug={p.slug}
@@ -207,7 +207,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
               <span
                 className="sp-qa-bar-icon"
                 aria-hidden="true"
-                onClick={qaOpen ? (e) => { e.stopPropagation(); closeQa(); } : undefined}
+                onClick={isQaOpen ? (e) => { e.stopPropagation(); closeQa(); } : undefined}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 5v14" />
@@ -240,7 +240,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
         )}
       </div>
 
-      <div className="sp-card-info" onClick={(e) => { e.stopPropagation(); if (qaOpen) closeQa(); }}>
+      <div className="sp-card-info" onClick={(e) => { e.stopPropagation(); if (isQaOpen) closeQa(); }}>
         <p className="sp-card-name">{extractKrName(p.name)}</p>
         <p className="sp-card-price">{formatStartPrice(p)}</p>
       </div>

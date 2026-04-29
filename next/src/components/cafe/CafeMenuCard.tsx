@@ -80,17 +80,17 @@ export default function CafeMenuCard({
   onToggleLike,
   popularRank = null,
 }: Props) {
-  const [visible, setVisible] = useState(instant);
+  const [isVisible, setIsVisible] = useState(instant);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // 스크롤 reveal — one-shot IntersectionObserver (RP-5d)
   useEffect(() => {
     const el = cardRef.current;
-    if (!el || visible) return;
+    if (!el || isVisible) return;
     const io = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setVisible(true);
+          setIsVisible(true);
           io.disconnect();
         }
       },
@@ -98,7 +98,7 @@ export default function CafeMenuCard({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [scrollRoot, visible]);
+  }, [scrollRoot, isVisible]);
 
   // URL `?item=` 진입 시 카드 자체 스크롤 인투뷰
   useEffect(() => {
@@ -110,8 +110,14 @@ export default function CafeMenuCard({
   const badgeClass = getStatusBadgeClass(item.status);
   const tempBadge = getTempBadge(item.temp);
   const thumbStyle = item.img
-    ? `${item.bg || '#ECEAE6'} url('${item.img}') center/cover no-repeat`
-    : '#ECEAE6';
+    ? {
+        backgroundColor: item.bg || '#ECEAE6',
+        backgroundImage: `url('${item.img}')`,
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+      }
+    : { backgroundColor: '#ECEAE6' };
 
   const handleOpen = () => onOpenNutrition(item.id);
 
@@ -120,7 +126,7 @@ export default function CafeMenuCard({
       ref={cardRef}
       className={
         'cm-card' +
-        (visible ? ' cm-visible' : '') +
+        (isVisible ? ' cm-visible' : '') +
         (isHighlight ? ' cm-card--highlight' : '')
       }
       style={{ transitionDelay: `${baseDelay + colIndex * STAGGER_MS}ms` }}
@@ -136,7 +142,7 @@ export default function CafeMenuCard({
       data-cm-id={item.id}
     >
       <div className="cm-card-thumb">
-        <div className="cm-card-img" style={{ background: thumbStyle }} />
+        <div className="cm-card-img" style={thumbStyle} />
 
         {(badgeClass || popularRank) && (
           <div className="cm-card-badges">
