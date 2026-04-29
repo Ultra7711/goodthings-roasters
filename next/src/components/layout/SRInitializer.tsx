@@ -20,14 +20,16 @@ export default function SRInitializer() {
   useEffect(() => {
     let ioOneShot: IntersectionObserver | null = null;
     let ioToggle: IntersectionObserver | null = null;
+    let ioEyebrow: IntersectionObserver | null = null;
     let mutationObserver: MutationObserver | null = null;
     const isFirstRun = isFirstRunRef.current;
 
     const oneShotSel = '[data-sr]:not([data-sr-toggle]):not([data-sr-story])';
     const toggleSel = '[data-sr-toggle]:not([data-sr-story])';
+    const eyebrowSel = '[data-sr-eyebrow]';
 
     const init = () => {
-      /* 첫 마운트에만 sr--visible 리셋. 재진입 시에는 Router Cache 가 복원한
+      /* 첫 마운트에만 sr--visible / sr--ew 리셋. 재진입 시에는 Router Cache 가 복원한
          상태를 유지해 페이지 전환 시 "깜빡임 + 동시 등장" 방지. */
       if (isFirstRun) {
         document.querySelectorAll<HTMLElement>(oneShotSel).forEach((el) => {
@@ -35,6 +37,9 @@ export default function SRInitializer() {
         });
         document.querySelectorAll<HTMLElement>(toggleSel).forEach((el) => {
           el.classList.remove('sr--visible');
+        });
+        document.querySelectorAll<HTMLElement>(eyebrowSel).forEach((el) => {
+          el.classList.remove('sr--ew');
         });
       }
 
@@ -67,6 +72,18 @@ export default function SRInitializer() {
         { threshold: 0.15, rootMargin: '0px 0px -20px 0px' },
       );
 
+      /* Eyebrow 전용 IO: 뷰포트 하단 15% 위 도달 시 발화 (사용자가 반드시 보이는 위치).
+         sr--ew 클래스를 토글 — 부모 sr--visible 경로와 독립. */
+      ioEyebrow = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) e.target.classList.add('sr--ew');
+            else e.target.classList.remove('sr--ew');
+          });
+        },
+        { threshold: 0, rootMargin: '0px 0px -10% 0px' },
+      );
+
       /* One-shot: 이미 visible 이면 skip, 뷰포트 내면 즉시 표시, 밖이면 observe. */
       const registerOneShot = (el: HTMLElement) => {
         if (el.classList.contains('sr--visible')) return;
@@ -81,9 +98,16 @@ export default function SRInitializer() {
         ioToggle!.observe(el);
       };
 
+      /* Eyebrow: 뷰포트 내면 즉시 sr--ew 부여, 항상 observe. */
+      const registerEyebrow = (el: HTMLElement) => {
+        if (isInViewport(el)) el.classList.add('sr--ew');
+        ioEyebrow!.observe(el);
+      };
+
       /* 초기 등록 (현재 DOM 에 이미 있는 요소). */
       document.querySelectorAll<HTMLElement>(oneShotSel).forEach(registerOneShot);
       document.querySelectorAll<HTMLElement>(toggleSel).forEach(registerToggle);
+      document.querySelectorAll<HTMLElement>(eyebrowSel).forEach(registerEyebrow);
 
       /* streaming SSR 로 늦게 도착하는 섹션 DOM 대응. childList 만 감시해
          비용 최소화. 동일 요소가 다시 추가돼도 sr--visible 체크·IO 중복
@@ -94,12 +118,16 @@ export default function SRInitializer() {
             if (!(node instanceof HTMLElement)) continue;
             if (node.matches(oneShotSel)) registerOneShot(node);
             else if (node.matches(toggleSel)) registerToggle(node);
+            else if (node.matches(eyebrowSel)) registerEyebrow(node);
             node
               .querySelectorAll<HTMLElement>(oneShotSel)
               .forEach(registerOneShot);
             node
               .querySelectorAll<HTMLElement>(toggleSel)
               .forEach(registerToggle);
+            node
+              .querySelectorAll<HTMLElement>(eyebrowSel)
+              .forEach(registerEyebrow);
           }
         }
       });
@@ -121,6 +149,7 @@ export default function SRInitializer() {
       clearTimeout(timerId);
       ioOneShot?.disconnect();
       ioToggle?.disconnect();
+      ioEyebrow?.disconnect();
       mutationObserver?.disconnect();
     };
   }, [pathname]);

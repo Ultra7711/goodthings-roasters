@@ -147,7 +147,7 @@ export default function StoryPage() {
       {/* ── PROMISE ── */}
       <section className="st-promise blk--bg-tertiary" data-header-theme="light" data-sr-story>
         <div className="st-promise-inner">
-          <span className="st-label sr-txt sr-txt--d1">{STORY_PROMISE.label}</span>
+          <span className="st-label sr-txt sr-txt--d1" data-sr-eyebrow>{STORY_PROMISE.label}</span>
           <h2 className="st-promise-heading sr-txt sr-txt--d2">{STORY_PROMISE.heading}</h2>
           <p className="st-promise-body sr-txt sr-txt--d3">
             {STORY_PROMISE.body.split('\n').map((line, i, arr) => (
@@ -179,7 +179,7 @@ export default function StoryPage() {
           </div>
           <div className="st-location-info" data-sr-story>
             <div>
-              <span className="st-label sr-txt sr-txt--d1">{STORY_LOCATION.label}</span>
+              <span className="st-label sr-txt sr-txt--d1" data-sr-eyebrow>{STORY_LOCATION.label}</span>
               <p className="st-location-name sr-txt sr-txt--d2">{STORY_LOCATION.name}</p>
             </div>
             <p className="st-location-notice sr-txt sr-txt--d2">{emphasizeHours(STORY_LOCATION.notice)}</p>
@@ -205,7 +205,7 @@ function StoryTwoColSection({ item, bgVariant }: { item: StoryTwoColItem; bgVari
     <section className={cls} data-header-theme="light" data-sr-story>
       <div className="st-two-col-inner">
         <div className="st-col-txt">
-          <span className="st-label sr-txt sr-txt--d1">{item.label}</span>
+          <span className="st-label sr-txt sr-txt--d1" data-sr-eyebrow>{item.label}</span>
           <h2 className="st-col-heading sr-txt sr-txt--d2">{item.heading}</h2>
           <p className="st-col-body sr-txt sr-txt--d3">
             {paragraphs(item.body).map((p, i, arr) => (

@@ -29,7 +29,7 @@ export default function RoasterySection() {
           <div className="grain-overlay" aria-hidden="true" />
         </div>
         <div className="roastery-c">
-          <span className="roastery-lbl sr-txt sr-txt--d1">VISIT</span>
+          <span className="roastery-lbl sr-txt sr-txt--d1" data-sr-eyebrow>VISIT</span>
           <span className="roastery-h ed-h2 sr-txt sr-txt--d2">느긋한 한 잔, 가까이에.</span>
           <span className="roastery-body sr-txt sr-txt--d3">
             경북 구미시 인동21길 22-11

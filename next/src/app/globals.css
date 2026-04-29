@@ -8875,19 +8875,25 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .season-tag.sr-txt::before {
   margin-left: var(--eyebrow-slide-distance);
 }
-/* 노출: transition 정의 + margin 0 → 보간 발화 (단방향 재생) */
-.sr--visible .blk-label.sr-txt::before,
+/* 노출: transition 정의 + margin 0 → 보간 발화.
+   [data-sr-eyebrow] 요소는 독립 IO(sr--ew)로만 발화 → 부모 sr--visible 경로 차단. */
+.sr--visible .blk-label.sr-txt:not([data-sr-eyebrow])::before,
 .blk-label.sr-txt.sr--visible::before,
-.sr--visible .phil-lbl.sr-txt::before,
+.sr--visible .phil-lbl.sr-txt:not([data-sr-eyebrow])::before,
 .phil-lbl.sr-txt.sr--visible::before,
-.sr--visible .roastery-lbl.sr-txt::before,
+.sr--visible .roastery-lbl.sr-txt:not([data-sr-eyebrow])::before,
 .roastery-lbl.sr-txt.sr--visible::before,
-.sr--visible .tci-lbl.sr-txt::before,
+.sr--visible .tci-lbl.sr-txt:not([data-sr-eyebrow])::before,
 .tci-lbl.sr-txt.sr--visible::before,
-.sr--visible .st-label.sr-txt::before,
+.sr--visible .st-label.sr-txt:not([data-sr-eyebrow])::before,
 .st-label.sr-txt.sr--visible::before,
-.sr--visible .season-tag.sr-txt::before,
+.sr--visible .season-tag.sr-txt:not([data-sr-eyebrow])::before,
 .season-tag.sr-txt.sr--visible::before {
+  margin-left: 0;
+  transition: margin-left var(--eyebrow-slide-duration) var(--eyebrow-slide-easing) var(--eyebrow-slide-delay);
+}
+/* 독립 eyebrow IO: sr--ew 클래스로 발화 (뷰포트 하단 15% 위 진입 시) */
+[data-sr-eyebrow].sr--ew::before {
   margin-left: 0;
   transition: margin-left var(--eyebrow-slide-duration) var(--eyebrow-slide-easing) var(--eyebrow-slide-delay);
 }
@@ -8899,6 +8905,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .tci-lbl.sr-txt::before,
   .st-label.sr-txt::before,
   .season-tag.sr-txt::before {
+    margin-left: 0;
+    transition: none;
+  }
+  [data-sr-eyebrow]::before {
     margin-left: 0;
     transition: none;
   }

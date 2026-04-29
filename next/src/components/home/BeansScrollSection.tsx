@@ -181,7 +181,7 @@ export default function BeansScrollSection() {
   return (
     <section className="blk blk-scroll beans-blk" data-header-theme="light">
       <div className="blk-header beans-header" data-sr-toggle>
-        <span className="blk-label sr-txt sr-txt--d1">FEATURED BEANS</span>
+        <span className="blk-label sr-txt sr-txt--d1" data-sr-eyebrow>FEATURED BEANS</span>
         <span className="blk-heading sr-txt sr-txt--d2">집에서도, 같은 맛을.</span>
       </div>
       <div className="beans-sec" style={{ marginTop: '26px' }}>
