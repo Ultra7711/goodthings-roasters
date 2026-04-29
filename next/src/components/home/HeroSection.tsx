@@ -30,11 +30,20 @@ export default function HeroSection() {
     /* 예상 외 pause 이벤트 자동 재개 (rotate, stall 등) */
     const onPause = () => { if (!document.hidden) tryPlay(); };
 
+    /* Activity 재진입 재개 — 다른 페이지 이동 후 브라우저 백/포워드로 복귀 시
+       Activity hidden 중 video.play()가 거부되어 paused 상태로 남는 버그 방지.
+       NavigationVisibilityGate가 pathname 변경마다 gtr:route-change 를 발송하므로
+       '/' 도착 시 tryPlay 로 재개. (GoodDaysPage · CafeMenuPage 동일 패턴) */
+    const onRouteChange = (e: Event) => {
+      if ((e as CustomEvent<string>).detail === '/') tryPlay();
+    };
+
     /* iOS 저전력 모드 등 최초 autoplay 차단 시 — 첫 터치/스크롤에서 재시도 */
     document.addEventListener('touchstart', tryPlay, { once: true });
     document.addEventListener('click', tryPlay, { once: true });
     document.addEventListener('visibilitychange', onVisibilityChange);
     video.addEventListener('pause', onPause);
+    window.addEventListener('gtr:route-change', onRouteChange);
 
     return () => {
       video.pause();
@@ -42,6 +51,7 @@ export default function HeroSection() {
       document.removeEventListener('click', tryPlay);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       video.removeEventListener('pause', onPause);
+      window.removeEventListener('gtr:route-change', onRouteChange);
     };
   }, []);
 
