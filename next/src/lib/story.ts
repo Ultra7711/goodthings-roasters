@@ -18,21 +18,21 @@ export type StoryTwoColItem = {
    StoryTwoCol 컴포넌트에서 paragraph 로 분리한다. */
 export const STORY_TWO_COL: StoryTwoColItem[] = [
   {
-    label: 'Beans',
+    label: 'Good Beans',
     heading: '좋은 원두를 씁니다.',
     body: '이름값이 아닌 맛으로 선택합니다.\n\n굳띵즈의 모든 원두는 산지 농장과의 직접 교류를 통해 선별됩니다. 수확 시기, 가공 방식, 건조 환경까지 확인한 생두만을 소량 입고하며, 로스팅 프로파일은 원두마다 개별적으로 설계합니다.',
     image: '/images/story/story_coffee.webp',
     reverse: false,
   },
   {
-    label: 'Brewing',
+    label: 'Good Brew',
     heading: '내리는 시간이 맛이 됩니다.',
     body: '좋은 원두는 좋은 과정을 만나야 합니다.\n\n원두의 특성에 따라 분쇄도, 물의 온도, 추출 시간을 하나하나 조율합니다. 드립부터 에스프레소까지, 한 잔마다 최적의 방식으로 내립니다.',
     image: '/images/story/story_mano.webp',
     reverse: true,
   },
   {
-    label: 'Bakery',
+    label: 'Good Taste',
     heading: '매장에서 직접 굽습니다.',
     body: '갓 구운 냄새가 공간에 머무는 시간.\n\n매일 아침 반죽부터 시작합니다. 좋은 재료와 충분한 발효 시간, 그리고 갓 구운 순간의 온기까지. 커피와 함께하는 한 조각을 위해 정성을 들입니다.',
     image: '/images/story/story_bakery.webp',
