@@ -39,6 +39,7 @@ export default function ShopPage() {
 
   // Adjusting state during render — urlFilter 동기화.
   // React 19 권장 패턴: effect 대신 렌더 본문에서 이전 값과 비교 후 즉시 setState.
+  // WHY: useEffect 는 paint 후 실행되어 URL 변경 시 구 필터로 한 프레임 렌더됨 (route change flash).
   // CafeMenuPage 의 `prevUrlFilter` 패턴과 동일.
   const [prevUrlFilter, setPrevUrlFilter] = useState(urlFilter);
   if (prevUrlFilter !== urlFilter) {

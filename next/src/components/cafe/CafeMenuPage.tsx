@@ -69,6 +69,7 @@ export default function CafeMenuPage({ initialLikes }: Props) {
   // ───────────────────────────────────────────
   // Adjusting state during render — urlFilter / searchParams prop 동기화
   // React 19 권장 패턴: effect 대신 렌더 본문에서 이전 값과 비교 후 즉시 setState.
+  // WHY: useEffect 는 paint 후 실행되어 URL 변경 시 구 필터로 한 프레임 렌더됨 (route change flash).
   // 같은 렌더 사이클 내에서만 업데이트되므로 cascading 아님.
   // ───────────────────────────────────────────
   const [prevUrlFilter, setPrevUrlFilter] = useState(urlFilter);
