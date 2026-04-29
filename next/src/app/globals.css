@@ -1693,7 +1693,7 @@ footer.blk {
 }
 
 /* ══ #cafe-menu-blk 시즌 배너 ══ */
-.season-banner-section { background: var(--color-surface-warm); }
+.season-banner-section { background: var(--color-surface-warm); padding-top: 120px; }
 .season-banner {
   position: relative;
   aspect-ratio: 18/7;
