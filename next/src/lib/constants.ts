@@ -57,6 +57,9 @@ export const ANNOUNCEMENT_TEXT_EN = 'Specialty Coffee For All';
 /* ── SNS ── */
 export const INSTAGRAM_URL = 'https://www.instagram.com/goodthings_roasters/';
 
+/* ── UI 인터랙션 ── */
+export const SCROLL_REVEAL_THRESHOLD = 0.15;
+
 /* ── 약관 버전 ──
    주문 시 orders.terms_version 컬럼에 스냅샷되는 증빙용 값.
    약관 개정 시 YYYY-MM-DD 로 갱신하여 과거 주문의 당시 약관 추적성을 확보한다. */

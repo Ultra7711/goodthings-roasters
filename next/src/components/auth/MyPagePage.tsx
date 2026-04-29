@@ -148,7 +148,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const openAddrAccordion = useCallback(() => {
     addressForm.reset(user?.address ?? null);
     setAddrOpen(true);
-  }, [addressForm, user?.address]);
+  }, [addressForm, user]);
 
   /* ── 비밀번호 폼 ── */
   const pwForm = usePasswordChangeForm({
@@ -299,8 +299,9 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
      useAuthGuard 의 useEffect 가 logout 시 redirect 자동 처리. */
 
   const hasAddress = !!user.address;
-  const addrDisplay = hasAddress
-    ? `(${user.address!.zipcode}) ${user.address!.addr1}${user.address!.addr2 ? ` ${user.address!.addr2}` : ''}`
+  const addr = user.address;
+  const addrDisplay = addr
+    ? `(${addr.zipcode}) ${addr.addr1}${addr.addr2 ? ` ${addr.addr2}` : ''}`
     : '등록된 배송지 정보가 없습니다.';
 
   return (

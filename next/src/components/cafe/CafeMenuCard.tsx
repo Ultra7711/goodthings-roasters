@@ -14,8 +14,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CafeMenuItem, CafeMenuStatus, CafeMenuTemp } from '@/lib/cafeMenu';
 import MenuLikeButton from './MenuLikeButton';
+import { SCROLL_REVEAL_THRESHOLD } from '@/lib/constants';
 
-const SCROLL_REVEAL_THRESHOLD = 0.15;
 const STAGGER_MS = 70;
 
 /** 프로토타입 statusMap — `.sp-card-badge` + `badge-*` 조합 */

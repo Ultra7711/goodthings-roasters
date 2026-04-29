@@ -4,8 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { type Product, extractKrName, formatStartPrice, getStatusBadgeClass } from '@/lib/products';
 import { useAddCartItem } from '@/hooks/useCart';
-
-const SCROLL_REVEAL_THRESHOLD = 0.15;
+import { SCROLL_REVEAL_THRESHOLD } from '@/lib/constants';
 
 /** 첫 번째 가용(품절 아닌) 볼륨 인덱스 — 전부 품절이면 0 */
 function findFirstAvailVolIdx(p: Product): number {
