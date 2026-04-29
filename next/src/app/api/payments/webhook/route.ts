@@ -96,6 +96,16 @@ export async function POST(request: Request): Promise<Response> {
 
   /* 2) Rate Limit — 의도적으로 미적용 (§6.2). */
 
+  /* 2-a) DoS 1차 방어 — Content-Length 가드.
+         Toss 웹훅 페이로드는 일반적으로 수 KB. 100KB 상한으로 메모리 고갈 차단. */
+  const contentLength = Number.parseInt(
+    request.headers.get('content-length') ?? '0',
+    10,
+  );
+  if (Number.isFinite(contentLength) && contentLength > 100 * 1024) {
+    return apiError('validation_failed', { detail: 'payload_too_large' });
+  }
+
   /* 3) raw body → JSON */
   let raw: string;
   try {
