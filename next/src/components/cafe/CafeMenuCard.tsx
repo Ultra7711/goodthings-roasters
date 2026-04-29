@@ -163,7 +163,7 @@ export default function CafeMenuCard({
         )}
       </div>
 
-      <div className="cm-card-info">
+      <div className="cm-card-info" onClick={(e) => e.stopPropagation()}>
         <p className="cm-card-name">{item.name}</p>
         <p className="cm-card-price">{item.price.toLocaleString('ko-KR')}원</p>
       </div>
