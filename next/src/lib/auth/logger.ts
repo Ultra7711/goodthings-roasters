@@ -95,12 +95,14 @@ export function maskEmail(email: string): string {
 /**
  * Request 헤더에서 클라이언트 IP 추출.
  *
- * Pass 1 H-3 반영:
- *   이전: x-forwarded-for 첫 번째 값 → 공격자가 헤더를 조작하여 rate limit 우회 가능.
- *   변경: x-real-ip (Vercel edge 가 덮어씀) 우선 → 없으면 x-forwarded-for 마지막 값.
- *         Vercel 은 수신된 x-forwarded-for 끝에 자신이 확인한 실제 client IP 를
- *         append 하므로 마지막 값이 조작 불가능한 신뢰 값이다.
- *   참고: Vercel docs — https://vercel.com/docs/edge-network/headers/request-headers
+ * Vercel 환경 동작 (R-SEC H-1 검증):
+ *   - x-forwarded-for 는 Vercel 이 **전체 덮어쓰기** 하며 외부 IP 는 forward 하지 않음
+ *     (IP 스푸핑 방지). 따라서 클라이언트가 헤더를 조작해도 Vercel edge 에서 폐기됨.
+ *   - x-real-ip 와 x-forwarded-for 는 identical (둘 다 동일한 단일 client IP).
+ *   - Trusted Proxy (Enterprise 옵션) 사용 시에만 chain 보존되며, 마지막 값이 신뢰값.
+ *   - 비-Vercel 환경(local dev) 의 x-forwarded-for 는 클라이언트 조작 가능 — 단,
+ *     dev 영역만 영향이라 실 위협 없음.
+ *   참고: https://vercel.com/docs/edge-network/headers/request-headers
  */
 export function extractIp(request: Request): string | undefined {
   const realIp = request.headers.get('x-real-ip')?.trim();
@@ -109,7 +111,8 @@ export function extractIp(request: Request): string | undefined {
   const xff = request.headers.get('x-forwarded-for');
   if (!xff) return undefined;
 
-  /* 마지막 IP = Vercel 이 append 한 실제 원본 */
+  /* Trusted Proxy 사용 시 chain 의 마지막 값이 Vercel 이 검증한 client IP.
+     단일 값(일반 Vercel 배포)일 때도 동일하게 동작. */
   const parts = xff.split(',').map((s) => s.trim()).filter(Boolean);
   return parts.at(-1);
 }
