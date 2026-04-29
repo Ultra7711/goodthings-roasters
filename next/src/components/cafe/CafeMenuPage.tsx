@@ -249,7 +249,7 @@ export default function CafeMenuPage() {
       <div id="cm-head">
         <div id="cm-title-area" className="page-title-area">
           <h1 id="cm-page-title" className="page-title">{activeTab.titleKr}</h1>
-          <p className="page-subtitle">매장에서 직접 내리고, 직접 굽습니다</p>
+          <p className="page-subtitle">매장에서 직접 내리고, 직접 굽습니다.</p>
         </div>
 
         <CafeFilterTabs active={filter} onChange={handleFilterChange} />
