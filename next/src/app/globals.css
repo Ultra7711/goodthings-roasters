@@ -1693,10 +1693,9 @@ footer.blk {
 }
 
 /* ══ #cafe-menu-blk 시즌 배너 ══ */
-.season-banner-section { background: var(--color-surface-warm); padding-top: 120px; }
+.season-banner-section { background: var(--color-surface-warm); padding: 200px 0 120px; }
 .season-banner {
   position: relative;
-  aspect-ratio: 18/7;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -1772,9 +1771,9 @@ footer.blk {
 
 /* <768: 시즌 배너 세로 스택 — season-txt 의 flex-shrink 압축 방지 */
 @media (max-width: 767px) {
+  .season-banner-section { padding: 0; }
   .season-banner {
     flex-direction: column;
-    aspect-ratio: auto;
     gap: 32px;
     padding: 160px 24px 80px;
   }
@@ -1816,7 +1815,7 @@ footer.blk {
 /* 카페 메뉴 섹션 · 헤더 padding (기존 인라인 style 이관) */
 .cafe-menu-blk { padding-bottom: 120px; }
 .cafe-menu-header {
-  padding: 80px 60px 0;
+  padding: 120px 60px 0;
 }
 
 .cat-img {
@@ -1842,7 +1841,7 @@ footer.blk {
     aspect-ratio: 3/2;
   }
   .cafe-menu-header {
-    padding: 160px 24px 0;
+    padding: 120px 24px 0;
   }
   .cafe-menu-blk { padding-bottom: 200px; }
 }
@@ -1885,6 +1884,8 @@ footer.blk {
   /* hover-out: opacity만 서서히 fade (transform은 animation 전용 → 충돌 없음) */
   transition: opacity 350ms ease;
   margin-bottom: 32px;
+  /* SVG 내부 좌측 여백(x=10) 보정 — 애니메이션 종료 시 화살표 시각적 좌측이 텍스트와 정렬 */
+  margin-left: -10px;
 }
 .cat-card:hover .cat-arrow {
   opacity: 1;
@@ -2022,7 +2023,7 @@ footer.blk {
 /* ══ .blk-scroll (Featured Beans) ══ */
 .beans-blk { padding: 120px 0; }
 @media (max-width: 767px) {
-  .beans-blk { padding: 160px 0 80px; }
+  .beans-blk { padding: 120px 0 80px; }
 }
 /* overflow:visible — 카드가 섹션 경계에서 잘리지 않도록 (프로토타입 라인 536) */
 .blk-scroll { overflow: visible; }
@@ -2211,6 +2212,8 @@ footer.blk {
   /* hover-out: opacity만 서서히 fade (transform은 animation 전용 → 충돌 없음) */
   transition: opacity 350ms ease;
   margin-bottom: 16px;
+  /* SVG 내부 좌측 여백(x=10) 보정 — 애니메이션 종료 시 화살표 시각적 좌측이 텍스트와 정렬 */
+  margin-left: -10px;
 }
 .tci:hover .tci-arrow {
   opacity: 1;
@@ -8801,10 +8804,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cat-card:hover .cat-img-inner,
   .tci:hover .tci-img-inner {
     transform: none;
-  }
-  .cat-card:hover .cat-img::before,
-  .tci:hover .tci-img::before {
-    opacity: 0;
   }
   .cat-card:hover .cat-arrow,
   .tci:hover .tci-arrow {
