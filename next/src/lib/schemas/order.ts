@@ -154,7 +154,9 @@ export const OrderNumberSchema = z
  */
 export const GuestLookupSchema = z.object({
   orderNumber: OrderNumberSchema,
-  email: EmailSchema,
+  /* DB의 guest_email 은 insert 시점 lowercase 로 저장됨 (CheckoutPage.tsx:358).
+     lookup 입력도 동일하게 정규화하여 대소문자 불일치로 인한 404 회피. */
+  email: EmailSchema.transform((s) => s.trim().toLowerCase()),
   pin: GuestPinSchema,
 });
 
