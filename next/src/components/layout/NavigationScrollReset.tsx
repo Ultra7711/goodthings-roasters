@@ -54,6 +54,8 @@ export default function NavigationScrollReset() {
     if (isTraversingRef.current) {
       // back/forward: 브라우저 native scroll restoration 보존.
       isTraversingRef.current = false;
+    } else if (window.location.hash) {
+      // hash 앵커 이동: Next.js native hash scroll에 위임. scrollTo(0) 하면 덮어씌워짐.
     } else {
       // push/replace: H7 clamp 프레임 제거.
       window.scrollTo({ top: 0, behavior: 'instant' });
