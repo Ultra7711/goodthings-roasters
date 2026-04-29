@@ -29,6 +29,9 @@ import { useClearCart } from '@/hooks/useCart';
    3회 초과 시 주문조회(B-6) 분기로 안내. */
 const MAX_EMAIL_RETRIES = 3;
 
+/* 최소 이메일 형식 가드 (서버가 최종 판정하므로 RFC 완전 검증 불필요) */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /* 게스트 주문조회 라우트 — B-6 에서 구현 예정.
    현 MVP 는 placeholder 로 `/mypage` 사용 (로그인 게이트에서 게스트도 안내). */
 const ORDER_LOOKUP_PATH = '/mypage';
@@ -275,8 +278,8 @@ export default function OrderCompletePage() {
         const rawLast = sessionStorage.getItem('gtr-last-order');
         if (rawLast) {
           const parsed = JSON.parse(rawLast) as { guestEmail?: unknown };
-          if (typeof parsed.guestEmail === 'string' && parsed.guestEmail.length > 0) {
-            guestEmail = parsed.guestEmail;
+          if (typeof parsed.guestEmail === 'string' && EMAIL_RE.test(parsed.guestEmail.trim())) {
+            guestEmail = parsed.guestEmail.trim();
           }
         }
       } catch {
@@ -300,8 +303,7 @@ export default function OrderCompletePage() {
         toast('이메일을 입력해 주세요.');
         return;
       }
-      /* 최소 형식 가드 — 서버가 최종 판정 */
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      if (!EMAIL_RE.test(trimmed)) {
         toast('올바른 이메일 형식이 아닙니다.');
         return;
       }

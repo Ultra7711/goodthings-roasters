@@ -111,10 +111,10 @@ export default function CheckoutPayment({
         widgetsRef.current = widgets;
         setReady(true);
       } catch (err) {
-        /* S91 사고 진단: silent catch 가 에러 원인 파악 불가하게 만듬.
-           console.error 로 항상 노출 (운영 환경 포함). */
-        // eslint-disable-next-line no-console
-        console.error('[Toss Widget Load] failed:', err);
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[Toss Widget Load] failed:', err);
+        }
         if (cancelled) return;
         setLoadFailed(true);
       }
@@ -153,7 +153,7 @@ export default function CheckoutPayment({
       const name = err instanceof Error ? err.name : '';
       /* S91 사고 진단: silent catch 가 에러를 삼켜 원인 파악 불가했음.
          사용자 취소 외 모든 에러를 콘솔에 노출. */
-      if (name !== 'UserCancelError') {
+      if (name !== 'UserCancelError' && process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
         console.error('[Toss requestPayment] failed:', err);
       }
