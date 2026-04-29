@@ -1533,6 +1533,10 @@ footer.blk {
   from { transform: translateX(-16px); }
   to   { transform: translateX(0); }
 }
+@keyframes cat-arrow-slide-r2 {
+  from { transform: translateX(-16px); }
+  to   { transform: translateX(2px); }
+}
 @keyframes beans-bounce-start {
   0%   { transform: translateX(-8px); }
   50%  { transform: translateX(4px); }
@@ -1889,9 +1893,9 @@ footer.blk {
 }
 .cat-card:hover .cat-arrow {
   opacity: 1;
+  transform: translateX(2px);
   transition: opacity var(--duration-fade) ease-out;
-  /* cat-arrow-slide: transform만 — opacity는 transition이 처리해 hover-out fade 보장 */
-  animation: cat-arrow-slide var(--duration-fade) ease-out;
+  animation: cat-arrow-slide-r2 var(--duration-fade) ease-out;
 }
 .cat-title {
   font-family: var(--font-en);
@@ -2217,8 +2221,9 @@ footer.blk {
 }
 .tci:hover .tci-arrow {
   opacity: 1;
+  transform: translateX(2px);
   transition: opacity var(--duration-fade) ease-out;
-  animation: cat-arrow-slide var(--duration-fade) ease-out;
+  animation: cat-arrow-slide-r2 var(--duration-fade) ease-out;
 }
 .tci-lbl {
   font-family: var(--font-en);
@@ -6197,14 +6202,21 @@ footer.blk {
   inset: 0;
   will-change: transform;
 }
-/* 라이트박스 버튼 — 크기·스타일은 공통 클래스(close-btn-secondary-dark / arrow-btn-primary) 담당,
-   여기서는 위치만 지정. 프로토타입 L2466~2470 동일. */
+/* 라이트박스 버튼 — 크기는 공통 클래스(close-btn-secondary-dark / arrow-btn-primary) 담당.
+   color/opacity/filter 는 라이트박스 컨텍스트에서 직접 지정 (배경 무관 가독성).
+   element-level opacity 사용: SVG paths 는 solid white 렌더 → 합성 단계에서 투명 처리
+   → X 닫기 겹침 라인에 알파 누적 없음. */
 .gd-lb-close {
   position: absolute;
   top: 32px;
   right: 32px;
   z-index: 4;
+  color: #fff;
+  opacity: 0.72;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.8));
+  transition: opacity var(--duration-hover) linear;
 }
+.gd-lb-close:hover { color: #fff; opacity: 1; }
 @media (max-width: 767px) {
   .gd-lb-close { top: 12px; right: 12px; }
 }
@@ -6212,20 +6224,21 @@ footer.blk {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255,255,255,0.85);
+  color: #fff;
   opacity: 0;
   z-index: 3;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.8));
   transition: opacity 280ms ease;
 }
-.gd-lb-arrow:active { color: rgba(255,255,255,0.5); }
+.gd-lb-arrow:active { color: #fff; opacity: 0.5; }
 /* 시각적 1.5px 선 — 100px 렌더 / 24 viewBox → 1.5 / (100/24) ≈ 0.36 */
 .gd-lb-arrow svg { stroke-width: 0.36; }
 /* 클릭 피드백 flash — JS 에서 부여 → 600ms 후 제거 → 280ms fade-out */
 .gd-lb-arrow--flash {
-  opacity: 1;
+  opacity: 0.85;
 }
-.gd-lb-prev { left: 10px; }
-.gd-lb-next { right: 10px; }
+.gd-lb-prev { left: 4px; }
+.gd-lb-next { right: 4px; }
 /* 좌우 탭존 — 버튼 영역 외 이미지 세로 전체 범위 탭으로도 prev/next 허용 */
 .gd-lb-zone {
   position: absolute;
@@ -6241,9 +6254,11 @@ footer.blk {
 .gd-lightbox.open { touch-action: none; }
 /* 모바일: 버튼 축소 + 항상 반투명 노출 (hover 없으므로 opacity:0 해제) */
 @media (max-width: 767px) {
+  .gd-lb-arrow { opacity: 0.55; }
   .gd-lb-arrow:active { color: #fff; opacity: 1; }
-  .gd-lb-prev { left: 10px; }
-  .gd-lb-next { right: 10px; }
+  .gd-lb-arrow--flash { opacity: 1; }
+  .gd-lb-prev { left: -4px; }
+  .gd-lb-next { right: -4px; }
   /* arrow-btn-primary 100px → 44px (탭 영역 최소치 확보) */
   .gd-lb-arrow.arrow-btn-primary { padding: 4px; }
   .gd-lb-arrow.arrow-btn-primary svg { width: 44px; height: 44px; }
@@ -8814,8 +8829,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cat-card.is-tapping .cat-arrow,
 .tci.is-tapping .tci-arrow {
   opacity: 1;
+  transform: translateX(2px);
   transition: opacity var(--duration-tap) ease;
-  animation: cat-arrow-slide var(--duration-tap) ease-out;
+  animation: cat-arrow-slide-r2 var(--duration-tap) ease-out;
 }
 
 /* ══ Step 3-A-5: 섹션 eyebrow gold rule ══

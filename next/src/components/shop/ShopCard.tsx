@@ -74,9 +74,11 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     if (!qaOpen) return;
     const onDoc = (e: MouseEvent) => {
       if (cardRef.current?.contains(e.target as Node)) return;
-      // 다른 카드의 sp-qa-bar 클릭은 허용 (해당 카드 빠른 추가 동작)
-      if ((e.target as HTMLElement).closest('.sp-qa-bar')) return;
-      e.stopPropagation();
+      // 다른 카드의 sp-qa-bar 클릭: 해당 바가 열리도록 propagation 허용.
+      // 그 외 outside 클릭: 관통 차단.
+      if (!(e.target as HTMLElement).closest('.sp-qa-bar')) {
+        e.stopPropagation();
+      }
       closeQa();
     };
     document.addEventListener('click', onDoc, true);

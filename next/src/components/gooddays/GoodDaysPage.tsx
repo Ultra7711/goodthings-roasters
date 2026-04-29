@@ -374,9 +374,19 @@ export default function GoodDaysPage() {
       /* 핀치 종료 */
       if (isPinching && e.touches.length < 2) {
         isPinching = false;
-        isPanning = false;
         if (xformRef.current.scale < 1.1) {
           apply({ scale: 1, tx: 0, ty: 0 }, true);
+          isPanning = false;
+        } else if (e.touches.length === 1) {
+          /* 핀치 → 1손가락 전환: 잔류 손가락 기준으로 panStart 재설정.
+             미리 갱신하지 않으면 onMove 에서 stale panStart 로 이미지가 튐. */
+          panStartX = e.touches[0].clientX;
+          panStartY = e.touches[0].clientY;
+          panStartTx = xformRef.current.tx;
+          panStartTy = xformRef.current.ty;
+          isPanning = false;
+        } else {
+          isPanning = false;
         }
         return;
       }
