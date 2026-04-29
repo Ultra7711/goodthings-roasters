@@ -75,7 +75,18 @@ export function useHeaderTheme(
      예: Home(dark) → /shop(light) 진입 시 headerbg warm-white 번쩍임 제거. */
   useIsomorphicLayoutEffect(() => {
     fallbackThemeRef.current = initialTheme;
-    setIsDark(initialTheme === 'dark');
+    /* hash anchor 도착 섹션 테마 인계 (S103).
+       NVG.onClick capture-phase 가 #site-hdr-wrap[data-pending-section-theme] 를
+       set 한 경우 우선 사용 → page top 기준 initialTheme 강제로 인한 다크 프레임 차단.
+       consume 후 attribute 제거 → 다음 navigation 에 stale 잔존 방지. */
+    let resolvedTheme: HeaderTheme = initialTheme;
+    const headerEl = headerRef.current;
+    const pendingTheme = headerEl?.getAttribute('data-pending-section-theme') ?? undefined;
+    if (isValidTheme(pendingTheme)) {
+      resolvedTheme = pendingTheme;
+      headerEl?.removeAttribute('data-pending-section-theme');
+    }
+    setIsDark(resolvedTheme === 'dark');
     setSkipTransition(true);
     let id2 = 0;
     const id1 = requestAnimationFrame(() => {

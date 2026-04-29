@@ -49,13 +49,24 @@
 
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import type { HeaderTheme } from '@/types/navigation';
 
 const DARK_ROUTES = new Set(['/', '/story']);
 const SECONDARY_ROUTES = new Set(['/shop']);
 
+/* hash anchor 도착 섹션의 헤더 테마 정적 매핑 (S103).
+   페이지 top 기준 initialTheme(headerThemeConfig) 와 hash 도착지가 다른 섹션이면
+   첫 paint 에 잘못된 테마 적용 → 다크 프레임 깜빡임. 클릭 시점에 destination
+   섹션의 테마를 #site-hdr-wrap[data-pending-section-theme] 로 인계하여
+   useHeaderTheme.useLayoutEffect 가 initialTheme 대신 사용한다. */
+const HASH_SECTION_THEMES: Record<string, HeaderTheme> = {
+  '/story#location': 'light',
+};
+
 const HDR_DARK = 'hdr-dark';
 const HDR_INSTANT = 'hdr-instant';
 const HDR_ON_SECONDARY = 'hdr-on-secondary';
+const PENDING_SECTION_THEME_ATTR = 'data-pending-section-theme';
 
 export default function NavigationVisibilityGate() {
   const pathname = usePathname();
@@ -115,6 +126,15 @@ export default function NavigationVisibilityGate() {
           header.classList.add(HDR_ON_SECONDARY);
         } else {
           header.classList.remove(HDR_DARK, HDR_ON_SECONDARY);
+        }
+        /* hash anchor 도착 섹션 테마 인계 (S103).
+           useHeaderTheme.useLayoutEffect 가 이 속성을 읽고 initialTheme override.
+           DOM setAttribute 는 동기 → React commit 전에 set 보장. */
+        const pendingTheme = HASH_SECTION_THEMES[href];
+        if (pendingTheme) {
+          header.setAttribute(PENDING_SECTION_THEME_ATTR, pendingTheme);
+        } else {
+          header.removeAttribute(PENDING_SECTION_THEME_ATTR);
         }
       }
     };
