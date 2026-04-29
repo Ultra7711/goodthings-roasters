@@ -53,6 +53,7 @@ const DELIVERY_OPTIONS = [
 ] as const;
 
 import { ChevronRight } from '@/components/ui/Icons';
+import * as Select from '@radix-ui/react-select';
 
 /* ── SVG 아이콘 ── */
 function ChevronDown({ size = 24 }: { size?: number }) {
@@ -186,25 +187,8 @@ export default function CheckoutPage() {
   );
 
   /* ── 배송 메시지 드롭다운 ── */
-  const [deliveryOpen, setDeliveryOpen] = useState(false);
-  const deliveryRef = useRef<HTMLDivElement>(null);
   const chpFormRef = useRef<HTMLDivElement>(null);
   const chpNav = useInputNav(chpFormRef);
-  const deliveryLabel = useMemo(() => {
-    if (form.deliveryMessage === 'direct') return '직접 입력';
-    const opt = DELIVERY_OPTIONS.find((o) => o.value === form.deliveryMessage);
-    return opt?.label ?? '';
-  }, [form.deliveryMessage]);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (deliveryRef.current && !deliveryRef.current.contains(e.target as Node)) {
-        setDeliveryOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
 
   /* ── 비밀번호 확인 필드 등장 ── */
   const showPw2 = form.guestPw.length >= GUEST_PASSWORD_MIN_LENGTH;
@@ -603,34 +587,32 @@ export default function CheckoutPage() {
                     helper="동·호수 등 상세주소를 입력하세요."
                   />
                 )}
-                {/* 배송 메시지 드롭다운 */}
-                <div
-                  ref={deliveryRef}
-                  className={`chp-field chp-dropdown-field${deliveryOpen ? ' open' : ''}${form.deliveryMessage ? ' has-value' : ''}`}
-                >
-                  <button
-                    className="chp-dropdown-trigger" type="button"
-                    onClick={() => setDeliveryOpen((p) => !p)}
+                {/* 배송 메시지 드롭다운 — Radix Select (키보드 ↑↓ · Enter 지원) */}
+                <div className={`chp-field chp-dropdown-field${form.deliveryMessage ? ' has-value' : ''}`}>
+                  <Select.Root
+                    value={form.deliveryMessage}
+                    onValueChange={(v) => setField('deliveryMessage', v)}
                   >
-                    <span className="chp-dropdown-value">{deliveryLabel}</span>
-                    <span className="chp-dropdown-arrow" aria-hidden="true"><ChevronDown /></span>
-                  </button>
-                  <label className="chp-floating-label">배송 메시지 (선택사항)</label>
-                  <div className="chp-dropdown-list">
-                    <div className="chp-dropdown-title">배송 메시지 선택</div>
-                    {DELIVERY_OPTIONS.map((opt) => (
-                      <div
-                        key={opt.value}
-                        className={`chp-dropdown-option${form.deliveryMessage === opt.value ? ' active' : ''}`}
-                        onClick={() => {
-                          setField('deliveryMessage', opt.value);
-                          setDeliveryOpen(false);
-                        }}
-                      >
-                        {opt.label}
-                      </div>
-                    ))}
-                  </div>
+                    <Select.Trigger className="chp-dropdown-trigger" aria-label="배송 메시지 선택">
+                      <Select.Value />
+                      <Select.Icon asChild>
+                        <span className="chp-dropdown-arrow" aria-hidden="true"><ChevronDown /></span>
+                      </Select.Icon>
+                    </Select.Trigger>
+                    <label className="chp-floating-label">배송 메시지 (선택사항)</label>
+                    <Select.Portal>
+                      <Select.Content className="chp-select-content" position="popper" sideOffset={0}>
+                        <div className="chp-dropdown-title">배송 메시지 선택</div>
+                        <Select.Viewport>
+                          {DELIVERY_OPTIONS.map((opt) => (
+                            <Select.Item key={opt.value} value={opt.value} className="chp-select-item">
+                              <Select.ItemText>{opt.label}</Select.ItemText>
+                            </Select.Item>
+                          ))}
+                        </Select.Viewport>
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select.Root>
                 </div>
                 {/* 직접 입력 */}
                 {form.deliveryMessage === 'direct' && (

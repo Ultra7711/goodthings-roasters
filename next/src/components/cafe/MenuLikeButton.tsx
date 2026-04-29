@@ -67,20 +67,33 @@ export default function MenuLikeButton({ menuId, count, isLiked, onToggle }: Pro
     const btn = btnRef.current;
     const countEl = countRef.current;
     if (!btn) return;
-    // 12(좌) + 24(아이콘) + 6(gap) + textW + 14(우)
-    if (count > 0 && countEl) {
-      btn.style.width = `${Math.ceil(56 + countEl.scrollWidth)}px`;
-    } else {
-      btn.style.width = '';
-    }
+
     if (!initRef.current && (count > 0 || isLiked)) {
+      /* 초기 데이터 로드: transition 억제 후 즉시 적용 */
       initRef.current = true;
       btn.style.transition = 'none';
       if (countEl) countEl.style.transition = 'none';
+      // 12(좌) + 24(아이콘) + 6(gap) + textW + 14(우)
+      if (count > 0 && countEl) {
+        btn.style.width = `${Math.ceil(56 + countEl.scrollWidth)}px`;
+      }
       requestAnimationFrame(() => {
         btn.style.transition = '';
         if (countEl) countEl.style.transition = '';
       });
+      return;
+    }
+
+    if (count > 0 && countEl) {
+      /* like: 즉시 확장 */
+      btn.style.width = `${Math.ceil(56 + countEl.scrollWidth)}px`;
+    } else {
+      /* unlike: cm-like-count opacity transition(160ms) 완료 후 축소
+         — 카운트가 사라지기 전에 버튼이 줄어드는 layout 점프 방지 */
+      const timer = window.setTimeout(() => {
+        btn.style.width = '';
+      }, 200);
+      return () => window.clearTimeout(timer);
     }
   }, [count, isLiked]);
 

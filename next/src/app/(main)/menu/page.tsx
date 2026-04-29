@@ -18,13 +18,17 @@ export const metadata = { title: '카페 메뉴 — good things' };
 async function fetchInitialLikes() {
   const supabase = await createRouteHandlerClient();
 
-  const { data: rows } = await supabase.from('menu_likes').select('menu_id');
+  // counts 집계와 세션 검증을 병렬 실행
+  const [{ data: rows }, claims] = await Promise.all([
+    supabase.from('menu_likes').select('menu_id'),
+    getClaims(),
+  ]);
+
   const counts: Record<string, number> = {};
   for (const row of rows ?? []) {
     counts[row.menu_id] = (counts[row.menu_id] ?? 0) + 1;
   }
 
-  const claims = await getClaims();
   let liked: string[] = [];
   if (claims) {
     const { data: myLikes } = await supabase
