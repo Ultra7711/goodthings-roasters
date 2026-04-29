@@ -18,6 +18,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CartItem, AddToCartPayload } from '@/types/cart';
 import type { SubscriptionPeriod } from '@/lib/schemas/order';
@@ -35,6 +36,7 @@ import {
 /* ── 배송비 기준 (store.ts 에서 재수출 유지) ── */
 export const FREE_SHIPPING_THRESHOLD = 30000;
 export const SHIPPING_FEE = 3000;
+export const MIN_QUANTITY = 1;
 
 export const CART_QUERY_KEY = ['cart'] as const;
 
@@ -61,9 +63,8 @@ function toSubscriptionPeriod(
   v: string | null | undefined,
 ): SubscriptionPeriod | null {
   if (v == null) return null;
-  return (SUBSCRIPTION_PERIODS as readonly string[]).includes(v)
-    ? (v as SubscriptionPeriod)
-    : null;
+  const result = z.enum(SUBSCRIPTION_PERIODS).safeParse(v);
+  return result.success ? result.data : null;
 }
 
 function mapRowToCartItem(row: ServerCartRow): CartItem | null {

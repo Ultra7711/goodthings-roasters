@@ -324,10 +324,14 @@ export default function CheckoutPage() {
     clearErrors();
     const ok = validate(isLoggedIn);
     if (!ok) {
-      /* shake + 첫 에러 필드로 스크롤 */
+      /* shake + 첫 에러 필드로 스크롤 + 포커스 */
       shakeFields(chpFormRef.current);
       const firstErr = chpFormRef.current?.querySelector('.chp-field.input-warn');
-      if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (firstErr) {
+        firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const input = firstErr.querySelector<HTMLElement>('input, select, textarea');
+        input?.focus({ preventScroll: true });
+      }
       return;
     }
 

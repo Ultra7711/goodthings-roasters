@@ -19,6 +19,8 @@
    cp-root에 cp-anim 병기 → opacity:0 초기값 무력화.
    ══════════════════════════════════════════ */
 
+const SKELETON_ITEM_COUNT = 2;
+
 function SkeletonItem() {
   return (
     <div className="cp-item">
@@ -85,10 +87,11 @@ export default function CartSkeleton() {
         <span className="cp-th-delete" />
       </div>
 
-      {/* 아이템 2개 */}
+      {/* 아이템 */}
       <div className="cp-items-list">
-        <SkeletonItem />
-        <SkeletonItem />
+        {Array.from({ length: SKELETON_ITEM_COUNT }, (_, i) => (
+          <SkeletonItem key={i} />
+        ))}
       </div>
 
       {/* 배송비 행 — height 42px (desktop) / grid 2행 (mobile) */}

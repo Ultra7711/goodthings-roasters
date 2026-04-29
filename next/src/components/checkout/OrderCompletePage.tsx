@@ -364,7 +364,10 @@ export default function OrderCompletePage() {
               </p>
             </div>
             <div className="ocp-actions">
-              <Link href="/" className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} data-gtr-tap>
+              <Link href={ORDER_LOOKUP_PATH} className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} data-gtr-tap>
+                주문 내역 확인
+              </Link>
+              <Link href="/" className="ocp-btn-secondary" data-gtr-tap>
                 홈으로 돌아가기
               </Link>
             </div>

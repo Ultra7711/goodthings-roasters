@@ -16,6 +16,7 @@ import {
   useUpdateCartQty,
   useRemoveCartItem,
   SHIPPING_FEE,
+  MIN_QUANTITY,
 } from '@/hooks/useCart';
 import CartSkeleton from './CartSkeleton';
 import { splitName, getSubscriptionBadge } from '@/lib/products';
@@ -38,6 +39,7 @@ export default function CartClient() {
     el.classList.remove('cp-anim');
     void el.offsetHeight;
     el.classList.add('cp-anim');
+    return () => { el.classList.remove('cp-anim'); };
   }, []);
 
   if (isLoading) return <CartSkeleton />;
@@ -83,7 +85,7 @@ export default function CartClient() {
               const { kr: krName } = splitName(item.name);
               const subBadge = getSubscriptionBadge(item);
               const unitTotal = item.priceNum * item.qty;
-              const minusDisabled = item.qty <= 1;
+              const minusDisabled = item.qty <= MIN_QUANTITY;
               return (
                 <div key={item.id} className="cp-item">
                   <div className="cp-item-product">

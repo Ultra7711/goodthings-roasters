@@ -18,6 +18,7 @@ import {
   useUpdateCartQty,
   useRemoveCartItem,
   SHIPPING_FEE,
+  MIN_QUANTITY,
 } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useDrawer } from '@/hooks/useDrawer';
@@ -38,7 +39,10 @@ export default function CartDrawer() {
   const mountedRef = useRef(true);
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+      drawerPendingRef.current = false;
+    };
   }, []);
 
   /* transition:none → fn() → rAF×2 복원. 슬라이드 아웃 전면 제거용 공통 헬퍼.
@@ -148,7 +152,7 @@ export default function CartDrawer() {
                   const { kr: krName } = splitName(item.name);
                   const subBadge = getSubscriptionBadge(item);
                   const unitTotal = item.priceNum * item.qty;
-                  const minusDisabled = item.qty <= 1;
+                  const minusDisabled = item.qty <= MIN_QUANTITY;
                   return (
                     <div key={item.id} className="cd-item">
                       <div className="cd-item-thumb">

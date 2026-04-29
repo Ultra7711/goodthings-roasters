@@ -12,9 +12,8 @@ import { INITIAL_CHECKOUT } from '@/types/checkout';
 import {
   EMAIL_RE,
   PHONE_RE,
-  ZIPCODE_RE,
-  GUEST_PASSWORD_MIN_LENGTH,
 } from '@/lib/validation';
+import { validateCheckoutForm } from '@/lib/checkoutValidation';
 
 type UseCheckoutFormReturn = {
   form: CheckoutFormData;
@@ -120,49 +119,7 @@ export function useCheckoutForm(): UseCheckoutFormReturn {
 
   const validate = useCallback(
     (isLoggedIn: boolean): boolean => {
-      const newErrors: CheckoutErrors = {};
-
-      /* 필수 필드 */
-      const emailTrimmed = form.email.trim();
-      if (!emailTrimmed) {
-        newErrors.email = '이메일을 입력해 주세요.';
-      } else if (!EMAIL_RE.test(emailTrimmed)) {
-        newErrors.email = '올바른 이메일 형식을 입력해 주세요.';
-      }
-      if (!form.firstname.trim()) newErrors.firstname = '이름을 입력해 주세요.';
-      const phoneTrimmed = form.phone.trim();
-      if (!phoneTrimmed) {
-        newErrors.phone = '전화번호를 입력해 주세요.';
-      } else if (!PHONE_RE.test(phoneTrimmed)) {
-        newErrors.phone = '올바른 전화번호 형식을 입력해 주세요.';
-      }
-      const zipcodeTrimmed = form.zipcode.trim();
-      if (!zipcodeTrimmed) {
-        newErrors.zipcode = '주소를 검색해 주세요.';
-      } else if (!ZIPCODE_RE.test(zipcodeTrimmed)) {
-        newErrors.zipcode = '올바른 우편번호(5자리)를 입력해 주세요.';
-      }
-      if (!form.addr1.trim()) newErrors.addr1 = '주소를 검색해 주세요.';
-
-      /* 비회원 비밀번호 */
-      if (!isLoggedIn) {
-        if (!form.guestPw) {
-          newErrors.guestPw = '비밀번호를 입력해 주세요.';
-        } else if (form.guestPw.length < GUEST_PASSWORD_MIN_LENGTH) {
-          newErrors.guestPw = `비밀번호는 ${GUEST_PASSWORD_MIN_LENGTH}자 이상 입력해 주세요.`;
-        }
-        if (!form.guestPw2) {
-          newErrors.guestPw2 = '비밀번호를 다시 입력해 주세요.';
-        } else if (form.guestPw !== form.guestPw2) {
-          newErrors.guestPw2 = '비밀번호가 일치하지 않습니다.';
-        }
-      }
-
-      /* 약관 */
-      if (!agreements.every(Boolean)) {
-        newErrors.agreement = '필수 약관에 모두 동의해 주세요.';
-      }
-
+      const newErrors = validateCheckoutForm(form, agreements, isLoggedIn);
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
     },
