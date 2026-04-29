@@ -62,11 +62,10 @@ export default function GoodDaysPage() {
   /* 클릭 방향 피드백 — null=숨김, 'prev'/'next'=해당 화살표 600ms 표시 후 fade-out */
   const [flashDir, setFlashDir] = useState<'prev' | 'next' | null>(null);
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /* 핀치 줌 — 모바일 두 손가락 확대/축소 */
-  const [pinchScale, setPinchScale] = useState(1);
-  const pinchScaleRef = useRef(1);
-  const pinchStartDistRef = useRef<number | null>(null);
-  const pinchStartScaleRef = useRef(1);
+  /* 제스처 변환 — 핀치 줌 · 팬 · 더블탭 */
+  const [xform, setXform] = useState({ scale: 1, tx: 0, ty: 0 });
+  const [xformAnim, setXformAnim] = useState(false);
+  const xformRef = useRef({ scale: 1, tx: 0, ty: 0 });
   /* 라이트박스 settled 타이머 ref — 빠른 열기/닫기 시 stale state update 방지 */
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /* ?img= query 마지막 처리 src — 중복 실행 방지 + Activity 복귀 시 stale 판정.
@@ -211,9 +210,10 @@ export default function GoodDaysPage() {
     setLbSettled(false);
     setLbInstant(false);
     setFlashDir(null);
-    setPinchScale(1);
-    pinchScaleRef.current = 1;
-    pinchStartDistRef.current = null;
+    const zeroXform = { scale: 1, tx: 0, ty: 0 };
+    xformRef.current = zeroXform;
+    setXform(zeroXform);
+    setXformAnim(false);
     /* Stage D-2: 다음 동일 ?img= 재진입을 허용하려면 ref 도 리셋 */
     lastHandledImgSrcRef.current = null;
     /* ?img= 파라미터가 남아 있으면 제거 — 새로고침 시 라이트박스 재오픈 방지 */
@@ -238,10 +238,11 @@ export default function GoodDaysPage() {
 
   const navLightbox = useCallback(
     (delta: number) => {
-      /* 이미지 전환 시 핀치 줌 초기화 */
-      setPinchScale(1);
-      pinchScaleRef.current = 1;
-      pinchStartDistRef.current = null;
+      /* 이미지 전환 시 변환 초기화 */
+      const zeroXform = { scale: 1, tx: 0, ty: 0 };
+      xformRef.current = zeroXform;
+      setXform(zeroXform);
+      setXformAnim(false);
       setLightboxIdx((prev) => {
         if (prev === null) return prev;
         return (prev + delta + ordered.length) % ordered.length;
@@ -251,56 +252,193 @@ export default function GoodDaysPage() {
   );
 
   /* 방향 피드백 flash — 클릭한 방향 화살표를 600ms 표시 후 fade-out */
-  function flashArrow(dir: 'prev' | 'next') {
+  const flashArrow = useCallback((dir: 'prev' | 'next') => {
     if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
     setFlashDir(dir);
     flashTimerRef.current = setTimeout(() => {
       setFlashDir(null);
       flashTimerRef.current = null;
     }, 600);
-  }
+  }, []);
 
-  /* 핀치 줌 — passive: false 로 등록해야 preventDefault 허용 (iOS Safari) */
+  /* stable refs — 제스처 핸들러의 stale closure 방지 */
+  const navLightboxRef = useRef(navLightbox);
+  navLightboxRef.current = navLightbox;
+  const flashArrowRef = useRef(flashArrow);
+  flashArrowRef.current = flashArrow;
+
+  /* 라이트박스 제스처 — 핀치 줌 · 팬 · 더블탭 토글
+     gd-lightbox 컨테이너에 등록. passive:false → touchmove/touchend 에서 preventDefault 허용. */
   useEffect(() => {
     if (lightboxIdx === null) return;
-    const el = document.getElementById('gd-lb-img') as HTMLImageElement | null;
-    if (!el) return;
+    const lb = document.getElementById('gd-lightbox') as HTMLElement | null;
+    if (!lb) return;
+    const container = lb;
 
-    function dist(t: TouchList) {
+    /* effect-local 제스처 상태 */
+    let isPinching = false;
+    let pinchStartDist = 0;
+    let pinchStartScale = 1;
+    let pinchCenterX = 0; // 컨테이너 중심 기준
+    let pinchCenterY = 0;
+    let pinchStartTx = 0;
+    let pinchStartTy = 0;
+
+    let isPanning = false;
+    let panStartX = 0;
+    let panStartY = 0;
+    let panStartTx = 0;
+    let panStartTy = 0;
+
+    let lastTapTime = 0;
+    let lastTapX = 0;
+    let lastTapY = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchMoved = false;
+
+    function twoFingerDist(t: TouchList) {
       return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     }
+
+    /* 이동 범위 클램핑 — 이미지가 컨테이너 밖으로 나가지 않도록 */
+    function clamp(t: { scale: number; tx: number; ty: number }) {
+      const { scale, tx, ty } = t;
+      const maxTx = Math.max(0, (container.offsetWidth * (scale - 1)) / 2);
+      const maxTy = Math.max(0, (container.offsetHeight * (scale - 1)) / 2);
+      return {
+        scale,
+        tx: Math.min(maxTx, Math.max(-maxTx, tx)),
+        ty: Math.min(maxTy, Math.max(-maxTy, ty)),
+      };
+    }
+
+    function apply(t: { scale: number; tx: number; ty: number }, anim = false) {
+      xformRef.current = t;
+      setXformAnim(anim);
+      setXform({ ...t });
+    }
+
     function onStart(e: TouchEvent) {
       if (e.touches.length === 2) {
-        pinchStartDistRef.current = dist(e.touches);
-        pinchStartScaleRef.current = pinchScaleRef.current;
-      }
-    }
-    function onMove(e: TouchEvent) {
-      if (e.touches.length === 2 && pinchStartDistRef.current !== null) {
-        e.preventDefault();
-        const next = Math.min(4, Math.max(1,
-          pinchStartScaleRef.current * (dist(e.touches) / pinchStartDistRef.current)
-        ));
-        pinchScaleRef.current = next;
-        setPinchScale(next);
-      }
-    }
-    function onEnd() {
-      pinchStartDistRef.current = null;
-      if (pinchScaleRef.current < 1.05) {
-        pinchScaleRef.current = 1;
-        setPinchScale(1);
+        isPinching = true;
+        isPanning = false;
+        const curr = xformRef.current;
+        pinchStartDist = twoFingerDist(e.touches);
+        pinchStartScale = curr.scale;
+        pinchStartTx = curr.tx;
+        pinchStartTy = curr.ty;
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const rect = container.getBoundingClientRect();
+        pinchCenterX = midX - rect.left - rect.width / 2;
+        pinchCenterY = midY - rect.top - rect.height / 2;
+        setXformAnim(false);
+      } else if (e.touches.length === 1 && !isPinching) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchMoved = false;
+        panStartX = e.touches[0].clientX;
+        panStartY = e.touches[0].clientY;
+        panStartTx = xformRef.current.tx;
+        panStartTy = xformRef.current.ty;
+        setXformAnim(false);
       }
     }
 
-    el.addEventListener('touchstart', onStart, { passive: true });
-    el.addEventListener('touchmove', onMove, { passive: false });
-    el.addEventListener('touchend', onEnd, { passive: true });
+    function onMove(e: TouchEvent) {
+      if (e.touches.length === 2 && isPinching) {
+        e.preventDefault();
+        const currDist = twoFingerDist(e.touches);
+        const newScale = Math.min(4, Math.max(1, pinchStartScale * (currDist / pinchStartDist)));
+        const scaleChange = newScale / pinchStartScale;
+        /* 핀치 중심 고정 공식: tx' = pcx + scaleChange * (startTx - pcx) */
+        const newTx = pinchCenterX + scaleChange * (pinchStartTx - pinchCenterX);
+        const newTy = pinchCenterY + scaleChange * (pinchStartTy - pinchCenterY);
+        apply(clamp({ scale: newScale, tx: newTx, ty: newTy }));
+      } else if (e.touches.length === 1 && !isPinching) {
+        const dx = e.touches[0].clientX - panStartX;
+        const dy = e.touches[0].clientY - panStartY;
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+          touchMoved = true;
+          if (xformRef.current.scale > 1) {
+            e.preventDefault();
+            isPanning = true;
+            apply(clamp({ scale: xformRef.current.scale, tx: panStartTx + dx, ty: panStartTy + dy }));
+          }
+        }
+      }
+    }
+
+    function onEnd(e: TouchEvent) {
+      /* 핀치 종료 */
+      if (isPinching && e.touches.length < 2) {
+        isPinching = false;
+        isPanning = false;
+        if (xformRef.current.scale < 1.1) {
+          apply({ scale: 1, tx: 0, ty: 0 }, true);
+        }
+        return;
+      }
+
+      /* 탭 감지 — 손가락이 모두 떼어지고 이동 없을 때 */
+      if (e.touches.length === 0 && !isPanning && !touchMoved) {
+        e.preventDefault(); // 합성 click 이벤트 억제
+        const now = Date.now();
+        const tapX = e.changedTouches[0].clientX;
+        const tapY = e.changedTouches[0].clientY;
+        const isDouble =
+          now - lastTapTime < 300 &&
+          Math.abs(tapX - lastTapX) < 40 &&
+          Math.abs(tapY - lastTapY) < 40;
+
+        if (isDouble) {
+          lastTapTime = 0;
+          if (xformRef.current.scale > 1) {
+            /* 더블탭 → 원래 크기 복귀 */
+            apply({ scale: 1, tx: 0, ty: 0 }, true);
+          } else {
+            /* 더블탭 → 탭 위치 기준 2배 확대
+               공식 유도: 이미지 공간의 탭 위치 imgP = (pcx - tx) / s = pcx (s=1, tx=0)
+               확대 후 pcx 를 고정: newTx = pcx - imgP * 2 = -pcx */
+            const rect = container.getBoundingClientRect();
+            const pcx = tapX - rect.left - rect.width / 2;
+            const pcy = tapY - rect.top - rect.height / 2;
+            apply(clamp({ scale: 2, tx: -pcx, ty: -pcy }), true);
+          }
+        } else {
+          lastTapTime = now;
+          lastTapX = tapX;
+          lastTapY = tapY;
+          /* 단일 탭 — scale===1 일 때만 네비게이션 */
+          if (xformRef.current.scale === 1) {
+            const rect = container.getBoundingClientRect();
+            const relX = tapX - rect.left;
+            if (relX < rect.width * 0.35) {
+              flashArrowRef.current('prev');
+              navLightboxRef.current(-1);
+            } else if (relX > rect.width * 0.65) {
+              flashArrowRef.current('next');
+              navLightboxRef.current(1);
+            }
+          }
+        }
+      }
+
+      if (e.touches.length === 0) {
+        isPanning = false;
+      }
+    }
+
+    lb.addEventListener('touchstart', onStart, { passive: true });
+    lb.addEventListener('touchmove', onMove, { passive: false });
+    lb.addEventListener('touchend', onEnd, { passive: false });
     return () => {
-      el.removeEventListener('touchstart', onStart);
-      el.removeEventListener('touchmove', onMove);
-      el.removeEventListener('touchend', onEnd);
+      lb.removeEventListener('touchstart', onStart);
+      lb.removeEventListener('touchmove', onMove);
+      lb.removeEventListener('touchend', onEnd);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightboxIdx]);
 
   /* 라이트박스 오픈 중 키보드 컨트롤 */
@@ -401,17 +539,21 @@ export default function GoodDaysPage() {
         </svg>
       </button>
       {currentImg && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          id="gd-lb-img"
-          src={currentImg}
-          alt={`갤러리 이미지 ${(lightboxIdx ?? 0) + 1}`}
+        <div
+          id="gd-lb-img-wrap"
           style={{
-            transform: `scale(${pinchScale})`,
+            transform: `translate(${xform.tx}px, ${xform.ty}px) scale(${xform.scale})`,
             transformOrigin: 'center center',
-            transition: pinchStartDistRef.current !== null ? 'none' : 'transform 0.2s ease-out',
+            transition: xformAnim ? 'transform 0.25s ease-out' : 'none',
           }}
-        />
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            id="gd-lb-img"
+            src={currentImg}
+            alt={`갤러리 이미지 ${(lightboxIdx ?? 0) + 1}`}
+          />
+        </div>
       )}
       <button
         type="button"

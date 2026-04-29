@@ -6256,6 +6256,13 @@ footer.blk {
   max-height: 100svh;
   object-fit: contain;
   cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#gd-lb-img-wrap {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
 }
 /* 라이트박스 버튼 — 크기·스타일은 공통 클래스(close-btn-secondary-dark / arrow-btn-primary) 담당,
    여기서는 위치만 지정. 프로토타입 L2466~2470 동일. */
@@ -6263,7 +6270,7 @@ footer.blk {
   position: absolute;
   top: 32px;
   right: 32px;
-  z-index: 1;
+  z-index: 4;
 }
 @media (max-width: 767px) {
   .gd-lb-close { top: 12px; right: 12px; }
@@ -6274,7 +6281,7 @@ footer.blk {
   transform: translateY(-50%);
   color: rgba(255,255,255,0.85);
   opacity: 0;
-  z-index: 1;
+  z-index: 3;
   transition: opacity 280ms ease;
 }
 .gd-lb-arrow:active { color: rgba(255,255,255,0.5); }
@@ -6293,11 +6300,12 @@ footer.blk {
   width: 35%;
   cursor: pointer;
   touch-action: pan-y;
+  z-index: 2;
 }
 .gd-lb-zone--prev { left: 0; }
 .gd-lb-zone--next { right: 0; }
-/* 좌우 영역 수직 스크롤 투과 — 수직 스와이프는 페이지 스크롤 허용 */
-.gd-lightbox.open { touch-action: pan-y; }
+/* 라이트박스 오픈 중 모든 터치 제스처를 JS 로 처리 */
+.gd-lightbox.open { touch-action: none; }
 /* 모바일: 버튼 축소 + 항상 반투명 노출 (hover 없으므로 opacity:0 해제) */
 @media (max-width: 767px) {
   .gd-lb-arrow:active { color: #fff; opacity: 1; }
