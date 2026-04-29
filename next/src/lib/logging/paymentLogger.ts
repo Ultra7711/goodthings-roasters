@@ -143,6 +143,12 @@ export function safeErrorMessage(err: unknown): string {
     }
     return msg;
   }
+  /* primitive (string·number·boolean·null·undefined) 는 그대로 — JSON.stringify 시
+     문자열에 따옴표가 추가되어 로그 가독성을 해친다. */
+  if (typeof err === 'string') return err;
+  if (err === null || err === undefined || typeof err !== 'object') {
+    return String(err);
+  }
   /* S91 사고 (2026-04-27) 후속: plain object throw 시 String(err) 결과가
      "[object Object]" 가 되어 진짜 원인을 알 수 없음. JSON 직렬화 우선 시도. */
   try {
