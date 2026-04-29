@@ -393,7 +393,12 @@ export default function GoodDaysPage() {
 
       /* 탭 감지 — 손가락이 모두 떼어지고 이동 없을 때 */
       if (e.touches.length === 0 && !isPanning && !touchMoved) {
-        e.preventDefault(); // 합성 click 이벤트 억제
+        /* 버튼(닫기·화살표) 탭은 네이티브 click 에 위임 — preventDefault 스킵.
+           JS 탭 핸들러가 preventDefault 로 합성 click 을 억제하면 close 버튼이
+           동작하지 않고 위치 기반 분기에서 next 로 오인되는 버그 방지. */
+        const tgt = e.changedTouches[0].target as HTMLElement;
+        if (tgt.closest('button')) return;
+        e.preventDefault(); // 합성 click 이벤트 억제 (버튼 외 영역)
         const now = Date.now();
         const tapX = e.changedTouches[0].clientX;
         const tapY = e.changedTouches[0].clientY;

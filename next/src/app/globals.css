@@ -6252,9 +6252,8 @@ footer.blk {
 .gd-lb-zone--next { right: 0; }
 /* 라이트박스 오픈 중 모든 터치 제스처를 JS 로 처리 */
 .gd-lightbox.open { touch-action: none; }
-/* 모바일: 버튼 축소 + 항상 반투명 노출 (hover 없으므로 opacity:0 해제) */
+/* 모바일: 버튼 축소 + flash 피드백 시에만 노출 */
 @media (max-width: 767px) {
-  .gd-lb-arrow { opacity: 0.55; }
   .gd-lb-arrow:active { color: #fff; opacity: 1; }
   .gd-lb-arrow--flash { opacity: 1; }
   .gd-lb-prev { left: -4px; }
