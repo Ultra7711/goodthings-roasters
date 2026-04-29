@@ -180,8 +180,18 @@ export async function GET(request: Request) {
       email_confirm: true,
       user_metadata: { ...baseMetadata, providers: ['kakao'] },
     });
-    /* 신규 가입 환영 메일 — createUser 성공 + 실주소 확인 후만 발송 (fire-and-forget) */
-    if (!createErr && !isSyntheticEmail) {
+    if (createErr) {
+      /* race/duplicate 에러는 의도적으로 무시 — 후속 generateLink 가 fallback 으로 동작.
+         (R-SEC H-2) 가시성 확보를 위해 status/code 만 구조화 로그에 남긴다. */
+      console.warn(
+        '[oauth.kakao] createUser failed (continuing with generateLink fallback)',
+        {
+          status: (createErr as { status?: number }).status,
+          code: (createErr as { code?: string }).code,
+        },
+      );
+    } else if (!isSyntheticEmail) {
+      /* 신규 가입 환영 메일 — createUser 성공 + 실주소 확인 후만 발송 (fire-and-forget) */
       void sendWelcomeEmail(email, baseMetadata.full_name || undefined);
     }
   } else if (decision.action === 'allow_merge') {
