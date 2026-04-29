@@ -241,7 +241,7 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
         )}
       </div>
 
-      <div className="sp-card-info" onClick={(e) => e.stopPropagation()}>
+      <div className="sp-card-info" onClick={(e) => { e.stopPropagation(); if (qaOpen) closeQa(); }}>
         <p className="sp-card-name">{extractKrName(p.name)}</p>
         <p className="sp-card-price">{formatStartPrice(p)}</p>
       </div>

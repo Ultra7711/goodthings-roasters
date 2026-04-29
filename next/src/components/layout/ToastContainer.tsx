@@ -9,13 +9,22 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useToasts, dismissToast } from '@/hooks/useToast';
 
 export default function ToastContainer() {
   const toasts = useToasts();
   const latest = toasts[toasts.length - 1];
   const elRef = useRef<HTMLDivElement>(null);
+
+  /* 퇴장 트랜지션 중 텍스트 유지 — dismissToast 호출 시 latest 가 즉시 undefined 가 되면
+     메시지 텍스트가 사라지며 박스가 width 0 으로 수축, "축소 잔상"이 발생한다.
+     displayMsg 는 새 메시지가 올 때만 갱신하고 dismiss 시엔 갱신하지 않아
+     CSS opacity 트랜지션이 완료될 때까지 텍스트가 보존된다. */
+  const [displayMsg, setDisplayMsg] = useState(latest?.message ?? '');
+  useEffect(() => {
+    if (latest?.message) setDisplayMsg(latest.message);
+  }, [latest?.message]);
 
   /* latest 가 바뀌면 duration 만큼 뒤 dismiss.
      dep 을 latest 객체 자체로 두면 다른 토스트가 push 될 때 참조가 바뀌면서
@@ -38,7 +47,7 @@ export default function ToastContainer() {
       aria-live="polite"
       aria-atomic="true"
     >
-      {latest?.message ?? ''}
+      {displayMsg}
     </div>
   );
 }

@@ -244,7 +244,7 @@ export default function LoginPage() {
       case 'reset':
         return {
           title: '비밀번호 재설정',
-          switchTxt: '가입하신 이메일 주소로 재설정 링크를 보내드립니다.',
+          switchTxt: '가입하신 이메일로 재설정 링크를 보내드립니다.',
           switchLabel: '',
           switchTarget: 'login' as LoginMode,
           showCancel: true,

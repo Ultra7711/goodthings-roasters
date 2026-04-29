@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 type Props = {
   menuId: string;
@@ -58,18 +58,31 @@ export default function MenuLikeButton({ menuId, count, isLiked, onToggle }: Pro
   const [popping, setPopping] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const countRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
+  /* 초기 데이터 로드 트랜지션 억제 — API 응답으로 count/isLiked 가 처음 바뀌는
+     순간 전체 버튼이 동시에 애니메이션되는 버그 방지.
+     useLayoutEffect: 브라우저 페인트 전에 실행 → transition:none 주입 후
+     requestAnimationFrame 에서 복원 → 초기 상태는 즉시 표시, 이후 인터랙션은 정상 재생. */
+  const initRef = useRef(false);
+  useLayoutEffect(() => {
     const btn = btnRef.current;
     const countEl = countRef.current;
     if (!btn) return;
+    // 12(좌) + 24(아이콘) + 6(gap) + textW + 14(우)
     if (count > 0 && countEl) {
-      // 12(좌) + 24(아이콘) + 6(gap) + textW + 14(우)
       btn.style.width = `${Math.ceil(56 + countEl.scrollWidth)}px`;
     } else {
       btn.style.width = '';
     }
-  }, [count]);
+    if (!initRef.current && (count > 0 || isLiked)) {
+      initRef.current = true;
+      btn.style.transition = 'none';
+      if (countEl) countEl.style.transition = 'none';
+      requestAnimationFrame(() => {
+        btn.style.transition = '';
+        if (countEl) countEl.style.transition = '';
+      });
+    }
+  }, [count, isLiked]);
 
   const handleClick = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation();
