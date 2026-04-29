@@ -73,7 +73,7 @@
 | Session 50 | 반응형 1차 리뷰 (Sessions 37~49) | ✅ | 2026-04-20 — `memory/review_session37_49_responsive.md` (HIGH 4·MED 5·LOW 3 · HIGH-1 즉시 수정) |
 | R-7 | 2-G3 프로덕션 마감 (CSP·env·빌드) | ⬜ | |
 | R-SEC | API Routes + 인증 + 결제 보안 리뷰 | 🟡 | S104 1차 완료 (2026-04-29) — CRITICAL 0 · HIGH 2/MEDIUM 3 closure · `memory/review_rsec_20260429.md` · 잔여 M-2/M-5~M-9·L-1~L-4 다음 라운드 |
-| R-FE1 | Cart + Checkout UI 도메인 리뷰 | ⬜ | 정기배송 구현 완료 후 · code-reviewer + typescript-reviewer |
+| R-FE1 | Cart + Checkout UI 도메인 리뷰 | 🟡 | S105 1차 완료 (2026-04-29) — CRITICAL 0 · HIGH 2(H-4 false alarm)/MEDIUM 7 closure · `memory/review_fe1_20260429.md` · 잔여 MEDIUM(C-M-4/6/7/8/9·CH-M-3/4/5·H-2 격하) 다음 라운드 |
 | R-FE2 | 정기배송 백엔드 리뷰 | ⬜ | 구현 직후 즉시 · security-reviewer + code-reviewer |
 | R-FE3 | MyPage · Cafe · Shop 도메인 리뷰 | ⬜ | 프로덕션 직전 · R-FE1 이후 · code-reviewer |
 
