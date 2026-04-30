@@ -99,7 +99,7 @@
 | Session 16 | ADR-004 Step C — `useSupabaseSession` + `useAuthStore`·`DEMO_CREDENTIALS` 제거 + BUG-004 근본 해결 | ✅ |
 | Session 17 | ADR-004 Step D — zustand 의존성 제거 + `useToast` 분리 + AuthSyncProvider 하드닝 (리뷰 HIGH 4·MED 4·LOW 2) | ✅ |
 | **Session 18+** | **P2-G 프로덕션 (반응형 4BP · CSP · 환경변수 · 번들 감사) / P2-H 인프라** | **⬜ (다음)** |
-| 차후 | P2-C 정기배송 엔진 | ⬜ (정책 확정 대기) |
+| S111 | P2-C 정기배송 백엔드 (Group B+C) — subscriptionRepo + 7개 Route Handler + MyPagePage real API 연동 | ✅ (2026-04-30) |
 
 > 세부 세션별 범위는 `memory/project_backend_p2_session_plan.md` 참조.
 
@@ -127,7 +127,7 @@
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| 정기배송 구독 엔진 | ⬜ | 정책 확정 대기 (Session 차후) |
+| 정기배송 구독 엔진 | ✅ | S111 완료 (2026-04-30) — 7개 Route Handler + MyPagePage 연동 · 자동 결제 집행은 Phase 3 |
 
 ---
 
