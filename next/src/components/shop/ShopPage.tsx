@@ -54,6 +54,7 @@ export default function ShopPage() {
   // 헤더 Shop 재클릭(리셋) 에서는 false 로 유지되어 baseDelay 0 + col stagger 만 동작.
   // useRef 사용: render 중 읽히지만 setState-in-effect 룰과의 충돌을 피하기 위한 의도.
   const isInitRef = useRef(true);
+  const shouldAnimateCardsRef = useRef(true);
 
   // 전체 상품 이미지 프리로드 — 최초 마운트에 1회.
   // 탭 전환 시 새 카드 mount 로 인한 이미지 로드 깜빡임 방지.
@@ -79,8 +80,15 @@ export default function ShopPage() {
     if (!bodyEl) return;
     const triggerAnim = () => {
       bodyEl.classList.remove('sp-anim');
+      if (!isInitRef.current) bodyEl.classList.remove('sp-cards-entering');
       void bodyEl.offsetHeight;
       bodyEl.classList.add('sp-anim');
+      if (!isInitRef.current) {
+        shouldAnimateCardsRef.current = true;
+        bodyEl.classList.add('sp-cards-entering');
+        // (COLS-1)*70ms stagger + 600ms duration + buffer
+        setTimeout(() => bodyEl.classList.remove('sp-cards-entering'), 840);
+      }
       isInitRef.current = false;
     };
     // 초기 재생 — mount 시점에 이미 /shop 인 경우 (직접 진입)
@@ -103,9 +111,13 @@ export default function ShopPage() {
       window.scrollTo({ top: 0, behavior: 'instant' });
       if (bodyEl) {
         bodyEl.classList.remove('sp-anim');
+        bodyEl.classList.remove('sp-cards-entering');
         void bodyEl.offsetHeight;
         bodyEl.classList.add('sp-anim');
+        bodyEl.classList.add('sp-cards-entering');
+        setTimeout(() => bodyEl.classList.remove('sp-cards-entering'), 840);
       }
+      shouldAnimateCardsRef.current = true;
     }
     window.addEventListener('gtr:shop-reset', onReset);
     return () => window.removeEventListener('gtr:shop-reset', onReset);
@@ -122,11 +134,13 @@ export default function ShopPage() {
   const activeTab = FILTER_TABS.find((t) => t.key === filter) ?? FILTER_TABS[0];
 
   function handleFilterChange(key: FilterKey) {
+    shouldAnimateCardsRef.current = false;
     setFilter(key);
     setPage(1);
   }
 
   function handlePageChange(next: number) {
+    shouldAnimateCardsRef.current = false;
     setPage(next);
     bodyEl?.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -156,7 +170,7 @@ export default function ShopPage() {
             isSubFilter={filter === 'sub'}
             scrollRoot={bodyEl}
             baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
-            instant={!isInitRef.current}
+            instant={!shouldAnimateCardsRef.current}
           />
         ))}
       </div>

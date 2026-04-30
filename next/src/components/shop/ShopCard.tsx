@@ -139,7 +139,10 @@ export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot
     <div
       ref={cardRef}
       className={`sp-card${isVisible ? ' sp-visible' : ''}${isQaOpen ? ' sp-card--qa-open' : ''}${isQaClosing ? ' sp-card--qa-closing' : ''}`}
-      style={{ transitionDelay: `${baseDelay + colIndex * 70}ms` }}
+      style={{
+        transitionDelay: `${baseDelay + colIndex * 70}ms`,
+        '--sp-card-delay': `${baseDelay + colIndex * 70}ms`,
+      } as React.CSSProperties}
       onClick={handleCardClick}
       data-slug={p.slug}
     >

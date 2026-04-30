@@ -60,6 +60,7 @@ export default function CafeMenuPage({ initialLikes }: Props) {
   // 초기 진입 플래그 — ShopPage 와 동일. 최초 마운트에만 true 여서 첫 카드 stagger 에
   // 420ms baseDelay 부여 (탭 0.3s 등장 직후 카드 따라옴). 이후 필터 전환에서는 0.
   const isInitRef = useRef(true);
+  const shouldAnimateCardsRef = useRef(true);
 
   const isMobile = useMediaQuery('(max-width: 479px)');
   const perPage = isMobile ? CM_PER_PAGE_MOBILE : CM_PER_PAGE;
@@ -141,8 +142,14 @@ export default function CafeMenuPage({ initialLikes }: Props) {
     if (!bodyEl) return;
     const triggerAnim = () => {
       bodyEl.classList.remove('cm-anim');
+      if (!isInitRef.current) bodyEl.classList.remove('cm-cards-entering');
       void bodyEl.offsetHeight;
       bodyEl.classList.add('cm-anim');
+      if (!isInitRef.current) {
+        shouldAnimateCardsRef.current = true;
+        bodyEl.classList.add('cm-cards-entering');
+        setTimeout(() => bodyEl.classList.remove('cm-cards-entering'), 840);
+      }
       isInitRef.current = false;
     };
     // 초기 재생 — mount 시점에 이미 /menu 인 경우 (직접 진입)
@@ -167,9 +174,13 @@ export default function CafeMenuPage({ initialLikes }: Props) {
       window.scrollTo({ top: 0, behavior: 'instant' });
       if (bodyEl) {
         bodyEl.classList.remove('cm-anim');
+        bodyEl.classList.remove('cm-cards-entering');
         void bodyEl.offsetHeight;
         bodyEl.classList.add('cm-anim');
+        bodyEl.classList.add('cm-cards-entering');
+        setTimeout(() => bodyEl.classList.remove('cm-cards-entering'), 840);
       }
+      shouldAnimateCardsRef.current = true;
     }
     window.addEventListener('gtr:menu-reset', onReset);
     return () => window.removeEventListener('gtr:menu-reset', onReset);
@@ -222,6 +233,7 @@ export default function CafeMenuPage({ initialLikes }: Props) {
   const handleFilterChange = useCallback(
     (key: CafeFilterKey) => {
       if (key === filter) return;
+      shouldAnimateCardsRef.current = false;
       setFilter(key);
       setPage(1);
       setNutriId(null);
@@ -230,6 +242,7 @@ export default function CafeMenuPage({ initialLikes }: Props) {
   );
 
   const handlePageChange = useCallback((next: number) => {
+    shouldAnimateCardsRef.current = false;
     setPage(next);
     setNutriId(null);
     // /menu 는 일반 라우트 — window 스크롤만 사용
@@ -269,7 +282,7 @@ export default function CafeMenuPage({ initialLikes }: Props) {
         highlightId={highlightId}
         scrollRoot={bodyEl}
         baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
-        instant={!isInitRef.current}
+        instant={!shouldAnimateCardsRef.current}
         onOpenNutrition={handleOpenNutrition}
         likeCounts={likeCounts}
         likedSet={likedSet}

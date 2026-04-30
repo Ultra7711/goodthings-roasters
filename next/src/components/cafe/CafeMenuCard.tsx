@@ -129,7 +129,10 @@ export default function CafeMenuCard({
         (isVisible ? ' cm-visible' : '') +
         (isHighlight ? ' cm-card--highlight' : '')
       }
-      style={{ transitionDelay: `${baseDelay + colIndex * STAGGER_MS}ms` }}
+      style={{
+        transitionDelay: `${baseDelay + colIndex * STAGGER_MS}ms`,
+        '--cm-card-delay': `${baseDelay + colIndex * STAGGER_MS}ms`,
+      } as React.CSSProperties}
       onClick={handleOpen}
       role="button"
       tabIndex={0}

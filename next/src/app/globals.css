@@ -2587,6 +2587,7 @@ footer.blk {
 /* transform:none — 애니메이션 완료 후 stacking context 해제 → backdrop-filter 정상 동작
    CSS는 none↔translateY(24px) 전환을 identity로 보간하므로 애니메이션은 동일 */
 .sp-card.sp-visible { opacity: 1; transform: none; }
+#sp-body.sp-cards-entering .sp-card { animation: gtr-rise-24 var(--duration-fade) ease-out var(--sp-card-delay, 0ms) both; }
 .sp-card-thumb {
   cursor: pointer;
   position: relative;
@@ -2970,6 +2971,7 @@ footer.blk {
   position: relative;
 }
 .cm-card.cm-visible { opacity: 1; transform: none; }
+#cm-body.cm-cards-entering .cm-card { animation: gtr-rise-24 var(--duration-fade) ease-out var(--cm-card-delay, 0ms) both; }
 .cm-card-thumb {
   cursor: pointer;
   position: relative;
