@@ -12,31 +12,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { CafeMenuItem, CafeMenuStatus, CafeMenuTemp } from '@/lib/cafeMenu';
+import type { CafeMenuItem, CafeMenuTemp } from '@/lib/cafeMenu';
 import MenuLikeButton from './MenuLikeButton';
+import MenuCardBadges from './MenuCardBadges';
 import { SCROLL_REVEAL_THRESHOLD } from '@/lib/constants';
 
 const STAGGER_MS = 70;
-
-/** 프로토타입 statusMap — `.sp-card-badge` + `badge-*` 조합 */
-function getStatusBadgeClass(status: CafeMenuStatus): string | null {
-  if (!status) return null;
-  switch (status) {
-    case '시즌':
-    case '시즌 한정':
-      return 'sp-card-badge badge-ltd';
-    case '시그니처':
-      return 'sp-card-badge badge-pop-1';
-    case 'NEW':
-      return 'sp-card-badge badge-new';
-    case '인기':
-      return 'sp-card-badge badge-pop-2';
-    case '품절':
-      return 'sp-card-badge badge-sold';
-    default:
-      return null;
-  }
-}
 
 /** 프로토타입 tMap — 온도 뱃지 (우하단 원형) */
 function getTempBadge(temp: CafeMenuTemp): { cls: string; txt: string } | null {
@@ -61,10 +42,6 @@ type Props = {
   baseDelay?: number; // 초기 로드 시 추가 딜레이(ms) — 필터 전환 시는 0 (ShopCard 와 동일)
   instant?: boolean; // 탭 전환 후 새 카드 mount 시 true — entry 애니메이션 완전 스킵
   onOpenNutrition: (id: string) => void;
-  likeCount: number;
-  isLiked: boolean;
-  onToggleLike: (menuId: string) => void;
-  popularRank?: 1 | 2 | 3 | null;
 };
 
 export default function CafeMenuCard({
@@ -75,10 +52,6 @@ export default function CafeMenuCard({
   baseDelay = 0,
   instant = false,
   onOpenNutrition,
-  likeCount,
-  isLiked,
-  onToggleLike,
-  popularRank = null,
 }: Props) {
   const [isVisible, setIsVisible] = useState(instant);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -107,7 +80,6 @@ export default function CafeMenuCard({
     }
   }, [isHighlight]);
 
-  const badgeClass = getStatusBadgeClass(item.status);
   const tempBadge = getTempBadge(item.temp);
   const thumbStyle = item.img
     ? {
@@ -147,23 +119,9 @@ export default function CafeMenuCard({
       <div className="cm-card-thumb">
         <div className="cm-card-img" style={thumbStyle} />
 
-        {(badgeClass || popularRank) && (
-          <div className="cm-card-badges">
-            {badgeClass && <span className={badgeClass}>{item.status}</span>}
-            {popularRank && (
-              <span className={`sp-card-badge cm-popular-badge--${popularRank}`}>
-                인기 No.{popularRank}
-              </span>
-            )}
-          </div>
-        )}
+        <MenuCardBadges menuId={item.id} status={item.status} />
 
-        <MenuLikeButton
-          menuId={item.id}
-          count={likeCount}
-          isLiked={isLiked}
-          onToggle={onToggleLike}
-        />
+        <MenuLikeButton menuId={item.id} />
 
         {tempBadge && (
           <div className="cm-temp-badges">

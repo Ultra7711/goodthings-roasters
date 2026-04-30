@@ -9,12 +9,14 @@
 'use client';
 
 import { useLayoutEffect, useRef, useState } from 'react';
+import {
+  useMenuLikesCount,
+  useMenuLiked,
+  toggleMenuLike,
+} from '@/lib/menuLikesStore';
 
 type Props = {
   menuId: string;
-  count: number;
-  isLiked: boolean;
-  onToggle: (menuId: string) => void;
 };
 
 function formatCount(n: number): string {
@@ -54,7 +56,9 @@ function spawnParticles(btn: HTMLButtonElement) {
   }
 }
 
-export default function MenuLikeButton({ menuId, count, isLiked, onToggle }: Props) {
+export default function MenuLikeButton({ menuId }: Props) {
+  const count = useMenuLikesCount(menuId);
+  const isLiked = useMenuLiked(menuId);
   const [popping, setPopping] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const countRef = useRef<HTMLSpanElement>(null);
@@ -103,7 +107,7 @@ export default function MenuLikeButton({ menuId, count, isLiked, onToggle }: Pro
       setPopping(true);
       if (btnRef.current) spawnParticles(btnRef.current);
     }
-    onToggle(menuId);
+    void toggleMenuLike(menuId);
   };
 
   return (

@@ -3,9 +3,11 @@
    프로토타입 `#cafe-menu-page` 컨테이너 + 진입 연출 이식.
    - ShopPage 패턴 차용: bodyEl callback ref 로 `cm-anim` 클래스 토글,
      URL query (`?cat=<key>&item=<id>`) 로 초기 필터/타겟 복구.
-   - RP4-D2 와 달리 카페 메뉴는 장바구니 연결 없음 (매장 메뉴 전용).
    - urlFilter / target restore 모두 "adjusting state during render" 패턴으로
      effect-내-setState 규칙 위반 없이 prop → state 동기화.
+   - likes 는 menuLikesStore 외부 store 로 격리 (S116). MenuLikeButton ·
+     MenuCardBadges 가 자체 구독하므로 카드는 likes 를 모름. CafeMenuPage 는
+     sort 결정 용도로만 sortCommitted 를 구독.
    ══════════════════════════════════════════ */
 
 'use client';
@@ -27,17 +29,17 @@ import {
   type CafeMenuItem,
 } from '@/lib/cafeMenu';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { useMenuLikes } from '@/hooks/useMenuLikes';
+import {
+  fetchMenuLikes,
+  commitMenuRanksOnReentry,
+  useMenuSortCommitted,
+} from '@/lib/menuLikesStore';
 
 const HIGHLIGHT_MS = 1500;
 // ShopPage 와 동일 — 탭(0.3s) 등장 후 카드 시작, 진입 후엔 0
 const CARD_BASE_DELAY_INIT = 420;
 
-type Props = {
-  initialLikes?: { counts: Record<string, number>; liked: string[] };
-};
-
-export default function CafeMenuPage({ initialLikes }: Props) {
+export default function CafeMenuPage() {
   const searchParams = useSearchParams();
 
   // URL `?cat=` 파싱 — searchParams 가 바뀔 때마다 재평가
@@ -57,27 +59,18 @@ export default function CafeMenuPage({ initialLikes }: Props) {
   // highlight timeout 을 ref 로 관리해 연속 URL 변경 시 경합 방지
   const highlightTimeoutRef = useRef<number | null>(null);
 
+  // 초기 진입 플래그 — useRef 사용: render 중 읽히지만 setState-in-effect 룰과의 충돌을
+  // 피하기 위한 의도 (ShopPage 동일 패턴).
   const isInitRef = useRef(true);
   const shouldAnimateCardsRef = useRef(true);
-
-  // baseDelay 를 state 로 관리 — isInitRef 가 effect 에서 즉시 false 로 뒤집히므로
-  // 이후 첫 re-render(likes 도착)에서 값이 0 으로 바뀌어 진행 중인 transition 이
-  // 재시작되는 버그를 막는다. state 는 초기 애니메이션 윈도우(~1000ms) 이후 0 으로 세팅.
-  const [cardBaseDelay, setCardBaseDelay] = useState(CARD_BASE_DELAY_INIT);
-
-  // 카드마다 고정 colIndex — CAFE_MENU 카탈로그 순서 기반, 마운트 후 불변.
-  // popularRanks 가 도착해 items 가 재정렬돼도 colIndex 가 바뀌지 않으므로
-  // transitionDelay 가 유지되어 진입 연출이 깨지지 않는다.
-  const stableColIndexMap = useMemo<Record<string, number>>(() => {
-    const map: Record<string, number> = {};
-    CAFE_MENU.forEach((item, i) => { map[item.id] = i % 3; });
-    return map;
-  }, []);
 
   const isMobile = useMediaQuery('(max-width: 479px)');
   const perPage = isMobile ? CM_PER_PAGE_MOBILE : CM_PER_PAGE;
 
-  const { counts: likeCounts, liked: likedSet, toggle: toggleLike } = useMenuLikes(initialLikes);
+  /* sort 전용 store snapshot. 첫 마운트 시 빈 객체(NEW only sort), 재진입 시
+     commitMenuRanksOnReentry() 가 갱신 → CafeMenuPage 리렌더 + 카드 재정렬.
+     사용자 토글로는 절대 변동 없음. */
+  const sortCommitted = useMenuSortCommitted();
 
   // ───────────────────────────────────────────
   // Adjusting state during render — urlFilter / searchParams prop 동기화
@@ -131,6 +124,11 @@ export default function CafeMenuPage({ initialLikes }: Props) {
     }
   }
 
+  // 마운트 시 likes 1회 fetch (store 내부에 fetched 가드 있음 → 중복 호출 안전)
+  useEffect(() => {
+    void fetchMenuLikes();
+  }, []);
+
   // 전체 메뉴 이미지 프리로드 — 최초 마운트에 1회.
   // 탭 전환 시 새로 mount 되는 카드가 네트워크에서 이미지를 받느라 배경색만 잠깐
   // 보이는 깜빡임 방지. 브라우저 캐시에 올려두면 이후 탭 전환은 즉시 표시됨.
@@ -143,37 +141,24 @@ export default function CafeMenuPage({ initialLikes }: Props) {
     });
   }, []);
 
-  /* 페이지 진입 연출 — bodyEl 이 붙는 순간 재생 + window 'gtr:route-change'
-     event 로 재진입 감지.
-     Next.js 16 + React 19 Activity 하에서 이 페이지는 다른 페이지로 이동 시
-     `display:none` 으로 hidden + effect 가 defer 됨 (pathname deps 로 재실행 불가).
-     Layout 의 NavigationVisibilityGate 가 발송하는 route-change event 로 재진입
-     타이밍을 알 수 있음 → detail === '/menu' 에서만 재생.
-     (DB-06 S72 측정: Activity preserve 확정 · pathname deps 실패 확인) */
+  /* 페이지 진입 연출 — ShopPage 와 동등 패턴.
+     - 초기 로드: cm-cards-entering 없음. IO + transitionDelay 만으로 stagger.
+     - 재진입(gtr:route-change): cm-cards-entering 키프레임 추가 + commit. */
   useEffect(() => {
     if (!bodyEl) return;
     const triggerAnim = () => {
-      const wasInit = isInitRef.current;
-      isInitRef.current = false;
-      // 초기 로드·재진입 모두 cm-cards-entering 키프레임으로 통일.
-      // IO 기반 per-card cm-visible 은 타이밍 편차가 생기지만,
-      // 부모 클래스 하나가 전체 카드를 동시 구동하는 키프레임은 정확한 stagger 를 보장.
       bodyEl.classList.remove('cm-anim');
-      bodyEl.classList.remove('cm-cards-entering');
+      if (!isInitRef.current) bodyEl.classList.remove('cm-cards-entering');
       void bodyEl.offsetHeight;
       bodyEl.classList.add('cm-anim');
-      shouldAnimateCardsRef.current = true;
-      if (!wasInit) {
-        setCardBaseDelay(0);
-        setCommittedRanks(popularRanksRef.current);
+      if (!isInitRef.current) {
+        shouldAnimateCardsRef.current = true;
+        commitMenuRanksOnReentry(); // 재진입 시 sort + 뱃지 그 시점 popular 으로
+        bodyEl.classList.add('cm-cards-entering');
+        // (COLS-1)*70ms stagger + 600ms duration + buffer
+        setTimeout(() => bodyEl.classList.remove('cm-cards-entering'), 840);
       }
-      bodyEl.classList.add('cm-cards-entering');
-      // 초기: 420ms baseDelay + 스태거 + 트랜지션 여유 후 제거. 재진입: 840ms.
-      const clearAfter = wasInit ? CARD_BASE_DELAY_INIT + 200 + 300 : 840;
-      setTimeout(() => {
-        bodyEl.classList.remove('cm-cards-entering');
-        if (wasInit) setCardBaseDelay(0);
-      }, clearAfter);
+      isInitRef.current = false;
     };
     // 초기 재생 — mount 시점에 이미 /menu 인 경우 (직접 진입)
     if (window.location.pathname === '/menu') triggerAnim();
@@ -194,7 +179,7 @@ export default function CafeMenuPage({ initialLikes }: Props) {
     function onReset() {
       setNutriId(null);
       setHighlightId(null);
-      setCommittedRanks(popularRanksRef.current); // reset 시점에 인기 sort 반영
+      commitMenuRanksOnReentry(); // reset 시점에 인기 sort + 뱃지 반영
       window.scrollTo({ top: 0, behavior: 'instant' });
       if (bodyEl) {
         bodyEl.classList.remove('cm-anim');
@@ -228,33 +213,13 @@ export default function CafeMenuPage({ initialLikes }: Props) {
     };
   }, [highlightId]);
 
-  // 인기 순위 (라이브) — badges 표시용. likes 도착 즉시 업데이트.
-  const popularRanks = useMemo<Record<string, 1 | 2 | 3>>(() => {
-    const sorted = Object.entries(likeCounts)
-      .filter(([, count]) => count > 0)
-      .sort(([, a], [, b]) => b - a);
-    const ranks: Record<string, 1 | 2 | 3> = {};
-    sorted.slice(0, 3).forEach(([menuId], i) => {
-      ranks[menuId] = (i + 1) as 1 | 2 | 3;
-    });
-    return ranks;
-  }, [likeCounts]);
-
-  // effect 콜백(gtr:route-change / gtr:menu-reset)에서 popularRanks 를 읽을 때
-  // deps 없이 구 값을 캡처하는 stale closure 를 막기 위해 ref 로 동기화한다.
-  const popularRanksRef = useRef(popularRanks);
-  useEffect(() => { popularRanksRef.current = popularRanks; }, [popularRanks]);
-
-  // 인기 순위 (committed) — sort 전용. 재방문·reset 시점에만 업데이트.
-  // 초진입 시 sort 는 stable(빈 랭크)로 유지해 느린 네트워크에서
-  // likes 도착 후 카드 위치가 snap 되는 현상을 방지한다.
-  const [committedRanks, setCommittedRanks] = useState<Record<string, 1 | 2 | 3>>({});
-
-  // 필터/페이징 파생 상태 — NEW 먼저, 그 다음 인기 No.1~3 (committedRanks 기준)
+  // 필터/페이징 — sortCommitted (store) 기반. 첫 마운트 시 빈 객체 = NEW only,
+  // 재진입 시 commitMenuRanksOnReentry → sortCommitted 변경 → 재정렬.
   const filtered: CafeMenuItem[] = useMemo(() => {
-    const popularIds = new Set(Object.keys(committedRanks));
+    const popularIds = new Set(Object.keys(sortCommitted));
     return sortCafeMenu(filterCafeMenu(CAFE_MENU, filter), popularIds);
-  }, [filter, committedRanks]);
+  }, [filter, sortCommitted]);
+
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const currentPage = Math.min(page, totalPages);
@@ -307,21 +272,21 @@ export default function CafeMenuPage({ initialLikes }: Props) {
         <CafeFilterTabs active={filter} onChange={handleFilterChange} />
       </div>
 
+      {/* baseDelay 는 useRef 직접 read — ShopPage 패턴.
+          첫 마운트 시 420ms, 이후엔 0. likes 비동기 리렌더가 inline style 을
+          흔들지 않도록 likes 는 store 로 격리됨 (S116). */}
+      {/* eslint-disable react-hooks/refs */}
       <CafeMenuGrid
         items={items}
         filterKey={filter}
         pageKey={currentPage}
         highlightId={highlightId}
         scrollRoot={bodyEl}
-        baseDelay={cardBaseDelay}
+        baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
         instant={!shouldAnimateCardsRef.current}
-        stableColIndexMap={stableColIndexMap}
         onOpenNutrition={handleOpenNutrition}
-        likeCounts={likeCounts}
-        likedSet={likedSet}
-        popularRanks={popularRanks}
-        onToggleLike={toggleLike}
       />
+      {/* eslint-enable react-hooks/refs */}
 
       <CafeNutritionSheet item={nutriItem} onClose={handleCloseNutrition} />
 

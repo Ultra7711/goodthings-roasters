@@ -6,6 +6,8 @@
      `.cm-visible` 클래스가 초기화되어 등장 연출을 재생한다.
    - 동일 filter 에서 헤더 Menu 재클릭 시에는 remount 를 강제하지 않아
      플리커를 피한다 (ShopPage 와 동일 패턴).
+   - likes/popular 정보는 카드 내부 자식 컴포넌트(MenuLikeButton ·
+     MenuCardBadges)가 store 에서 자체 구독 → 카드는 likes 모름 (S116).
    ══════════════════════════════════════════ */
 
 'use client';
@@ -21,12 +23,7 @@ type Props = {
   scrollRoot: HTMLElement | null;
   baseDelay?: number;
   instant?: boolean;
-  stableColIndexMap?: Record<string, number>;
   onOpenNutrition: (id: string) => void;
-  likeCounts: Record<string, number>;
-  likedSet: Set<string>;
-  popularRanks: Record<string, 1 | 2 | 3>;
-  onToggleLike: (menuId: string) => void;
 };
 
 export default function CafeMenuGrid({
@@ -37,30 +34,20 @@ export default function CafeMenuGrid({
   scrollRoot,
   baseDelay = 0,
   instant = false,
-  stableColIndexMap,
   onOpenNutrition,
-  likeCounts,
-  likedSet,
-  popularRanks,
-  onToggleLike,
 }: Props) {
   return (
     <div id="cm-grid">
       {items.map((item, i) => (
-        // key 는 item.id — 공통 아이템은 persist. 새로 mount 되는 카드는 instant=true 일 때 애니 스킵.
         <CafeMenuCard
           key={item.id}
           item={item}
-          colIndex={stableColIndexMap?.[item.id] ?? i % 3}
+          colIndex={i % 3}
           scrollRoot={scrollRoot}
           isHighlight={highlightId === item.id}
           baseDelay={baseDelay}
           instant={instant}
           onOpenNutrition={onOpenNutrition}
-          likeCount={likeCounts[item.id] ?? 0}
-          isLiked={likedSet.has(item.id)}
-          onToggleLike={onToggleLike}
-          popularRank={popularRanks[item.id] ?? null}
         />
       ))}
     </div>
