@@ -160,6 +160,7 @@ export default function CafeMenuPage({ initialLikes }: Props) {
       if (!isInitRef.current) {
         shouldAnimateCardsRef.current = true;
         setCardBaseDelay(0);
+        setCommittedRanks(popularRanksRef.current); // 재방문 시점에 인기 sort 반영
         bodyEl.classList.add('cm-cards-entering');
         setTimeout(() => bodyEl.classList.remove('cm-cards-entering'), 840);
       } else {
@@ -187,6 +188,7 @@ export default function CafeMenuPage({ initialLikes }: Props) {
     function onReset() {
       setNutriId(null);
       setHighlightId(null);
+      setCommittedRanks(popularRanksRef.current); // reset 시점에 인기 sort 반영
       window.scrollTo({ top: 0, behavior: 'instant' });
       if (bodyEl) {
         bodyEl.classList.remove('cm-anim');
@@ -220,7 +222,7 @@ export default function CafeMenuPage({ initialLikes }: Props) {
     };
   }, [highlightId]);
 
-  // 인기 순위 — 좋아요 1개 이상인 메뉴 중 상위 3위 (옵션 A: 절대값 임계값 없음)
+  // 인기 순위 (라이브) — badges 표시용. likes 도착 즉시 업데이트.
   const popularRanks = useMemo<Record<string, 1 | 2 | 3>>(() => {
     const sorted = Object.entries(likeCounts)
       .filter(([, count]) => count > 0)
@@ -232,11 +234,21 @@ export default function CafeMenuPage({ initialLikes }: Props) {
     return ranks;
   }, [likeCounts]);
 
-  // 필터/페이징 파생 상태 — NEW 먼저, 그 다음 인기 No.1~3
+  // effect 콜백(gtr:route-change / gtr:menu-reset)에서 popularRanks 를 읽을 때
+  // deps 없이 구 값을 캡처하는 stale closure 를 막기 위해 ref 로 동기화한다.
+  const popularRanksRef = useRef(popularRanks);
+  useEffect(() => { popularRanksRef.current = popularRanks; }, [popularRanks]);
+
+  // 인기 순위 (committed) — sort 전용. 재방문·reset 시점에만 업데이트.
+  // 초진입 시 sort 는 stable(빈 랭크)로 유지해 느린 네트워크에서
+  // likes 도착 후 카드 위치가 snap 되는 현상을 방지한다.
+  const [committedRanks, setCommittedRanks] = useState<Record<string, 1 | 2 | 3>>({});
+
+  // 필터/페이징 파생 상태 — NEW 먼저, 그 다음 인기 No.1~3 (committedRanks 기준)
   const filtered: CafeMenuItem[] = useMemo(() => {
-    const popularIds = new Set(Object.keys(popularRanks));
+    const popularIds = new Set(Object.keys(committedRanks));
     return sortCafeMenu(filterCafeMenu(CAFE_MENU, filter), popularIds);
-  }, [filter, popularRanks]);
+  }, [filter, committedRanks]);
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const currentPage = Math.min(page, totalPages);
