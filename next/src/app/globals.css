@@ -7478,7 +7478,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* 일시정지 안내 */
 .mp-sub-paused-notice {
   display: flex; align-items: center; gap: 8px;
-  font-size: var(--type-body-ui-size); color: var(--color-text-tertiary);
+  font-family: var(--font-kr); font-size: var(--type-body-ui-size); color: var(--color-text-tertiary);
   padding: 10px 12px; margin-bottom: 8px;
   background: var(--color-background-secondary);
   border-left: 2px solid var(--color-border-primary);
@@ -7568,9 +7568,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-caption);
 }
 .mp-sub-item-status--paused {
-  display: inline-flex; align-items: center; gap: 4px;
+  display: inline-flex; align-items: center; gap: 8px;
   color: var(--color-text-tertiary);
 }
+.mp-sub-item-status--paused svg { position: relative; top: -1px; }
 
 /* 빈 상태 */
 .mp-empty-state {
