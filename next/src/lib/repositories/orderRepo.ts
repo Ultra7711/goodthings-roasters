@@ -229,6 +229,22 @@ const ORDER_SELECT = `
 ` as const;
 
 /**
+ * 회원 본인 주문 목록 (최신순).
+ * RLS `orders_select_own` 에 의해 본인 주문만 반환.
+ */
+export async function findOrdersForUser(limit = 20, offset = 0): Promise<OrderRow[]> {
+  const supabase = await createRouteHandlerClient();
+  const { data, error } = await supabase
+    .from('orders')
+    .select(ORDER_SELECT)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) throw error;
+  return (data as OrderRow[]) ?? [];
+}
+
+/**
  * 회원 본인 주문 조회.
  * RLS `orders_select_own` 에 의해 타인 주문은 자동 차단(= null 반환).
  */

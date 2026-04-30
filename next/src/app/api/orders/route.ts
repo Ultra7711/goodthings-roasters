@@ -32,6 +32,68 @@ import {
   createOrderFromInput,
   OrderServiceError,
 } from '@/lib/services/orderService';
+import { findOrdersForUser, type OrderRow, type OrderItemRow } from '@/lib/repositories/orderRepo';
+import type { DbOrderStatus } from '@/types/db';
+import type { Order, OrderItem, OrderStatus } from '@/types/order';
+import { formatDateKST, formatPrice } from '@/lib/utils';
+
+/* ── DB status → UI 한글 상태 매핑 ─────────────────────────────── */
+function mapDbStatus(status: DbOrderStatus): OrderStatus {
+  if (status === 'delivered') return '배송완료';
+  return '배송중';
+}
+
+/* ── OrderRow → Order 변환 ─────────────────────────────────────── */
+function toOrder(row: OrderRow): Order {
+  const items: OrderItem[] = (row.order_items ?? []).map((it: OrderItemRow) => ({
+    name: it.product_name,
+    slug: it.product_slug,
+    category: it.product_category,
+    volume: it.product_volume ?? '',
+    qty: it.quantity,
+    priceNum: it.unit_price,
+    image: {
+      src: it.product_image_src ?? '',
+      bg: it.product_image_bg ?? '#ECEAE6',
+    },
+    type: it.item_type,
+    period: it.subscription_period ?? null,
+  }));
+
+  const first = items[0];
+  const name = first?.name ?? '';
+  const detail =
+    items.length > 1
+      ? `${first?.volume ?? ''} 외 ${items.length - 1}건`
+      : (first?.volume ?? '');
+
+  const totalAmount = row.total_amount;
+
+  return {
+    number: row.order_number,
+    date: formatDateKST(row.created_at),
+    name,
+    detail,
+    price: formatPrice(totalAmount),
+    priceNum: totalAmount,
+    status: mapDbStatus(row.status),
+    items,
+  };
+}
+
+/* ── GET /api/orders — 회원 본인 주문 목록 ─────────────────────── */
+export async function GET(): Promise<Response> {
+  const claims = await getClaims();
+  if (!claims) return apiError('unauthorized');
+
+  try {
+    const rows = await findOrdersForUser(20, 0);
+    const orders: Order[] = rows.map(toOrder);
+    return apiSuccess(orders);
+  } catch {
+    return apiError('server_error');
+  }
+}
 
 export async function POST(request: Request): Promise<Response> {
   /* 1) CSRF 가드 — 타 origin 에서의 쿠키 승차 차단 */

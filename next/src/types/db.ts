@@ -55,6 +55,9 @@ export type OrderItemType = 'normal' | 'subscription';
 /** 004_order_items.sql public.subscription_period */
 export type DbSubscriptionPeriod = '2주' | '4주' | '6주' | '8주';
 
+/** 005_subscriptions.sql public.subscription_status */
+export type DbSubscriptionStatus = 'active' | 'paused' | 'cancelled' | 'expired';
+
 /** 006_payment_transactions.sql public.payment_event_type */
 export type DbPaymentEventType =
   | 'payment_approved'

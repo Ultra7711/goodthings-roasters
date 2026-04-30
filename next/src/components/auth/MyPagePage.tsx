@@ -29,26 +29,12 @@ import { shakeFields } from '@/lib/shakeFields';
 import { useToast } from '@/hooks/useToast';
 import { TextField } from '@/components/ui/TextField';
 import { SearchIcon } from '@/components/ui/InputIcons';
-import { MOCK_ORDERS, MOCK_SUBSCRIPTIONS } from '@/lib/mockMyPageData';
 import { extractKrName, formatPrice } from '@/lib/utils';
 import type { Subscription, SubscriptionCycle } from '@/types/subscription';
 import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
 import SiteHeader from '@/components/layout/SiteHeader';
 import { ChevronRight, CopyIcon } from '@/components/ui/Icons';
 
-const CYCLE_DAYS: Record<SubscriptionCycle, number> = {
-  '2주': 14, '4주': 28, '6주': 42, '8주': 56,
-};
-
-function calcNextDate(currentDate: string, cycle: SubscriptionCycle): string {
-  const [y, m, d] = currentDate.split('.').map(Number);
-  const date = new Date(y, m - 1, d);
-  date.setDate(date.getDate() + CYCLE_DAYS[cycle]);
-  const yy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  return `${yy}.${mm}.${dd}`;
-}
 
 type MyPagePageProps = {
   /** 서버 가드(`requireAuth`) 결과 — SSR 단계 fallback 으로 사용
@@ -102,6 +88,18 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   /* 헤더는 SiteHeader 컴포넌트가 sticky/atTop/검색/모바일 드로어/카트 드로어를 자체 관리.
      마이페이지는 메인 라우트와 동일한 로고 + nav + 검색·마이페이지·카트 아이콘 구조. */
 
+  /* ── 주문 내역 ── */
+  const [orders, setOrders] = useState<import('@/types/order').Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/orders', { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((json: { data: import('@/types/order').Order[] }) => setOrders(json.data ?? []))
+      .catch(() => {})
+      .finally(() => setOrdersLoading(false));
+  }, []);
+
   /* ── 주문 카드 열림 상태 ── */
   const [openOrders, setOpenOrders] = useState<Set<string>>(new Set());
   const toggleOrder = useCallback((num: string) => {
@@ -148,7 +146,16 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   }, [pwForm]);
 
   /* ── 정기배송 상태 ── */
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>(MOCK_SUBSCRIPTIONS);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [subsLoading, setSubsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/subscriptions', { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((json: { data: Subscription[] }) => setSubscriptions(json.data ?? []))
+      .catch(() => {})
+      .finally(() => setSubsLoading(false));
+  }, []);
   const [subCycleEdit, setSubCycleEdit] = useState<SubscriptionCycle | null>(null);
   const [isCycleDropdownOpen, setCycleDropdownOpen] = useState(false);
   const cycleDropdownRef = useRef<HTMLDivElement>(null);
@@ -186,28 +193,55 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
     setCycleDropdownOpen(false);
   }, []);
 
-  const saveSubCycle = useCallback((subId: string) => {
+  const saveSubCycle = useCallback(async (subId: string) => {
     if (!subCycleEdit) return;
-    setSubscriptions((prev) =>
-      prev.map((s) => (s.id === subId ? { ...s, cycle: subCycleEdit } : s)),
-    );
-    setSubEditId(null);
-    toast('배송 주기가 변경되었습니다.');
+    try {
+      const res = await fetch(`/api/subscriptions/${subId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ cycle: subCycleEdit }),
+      });
+      if (!res.ok) throw new Error();
+      const json = (await res.json()) as { data: Subscription };
+      setSubscriptions((prev) => prev.map((s) => (s.id === subId ? json.data : s)));
+      setSubEditId(null);
+      toast('배송 주기가 변경되었습니다.');
+    } catch {
+      toast('주기 변경에 실패했습니다. 다시 시도해 주세요.');
+    }
   }, [subCycleEdit, toast]);
 
-  const cancelSub = useCallback((subId: string) => {
-    setSubscriptions((prev) => prev.filter((s) => s.id !== subId));
-    setSubEditId(null);
-    setCancelConfirmSubId(null);
-    toast('구독이 해지되었습니다.');
+  const cancelSub = useCallback(async (subId: string) => {
+    try {
+      const res = await fetch(`/api/subscriptions/${subId}`, {
+        method: 'DELETE',
+        credentials: 'same-origin',
+      });
+      if (!res.ok) throw new Error();
+      setSubscriptions((prev) => prev.filter((s) => s.id !== subId));
+      setSubEditId(null);
+      setCancelConfirmSubId(null);
+      toast('구독이 해지되었습니다.');
+    } catch {
+      toast('해지에 실패했습니다. 다시 시도해 주세요.');
+    }
   }, [toast]);
 
-  const skipDelivery = useCallback((subId: string) => {
-    setSubscriptions((prev) =>
-      prev.map((s) => s.id === subId ? { ...s, nextDate: calcNextDate(s.nextDate, s.cycle) } : s),
-    );
-    setSkipConfirmSubId(null);
-    toast('다음 배송일이 변경되었습니다.');
+  const skipDelivery = useCallback(async (subId: string) => {
+    try {
+      const res = await fetch(`/api/subscriptions/${subId}/skip`, {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+      if (!res.ok) throw new Error();
+      const json = (await res.json()) as { data: Subscription };
+      setSubscriptions((prev) => prev.map((s) => (s.id === subId ? json.data : s)));
+      setSkipConfirmSubId(null);
+      toast('다음 배송일이 변경되었습니다.');
+    } catch {
+      toast('건너뛰기에 실패했습니다. 다시 시도해 주세요.');
+    }
   }, [toast]);
 
   /* ── 로그아웃 ──
@@ -436,7 +470,9 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
             <h2 className="mp-section-title">정기배송 관리</h2>
             <div className="mp-section-body">
             <div className="mp-sub-list">
-              {subscriptions.length === 0 ? (
+              {subsLoading ? (
+                <div className="mp-empty-state">불러오는 중…</div>
+              ) : subscriptions.length === 0 ? (
                 <div className="mp-empty-state">정기배송 내역이 없습니다.</div>
               ) : (
                 subscriptions.map((sub) => (
@@ -614,10 +650,12 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
           <h2 className="mp-section-title">주문 내역</h2>
           <div className="mp-section-body">
           <div className="mp-order-list">
-            {MOCK_ORDERS.length === 0 ? (
+            {ordersLoading ? (
+              <div className="mp-empty-state">불러오는 중…</div>
+            ) : orders.length === 0 ? (
               <div className="mp-empty-state">주문 내역이 아직 없습니다.</div>
             ) : (
-              MOCK_ORDERS.map((order) => (
+              orders.map((order) => (
                 <div
                   key={order.number}
                   className={`mp-order-card${openOrders.has(order.number) ? ' open' : ''}`}
@@ -721,7 +759,11 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
       {skipConfirmSubId && (() => {
         const sub = subscriptions.find((s) => s.id === skipConfirmSubId);
         if (!sub) return null;
-        const nextDate = calcNextDate(sub.nextDate, sub.cycle);
+        const cycleDays: Record<string, number> = { '2주': 14, '4주': 28, '6주': 42, '8주': 56 };
+        const [ny, nm, nd] = sub.nextDate.split('.').map(Number);
+        const nextD = new Date(ny, nm - 1, nd);
+        nextD.setDate(nextD.getDate() + (cycleDays[sub.cycle] ?? 28));
+        const nextDate = `${nextD.getFullYear()}.${String(nextD.getMonth()+1).padStart(2,'0')}.${String(nextD.getDate()).padStart(2,'0')}`;
         return (
           <div className="mp-modal-overlay" onClick={() => setSkipConfirmSubId(null)}>
             <div className="mp-modal mp-modal--calm" onClick={(e) => e.stopPropagation()}>

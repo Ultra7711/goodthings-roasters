@@ -20,6 +20,16 @@ export function extractKrName(name: string): string {
   return m ? m[1].trim() : name;
 }
 
+/** ISO-8601 또는 timestamptz 문자열을 "YYYY.MM.DD" 형식으로 변환 (KST 기준). */
+export function formatDateKST(iso: string): string {
+  const d = new Date(iso);
+  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  const y = kst.getUTCFullYear();
+  const m = String(kst.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(kst.getUTCDate()).padStart(2, '0');
+  return `${y}.${m}.${day}`;
+}
+
 /** Open redirect 방어: 내부 경로(/...)만 허용, 프로토콜·호스트·스킴 혼입 차단. */
 export function safeRedirectPath(path: string | null | undefined, fallback = '/'): string {
   if (!path) return fallback;
