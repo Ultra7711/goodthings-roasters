@@ -79,15 +79,16 @@ export default function SiteHeader() {
   /* BUG-006 Stage D-4 (2026-04-24): pathname 변경 시 모바일 네비 드로어 자동 close.
      Activity stale 방어용 — history API 기반 close (아래) 와 중복이지만
      라우트 전환 시 drawer 가 남는 edge case 방지. */
-  useEffect(() => {
-    setIsMobileNavOpen(false);
-  }, [pathname]);
-
   const closeSearch = useCallback(() => {
     searchInputRef.current?.blur();
     setIsSearchOpen(false);
     setSearchValue('');
   }, []);
+
+  useEffect(() => {
+    setIsMobileNavOpen(false);
+    closeSearch();
+  }, [pathname, closeSearch]);
 
   /* S74 DB-03: 검색 패널 scroll lock 을 useDrawer 훅으로 통일.
      - body.overflow 단독 토글은 iOS Safari 에서 touch scroll 관통 발생 →
