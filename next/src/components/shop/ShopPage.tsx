@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ShopFilterTabs from './ShopFilterTabs';
 import ShopCard from './ShopCard';
 import {
@@ -23,6 +23,7 @@ function isValidFilter(v: string | null): v is FilterKey {
 }
 
 export default function ShopPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   // URL `?filter=` 파싱 — searchParams 가 바뀔 때마다 재평가.
@@ -137,6 +138,8 @@ export default function ShopPage() {
     shouldAnimateCardsRef.current = false;
     setFilter(key);
     setPage(1);
+    // URL에 필터를 반영 — 상품 상세 진입 후 뒤로 돌아올 때 탭 상태 유지
+    router.replace(key === 'all' ? '/shop' : `/shop?filter=${key}`);
   }
 
   function handlePageChange(next: number) {
