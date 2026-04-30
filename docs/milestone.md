@@ -24,7 +24,7 @@
 | Phase | 완료 | 진행 중 | 미착수 | 진행률 |
 |-------|------|---------|--------|--------|
 | Phase 1 — Design | 5 | 0 | 0 | 100% |
-| Phase 2 — Frontend | 4 | 1 | 1 | ~92% |
+| Phase 2 — Frontend | 7 | 1 | 0 | ~95% |
 | Phase 3 — Backend | 3 | 1 | 0 | ~75% |
 | Phase 4 — Infrastructure | 4 | 1 | 0 | ~85% |
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
@@ -50,7 +50,7 @@
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| 2-F 콘텐츠 채우기 | ⬜ | GoodDays / Story / MyPage 콘텐츠 일부 잔여 — 검색 엔진/SRP/카페 메뉴 좋아요는 완료 |
+| 2-F 콘텐츠 채우기 | ✅ | GoodDays(42장 + 라이트박스) · Story(실콘텐츠 + 진입 연출) · MyPage(ManageSection 완성) 모두 완결 (2026-04-16 시점 확인) · 그 이후 S99 마이페이지 아코디언 · S100 카페 메뉴 좋아요 · S111 정기배송 · S113 마이페이지 폴리싱 등으로 더 풍부해짐. 검색 시스템(엔진+오버레이+SRP) 도 RP-10 으로 완료 |
 | 2-F2 상태관리 단일화 (ADR-004) | ✅ | Step A~D 완료 (S14~17) · Zustand 제거 · TanStack Query + useSupabaseSession 단일 소스. S116 카페 메뉴 likes 도 외부 store 패턴으로 일관성 확보 |
 | 2-G1 디자인 폴리시 (Phase 1~3) | ✅ | Sessions 18~36 — 카트 풀페이지 · 게이지/레이더 통일 · 팔레트(gold accent) · CTA hover gold |
 | 2-G2 반응형 4BP | ✅ | Sessions 37~49 — clamp 토큰화 · container queries · 햄버거 드로어 · tap-area sweep · 360/768/1024/1440 전 페이지 QA |
