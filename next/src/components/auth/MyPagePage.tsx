@@ -164,6 +164,26 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const addrNav = useInputNav(addrFormRef);
   const pwNav = useInputNav(pwFormRef);
 
+  /* 재진입 시 아코디언/모달 전체 초기화 — Activity preserve 로 상태가 유지되므로
+     /mypage 로 돌아올 때 gtr:route-change 에서 명시적으로 리셋. */
+  useEffect(() => {
+    function onRouteChange(e: Event) {
+      if ((e as CustomEvent<string>).detail !== '/mypage') return;
+      setAddrOpen(false);
+      setPwOpen(false);
+      pwForm.reset();
+      setSubEditId(null);
+      setSubCycleEdit(null);
+      setCycleDropdownOpen(false);
+      setOpenOrders(new Set());
+      setWithdrawOpen(false);
+      setSkipConfirmSubId(null);
+      setCancelConfirmSubId(null);
+    }
+    window.addEventListener('gtr:route-change', onRouteChange);
+    return () => window.removeEventListener('gtr:route-change', onRouteChange);
+  }, [pwForm]);
+
   /* 모달 오픈 시 스크롤 잠금 */
   useEffect(() => {
     const anyOpen = isWithdrawOpen || !!skipConfirmSubId || !!cancelConfirmSubId;
