@@ -41,10 +41,56 @@ export default function GoodDaysPage() {
 
   const rootRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const [anim, setAnim] = useState(false);
-  /* 재진입마다 타이틀 페이드 + 셀 IO 재구성을 재생하기 위한 카운터.
-     SiteHeader 의 'gtr:gooddays-reset' (same-path 재클릭) 시 증가. */
-  const [resetTick, setResetTick] = useState(0);
+  const ioRef = useRef<IntersectionObserver | null>(null);
+
+  /* 셀 gd-visible 제거 + IO 재설정 — 이벤트 핸들러에서 직접 호출 (동기).
+     gtr:route-change 는 NVG useLayoutEffect 내 동기 발송 → 이 함수가 실행 완료된 후
+     data-transitioning 이 제거되므로, 셀이 opacity:0 상태로 콘텐츠가 노출됨 → 플래시 없음. */
+  const setupCells = useCallback(() => {
+    const gridEl = gridRef.current;
+    if (!gridEl) return;
+    if (ioRef.current) {
+      ioRef.current.disconnect();
+      ioRef.current = null;
+    }
+    const cells = Array.from(
+      gridEl.querySelectorAll<HTMLElement>('.gd-cell:not(.gd-cell--placeholder)'),
+    );
+    cells.forEach((c) => {
+      c.classList.remove('gd-visible');
+      c.style.animationDelay = '';
+    });
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const cell = entry.target as HTMLElement;
+          const row = cell.parentElement;
+          if (!row) return;
+          const siblings = Array.from(row.children).filter(
+            (c) => !c.classList.contains('gd-cell--placeholder'),
+          );
+          const idx = siblings.indexOf(cell);
+          cell.style.animationDelay = `${idx * 70}ms`;
+          cell.classList.add('gd-visible');
+          io.unobserve(cell);
+        });
+      },
+      { threshold: 0.15 },
+    );
+    ioRef.current = io;
+    cells.forEach((c) => io.observe(c));
+  }, []);
+
+  /* 타이틀 gd-anim 클래스 DOM 직접 토글 (동기, reflow 강제).
+     Shop/Menu 의 sp-anim/cm-anim 토글과 동일 패턴. */
+  const triggerTitleAnim = useCallback(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    root.classList.remove('gd-anim');
+    void root.offsetHeight;
+    root.classList.add('gd-anim');
+  }, []);
   /* 라이트박스 portal 은 document.body 가 존재해야 렌더 가능 — SSR/hydration 회피.
      mount 직후 1회성 true 전환 — SiteHeader.tsx L40 setMounted 컨벤션 동일. */
   const [mounted, setMounted] = useState(false);
@@ -106,81 +152,42 @@ export default function GoodDaysPage() {
     });
   }, [searchParams, ordered]);
 
-  /* 타이틀 등장 연출 — resetTick 변경 시 false→true 재부여.
-     동기 setState 는 resetTick 변경 시 1회성 리셋 — SiteHeader.tsx L40 컨벤션. */
+  /* 초기 마운트 — 직접 진입 시 타이틀 연출 + 셀 IO 설정 */
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setAnim(false);
-    const id = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setAnim(true));
-    });
-    return () => cancelAnimationFrame(id);
-  }, [resetTick]);
+    if (window.location.pathname === '/gooddays') triggerTitleAnim();
+    setupCells();
+    return () => {
+      ioRef.current?.disconnect();
+      ioRef.current = null;
+    };
+  // setupCells/triggerTitleAnim 은 stable callback ([] deps) — mount 1회만 실행
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  /* 셀 스크롤 리빌 IO — row 내 인덱스 * 70ms stagger.
-     재진입 시 기존 gd-visible + inline transitionDelay 모두 초기화해야 stagger 를
-     처음부터 다시 재생 가능 (DB-11 S72: Activity preserve 하에서 이전 delay 가 잔존하면
-     "전체적으로 묶여서 속도가 빨라지는" 증상 발생). */
-  useEffect(() => {
-    const gridEl = gridRef.current;
-    if (!gridEl) return;
-    const cells = Array.from(
-      gridEl.querySelectorAll<HTMLElement>('.gd-cell:not(.gd-cell--placeholder)'),
-    );
-    /* 재진입 시 기존 visible + stagger delay 초기화.
-       CSS 는 animation 기반 (DB-06/10/11 S72) → animationDelay 제어. */
-    cells.forEach((c) => {
-      c.classList.remove('gd-visible');
-      c.style.animationDelay = '';
-    });
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const cell = entry.target as HTMLElement;
-          const row = cell.parentElement;
-          if (!row) return;
-          const siblings = Array.from(row.children).filter(
-            (c) => !c.classList.contains('gd-cell--placeholder'),
-          );
-          const idx = siblings.indexOf(cell);
-          cell.style.animationDelay = `${idx * 70}ms`;
-          cell.classList.add('gd-visible');
-          io.unobserve(cell);
-        });
-      },
-      { threshold: 0.15 },
-    );
-    cells.forEach((c) => io.observe(c));
-    return () => io.disconnect();
-  }, [rows, resetTick]);
-
-  /* same-page reentry — SiteHeader Good Days 링크 재클릭 시 발송.
-     스크롤 top + resetTick 증가 → 타이틀 페이드 + 셀 IO 리빌 재생.
-     Menu/Shop 과 동일한 same-page reentry 정책. */
+  /* same-page reentry — SiteHeader Good Days 링크 재클릭 시 발송. */
   useEffect(() => {
     function onReset() {
       window.scrollTo({ top: 0, behavior: 'instant' });
-      setResetTick((n) => n + 1);
+      setupCells();
+      triggerTitleAnim();
     }
     window.addEventListener('gtr:gooddays-reset', onReset);
     return () => window.removeEventListener('gtr:gooddays-reset', onReset);
-  }, []);
+  }, [setupCells, triggerTitleAnim]);
 
-  /* route-change (다른 페이지 → /gooddays 복귀) — Layout 의 NavigationVisibilityGate
-     가 발송하는 'gtr:route-change' 수신. detail === '/gooddays' 에서 resetTick 증가.
-     Next.js 16 + React 19 Activity 하에서 페이지가 hidden 되면 effect 가 defer 되어
-     pathname/resetTick deps 로는 재진입 감지 불가 — Layout 발송 event 로 우회.
-     (DB-11 S72 측정 기반) */
+  /* route-change (다른 페이지 → /gooddays 복귀) — NVG useLayoutEffect 내 동기 발송.
+     setupCells/triggerTitleAnim 을 핸들러에서 직접 호출 →
+     data-transitioning 제거 전에 셀 opacity:0 도달 → 플래시 없음.
+     (DB-11 S72 측정 기반; resetTick 비동기 방식에서 동기 DOM 조작으로 전환) */
   useEffect(() => {
     function onRouteChange(e: Event) {
       if ((e as CustomEvent<string>).detail !== '/gooddays') return;
-      setResetTick((n) => n + 1);
+      setupCells();
+      triggerTitleAnim();
     }
     window.addEventListener('gtr:route-change', onRouteChange);
     return () => window.removeEventListener('gtr:route-change', onRouteChange);
-  }, []);
+  }, [setupCells, triggerTitleAnim]);
 
   /* 라이트박스 열기.
      settled 타이머는 ref 로 보관 — 라이트박스를 600ms 안에 닫거나 다시 열 때
@@ -599,7 +606,6 @@ export default function GoodDaysPage() {
     <div
       id="gd-page"
       ref={rootRef}
-      className={anim ? 'gd-anim' : ''}
       data-header-theme="light"
     >
       <div id="gd-inner">
