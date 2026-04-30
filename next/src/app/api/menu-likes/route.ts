@@ -4,8 +4,6 @@
    - 로그인 사용자라면 자신이 좋아요한 menu_id 목록도 함께 반환
    ══════════════════════════════════════════════════════════════════════════ */
 
-export const dynamic = 'force-dynamic';
-
 import { apiError, apiSuccess } from '@/lib/api/errors';
 import { getClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
