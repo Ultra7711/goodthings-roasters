@@ -153,21 +153,27 @@ export default function CafeMenuPage({ initialLikes }: Props) {
   useEffect(() => {
     if (!bodyEl) return;
     const triggerAnim = () => {
+      const wasInit = isInitRef.current;
+      isInitRef.current = false;
+      // 초기 로드·재진입 모두 cm-cards-entering 키프레임으로 통일.
+      // IO 기반 per-card cm-visible 은 타이밍 편차가 생기지만,
+      // 부모 클래스 하나가 전체 카드를 동시 구동하는 키프레임은 정확한 stagger 를 보장.
       bodyEl.classList.remove('cm-anim');
-      if (!isInitRef.current) bodyEl.classList.remove('cm-cards-entering');
+      bodyEl.classList.remove('cm-cards-entering');
       void bodyEl.offsetHeight;
       bodyEl.classList.add('cm-anim');
-      if (!isInitRef.current) {
-        shouldAnimateCardsRef.current = true;
+      shouldAnimateCardsRef.current = true;
+      if (!wasInit) {
         setCardBaseDelay(0);
-        setCommittedRanks(popularRanksRef.current); // 재방문 시점에 인기 sort 반영
-        bodyEl.classList.add('cm-cards-entering');
-        setTimeout(() => bodyEl.classList.remove('cm-cards-entering'), 840);
-      } else {
-        // 초기 로드: 애니메이션 윈도우(~1000ms) 이후 baseDelay 를 0 으로 내림
-        setTimeout(() => setCardBaseDelay(0), CARD_BASE_DELAY_INIT + 200 + 300);
+        setCommittedRanks(popularRanksRef.current);
       }
-      isInitRef.current = false;
+      bodyEl.classList.add('cm-cards-entering');
+      // 초기: 420ms baseDelay + 스태거 + 트랜지션 여유 후 제거. 재진입: 840ms.
+      const clearAfter = wasInit ? CARD_BASE_DELAY_INIT + 200 + 300 : 840;
+      setTimeout(() => {
+        bodyEl.classList.remove('cm-cards-entering');
+        if (wasInit) setCardBaseDelay(0);
+      }, clearAfter);
     };
     // 초기 재생 — mount 시점에 이미 /menu 인 경우 (직접 진입)
     if (window.location.pathname === '/menu') triggerAnim();
