@@ -45,6 +45,8 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
     '이 이메일은 이미 네이버 계정으로 가입되어 있습니다. 네이버로 로그인해 주세요.',
   account_conflict_unknown:
     '이메일 중복으로 로그인할 수 없습니다. 기존 가입 방법으로 로그인해 주세요.',
+  /* 세션 만료 */
+  session_expired: '오랫동안 접속하지 않아 자동으로 로그아웃되었습니다. 다시 로그인해 주세요.',
   /* 공통 OAuth 에러 */
   auth_no_code: '로그인 정보가 누락되었습니다. 다시 시도해 주세요.',
   auth_exchange_failed: '로그인 처리 중 오류가 발생했습니다. 다시 시도해 주세요.',
