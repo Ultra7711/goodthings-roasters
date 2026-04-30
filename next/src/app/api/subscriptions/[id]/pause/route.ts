@@ -6,22 +6,9 @@ import { enforceSameOrigin } from '@/lib/api/csrf';
 import {
   findSubscriptionForUser,
   pauseSubscription,
+  toSubscription,
   type SubscriptionRow,
 } from '@/lib/repositories/subscriptionRepo';
-import type { Subscription, SubscriptionCycle } from '@/types/subscription';
-import { formatDateKST } from '@/lib/utils';
-
-function toSubscription(row: SubscriptionRow): Subscription {
-  return {
-    id: row.id,
-    slug: row.product_slug,
-    name: row.product_name,
-    volume: row.product_volume,
-    cycle: row.cycle as SubscriptionCycle,
-    nextDate: formatDateKST(row.next_delivery_at),
-    status: row.status,
-  };
-}
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -34,16 +21,23 @@ export async function POST(request: Request, ctx: Ctx): Promise<Response> {
 
   const { id } = await ctx.params;
 
-  const sub = await findSubscriptionForUser(id).catch(() => null);
+  let sub: SubscriptionRow | null;
+  try {
+    sub = await findSubscriptionForUser(id);
+  } catch (err) {
+    console.error('[POST /api/subscriptions/[id]/pause] find error', err);
+    return apiError('server_error');
+  }
   if (!sub) return apiError('not_found');
   if (sub.status !== 'active') {
-    return apiError('conflict', { detail: 'not_active' });
+    return apiError('conflict', { detail: 'subscription_not_active' });
   }
 
   try {
     const updated = await pauseSubscription(id);
     return apiSuccess(toSubscription(updated));
-  } catch {
+  } catch (err) {
+    console.error('[POST /api/subscriptions/[id]/pause] pause error', err);
     return apiError('server_error');
   }
 }

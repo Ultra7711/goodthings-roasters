@@ -10,30 +10,14 @@ import {
   findSubscriptionForUser,
   updateSubscriptionCycle,
   cancelSubscription,
+  calculateNextDeliveryDate,
+  toSubscription,
   type SubscriptionRow,
 } from '@/lib/repositories/subscriptionRepo';
-import type { Subscription, SubscriptionCycle } from '@/types/subscription';
-import { formatDateKST } from '@/lib/utils';
-
-const CYCLE_DAYS: Record<string, number> = {
-  '2주': 14, '4주': 28, '6주': 42, '8주': 56,
-};
 
 const PatchSchema = z.object({
   cycle: z.enum(['2주', '4주', '6주', '8주']),
 });
-
-function toSubscription(row: SubscriptionRow): Subscription {
-  return {
-    id: row.id,
-    slug: row.product_slug,
-    name: row.product_name,
-    volume: row.product_volume,
-    cycle: row.cycle as SubscriptionCycle,
-    nextDate: formatDateKST(row.next_delivery_at),
-    status: row.status,
-  };
-}
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -49,8 +33,13 @@ export async function PATCH(request: Request, ctx: Ctx): Promise<Response> {
   const parsed = await parseBody(request, PatchSchema);
   if (!parsed.success) return parsed.response;
 
-  /* 구독 존재·소유 확인 (RLS 가 타인 행 차단) */
-  const sub = await findSubscriptionForUser(id).catch(() => null);
+  let sub: SubscriptionRow | null;
+  try {
+    sub = await findSubscriptionForUser(id);
+  } catch (err) {
+    console.error('[PATCH /api/subscriptions/[id]] find error', err);
+    return apiError('server_error');
+  }
   if (!sub) return apiError('not_found');
   if (sub.status !== 'active' && sub.status !== 'paused') {
     return apiError('conflict', { detail: 'subscription_not_active' });
@@ -58,14 +47,13 @@ export async function PATCH(request: Request, ctx: Ctx): Promise<Response> {
 
   /* 다음 배송일 재계산: 현재 next_delivery_at 기준 + 새 주기 */
   const newCycle = parsed.data.cycle;
-  const days = CYCLE_DAYS[newCycle] ?? 28;
-  const base = new Date(sub.next_delivery_at);
-  const nextDeliveryAt = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+  const nextDeliveryAt = calculateNextDeliveryDate(new Date(sub.next_delivery_at), newCycle);
 
   try {
     const updated = await updateSubscriptionCycle(id, newCycle, nextDeliveryAt);
     return apiSuccess(toSubscription(updated));
-  } catch {
+  } catch (err) {
+    console.error('[PATCH /api/subscriptions/[id]] update error', err);
     return apiError('server_error');
   }
 }
@@ -79,7 +67,13 @@ export async function DELETE(request: Request, ctx: Ctx): Promise<Response> {
 
   const { id } = await ctx.params;
 
-  const sub = await findSubscriptionForUser(id).catch(() => null);
+  let sub: SubscriptionRow | null;
+  try {
+    sub = await findSubscriptionForUser(id);
+  } catch (err) {
+    console.error('[DELETE /api/subscriptions/[id]] find error', err);
+    return apiError('server_error');
+  }
   if (!sub) return apiError('not_found');
   if (sub.status === 'cancelled' || sub.status === 'expired') {
     return apiError('conflict', { detail: 'already_cancelled' });
@@ -88,7 +82,8 @@ export async function DELETE(request: Request, ctx: Ctx): Promise<Response> {
   try {
     const updated = await cancelSubscription(id);
     return apiSuccess(toSubscription(updated));
-  } catch {
+  } catch (err) {
+    console.error('[DELETE /api/subscriptions/[id]] cancel error', err);
     return apiError('server_error');
   }
 }

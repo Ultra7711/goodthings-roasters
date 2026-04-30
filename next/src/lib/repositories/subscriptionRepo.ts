@@ -14,6 +14,8 @@
 
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import type { DbSubscriptionStatus } from '@/types/db';
+import type { Subscription, SubscriptionCycle } from '@/types/subscription';
+import { formatDateKST } from '@/lib/utils';
 
 /* ── Row 타입 ────────────────────────────────────────────────────────── */
 
@@ -40,6 +42,39 @@ const SUB_SELECT = `
   cycle, next_delivery_at, last_delivery_at, status,
   paused_at, cancelled_at, skip_count, created_at, updated_at
 ` as const;
+
+/* ── 공통 유틸 ──────────────────────────────────────────────────────── */
+
+/** 주기별 배송 간격(일) — DB enum subscription_period 와 동일 */
+export const CYCLE_DAYS: Record<SubscriptionCycle, number> = {
+  '2주': 14,
+  '4주': 28,
+  '6주': 42,
+  '8주': 56,
+};
+
+/** base 날짜에서 cycle 만큼 더한 다음 배송일 계산 */
+export function calculateNextDeliveryDate(base: Date, cycle: string): Date {
+  const days = CYCLE_DAYS[cycle as SubscriptionCycle] ?? 28;
+  return new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+}
+
+/** DB row → 클라이언트 응답 변환 (모든 subscription route handler 공용) */
+export function toSubscription(row: SubscriptionRow): Subscription {
+  const cycle = row.cycle as SubscriptionCycle;
+  if (!(cycle in CYCLE_DAYS)) {
+    throw new Error(`Invalid subscription cycle: ${row.cycle}`);
+  }
+  return {
+    id: row.id,
+    slug: row.product_slug,
+    name: row.product_name,
+    volume: row.product_volume,
+    cycle,
+    nextDate: formatDateKST(row.next_delivery_at),
+    status: row.status,
+  };
+}
 
 /* ── SELECT ─────────────────────────────────────────────────────────── */
 

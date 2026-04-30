@@ -6,26 +6,10 @@ import { enforceSameOrigin } from '@/lib/api/csrf';
 import {
   findSubscriptionForUser,
   skipSubscriptionDelivery,
+  calculateNextDeliveryDate,
+  toSubscription,
   type SubscriptionRow,
 } from '@/lib/repositories/subscriptionRepo';
-import type { Subscription, SubscriptionCycle } from '@/types/subscription';
-import { formatDateKST } from '@/lib/utils';
-
-const CYCLE_DAYS: Record<string, number> = {
-  '2주': 14, '4주': 28, '6주': 42, '8주': 56,
-};
-
-function toSubscription(row: SubscriptionRow): Subscription {
-  return {
-    id: row.id,
-    slug: row.product_slug,
-    name: row.product_name,
-    volume: row.product_volume,
-    cycle: row.cycle as SubscriptionCycle,
-    nextDate: formatDateKST(row.next_delivery_at),
-    status: row.status,
-  };
-}
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -38,21 +22,26 @@ export async function POST(request: Request, ctx: Ctx): Promise<Response> {
 
   const { id } = await ctx.params;
 
-  const sub = await findSubscriptionForUser(id).catch(() => null);
+  let sub: SubscriptionRow | null;
+  try {
+    sub = await findSubscriptionForUser(id);
+  } catch (err) {
+    console.error('[POST /api/subscriptions/[id]/skip] find error', err);
+    return apiError('server_error');
+  }
   if (!sub) return apiError('not_found');
   if (sub.status !== 'active') {
     return apiError('conflict', { detail: 'subscription_not_active' });
   }
 
-  const days = CYCLE_DAYS[sub.cycle] ?? 28;
-  const base = new Date(sub.next_delivery_at);
-  const nextDeliveryAt = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+  const nextDeliveryAt = calculateNextDeliveryDate(new Date(sub.next_delivery_at), sub.cycle);
   const newSkipCount = sub.skip_count + 1;
 
   try {
     const updated = await skipSubscriptionDelivery(id, nextDeliveryAt, newSkipCount);
     return apiSuccess(toSubscription(updated));
-  } catch {
+  } catch (err) {
+    console.error('[POST /api/subscriptions/[id]/skip] skip error', err);
     return apiError('server_error');
   }
 }
