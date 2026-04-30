@@ -216,11 +216,11 @@ export default function CafeMenuPage({ initialLikes }: Props) {
     return ranks;
   }, [likeCounts]);
 
-  // 필터/페이징 파생 상태
-  const filtered: CafeMenuItem[] = useMemo(
-    () => sortCafeMenu(filterCafeMenu(CAFE_MENU, filter)),
-    [filter],
-  );
+  // 필터/페이징 파생 상태 — NEW 먼저, 그 다음 인기 No.1~3
+  const filtered: CafeMenuItem[] = useMemo(() => {
+    const popularIds = new Set(Object.keys(popularRanks));
+    return sortCafeMenu(filterCafeMenu(CAFE_MENU, filter), popularIds);
+  }, [filter, popularRanks]);
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const currentPage = Math.min(page, totalPages);

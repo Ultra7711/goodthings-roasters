@@ -119,14 +119,24 @@ export function filterCafeMenu(items: CafeMenuItem[], filter: CafeFilterKey): Ca
   return items.filter((i) => i.cat === filter);
 }
 
-/** NEW 상태 카드 먼저 노출 (프로토타입 renderCmGrid sort 동일) — stable sort 보장용 index tie-breaker 포함 */
-export function sortCafeMenu(items: CafeMenuItem[]): CafeMenuItem[] {
+/** NEW → 인기 No.1~3 → 나머지 순으로 노출. stable sort 보장용 index tie-breaker 포함 */
+export function sortCafeMenu(
+  items: CafeMenuItem[],
+  popularIds?: Set<string>,
+): CafeMenuItem[] {
   return items
     .map((item, index) => ({ item, index }))
     .sort((a, b) => {
       const aNew = a.item.status === 'NEW' ? 0 : 1;
       const bNew = b.item.status === 'NEW' ? 0 : 1;
-      return aNew - bNew || a.index - b.index;
+      if (aNew !== bNew) return aNew - bNew;
+      // NEW가 아닌 항목: 인기 1~3을 다음 그룹으로
+      if (popularIds) {
+        const aP = popularIds.has(a.item.id) ? 0 : 1;
+        const bP = popularIds.has(b.item.id) ? 0 : 1;
+        if (aP !== bP) return aP - bP;
+      }
+      return a.index - b.index;
     })
     .map(({ item }) => item);
 }
