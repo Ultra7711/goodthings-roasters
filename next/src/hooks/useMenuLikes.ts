@@ -56,12 +56,19 @@ export function useMenuLikes(initialData?: InitialData) {
       .finally(() => setLoading(false));
   }, []);
 
+  /* 진행 중인 토글 추적 — 동일 아이템 중복 호출 방지 */
+  const pendingRef = useRef<Set<string>>(new Set());
+
   const toggle = useCallback(async (menuId: string) => {
+    if (pendingRef.current.has(menuId)) return;
+
     const { isLoggedIn } = getSessionSnapshot();
     if (!isLoggedIn) {
       showToast('좋아요를 누르려면 로그인이 필요해요');
       return;
     }
+
+    pendingRef.current.add(menuId);
 
     // 낙관적 업데이트
     const wasLiked = liked.has(menuId);
@@ -105,6 +112,8 @@ export function useMenuLikes(initialData?: InitialData) {
         return next;
       });
       setCounts((prev) => ({ ...prev, [menuId]: prevCount }));
+    } finally {
+      pendingRef.current.delete(menuId);
     }
   }, [liked, counts]);
 

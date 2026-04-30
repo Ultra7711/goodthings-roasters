@@ -12,10 +12,11 @@ export async function GET(): Promise<Response> {
   try {
     const supabase = await createRouteHandlerClient();
 
-    // 전체 카운트 집계 (RLS: SELECT USING true — 비인증 포함 전체 조회)
-    const { data: rows, error } = await supabase
-      .from('menu_likes')
-      .select('menu_id');
+    // counts 집계와 인증 체크를 병렬 실행
+    const [{ data: rows, error }, claims] = await Promise.all([
+      supabase.from('menu_likes').select('menu_id'),
+      getClaims(),
+    ]);
 
     if (error) {
       console.error('[GET /api/menu-likes] select error', { code: error.code, message: error.message });
@@ -28,8 +29,6 @@ export async function GET(): Promise<Response> {
       counts[row.menu_id] = (counts[row.menu_id] ?? 0) + 1;
     }
 
-    // 로그인 사용자: 자신이 좋아요한 항목 반환
-    const claims = await getClaims();
     let liked: string[] = [];
     if (claims) {
       const { data: myLikes, error: myErr } = await supabase
