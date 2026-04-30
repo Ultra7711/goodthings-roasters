@@ -33,7 +33,7 @@ import { extractKrName, formatPrice } from '@/lib/utils';
 import type { Subscription, SubscriptionCycle } from '@/types/subscription';
 import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
 import SiteHeader from '@/components/layout/SiteHeader';
-import { ChevronRight, CopyIcon } from '@/components/ui/Icons';
+import { ChevronRight, CopyIcon, InfoCircleIcon } from '@/components/ui/Icons';
 
 
 type MyPagePageProps = {
@@ -84,6 +84,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   /* ── 구독 모달 ── */
   const [skipConfirmSubId, setSkipConfirmSubId] = useState<string | null>(null);
   const [cancelConfirmSubId, setCancelConfirmSubId] = useState<string | null>(null);
+  const [pauseConfirmSubId, setPauseConfirmSubId] = useState<string | null>(null);
 
   /* 헤더는 SiteHeader 컴포넌트가 sticky/atTop/검색/모바일 드로어/카트 드로어를 자체 관리.
      마이페이지는 메인 라우트와 동일한 로고 + nav + 검색·마이페이지·카트 아이콘 구조. */
@@ -179,6 +180,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
       setWithdrawOpen(false);
       setSkipConfirmSubId(null);
       setCancelConfirmSubId(null);
+      setPauseConfirmSubId(null);
     }
     window.addEventListener('gtr:route-change', onRouteChange);
     return () => window.removeEventListener('gtr:route-change', onRouteChange);
@@ -186,7 +188,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
 
   /* 모달 오픈 시 스크롤 잠금 */
   useEffect(() => {
-    const anyOpen = isWithdrawOpen || !!skipConfirmSubId || !!cancelConfirmSubId;
+    const anyOpen = isWithdrawOpen || !!skipConfirmSubId || !!cancelConfirmSubId || !!pauseConfirmSubId;
     if (!anyOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -261,6 +263,37 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
       toast('다음 배송일이 변경되었습니다.');
     } catch {
       toast('건너뛰기에 실패했습니다. 다시 시도해 주세요.');
+    }
+  }, [toast]);
+
+  const pauseSub = useCallback(async (subId: string) => {
+    try {
+      const res = await fetch(`/api/subscriptions/${subId}/pause`, {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+      if (!res.ok) throw new Error();
+      const json = (await res.json()) as { data: Subscription };
+      setSubscriptions((prev) => prev.map((s) => (s.id === subId ? json.data : s)));
+      setPauseConfirmSubId(null);
+      toast('정기배송이 일시정지되었습니다.');
+    } catch {
+      toast('일시정지에 실패했습니다. 다시 시도해 주세요.');
+    }
+  }, [toast]);
+
+  const resumeSub = useCallback(async (subId: string) => {
+    try {
+      const res = await fetch(`/api/subscriptions/${subId}/resume`, {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+      if (!res.ok) throw new Error();
+      const json = (await res.json()) as { data: Subscription };
+      setSubscriptions((prev) => prev.map((s) => (s.id === subId ? json.data : s)));
+      toast('정기배송이 재개되었습니다.');
+    } catch {
+      toast('재개에 실패했습니다. 다시 시도해 주세요.');
     }
   }, [toast]);
 
@@ -517,9 +550,16 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                       <div className="mp-sub-item-info">
                         <span className="mp-sub-item-name">
                           {extractKrName(sub.name)}
-                          <span className="mp-sub-item-vol"> · {sub.volume} · {sub.cycle}</span>
+                          <span className="mp-sub-item-vol"> · {sub.volume} · 정기배송 {sub.cycle}</span>
                         </span>
-                        <span className="mp-sub-item-status">다음 배송 {sub.nextDate}</span>
+                        {sub.status === 'paused' ? (
+                          <span className="mp-sub-item-status mp-sub-item-status--paused">
+                            <InfoCircleIcon size={18} />
+                            일시정지 중
+                          </span>
+                        ) : (
+                          <span className="mp-sub-item-status">다음 배송 {sub.nextDate}</span>
+                        )}
                       </div>
                       <span className="mp-icon-btn mp-sub-edit-btn" aria-hidden="true">
                         <span className={`mp-chevron${subEditId === sub.id ? ' open' : ''}`}><ChevronRight /></span>
@@ -556,14 +596,32 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                           <span className="mp-info-label">다음 배송일</span>
                           <span className="mp-info-value">{sub.nextDate}</span>
                         </div>
+                        {sub.status === 'paused' && (
+                          <div className="mp-sub-paused-notice">
+                            <InfoCircleIcon size={18} />
+                            배송이 일시정지 중입니다.
+                          </div>
+                        )}
                         <div className="mp-accordion-actions mp-sub-accordion-actions">
-                          <button className="mp-cancel-btn" type="button" onClick={() => setSkipConfirmSubId(sub.id)} data-gtr-tap>배송 건너뛰기</button>
-                          <button className="mp-cancel-btn" type="button" onClick={() => setCancelConfirmSubId(sub.id)} data-gtr-tap>구독 해지</button>
-                          {subEditId === sub.id && subCycleEdit !== null && subCycleEdit !== sub.cycle ? (
+                          <button
+                            className="mp-cancel-btn"
+                            type="button"
+                            disabled={sub.status === 'paused'}
+                            onClick={() => setSkipConfirmSubId(sub.id)}
+                            data-gtr-tap
+                          >
+                            배송 건너뛰기
+                          </button>
+                          {sub.status === 'paused' ? (
+                            <button className="mp-save-btn" type="button" onClick={() => resumeSub(sub.id)} data-gtr-tap>배송 재개하기</button>
+                          ) : subEditId === sub.id && subCycleEdit !== null && subCycleEdit !== sub.cycle ? (
                             <button className="mp-save-btn" type="button" onClick={() => saveSubCycle(sub.id)} data-gtr-tap>저장</button>
                           ) : (
-                            <button className="mp-cancel-btn" type="button" onClick={() => { setSubEditId(null); setSubCycleEdit(null); }} data-gtr-tap>취소</button>
+                            <button className="mp-cancel-btn" type="button" onClick={() => setPauseConfirmSubId(sub.id)} data-gtr-tap>배송 일시정지</button>
                           )}
+                        </div>
+                        <div className="mp-sub-action-footer">
+                          <button className="mp-cancel-link" type="button" onClick={() => setCancelConfirmSubId(sub.id)} data-gtr-tap>구독 해지</button>
                         </div>
                       </div>
                     </div>
@@ -816,6 +874,27 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
               <div className="mp-modal-actions">
                 <button className="mp-modal-cancel" type="button" onClick={() => setCancelConfirmSubId(null)} data-gtr-tap>취소</button>
                 <button className="mp-modal-confirm mp-modal-confirm--danger" type="button" onClick={() => cancelSub(cancelConfirmSubId)} data-gtr-tap>해지</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── 일시정지 확인 모달 ── */}
+      {pauseConfirmSubId && (() => {
+        const sub = subscriptions.find((s) => s.id === pauseConfirmSubId);
+        if (!sub) return null;
+        return (
+          <div className="mp-modal-overlay" onClick={() => setPauseConfirmSubId(null)}>
+            <div className="mp-modal mp-modal--calm" onClick={(e) => e.stopPropagation()}>
+              <p className="mp-modal-title">배송을 일시정지할까요?</p>
+              <p className="mp-modal-desc">
+                언제든지 재개할 수 있습니다.<br />
+                일시정지 중에는 배송이 이루어지지 않습니다.
+              </p>
+              <div className="mp-modal-actions">
+                <button className="mp-modal-cancel" type="button" onClick={() => setPauseConfirmSubId(null)} data-gtr-tap>취소</button>
+                <button className="mp-modal-confirm" type="button" onClick={() => pauseSub(pauseConfirmSubId)} data-gtr-tap>일시정지</button>
               </div>
             </div>
           </div>

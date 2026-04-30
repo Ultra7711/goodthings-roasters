@@ -6722,7 +6722,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 /* 법적 안내 */
 .chp-legal-note {
-  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 400;
+  display: flex; align-items: flex-start; gap: 8px;
+  font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
   color: var(--color-text-secondary); line-height: 1.7; margin-top: 24px;
   padding: 16px 20px;
   background: var(--color-background-secondary);
@@ -7389,9 +7390,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-decoration-color: var(--color-border-primary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
-.mp-logout-link:hover { text-decoration-color: var(--color-accent-gold); }
+.mp-logout-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 
 /* 섹션 — #12: 컨텐츠(타이틀 제외)만 흰 박스 */
 .mp-section {
@@ -7470,25 +7471,34 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .mp-accordion.open { max-height: 600px; opacity: 1; display: block !important; overflow: visible; }
 .mp-accordion-inner { padding: 24px 0 8px; }
-.mp-accordion-actions { display: flex; gap: var(--gap-sm); margin-top: 12px; }
-/* 정기배송 3버튼: 2:1.5:1 비율, full-row fill */
-.mp-sub-accordion-actions > :nth-child(1) { flex: 2 1 0; min-width: 0; padding: 0; }
-.mp-sub-accordion-actions > :nth-child(2) { flex: 1.5 1 0; min-width: 0; padding: 0; }
-.mp-sub-accordion-actions > :nth-child(3) { flex: 1 1 0; min-width: 0; padding: 0; }
-/* 배송지/비밀번호 actions: 정기배송 큰 버튼(~252px) 폭 매치 + 좌측 정렬 (S103)
-   가로 폭만 크지 않게 부모 일부만 차지. flex-grow=0 → 부모 가득 안 채움. */
-@media (min-width: 768px) {
-  .mp-accordion-actions:not(.mp-sub-accordion-actions) {
-    justify-content: flex-start;
-  }
-  .mp-accordion-actions:not(.mp-sub-accordion-actions) > .mp-cancel-btn,
-  .mp-accordion-actions:not(.mp-sub-accordion-actions) > .mp-save-btn {
-    flex: 0 1 240px;
-    min-width: 0;
-    padding: 0;
-  }
+.mp-accordion-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-sm); margin-top: 12px; }
+.mp-accordion-actions > .mp-save-btn,
+.mp-accordion-actions > .mp-cancel-btn { width: 100%; min-width: 0; padding: 0; }
+/* 일시정지 안내 */
+.mp-sub-paused-notice {
+  display: flex; align-items: center; gap: 8px;
+  font-size: var(--type-body-ui-size); color: var(--color-text-tertiary);
+  padding: 10px 12px; margin-bottom: 8px;
+  background: var(--color-background-secondary);
+  border-left: 2px solid var(--color-border-primary);
 }
-.mp-sub-accordion .mp-info-row { border-bottom: none; }
+/* 구독 해지 text link */
+.mp-sub-action-footer { margin-top: 10px; }
+.mp-cancel-link {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: var(--text-link-font-weight);
+  letter-spacing: var(--text-link-letter-spacing);
+  color: var(--color-text-tertiary);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-secondary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
+}
+.mp-cancel-link:hover { color: var(--color-error); text-decoration-color: var(--color-error); }
+.mp-sub-accordion .mp-info-row { border-bottom: none; box-shadow: none; }
 /* 정기배송 커스텀 드롭다운 — chp-field 인풋 + pd-dropdown-panel 메뉴 */
 .mp-cycle-dropdown-wrap { position: relative; }
 .mp-cycle-trigger {
@@ -7532,6 +7542,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   will-change: transform; backface-visibility: hidden;
 }
 .mp-cancel-btn:active { opacity: .7; }
+.mp-cancel-btn:disabled {
+  color: var(--color-text-caption);
+  border-color: var(--color-border-secondary);
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
 /* 정기배송 아이템 */
 .mp-sub-item { padding: 16px 0 16px; }
@@ -7549,6 +7565,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-sub-item-status {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: var(--type-body-ui-weight);
   color: var(--color-text-caption);
+}
+.mp-sub-item-status--paused {
+  display: inline-flex; align-items: center; gap: 4px;
+  color: var(--color-text-tertiary);
 }
 
 /* 빈 상태 */
@@ -7641,6 +7661,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-order-items .ocp-item-img { width: 80px; height: 80px; cursor: pointer; }
 .mp-order-items .ocp-item-category { font-size: 12px; }
 .mp-order-items .ocp-item-name { font-size: var(--type-body-l-size); margin-top: 4px; }
+.mp-order-items .ocp-item-meta-inline { font-size: var(--type-body-s-size); color: var(--color-text-secondary); }
 .mp-order-items .ocp-item-badges { margin-top: 6px; }
 
 /* 구독 해지 — subtle 밑줄 링크 토큰 */
@@ -7775,36 +7796,13 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     text-overflow: clip;
   }
 
-  /* P1 아코디언 액션 가로 1줄 배치 (저장 · 취소 50/50)
-     · 정기배송 '구독 해지' 링크는 줄바꿈되어 우측 정렬 */
-  .mp-accordion-actions {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
+  /* P1 아코디언 액션 — grid 1fr:1fr (데스크탑·모바일 통일) */
+  .mp-accordion-actions { gap: 12px; }
   .mp-save-btn,
-  .mp-cancel-btn {
-    flex: 1 1 0;
-    min-width: 0;
-    width: auto;
-    padding: 0;
-  }
-  /* 파괴적 액션 · 좌측 + hairline divider 로 저장/취소와 시각 분리
-     "일부러 찾아가는" UX — 오른손 엄지 사정권에서 벗어난 좌측 배치 */
-  .mp-sub-unsubscribe {
-    flex-basis: 100%;
-    align-self: flex-start;
-    text-align: left;
-    margin-left: 0;
-    margin-top: 8px;
-    padding-top: 16px;
-    box-shadow: inset 0 1px 0 0 var(--color-border-hairline);
-  }
-
-  /* 정기배송 3버튼 — 모바일 폰트 축소 */
+  .mp-cancel-btn { width: auto; padding: 0; }
+  /* 정기배송 2버튼 — 모바일 폰트 축소 */
   .mp-sub-accordion-actions > :nth-child(1),
-  .mp-sub-accordion-actions > :nth-child(2),
-  .mp-sub-accordion-actions > :nth-child(3) { font-size: 13px; }
+  .mp-sub-accordion-actions > :nth-child(2) { font-size: 13px; }
 
   /* P1 주문 카드 · overflow 해제 */
   .mp-order-card { min-width: 0; }
@@ -8822,7 +8820,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-modal-confirm:disabled::after,
 .mp-modal-cancel:disabled::after,
 .st-map-overlay-btn:disabled::after,
-.st-map-overlay-btn--primary:disabled::after { transform: scaleX(1); transition: none; }
+.st-map-overlay-btn--primary:disabled::after { transform: scaleX(0); transition: none; }
 
 /* ══ BUG-143 — 모바일 탭 피드백 (.is-tapping)
    TouchHoverGuard.tsx 의 [data-gtr-tap] 핸들러가 주입하는 클래스.

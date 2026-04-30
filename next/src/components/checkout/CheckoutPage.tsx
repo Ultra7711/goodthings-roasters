@@ -52,7 +52,7 @@ const DELIVERY_OPTIONS = [
   { value: 'direct', label: '직접 입력' },
 ] as const;
 
-import { ChevronRight } from '@/components/ui/Icons';
+import { ChevronRight, InfoCircleIcon } from '@/components/ui/Icons';
 import * as Select from '@radix-ui/react-select';
 
 /* ── SVG 아이콘 ── */
@@ -703,9 +703,10 @@ export default function CheckoutPage() {
 
               {/* 정기배송 안내 */}
               {hasSubscription && (
-                <p className="chp-legal-note">
-                  정기배송 상품이 포함되어 있습니다. 결제 후 설정된 주기에 따라 자동으로 결제되며, 정기배송은 마이페이지에서 언제든지 취소하실 수 있습니다.
-                </p>
+                <div className="chp-legal-note">
+                  <InfoCircleIcon size={18} />
+                  <span>정기배송 상품이 포함되어 있습니다. 결제 후 설정된 주기에 따라 자동으로 결제되며, 정기배송은 마이페이지에서 언제든지 일시정지하거나 재개 또는 취소하실 수 있습니다.</span>
+                </div>
               )}
 
               {/* 법적 링크 */}
@@ -754,7 +755,7 @@ export default function CheckoutPage() {
                 <div className="chp-sum-item-info">
                   <div className="chp-sum-item-name">{extractKrName(item.name)}</div>
                   <span className="chp-sum-item-meta">
-                    {[item.volume, item.type === 'subscription' ? item.period : null, `${item.qty}개`].filter(Boolean).join(' · ')}
+                    {[item.volume, item.type === 'subscription' && item.period ? `정기배송 ${item.period}` : null, `${item.qty}개`].filter(Boolean).join(' · ')}
                   </span>
                 </div>
                 <div className="chp-sum-item-price">{formatPrice(item.priceNum * item.qty)}</div>

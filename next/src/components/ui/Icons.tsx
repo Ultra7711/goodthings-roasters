@@ -18,6 +18,16 @@ export function ChevronRight({ size = 24 }: { size?: number }) {
   );
 }
 
+export function InfoCircleIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...SVG_DEFAULTS} style={{ flexShrink: 0 }}>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12,16v-4" />
+      <path d="M12,8h0" />
+    </svg>
+  );
+}
+
 export function CopyIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" {...SVG_DEFAULTS}>
