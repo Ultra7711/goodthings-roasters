@@ -557,14 +557,7 @@ export default function OrderCompletePage() {
           <p className="ocp-subtitle">주문번호는 배송조회하실 때 필요합니다.</p>
 
           {(order.subscriptionCount ?? 0) > 0 && (
-            <p
-              style={{
-                fontFamily: 'var(--font-kr)',
-                fontSize: 'var(--type-body-s-size)',
-                color: 'var(--color-success)',
-                marginTop: 12,
-              }}
-            >
+            <p className="ocp-subtitle" style={{ color: 'var(--color-success)', marginTop: 12 }}>
               정기배송 {order.subscriptionCount}건이 등록되었습니다. 마이페이지에서 확인하세요.
             </p>
           )}

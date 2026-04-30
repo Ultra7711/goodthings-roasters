@@ -362,6 +362,7 @@ export function useRemoveCartItem() {
 export function useClearCart() {
   const queryClient = useQueryClient();
   return useCallback(() => {
+    queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
     queryClient.setQueryData<CartItem[]>(CART_QUERY_KEY, []);
     if (!getSessionSnapshot().isLoggedIn) clearGuestCart();
   }, [queryClient]);

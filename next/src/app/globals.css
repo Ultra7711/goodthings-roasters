@@ -6727,8 +6727,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-secondary); line-height: 1.7; margin-top: 24px;
   padding: 16px 20px;
   background: var(--color-background-secondary);
-  border-left: 2px solid var(--color-text-primary);
+  border-left: 2px solid var(--color-border-primary);
 }
+.chp-legal-note > svg { margin-top: 2px; flex-shrink: 0; }
 .chp-legal-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 20px; margin-top: 40px; }
 .chp-legal-link {
   flex: 0 0 auto; font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
