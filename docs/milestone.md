@@ -76,6 +76,7 @@
 | R-FE1 | Cart + Checkout UI 도메인 리뷰 | ✅ | S105~S107 완료 (2026-04-29) — CRITICAL 0 · HIGH 4/MEDIUM 15/LOW 8 전체 closure · `memory/review_fe1_20260429.md` · 스킵 C-L-5(선형탐색)/C-L-6(추상화)/CH-L-2(메시지 충분) · CH-L-1(Radix Select) S110 완료 |
 | R-FE2 | 정기배송 백엔드 리뷰 | ⬜ | 구현 직후 즉시 · security-reviewer + code-reviewer |
 | R-FE3 | MyPage · Cafe · Shop 도메인 리뷰 | ✅ | S108 완료 (2026-04-29) — CRITICAL 0 · HIGH 2/MEDIUM 3/LOW 5 전체 closure · `memory/review_fe3_20260429.md` · 스킵 SH-H-1(문서화된 deps disable)/CA-M-1·MP-C-1(에이전트 오분류) |
+| R-S113/S114 | 카트·좋아요·메뉴소팅·샵탭 변경분 리뷰 | ✅ | S116 완료 (2026-04-30) — CRITICAL 0 · HIGH 0 · MEDIUM 1 (toggle useCallback deps, 기능 영향 없음) · `memory/review_s113s114_20260430.md` · 승인 |
 
 ---
 
