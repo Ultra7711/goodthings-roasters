@@ -57,10 +57,22 @@ export default function CafeMenuPage({ initialLikes }: Props) {
   // highlight timeout 을 ref 로 관리해 연속 URL 변경 시 경합 방지
   const highlightTimeoutRef = useRef<number | null>(null);
 
-  // 초기 진입 플래그 — ShopPage 와 동일. 최초 마운트에만 true 여서 첫 카드 stagger 에
-  // 420ms baseDelay 부여 (탭 0.3s 등장 직후 카드 따라옴). 이후 필터 전환에서는 0.
   const isInitRef = useRef(true);
   const shouldAnimateCardsRef = useRef(true);
+
+  // baseDelay 를 state 로 관리 — isInitRef 가 effect 에서 즉시 false 로 뒤집히므로
+  // 이후 첫 re-render(likes 도착)에서 값이 0 으로 바뀌어 진행 중인 transition 이
+  // 재시작되는 버그를 막는다. state 는 초기 애니메이션 윈도우(~1000ms) 이후 0 으로 세팅.
+  const [cardBaseDelay, setCardBaseDelay] = useState(CARD_BASE_DELAY_INIT);
+
+  // 카드마다 고정 colIndex — CAFE_MENU 카탈로그 순서 기반, 마운트 후 불변.
+  // popularRanks 가 도착해 items 가 재정렬돼도 colIndex 가 바뀌지 않으므로
+  // transitionDelay 가 유지되어 진입 연출이 깨지지 않는다.
+  const stableColIndexMap = useMemo<Record<string, number>>(() => {
+    const map: Record<string, number> = {};
+    CAFE_MENU.forEach((item, i) => { map[item.id] = i % 3; });
+    return map;
+  }, []);
 
   const isMobile = useMediaQuery('(max-width: 479px)');
   const perPage = isMobile ? CM_PER_PAGE_MOBILE : CM_PER_PAGE;
@@ -147,8 +159,12 @@ export default function CafeMenuPage({ initialLikes }: Props) {
       bodyEl.classList.add('cm-anim');
       if (!isInitRef.current) {
         shouldAnimateCardsRef.current = true;
+        setCardBaseDelay(0);
         bodyEl.classList.add('cm-cards-entering');
         setTimeout(() => bodyEl.classList.remove('cm-cards-entering'), 840);
+      } else {
+        // 초기 로드: 애니메이션 윈도우(~1000ms) 이후 baseDelay 를 0 으로 내림
+        setTimeout(() => setCardBaseDelay(0), CARD_BASE_DELAY_INIT + 200 + 300);
       }
       isInitRef.current = false;
     };
@@ -273,23 +289,21 @@ export default function CafeMenuPage({ initialLikes }: Props) {
         <CafeFilterTabs active={filter} onChange={handleFilterChange} />
       </div>
 
-      {/* isInitRef.current 는 mount 1회성 플래그 — 렌더 영향 없는 Ref 직접 참조 의도 */}
-      {/* eslint-disable react-hooks/refs */}
       <CafeMenuGrid
         items={items}
         filterKey={filter}
         pageKey={currentPage}
         highlightId={highlightId}
         scrollRoot={bodyEl}
-        baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
+        baseDelay={cardBaseDelay}
         instant={!shouldAnimateCardsRef.current}
+        stableColIndexMap={stableColIndexMap}
         onOpenNutrition={handleOpenNutrition}
         likeCounts={likeCounts}
         likedSet={likedSet}
         popularRanks={popularRanks}
         onToggleLike={toggleLike}
       />
-      {/* eslint-enable react-hooks/refs */}
 
       <CafeNutritionSheet item={nutriItem} onClose={handleCloseNutrition} />
 

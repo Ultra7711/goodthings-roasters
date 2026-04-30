@@ -21,6 +21,7 @@ type Props = {
   scrollRoot: HTMLElement | null;
   baseDelay?: number;
   instant?: boolean;
+  stableColIndexMap?: Record<string, number>;
   onOpenNutrition: (id: string) => void;
   likeCounts: Record<string, number>;
   likedSet: Set<string>;
@@ -36,6 +37,7 @@ export default function CafeMenuGrid({
   scrollRoot,
   baseDelay = 0,
   instant = false,
+  stableColIndexMap,
   onOpenNutrition,
   likeCounts,
   likedSet,
@@ -49,7 +51,7 @@ export default function CafeMenuGrid({
         <CafeMenuCard
           key={item.id}
           item={item}
-          colIndex={i % 3}
+          colIndex={stableColIndexMap?.[item.id] ?? i % 3}
           scrollRoot={scrollRoot}
           isHighlight={highlightId === item.id}
           baseDelay={baseDelay}

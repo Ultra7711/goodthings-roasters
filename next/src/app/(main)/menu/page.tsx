@@ -16,8 +16,12 @@ export const metadata = { title: '카페 메뉴 — good things' };
 
 export default function CafeMenuRoute() {
   return (
-    <Suspense fallback={<CafeMenuSkeleton />}>
-      <CafeMenuPage />
-    </Suspense>
+    <>
+      {/* likes API 를 HTML 파싱 즉시 프리페치 — 카드 진입 연출(420ms) 이전에 데이터 도착 */}
+      <link rel="preload" href="/api/menu-likes" as="fetch" crossOrigin="use-credentials" />
+      <Suspense fallback={<CafeMenuSkeleton />}>
+        <CafeMenuPage />
+      </Suspense>
+    </>
   );
 }
