@@ -7,7 +7,8 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { Toaster } from '@/components/admin/ui/sonner';
-import './admin-theme.css';
+/* admin-theme.css 는 globals.css 에서 @import 됨 (Tailwind v4 의 @theme 처리 보장).
+   여기서 별도 import 하면 중복 + Tailwind 외부 CSS 청크 처리되어 @theme 무효화 위험. */
 
 export const metadata: Metadata = {
   title: 'Admin · Good Things Roasters',
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function AdminRootLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="admin-root min-h-screen">
+    <div className="gtr-admin min-h-screen">
       {children}
       <Toaster richColors position="top-right" />
     </div>

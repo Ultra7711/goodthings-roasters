@@ -1,16 +1,21 @@
 'use client';
 
 /* ══════════════════════════════════════════
-   AdminTopbar — Claude Design 핸드오프 적용.
+   AdminTopbar — S125: 시안 shell.jsx Topbar inline style 이식.
+   - height 56px, padding 0 24px
    - 좌측: 페이지 타이틀 (pathname 자동 매핑)
-   - 우측: 알림 벨 (시각만, 실제 알림 시스템 미구현) + 사용자 아바타 + 로그아웃
+   - 우측: 페이지 actions slot → 알림 벨 → 사용자 아바타
    ══════════════════════════════════════════ */
 
-import { usePathname, useRouter } from 'next/navigation';
-import { Bell, LogOut } from 'lucide-react';
-import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/admin/ui/button';
+import { usePathname } from 'next/navigation';
+import { AdminTopbarSlotAnchor } from '@/components/admin/AdminTopbarActions';
+
+const Bell = (p: React.SVGProps<SVGSVGElement> = {}) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
+    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+  </svg>
+);
 
 type Props = {
   email: string;
@@ -30,7 +35,6 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 function resolvePageTitle(pathname: string): string {
-  /* exact match → 그 외엔 prefix match */
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
   for (const [path, title] of Object.entries(PAGE_TITLES)) {
     if (path !== '/admin' && pathname.startsWith(path)) return title;
@@ -40,74 +44,98 @@ function resolvePageTitle(pathname: string): string {
 
 export default function AdminTopbar({ email, displayName }: Props) {
   const pathname = usePathname();
-  const router = useRouter();
   const title = resolvePageTitle(pathname);
   const name = displayName?.trim() || email.split('@')[0] || 'Admin';
   const initial = name.charAt(0).toUpperCase();
 
-  async function handleLogout() {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error('로그아웃 실패', { description: error.message });
-      return;
-    }
-    router.replace('/admin/login');
-    router.refresh();
-  }
-
   return (
     <header
-      className="flex h-14 shrink-0 items-center gap-3 px-6"
       style={{
-        background: 'var(--card)',
+        height: 56,
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 24px',
+        background: 'var(--surface)',
         borderBottom: '1px solid var(--border)',
+        gap: 12,
       }}
     >
-      <h1
-        className="gtr-serif m-0 text-xl font-medium"
-        style={{ letterSpacing: '-0.015em' }}
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: 10,
+        }}
       >
-        {title}
-      </h1>
+        <h1
+          style={{
+            margin: 0,
+            fontFamily: 'var(--font-serif)',
+            fontSize: 20,
+            fontWeight: 500,
+            letterSpacing: '-0.015em',
+          }}
+        >
+          {title}
+        </h1>
+      </div>
 
-      <div className="ml-auto flex items-center gap-2">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <AdminTopbarSlotAnchor style={{ display: 'flex', alignItems: 'center', gap: 8 }} />
+
         <button
           type="button"
           aria-label="알림"
-          className="relative flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-[var(--surface-muted)]"
           style={{
+            width: 32,
+            height: 32,
+            borderRadius: 6,
             border: '1px solid var(--border)',
-            background: 'var(--card)',
+            background: 'var(--surface)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             color: 'var(--foreground-muted)',
+            cursor: 'pointer',
+            position: 'relative',
           }}
         >
-          <Bell size={16} />
+          <Bell />
           <span
             aria-hidden
-            className="absolute h-1.5 w-1.5 rounded-full"
             style={{
+              position: 'absolute',
               top: 6,
               right: 7,
+              width: 6,
+              height: 6,
+              borderRadius: 999,
               background: 'var(--primary)',
             }}
           />
         </button>
 
         <div
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold"
-          style={{
-            background: 'var(--neutral-soft)',
-            color: 'var(--foreground)',
-          }}
           title={email}
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 999,
+            background: 'var(--neutral-soft)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 11,
+            fontWeight: 600,
+            color: 'var(--foreground)',
+            marginLeft: 4,
+          }}
         >
           {initial}
         </div>
-
-        <Button variant="ghost" size="sm" onClick={handleLogout}>
-          <LogOut className="size-4" />
-          로그아웃
-        </Button>
       </div>
     </header>
   );

@@ -11,6 +11,7 @@ import { redirect } from 'next/navigation';
 import { getAdminClaims } from '@/lib/auth/getClaims';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminTopbar from '@/components/admin/AdminTopbar';
+import { AdminTopbarActionsProvider } from '@/components/admin/AdminTopbarActions';
 
 export default function AdminAuthedLayout({ children }: { children: ReactNode }) {
   return (
@@ -25,26 +26,71 @@ async function AdminAuthedInner({ children }: { children: ReactNode }) {
   if (!claims) redirect('/admin/login');
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <AdminSidebar
-        email={claims.email}
-        displayName={claims.displayName}
-        title={claims.title}
-      />
-      <div className="flex flex-1 flex-col">
-        <AdminTopbar email={claims.email} displayName={claims.displayName} />
-        <main className="flex-1 overflow-x-hidden px-8 py-7">{children}</main>
+    <AdminTopbarActionsProvider>
+      {/* 시안 AdminShell 패턴: flex row, sidebar 240px + flex-1 main */}
+      <div
+        style={{
+          width: '100%',
+          minHeight: '100vh',
+          display: 'flex',
+          background: 'var(--background)',
+        }}
+      >
+        <AdminSidebar
+          email={claims.email}
+          displayName={claims.displayName}
+          title={claims.title}
+        />
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <AdminTopbar email={claims.email} displayName={claims.displayName} />
+          <main
+            style={{
+              flex: 1,
+              overflow: 'auto',
+              padding: '28px 32px',
+            }}
+          >
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </AdminTopbarActionsProvider>
   );
 }
 
 function AdminLayoutSkeleton() {
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <aside className="hidden w-60 shrink-0 border-r border-border bg-card md:block" />
-      <div className="flex flex-1 flex-col">
-        <header className="h-14 border-b border-border bg-card" />
+    <div
+      style={{
+        width: '100%',
+        minHeight: '100vh',
+        display: 'flex',
+        background: 'var(--background)',
+      }}
+    >
+      <aside
+        style={{
+          width: 240,
+          flexShrink: 0,
+          background: 'var(--sidebar-bg)',
+          borderRight: '1px solid var(--sidebar-border)',
+        }}
+      />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <header
+          style={{
+            height: 56,
+            background: 'var(--surface)',
+            borderBottom: '1px solid var(--border)',
+          }}
+        />
       </div>
     </div>
   );

@@ -1,25 +1,19 @@
-/* ══════════════════════════════════════════
-   Admin Theme — Good Things Roasters
-   - Claude Design 핸드오프 (2026-05-02) 기반.
-   - clay orange 단일 액센트 + cool off-white 메인 + warm dark sidebar.
-   - shadcn/ui 호환 CSS 변수 + 사이드바 전용 토큰 + 메인 사이트와 격리.
-   ══════════════════════════════════════════ */
+/* ─────────────────────────────────────────────────────────────
+   Good Things Roasters — Admin Console Design Tokens
+   S125: 시안 tokens.css 100% 복사 (Claude Design 핸드오프 출처).
+   shadcn/ui 호환 매핑은 @theme inline 블록에 별도 정의.
+   ───────────────────────────────────────────────────────────── */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap');
-
-.admin-root {
+:root {
   /* ── 타이포 ───────────────────────────── */
+  --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-serif: 'Fraunces', 'Iowan Old Style', 'Apple Garamond', Georgia, serif;
 
   /* ── 메인 영역 (Cool light, B2C cream과 명확히 분리) ── */
-  --background: #F8F8F7;
+  --background: #F8F8F7;          /* cool off-white */
+  --surface: #FFFFFF;             /* card surface */
+  --surface-muted: #F2F2F1;       /* table header, hover row */
   --foreground: #1A1A1A;
-  --card: #FFFFFF;
-  --card-foreground: #1A1A1A;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1A1A;
-
-  --surface-muted: #F2F2F1;
   --foreground-muted: #6B6B6B;
   --foreground-subtle: #9A9A98;
 
@@ -36,14 +30,6 @@
   --primary-soft: #FBE9E2;
   --primary-soft-fg: #8A3A1F;
 
-  /* shadcn 매핑 — secondary/accent 는 muted 톤으로 */
-  --secondary: #ECECEA;
-  --secondary-foreground: #4A4A48;
-  --muted: #F2F2F1;
-  --muted-foreground: #6B6B6B;
-  --accent: #ECECEA;
-  --accent-foreground: #1A1A1A;
-
   /* ── 상태 ───────────────────────────── */
   --success: #2F7D4F;
   --success-soft: #E3F1E8;
@@ -53,8 +39,6 @@
   --danger-soft: #F8E0E0;
   --info: #3D6FB4;
   --info-soft: #E1ECF8;
-  --destructive: #B43D3D;
-  --destructive-foreground: #FFFFFF;
 
   --neutral-soft: #ECECEA;
   --neutral-soft-fg: #4A4A48;
@@ -75,56 +59,30 @@
   --radius-sm: 0.375rem;
   --radius-lg: 0.75rem;
 
-  /* ── 그림자 (거의 사용 안 함) ───────── */
+  /* ── 그림자 ───────────────────────────── */
   --shadow-xs: 0 1px 0 rgba(0,0,0,0.02);
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
   --shadow-popover: 0 8px 24px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-
-  background-color: var(--background);
-  color: var(--foreground);
-  letter-spacing: -0.005em;
-  line-height: 1.5;
-  font-feature-settings: 'tnum' on, 'cv11' on;
-  -webkit-font-smoothing: antialiased;
 }
 
-/* serif 헤딩 — admin-root 안에서만 적용 */
-.admin-root h1.gtr-serif,
-.admin-root h2.gtr-serif,
-.admin-root h3.gtr-serif,
-.admin-root .gtr-serif {
-  font-family: var(--font-serif);
-  font-weight: 500;
-  letter-spacing: -0.015em;
-}
-
-.admin-root .gtr-tnum {
-  font-variant-numeric: tabular-nums;
-}
-
-.admin-root .gtr-mono {
-  font-family: 'SF Mono', ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
-  font-feature-settings: 'tnum' on;
-}
-
-/* shadcn 토큰 매핑 — admin-root 스코프 안에서만 활성. 메인 사이트 영향 없음. */
+/* shadcn/ui 호환 매핑 (DropdownMenu, Button 등 일부 사용 중) */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--foreground);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
+  --color-secondary: var(--neutral-soft);
+  --color-secondary-foreground: var(--neutral-soft-fg);
+  --color-muted: var(--surface-muted);
+  --color-muted-foreground: var(--foreground-muted);
+  --color-accent: var(--neutral-soft);
+  --color-accent-foreground: var(--foreground);
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: #FFFFFF;
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -133,3 +91,44 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
+
+/* base reset for the admin console — 시안 tokens.css 의 .gtr-admin 그대로 */
+.gtr-admin {
+  font-family: var(--font-sans);
+  color: var(--foreground);
+  background: var(--background);
+  letter-spacing: -0.005em;
+  line-height: 1.5;
+  font-feature-settings: 'tnum' on, 'cv11' on;
+  -webkit-font-smoothing: antialiased;
+}
+.gtr-admin h1, .gtr-admin h2, .gtr-admin h3, .gtr-admin .gtr-serif {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.gtr-admin button, .gtr-admin input, .gtr-admin select, .gtr-admin textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+.gtr-admin *, .gtr-admin *::before, .gtr-admin *::after {
+  box-sizing: border-box;
+}
+
+.gtr-tnum { font-variant-numeric: tabular-nums; }
+.gtr-hairline { box-shadow: inset 0 0 0 1px var(--border); }
+.gtr-mono {
+  font-family: 'SF Mono', ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
+  font-feature-settings: 'tnum' on;
+}
+
+.gtr-admin *:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.gtr-admin ::-webkit-scrollbar { width: 8px; height: 8px; }
+.gtr-admin ::-webkit-scrollbar-thumb { background: #D4D4D2; border-radius: 4px; }
+.gtr-admin ::-webkit-scrollbar-track { background: transparent; }

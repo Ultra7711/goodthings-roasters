@@ -3,11 +3,13 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 function Card({ className, ...props }: React.ComponentProps<"div">) {
+  /* S125: 시안 매칭 — rounded-lg(8px) + shadow 제거 + gap/padding default 제거.
+     호출 사이트가 padding/gap 직접 명시 (StatCard p-[18px], (authed)/page.tsx 등). */
   return (
     <div
       data-slot="card"
       className={cn(
-        "flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground shadow-sm",
+        "flex flex-col rounded-lg border bg-card text-card-foreground",
         className
       )}
       {...props}

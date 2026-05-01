@@ -108,6 +108,7 @@ export default function AdminLoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={submitting}
+            className="h-[34px]"
           />
         </div>
 
@@ -131,6 +132,7 @@ export default function AdminLoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={submitting}
+            className="h-[34px]"
           />
         </div>
 
