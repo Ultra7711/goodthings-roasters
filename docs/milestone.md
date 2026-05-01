@@ -3,8 +3,8 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-05-01 · Session 116 — 카페 메뉴 likes 외부 store 격리(옵션 B) + ShopPage 동등 stability 확보 (`c0b617d4`). `useSyncExternalStore` 기반 `menuLikesStore` + `MenuCardBadges` 신규, `useMenuLikes` hook 삭제. 트릭 6개 제거(cardBaseDelay state·1260ms timeout·popularRanksRef·committedRanks state·stableColIndexMap·초기 cm-cards-entering). 416/416 vitest green. 상세 `memory/project_session116_complete.md`.
-> 이전: Session 115 — Vercel 빌드 실패 복구 + User Sessions B안 폐기 (`bd8970ae`). Session 114 — User Sessions B안 미들웨어 + 좋아요 race condition + 메뉴 소팅. Session 111 — 정기배송 백엔드 Group B+C (subscriptionRepo + 7개 Route Handler + MyPagePage real API).
+> **최종 업데이트:** 2026-05-01 · Session 123 — 굿데이즈 라이트박스 잔존 closure (`07da3abb`). S121 잔존 2 (더블탭 X 깜빡임 + 핀치 도중 X 노출) closure + 컨트롤 일괄 토글(X·화살표·줌 +/-) + open/close layout shift 차단. 진단 → fix 패턴 (S122 동일): console.log 6종 + 라이브러리 source 분석 → 결함 확정 → `lastZoomAtRef` 320ms cooldown + debounce 폐기 + `noScroll: { disabled: true }` + body overflow 직접 관리. 416/416 vitest green. 상세 `memory/project_session123_complete.md`.
+> 이전: Session 122 — S121 잔존 1 (메인→굿데이즈 cream flash) closure + cacheComponents cleanup self-destruct 패턴 학습 (`ec9dc910`). Session 121 — 이미지 최적화 Phase 1 (next/image · LQIP) + yet-another-react-lightbox 라이브러리 컨버전 (`76d225ae`). Session 116 — 카페 메뉴 likes 외부 store 격리(옵션 B).
 
 ---
 
@@ -31,12 +31,13 @@
 | 어드민 풀 구축 (출시 전 신규 영역) | 0 | 0 | 7 | 0% |
 | User AI | 0 | 0 | 1 | 0% |
 
-**현재 위치 (S116 종료, 2026-05-01):**
+**현재 위치 (S123 종료, 2026-05-01):**
 
 - Sessions 18~49 디자인 폴리시·반응형 4BP 완료. Sessions 51~60 Phase 4 인프라(Vercel·Supabase·Sentry) + Phase 1 인터랙션 ②⑤⑧.
 - BUG-006 Tier 3 Stage C+D ✅ Session 66 (`9f954e90`) — Activity preserve + route-change event. 후속 묶음 A~E (S73~S77) 모두 closure.
 - BUG-100~178 polishing 대거 closure (Sessions 70~98). 결제 사고 BUG-172 closure (S91, public_token 컬럼 + virtualAccount 분기).
 - 정기배송 백엔드 Group B+C ✅ Session 111. 카페 메뉴 좋아요 기능 ✅ Sessions 100·101. likes 외부 store 격리 ✅ Session 116.
+- 이미지 최적화 Phase 1 ✅ Session 121 (next/image · LQIP). yet-another-react-lightbox 라이브러리 컨버전 ✅ S121 + 잔존 1·2 closure ✅ S122·S123.
 - 코드 리뷰 R-SEC(S104·109) · R-FE1(S105~107) · R-FE3(S108) · R-FE2(S113) · R-S113/S114(S116) 진행. R-SEC 잔여 M-6/M-7/M-8/L-2/L-4.
 - **다음 큰 영역:** 어드민 풀 구축 (`docs/admin-implementation-plan.md` · `project_admin_subscription_plan.md`) — 출시 전 확정. 정기배송 풀 구현은 어드민 후속.
 
@@ -63,7 +64,7 @@
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| 이미지 최적화 (WebP/AVIF) | 🔄 | S120 4-Phase 계획 확정 (`memory/project_image_optimization_plan.md`). Phase 1 (next/image 마이그레이션 + AVIF 협상, 8~12h, 비용 0) 단독 진입 가능 · Phase 2 (Supabase Storage 업로드) 어드민 Group A-6/E/F 묶음 · **Storage Transform (Pro $25/월) 은 서비스 출시 후 RUM 기반 재평가** · Phase 3/4 출시 후 |
+| 이미지 최적화 (WebP/AVIF) | 🔄 | **Phase 1 ✅ Session 121** — next/image 마이그레이션 + LQIP (50장 굿데이즈 갤러리 blur placeholder) + 라이트박스 라이브러리 컨버전 (yet-another-react-lightbox). Phase 2 (Supabase Storage 업로드) 어드민 Group A-6/E/F 묶음 · **Storage Transform (Pro $25/월) 은 서비스 출시 후 RUM 기반 재평가** · Phase 3/4 출시 후. 4-Phase 계획: `memory/project_image_optimization_plan.md` |
 | 콘텐츠 매핑 (DB↔UI) | ⬜ | 어드민 Group E (상품) · F (카페 메뉴) 와 함께 처리 — `lib/products.ts` · `lib/cafeMenu.ts` 하드코딩 → DB 이전 |
 
 #### 프로덕션 전 필수 처리
