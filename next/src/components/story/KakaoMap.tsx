@@ -121,7 +121,14 @@ function buildOverlayContent({
 }): HTMLElement {
   const wrap = document.createElement('div');
   wrap.className = 'st-map-overlay';
-  wrap.addEventListener('mousedown', (e) => { e.stopPropagation(); onInteract(); });
+  wrap.addEventListener('mousedown', (e) => {
+    console.log('[KakaoMap][diag] mousedown on overlay, t=', Date.now());
+    e.stopPropagation(); onInteract();
+  });
+  wrap.addEventListener('touchstart', (e) => {
+    console.log('[KakaoMap][diag] touchstart on overlay, t=', Date.now());
+    e.stopPropagation();
+  }, { passive: false });
   wrap.addEventListener('click', (e) => e.stopPropagation());
 
   const detailHref = placeId
@@ -143,7 +150,10 @@ function buildOverlayContent({
   toLink.target = '_blank';
   toLink.rel = 'noopener noreferrer';
   toLink.textContent = '길찾기';
-  toLink.addEventListener('click', (e) => e.stopPropagation());
+  toLink.addEventListener('click', (e) => {
+    console.log('[KakaoMap][diag] 길찾기 click, t=', Date.now());
+    e.stopPropagation();
+  });
 
   const detailLink = document.createElement('a');
   detailLink.className = 'st-map-overlay-btn st-map-overlay-btn--primary';
@@ -151,7 +161,10 @@ function buildOverlayContent({
   detailLink.target = '_blank';
   detailLink.rel = 'noopener noreferrer';
   detailLink.textContent = '상세보기';
-  detailLink.addEventListener('click', (e) => e.stopPropagation());
+  detailLink.addEventListener('click', (e) => {
+    console.log('[KakaoMap][diag] 상세보기 click, t=', Date.now());
+    e.stopPropagation();
+  });
 
   actionsEl.append(toLink, detailLink);
   wrap.append(nameEl, actionsEl);
@@ -255,6 +268,7 @@ export default function KakaoMap({
             recenter(true);
           });
           kakao.event.addListener(map, 'click', () => {
+            console.log('[KakaoMap][diag] map click, overlayInteracted=', overlayInteracted, 't=', Date.now());
             if (overlayInteracted) { overlayInteracted = false; return; }
             if (popupOpen) {
               overlay.setMap(null);
