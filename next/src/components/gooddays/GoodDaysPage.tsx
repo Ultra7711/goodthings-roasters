@@ -251,6 +251,17 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
     router.replace('/gooddays', { scroll: false });
   }, [router]);
 
+  /* 라이트박스 open 시 body overflow:hidden — yarl noScroll 비활성 대신 직접 관리.
+     자체 등록 리소스 (cleanup 패턴 안전 — feedback_useeffect_cleanup_self_destruct).
+     html scrollbar-gutter:stable 이 스크롤바 영역 예약하므로 padding 보정 불필요 → shift 0. */
+  useEffect(() => {
+    if (!lbOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [lbOpen]);
+
   return (
     <div
       id="gd-page"
@@ -308,6 +319,11 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
         index={lbIndex}
         slides={slides}
         plugins={[Zoom]}
+        /* yarl noScroll 의 padding 보정 비활성. 사유: html 의 scrollbar-gutter: stable
+           이 이미 스크롤바 영역을 항상 예약하는데, yarl 이 추가로 body 에 padding-right
+           을 더하면 콘텐츠가 17px 좁아져 라이트박스 open/close 시 layout shift 발생.
+           body overflow:hidden 은 아래 useEffect 로 직접 관리 (S123). */
+        noScroll={{ disabled: true }}
         zoom={{
           maxZoomPixelRatio: 4,
           doubleTapDelay: 300,
