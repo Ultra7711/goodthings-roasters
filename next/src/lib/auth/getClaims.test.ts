@@ -9,10 +9,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockRpc = vi.fn();
+const mockMaybeSingle = vi.fn();
+
+/* getAdminClaims 가 사용하는 .from('profiles').select(...).eq(...).maybeSingle() 체인 mock.
+   maybeSingle 만 vi.fn 으로 두고 나머지는 fluent return. */
+const mockFrom = vi.fn(() => ({
+  select: vi.fn(() => ({
+    eq: vi.fn(() => ({
+      maybeSingle: mockMaybeSingle,
+    })),
+  })),
+}));
 
 vi.mock('@/lib/supabaseServer', () => ({
   createRouteHandlerClient: vi.fn(async () => ({
     rpc: mockRpc,
+    from: mockFrom,
     auth: { getUser: vi.fn() },
   })),
 }));
@@ -25,6 +37,7 @@ const USER_ID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 beforeEach(() => {
   vi.clearAllMocks();
   mockRpc.mockReset();
+  mockMaybeSingle.mockReset();
 });
 
 describe('isAdmin', () => {
@@ -77,6 +90,7 @@ describe('getAdminClaims', () => {
     const clientMock = vi.mocked(createRouteHandlerClient);
     clientMock.mockResolvedValue({
       rpc: mockRpc,
+      from: mockFrom,
       auth: {
         getUser: vi.fn(async () => ({
           data: {
@@ -88,15 +102,18 @@ describe('getAdminClaims', () => {
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     } as any);
     mockRpc.mockResolvedValueOnce({ data: false, error: null });
+    /* profile maybeSingle 은 admin 검증 실패 시 결과가 무시되지만 mock 은 호출됨 (Promise.all). */
+    mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
 
     const result = await getAdminClaims();
     expect(result).toBeNull();
   });
 
-  it('returns AdminClaims for admin users', async () => {
+  it('returns AdminClaims with displayName + title for admin users', async () => {
     const clientMock = vi.mocked(createRouteHandlerClient);
     clientMock.mockResolvedValue({
       rpc: mockRpc,
+      from: mockFrom,
       auth: {
         getUser: vi.fn(async () => ({
           data: {
@@ -112,6 +129,10 @@ describe('getAdminClaims', () => {
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     } as any);
     mockRpc.mockResolvedValueOnce({ data: true, error: null });
+    mockMaybeSingle.mockResolvedValueOnce({
+      data: { display_name: '정현우', title: '대표 · Owner' },
+      error: null,
+    });
 
     const result = await getAdminClaims();
     expect(result).toEqual({
@@ -119,6 +140,41 @@ describe('getAdminClaims', () => {
       email: 'admin@example.com',
       metadata: { full_name: 'Admin' },
       role: 'admin',
+      displayName: '정현우',
+      title: '대표 · Owner',
+    });
+  });
+
+  it('returns AdminClaims with null fields when profile row missing', async () => {
+    const clientMock = vi.mocked(createRouteHandlerClient);
+    clientMock.mockResolvedValue({
+      rpc: mockRpc,
+      from: mockFrom,
+      auth: {
+        getUser: vi.fn(async () => ({
+          data: {
+            user: {
+              id: USER_ID,
+              email: 'admin@example.com',
+              user_metadata: {},
+            },
+          },
+          error: null,
+        })),
+      },
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    } as any);
+    mockRpc.mockResolvedValueOnce({ data: true, error: null });
+    mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
+
+    const result = await getAdminClaims();
+    expect(result).toEqual({
+      userId: USER_ID,
+      email: 'admin@example.com',
+      metadata: {},
+      role: 'admin',
+      displayName: null,
+      title: null,
     });
   });
 });

@@ -101,30 +101,68 @@ export async function isAdmin(userId: string): Promise<boolean> {
   return data === true;
 }
 
-/** admin claims — AuthClaims + `role: 'admin'` 증거 */
-export type AdminClaims = AuthClaims & { role: 'admin' };
+/**
+ * admin claims — AuthClaims + role + UI 표시용 프로필 데이터.
+ * S124: profiles.display_name + profiles.title 통합 (어드민 사이드바·환영 헤더 표시용).
+ */
+export type AdminClaims = AuthClaims & {
+  role: 'admin';
+  displayName: string | null;
+  title: string | null;
+};
 
 /**
  * admin 필수 Route Handler 가드. 비인증 또는 비admin 시 `null` 반환.
  * 호출처는 `null` 이면 401/403 으로 응답.
  *
- * 서버 컴포넌트에서는 `requireAdminOrRedirect()` 사용.
+ * S124: profiles.display_name + profiles.title 도 함께 fetch (UI 표시용).
+ * is_admin RPC 와 profile select 를 Promise.all 로 병렬화.
  */
 export async function getAdminClaims(): Promise<AdminClaims | null> {
   const claims = await getClaims();
   if (!claims) return null;
-  const admin = await isAdmin(claims.userId);
-  if (!admin) return null;
-  return { ...claims, role: 'admin' };
+
+  const supabase = await createRouteHandlerClient();
+  const [adminRes, profileRes] = await Promise.all([
+    supabase.rpc('is_admin', { uid: claims.userId }),
+    supabase
+      .from('profiles')
+      .select('display_name, title')
+      .eq('id', claims.userId)
+      .maybeSingle(),
+  ]);
+
+  if (adminRes.error) {
+    console.error('[getAdminClaims] is_admin error', {
+      code: adminRes.error.code,
+      message: adminRes.error.message,
+    });
+    return null;
+  }
+  if (adminRes.data !== true) return null;
+
+  if (profileRes.error) {
+    /* 프로필이 없거나 조회 실패해도 admin 인증 자체는 통과 — null fallback. */
+    console.warn('[getAdminClaims] profile fetch failed', {
+      code: profileRes.error.code,
+      message: profileRes.error.message,
+    });
+  }
+
+  return {
+    ...claims,
+    role: 'admin',
+    displayName: profileRes.data?.display_name ?? null,
+    title: profileRes.data?.title ?? null,
+  };
 }
 
 /**
- * admin 필수 서버 컴포넌트 가드. 비인증 → `/login`, 비admin → `/` 리다이렉트.
+ * admin 필수 서버 컴포넌트 가드. 비인증·비admin → `/admin/login` 리다이렉트.
+ * S124: 어드민 영역은 메인 사이트 `/login` 이 아닌 `/admin/login` 으로 보냄.
  */
 export async function requireAdminOrRedirect(): Promise<AdminClaims> {
-  const claims = await getClaims();
-  if (!claims) redirect('/login');
-  const admin = await isAdmin(claims.userId);
-  if (!admin) redirect('/');
-  return { ...claims, role: 'admin' };
+  const adminClaims = await getAdminClaims();
+  if (!adminClaims) redirect('/admin/login');
+  return adminClaims;
 }

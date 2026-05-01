@@ -67,13 +67,17 @@ const NAV_GROUPS: NavGroup[] = [
 
 type Props = {
   email: string;
+  displayName: string | null;
+  title: string | null;
 };
 
-export default function AdminSidebar({ email }: Props) {
+export default function AdminSidebar({ email, displayName, title }: Props) {
   const pathname = usePathname();
 
-  /* 이메일 → 이니셜 변환 (Avatar fallback) */
-  const initial = email.trim().charAt(0).toUpperCase() || 'A';
+  /* 이름 우선순위: display_name → email local-part → 'A' */
+  const name = displayName?.trim() || email.split('@')[0] || 'Admin';
+  const initial = name.charAt(0).toUpperCase();
+  const subtitle = title?.trim() || '관리자';
 
   return (
     <aside
@@ -177,14 +181,15 @@ export default function AdminSidebar({ email }: Props) {
             <div
               className="truncate text-xs font-medium"
               style={{ color: 'var(--sidebar-fg)' }}
+              title={email}
             >
-              관리자
+              {name}
             </div>
             <div
               className="truncate text-[10.5px]"
               style={{ color: 'var(--sidebar-fg-muted)' }}
             >
-              {email}
+              {subtitle}
             </div>
           </div>
           <ChevronDown

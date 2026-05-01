@@ -14,11 +14,13 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 import { Label } from '@/components/admin/ui/label';
+import { Checkbox } from '@/components/admin/ui/checkbox';
 
 export default function AdminLoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -131,6 +133,18 @@ export default function AdminLoginForm() {
             disabled={submitting}
           />
         </div>
+
+        <label className="flex cursor-pointer items-center gap-2 text-[12.5px]"
+          style={{ color: 'var(--foreground-muted)' }}
+        >
+          <Checkbox
+            checked={remember}
+            onCheckedChange={(v) => setRemember(v === true)}
+            disabled={submitting}
+            aria-label="로그인 상태 유지"
+          />
+          로그인 상태 유지
+        </label>
 
         <Button type="submit" disabled={submitting} className="mt-1 h-[38px] w-full">
           {submitting && <Loader2 className="size-4 animate-spin" />}

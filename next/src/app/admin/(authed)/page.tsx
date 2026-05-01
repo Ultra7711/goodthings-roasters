@@ -2,9 +2,12 @@
    Admin Dashboard (/admin) — Claude Design 핸드오프 적용.
    - 환영 헤더 + 4 stat cards + 최근 주문 테이블 + 사이드 위젯 (할 일·베스트셀러)
    - 데이터는 모두 placeholder (실데이터 연결은 Group I).
+   - S124: profiles.display_name 으로 사용자 이름 표시.
    ══════════════════════════════════════════ */
 
+import { Suspense } from 'react';
 import { ChevronRight, Plus, Download } from 'lucide-react';
+import { getAdminClaims } from '@/lib/auth/getClaims';
 import { Card } from '@/components/admin/ui/card';
 import { Button } from '@/components/admin/ui/button';
 import { Badge } from '@/components/admin/ui/badge';
@@ -56,23 +59,55 @@ const TODAY_LABEL = new Intl.DateTimeFormat('ko-KR', {
   weekday: 'long',
 }).format(new Date());
 
+function WelcomeHeading() {
+  return (
+    <Suspense fallback={<WelcomeFallback />}>
+      <WelcomeHeadingInner />
+    </Suspense>
+  );
+}
+
+async function WelcomeHeadingInner() {
+  const claims = await getAdminClaims();
+  const name = claims?.displayName?.trim() || claims?.email.split('@')[0] || '운영자';
+  return (
+    <div className="flex items-baseline gap-3">
+      <h2
+        className="gtr-serif m-0 text-[28px] font-medium"
+        style={{ letterSpacing: '-0.02em' }}
+      >
+        안녕하세요, {name}님
+      </h2>
+      <span className="text-[13px]" style={{ color: 'var(--foreground-muted)' }}>
+        {TODAY_LABEL}
+      </span>
+    </div>
+  );
+}
+
+function WelcomeFallback() {
+  return (
+    <div className="flex items-baseline gap-3">
+      <h2
+        className="gtr-serif m-0 text-[28px] font-medium"
+        style={{ letterSpacing: '-0.02em' }}
+      >
+        안녕하세요
+      </h2>
+      <span className="text-[13px]" style={{ color: 'var(--foreground-muted)' }}>
+        {TODAY_LABEL}
+      </span>
+    </div>
+  );
+}
+
 export default function AdminDashboardPage() {
   return (
     <div>
       {/* 환영 헤더 */}
       <div className="mb-6 flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1.5">
-          <div className="flex items-baseline gap-3">
-            <h2
-              className="gtr-serif m-0 text-[28px] font-medium"
-              style={{ letterSpacing: '-0.02em' }}
-            >
-              안녕하세요
-            </h2>
-            <span className="text-[13px]" style={{ color: 'var(--foreground-muted)' }}>
-              {TODAY_LABEL}
-            </span>
-          </div>
+          <WelcomeHeading />
           <div className="text-[13px]" style={{ color: 'var(--foreground-muted)' }}>
             어드민 콘솔 인프라 구축 단계입니다. 실데이터는 Group I 통계 그룹에서 연결됩니다.
           </div>

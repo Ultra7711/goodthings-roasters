@@ -14,6 +14,7 @@ import { Button } from '@/components/admin/ui/button';
 
 type Props = {
   email: string;
+  displayName: string | null;
 };
 
 const PAGE_TITLES: Record<string, string> = {
@@ -37,11 +38,12 @@ function resolvePageTitle(pathname: string): string {
   return 'Admin';
 }
 
-export default function AdminTopbar({ email }: Props) {
+export default function AdminTopbar({ email, displayName }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const title = resolvePageTitle(pathname);
-  const initial = email.trim().charAt(0).toUpperCase() || 'A';
+  const name = displayName?.trim() || email.split('@')[0] || 'Admin';
+  const initial = name.charAt(0).toUpperCase();
 
   async function handleLogout() {
     const { error } = await supabase.auth.signOut();
@@ -80,6 +82,15 @@ export default function AdminTopbar({ email }: Props) {
           }}
         >
           <Bell size={16} />
+          <span
+            aria-hidden
+            className="absolute h-1.5 w-1.5 rounded-full"
+            style={{
+              top: 6,
+              right: 7,
+              background: 'var(--primary)',
+            }}
+          />
         </button>
 
         <div
