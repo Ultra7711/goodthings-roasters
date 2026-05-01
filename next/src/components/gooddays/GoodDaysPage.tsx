@@ -349,12 +349,15 @@ export default function GoodDaysPage() {
       setXform({ ...t });
     }
 
-    /* track DOM 직접 조작 — swipe peek 부드러움 우선 */
+    /* track DOM 직접 조작 — swipe peek 부드러움 우선.
+       GAP_PX: CSS .gd-lb-track gap 과 동일. carousel 위치 계산에 일관 반영. */
+    const GAP_PX = 24;
+
     function setTrackDx(dx: number, anim: boolean) {
       const track = trackRef.current;
       if (!track) return;
       track.style.transition = anim ? 'transform 0.25s ease-out' : 'none';
-      track.style.transform = `translateX(calc(-100vw + ${dx}px))`;
+      track.style.transform = `translateX(calc(-100vw - ${GAP_PX}px + ${dx}px))`;
     }
 
     function commitSwipe(dir: -1 | 1) {
@@ -365,11 +368,14 @@ export default function GoodDaysPage() {
         return;
       }
       track.style.transition = 'transform 0.25s ease-out';
-      track.style.transform = `translateX(${dir === -1 ? 0 : -2 * winW}px)`;
+      /* dir=-1 (prev): translateX(0)
+         dir= 1 (next): translateX(-(2*winW + 2*GAP)) — 2 slide + 2 gap */
+      const targetPx = dir === -1 ? 0 : -(2 * winW + 2 * GAP_PX);
+      track.style.transform = `translateX(${targetPx}px)`;
       window.setTimeout(() => {
         if (!trackRef.current) return;
         trackRef.current.style.transition = 'none';
-        trackRef.current.style.transform = 'translateX(-100vw)';
+        trackRef.current.style.transform = `translateX(calc(-100vw - ${GAP_PX}px))`;
         navLightboxRef.current(dir);
       }, 260);
     }
@@ -449,25 +455,25 @@ export default function GoodDaysPage() {
       /* 핀치 종료 */
       if (isPinching && e.touches.length < 2) {
         isPinching = false;
+
+        /* (1) scale 정리 — over-scale spring back, 또는 1 미만 reset */
         const curr = xformRef.current;
         if (curr.scale > 4) {
-          /* over-scale — 4 까지 spring back, tx/ty 도 clamp 한 값으로 */
           apply(clamp({ scale: 4, tx: curr.tx, ty: curr.ty }), true);
-          isPanning = false;
         } else if (curr.scale < 1.1) {
           apply({ scale: 1, tx: 0, ty: 0 }, true);
-          isPanning = false;
-        } else if (e.touches.length === 1) {
-          /* 핀치 → 1손가락 전환: 잔류 손가락 기준으로 panStart 재설정.
-             미리 갱신하지 않으면 onMove 에서 stale panStart 로 이미지가 튐. */
+        }
+
+        /* (2) 잔류 1손가락 → panStart 재설정.
+           모든 scale 정리 분기에 공통 적용 — 누락 시 다음 onMove 의 dx 가 stale 좌표로
+           큰 점프(이미지 튐) 발생. xformRef.current 는 apply() 에서 sync 갱신된 최신 값. */
+        if (e.touches.length === 1) {
           panStartX = e.touches[0].clientX;
           panStartY = e.touches[0].clientY;
           panStartTx = xformRef.current.tx;
           panStartTy = xformRef.current.ty;
-          isPanning = false;
-        } else {
-          isPanning = false;
         }
+        isPanning = false;
         return;
       }
 
@@ -678,7 +684,7 @@ export default function GoodDaysPage() {
       </button>
       {currentImg && (
         <div className="gd-lb-track" ref={trackRef}>
-          {/* prev slide — 좌 swipe peek */}
+          {/* prev slide — 좌 swipe peek. eager 로 마운트 즉시 fetch (cache 워밍) */}
           <div className="gd-lb-slide" aria-hidden="true">
             {prevImg && (
               <Image
@@ -690,11 +696,13 @@ export default function GoodDaysPage() {
                 quality={85}
                 placeholder="blur"
                 blurDataURL={prevImg.blurDataURL}
+                loading="eager"
                 style={{ objectFit: 'contain' }}
               />
             )}
           </div>
-          {/* current slide — 핀치/팬 변환은 이 안의 wrap 에만 적용 */}
+          {/* current slide — priority: lazy 비활성 + fetchPriority high.
+              새 마운트 시 캐시 hit 또는 즉시 fetch → blur→sharp swap 깜빡임 최소화. */}
           <div className="gd-lb-slide">
             <div
               id="gd-lb-img-wrap"
@@ -713,11 +721,12 @@ export default function GoodDaysPage() {
                 quality={85}
                 placeholder="blur"
                 blurDataURL={currentImg.blurDataURL}
+                priority
                 style={{ objectFit: 'contain' }}
               />
             </div>
           </div>
-          {/* next slide — 우 swipe peek */}
+          {/* next slide — 우 swipe peek. eager 로 마운트 즉시 fetch (cache 워밍) */}
           <div className="gd-lb-slide" aria-hidden="true">
             {nextImg && (
               <Image
@@ -729,6 +738,7 @@ export default function GoodDaysPage() {
                 quality={85}
                 placeholder="blur"
                 blurDataURL={nextImg.blurDataURL}
+                loading="eager"
                 style={{ objectFit: 'contain' }}
               />
             )}

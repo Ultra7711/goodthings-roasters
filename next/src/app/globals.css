@@ -6207,19 +6207,24 @@ footer.blk {
   opacity: 1;
   pointer-events: auto;
 }
-/* 3-slide carousel track — prev/current/next 동시 렌더, 통째로 translateX */
+/* 3-slide carousel track — prev/current/next 동시 렌더, 통째로 translateX.
+   gap 24px: 슬라이드 사이 시각적 간격 (PhotoSwipe / iOS Photos 표준).
+   width = 3 × 100vw + 2 × gap, translateX 기본값에 1 × gap 반영. */
 .gd-lb-track {
   position: absolute;
   inset: 0;
   display: flex;
-  width: 300vw;
-  transform: translateX(-100vw);
+  gap: 24px;
+  width: calc(300vw + 48px);
+  transform: translateX(calc(-100vw - 24px));
   will-change: transform;
 }
 .gd-lb-slide {
   position: relative;
   flex: 0 0 100vw;
-  height: 100svh;
+  /* height 100% — 부모 .gd-lb-track 의 inset:0 (fixed lightbox 풀 영역) 자동 추적.
+     100svh 명시 시 iOS Safari 의 URL bar 동적 숨김에서 하단 빈 영역 발생. */
+  height: 100%;
   overflow: hidden;
 }
 .gd-lightbox img {
