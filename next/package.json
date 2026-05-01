@@ -41,9 +41,12 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
+    "plaiceholder": "^3.0.0",
     "playwright": "^1.59.1",
+    "sharp": "^0.34.5",
     "supabase": "^2.91.2",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^4.1.4"
   }

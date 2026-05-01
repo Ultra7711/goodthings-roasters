@@ -10,11 +10,29 @@
      D(2x1) — 480px 단일 행
      E(1x1) — 560px full-bleed
    16장 1사이클 → 42장 = 2사이클 + 일부
+
+   LQIP (S121): GD_BLUR_MAP 은 빌드 타임 prebuild (plaiceholder).
+   재생성: npx tsx scripts/generate-gallery-blur.ts
    ══════════════════════════════════════════ */
+
+import { GD_BLUR_MAP } from './gooddaysBlur';
+
+/** GD_BLUR_MAP 누락 시 fallback — 1x1 sandy beige (--color-background-secondary) */
+const FALLBACK_BLUR =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGPgaAAAAIIAgB8U1XwAAAAASUVORK5CYII=';
+
+function blurOf(src: string): string {
+  return GD_BLUR_MAP[src] ?? FALLBACK_BLUR;
+}
 
 export type GdImage = {
   src: string;
   featured?: boolean;
+};
+
+export type GdImageWithBlur = {
+  src: string;
+  blurDataURL: string;
 };
 
 export type GdPattern = {
@@ -83,7 +101,7 @@ export const GD_PATTERNS: GdPattern[] = [
 export const GD_PLACEHOLDER_COLORS = ['#E0D5C5', '#E8DFD2', '#D4C8B8', '#DDD0BE', '#F5EFE0'];
 
 export type GdCell =
-  | { kind: 'image'; src: string; orderedIdx: number; span: boolean }
+  | { kind: 'image'; src: string; blurDataURL: string; orderedIdx: number; span: boolean }
   | { kind: 'placeholder'; bg: string; span: boolean };
 
 export type GdRow = {
@@ -93,8 +111,8 @@ export type GdRow = {
 
 export type GoodDaysGrid = {
   rows: GdRow[];
-  /** 라이트박스 네비게이션용 — orderedIdx 순서의 평탄 src 배열 */
-  ordered: string[];
+  /** 라이트박스 네비게이션용 — orderedIdx 순서의 평탄 배열 (src + blurDataURL) */
+  ordered: GdImageWithBlur[];
 };
 
 /**
@@ -108,7 +126,7 @@ export function buildGoodDaysGrid(): GoodDaysGrid {
   const normalPool = GD_IMAGES.filter((img) => !img.featured).map((img) => img.src);
 
   /* 배치 순서 결정: 패턴별 span 슬롯에 featured 우선 */
-  const ordered: string[] = [];
+  const orderedSrc: string[] = [];
   let fIdx = 0;
   let nIdx = 0;
   let patIdx = 0;
@@ -119,16 +137,21 @@ export function buildGoodDaysGrid(): GoodDaysGrid {
     const pat = GD_PATTERNS[patIdx % GD_PATTERNS.length];
     for (let i = 0; i < pat.count && placed < totalImages; i++) {
       if (i === pat.spanIdx && fIdx < featuredPool.length) {
-        ordered.push(featuredPool[fIdx++]);
+        orderedSrc.push(featuredPool[fIdx++]);
       } else if (nIdx < normalPool.length) {
-        ordered.push(normalPool[nIdx++]);
+        orderedSrc.push(normalPool[nIdx++]);
       } else if (fIdx < featuredPool.length) {
-        ordered.push(featuredPool[fIdx++]);
+        orderedSrc.push(featuredPool[fIdx++]);
       }
       placed++;
     }
     patIdx++;
   }
+
+  const ordered: GdImageWithBlur[] = orderedSrc.map((src) => ({
+    src,
+    blurDataURL: blurOf(src),
+  }));
 
   /* 행 구조 생성 — 이미지가 떨어지면 플레이스홀더 셀 */
   const rows: GdRow[] = [];
@@ -141,7 +164,14 @@ export function buildGoodDaysGrid(): GoodDaysGrid {
     for (let i = 0; i < pat.count; i++) {
       const span = i === pat.spanIdx;
       if (idx < ordered.length) {
-        cells.push({ kind: 'image', src: ordered[idx], orderedIdx: idx, span });
+        const item = ordered[idx];
+        cells.push({
+          kind: 'image',
+          src: item.src,
+          blurDataURL: item.blurDataURL,
+          orderedIdx: idx,
+          span,
+        });
         idx++;
       } else {
         const bg = GD_PLACEHOLDER_COLORS[phIdx % GD_PLACEHOLDER_COLORS.length];

@@ -135,7 +135,7 @@ export default function GoodDaysPage() {
       return;
     }
     if (lastHandledImgSrcRef.current === imgSrc) return;
-    const idx = ordered.indexOf(imgSrc);
+    const idx = ordered.findIndex((item) => item.src === imgSrc);
     if (idx < 0) return;
     lastHandledImgSrcRef.current = imgSrc;
     // instant: transition 없이 즉시 검정 배경 표시 (화이트 flash 차단)
@@ -571,11 +571,13 @@ export default function GoodDaysPage() {
           }}
         >
           <Image
-            src={currentImg}
+            src={currentImg.src}
             alt={`갤러리 이미지 ${(lightboxIdx ?? 0) + 1}`}
             fill
             sizes="100vw"
             quality={85}
+            placeholder="blur"
+            blurDataURL={currentImg.blurDataURL}
             style={{ objectFit: 'contain' }}
           />
         </div>
@@ -634,6 +636,9 @@ export default function GoodDaysPage() {
                         alt={`갤러리 이미지 ${cell.orderedIdx + 1}`}
                         fill
                         sizes="(max-width: 767px) 50vw, (max-width: 1440px) 50vw, 720px"
+                        placeholder="blur"
+                        blurDataURL={cell.blurDataURL}
+                        priority={rIdx === 0}
                       />
                     </div>
                   );
