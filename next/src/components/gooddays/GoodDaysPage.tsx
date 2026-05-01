@@ -132,10 +132,21 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
     setLbOpen(true);
   }, [searchParams, ordered]);
 
-  /* 첫 마운트 시 body.gd-route-transition 클래스 제거 — 메인→굿데이즈 전환 검정 오버레이 종료.
-     Suspense fallback 검정 → GoodDaysPage 마운트 + 라이트박스 검정 → ::before 제거 자연스러움. */
+  /* 메인→굿데이즈 ?img= 진입 검정 오버레이(::before) lifecycle.
+     - 부여: GoodDaysSection.handleMomentClick (메인 onClick)
+     - 제거(정상): on.entered 콜백 — 라이브러리 portal opacity 1 도달 후 fade out 시작
+     - 제거(fallback): 1.5s safetyTimer — entered 발화 실패 케이스
+     - cleanup return 에서 body class 를 *제거하지 않는다* — Next.js cacheComponents/Activity
+       의 mount→cleanup→mount 사이클에서 cleanup 이 mount 직후 즉시 실행되면 ::before 사라져
+       portal opacity 0 동안 #gd-page (cream) 가 portal 너머로 비침 → cream flash 1~2 frame. */
   useEffect(() => {
-    document.body.classList.remove('gd-route-transition');
+    const safetyTimer = window.setTimeout(() => {
+      document.body.classList.remove('gd-route-transition');
+      document.body.classList.remove('gd-route-transition--fade');
+    }, 1500);
+    return () => {
+      window.clearTimeout(safetyTimer);
+    };
   }, []);
 
   /* 셀 gd-visible 제거 + IO 재설정 — 이벤트 핸들러에서 직접 호출 (동기).
@@ -302,6 +313,16 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
         carousel={{ finite: false, padding: 0, spacing: 24 }}
         controller={{ closeOnBackdropClick: true }}
         on={{
+          /* 라이브러리 portal fade-in (animation.fade=250ms) 완료 시점에 호출 → ::before fade out 시작.
+             timer 기반 race 제거. portal opacity 1 도달 후이므로 ::before 사라져도 cream 노출 X. */
+          entered: () => {
+            if (!document.body.classList.contains('gd-route-transition')) return;
+            document.body.classList.add('gd-route-transition--fade');
+            window.setTimeout(() => {
+              document.body.classList.remove('gd-route-transition');
+              document.body.classList.remove('gd-route-transition--fade');
+            }, 300);
+          },
           view: ({ index }) => setLbIndex(index),
           /* 줌 sync — isZoomed 즉시 (zone unmount 우선), controlsHidden 은 150ms debounce.
              더블탭/핀치 transition 의 frame 단위 zoom 변화에서 X 깜빡임 차단. */
@@ -363,8 +384,9 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
           buttonPrev: isMobile ? () => null : undefined,
           buttonNext: isMobile ? () => null : undefined,
           /* 닫기 버튼 always render — opacity transition 으로 fade in/out (250ms ease).
-             이전 conditional null 패턴은 unmount/mount 라 fade 불가. */
-          buttonClose: () => <GdCloseButton controlsHidden={controlsHidden} />,
+             이전 conditional null 패턴은 unmount/mount 라 fade 불가.
+             key="close" — yarl Toolbar 가 buttons.map 으로 렌더하므로 ACTION_CLOSE 와 동일 key 부여. */
+          buttonClose: () => <GdCloseButton key="close" controlsHidden={controlsHidden} />,
           /* 줌 +/- 아이콘 — Lucide ZoomIn / ZoomOut */
           iconZoomIn: () => <ZoomIn size={28} strokeWidth={1.5} aria-hidden="true" />,
           iconZoomOut: () => <ZoomOut size={28} strokeWidth={1.5} aria-hidden="true" />,
