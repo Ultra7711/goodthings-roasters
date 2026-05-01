@@ -6212,7 +6212,7 @@ body.gd-route-transition::before {
    yet-another-react-lightbox 의 render.controls 안에 absolute 로 배치. */
 .gd-tap-zone {
   position: absolute;
-  top: 0;
+  top: 64px;
   bottom: 0;
   width: 30%;
   z-index: 5;

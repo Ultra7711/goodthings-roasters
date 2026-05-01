@@ -80,6 +80,15 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
+  /* 줌 상태 — Zoom plugin 의 on.zoom 콜백으로 sync.
+     - isZoomed > 0 시 zone tap unmount (핀치 충돌 차단)
+     - controlsHidden true → 닫기 버튼 hide
+     - 사용자가 줌 인 상태에서 image 탭 → controlsHidden toggle (UI 노출/hide) */
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [controlsHidden, setControlsHidden] = useState(false);
+  const isZoomedRef = useRef(false);
+  isZoomedRef.current = isZoomed;
+
   /* initialImgSrc prop 으로 첫 마운트 시점 라이트박스 인덱스 결정.
      useState 초기값 함수가 첫 paint 에 라이트박스 open 보장 → 흰 본문 노출 차단. */
   const initialIdx = useMemo(
@@ -285,11 +294,26 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
         controller={{ closeOnBackdropClick: true }}
         on={{
           view: ({ index }) => setLbIndex(index),
+          /* 줌 sync — zoom>1 진입 시 isZoomed=true + 자동 controls hide.
+             zoom===1 복귀 시 둘 다 reset. */
+          zoom: ({ zoom }) => {
+            const zoomed = zoom > 1;
+            setIsZoomed(zoomed);
+            setControlsHidden(zoomed);
+          },
+          /* 줌 in 상태에서 image 탭 → 닫기 버튼 toggle (한 번 노출, 다시 hide).
+             zoom===1 상태 탭은 스킵 (zone tap 또는 swipe 가 처리). */
+          click: () => {
+            if (isZoomedRef.current) {
+              setControlsHidden((v) => !v);
+            }
+          },
         }}
         render={{
           slide: LightboxNextJsImage,
-          /* 모바일 zone tap + 피드백 fade — useController 로 prev/next 호출 */
-          controls: () => <MobileZoneTap isMobile={isMobile} />,
+          /* 모바일 zone tap + 피드백 fade — useController 로 prev/next 호출.
+             isZoomed 시 zone unmount (핀치 인식 충돌 차단). */
+          controls: () => <MobileZoneTap isMobile={isMobile} isZoomed={isZoomed} />,
           /* 좌우 화살표 — 기존 GTR 디자인 (polyline) 재사용. 색상은 라이브러리 default white.
              데스크탑 hit 영역 키움: SVG 48px + strokeWidth 1.25 (시각 균형). */
           iconPrev: () => (
@@ -325,6 +349,8 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
           /* 모바일은 drag swipe 로 충분 → 화살표 제거. 데스크탑은 default 노출. */
           buttonPrev: isMobile ? () => null : undefined,
           buttonNext: isMobile ? () => null : undefined,
+          /* controlsHidden 시 닫기 버튼 hide (줌 in 자동 또는 탭 토글). */
+          buttonClose: controlsHidden ? () => null : undefined,
           /* 줌 +/- 아이콘 — Lucide ZoomIn / ZoomOut */
           iconZoomIn: () => <ZoomIn size={28} strokeWidth={1.5} aria-hidden="true" />,
           iconZoomOut: () => <ZoomOut size={28} strokeWidth={1.5} aria-hidden="true" />,

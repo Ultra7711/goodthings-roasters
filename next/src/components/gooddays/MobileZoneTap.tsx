@@ -9,9 +9,14 @@
 import { useCallback, useRef, useState } from 'react';
 import { useController } from 'yet-another-react-lightbox';
 
-type Props = { isMobile: boolean };
+type Props = {
+  isMobile: boolean;
+  /** 줌 인 상태에서는 zone 자체 unmount — 라이브러리의 핀치 인식이 image area 에서 발화하므로
+      zone 이 z-index 로 image 위에 있으면 핀치 인식 방해. zoom>1 시 zone 제거 → 핀치 정상. */
+  isZoomed: boolean;
+};
 
-export default function MobileZoneTap({ isMobile }: Props) {
+export default function MobileZoneTap({ isMobile, isZoomed }: Props) {
   const { prev, next } = useController();
   const [flashDir, setFlashDir] = useState<'prev' | 'next' | null>(null);
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -25,7 +30,7 @@ export default function MobileZoneTap({ isMobile }: Props) {
     }, 600);
   }, []);
 
-  if (!isMobile) return null;
+  if (!isMobile || isZoomed) return null;
 
   return (
     <>
