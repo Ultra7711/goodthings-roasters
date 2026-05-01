@@ -6,7 +6,18 @@
    이미지 데이터: GD_IMAGES에서 picks 5장
    ══════════════════════════════════════════ */
 
+'use client';
+
 import Link from 'next/link';
+
+/* Link onClick — 메인→굿데이즈 ?img= 진입 시 cream→black 1단계 flash 차단.
+   body.gd-route-transition 즉시 부여 → fixed 검정 오버레이 → Suspense fallback 검정 →
+   라이트박스 검정으로 자연 전환. GoodDaysPage 마운트 시 클래스 제거. */
+function handleMomentClick() {
+  if (typeof document !== 'undefined') {
+    document.body.classList.add('gd-route-transition');
+  }
+}
 
 const GD_IMAGES = [
   { src: '/images/gallery/KakaoTalk_20260328_161956706_01.webp', featured: true },
@@ -38,6 +49,7 @@ export default function GoodDaysSection() {
               href={`/gooddays?img=${encodeURIComponent(img.src)}`}
               className="moment-card sr-img"
               data-sr-toggle
+              onClick={handleMomentClick}
             >
               <div
                 className="moment-img"

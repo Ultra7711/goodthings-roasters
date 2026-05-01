@@ -6196,6 +6196,52 @@ footer.blk {
   z-index: var(--z-lightbox);
 }
 
+/* 메인→굿데이즈 ?img= 진입 시 cream→black 1단계 flash 차단.
+   GoodDaysSection Link onClick 시점에 body 에 클래스 부여 → 검정 fixed 오버레이 즉시 표시 →
+   router.push 의 메인 unmount + 굿데이즈 fallback 까지 검정 유지. GoodDaysPage 마운트 시 제거. */
+body.gd-route-transition::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-lightbox);
+  background: var(--color-background-inverse);
+  pointer-events: none;
+}
+
+/* 모바일 zone tap — 좌/우 30% 영역 탭으로 prev/next.
+   yet-another-react-lightbox 의 render.controls 안에 absolute 로 배치. */
+.gd-tap-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30%;
+  z-index: 5;
+  cursor: pointer;
+  /* 시각적 인디케이터 없음 — 탭 시 .gd-tap-flash 로 피드백 */
+}
+.gd-tap-zone--prev { left: 0; }
+.gd-tap-zone--next { right: 0; }
+
+/* 탭 피드백 — 600ms fade in/out 화살표 */
+.gd-tap-flash {
+  position: absolute;
+  top: 50%;
+  z-index: 6;
+  color: #fff;
+  opacity: 0;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8));
+  pointer-events: none;
+  animation: gd-tap-flash-fade 600ms ease-out forwards;
+  transform: translateY(-50%);
+}
+.gd-tap-flash--prev { left: 16px; }
+.gd-tap-flash--next { right: 16px; }
+@keyframes gd-tap-flash-fade {
+  0% { opacity: 0; }
+  20% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
 /* ══════════════════════════════════════════
    CHECKOUT PAGE — RP-7
    프로토타입 #checkout-page (L2474~2888) 이식

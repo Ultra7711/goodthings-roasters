@@ -24,13 +24,14 @@
 
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Lightbox, { type SlideImage } from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
 import { ZoomIn, ZoomOut } from 'lucide-react';
 import { buildGoodDaysGrid } from '@/lib/gooddays';
 import LightboxNextJsImage from './LightboxNextJsImage';
+import MobileZoneTap from './MobileZoneTap';
 
 type GdSlide = SlideImage & { blurDataURL?: string };
 
@@ -42,6 +43,7 @@ type Props = {
 
 export default function GoodDaysPage({ initialImgSrc }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   /* 그리드 데이터는 렌더링 순수 함수 — useMemo 로 한 번만 계산 */
   const grid = useMemo(() => buildGoodDaysGrid(), []);
@@ -91,6 +93,32 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
 
   const [lbOpen, setLbOpen] = useState(initialIdx >= 0);
   const [lbIndex, setLbIndex] = useState(initialIdx >= 0 ? initialIdx : 0);
+
+  /* Activity 복귀 시 ?img= 변경 감지 — cacheComponents 활성화 환경에서 컴포넌트 인스턴스가
+     재사용되면 useState 초기값이 stale (이미 한 번 실행됨). lastHandledImgSrcRef 가드로
+     같은 src 두 번 처리 방지 + ref 초기값을 initialImgSrc 로 set → 첫 useEffect 스킵. */
+  const lastHandledImgSrcRef = useRef<string | null>(initialImgSrc);
+
+  useEffect(() => {
+    const imgSrc = searchParams.get('img');
+    if (!imgSrc) {
+      lastHandledImgSrcRef.current = null;
+      return;
+    }
+    if (lastHandledImgSrcRef.current === imgSrc) return;
+    if (ordered.length === 0) return;
+    const idx = ordered.findIndex((item) => item.src === imgSrc);
+    if (idx < 0) return;
+    lastHandledImgSrcRef.current = imgSrc;
+    setLbIndex(idx);
+    setLbOpen(true);
+  }, [searchParams, ordered]);
+
+  /* 첫 마운트 시 body.gd-route-transition 클래스 제거 — 메인→굿데이즈 전환 검정 오버레이 종료.
+     Suspense fallback 검정 → GoodDaysPage 마운트 + 라이트박스 검정 → ::before 제거 자연스러움. */
+  useEffect(() => {
+    document.body.classList.remove('gd-route-transition');
+  }, []);
 
   /* 셀 gd-visible 제거 + IO 재설정 — 이벤트 핸들러에서 직접 호출 (동기).
      gtr:route-change 는 NVG useLayoutEffect 내 동기 발송 → 이 함수가 실행 완료된 후
@@ -260,6 +288,8 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
         }}
         render={{
           slide: LightboxNextJsImage,
+          /* 모바일 zone tap + 피드백 fade — useController 로 prev/next 호출 */
+          controls: () => <MobileZoneTap isMobile={isMobile} />,
           /* 좌우 화살표 — 기존 GTR 디자인 (polyline) 재사용. 색상은 라이브러리 default white.
              데스크탑 hit 영역 키움: SVG 48px + strokeWidth 1.25 (시각 균형). */
           iconPrev: () => (
