@@ -28,7 +28,7 @@
 
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { buildGoodDaysGrid } from '@/lib/gooddays';
 
@@ -374,9 +374,16 @@ export default function GoodDaysPage() {
       track.style.transform = `translateX(${targetPx}px)`;
       window.setTimeout(() => {
         if (!trackRef.current) return;
+        /* flushSync — navLightbox 의 setState 를 동기 commit 강제.
+           이전 구현은 navLightbox 비동기 리렌더와 transform 점프 사이 한 frame 에
+           이전 이미지가 가운데에 보이는 race 발생. flushSync 후 transform 점프하면
+           새 src 와 새 transform 이 같은 paint 에 반영 → 깜빡임 없음. */
+        flushSync(() => {
+          navLightboxRef.current(dir);
+        });
+        if (!trackRef.current) return;
         trackRef.current.style.transition = 'none';
         trackRef.current.style.transform = `translateX(calc(-100vw - ${GAP_PX}px))`;
-        navLightboxRef.current(dir);
       }, 260);
     }
 
@@ -684,7 +691,9 @@ export default function GoodDaysPage() {
       </button>
       {currentImg && (
         <div className="gd-lb-track" ref={trackRef}>
-          {/* prev slide — 좌 swipe peek. eager 로 마운트 즉시 fetch (cache 워밍) */}
+          {/* prev slide — 좌 swipe peek. eager 로 마운트 즉시 fetch (cache 워밍).
+              placeholder 미사용: next/image 의 blur background fade 효과가
+              swap 시 시각적 잔재 발생. 라이트박스 배경(웜블랙)이 빈 영역 역할. */}
           <div className="gd-lb-slide" aria-hidden="true">
             {prevImg && (
               <Image
@@ -694,15 +703,13 @@ export default function GoodDaysPage() {
                 fill
                 sizes="100vw"
                 quality={85}
-                placeholder="blur"
-                blurDataURL={prevImg.blurDataURL}
                 loading="eager"
                 style={{ objectFit: 'contain' }}
               />
             )}
           </div>
           {/* current slide — priority: lazy 비활성 + fetchPriority high.
-              새 마운트 시 캐시 hit 또는 즉시 fetch → blur→sharp swap 깜빡임 최소화. */}
+              prev/next 가 eager fetch 한 캐시를 hit → 즉시 표시. */}
           <div className="gd-lb-slide">
             <div
               id="gd-lb-img-wrap"
@@ -719,8 +726,6 @@ export default function GoodDaysPage() {
                 fill
                 sizes="100vw"
                 quality={85}
-                placeholder="blur"
-                blurDataURL={currentImg.blurDataURL}
                 priority
                 style={{ objectFit: 'contain' }}
               />
@@ -736,8 +741,6 @@ export default function GoodDaysPage() {
                 fill
                 sizes="100vw"
                 quality={85}
-                placeholder="blur"
-                blurDataURL={nextImg.blurDataURL}
                 loading="eager"
                 style={{ objectFit: 'contain' }}
               />
