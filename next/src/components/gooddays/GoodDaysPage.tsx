@@ -100,12 +100,31 @@ export default function GoodDaysPage() {
     setMounted(true);
   }, []);
 
+  /* ?img= URL 진입 시 첫 paint 부터 라이트박스 open + instant 모드 — 화이트 flash 차단.
+     useState 초기값 함수에서 동기 결정. useEffect 처리는 Activity 복귀 등 후속 케이스 대응.
+     첫 마운트 시 lastHandledImgSrcRef 도 함께 set (useEffect 재처리 스킵). */
+  const initialImgSrc = useMemo(
+    () => searchParams.get('img'),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+  const initialLightboxIdx = useMemo(
+    () => {
+      if (!initialImgSrc) return null;
+      const idx = ordered.findIndex((item) => item.src === initialImgSrc);
+      return idx >= 0 ? idx : null;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   /* 라이트박스 상태 — null = 닫힘 */
-  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(initialLightboxIdx);
   const [lbSettled, setLbSettled] = useState(false);
   /* instant 모드 — 메인 페이지 갤러리에서 진입 시 transition 없이 즉시 표시.
-     프로토타입 L2463 gd-lb-instant 클래스 동일. 화이트 flash 차단. */
-  const [lbInstant, setLbInstant] = useState(false);
+     프로토타입 L2463 gd-lb-instant 클래스 동일. 화이트 flash 차단.
+     ?img= URL 직진입 시 초기값 true → 첫 paint 부터 검정 배경. */
+  const [lbInstant, setLbInstant] = useState(initialLightboxIdx !== null);
   /* 클릭 방향 피드백 — null=숨김, 'prev'/'next'=해당 화살표 600ms 표시 후 fade-out */
   const [flashDir, setFlashDir] = useState<'prev' | 'next' | null>(null);
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -343,6 +362,22 @@ export default function GoodDaysPage() {
       return raw;
     }
 
+    /* pan rubber band: tx/ty 가 maxTx/maxTy 경계 넘어가면 저항 0.3 으로 over-pan 허용.
+       release 시 hard clamp 로 spring back (transition 적용). */
+    function softTxTyClamp(t: { scale: number; tx: number; ty: number }) {
+      const { scale, tx, ty } = t;
+      const effectiveScale = Math.max(1, Math.min(4, scale));
+      const maxTx = Math.max(0, (container.offsetWidth * (effectiveScale - 1)) / 2);
+      const maxTy = Math.max(0, (container.offsetHeight * (effectiveScale - 1)) / 2);
+      const softTx =
+        tx > maxTx ? maxTx + (tx - maxTx) * 0.3 :
+        tx < -maxTx ? -maxTx + (tx + maxTx) * 0.3 : tx;
+      const softTy =
+        ty > maxTy ? maxTy + (ty - maxTy) * 0.3 :
+        ty < -maxTy ? -maxTy + (ty + maxTy) * 0.3 : ty;
+      return { scale, tx: softTx, ty: softTy };
+    }
+
     function apply(t: { scale: number; tx: number; ty: number }, anim = false) {
       xformRef.current = t;
       setXformAnim(anim);
@@ -431,22 +466,25 @@ export default function GoodDaysPage() {
         /* 핀치 중심 고정 공식: tx' = pcx + scaleChange * (startTx - pcx) */
         const newTx = pinchCenterX + scaleChange * (pinchStartTx - pinchCenterX);
         const newTy = pinchCenterY + scaleChange * (pinchStartTy - pinchCenterY);
-        /* 1~4 범위 내에서만 tx/ty clamp, over-scale 시 raw 유지 (release 시 spring back) */
-        if (newScale >= 1 && newScale <= 4) {
-          apply(clamp({ scale: newScale, tx: newTx, ty: newTy }));
-        } else {
-          apply({ scale: newScale, tx: newTx, ty: newTy });
-        }
+        /* tx/ty 는 항상 hard clamp (effectiveScale=4 기준 maxTx/maxTy).
+           이전 구현은 over-scale 시 raw tx/ty 사용 → 이미지가 viewport 밖으로 빠지며
+           검정 배경 노출. clamp 의 effectiveScale 가 [1,4] 로 제한되어 있어
+           over-scale 도 안전한 위치로 고정. scale 만 rubber band 적용. */
+        apply(clamp({ scale: newScale, tx: newTx, ty: newTy }));
       } else if (e.touches.length === 1 && !isPinching) {
         const dx = e.touches[0].clientX - panStartX;
         const dy = e.touches[0].clientY - panStartY;
         if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
           touchMoved = true;
           if (xformRef.current.scale > 1) {
-            /* 확대 상태 — 기존 pan */
+            /* 확대 상태 — pan with rubber band (경계 초과 시 저항 0.3 으로 over-pan) */
             e.preventDefault();
             isPanning = true;
-            apply(clamp({ scale: xformRef.current.scale, tx: panStartTx + dx, ty: panStartTy + dy }));
+            apply(softTxTyClamp({
+              scale: xformRef.current.scale,
+              tx: panStartTx + dx,
+              ty: panStartTy + dy,
+            }));
           } else if (Math.abs(dx) > Math.abs(dy)) {
             /* scale===1 + horizontal-dominant — swipe carousel */
             e.preventDefault();
@@ -559,6 +597,14 @@ export default function GoodDaysPage() {
       }
 
       if (e.touches.length === 0) {
+        if (isPanning) {
+          /* pan release — over-pan 시 hard clamp 로 spring back (transition 적용) */
+          const curr = xformRef.current;
+          const clamped = clamp(curr);
+          if (clamped.tx !== curr.tx || clamped.ty !== curr.ty) {
+            apply(clamped, true);
+          }
+        }
         isPanning = false;
       }
     }
@@ -697,7 +743,6 @@ export default function GoodDaysPage() {
           <div className="gd-lb-slide" aria-hidden="true">
             {prevImg && (
               <Image
-                key={prevImg.src}
                 src={prevImg.src}
                 alt=""
                 fill
@@ -709,7 +754,9 @@ export default function GoodDaysPage() {
             )}
           </div>
           {/* current slide — priority: lazy 비활성 + fetchPriority high.
-              prev/next 가 eager fetch 한 캐시를 hit → 즉시 표시. */}
+              prev/next 가 eager fetch 한 캐시를 hit → 즉시 표시.
+              key 미사용: src 변경 시 React 가 같은 Image 의 src prop 만 갱신 →
+              next/image 가 자체 swap 처리 (key 부여 시 unmount+remount 으로 1 frame 깜빡임). */}
           <div className="gd-lb-slide">
             <div
               id="gd-lb-img-wrap"
@@ -720,7 +767,6 @@ export default function GoodDaysPage() {
               }}
             >
               <Image
-                key={currentImg.src}
                 src={currentImg.src}
                 alt={`갤러리 이미지 ${(lightboxIdx ?? 0) + 1}`}
                 fill
@@ -735,7 +781,6 @@ export default function GoodDaysPage() {
           <div className="gd-lb-slide" aria-hidden="true">
             {nextImg && (
               <Image
-                key={nextImg.src}
                 src={nextImg.src}
                 alt=""
                 fill
