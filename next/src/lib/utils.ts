@@ -2,6 +2,14 @@
    Utility Functions
    ══════════════════════════════════════════ */
 
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+/** Tailwind 클래스 병합 (shadcn/ui 표준 헬퍼). */
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs));
+}
+
 /** 가격 문자열에서 숫자만 추출 ("15,000원" → 15000) */
 export function parsePrice(str: string): number {
   return parseInt(str.replace(/[₩,\s원]/g, ''), 10) || 0;
