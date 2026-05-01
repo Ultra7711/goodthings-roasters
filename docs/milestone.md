@@ -3,8 +3,8 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-05-01 · Session 123 — 굿데이즈 라이트박스 잔존 closure (`07da3abb`). S121 잔존 2 (더블탭 X 깜빡임 + 핀치 도중 X 노출) closure + 컨트롤 일괄 토글(X·화살표·줌 +/-) + open/close layout shift 차단. 진단 → fix 패턴 (S122 동일): console.log 6종 + 라이브러리 source 분석 → 결함 확정 → `lastZoomAtRef` 320ms cooldown + debounce 폐기 + `noScroll: { disabled: true }` + body overflow 직접 관리. 416/416 vitest green. 상세 `memory/project_session123_complete.md`.
-> 이전: Session 122 — S121 잔존 1 (메인→굿데이즈 cream flash) closure + cacheComponents cleanup self-destruct 패턴 학습 (`ec9dc910`). Session 121 — 이미지 최적화 Phase 1 (next/image · LQIP) + yet-another-react-lightbox 라이브러리 컨버전 (`76d225ae`). Session 116 — 카페 메뉴 likes 외부 store 격리(옵션 B).
+> **최종 업데이트:** 2026-05-02 · Session 124 — 어드민 풀 구축 진입 (`f5f700bc`). Group A 인프라 완료 (shadcn/ui 17 컴포넌트 + 9 placeholder 라우트 + Storage 버킷 4종 마이그레이션 028) + Claude Design 핸드오프 적용 (clay orange + Fraunces serif + 다크 사이드바) + Step 1 폴리싱 (마이그레이션 029 — `profiles.display_name`/`title` + 사이드바 사용자 카드 + 환영 헤더 + 알림 dot + 로그인 체크박스). admin 계정 2개 활성. 시안 vs 구현 정밀 비교 완료 — Step 2/3 (~2h) 다음 세션 처리 예정. KakaoMap 진단 로그 commit (`c91d432e`) iPhone 복구 후 측정·제거 대기. 417/417 vitest green. 상세 `memory/project_session124_complete.md`.
+> 이전: Session 123 — 굿데이즈 라이트박스 잔존 closure (`07da3abb`). Session 122 — cream flash closure + cacheComponents cleanup self-destruct 패턴 학습 (`ec9dc910`). Session 121 — 이미지 최적화 Phase 1 + yet-another-react-lightbox 라이브러리 컨버전 (`76d225ae`).
 
 ---
 
@@ -28,10 +28,10 @@
 | Phase 3 — Backend | 3 | 1 | 0 | ~75% |
 | Phase 4 — Infrastructure | 4 | 1 | 0 | ~85% |
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
-| 어드민 풀 구축 (출시 전 신규 영역) | 0 | 0 | 7 | 0% |
+| 어드민 풀 구축 (출시 전 신규 영역) | 0 | 1 (A 진행 중) | 9 | ~5% |
 | User AI | 0 | 0 | 1 | 0% |
 
-**현재 위치 (S123 종료, 2026-05-01):**
+**현재 위치 (S124 종료, 2026-05-02):**
 
 - Sessions 18~49 디자인 폴리시·반응형 4BP 완료. Sessions 51~60 Phase 4 인프라(Vercel·Supabase·Sentry) + Phase 1 인터랙션 ②⑤⑧.
 - BUG-006 Tier 3 Stage C+D ✅ Session 66 (`9f954e90`) — Activity preserve + route-change event. 후속 묶음 A~E (S73~S77) 모두 closure.
