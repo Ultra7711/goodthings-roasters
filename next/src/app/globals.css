@@ -407,7 +407,7 @@
 
   /* ── 오버레이 딤 ── */
   --overlay-dim-bg: rgba(0,0,0,.35);
-  --overlay-lightbox-bg: rgba(0,0,0,.9);
+  --overlay-lightbox-bg: var(--color-background-inverse);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -6186,14 +6186,15 @@ footer.blk {
   position: fixed;
   inset: 0;
   z-index: var(--z-lightbox);
-  background: rgba(0, 0, 0, 1);
+  background: var(--color-background-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--duration-fade) ease, background var(--duration-fade) ease;
+  transition: opacity var(--duration-fade) ease;
+  overflow: hidden;
 }
 .gd-lightbox.open {
   opacity: 1;
@@ -6206,23 +6207,36 @@ footer.blk {
   opacity: 1;
   pointer-events: auto;
 }
-.gd-lightbox.gd-lb-settled {
-  background: var(--overlay-lightbox-bg);
+/* 3-slide carousel track — prev/current/next 동시 렌더, 통째로 translateX */
+.gd-lb-track {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  width: 300vw;
+  transform: translateX(-100vw);
+  will-change: transform;
+}
+.gd-lb-slide {
+  position: relative;
+  flex: 0 0 100vw;
+  height: 100svh;
+  overflow: hidden;
 }
 .gd-lightbox img {
-  width: 100vw;
-  height: 100svh;
-  max-width: 100vw;
-  max-height: 100svh;
-  object-fit: contain;
   cursor: default;
   user-select: none;
   -webkit-user-select: none;
 }
+/* current slide 내부의 핀치/팬 변환 wrap */
 #gd-lb-img-wrap {
   position: absolute;
   inset: 0;
   will-change: transform;
+}
+/* 확대 중 컨트롤 자동 hide — 한 번 더 single tap 으로 다시 노출 */
+.gd-lightbox.controls-hidden .gd-lb-close {
+  opacity: 0;
+  pointer-events: none;
 }
 /* 라이트박스 버튼 — 크기는 공통 클래스(close-btn-secondary-dark / arrow-btn-primary) 담당.
    color/opacity/filter 는 라이트박스 컨텍스트에서 직접 지정 (배경 무관 가독성).

@@ -113,6 +113,10 @@ export default function GoodDaysPage() {
   const [xform, setXform] = useState({ scale: 1, tx: 0, ty: 0 });
   const [xformAnim, setXformAnim] = useState(false);
   const xformRef = useRef({ scale: 1, tx: 0, ty: 0 });
+  /* 3-slide carousel track ref — swipe peek 시 DOM 직접 transform 조작 */
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  /* 확대 시 컨트롤(닫기 버튼) auto-hide. scale>1 단일 탭으로 toggle. */
+  const [controlsHidden, setControlsHidden] = useState(false);
   /* 라이트박스 settled 타이머 ref — 빠른 열기/닫기 시 stale state update 방지 */
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /* ?img= query 마지막 처리 src — 중복 실행 방지 + Activity 복귀 시 stale 판정.
@@ -222,6 +226,7 @@ export default function GoodDaysPage() {
     xformRef.current = zeroXform;
     setXform(zeroXform);
     setXformAnim(false);
+    setControlsHidden(false);
     /* Stage D-2: 다음 동일 ?img= 재진입을 허용하려면 ref 도 리셋 */
     lastHandledImgSrcRef.current = null;
     /* ?img= 파라미터가 남아 있으면 제거 — 새로고침 시 라이트박스 재오픈 방지 */
@@ -246,11 +251,12 @@ export default function GoodDaysPage() {
 
   const navLightbox = useCallback(
     (delta: number) => {
-      /* 이미지 전환 시 변환 초기화 */
+      /* 이미지 전환 시 변환 + 컨트롤 상태 초기화 */
       const zeroXform = { scale: 1, tx: 0, ty: 0 };
       xformRef.current = zeroXform;
       setXform(zeroXform);
       setXformAnim(false);
+      setControlsHidden(false);
       setLightboxIdx((prev) => {
         if (prev === null) return prev;
         return (prev + delta + ordered.length) % ordered.length;
@@ -275,8 +281,12 @@ export default function GoodDaysPage() {
   const flashArrowRef = useRef(flashArrow);
   flashArrowRef.current = flashArrow;
 
-  /* 라이트박스 제스처 — 핀치 줌 · 팬 · 더블탭 토글
-     gd-lightbox 컨테이너에 등록. passive:false → touchmove/touchend 에서 preventDefault 허용. */
+  /* 라이트박스 제스처 — 핀치 줌(rubber band) · 팬 · 더블탭 · swipe(carousel peek) · 컨트롤 토글
+     gd-lightbox 컨테이너에 등록. passive:false → touchmove/touchend 에서 preventDefault 허용.
+
+     swipe(scale===1, 한 손가락 horizontal drag) 는 trackRef 의 transform 을 DOM 직접 조작 —
+     React state sync 이슈 회피 + 60fps 부드러운 peek. 종료 시 임계 초과면 navLightbox 호출하고
+     transform 즉시 -100vw 로 점프 (transition:none + rAF) → 새 current 가 가운데. */
   useEffect(() => {
     if (lightboxIdx === null) return;
     const lb = document.getElementById('gd-lightbox') as HTMLElement | null;
@@ -298,27 +308,39 @@ export default function GoodDaysPage() {
     let panStartTx = 0;
     let panStartTy = 0;
 
+    /* swipe 상태 (scale === 1 carousel) */
+    let isSwiping = false;
+    let swipeStartX = 0;
+    let swipeStartT = 0;
+    let swipeDx = 0;
+
     let lastTapTime = 0;
     let lastTapX = 0;
     let lastTapY = 0;
-    let touchStartX = 0;
-    let touchStartY = 0;
     let touchMoved = false;
 
     function twoFingerDist(t: TouchList) {
       return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     }
 
-    /* 이동 범위 클램핑 — 이미지가 컨테이너 밖으로 나가지 않도록 */
+    /* 이동 범위 클램핑 — 이미지가 컨테이너 밖으로 나가지 않도록 (scale ≤ 4 상정) */
     function clamp(t: { scale: number; tx: number; ty: number }) {
       const { scale, tx, ty } = t;
-      const maxTx = Math.max(0, (container.offsetWidth * (scale - 1)) / 2);
-      const maxTy = Math.max(0, (container.offsetHeight * (scale - 1)) / 2);
+      const effectiveScale = Math.max(1, Math.min(4, scale));
+      const maxTx = Math.max(0, (container.offsetWidth * (effectiveScale - 1)) / 2);
+      const maxTy = Math.max(0, (container.offsetHeight * (effectiveScale - 1)) / 2);
       return {
         scale,
         tx: Math.min(maxTx, Math.max(-maxTx, tx)),
         ty: Math.min(maxTy, Math.max(-maxTy, ty)),
       };
+    }
+
+    /* rubber band: scale 이 [1,4] 를 벗어나면 저항 0.3 으로 over-scale 허용 */
+    function softScaleClamp(raw: number): number {
+      if (raw > 4) return 4 + (raw - 4) * 0.3;
+      if (raw < 1) return Math.max(0.5, 1 - (1 - raw) * 0.3);
+      return raw;
     }
 
     function apply(t: { scale: number; tx: number; ty: number }, anim = false) {
@@ -327,10 +349,40 @@ export default function GoodDaysPage() {
       setXform({ ...t });
     }
 
+    /* track DOM 직접 조작 — swipe peek 부드러움 우선 */
+    function setTrackDx(dx: number, anim: boolean) {
+      const track = trackRef.current;
+      if (!track) return;
+      track.style.transition = anim ? 'transform 0.25s ease-out' : 'none';
+      track.style.transform = `translateX(calc(-100vw + ${dx}px))`;
+    }
+
+    function commitSwipe(dir: -1 | 1) {
+      const track = trackRef.current;
+      const winW = window.innerWidth;
+      if (!track) {
+        navLightboxRef.current(dir);
+        return;
+      }
+      track.style.transition = 'transform 0.25s ease-out';
+      track.style.transform = `translateX(${dir === -1 ? 0 : -2 * winW}px)`;
+      window.setTimeout(() => {
+        if (!trackRef.current) return;
+        trackRef.current.style.transition = 'none';
+        trackRef.current.style.transform = 'translateX(-100vw)';
+        navLightboxRef.current(dir);
+      }, 260);
+    }
+
+    function springBackTrack() {
+      setTrackDx(0, true);
+    }
+
     function onStart(e: TouchEvent) {
       if (e.touches.length === 2) {
         isPinching = true;
         isPanning = false;
+        isSwiping = false;
         const curr = xformRef.current;
         pinchStartDist = twoFingerDist(e.touches);
         pinchStartScale = curr.scale;
@@ -343,13 +395,15 @@ export default function GoodDaysPage() {
         pinchCenterY = midY - rect.top - rect.height / 2;
         setXformAnim(false);
       } else if (e.touches.length === 1 && !isPinching) {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
         touchMoved = false;
         panStartX = e.touches[0].clientX;
         panStartY = e.touches[0].clientY;
         panStartTx = xformRef.current.tx;
         panStartTy = xformRef.current.ty;
+        swipeStartX = e.touches[0].clientX;
+        swipeStartT = Date.now();
+        swipeDx = 0;
+        isSwiping = false;
         setXformAnim(false);
       }
     }
@@ -358,21 +412,34 @@ export default function GoodDaysPage() {
       if (e.touches.length === 2 && isPinching) {
         e.preventDefault();
         const currDist = twoFingerDist(e.touches);
-        const newScale = Math.min(4, Math.max(1, pinchStartScale * (currDist / pinchStartDist)));
+        const rawScale = pinchStartScale * (currDist / pinchStartDist);
+        const newScale = softScaleClamp(rawScale);
         const scaleChange = newScale / pinchStartScale;
         /* 핀치 중심 고정 공식: tx' = pcx + scaleChange * (startTx - pcx) */
         const newTx = pinchCenterX + scaleChange * (pinchStartTx - pinchCenterX);
         const newTy = pinchCenterY + scaleChange * (pinchStartTy - pinchCenterY);
-        apply(clamp({ scale: newScale, tx: newTx, ty: newTy }));
+        /* 1~4 범위 내에서만 tx/ty clamp, over-scale 시 raw 유지 (release 시 spring back) */
+        if (newScale >= 1 && newScale <= 4) {
+          apply(clamp({ scale: newScale, tx: newTx, ty: newTy }));
+        } else {
+          apply({ scale: newScale, tx: newTx, ty: newTy });
+        }
       } else if (e.touches.length === 1 && !isPinching) {
         const dx = e.touches[0].clientX - panStartX;
         const dy = e.touches[0].clientY - panStartY;
         if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
           touchMoved = true;
           if (xformRef.current.scale > 1) {
+            /* 확대 상태 — 기존 pan */
             e.preventDefault();
             isPanning = true;
             apply(clamp({ scale: xformRef.current.scale, tx: panStartTx + dx, ty: panStartTy + dy }));
+          } else if (Math.abs(dx) > Math.abs(dy)) {
+            /* scale===1 + horizontal-dominant — swipe carousel */
+            e.preventDefault();
+            isSwiping = true;
+            swipeDx = dx;
+            setTrackDx(dx, false);
           }
         }
       }
@@ -382,7 +449,12 @@ export default function GoodDaysPage() {
       /* 핀치 종료 */
       if (isPinching && e.touches.length < 2) {
         isPinching = false;
-        if (xformRef.current.scale < 1.1) {
+        const curr = xformRef.current;
+        if (curr.scale > 4) {
+          /* over-scale — 4 까지 spring back, tx/ty 도 clamp 한 값으로 */
+          apply(clamp({ scale: 4, tx: curr.tx, ty: curr.ty }), true);
+          isPanning = false;
+        } else if (curr.scale < 1.1) {
           apply({ scale: 1, tx: 0, ty: 0 }, true);
           isPanning = false;
         } else if (e.touches.length === 1) {
@@ -395,6 +467,27 @@ export default function GoodDaysPage() {
           isPanning = false;
         } else {
           isPanning = false;
+        }
+        return;
+      }
+
+      /* swipe 종료 — 임계 초과 시 carousel 전환, 미달 시 spring back */
+      if (isSwiping && e.touches.length === 0) {
+        isSwiping = false;
+        const dt = Math.max(1, Date.now() - swipeStartT);
+        const velocity = Math.abs(swipeDx) / dt; // px/ms
+        const winW = window.innerWidth;
+        const dragThreshold = winW * 0.15;
+        const velocityThreshold = 0.5;
+        const passed = Math.abs(swipeDx) > dragThreshold || velocity > velocityThreshold;
+        if (passed && swipeDx < 0) {
+          flashArrowRef.current('next');
+          commitSwipe(1);
+        } else if (passed && swipeDx > 0) {
+          flashArrowRef.current('prev');
+          commitSwipe(-1);
+        } else {
+          springBackTrack();
         }
         return;
       }
@@ -420,6 +513,7 @@ export default function GoodDaysPage() {
           if (xformRef.current.scale > 1) {
             /* 더블탭 → 원래 크기 복귀 */
             apply({ scale: 1, tx: 0, ty: 0 }, true);
+            setControlsHidden(false);
           } else {
             /* 더블탭 → 탭 위치 기준 2배 확대
                공식 유도: 이미지 공간의 탭 위치 imgP = (pcx - tx) / s = pcx (s=1, tx=0)
@@ -433,8 +527,11 @@ export default function GoodDaysPage() {
           lastTapTime = now;
           lastTapX = tapX;
           lastTapY = tapY;
-          /* 단일 탭 — scale===1 일 때만 네비게이션 */
-          if (xformRef.current.scale === 1) {
+          if (xformRef.current.scale > 1) {
+            /* 확대 상태 — 단일 탭으로 컨트롤(닫기 버튼) toggle */
+            setControlsHidden((v) => !v);
+          } else {
+            /* scale===1 — 좌/우 35% 영역 탭으로 prev/next (기존) */
             const rect = container.getBoundingClientRect();
             const relX = tapX - rect.left;
             if (relX < rect.width * 0.35) {
@@ -464,6 +561,16 @@ export default function GoodDaysPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightboxIdx]);
 
+  /* 확대 시 컨트롤 자동 hide — scale 변동에 따라 자동 sync.
+     단일 탭 토글로 사용자가 수동으로 다시 띄울 수 있다 (제스처 핸들러 참조). */
+  useEffect(() => {
+    if (xform.scale > 1) {
+      setControlsHidden(true);
+    } else {
+      setControlsHidden(false);
+    }
+  }, [xform.scale]);
+
   /* 라이트박스 오픈 중 키보드 컨트롤 */
   useEffect(() => {
     if (lightboxIdx === null) return;
@@ -490,6 +597,14 @@ export default function GoodDaysPage() {
   }, [lightboxIdx]);
 
   const currentImg = lightboxIdx !== null ? ordered[lightboxIdx] : null;
+  const prevImg =
+    lightboxIdx !== null && ordered.length > 0
+      ? ordered[(lightboxIdx - 1 + ordered.length) % ordered.length]
+      : null;
+  const nextImg =
+    lightboxIdx !== null && ordered.length > 0
+      ? ordered[(lightboxIdx + 1) % ordered.length]
+      : null;
 
   /* 라이트박스 — 프로토타입 L4193 처럼 body 직계로 렌더해야
      #gd-page 의 pageEnter transform 이 만드는 stacking context 에 갇히지 않음
@@ -502,7 +617,7 @@ export default function GoodDaysPage() {
       id="gd-lightbox"
       className={`gd-lightbox${lightboxIdx !== null ? ' open' : ''}${
         lbInstant ? ' gd-lb-instant' : ''
-      }${lbSettled ? ' gd-lb-settled' : ''}`}
+      }${lbSettled ? ' gd-lb-settled' : ''}${controlsHidden ? ' controls-hidden' : ''}`}
       onClick={(e) => {
         if (e.target === e.currentTarget) closeLightbox();
       }}
@@ -562,24 +677,62 @@ export default function GoodDaysPage() {
         </svg>
       </button>
       {currentImg && (
-        <div
-          id="gd-lb-img-wrap"
-          style={{
-            transform: `translate(${xform.tx}px, ${xform.ty}px) scale(${xform.scale})`,
-            transformOrigin: 'center center',
-            transition: xformAnim ? 'transform 0.25s ease-out' : 'none',
-          }}
-        >
-          <Image
-            src={currentImg.src}
-            alt={`갤러리 이미지 ${(lightboxIdx ?? 0) + 1}`}
-            fill
-            sizes="100vw"
-            quality={85}
-            placeholder="blur"
-            blurDataURL={currentImg.blurDataURL}
-            style={{ objectFit: 'contain' }}
-          />
+        <div className="gd-lb-track" ref={trackRef}>
+          {/* prev slide — 좌 swipe peek */}
+          <div className="gd-lb-slide" aria-hidden="true">
+            {prevImg && (
+              <Image
+                key={prevImg.src}
+                src={prevImg.src}
+                alt=""
+                fill
+                sizes="100vw"
+                quality={85}
+                placeholder="blur"
+                blurDataURL={prevImg.blurDataURL}
+                style={{ objectFit: 'contain' }}
+              />
+            )}
+          </div>
+          {/* current slide — 핀치/팬 변환은 이 안의 wrap 에만 적용 */}
+          <div className="gd-lb-slide">
+            <div
+              id="gd-lb-img-wrap"
+              style={{
+                transform: `translate(${xform.tx}px, ${xform.ty}px) scale(${xform.scale})`,
+                transformOrigin: 'center center',
+                transition: xformAnim ? 'transform 0.25s ease-out' : 'none',
+              }}
+            >
+              <Image
+                key={currentImg.src}
+                src={currentImg.src}
+                alt={`갤러리 이미지 ${(lightboxIdx ?? 0) + 1}`}
+                fill
+                sizes="100vw"
+                quality={85}
+                placeholder="blur"
+                blurDataURL={currentImg.blurDataURL}
+                style={{ objectFit: 'contain' }}
+              />
+            </div>
+          </div>
+          {/* next slide — 우 swipe peek */}
+          <div className="gd-lb-slide" aria-hidden="true">
+            {nextImg && (
+              <Image
+                key={nextImg.src}
+                src={nextImg.src}
+                alt=""
+                fill
+                sizes="100vw"
+                quality={85}
+                placeholder="blur"
+                blurDataURL={nextImg.blurDataURL}
+                style={{ objectFit: 'contain' }}
+              />
+            )}
+          </div>
         </div>
       )}
       <button
