@@ -6220,12 +6220,35 @@ body.gd-route-transition.gd-route-transition--fade::before {
 .gd-tap-zone--prev { left: 0; }
 .gd-tap-zone--next { right: 0; }
 
-/* 닫기 버튼 fade — 줌 in 시 자동 hide, 탭 시 toggle. 250ms opacity transition. */
-.gd-close-btn {
-  transition: opacity 250ms ease;
+/* 라이트박스 컨트롤 일괄 fade — Lightbox root 의 .gd-controls-hidden 클래스로 토글.
+   각 컨트롤은 자기 가장자리 방향으로 8px translate + opacity 0 (250ms ease).
+   yarl default 의 .yarl__navigation_prev/next 가 translateY(-50%) 갖고 있으므로
+   base transform 에서 translateY(-50%) 보존 + translateX 추가 토글. */
+.yarl__navigation_prev {
+  transform: translateY(-50%) translateX(0);
+  transition: opacity 250ms ease, transform 250ms ease;
 }
-.gd-close-btn--hidden {
+.yarl__navigation_next {
+  transform: translateY(-50%) translateX(0);
+  transition: opacity 250ms ease, transform 250ms ease;
+}
+.yarl__toolbar {
+  transform: translateY(0);
+  transition: opacity 250ms ease, transform 250ms ease;
+}
+.gd-controls-hidden .yarl__navigation_prev {
   opacity: 0;
+  transform: translateY(-50%) translateX(-8px);
+  pointer-events: none;
+}
+.gd-controls-hidden .yarl__navigation_next {
+  opacity: 0;
+  transform: translateY(-50%) translateX(8px);
+  pointer-events: none;
+}
+.gd-controls-hidden .yarl__toolbar {
+  opacity: 0;
+  transform: translateY(-8px);
   pointer-events: none;
 }
 

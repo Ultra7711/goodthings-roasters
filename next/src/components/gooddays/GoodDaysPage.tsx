@@ -81,20 +81,24 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  /* 줌 상태 — Zoom plugin 의 on.zoom 콜백으로 sync.
-     - isZoomed > 0 시 zone tap unmount (핀치 충돌 차단)
-     - controlsHidden true → 닫기 버튼 hide
-     - 사용자가 줌 인 상태에서 image 탭 → controlsHidden toggle (UI 노출/hide) */
+  /* 줌 상태 + 컨트롤 가시성 — Zoom plugin 의 on.zoom + on.click 콜백으로 sync.
+     - isZoomed: zone tap unmount 용 (핀치 충돌 차단)
+     - controlsHidden: 모든 라이트박스 컨트롤 (X · 화살표 · 줌 +/-) 일괄 hide
+
+     S123: 두 메커니즘
+     1) zoom 변화 시 즉시 setControlsHidden(zoomed) — 줌 인 자동 hide, 줌 아웃 자동 show
+     2) single click 토글 — clickTimerRef 로 doubleClickDelay (320ms) 지연 발화.
+        2nd click (더블클릭/탭) 또는 zoom 변화 시 timer cancel → 깜빡임 0. */
   const [isZoomed, setIsZoomed] = useState(false);
   const [controlsHidden, setControlsHidden] = useState(false);
-  const isZoomedRef = useRef(false);
-  isZoomedRef.current = isZoomed;
-  /* zoom callback debounce — 더블탭/핀치 transition 중 zoom 변화 frame 마다 콜백 발화로
-     controlsHidden 빠른 토글 → X 버튼 깜빡임. 150ms debounce 로 안정 후에만 갱신. */
-  const zoomDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* 마지막 zoom 발화 timestamp — zoom 직후 320ms 내 도착하는 click 은 더블클릭의 2nd tap
+     으로 간주하고 무시. 라이브러리는 더블클릭 시 click 이벤트를 2회 발화하므로
+     2nd click 을 timer 패턴만으로는 구분 불가 (S123 진단 확정). */
+  const lastZoomAtRef = useRef(0);
   useEffect(() => {
     return () => {
-      if (zoomDebounceRef.current) clearTimeout(zoomDebounceRef.current);
+      if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
     };
   }, []);
 
@@ -298,6 +302,7 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
       </div>
 
       <Lightbox
+        className={controlsHidden ? 'gd-controls-hidden' : ''}
         open={lbOpen}
         close={handleClose}
         index={lbIndex}
@@ -324,23 +329,33 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
             }, 300);
           },
           view: ({ index }) => setLbIndex(index),
-          /* 줌 sync — isZoomed 즉시 (zone unmount 우선), controlsHidden 은 150ms debounce.
-             더블탭/핀치 transition 의 frame 단위 zoom 변화에서 X 깜빡임 차단. */
+          /* 줌 sync — zoomed 변화 시 isZoomed/controlsHidden 즉시 갱신.
+             pending click toggle 은 cancel — 더블클릭/탭의 1st click 토글 발화 차단.
+             S123: 이전 debounce 150ms 폐기. 더블탭은 라이브러리가 changeZoom 1회 호출 →
+             on.zoom 1회 → render 1회 → 깜빡임 0. 핀치는 매 frame on.zoom 발화하지만
+             zoomed=true 동안 같은 값 setState 는 React no-op. */
           zoom: ({ zoom }) => {
+            if (clickTimerRef.current) {
+              clearTimeout(clickTimerRef.current);
+              clickTimerRef.current = null;
+            }
+            lastZoomAtRef.current = performance.now();
             const zoomed = zoom > 1;
             setIsZoomed(zoomed);
-            if (zoomDebounceRef.current) clearTimeout(zoomDebounceRef.current);
-            zoomDebounceRef.current = setTimeout(() => {
-              setControlsHidden(zoomed);
-              zoomDebounceRef.current = null;
-            }, 150);
+            setControlsHidden(zoomed);
           },
-          /* 줌 in 상태에서 image 탭 → 닫기 버튼 toggle (한 번 노출, 다시 hide).
-             zoom===1 상태 탭은 스킵 (zone tap 또는 swipe 가 처리). */
+          /* image 클릭 → 컨트롤 토글 (X · 화살표 · 줌 +/- 일괄).
+             - zoom 발화 직후 320ms 내 click → 더블클릭의 2nd tap 으로 간주 + 무시
+             - 그 외 → 320ms timer 시작 → 그 안에 다음 click 없으면 single click 토글
+             - 더블클릭 시 1st click 의 timer 는 on.zoom 이 cancel + lastZoomAt 갱신 →
+               2nd click 은 320ms 내 도착이라 무시 → 토글 발화 안 됨 → 깜빡임 0 */
           click: () => {
-            if (isZoomedRef.current) {
+            if (performance.now() - lastZoomAtRef.current < 320) return;
+            if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+            clickTimerRef.current = setTimeout(() => {
               setControlsHidden((v) => !v);
-            }
+              clickTimerRef.current = null;
+            }, 320);
           },
         }}
         render={{
@@ -383,10 +398,9 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
           /* 모바일은 drag swipe 로 충분 → 화살표 제거. 데스크탑은 default 노출. */
           buttonPrev: isMobile ? () => null : undefined,
           buttonNext: isMobile ? () => null : undefined,
-          /* 닫기 버튼 always render — opacity transition 으로 fade in/out (250ms ease).
-             이전 conditional null 패턴은 unmount/mount 라 fade 불가.
-             key="close" — yarl Toolbar 가 buttons.map 으로 렌더하므로 ACTION_CLOSE 와 동일 key 부여. */
-          buttonClose: () => <GdCloseButton key="close" controlsHidden={controlsHidden} />,
+          /* 닫기 버튼 always render — controlsHidden 은 root .gd-controls-hidden 클래스로
+             toolbar 일괄 fade. key="close" — yarl Toolbar buttons.map 의 ACTION_CLOSE 와 동일 key. */
+          buttonClose: () => <GdCloseButton key="close" />,
           /* 줌 +/- 아이콘 — Lucide ZoomIn / ZoomOut */
           iconZoomIn: () => <ZoomIn size={28} strokeWidth={1.5} aria-hidden="true" />,
           iconZoomOut: () => <ZoomOut size={28} strokeWidth={1.5} aria-hidden="true" />,

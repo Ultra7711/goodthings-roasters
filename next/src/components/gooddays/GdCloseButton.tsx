@@ -1,20 +1,19 @@
 /* ══════════════════════════════════════════
    GdCloseButton — yet-another-react-lightbox 의 buttonClose render 컴포넌트.
-   Always render + className 토글 → opacity transition 가능 (이전 conditional null 패턴은 unmount/mount 라 fade 불가).
+   S123: controlsHidden prop 폐기. 컨트롤 일괄 hide 는 Lightbox root 의
+   .gd-controls-hidden 클래스 + .yarl__toolbar fade 로 처리.
    ══════════════════════════════════════════ */
 
 'use client';
 
 import { useController } from 'yet-another-react-lightbox';
 
-type Props = { controlsHidden: boolean };
-
-export default function GdCloseButton({ controlsHidden }: Props) {
+export default function GdCloseButton() {
   const { close } = useController();
   return (
     <button
       type="button"
-      className={`yarl__button gd-close-btn${controlsHidden ? ' gd-close-btn--hidden' : ''}`}
+      className="yarl__button gd-close-btn"
       onClick={close}
       aria-label="Close"
     >
