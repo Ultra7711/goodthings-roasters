@@ -260,15 +260,16 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
         }}
         render={{
           slide: LightboxNextJsImage,
-          /* 좌우 화살표 — 기존 GTR 디자인 (polyline) 재사용. 색상은 라이브러리 default white. */
+          /* 좌우 화살표 — 기존 GTR 디자인 (polyline) 재사용. 색상은 라이브러리 default white.
+             데스크탑 hit 영역 키움: SVG 48px + strokeWidth 1.25 (시각 균형). */
           iconPrev: () => (
             <svg
-              width="36"
-              height="36"
+              width="48"
+              height="48"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="1.25"
               strokeLinecap="round"
               strokeLinejoin="round"
               aria-hidden="true"
@@ -278,12 +279,12 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
           ),
           iconNext: () => (
             <svg
-              width="36"
-              height="36"
+              width="48"
+              height="48"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="1.25"
               strokeLinecap="round"
               strokeLinejoin="round"
               aria-hidden="true"
@@ -291,6 +292,9 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
               <polyline points="9 18 15 12 9 6" />
             </svg>
           ),
+          /* 모바일은 drag swipe 로 충분 → 화살표 제거. 데스크탑은 default 노출. */
+          buttonPrev: isMobile ? () => null : undefined,
+          buttonNext: isMobile ? () => null : undefined,
           /* 줌 +/- 아이콘 — Lucide ZoomIn / ZoomOut */
           iconZoomIn: () => <ZoomIn size={28} strokeWidth={1.5} aria-hidden="true" />,
           iconZoomOut: () => <ZoomOut size={28} strokeWidth={1.5} aria-hidden="true" />,
