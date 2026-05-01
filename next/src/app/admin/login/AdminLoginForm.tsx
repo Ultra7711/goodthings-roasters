@@ -1,20 +1,19 @@
 'use client';
 
+/* ══════════════════════════════════════════
+   AdminLoginForm — Claude Design 핸드오프 적용.
+   - 380px 카드 + 도트 패턴 backdrop + 브랜드 마크
+   - 이메일 + 비밀번호 + (참고용 placeholder) 로그인 유지 + 비번 찾기 링크
+   ══════════════════════════════════════════ */
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogIn, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 import { Label } from '@/components/admin/ui/label';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/admin/ui/card';
 
 export default function AdminLoginForm() {
   const router = useRouter();
@@ -34,7 +33,6 @@ export default function AdminLoginForm() {
         return;
       }
 
-      /* admin role 검증 — /api/admin/me (세션 기반 is_admin RPC) */
       const res = await fetch('/api/admin/me', { method: 'GET', cache: 'no-store' });
       if (!res.ok) {
         await supabase.auth.signOut();
@@ -53,49 +51,104 @@ export default function AdminLoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader className="space-y-1.5">
-        <CardTitle className="text-2xl font-semibold tracking-tight">
-          Admin Console
-        </CardTitle>
-        <CardDescription>관리자 계정으로 로그인합니다.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="admin-email">이메일</Label>
-            <Input
-              id="admin-email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={submitting}
-            />
+    <div
+      className="relative w-[380px] p-9 pb-7"
+      style={{
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
+        borderRadius: 12,
+        boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+      }}
+    >
+      {/* 브랜드 마크 */}
+      <div className="mb-6 flex justify-center">
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-[10px] text-white"
+          style={{
+            background: 'var(--foreground)',
+            fontFamily: 'var(--font-serif)',
+            fontWeight: 500,
+            fontSize: 22,
+          }}
+        >
+          G
+        </div>
+      </div>
+
+      {/* 헤딩 */}
+      <div className="mb-7 text-center">
+        <h1
+          className="gtr-serif m-0 text-[22px] font-medium"
+          style={{ letterSpacing: '-0.02em' }}
+        >
+          어드민 로그인
+        </h1>
+        <div
+          className="mt-1.5 text-[13px]"
+          style={{ color: 'var(--foreground-muted)' }}
+        >
+          Good Things Roasters · 운영자 콘솔
+        </div>
+      </div>
+
+      {/* 폼 */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="admin-email" className="flex items-center gap-1 text-[12.5px] font-medium">
+            이메일 <span style={{ color: 'var(--primary)' }}>*</span>
+          </Label>
+          <Input
+            id="admin-email"
+            type="email"
+            autoComplete="email"
+            placeholder="name@example.com"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={submitting}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="admin-password" className="flex items-center gap-1 text-[12.5px] font-medium">
+              비밀번호 <span style={{ color: 'var(--primary)' }}>*</span>
+            </Label>
+            <span
+              className="text-[11.5px]"
+              style={{ color: 'var(--foreground-muted)' }}
+            >
+              비밀번호 분실 시 운영자에게 문의
+            </span>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="admin-password">비밀번호</Label>
-            <Input
-              id="admin-password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={submitting}
-            />
-          </div>
-          <Button type="submit" disabled={submitting} className="w-full">
-            {submitting ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <LogIn className="size-4" />
-            )}
-            로그인
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+          <Input
+            id="admin-password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={submitting}
+          />
+        </div>
+
+        <Button type="submit" disabled={submitting} className="mt-1 h-[38px] w-full">
+          {submitting && <Loader2 className="size-4 animate-spin" />}
+          로그인
+        </Button>
+      </form>
+
+      {/* 푸터 */}
+      <div
+        className="mt-6 flex justify-center pt-4 text-[11.5px]"
+        style={{
+          borderTop: '1px solid var(--border)',
+          color: 'var(--foreground-subtle)',
+          letterSpacing: '0.02em',
+        }}
+      >
+        Good Things Roasters · Admin Console
+      </div>
+    </div>
   );
 }

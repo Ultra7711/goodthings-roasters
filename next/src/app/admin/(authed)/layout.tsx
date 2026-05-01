@@ -26,10 +26,10 @@ async function AdminAuthedInner({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <AdminSidebar />
+      <AdminSidebar email={claims.email} />
       <div className="flex flex-1 flex-col">
         <AdminTopbar email={claims.email} />
-        <main className="flex-1 overflow-x-hidden px-6 py-8">{children}</main>
+        <main className="flex-1 overflow-x-hidden px-8 py-7">{children}</main>
       </div>
     </div>
   );

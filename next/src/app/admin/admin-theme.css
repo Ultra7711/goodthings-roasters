@@ -1,61 +1,113 @@
 /* ══════════════════════════════════════════
-   Admin Theme — shadcn/ui (new-york · neutral)
-   - 어드민 전용 토큰. `.admin-root` 스코프 안에서만 활성화.
-   - 메인 사이트 디자인 시스템과 격리.
+   Admin Theme — Good Things Roasters
+   - Claude Design 핸드오프 (2026-05-02) 기반.
+   - clay orange 단일 액센트 + cool off-white 메인 + warm dark sidebar.
+   - shadcn/ui 호환 CSS 변수 + 사이드바 전용 토큰 + 메인 사이트와 격리.
    ══════════════════════════════════════════ */
 
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap');
+
 .admin-root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --radius: 0.625rem;
+  /* ── 타이포 ───────────────────────────── */
+  --font-serif: 'Fraunces', 'Iowan Old Style', 'Apple Garamond', Georgia, serif;
+
+  /* ── 메인 영역 (Cool light, B2C cream과 명확히 분리) ── */
+  --background: #F8F8F7;
+  --foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
+
+  --surface-muted: #F2F2F1;
+  --foreground-muted: #6B6B6B;
+  --foreground-subtle: #9A9A98;
+
+  /* hairline borders */
+  --border: #E5E5E3;
+  --border-strong: #D4D4D2;
+  --input: #E5E5E3;
+  --ring: rgba(201, 100, 66, 0.35);
+
+  /* ── 액센트 (clay orange, 단일) ─────── */
+  --primary: #C96442;
+  --primary-hover: #B85737;
+  --primary-foreground: #FFFFFF;
+  --primary-soft: #FBE9E2;
+  --primary-soft-fg: #8A3A1F;
+
+  /* shadcn 매핑 — secondary/accent 는 muted 톤으로 */
+  --secondary: #ECECEA;
+  --secondary-foreground: #4A4A48;
+  --muted: #F2F2F1;
+  --muted-foreground: #6B6B6B;
+  --accent: #ECECEA;
+  --accent-foreground: #1A1A1A;
+
+  /* ── 상태 ───────────────────────────── */
+  --success: #2F7D4F;
+  --success-soft: #E3F1E8;
+  --warning: #B8860B;
+  --warning-soft: #F8EFD7;
+  --danger: #B43D3D;
+  --danger-soft: #F8E0E0;
+  --info: #3D6FB4;
+  --info-soft: #E1ECF8;
+  --destructive: #B43D3D;
+  --destructive-foreground: #FFFFFF;
+
+  --neutral-soft: #ECECEA;
+  --neutral-soft-fg: #4A4A48;
+
+  /* ── 사이드바 (Warm dark) ─────────────── */
+  --sidebar-bg: #1A1A1A;
+  --sidebar-bg-elevated: #232220;
+  --sidebar-fg: #E8E6E2;
+  --sidebar-fg-muted: #888581;
+  --sidebar-fg-subtle: #5C5A56;
+  --sidebar-border: #2A2926;
+  --sidebar-accent: #C96442;
+  --sidebar-active-bg: #2A2926;
+  --sidebar-active-fg: #FFFFFF;
+
+  /* ── 형태 ───────────────────────────── */
+  --radius: 0.5rem;
+  --radius-sm: 0.375rem;
+  --radius-lg: 0.75rem;
+
+  /* ── 그림자 (거의 사용 안 함) ───────── */
+  --shadow-xs: 0 1px 0 rgba(0,0,0,0.02);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-popover: 0 8px 24px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
 
   background-color: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.005em;
+  line-height: 1.5;
+  font-feature-settings: 'tnum' on, 'cv11' on;
+  -webkit-font-smoothing: antialiased;
 }
 
-.admin-root.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+/* serif 헤딩 — admin-root 안에서만 적용 */
+.admin-root h1.gtr-serif,
+.admin-root h2.gtr-serif,
+.admin-root h3.gtr-serif,
+.admin-root .gtr-serif {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.015em;
 }
 
-/* shadcn 유틸리티 클래스가 사용하는 Tailwind 토큰 매핑.
-   `@theme inline` 은 전역이지만 `--background` 등은 `.admin-root` 안에서만 정의되므로
-   메인 사이트에는 영향 없음. */
+.admin-root .gtr-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-root .gtr-mono {
+  font-family: 'SF Mono', ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
+  font-feature-settings: 'tnum' on;
+}
+
+/* shadcn 토큰 매핑 — admin-root 스코프 안에서만 활성. 메인 사이트 영향 없음. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

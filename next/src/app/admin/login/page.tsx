@@ -32,8 +32,21 @@ async function AdminLoginGuard() {
 
 function LoginShell({ children }: { children?: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      {children}
+    <div
+      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4"
+      style={{ background: 'var(--background)' }}
+    >
+      {/* subtle backdrop pattern */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-50"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+      <div className="relative">{children}</div>
     </div>
   );
 }
