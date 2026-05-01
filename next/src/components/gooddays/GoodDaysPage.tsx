@@ -32,6 +32,7 @@ import { ZoomIn, ZoomOut } from 'lucide-react';
 import { buildGoodDaysGrid } from '@/lib/gooddays';
 import LightboxNextJsImage from './LightboxNextJsImage';
 import MobileZoneTap from './MobileZoneTap';
+import GdCloseButton from './GdCloseButton';
 
 type GdSlide = SlideImage & { blurDataURL?: string };
 
@@ -88,6 +89,14 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
   const [controlsHidden, setControlsHidden] = useState(false);
   const isZoomedRef = useRef(false);
   isZoomedRef.current = isZoomed;
+  /* zoom callback debounce — 더블탭/핀치 transition 중 zoom 변화 frame 마다 콜백 발화로
+     controlsHidden 빠른 토글 → X 버튼 깜빡임. 150ms debounce 로 안정 후에만 갱신. */
+  const zoomDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (zoomDebounceRef.current) clearTimeout(zoomDebounceRef.current);
+    };
+  }, []);
 
   /* initialImgSrc prop 으로 첫 마운트 시점 라이트박스 인덱스 결정.
      useState 초기값 함수가 첫 paint 에 라이트박스 open 보장 → 흰 본문 노출 차단. */
@@ -294,12 +303,16 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
         controller={{ closeOnBackdropClick: true }}
         on={{
           view: ({ index }) => setLbIndex(index),
-          /* 줌 sync — zoom>1 진입 시 isZoomed=true + 자동 controls hide.
-             zoom===1 복귀 시 둘 다 reset. */
+          /* 줌 sync — isZoomed 즉시 (zone unmount 우선), controlsHidden 은 150ms debounce.
+             더블탭/핀치 transition 의 frame 단위 zoom 변화에서 X 깜빡임 차단. */
           zoom: ({ zoom }) => {
             const zoomed = zoom > 1;
             setIsZoomed(zoomed);
-            setControlsHidden(zoomed);
+            if (zoomDebounceRef.current) clearTimeout(zoomDebounceRef.current);
+            zoomDebounceRef.current = setTimeout(() => {
+              setControlsHidden(zoomed);
+              zoomDebounceRef.current = null;
+            }, 150);
           },
           /* 줌 in 상태에서 image 탭 → 닫기 버튼 toggle (한 번 노출, 다시 hide).
              zoom===1 상태 탭은 스킵 (zone tap 또는 swipe 가 처리). */
@@ -349,8 +362,9 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
           /* 모바일은 drag swipe 로 충분 → 화살표 제거. 데스크탑은 default 노출. */
           buttonPrev: isMobile ? () => null : undefined,
           buttonNext: isMobile ? () => null : undefined,
-          /* controlsHidden 시 닫기 버튼 hide (줌 in 자동 또는 탭 토글). */
-          buttonClose: controlsHidden ? () => null : undefined,
+          /* 닫기 버튼 always render — opacity transition 으로 fade in/out (250ms ease).
+             이전 conditional null 패턴은 unmount/mount 라 fade 불가. */
+          buttonClose: () => <GdCloseButton controlsHidden={controlsHidden} />,
           /* 줌 +/- 아이콘 — Lucide ZoomIn / ZoomOut */
           iconZoomIn: () => <ZoomIn size={28} strokeWidth={1.5} aria-hidden="true" />,
           iconZoomOut: () => <ZoomOut size={28} strokeWidth={1.5} aria-hidden="true" />,

@@ -6222,6 +6222,15 @@ body.gd-route-transition::before {
 .gd-tap-zone--prev { left: 0; }
 .gd-tap-zone--next { right: 0; }
 
+/* 닫기 버튼 fade — 줌 in 시 자동 hide, 탭 시 toggle. 250ms opacity transition. */
+.gd-close-btn {
+  transition: opacity 250ms ease;
+}
+.gd-close-btn--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* 탭 피드백 — 600ms fade in/out 화살표 */
 .gd-tap-flash {
   position: absolute;
