@@ -57,6 +57,18 @@ const nextConfig: NextConfig = {
   //   공급망 방어는 Next.js 생태계 표준(Vercel/nextjs.org/Linear 모두 SRI 미사용)
   //   + Vercel 자체 CDN 무결성에 의존. D-007 운영 조건 #3 취소.
 
+  // next/image 최적화 설정 (S121, 2026-05-01):
+  //   - formats: AVIF 우선 협상 → WebP fallback (Safari 16+ AVIF 지원)
+  //   - deviceSizes: GTR 반응형 브레이크포인트 (360/768/1024/1440 + 1920 고DPI)
+  //   - imageSizes: 작은 fixed 사이즈 (아이콘·썸네일)
+  //   - qualities: Next.js 16 부터 필수 (allowlist 외 요청 시 400) — 75 기본 + 85 hero
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [360, 768, 1024, 1440, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    qualities: [75, 85],
+  },
+
   async headers() {
     return [
       {

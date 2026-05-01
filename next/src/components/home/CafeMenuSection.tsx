@@ -5,6 +5,7 @@
 
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 
 const CAT_CARDS = [
@@ -35,8 +36,13 @@ export default function CafeMenuSection() {
       <div className="season-banner-section" data-sr-toggle>
         <div className="season-banner">
           <div className="season-banner-img sr-img">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/sections/img_season_banner.webp" alt="시즌 메뉴" />
+            <Image
+              src="/images/sections/img_season_banner.webp"
+              alt="시즌 메뉴"
+              fill
+              sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1440px) 55vw, 720px"
+              style={{ objectFit: 'cover' }}
+            />
           </div>
           <div className="season-txt">
             <div className="season-copy">

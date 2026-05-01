@@ -26,6 +26,7 @@
 
 'use client';
 
+import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -569,11 +570,13 @@ export default function GoodDaysPage() {
             transition: xformAnim ? 'transform 0.25s ease-out' : 'none',
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            id="gd-lb-img"
+          <Image
             src={currentImg}
             alt={`갤러리 이미지 ${(lightboxIdx ?? 0) + 1}`}
+            fill
+            sizes="100vw"
+            quality={85}
+            style={{ objectFit: 'contain' }}
           />
         </div>
       )}
@@ -626,11 +629,11 @@ export default function GoodDaysPage() {
                       data-gd-idx={cell.orderedIdx}
                       onClick={() => openLightbox(cell.orderedIdx)}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={cell.src}
                         alt={`갤러리 이미지 ${cell.orderedIdx + 1}`}
-                        loading="lazy"
+                        fill
+                        sizes="(max-width: 767px) 50vw, (max-width: 1440px) 50vw, 720px"
                       />
                     </div>
                   );
