@@ -54,7 +54,7 @@
 | 2-F2 상태관리 단일화 (ADR-004) | ✅ | Step A~D 완료 (S14~17) · Zustand 제거 · TanStack Query + useSupabaseSession 단일 소스. S116 카페 메뉴 likes 도 외부 store 패턴으로 일관성 확보 |
 | 2-G1 디자인 폴리시 (Phase 1~3) | ✅ | Sessions 18~36 — 카트 풀페이지 · 게이지/레이더 통일 · 팔레트(gold accent) · CTA hover gold |
 | 2-G2 반응형 4BP | ✅ | Sessions 37~49 — clamp 토큰화 · container queries · 햄버거 드로어 · tap-area sweep · 360/768/1024/1440 전 페이지 QA |
-| 2-G3 프로덕션 마감 | 🔄 | H3 ✅ · M7 ✅ (proxy.ts nonce CSP) · 번들 감사 + 최종 R-7 리뷰 잔여. pre-production checklist H4/H5/H6/M8 잔여 |
+| 2-G3 프로덕션 마감 | 🔄 | H3 ✅ · H4 ✅ · H5 ✅ · H6 🟡 (S120 보류, RUM 재평가) · M7 ✅ · M8 ✅ (S120 23개 셀렉터 audit) · 번들 감사 + 최종 R-7 리뷰 잔여 |
 | 2-H BUG-006 Tier 3 (instant navigation) | ✅ | Stage A·B·C·D 완료 (S66, `9f954e90`) — Activity preserve + `gtr:route-change` event + effectivePath 패턴. 후속 묶음 A~E (S73~S77) 모두 closure (BUG-130/131/132/133/134/135/138/139/140/144~147) |
 | 2-I 결제·체크아웃 정상화 | ✅ | S62~S63 — PGRST202 (Turbopack 스코프) 해소 · CSP Toss wildcard · 공용 데모 키 교체 · 비회원 주문 silent return 수정 · loadFailed CTA · Toss "이전" bfcache 복원 · 모바일 축약. **S86~87 BUG-115 옵션 Z** (마이그레이션 023/024 + paymentService 9종 provider 매핑). **S91 BUG-172 결제 사고 복구** (`34f351be`, public_token 컬럼 + virtualAccount 분기 정합화) |
 | 2-J 카페 메뉴 좋아요 + 진입 연출 | ✅ | S100/S101 좋아요 기능 + 하트 버튼 리디자인. **S116 likes 외부 store 격리 (옵션 B)** — `menuLikesStore` (useSyncExternalStore) + sort/뱃지 분리 + ShopPage 패턴 회귀 |
@@ -74,11 +74,11 @@
 |----|------|------|
 | A1 | ADR-004 Zustand 제거 이행 완료 확인 | ✅ S17 (2026-04-18, `bc6e2258`) |
 | H3 | 사업자 정보 → 환경변수/DB 이관 | ✅ S51 — `NEXT_PUBLIC_BUSINESS_*` 5종 + `.env.example` |
-| H4 | Pretendard CDN → `next/font/local` 전환 (SRI) | ⬜ 폰트 최적화 시 |
-| H5 | Footer `'use client'` → BizInfoToggle 분리 | ⬜ |
-| H6 | Header Server/Client 경계 재설계 | ⬜ |
+| H4 | Pretendard CDN → `next/font/local` 전환 (SRI) | ✅ 적용 확인 (S120) — `layout.tsx` `localFont` + `PretendardVariable.woff2` |
+| H5 | Footer `'use client'` → BizInfoToggle 분리 | ✅ 분리 확인 (S120) — `SiteFooter` server + `FooterBottom`/`FooterWholesaleLink` client |
+| H6 | Header Server/Client 경계 재설계 | 🟡 S120 보류 — wrapper 가 useHeaderTheme/headerRef 의존으로 client 필수, SSR 효용 미미 (LCP 후보 아님). 출시 후 RUM 데이터로 재평가. 근거 상세: `memory/project_pre_production_checklist.md` H6 보류 근거 섹션 |
 | M7 | CSP 등 보안 응답 헤더 점검 | ✅ S51 — `proxy.ts` nonce CSP + HSTS/COOP/CORP/Permissions |
-| M8 | globals.css font-family 감사 (44개 후보 클래스) | ⬜ 출시 전 UI 점검 |
+| M8 | globals.css font-family 감사 (27개 후보 클래스) | ✅ S120 — 23개 수정 (한글 22 / 숫자 1) · dead CSS 2건 별건 노트 |
 
 #### 코드 리뷰 잔여
 
