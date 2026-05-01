@@ -14,9 +14,13 @@ import {
   useMenuLiked,
   toggleMenuLike,
 } from '@/lib/menuLikesStore';
+import { showToast } from '@/lib/toastStore';
+import { getSessionSnapshot } from '@/hooks/useSupabaseSession';
 
 type Props = {
   menuId: string;
+  /** 좋아요 토스트 메시지에 사용 (like 시 "{menuName}에 좋아요를 눌렀어요❤") */
+  menuName: string;
 };
 
 function formatCount(n: number): string {
@@ -56,7 +60,7 @@ function spawnParticles(btn: HTMLButtonElement) {
   }
 }
 
-export default function MenuLikeButton({ menuId }: Props) {
+export default function MenuLikeButton({ menuId, menuName }: Props) {
   const count = useMenuLikesCount(menuId);
   const isLiked = useMenuLiked(menuId);
   const [popping, setPopping] = useState(false);
@@ -106,6 +110,11 @@ export default function MenuLikeButton({ menuId }: Props) {
     if (!isLiked) {
       setPopping(true);
       if (btnRef.current) spawnParticles(btnRef.current);
+      /* 로그인 사용자만 like 토스트 — 비로그인 시는 toggleMenuLike 가 별도
+         "로그인이 필요해요" 토스트를 띄우므로 중복 방지 */
+      if (getSessionSnapshot().isLoggedIn) {
+        showToast(`${menuName}에 좋아요를 눌렀어요❤`);
+      }
     }
     void toggleMenuLike(menuId);
   };

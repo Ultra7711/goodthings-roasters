@@ -13,7 +13,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/useToast';
 import { TextField } from '@/components/ui/TextField';
 import { SearchIcon } from '@/components/ui/InputIcons';
 import { extractKrName, formatPrice } from '@/lib/utils';
+import { FREE_SHIPPING_THRESHOLD } from '@/hooks/useCart';
 import type { Subscription, SubscriptionCycle } from '@/types/subscription';
 import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
 import SiteHeader from '@/components/layout/SiteHeader';
@@ -165,14 +166,27 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const addrNav = useInputNav(addrFormRef);
   const pwNav = useInputNav(pwFormRef);
 
-  /* 재진입 시 아코디언/모달 전체 초기화 — Activity preserve 로 상태가 유지되므로
-     /mypage 로 돌아올 때 gtr:route-change 에서 명시적으로 리셋. */
-  useEffect(() => {
-    function onRouteChange(e: Event) {
-      if ((e as CustomEvent<string>).detail !== '/mypage') return;
+  /* 재진입 시 모든 아코디언/모달 reset.
+     원인 (S117 진단 확정): Next.js 16 + React 19 Activity preserve 모드에서
+     /mypage hidden 전환 시 effect cleanup 발생하지만 useState 인스턴스는 보존됨
+     (mount 시점 state 가 default 가 아닌 이전 값). visible 시 effect re-run 시점에
+     무조건 state 를 default 로 reset 해야 회귀 방지.
+     listener 는 동일 라우트 재클릭 (예: /mypage 에서 헤더 마이페이지 아이콘 클릭) 케이스 보조. */
+  const pwResetRef = useRef(pwForm.reset);
+  pwResetRef.current = pwForm.reset;
+  const bodyRef = useRef<HTMLDivElement>(null);
+  /* 재진입 시 아코디언/모달 reset.
+     원인 (S117 진단 확정): React 19 Activity preserve 모드에서 /mypage hidden 전환 시
+     useState 인스턴스 보존 → visible 전환 후 paint 1 에서 보존된 열린 상태로 그려짐 →
+     useLayoutEffect 의 setState false 적용 → paint 2 에서 닫힌 상태 → CSS max-height
+     transition 이 600px→0 재생되어 "닫힘 애니메이션" 어색함.
+     해결: paint 1 직전 transition 을 일시 비활성 → setState → 다음 frame 에 transition 복원.
+     사용자는 첫 paint 부터 닫힌 상태로 보고 transition 재생 안 봄. */
+  useLayoutEffect(() => {
+    const resetAll = () => {
       setAddrOpen(false);
       setPwOpen(false);
-      pwForm.reset();
+      pwResetRef.current();
       setSubEditId(null);
       setSubCycleEdit(null);
       setCycleDropdownOpen(false);
@@ -181,10 +195,22 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
       setSkipConfirmSubId(null);
       setCancelConfirmSubId(null);
       setPauseConfirmSubId(null);
+    };
+    /* mount/visible 시 transition 일시 비활성 + reset */
+    const body = bodyRef.current;
+    if (body) body.classList.add('mp-body--no-anim');
+    resetAll();
+    requestAnimationFrame(() => {
+      if (body) body.classList.remove('mp-body--no-anim');
+    });
+    /* 동일 라우트 재클릭 보조 listener */
+    function onRouteChange(e: Event) {
+      if ((e as CustomEvent<string>).detail !== '/mypage') return;
+      resetAll();
     }
     window.addEventListener('gtr:route-change', onRouteChange);
     return () => window.removeEventListener('gtr:route-change', onRouteChange);
-  }, [pwForm]);
+  }, []);
 
   /* 모달 오픈 시 스크롤 잠금 */
   useEffect(() => {
@@ -215,8 +241,32 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
     setCycleDropdownOpen(false);
   }, []);
 
+  /* 배송 주기 변경 시 다음 배송일 미리보기 — 직전 배송일 = nextDate - oldCycle 로
+     역산하여 newCycle 적용. 서버 정책과 동일 가정 (단순 cycleDays 가산). */
+  const cycleDays: Record<SubscriptionCycle, number> = {
+    '2주': 14,
+    '4주': 28,
+    '6주': 42,
+    '8주': 56,
+  };
+  const previewNextDate = useCallback(
+    (nextDate: string, oldCycle: SubscriptionCycle, newCycle: SubscriptionCycle): string => {
+      if (oldCycle === newCycle) return nextDate;
+      const [y, m, d] = nextDate.split('.').map(Number);
+      const base = new Date(y, m - 1, d);
+      base.setDate(base.getDate() - cycleDays[oldCycle] + cycleDays[newCycle]);
+      return `${base.getFullYear()}.${String(base.getMonth() + 1).padStart(2, '0')}.${String(base.getDate()).padStart(2, '0')}`;
+    },
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    [],
+  );
+
   const saveSubCycle = useCallback(async (subId: string) => {
     if (!subCycleEdit) return;
+    /* paused 상태에서 cycle 변경 시 사용자에게 "재개 후 적용" 안내가 필요하므로
+       PATCH 전 현재 상태 캡처 (응답으로 받은 status 는 paused 유지됨). */
+    const prev = subscriptions.find((s) => s.id === subId);
+    const wasPaused = prev?.status === 'paused';
     try {
       const res = await fetch(`/api/subscriptions/${subId}`, {
         method: 'PATCH',
@@ -228,11 +278,15 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
       const json = (await res.json()) as { data: Subscription };
       setSubscriptions((prev) => prev.map((s) => (s.id === subId ? json.data : s)));
       setSubEditId(null);
-      toast('배송 주기가 변경되었습니다.');
+      toast(
+        wasPaused
+          ? '배송 주기가 변경되었습니다. 재개 시 새 주기로 배송됩니다.'
+          : '배송 주기가 변경되었습니다.',
+      );
     } catch {
       toast('주기 변경에 실패했습니다. 다시 시도해 주세요.');
     }
-  }, [subCycleEdit, toast]);
+  }, [subCycleEdit, subscriptions, toast]);
 
   const cancelSub = useCallback(async (subId: string) => {
     try {
@@ -380,7 +434,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
       <SiteHeader />
 
       {/* ── 본문 3:2 그리드 ── */}
-      <div className="mp-body">
+      <div className="mp-body" ref={bodyRef}>
         {/* ══ 좌측 ══ */}
         <div className="mp-left">
           {/* 타이틀 */}
@@ -550,7 +604,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                       <div className="mp-sub-item-info">
                         <span className="mp-sub-item-name">
                           {extractKrName(sub.name)}
-                          <span className="mp-sub-item-vol"> · {sub.volume} · 정기배송 {sub.cycle}</span>
+                          <span className="mp-sub-item-vol"> · {sub.volume}</span>
+                          <span className="mp-sub-item-vol"> · 정기배송 {sub.cycle}</span>
                         </span>
                         {sub.status === 'paused' ? (
                           <span className="mp-sub-item-status mp-sub-item-status--paused">
@@ -561,9 +616,24 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                           <span className="mp-sub-item-status">다음 배송 {sub.nextDate}</span>
                         )}
                       </div>
-                      <span className="mp-icon-btn mp-sub-edit-btn" aria-hidden="true">
-                        <span className={`mp-chevron${subEditId === sub.id ? ' open' : ''}`}><ChevronRight /></span>
-                      </span>
+                      <div className="mp-sub-controls">
+                        {subEditId === sub.id && (
+                          <button
+                            className="mp-cancel-link mp-sub-cancel-inline"
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setCancelConfirmSubId(sub.id); }}
+                            data-gtr-tap
+                          >
+                            구독 해지
+                          </button>
+                        )}
+                        <span className={`mp-icon-btn mp-sub-edit-btn${subEditId === sub.id ? ' open' : ''}`} aria-hidden="true">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path className="mp-sub-toggle-chevron" d="M9 6l6 6-6 6" />
+                            <path className="mp-sub-toggle-close" d="M6 6l12 12M18 6L6 18" />
+                          </svg>
+                        </span>
+                      </div>
                     </div>
                     <div className={`mp-accordion mp-sub-accordion${subEditId === sub.id ? ' open' : ''}`}>
                       <div className="mp-accordion-inner">
@@ -592,14 +662,46 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                             ))}
                           </div>
                         </div>
-                        <div className="mp-info-row" style={{ borderBottom: 'none' }}>
-                          <span className="mp-info-label">다음 배송일</span>
-                          <span className="mp-info-value">{sub.nextDate}</span>
-                        </div>
+                        {(() => {
+                          const hasCycleChange =
+                            subEditId === sub.id && subCycleEdit !== null && subCycleEdit !== sub.cycle;
+                          return (
+                            <div className="mp-info-row" style={{ borderBottom: 'none' }}>
+                              <span className="mp-info-label">
+                                다음 배송일
+                                {hasCycleChange && (
+                                  <span className="mp-sub-cycle-change">
+                                    <span className="mp-sub-cycle-divider">|</span>
+                                    {sub.cycle} → <span className="mp-sub-accent">{subCycleEdit}</span>
+                                  </span>
+                                )}
+                              </span>
+                              <span className="mp-sub-next-right">
+                                <span className={`mp-info-value${hasCycleChange ? ' mp-sub-accent' : ''}`}>
+                                  {hasCycleChange
+                                    ? previewNextDate(sub.nextDate, sub.cycle, subCycleEdit)
+                                    : sub.nextDate}
+                                </span>
+                                {hasCycleChange && (
+                                  <button
+                                    className="mp-sub-apply-link"
+                                    type="button"
+                                    onClick={() => saveSubCycle(sub.id)}
+                                    data-gtr-tap
+                                  >
+                                    변경 적용
+                                  </button>
+                                )}
+                              </span>
+                            </div>
+                          );
+                        })()}
                         {sub.status === 'paused' && (
                           <div className="mp-sub-paused-notice">
                             <InfoCircleIcon size={18} />
-                            배송이 일시정지 중입니다.
+                            {subEditId === sub.id && subCycleEdit !== null && subCycleEdit !== sub.cycle
+                              ? '배송이 일시정지 중입니다. 재개 후 변경된 주기가 적용됩니다.'
+                              : '배송이 일시정지 중입니다.'}
                           </div>
                         )}
                         <div className="mp-accordion-actions mp-sub-accordion-actions">
@@ -614,14 +716,9 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                           </button>
                           {sub.status === 'paused' ? (
                             <button className="mp-save-btn" type="button" onClick={() => resumeSub(sub.id)} data-gtr-tap>배송 재개하기</button>
-                          ) : subEditId === sub.id && subCycleEdit !== null && subCycleEdit !== sub.cycle ? (
-                            <button className="mp-save-btn" type="button" onClick={() => saveSubCycle(sub.id)} data-gtr-tap>저장</button>
                           ) : (
                             <button className="mp-cancel-btn" type="button" onClick={() => setPauseConfirmSubId(sub.id)} data-gtr-tap>배송 일시정지</button>
                           )}
-                        </div>
-                        <div className="mp-sub-action-footer">
-                          <button className="mp-cancel-link" type="button" onClick={() => setCancelConfirmSubId(sub.id)} data-gtr-tap>구독 해지</button>
                         </div>
                       </div>
                     </div>
@@ -708,7 +805,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                 className="mp-icon-btn"
                 type="button"
                 aria-label="회원 탈퇴"
-                style={{ position: 'relative', top: 6 }}
+                style={{ position: 'relative', top: 4 }}
                 onClick={() => {
                   setAddrOpen(false);
                   setPwOpen(false);
@@ -771,6 +868,9 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                       </div>
                       <div className="mp-order-price-row">
                         <span className="mp-order-price">{order.price}</span>
+                        {order.priceNum < FREE_SHIPPING_THRESHOLD && (
+                          <span className="mp-order-shipping-note">배송비 포함</span>
+                        )}
                       </div>
                     </div>
                     <span className={`mp-order-status${order.status === '배송중' ? ' mp-order-status--shipping' : ' mp-order-status--delivered'}`}>

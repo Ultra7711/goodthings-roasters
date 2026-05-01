@@ -3764,14 +3764,14 @@ footer.blk {
   text-decoration-color: var(--color-border-primary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
   /* Session 43 — tap-area 44h (text box 21 + padding 12 * 2 = 45) · margin-top 8 유지 */
   display: inline-block;
   padding: 12px 0;
   margin-top: calc(8px - 12px);
   margin-bottom: -12px;
 }
-#cart-drawer-panel .cd-shop-btn:hover { text-decoration-color: var(--color-accent-gold); }
+#cart-drawer-panel .cd-shop-btn:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 
 /* 배송비 행 */
 #cart-drawer-panel .cd-shipping-item {
@@ -5931,9 +5931,10 @@ footer.blk {
   text-decoration-color: var(--color-border-primary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
 .bi-privacy-link:hover {
+  color: var(--color-accent-gold);
   text-decoration-color: var(--color-accent-gold);
 }
 
@@ -6395,9 +6396,9 @@ footer.blk {
   text-decoration-color: var(--color-border-primary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
-.chp-link:hover { text-decoration-color: var(--color-accent-gold); }
+.chp-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 .chp-section-desc {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
   color: var(--color-text-secondary); margin-bottom: 16px; line-height: 1.8;
@@ -6657,9 +6658,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-decoration-color: var(--color-border-primary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
-.chp-guest-link:hover { text-decoration-color: var(--color-accent-gold); }
+.chp-guest-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 
 /* 약관 동의 */
 .chp-agree-all-row {
@@ -6738,9 +6739,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-decoration-color: var(--color-border-secondary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
-.chp-legal-link:hover { text-decoration-color: var(--color-accent-gold); }
+.chp-legal-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 
 /* 우측 주문 요약 */
 .chp-right {
@@ -6927,9 +6928,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-decoration-color: var(--color-border-primary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
-.ocp-btn-secondary:hover { text-decoration-color: var(--color-accent-gold); }
+.ocp-btn-secondary:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 
 /* 진입 연출 — stagger */
 .ocp-enter .ocp-title { animation: staggerUp .5s var(--ease-spring) .1s both; }
@@ -6990,9 +6991,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-decoration-color: var(--color-border-primary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
-.lp-switch-link:hover { text-decoration-color: var(--color-accent-gold); }
+.lp-switch-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 
 /* 폼 */
 .lp-right {
@@ -7016,9 +7017,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-decoration-color: var(--color-border-primary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
-.lp-forgot span:hover { text-decoration-color: var(--color-accent-gold); }
+.lp-forgot span:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 
 /* submit 에러 메시지 */
 .lp-submit-error {
@@ -7112,9 +7113,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-decoration-color: var(--color-border-primary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
-.lp-guest-order-btn:hover { text-decoration-color: var(--color-accent-gold); }
+.lp-guest-order-btn:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 
 /* ── Session 43 · tap-target 확장 (Session 41 mobile-only → 전 BP 공통) ──
    시각 변경 없음 · text 15~18 + padding 13 * 2 ≈ 41~44 hit-area */
@@ -7415,14 +7416,16 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   margin-bottom: 24px;
 }
 
-/* 정보 행 */
+/* 정보 행 — 정기배송/주문내역 (20px) 와 padding 통일 */
 .mp-info-row {
   display: flex; align-items: baseline; justify-content: space-between;
-  padding: 14px 0;
+  padding: 20px 0;
   box-shadow: inset 0 -1px 0 0 var(--color-border-hairline);
 }
 .mp-info-row:last-child { box-shadow: none; }
-.mp-info-row--addr { flex-direction: column; align-items: stretch; border-bottom: none; padding-top: 3px; }
+/* 배송지: column stretch + 내부 chevron top:6 → baseline 정렬에서 약 6.2px 위로 확장.
+   다른 행과 시각 정렬을 위해 padding-top 8px 차감 (16→8 보정). */
+.mp-info-row--addr { flex-direction: column; align-items: stretch; border-bottom: none; padding-top: 12px; }
 .mp-addr-icon-btn {
   display: flex; align-items: center; justify-content: center;
   width: 24px; height: 24px; padding: 0;
@@ -7445,7 +7448,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-info-addr-right { display: flex; align-items: baseline; gap: var(--gap-md); }
 .mp-info-row--action { align-items: center; box-shadow: inset 0 -1px 0 0 var(--color-border-hairline); }
 .mp-info-row--action:has(+ .mp-accordion.open) { border-bottom: none; }
-.mp-info-row.mp-info-row--withdraw { margin-top: 0; border-bottom: none; padding-top: 4px; }
+/* 회원 탈퇴: baseline 정렬 시 icon-btn top:6 + button display:flex baseline 차이로
+   label 텍스트가 hairline 에 가깝게 시프트됨 → align-items:center 로 통일하면
+   비밀번호 변경 행 (mp-info-row--action) 과 동일한 시각 정렬 확보. */
+.mp-info-row.mp-info-row--withdraw { margin-top: 0; border-bottom: none; align-items: center; }
 .mp-info-row--withdraw .mp-icon-btn { position: relative; top: 6px; }
 .mp-info-label {
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 500;
@@ -7463,6 +7469,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-info-addr-text {
   text-align: right; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+
+/* mp-body--no-anim — 재진입 시 보존된 state reset 으로 인한 닫힘 transition 재생 방지.
+   useLayoutEffect 에서 일시 적용 → reset → 다음 frame 에서 제거 (S117 회귀 fix) */
+.mp-body--no-anim, .mp-body--no-anim * { transition: none !important; }
 
 /* 아코디언 */
 .mp-accordion {
@@ -7483,8 +7493,60 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   background: var(--color-background-secondary);
   border-left: 2px solid var(--color-border-primary);
 }
-/* 구독 해지 text link */
-.mp-sub-action-footer { margin-top: 20px; }
+/* 배송 주기 변경 — 한 줄 인라인 표시 (변경된 값에만 골드 강조) */
+.mp-sub-cycle-change {
+  font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: var(--type-body-m-weight);
+  color: var(--color-text-tertiary);
+}
+.mp-sub-cycle-divider {
+  margin: 0 8px; color: var(--color-border-secondary);
+}
+.mp-sub-accent {
+  color: var(--color-accent-gold);
+}
+.mp-sub-next-right {
+  display: inline-flex; align-items: baseline; gap: 12px;
+}
+.mp-sub-apply-link {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: var(--text-link-font-weight);
+  letter-spacing: var(--text-link-letter-spacing);
+  color: var(--color-text-tertiary);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-secondary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
+}
+.mp-sub-apply-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
+/* 구독 해지 text link — 정기배송 아이템 토글 좌측 인라인 (편집 모드 진입 시 노출).
+   mp-sub-controls 그룹으로 X 아이콘과 묶어 우측 정렬. */
+.mp-sub-controls {
+  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+}
+/* 텍스트 글자 visual center 를 X 아이콘 중심과 정렬:
+   line-height 1 로 line-box 를 글자 height 로 줄이고,
+   밑줄(text-underline-offset 4 + thickness 1)이 박스 아래에 위치하도록 하여
+   align-items:center 가 글자만의 박스를 정렬하게 함.
+   text-underline-offset 미세 조정으로 underline 이 X 박스 밖으로 나오게 함. */
+.mp-sub-cancel-inline {
+  flex-shrink: 0;
+  line-height: 1;
+  transform: translateY(2px);
+}
+/* 정기배송 토글: chevron `>` ↔ X 아이콘 cross-fade + rotate */
+.mp-sub-edit-btn svg { overflow: visible; }
+.mp-sub-toggle-chevron,
+.mp-sub-toggle-close {
+  transform-origin: center;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.mp-sub-toggle-chevron { opacity: 1; transform: rotate(0); }
+.mp-sub-toggle-close { opacity: 0; transform: rotate(-90deg); }
+.mp-sub-edit-btn.open .mp-sub-toggle-chevron { opacity: 0; transform: rotate(90deg); }
+.mp-sub-edit-btn.open .mp-sub-toggle-close { opacity: 1; transform: rotate(0); }
 .mp-cancel-link {
   background: none; border: none; padding: 0; cursor: pointer;
   font-family: var(--font-kr);
@@ -7499,7 +7561,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
 .mp-cancel-link:hover { color: var(--color-error); text-decoration-color: var(--color-error); }
-.mp-sub-accordion .mp-info-row { border-bottom: none; box-shadow: none; }
+.mp-sub-accordion .mp-info-row { border-bottom: none; box-shadow: none; flex-wrap: wrap; row-gap: 6px; }
 /* 정기배송 커스텀 드롭다운 — chp-field 인풋 + pd-dropdown-panel 메뉴 */
 .mp-cycle-dropdown-wrap { position: relative; }
 .mp-cycle-trigger {
@@ -7553,15 +7615,21 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* 정기배송 아이템 */
 .mp-sub-item { padding: 20px 0; }
 .mp-sub-item + .mp-sub-item { box-shadow: inset 0 1px 0 0 var(--color-border-hairline); }
-.mp-sub-item-top { display: flex; align-items: center; justify-content: space-between; gap: var(--gap-md); cursor: pointer; }
+/* align-items: flex-start — 상품명이 wrap 되어도 controls 는 첫 줄 우측 고정 */
+.mp-sub-item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--gap-md); cursor: pointer; }
 .mp-sub-item-info { display: flex; flex-direction: column; gap: var(--gap-xs); }
 .mp-sub-item-name {
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 500;
   color: var(--color-text-primary);
 }
 .mp-sub-item-vol {
-  font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: var(--type-body-ui-weight);
+  font-family: var(--font-kr);
+  font-size: var(--type-body-ui-size);
+  font-weight: var(--type-body-ui-weight);
   color: var(--color-text-secondary);
+  /* piece 단위 wrap — 항목별 줄바꿈 ("정기배송 2주" 가 단어 단위 break 되지 않음) */
+  display: inline-block;
+  white-space: nowrap;
 }
 .mp-sub-item-status {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: var(--type-body-ui-weight);
@@ -7639,7 +7707,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: var(--type-body-ui-weight);
   color: var(--color-text-secondary);
 }
-.mp-order-price-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.mp-order-price-row { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
+.mp-order-shipping-note {
+  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 400;
+  color: var(--color-text-caption); letter-spacing: var(--ls-body-s);
+}
 .mp-order-price {
   font-family: var(--font-en); font-size: var(--type-body-ui-size); font-weight: 400;
   color: var(--color-text-caption); letter-spacing: var(--ls-body-s);
@@ -7683,11 +7755,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
   height: auto; line-height: 1;
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
   white-space: nowrap;
   align-self: center;
 }
-.mp-sub-unsubscribe:hover { text-decoration-color: var(--color-accent-gold); }
+.mp-sub-unsubscribe:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 
 /* 회원 탈퇴 확인 모달 */
 /* 회원 탈퇴 모달 오버레이 + 쉐이킹 */
@@ -8390,13 +8462,13 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
   letter-spacing: var(--link-cta-letter-spacing);
-  transition: text-decoration-color var(--duration-hover) ease;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
   /* Session 43 — tap-area 44h (text box 21 + padding 12 * 2 = 45) · display inline-block 로 padding 적용 */
   display: inline-block;
   padding: 12px 0;
   margin-block: -12px;
 }
-.cp-continue-link:hover { text-decoration-color: var(--color-accent-gold); }
+.cp-continue-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 .cp-order-btn {
   width: 299px; height: 48px;
   background: var(--color-btn-primary-bg);

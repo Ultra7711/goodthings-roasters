@@ -28,6 +28,14 @@ export function InfoCircleIcon({ size = 16 }: { size?: number }) {
   );
 }
 
+export function CloseIcon({ size = 24 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...SVG_DEFAULTS}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
 export function CopyIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" {...SVG_DEFAULTS}>

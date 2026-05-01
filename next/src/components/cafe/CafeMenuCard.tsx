@@ -121,7 +121,7 @@ export default function CafeMenuCard({
 
         <MenuCardBadges menuId={item.id} status={item.status} />
 
-        <MenuLikeButton menuId={item.id} />
+        <MenuLikeButton menuId={item.id} menuName={item.name} />
 
         {tempBadge && (
           <div className="cm-temp-badges">
