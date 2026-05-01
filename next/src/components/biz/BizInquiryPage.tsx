@@ -145,6 +145,18 @@ export default function BizInquiryPage() {
     return () => window.removeEventListener('gtr:biz-reset', onReset);
   }, [resetForm]);
 
+  /* React 19 Activity preserve — 다른 페이지에서 /biz-inquiry 복귀 시
+     보존된 openDropdown 으로 드롭다운이 열린 채 보이는 회귀 차단.
+     폼 입력값은 보존 (UX 의도) — 드롭다운 상태만 닫는다. */
+  useEffect(() => {
+    function onRouteChange(e: Event) {
+      if ((e as CustomEvent<string>).detail !== '/biz-inquiry') return;
+      setOpenDropdown(null);
+    }
+    window.addEventListener('gtr:route-change', onRouteChange);
+    return () => window.removeEventListener('gtr:route-change', onRouteChange);
+  }, []);
+
   /* 입력 시 warn 해제 헬퍼 */
   function clearWarn(key: WarnKey) {
     setWarns((prev) => {
