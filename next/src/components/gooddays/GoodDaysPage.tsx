@@ -28,6 +28,7 @@ import { useRouter } from 'next/navigation';
 import Lightbox, { type SlideImage } from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
+import { ZoomIn, ZoomOut } from 'lucide-react';
 import { buildGoodDaysGrid } from '@/lib/gooddays';
 import LightboxNextJsImage from './LightboxNextJsImage';
 
@@ -288,6 +289,26 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
               aria-hidden="true"
             >
               <polyline points="9 18 15 12 9 6" />
+            </svg>
+          ),
+          /* 줌 +/- 아이콘 — Lucide ZoomIn / ZoomOut */
+          iconZoomIn: () => <ZoomIn size={28} strokeWidth={1.5} aria-hidden="true" />,
+          iconZoomOut: () => <ZoomOut size={28} strokeWidth={1.5} aria-hidden="true" />,
+          /* 닫기 X — GTR 표준 디자인 (CartDrawer · CafeNutritionSheet 동일) */
+          iconClose: () => (
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M19,5l-14,14" />
+              <path d="M5,5l14,14" />
             </svg>
           ),
           /* 모바일은 핀치 제스처로 줌 → +/- 버튼 hide. 데스크탑은 default 노출. */
