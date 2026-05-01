@@ -13,7 +13,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
@@ -35,6 +35,29 @@ import type { Subscription, SubscriptionCycle } from '@/types/subscription';
 import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
 import SiteHeader from '@/components/layout/SiteHeader';
 import { ChevronRight, CopyIcon, InfoCircleIcon } from '@/components/ui/Icons';
+import {
+  useMyPageAddrOpen,
+  useMyPagePwOpen,
+  useMyPageSubEditId,
+  useMyPageSubCycleEdit,
+  useMyPageCycleDropdownOpen,
+  useMyPageWithdrawOpen,
+  useMyPageSkipConfirmSubId,
+  useMyPageCancelConfirmSubId,
+  useMyPagePauseConfirmSubId,
+  useMyPageOpenOrders,
+  setAddrOpen,
+  setPwOpen,
+  setSubEditId,
+  setSubCycleEdit,
+  setCycleDropdownOpen,
+  toggleCycleDropdownOpen,
+  setWithdrawOpen,
+  setSkipConfirmSubId,
+  setCancelConfirmSubId,
+  setPauseConfirmSubId,
+  toggleOrder,
+} from '@/lib/myPageUiStore';
 
 
 type MyPagePageProps = {
@@ -74,18 +97,18 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
     address,
   };
 
-  /* ── 아코디언 상태 ── */
-  const [isAddrOpen, setAddrOpen] = useState(false);
-  const [isPwOpen, setPwOpen] = useState(false);
-  const [subEditId, setSubEditId] = useState<string | null>(null);
-
-  /* ── 회원 탈퇴 모달 ── */
-  const [isWithdrawOpen, setWithdrawOpen] = useState(false);
-
-  /* ── 구독 모달 ── */
-  const [skipConfirmSubId, setSkipConfirmSubId] = useState<string | null>(null);
-  const [cancelConfirmSubId, setCancelConfirmSubId] = useState<string | null>(null);
-  const [pauseConfirmSubId, setPauseConfirmSubId] = useState<string | null>(null);
+  /* ── UI state — 외부 store (myPageUiStore) ──
+     S118: React 19 Activity preserve 회귀 회피용 외부화. 라우트 변경 시 자동 reset.
+     - 아코디언: isAddrOpen, isPwOpen, subEditId, subCycleEdit, isCycleDropdownOpen
+     - 모달:     isWithdrawOpen, skipConfirmSubId, cancelConfirmSubId, pauseConfirmSubId
+     - 컬렉션:   openOrders */
+  const isAddrOpen = useMyPageAddrOpen();
+  const isPwOpen = useMyPagePwOpen();
+  const subEditId = useMyPageSubEditId();
+  const isWithdrawOpen = useMyPageWithdrawOpen();
+  const skipConfirmSubId = useMyPageSkipConfirmSubId();
+  const cancelConfirmSubId = useMyPageCancelConfirmSubId();
+  const pauseConfirmSubId = useMyPagePauseConfirmSubId();
 
   /* 헤더는 SiteHeader 컴포넌트가 sticky/atTop/검색/모바일 드로어/카트 드로어를 자체 관리.
      마이페이지는 메인 라우트와 동일한 로고 + nav + 검색·마이페이지·카트 아이콘 구조. */
@@ -102,16 +125,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
       .finally(() => setOrdersLoading(false));
   }, []);
 
-  /* ── 주문 카드 열림 상태 ── */
-  const [openOrders, setOpenOrders] = useState<Set<string>>(new Set());
-  const toggleOrder = useCallback((num: string) => {
-    setOpenOrders((prev) => {
-      const next = new Set(prev);
-      if (next.has(num)) next.delete(num);
-      else next.add(num);
-      return next;
-    });
-  }, []);
+  /* ── 주문 카드 열림 상태 (store) ── */
+  const openOrders = useMyPageOpenOrders();
 
   /* ── 주소 폼 ── */
   const addressForm = useAddressForm({
@@ -158,59 +173,18 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
       .catch(() => {})
       .finally(() => setSubsLoading(false));
   }, []);
-  const [subCycleEdit, setSubCycleEdit] = useState<SubscriptionCycle | null>(null);
-  const [isCycleDropdownOpen, setCycleDropdownOpen] = useState(false);
+  const subCycleEdit = useMyPageSubCycleEdit();
+  const isCycleDropdownOpen = useMyPageCycleDropdownOpen();
   const cycleDropdownRef = useRef<HTMLDivElement>(null);
   const addrFormRef = useRef<HTMLDivElement>(null);
   const pwFormRef = useRef<HTMLDivElement>(null);
   const addrNav = useInputNav(addrFormRef);
   const pwNav = useInputNav(pwFormRef);
 
-  /* 재진입 시 모든 아코디언/모달 reset.
-     원인 (S117 진단 확정): Next.js 16 + React 19 Activity preserve 모드에서
-     /mypage hidden 전환 시 effect cleanup 발생하지만 useState 인스턴스는 보존됨
-     (mount 시점 state 가 default 가 아닌 이전 값). visible 시 effect re-run 시점에
-     무조건 state 를 default 로 reset 해야 회귀 방지.
-     listener 는 동일 라우트 재클릭 (예: /mypage 에서 헤더 마이페이지 아이콘 클릭) 케이스 보조. */
-  const pwResetRef = useRef(pwForm.reset);
-  pwResetRef.current = pwForm.reset;
-  const bodyRef = useRef<HTMLDivElement>(null);
-  /* 재진입 시 아코디언/모달 reset.
-     원인 (S117 진단 확정): React 19 Activity preserve 모드에서 /mypage hidden 전환 시
-     useState 인스턴스 보존 → visible 전환 후 paint 1 에서 보존된 열린 상태로 그려짐 →
-     useLayoutEffect 의 setState false 적용 → paint 2 에서 닫힌 상태 → CSS max-height
-     transition 이 600px→0 재생되어 "닫힘 애니메이션" 어색함.
-     해결: paint 1 직전 transition 을 일시 비활성 → setState → 다음 frame 에 transition 복원.
-     사용자는 첫 paint 부터 닫힌 상태로 보고 transition 재생 안 봄. */
-  useLayoutEffect(() => {
-    const resetAll = () => {
-      setAddrOpen(false);
-      setPwOpen(false);
-      pwResetRef.current();
-      setSubEditId(null);
-      setSubCycleEdit(null);
-      setCycleDropdownOpen(false);
-      setOpenOrders(new Set());
-      setWithdrawOpen(false);
-      setSkipConfirmSubId(null);
-      setCancelConfirmSubId(null);
-      setPauseConfirmSubId(null);
-    };
-    /* mount/visible 시 transition 일시 비활성 + reset */
-    const body = bodyRef.current;
-    if (body) body.classList.add('mp-body--no-anim');
-    resetAll();
-    requestAnimationFrame(() => {
-      if (body) body.classList.remove('mp-body--no-anim');
-    });
-    /* 동일 라우트 재클릭 보조 listener */
-    function onRouteChange(e: Event) {
-      if ((e as CustomEvent<string>).detail !== '/mypage') return;
-      resetAll();
-    }
-    window.addEventListener('gtr:route-change', onRouteChange);
-    return () => window.removeEventListener('gtr:route-change', onRouteChange);
-  }, []);
+  /* S118: 재진입 시 reset 은 myPageUiStore 의 'gtr:route-change' listener 가
+     자동 처리 → useState 인스턴스 보존 회귀 회피.
+     pwForm/addressForm 의 폼값은 openXxxAccordion · 취소 버튼에서 명시적 reset
+     하므로 별도 처리 불필요. */
 
   /* 모달 오픈 시 스크롤 잠금 */
   useEffect(() => {
@@ -434,7 +408,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
       <SiteHeader />
 
       {/* ── 본문 3:2 그리드 ── */}
-      <div className="mp-body" ref={bodyRef}>
+      <div className="mp-body">
         {/* ══ 좌측 ══ */}
         <div className="mp-left">
           {/* 타이틀 */}
@@ -641,7 +615,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                           <button
                             className="chp-input mp-cycle-trigger"
                             type="button"
-                            onClick={() => setCycleDropdownOpen((p) => !p)}
+                            onClick={toggleCycleDropdownOpen}
                           >
                             <span>{subCycleEdit ? `${subCycleEdit}마다 배송` : `${sub.cycle}마다 배송`}</span>
                             <svg className={`mp-cycle-chevron${isCycleDropdownOpen && subEditId === sub.id ? ' open' : ''}`} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

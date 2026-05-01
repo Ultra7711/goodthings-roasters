@@ -7470,10 +7470,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-align: right; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* mp-body--no-anim — 재진입 시 보존된 state reset 으로 인한 닫힘 transition 재생 방지.
-   useLayoutEffect 에서 일시 적용 → reset → 다음 frame 에서 제거 (S117 회귀 fix) */
-.mp-body--no-anim, .mp-body--no-anim * { transition: none !important; }
-
 /* 아코디언 */
 .mp-accordion {
   overflow: hidden;
