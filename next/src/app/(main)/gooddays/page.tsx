@@ -1,10 +1,9 @@
 /* ══════════════════════════════════════════
    Good Days Route — /gooddays
    - Server component: searchParams.img 을 prop 으로 받아 GoodDaysPage 에 전달.
-     (이전 구현은 client component 의 useSearchParams 사용 → Suspense fallback 흰 100svh div
-      → 메인→굿데이즈 ?img= 진입 시 푸터 위로/cream flash 발생 → 라이트박스 검정 전환 시 flash)
-   - Suspense fallback 은 fixed inset:0 검정(.gd-suspense-fallback)로 page entry 동안 풀 viewport
-     검정 유지 → 라이트박스 검정으로 자연 전환.
+   - Suspense fallback 은 cream 본문과 동일 톤(투명 + min-height) — 메뉴 드로어 등 ?img= 없는
+     진입 시 검정 fallback → cream 본문 플래시 차단. ?img= 진입 시는 메인 GoodDaysSection 의
+     body.gd-route-transition 오버레이 가 cream 단절 차단 (이 fallback 위에 검정 풀로 깔림).
    - 헤더 테마 light, headerThemeConfig 에 등록.
    ══════════════════════════════════════════ */
 
@@ -24,7 +23,7 @@ async function GoodDaysContent({ searchParams }: Props) {
 
 export default function GoodDaysRoute({ searchParams }: Props) {
   return (
-    <Suspense fallback={<div className="gd-suspense-fallback" aria-hidden="true" />}>
+    <Suspense fallback={<div style={{ minHeight: '100svh' }} aria-hidden="true" />}>
       <GoodDaysContent searchParams={searchParams} />
     </Suspense>
   );
