@@ -3,8 +3,8 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-05-02 · Session 124 — 어드민 풀 구축 진입 (`f5f700bc`). Group A 인프라 완료 (shadcn/ui 17 컴포넌트 + 9 placeholder 라우트 + Storage 버킷 4종 마이그레이션 028) + Claude Design 핸드오프 적용 (clay orange + Fraunces serif + 다크 사이드바) + Step 1 폴리싱 (마이그레이션 029 — `profiles.display_name`/`title` + 사이드바 사용자 카드 + 환영 헤더 + 알림 dot + 로그인 체크박스). admin 계정 2개 활성. 시안 vs 구현 정밀 비교 완료 — Step 2/3 (~2h) 다음 세션 처리 예정. KakaoMap 진단 로그 commit (`c91d432e`) iPhone 복구 후 측정·제거 대기. 417/417 vitest green. 상세 `memory/project_session124_complete.md`.
-> 이전: Session 123 — 굿데이즈 라이트박스 잔존 closure (`07da3abb`). Session 122 — cream flash closure + cacheComponents cleanup self-destruct 패턴 학습 (`ec9dc910`). Session 121 — 이미지 최적화 Phase 1 + yet-another-react-lightbox 라이브러리 컨버전 (`76d225ae`).
+> **최종 업데이트:** 2026-05-02 · Session 125 — 어드민 시안 inline style 100% 이식 (`adcd39e0`). Tailwind v4 + shadcn 매핑 폐기 → admin-theme.css 시안 tokens.css 그대로 (`.gtr-admin` wrapper) + AdminSidebar/Topbar/(authed)/layout/dashboard 모두 시안 `shell.jsx`/`dashboard.jsx` inline style 100% 이식 + DashboardActions Topbar slot inject (시안 actions prop 매칭). Step 2 (actions slot Context) + Step 3 (미세 spacing 5종) 모두 시안 이식에 자동 흡수. ~4h 추측 patch 누적 후 시안 ground truth 회귀 — 신규 절대 규칙 `feedback_design_pattern_mismatch_immediate_pivot.md` 작성 (S125 사고 재발 방지). **잔여:** 로그인 + AdminPlaceholder 8 페이지가 갈아엎기 전 패턴 (다음 세션 ~1h). 417/417 vitest green. 상세 `memory/project_session125_complete.md`.
+> 이전: Session 124 — 어드민 풀 구축 진입 (Group A 인프라 + Claude Design 핸드오프 + Step 1 폴리싱) (`f5f700bc`). Session 123 — 굿데이즈 라이트박스 잔존 closure (`07da3abb`). Session 122 — cream flash closure + cacheComponents cleanup self-destruct 패턴 학습 (`ec9dc910`).
 
 ---
 
@@ -31,7 +31,7 @@
 | 어드민 풀 구축 (출시 전 신규 영역) | 0 | 1 (A 진행 중) | 9 | ~5% |
 | User AI | 0 | 0 | 1 | 0% |
 
-**현재 위치 (S124 종료, 2026-05-02):**
+**현재 위치 (S125 종료, 2026-05-02):**
 
 - Sessions 18~49 디자인 폴리시·반응형 4BP 완료. Sessions 51~60 Phase 4 인프라(Vercel·Supabase·Sentry) + Phase 1 인터랙션 ②⑤⑧.
 - BUG-006 Tier 3 Stage C+D ✅ Session 66 (`9f954e90`) — Activity preserve + route-change event. 후속 묶음 A~E (S73~S77) 모두 closure.
