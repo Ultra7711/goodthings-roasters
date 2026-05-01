@@ -24,7 +24,7 @@
 
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Lightbox, { type SlideImage } from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
@@ -33,9 +33,14 @@ import LightboxNextJsImage from './LightboxNextJsImage';
 
 type GdSlide = SlideImage & { blurDataURL?: string };
 
-export default function GoodDaysPage() {
+type Props = {
+  /** 서버 측에서 searchParams.img 으로 결정된 초기 이미지 src (없으면 null).
+      page.tsx (server component) 가 prop 으로 전달 → 첫 paint 부터 라이트박스 open. */
+  initialImgSrc: string | null;
+};
+
+export default function GoodDaysPage({ initialImgSrc }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   /* 그리드 데이터는 렌더링 순수 함수 — useMemo 로 한 번만 계산 */
   const grid = useMemo(() => buildGoodDaysGrid(), []);
@@ -45,24 +50,35 @@ export default function GoodDaysPage() {
   const gridRef = useRef<HTMLDivElement>(null);
   const ioRef = useRef<IntersectionObserver | null>(null);
 
-  /* 라이트박스용 슬라이드 — ordered 순서. blurDataURL 도 함께 전달. */
+  /* 라이트박스용 슬라이드 — ordered 순서.
+     width/height: yet-another-react-lightbox Zoom plugin 활성화 필수 조건.
+     blurDataURL: LightboxNextJsImage 의 placeholder=blur. */
   const slides = useMemo<GdSlide[]>(
     () =>
       ordered.map((item) => ({
         src: item.src,
+        width: item.width,
+        height: item.height,
         blurDataURL: item.blurDataURL,
         alt: '',
       })),
     [ordered],
   );
 
-  /* ?img= URL 진입 시 첫 paint 부터 라이트박스 open — 화이트 flash 차단.
-     useState 초기값 함수에서 동기 결정. useEffect 처리는 Activity 복귀 등 후속 케이스. */
-  const initialImgSrc = useMemo(
-    () => searchParams.get('img'),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  /* 모바일 detection — render.buttonZoom hide 용 (모바일은 핀치 제스처로 충분).
+     SSR 안전: 첫 렌더 false → mount 후 matchMedia 결과로 갱신. */
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  /* initialImgSrc prop 으로 첫 마운트 시점 라이트박스 인덱스 결정.
+     useState 초기값 함수가 첫 paint 에 라이트박스 open 보장 → 흰 본문 노출 차단. */
   const initialIdx = useMemo(
     () => {
       if (!initialImgSrc) return -1;
@@ -74,10 +90,6 @@ export default function GoodDaysPage() {
 
   const [lbOpen, setLbOpen] = useState(initialIdx >= 0);
   const [lbIndex, setLbIndex] = useState(initialIdx >= 0 ? initialIdx : 0);
-
-  /* ?img= 변경 동기화 — 같은 src 가 두 번 처리되지 않도록 ref 가드.
-     useState 초기값으로 이미 set 됐으면 첫 useEffect 에서 스킵. */
-  const lastHandledImgSrcRef = useRef<string | null>(initialImgSrc);
 
   /* 셀 gd-visible 제거 + IO 재설정 — 이벤트 핸들러에서 직접 호출 (동기).
      gtr:route-change 는 NVG useLayoutEffect 내 동기 발송 → 이 함수가 실행 완료된 후
@@ -164,37 +176,18 @@ export default function GoodDaysPage() {
     return () => window.removeEventListener('gtr:route-change', onRouteChange);
   }, [setupCells, triggerTitleAnim]);
 
-  /* ?img= URL 변경 → 라이트박스 동기화 (Activity 복귀 / 메인에서 다른 src 진입).
-     useState 초기값으로 이미 처리된 src 는 ref 가드로 스킵 → 무한 루프 방지. */
-  useEffect(() => {
-    const imgSrc = searchParams.get('img');
-    if (!imgSrc) {
-      lastHandledImgSrcRef.current = null;
-      return;
-    }
-    if (lastHandledImgSrcRef.current === imgSrc) return;
-    if (ordered.length === 0) return;
-    const idx = ordered.findIndex((item) => item.src === imgSrc);
-    if (idx < 0) return;
-    lastHandledImgSrcRef.current = imgSrc;
-    setLbIndex(idx);
-    setLbOpen(true);
-  }, [searchParams, ordered]);
-
   /* 갤러리 셀 click — 라이트박스 open */
   const openLightbox = useCallback((idx: number) => {
     setLbIndex(idx);
     setLbOpen(true);
   }, []);
 
-  /* 라이트박스 close — ?img= URL 정리 + ref 리셋 */
+  /* 라이트박스 close — ?img= URL 정리.
+     URL 이 이미 /gooddays 면 router.replace no-op 처리됨. */
   const handleClose = useCallback(() => {
     setLbOpen(false);
-    lastHandledImgSrcRef.current = null;
-    if (searchParams.get('img')) {
-      router.replace('/gooddays', { scroll: false });
-    }
-  }, [router, searchParams]);
+    router.replace('/gooddays', { scroll: false });
+  }, [router]);
 
   return (
     <div
@@ -264,7 +257,42 @@ export default function GoodDaysPage() {
         on={{
           view: ({ index }) => setLbIndex(index),
         }}
-        render={{ slide: LightboxNextJsImage }}
+        render={{
+          slide: LightboxNextJsImage,
+          /* 좌우 화살표 — 기존 GTR 디자인 (polyline) 재사용. 색상은 라이브러리 default white. */
+          iconPrev: () => (
+            <svg
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          ),
+          iconNext: () => (
+            <svg
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          ),
+          /* 모바일은 핀치 제스처로 줌 → +/- 버튼 hide. 데스크탑은 default 노출. */
+          buttonZoom: isMobile ? () => null : undefined,
+        }}
         styles={{
           root: { '--yarl__color_backdrop': 'var(--color-background-inverse)' },
         }}

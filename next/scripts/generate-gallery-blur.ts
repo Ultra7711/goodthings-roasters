@@ -18,6 +18,13 @@ const PUBLIC_DIR = path.join(NEXT_ROOT, 'public');
 const GALLERY_DIR = path.join(PUBLIC_DIR, 'images', 'gallery');
 const OUTPUT_FILE = path.join(NEXT_ROOT, 'src', 'lib', 'gooddaysBlur.ts');
 
+type Entry = {
+  src: string;
+  blurDataURL: string;
+  width: number;
+  height: number;
+};
+
 async function main(): Promise<void> {
   const files = (await fs.readdir(GALLERY_DIR))
     .filter((f) => f.endsWith('.webp'))
@@ -27,16 +34,20 @@ async function main(): Promise<void> {
     throw new Error(`No webp files in ${GALLERY_DIR}`);
   }
 
-  console.log(`[blur] generating LQIP for ${files.length} images...`);
+  console.log(`[blur] generating LQIP + dimensions for ${files.length} images...`);
 
-  const entries: { src: string; blurDataURL: string }[] = [];
+  const entries: Entry[] = [];
   for (const file of files) {
     const filePath = path.join(GALLERY_DIR, file);
     const buffer = await fs.readFile(filePath);
-    const { base64 } = await getPlaiceholder(buffer, { size: 10 });
+    /* getPlaiceholder 가 sharp 기반 — base64 LQIP + metadata.{width,height} 동시 반환.
+       width/height 는 yet-another-react-lightbox Zoom plugin 활성화 조건 (S121). */
+    const { base64, metadata } = await getPlaiceholder(buffer, { size: 10 });
     entries.push({
       src: `/images/gallery/${file}`,
       blurDataURL: base64,
+      width: metadata.width,
+      height: metadata.height,
     });
     process.stdout.write('.');
   }
@@ -47,8 +58,19 @@ async function main(): Promise<void> {
    Source: public/images/gallery/*.webp (${files.length} files) */
 `;
 
-  const body = `export const GD_BLUR_MAP: Record<string, string> = ${JSON.stringify(
-    Object.fromEntries(entries.map((e) => [e.src, e.blurDataURL])),
+  const body = `export type GdBlurEntry = {
+  blurDataURL: string;
+  width: number;
+  height: number;
+};
+
+export const GD_BLUR_MAP: Record<string, GdBlurEntry> = ${JSON.stringify(
+    Object.fromEntries(
+      entries.map((e) => [
+        e.src,
+        { blurDataURL: e.blurDataURL, width: e.width, height: e.height },
+      ]),
+    ),
     null,
     2,
   )};

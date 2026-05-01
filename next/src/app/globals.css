@@ -6186,6 +6186,16 @@ footer.blk {
    직접 구현된 .gd-lightbox / .gd-lb-* 룰은 모두 폐기. 디자인 토큰 매핑은
    GoodDaysPage 의 styles prop (--yarl__color_backdrop) 으로 처리. */
 
+/* /gooddays Suspense fallback — page entry 의 await searchParams 동안 풀 viewport 검정.
+   메인→굿데이즈 ?img= 진입 시 fallback (흰 div) → 푸터 노출 → cream flash → 라이트박스 검정
+   전환의 시각 단절을 차단. fallback 검정 → 라이트박스 검정으로 자연 전환. */
+.gd-suspense-fallback {
+  position: fixed;
+  inset: 0;
+  background: var(--color-background-inverse);
+  z-index: var(--z-lightbox);
+}
+
 /* ══════════════════════════════════════════
    CHECKOUT PAGE — RP-7
    프로토타입 #checkout-page (L2474~2888) 이식

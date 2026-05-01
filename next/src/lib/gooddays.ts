@@ -15,14 +15,19 @@
    재생성: npx tsx scripts/generate-gallery-blur.ts
    ══════════════════════════════════════════ */
 
-import { GD_BLUR_MAP } from './gooddaysBlur';
+import { GD_BLUR_MAP, type GdBlurEntry } from './gooddaysBlur';
 
-/** GD_BLUR_MAP 누락 시 fallback — 1x1 sandy beige (--color-background-secondary) */
-const FALLBACK_BLUR =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGPgaAAAAIIAgB8U1XwAAAAASUVORK5CYII=';
+/** GD_BLUR_MAP 누락 시 fallback — 1x1 sandy beige (--color-background-secondary).
+    width/height 는 일반적 사진 비율 fallback. */
+const FALLBACK_BLUR_ENTRY: GdBlurEntry = {
+  blurDataURL:
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGPgaAAAAIIAgB8U1XwAAAAASUVORK5CYII=',
+  width: 1920,
+  height: 1280,
+};
 
-function blurOf(src: string): string {
-  return GD_BLUR_MAP[src] ?? FALLBACK_BLUR;
+function entryOf(src: string): GdBlurEntry {
+  return GD_BLUR_MAP[src] ?? FALLBACK_BLUR_ENTRY;
 }
 
 export type GdImage = {
@@ -33,6 +38,9 @@ export type GdImage = {
 export type GdImageWithBlur = {
   src: string;
   blurDataURL: string;
+  /** 빌드 타임 sharp 추출 — yet-another-react-lightbox Zoom plugin 활성화 조건 */
+  width: number;
+  height: number;
 };
 
 export type GdPattern = {
@@ -101,7 +109,15 @@ export const GD_PATTERNS: GdPattern[] = [
 export const GD_PLACEHOLDER_COLORS = ['#E0D5C5', '#E8DFD2', '#D4C8B8', '#DDD0BE', '#F5EFE0'];
 
 export type GdCell =
-  | { kind: 'image'; src: string; blurDataURL: string; orderedIdx: number; span: boolean }
+  | {
+      kind: 'image';
+      src: string;
+      blurDataURL: string;
+      width: number;
+      height: number;
+      orderedIdx: number;
+      span: boolean;
+    }
   | { kind: 'placeholder'; bg: string; span: boolean };
 
 export type GdRow = {
@@ -148,10 +164,15 @@ export function buildGoodDaysGrid(): GoodDaysGrid {
     patIdx++;
   }
 
-  const ordered: GdImageWithBlur[] = orderedSrc.map((src) => ({
-    src,
-    blurDataURL: blurOf(src),
-  }));
+  const ordered: GdImageWithBlur[] = orderedSrc.map((src) => {
+    const entry = entryOf(src);
+    return {
+      src,
+      blurDataURL: entry.blurDataURL,
+      width: entry.width,
+      height: entry.height,
+    };
+  });
 
   /* 행 구조 생성 — 이미지가 떨어지면 플레이스홀더 셀 */
   const rows: GdRow[] = [];
@@ -169,6 +190,8 @@ export function buildGoodDaysGrid(): GoodDaysGrid {
           kind: 'image',
           src: item.src,
           blurDataURL: item.blurDataURL,
+          width: item.width,
+          height: item.height,
           orderedIdx: idx,
           span,
         });
