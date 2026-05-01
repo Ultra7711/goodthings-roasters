@@ -63,7 +63,7 @@
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| 이미지 최적화 (WebP/AVIF) | 🔄 | 프로토타입 내 일부 WebP · 본격 파이프라인 미구축 (어드민 Storage 도입 시 일괄) |
+| 이미지 최적화 (WebP/AVIF) | 🔄 | S120 4-Phase 계획 확정 (`memory/project_image_optimization_plan.md`). Phase 1 (next/image 마이그레이션 + AVIF 협상, 8~12h, 비용 0) 단독 진입 가능 · Phase 2 (Supabase Storage 업로드) 어드민 Group A-6/E/F 묶음 · **Storage Transform (Pro $25/월) 은 서비스 출시 후 RUM 기반 재평가** · Phase 3/4 출시 후 |
 | 콘텐츠 매핑 (DB↔UI) | ⬜ | 어드민 Group E (상품) · F (카페 메뉴) 와 함께 처리 — `lib/products.ts` · `lib/cafeMenu.ts` 하드코딩 → DB 이전 |
 
 #### 프로덕션 전 필수 처리
