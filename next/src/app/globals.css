@@ -407,7 +407,8 @@
 
   /* ── 오버레이 딤 ── */
   --overlay-dim-bg: rgba(0,0,0,.35);
-  --overlay-lightbox-bg: var(--color-background-inverse);
+  /* --overlay-lightbox-bg 토큰 제거 (S121) — 라이트박스가 yet-another-react-lightbox
+     라이브러리로 이전, styles.root.--yarl__color_backdrop 으로 직접 매핑. */
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -6181,130 +6182,9 @@ footer.blk {
   transform: none;
 }
 
-/* 라이트박스 */
-.gd-lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-lightbox);
-  background: var(--color-background-inverse);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--duration-fade) ease;
-  overflow: hidden;
-}
-.gd-lightbox.open {
-  opacity: 1;
-  pointer-events: auto;
-}
-/* 메인 페이지 갤러리에서 진입 시: transition 없이 즉시 검정 배경 표시.
-   화이트 배경 flash 차단 — 프로토타입 L2463 동일. */
-.gd-lightbox.gd-lb-instant {
-  transition: none;
-  opacity: 1;
-  pointer-events: auto;
-}
-/* 3-slide carousel track — prev/current/next 동시 렌더, 통째로 translateX.
-   gap 24px: 슬라이드 사이 시각적 간격 (PhotoSwipe / iOS Photos 표준).
-   width = 3 × 100vw + 2 × gap, translateX 기본값에 1 × gap 반영. */
-.gd-lb-track {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  gap: 24px;
-  width: calc(300vw + 48px);
-  transform: translateX(calc(-100vw - 24px));
-  will-change: transform;
-}
-.gd-lb-slide {
-  position: relative;
-  flex: 0 0 100vw;
-  /* height 100% — 부모 .gd-lb-track 의 inset:0 (fixed lightbox 풀 영역) 자동 추적.
-     100svh 명시 시 iOS Safari 의 URL bar 동적 숨김에서 하단 빈 영역 발생. */
-  height: 100%;
-  overflow: hidden;
-}
-.gd-lightbox img {
-  cursor: default;
-  user-select: none;
-  -webkit-user-select: none;
-}
-/* current slide 내부의 핀치/팬 변환 wrap */
-#gd-lb-img-wrap {
-  position: absolute;
-  inset: 0;
-  will-change: transform;
-}
-/* 확대 중 컨트롤 자동 hide — 한 번 더 single tap 으로 다시 노출 */
-.gd-lightbox.controls-hidden .gd-lb-close {
-  opacity: 0;
-  pointer-events: none;
-}
-/* 라이트박스 버튼 — 크기는 공통 클래스(close-btn-secondary-dark / arrow-btn-primary) 담당.
-   color/opacity/filter 는 라이트박스 컨텍스트에서 직접 지정 (배경 무관 가독성).
-   element-level opacity 사용: SVG paths 는 solid white 렌더 → 합성 단계에서 투명 처리
-   → X 닫기 겹침 라인에 알파 누적 없음. */
-.gd-lb-close {
-  position: absolute;
-  top: 32px;
-  right: 32px;
-  z-index: 4;
-  color: #fff;
-  opacity: 0.72;
-  filter: drop-shadow(0 0 4px rgba(0,0,0,0.8));
-  transition: opacity var(--duration-hover) linear;
-}
-.gd-lb-close:hover { color: #fff; opacity: 1; }
-@media (max-width: 767px) {
-  .gd-lb-close { top: 12px; right: 12px; }
-}
-.gd-lb-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #fff;
-  opacity: 0;
-  z-index: 3;
-  filter: drop-shadow(0 0 4px rgba(0,0,0,0.8));
-  transition: opacity 280ms ease;
-}
-.gd-lb-arrow:active { color: #fff; opacity: 0.5; }
-/* 시각적 1.5px 선 — 100px 렌더 / 24 viewBox → 1.5 / (100/24) ≈ 0.36 */
-.gd-lb-arrow svg { stroke-width: 0.36; }
-/* 클릭 피드백 flash — JS 에서 부여 → 600ms 후 제거 → 280ms fade-out */
-.gd-lb-arrow--flash {
-  opacity: 0.85;
-}
-.gd-lb-prev { left: 4px; }
-.gd-lb-next { right: 4px; }
-/* 좌우 탭존 — 버튼 영역 외 이미지 세로 전체 범위 탭으로도 prev/next 허용 */
-.gd-lb-zone {
-  position: absolute;
-  top: 0; bottom: 0;
-  width: 35%;
-  cursor: pointer;
-  touch-action: pan-y;
-  z-index: 2;
-}
-.gd-lb-zone--prev { left: 0; }
-.gd-lb-zone--next { right: 0; }
-/* 라이트박스 오픈 중 모든 터치 제스처를 JS 로 처리 */
-.gd-lightbox.open { touch-action: none; }
-/* 모바일: 버튼 축소 + flash 피드백 시에만 노출 */
-@media (max-width: 767px) {
-  .gd-lb-arrow:active { color: #fff; opacity: 1; }
-  .gd-lb-arrow--flash { opacity: 1; }
-  .gd-lb-prev { left: -4px; }
-  .gd-lb-next { right: -4px; }
-  /* arrow-btn-primary 100px → 44px (탭 영역 최소치 확보) */
-  .gd-lb-arrow.arrow-btn-primary { padding: 4px; }
-  .gd-lb-arrow.arrow-btn-primary svg { width: 44px; height: 44px; }
-  /* 44px SVG 기준 시각적 1.5px: 1.5 × (24/44) ≈ 0.82 (BUG-107) */
-  .gd-lb-arrow svg { stroke-width: 0.82; }
-}
+/* 라이트박스 — yet-another-react-lightbox 라이브러리 사용 (S121 컨버전).
+   직접 구현된 .gd-lightbox / .gd-lb-* 룰은 모두 폐기. 디자인 토큰 매핑은
+   GoodDaysPage 의 styles prop (--yarl__color_backdrop) 으로 처리. */
 
 /* ══════════════════════════════════════════
    CHECKOUT PAGE — RP-7
