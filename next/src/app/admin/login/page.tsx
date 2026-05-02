@@ -33,16 +33,16 @@ async function AdminLoginGuard() {
 function LoginShell({ children }: { children?: React.ReactNode }) {
   return (
     <div
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4"
+      className="gtr-admin relative flex min-h-screen items-center justify-center overflow-hidden px-4"
       style={{ background: 'var(--background)' }}
     >
-      {/* subtle backdrop pattern */}
+      {/* subtle backdrop pattern (시안 #E5E5E3 1px 도트) */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-50"
         style={{
           backgroundImage:
-            'radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0)',
+            'radial-gradient(circle at 1px 1px, #E5E5E3 1px, transparent 0)',
           backgroundSize: '24px 24px',
         }}
       />

@@ -132,3 +132,8 @@
 .gtr-admin ::-webkit-scrollbar { width: 8px; height: 8px; }
 .gtr-admin ::-webkit-scrollbar-thumb { background: #D4D4D2; border-radius: 4px; }
 .gtr-admin ::-webkit-scrollbar-track { background: transparent; }
+
+/* loading spinner keyframes (S126: AdminLoginForm submit 인디케이터) */
+@keyframes gtr-admin-spin {
+  to { transform: rotate(360deg); }
+}

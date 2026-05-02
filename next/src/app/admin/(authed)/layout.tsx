@@ -27,8 +27,9 @@ async function AdminAuthedInner({ children }: { children: ReactNode }) {
 
   return (
     <AdminTopbarActionsProvider>
-      {/* 시안 AdminShell 패턴: flex row, sidebar 240px + flex-1 main */}
+      {/* 시안 AdminShell 패턴: flex row, sidebar 240px + flex-1 main. .gtr-admin 클래스로 시안 base style (font-family, letter-spacing, line-height) 활성화. */}
       <div
+        className="gtr-admin"
         style={{
           width: '100%',
           minHeight: '100vh',
@@ -68,6 +69,7 @@ async function AdminAuthedInner({ children }: { children: ReactNode }) {
 function AdminLayoutSkeleton() {
   return (
     <div
+      className="gtr-admin"
       style={{
         width: '100%',
         minHeight: '100vh',

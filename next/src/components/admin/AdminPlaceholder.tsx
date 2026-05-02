@@ -1,11 +1,8 @@
 /* ══════════════════════════════════════════
-   AdminPlaceholder — 미구현 그룹 페이지 빈 상태.
-   - Claude Design 핸드오프 (empty.jsx) 기반.
-   - 일러스트 (스타일라이즈드 차트) + 헤딩 + 설명 + 그룹 안내.
+   AdminPlaceholder — 미구현 그룹 페이지 빈 상태 (S126).
+   - 시안 empty.jsx 시각 패턴 inline 100% 이식. shadcn 의존 제거.
+   - 일러스트 + 헤딩 + 그룹 안내 (analytics 와 달리 진행률·CTA·팁 없음).
    ══════════════════════════════════════════ */
-
-import { BarChart3 } from 'lucide-react';
-import { Card } from '@/components/admin/ui/card';
 
 type Props = {
   title: string;
@@ -16,28 +13,51 @@ type Props = {
 export default function AdminPlaceholder({ title, description, group }: Props) {
   return (
     <div>
-      <div className="mb-6">
+      {/* 헤더 */}
+      <div style={{ marginBottom: 22 }}>
         <h2
-          className="gtr-serif m-0 text-[24px] font-medium"
-          style={{ letterSpacing: '-0.02em' }}
+          style={{
+            margin: 0,
+            fontFamily: 'var(--font-serif)',
+            fontSize: 24,
+            fontWeight: 500,
+            letterSpacing: '-0.02em',
+          }}
         >
           {title}
         </h2>
-        <div
-          className="mt-1 text-[13px]"
-          style={{ color: 'var(--foreground-muted)' }}
-        >
+        <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
           {description}
         </div>
       </div>
 
-      <Card className="gap-0 p-0">
-        <div className="relative flex flex-col items-center overflow-hidden px-6 py-16 text-center">
+      {/* main empty card */}
+      <div
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius)',
+          padding: 0,
+        }}
+      >
+        <div
+          style={{
+            padding: '64px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
           {/* faint grid backdrop */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-40"
             style={{
+              position: 'absolute',
+              inset: 0,
+              opacity: 0.4,
               backgroundImage:
                 'linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)',
               backgroundSize: '24px 24px',
@@ -45,62 +65,99 @@ export default function AdminPlaceholder({ title, description, group }: Props) {
                 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
               WebkitMaskImage:
                 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
+              pointerEvents: 'none',
             }}
           />
 
-          {/* 일러스트 — 스타일라이즈드 차트 카드 */}
+          {/* 일러스트 */}
           <div
-            className="relative mb-5 flex items-end gap-2 px-3.5 py-3.5"
             style={{
+              position: 'relative',
               width: 120,
               height: 90,
+              marginBottom: 20,
               borderRadius: 8,
-              background: 'var(--card)',
+              background: 'var(--surface)',
               border: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'flex-end',
+              padding: 14,
+              gap: 8,
               boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
             }}
           >
             {[14, 26, 18, 32, 22].map((h, i) => (
               <div
                 key={i}
-                className="flex-1"
                 style={{
+                  flex: 1,
                   height: h,
                   borderRadius: 2,
-                  background:
-                    i === 3 ? 'var(--primary)' : 'var(--border-strong)',
+                  background: i === 3 ? 'var(--primary)' : 'var(--border-strong)',
                   opacity: i === 3 ? 0.9 : 0.6,
                 }}
               />
             ))}
             <div
-              className="absolute -right-2.5 -top-2.5 flex h-7 w-7 items-center justify-center rounded-full"
               style={{
+                position: 'absolute',
+                top: -10,
+                right: -10,
+                width: 28,
+                height: 28,
+                borderRadius: 999,
                 background: 'var(--primary-soft)',
                 color: 'var(--primary)',
-                border: '1.5px solid var(--card)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1.5px solid var(--surface)',
               }}
             >
-              <BarChart3 size={14} />
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 3v18h18" />
+                <path d="M7 14l4-4 4 4 6-6" />
+              </svg>
             </div>
           </div>
 
           <h3
-            className="gtr-serif relative m-0 text-[20px] font-medium"
-            style={{ letterSpacing: '-0.015em' }}
+            style={{
+              margin: 0,
+              fontFamily: 'var(--font-serif)',
+              fontSize: 20,
+              fontWeight: 500,
+              letterSpacing: '-0.015em',
+              position: 'relative',
+            }}
           >
             구현 예정 — {title}
           </h3>
           <p
-            className="relative m-0 mt-2 max-w-[420px] text-[13.5px]"
-            style={{ color: 'var(--foreground-muted)', lineHeight: 1.7 }}
+            style={{
+              margin: '8px 0 0',
+              maxWidth: 420,
+              fontSize: 13.5,
+              lineHeight: 1.7,
+              color: 'var(--foreground-muted)',
+              position: 'relative',
+            }}
           >
             이 페이지는 어드민 인프라(Group A) 구축 단계 placeholder 입니다.{' '}
             <strong style={{ color: 'var(--foreground)' }}>Group {group}</strong>{' '}
             그룹 작업 시 실제 기능과 데이터로 채워집니다.
           </p>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
