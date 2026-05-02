@@ -64,6 +64,7 @@ export default function HeroSection() {
           ref={videoRef}
           className="hero-bg"
           autoPlay muted loop playsInline
+          preload="metadata"
           poster="/images/hero/hero-poster.jpg"
         >
           <source src="/images/hero/hero-video.webm" type="video/webm" />
