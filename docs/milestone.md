@@ -3,8 +3,8 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-05-02 · Session 126 — 어드민 시안 5종 화면 풀 이식 (`1c9151c0`). Claude Design 새 핸드오프 (TDWxBSVDsE_nScGaCF5aOQ) 의 6 화면 중 dashboard 외 5종을 시안 inline style 100% 이식 — login (380px 카드 + 도트 backdrop) · analytics (placeholder 4 카드 + 일러스트 + 진행률 + CTA + 팁) · orders (탭 6 + 검색·필터 + 데이터 테이블 + 페이지네이션 + 일괄 선택) · products/new 신규 라우트 (5탭 + 좌우 grid + 이미지 업로드 + 공개 라디오 + 로스팅) · settings (공지 라이브 미리보기 + 시즌 배너 + 무료 배송 정책 + 30일 분석 인사이트). shadcn 의존 0. AdminPlaceholder 도 시각 통일 (5/7 페이지 자동 흡수). (authed)/layout root div 에 `.gtr-admin` 클래스 추가 (S125 누락 fix — 시안 base style 활성). 데이터 mock — 실 API/Storage 는 Group B/D/H/I-2 백엔드 단계. 417/417 vitest · tsc 0 errors · next build success (admin 11 라우트 ◐ PPR). 상세 `memory/project_session126_complete.md`.
-> 이전: Session 125 — 어드민 시안 inline style 100% 이식 (`adcd39e0`, dashboard + shell). Session 124 — 어드민 풀 구축 진입 (Group A 인프라 + Claude Design 핸드오프 + Step 1 폴리싱) (`f5f700bc`). Session 123 — 굿데이즈 라이트박스 잔존 closure (`07da3abb`).
+> **최종 업데이트:** 2026-05-02 · Session 127 — 어드민 시각 폴리싱 (`e0789aa9`). 폰트 Pretendard 통일 — Fraunces serif 폐기 (`--font-serif` 변수 + `.gtr-admin h1/h2/h3` font-family 룰 + inline `var(--font-serif)` 22곳 + `gtr-serif` 클래스 2곳 + globals.css Google Fonts `@import` 모두 정리, 네트워크 요청 1개 절약). 로그인·사이드바 'G' 박스 → 메인 사이트 SiteHeader 와 동일한 워드마크 SVG (`viewBox 0 0 680 142`) 교체 — 로그인 height 32px · 사이드바 height 20px + "ROASTERS · ADMIN" 캡션. 사이드바 brand 정렬 보정 — `alignItems: flex-start` 로 SVG stretch (195px → 정상 95.77px) 차단 + `marginLeft: -3` 으로 글리프 좌측을 메뉴 라인 22px 와 정렬. 사용자 공유 computed `width: 195px` 단서로 부모 flex stretch 진단 (메타 규칙 ① 효과 입증 — 마진값 추측 patch 누적 회피). 백엔드 Group B/D/H 진입은 S128 carry-over. 417/417 vitest · tsc 0 errors. 상세 `memory/project_session127_complete.md`.
+> 이전: Session 126 — 어드민 시안 5종 화면 풀 이식 (`1c9151c0`, login·analytics·orders·products/new·settings). Session 125 — 어드민 시안 inline style 100% 이식 (`adcd39e0`, dashboard + shell). Session 124 — 어드민 풀 구축 진입 (Group A 인프라 + Claude Design 핸드오프) (`f5f700bc`).
 
 ---
 
