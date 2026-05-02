@@ -3,8 +3,8 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-05-02 · Session 127 — 어드민 시각 폴리싱 (`e0789aa9`). 폰트 Pretendard 통일 — Fraunces serif 폐기 (`--font-serif` 변수 + `.gtr-admin h1/h2/h3` font-family 룰 + inline `var(--font-serif)` 22곳 + `gtr-serif` 클래스 2곳 + globals.css Google Fonts `@import` 모두 정리, 네트워크 요청 1개 절약). 로그인·사이드바 'G' 박스 → 메인 사이트 SiteHeader 와 동일한 워드마크 SVG (`viewBox 0 0 680 142`) 교체 — 로그인 height 32px · 사이드바 height 20px + "ROASTERS · ADMIN" 캡션. 사이드바 brand 정렬 보정 — `alignItems: flex-start` 로 SVG stretch (195px → 정상 95.77px) 차단 + `marginLeft: -3` 으로 글리프 좌측을 메뉴 라인 22px 와 정렬. 사용자 공유 computed `width: 195px` 단서로 부모 flex stretch 진단 (메타 규칙 ① 효과 입증 — 마진값 추측 patch 누적 회피). 백엔드 Group B/D/H 진입은 S128 carry-over. 417/417 vitest · tsc 0 errors. 상세 `memory/project_session127_complete.md`.
-> 이전: Session 126 — 어드민 시안 5종 화면 풀 이식 (`1c9151c0`, login·analytics·orders·products/new·settings). Session 125 — 어드민 시안 inline style 100% 이식 (`adcd39e0`, dashboard + shell). Session 124 — 어드민 풀 구축 진입 (Group A 인프라 + Claude Design 핸드오프) (`f5f700bc`).
+> **최종 업데이트:** 2026-05-02 · Session 128 — 어드민 주문 풀 구현 (`bb04f856`). **Group B 완료** (B-0 RLS · B-1 목록 · B-2 상세 · B-3 발송 다이얼로그 · B-4 환불 안내). 마이그레이션 030 (orders/order_items admin SELECT + `admin_orders_status_counts` RPC) + 031 (payment_transactions admin SELECT). 시안 inline style 100% 이식 — 5탭 카운트 RPC + URL state(status·period·payment·q·page) + 검색 debounced router.replace + 페이지네이션 윈도우(첫·끝+current±1). 상세 페이지 2-col 그리드 (좌 상품·결제·배송 + 우 고객·환불·메모·타임라인) — order + items + profile + 누적 주문 + payment_transactions 병렬 fetch. 송장 다이얼로그 — 택배사 드롭다운(직접입력 분기) + mono input + ESC/외부클릭 + autofocus + spinner. `dispatchOrderAction` server action (결정 3 B안) — `getAdminClaims` 가드 + `dispatch_order` RPC + `revalidatePath`. 실기 검증 완료 — 한진택배 1213123213123 발송 처리 → paid → shipping 전환 + 송장 표시 + 타임라인 진행. Next.js 16 cacheComponents 호환 — root layout `NextTopLoader`/`OverscrollColor`/`TouchHoverGuard`/`CartDrawer` 각각 `<Suspense fallback={null}>` 격리 (동적 [param] 라우트 prerender 시 dynamic-data 클라 컴포넌트 catch). 458/458 vitest (41 신규) · tsc 0 · next build success. 상세 `memory/project_session128_complete.md`.
+> 이전: Session 127 — 어드민 시각 폴리싱 (`e0789aa9`, 폰트 Pretendard 통일 + 워드마크 SVG). Session 126 — 어드민 시안 5종 풀 이식 (`1c9151c0`). Session 125 — 어드민 시안 inline style 100% 이식 (`adcd39e0`).
 
 ---
 
@@ -28,7 +28,7 @@
 | Phase 3 — Backend | 3 | 1 | 0 | ~75% |
 | Phase 4 — Infrastructure | 4 | 1 | 0 | ~85% |
 | Phase 5 — QA | 0 | 0 | 3 | 0% |
-| 어드민 풀 구축 (출시 전 신규 영역) | 0 | 1 (A 진행 중) | 9 | ~5% |
+| 어드민 풀 구축 (출시 전 신규 영역) | 1 (A·시안 이식·B) | 0 | 8 | ~25% |
 | User AI | 0 | 0 | 1 | 0% |
 
 **현재 위치 (S125 종료, 2026-05-02):**
@@ -167,13 +167,16 @@
 
 | Group | 영역 | 상태 |
 |-------|------|------|
-| A | Foundation (`/admin/login` + 인증·RLS 점검) | ⬜ |
-| B | Orders (주문 관리) | ⬜ |
+| A | Foundation (`/admin/login` + 인증·RLS 점검) | ✅ S124 (Foundation) + S125~S127 (시안 inline style 풀 이식 + 시각 폴리싱) |
+| B | Orders (주문 관리) | ✅ S128 — 목록·상세·발송 다이얼로그·환불 안내 풀 구현 (마이그레이션 030/031) |
 | C | Users (사용자 관리) | ⬜ |
 | D | Subscriptions (정기배송 관리) | ⬜ |
 | E | Products (상품 도메인 DB + 어드민 UI) | ⬜ 가장 큰 작업 (20~29h) |
 | F | Cafe Menu (카페 메뉴 도메인 DB + 어드민 UI) | ⬜ 12~17h |
-| G | Etc (대시보드 · 통계 · 잡무) | ⬜ |
+| H | Site Settings (공지·시즌배너·배송정책) | ⬜ 7~11h (S124 신규) |
+| I | Analytics (대시보드 · 통계) | ⬜ 5~7h (S124 신규) |
+| J | GoodDays Gallery (이미지 어드민) | ⬜ 6~8h (S124 신규) |
+| G | Operations (SOP 문서 + E2E) | ⬜ |
 | 후속 | 정기배송 풀 구현 (자동 결제 집행 · 휴일 큐 등) | ⬜ 14~19h |
 
 **클라이언트 의사결정 대기:** admin 계정 정책 · 상품 카테고리 확장 · 재고 정밀도 · 정기배송 출시 시점/할인율 · 주기 옵션 · 자동 결제 SLA · 해지 정책. 자세한 항목 `project_admin_subscription_plan.md §클라이언트 의사결정`.
