@@ -13,6 +13,42 @@
 import { useEffect, useState } from 'react';
 import type { Product } from '@/lib/products';
 import { useSiteSettings } from '@/components/providers/SiteSettingsProvider';
+import SpecTable from './SpecTable';
+
+const DRIP_BAG_SPEC_ROWS = [
+  { label: '제품명', value: '굳띵즈 드립백' },
+  { label: '내용량', value: '12g × 10개' },
+  { label: '식품유형', value: '커피' },
+  { label: '소비기한', value: '별도표기일까지' },
+  { label: '원재료 및 함량', value: '커피 100%', full: true as const },
+  {
+    label: '제조원',
+    value: '(주)케이코닉 | 경기도 하남시 하남대로 990 B105~B107',
+    full: true as const,
+  },
+  {
+    label: '판매원',
+    value: '(주)브이티이코프 | 경북 구미시 인동21길 22-11 1층',
+    full: true as const,
+  },
+  {
+    label: '포장재질',
+    value: '여과지:폴리프로필렌 / 컵걸이:폴리에틸렌코팅종이 / 내포장:폴리에틸렌(내면)',
+    full: true as const,
+  },
+  { label: '반품 및 교환', value: '구입처 054-451-4568' },
+  { label: '보관방법', value: '서늘한 곳에 밀폐보관' },
+  { label: '포장방법', value: '질소충전' },
+  { label: '품목보고번호', value: '20170120209-470' },
+] as const;
+
+const DRIP_BAG_SPEC_FOOTER = {
+  notices: [
+    '부정 불량식품 신고는 국번없이 1399',
+    '본 제품은 공정거래위원회 고시 소비자 분쟁해결 기준에 의거, 교환 또는 보상 받을 수 있습니다.',
+  ],
+  certifications: ['vinyl_other', 'haccp'],
+} as const;
 
 type AccordionKey = 'shipping' | 'return' | 'product-info';
 
@@ -98,54 +134,7 @@ export default function ProductAccordions({ category, slug }: Props) {
             <AccordionIcon />
           </button>
           <div className="pd-accordion-body pd-product-info-body">
-            <table className="pd-info-table">
-              <tbody>
-                {/* 4컬럼 쌍 — 데스크탑에서 나란히, 모바일에서 2행으로 자동 분리 */}
-                <tr>
-                  <td className="pd-info-label">제품명</td><td>굳띵즈 드립백</td>
-                  <td className="pd-info-label">내용량</td><td>12g × 10개</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">식품유형</td><td>커피</td>
-                  <td className="pd-info-label">소비기한</td><td>별도표기일까지</td>
-                </tr>
-                {/* 전폭 행 — 값이 긴 항목 */}
-                <tr>
-                  <td className="pd-info-label">원재료 및 함량</td>
-                  <td colSpan={3}>커피 100%</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">제조원</td>
-                  <td colSpan={3}>(주)케이코닉 | 경기도 하남시 하남대로 990 B105~B107</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">판매원</td>
-                  <td colSpan={3}>(주)브이티이코프 | 경북 구미시 인동21길 22-11 1층</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">포장재질</td>
-                  <td colSpan={3}>여과지:폴리프로필렌 / 캡(알):폴리에틸렌 / 캐리어링 내포장:폴리에틸렌</td>
-                </tr>
-                {/* 4컬럼 쌍 */}
-                <tr>
-                  <td className="pd-info-label">포장방법</td><td>질소충진</td>
-                  <td className="pd-info-label">품목보고번호</td><td>20170120209-470</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">반품 및 교환</td><td>구입처</td>
-                  <td className="pd-info-label">보관방법</td><td>서늘한 곳에 밀봉보관</td>
-                </tr>
-                <tr>
-                  <td className="pd-info-label">소비자상담</td><td colSpan={3}>054-451-4568</td>
-                </tr>
-                {/* 안내 문구 */}
-                <tr>
-                  <td colSpan={4} className="pd-info-note">
-                    * 부정·불량식품 신고는 국번없이 1399
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <SpecTable rows={DRIP_BAG_SPEC_ROWS} footer={DRIP_BAG_SPEC_FOOTER} />
           </div>
         </div>
       )}
