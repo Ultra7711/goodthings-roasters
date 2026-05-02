@@ -5,7 +5,7 @@
    비대상: createOrderFromInput (DB RPC 의존 — 통합 테스트에서 처리)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   buildRpcItem,
   recomputeItems,
@@ -23,8 +23,23 @@ import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/hooks/useCart';
 
 /** PRODUCTS 의 첫 번째 커피빈 (정기배송 가능) */
 const coffeeBean = PRODUCTS.find((p) => p.category === 'Coffee Bean')!;
-/** PRODUCTS 의 첫 번째 드립백 (정기배송 불가) */
-const dripBag = PRODUCTS.find((p) => p.category === 'Drip Bag')!;
+/** 정기배송 불가 상품 mock — S132 Phase 1 에서 모든 카탈로그 상품이
+ *  subscription=true 로 전환되었으므로 subscription_not_allowed 검증을 위해
+ *  카탈로그에 mock 상품을 일시 주입하여 격리. resolveProduct 는 PRODUCTS 에서
+ *  slug 로 직접 탐색하므로 mock 주입 없이는 검증 불가. */
+const dripBag = {
+  ...PRODUCTS.find((p) => p.category === 'Drip Bag')!,
+  slug: '__mock_non_subscribable__',
+  subscription: false,
+};
+
+beforeAll(() => {
+  PRODUCTS.push(dripBag);
+});
+afterAll(() => {
+  const i = PRODUCTS.findIndex((p) => p.slug === dripBag.slug);
+  if (i >= 0) PRODUCTS.splice(i, 1);
+});
 
 describe('resolveProduct — slug 로 카탈로그 탐색', () => {
   it('존재하는 slug 를 Product 로 반환한다', () => {

@@ -4217,75 +4217,199 @@ footer.blk {
    라이브 토탈은 제거됨 (볼륨 선택 시에만 상단 가격 갱신).
    ══════════════════════════════════════════ */
 
-/* 일반/정기 배송 탭 */
-#pd-order-type-wrap {
-  display: none;
+/* ── PDP 입력 박스 공통 height + font-size — CTA 와 일치 ── */
+:root {
+  --pd-input-height: 48px;
+  --pd-input-font-size: var(--type-body-m-size); /* 15px — CTA 와 동일 위계 */
+}
+
+/* ── OptionChipGroup (V2 §6.11) ── */
+.option-chip-group {
   margin-bottom: 24px;
 }
-#pd-order-type-wrap.visible { display: block; }
-#pd-order-tabs {
-  display: flex;
-  position: relative;
-  margin-bottom: 24px;
+.option-chip-label {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  color: var(--color-text-caption);
+  margin-bottom: 10px;
 }
-#pd-order-tabs::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--color-border-secondary);
+/* chip 가로 stretch — grid 균등 분배 (3 옵션 기본 · 옵션 수 다르면 --chip-count 로 override).
+   #pd-qty-block 도 동일 분모로 첫 chip 폭과 일치. */
+.option-chip-list {
+  display: grid;
+  grid-template-columns: repeat(var(--chip-count, 3), 1fr);
+  gap: 8px;
 }
-#pd-order-indicator {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  width: 0;
-  background: var(--color-accent-gold);
-  transition:
-    left var(--duration-transition) cubic-bezier(.4, 0, .2, 1),
-    width var(--duration-transition) cubic-bezier(.4, 0, .2, 1);
-  z-index: 1;
-}
-.pd-order-tab {
-  flex: 1;
-  padding: 16px 0 14px;
+.option-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: var(--pd-input-height);
+  padding: 0 18px;
+  min-width: 0;
   background: transparent;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 2px;
+  font-family: var(--font-kr);
+  font-size: var(--pd-input-font-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition:
+    box-shadow var(--duration-hover) ease,
+    color var(--duration-hover) ease;
+}
+/* hover 효과 제거 — selected 만 강조하여 의도 분명 */
+.option-chip--selected {
+  border-color: transparent;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  box-shadow: inset 0 0 0 2px var(--color-text-primary);
+}
+.option-chip--disabled {
+  color: var(--color-text-caption);
+  text-decoration: line-through;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.option-chip-main { white-space: nowrap; }
+.option-chip-sub {
+  color: var(--color-text-tertiary);
+  font-weight: 400;
+}
+.option-chip-badge {
+  font-size: var(--type-label-size);
+  letter-spacing: 0.04em;
+  color: var(--color-text-caption);
+}
+
+/* ── 정기배송 박스 (V2 §5.2) — chip 과 동일 height + full width ──
+   체크 전: sand 배경 (옵션 강조) / 체크 후: transparent + ink border */
+#pd-subscription-block {
+  margin-bottom: 24px;
+}
+/* chip 과 동일 패턴 — 외곽선만 + selected 시 2px inset (layout shift 회피) */
+.pd-sub-box {
+  position: relative;
+  height: var(--pd-input-height);
+  padding: 0 18px;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: transparent;
+  transition: box-shadow var(--duration-hover) ease;
+}
+.pd-sub-box--checked {
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--color-text-primary);
+}
+.pd-sub-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--font-kr);
+  font-size: var(--pd-input-font-size);
+  color: var(--color-text-primary);
+  flex: 1;
+  min-width: 0;
+}
+.pd-sub-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+.pd-sub-checkbox-box {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--color-border-input);
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: transparent;
+  flex-shrink: 0;
+  transition:
+    background-color var(--duration-hover) ease,
+    border-color var(--duration-hover) ease,
+    color var(--duration-hover) ease;
+}
+.pd-sub-checkbox-box svg {
+  width: 16px;
+  height: 16px;
+}
+.pd-sub-toggle input:checked + .pd-sub-checkbox-box {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-text-inverse);
+}
+.pd-sub-toggle input:focus-visible + .pd-sub-checkbox-box {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
+}
+.pd-sub-toggle-label {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pd-sub-cycle-preview {
+  font-family: var(--font-kr);
+  font-size: var(--pd-input-font-size);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pd-sub-cycle-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
   border: none;
   cursor: pointer;
   font-family: var(--font-kr);
-  font-size: var(--type-heading-s-size);
-  font-weight: 400;
-  letter-spacing: var(--ls-neutral);
-  color: var(--tab-color);
-  transition: color var(--duration-hover) ease;
-  text-align: center;
-}
-.pd-order-tab.active {
+  font-size: var(--pd-input-font-size);
   font-weight: 500;
-  color: var(--tab-color-active);
+  color: var(--color-text-primary);
+  padding: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
-.pd-order-tab:hover:not(.active) { color: var(--tab-color-active); }
+.pd-sub-cycle-trigger .pd-input-box-chevron {
+  width: 18px;
+  height: 18px;
+}
+.pd-sub-box[data-open='true'] .pd-input-box-chevron {
+  transform: rotate(180deg);
+  color: var(--color-text-primary);
+}
+.pd-sub-cycle-panel {
+  position: absolute;
+  top: calc(100% - 1px);
+  right: -1px;
+  min-width: 200px;
+  z-index: 5;
+}
 
-/* 구매 옵션 그리드 — data-layout 으로 컬럼 구성 결정 */
-#pd-purchase-row {
-  display: grid;
-  gap: var(--gap-lg);
-  margin-bottom: 40px;
+/* ── 수량 블록 — chip 1개 폭과 동일 (데스크탑 균형) ──
+   chip-list 가 grid repeat(N, 1fr) + gap 8px 이므로 1개 폭 = (100% - gap*(N-1)) / N */
+#pd-qty-block {
+  margin-bottom: 24px;
+  width: calc((100% - 8px * 2) / 3);
 }
-/* vqc: 1:1:2 을 1:1 기준에 맞춘 보정 레이아웃.
-   vq(1:1) 의 중앙 gap 라인(W/2±10) 과 vqc 의 qty/cycle 경계를 정확히 일치시키려면
-   1-ratio(용량·수량) 각 -5px, 2-ratio(주기) +10px. 총합은 변하지 않음.
-   계산: vol/qty = 25% - 15px (= (W-40)/4 - 5) / cycle = 50% - 10px (= (W-40)/2 + 10)
-   vq : 1:1 / qc: 1:2 / q: 1 */
-#pd-purchase-row[data-layout="vqc"] {
-  grid-template-columns: calc(25% - 15px) calc(25% - 15px) calc(50% - 10px);
+#pd-qty-block .pd-input-box {
+  height: var(--pd-input-height);
+  padding: 0;
 }
-#pd-purchase-row[data-layout="vq"]  { grid-template-columns: 1fr 1fr; }
-#pd-purchase-row[data-layout="qc"]  { grid-template-columns: 1fr 2fr; }
-#pd-purchase-row[data-layout="q"]   { grid-template-columns: 1fr; }
 
 .pd-field {
   display: flex;
@@ -4307,7 +4431,7 @@ footer.blk {
 }
 .pd-input-box {
   position: relative;
-  height: 48px;
+  height: var(--pd-input-height, 52px);
   background: transparent;
   border: 1px solid var(--color-input-box-border);
   display: flex;
@@ -4422,36 +4546,31 @@ footer.blk {
   flex-shrink: 0;
 }
 
-/* 수량 스테퍼 박스 */
-#pd-qty-wrap .pd-input-box {
-  padding: 0 12px;
-}
+/* 수량 스테퍼 — CartDrawer .cd-qty 패턴: 양쪽 정사각 버튼(W=H) + 가운데 num */
 .pd-qty-stepper {
   width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--gap-xs);
 }
 .pd-qty-icon {
-  width: 24px;
-  height: 24px;
+  width: var(--pd-input-height);
+  height: var(--pd-input-height);
+  padding: 12px;
+  box-sizing: border-box;
   cursor: pointer;
   color: var(--color-icon-default);
   transition: color var(--duration-hover) ease;
   user-select: none;
   flex-shrink: 0;
-  /* Session 43 — tap-area 40x40 (padding 8 * 2). inline-block padding 은 SVG width/height 를 유지하도록 box-sizing 은 content-box 유지 */
-  padding: 8px;
-  box-sizing: content-box;
-  margin: -8px;
 }
-.pd-qty-icon:hover { color: var(--color-icon-default); }
+.pd-qty-icon:hover { color: var(--color-text-primary); }
 #pd-qty-num {
   flex: 1;
   text-align: center;
   font-family: var(--font-en);
-  font-size: var(--type-heading-s-size);
+  font-size: var(--pd-input-font-size);
   font-weight: 500;
   color: var(--color-text-primary);
 }
@@ -4485,26 +4604,20 @@ footer.blk {
   outline-offset: 2px;
 }
 
-/* 반응형 — 1440 한줄 1:1:2 / 1024↓ 2줄 / 768↓ 1열 */
-@media (max-width: 1024px) {
-  #pd-purchase-row[data-layout="vqc"],
-  #pd-purchase-row[data-layout="vq"] {
-    grid-template-columns: 1fr 1fr;
-  }
-  #pd-purchase-row[data-layout="vqc"] #pd-cycle-wrap {
-    grid-column: 1 / -1;
-  }
-  #pd-purchase-row[data-layout="qc"] {
-    grid-template-columns: 1fr;
-  }
-}
+/* 반응형 — 모바일에서 chip 그리드 → flex 줄바꿈, 수량 폭 해제 */
 @media (max-width: 767px) {
-  #pd-purchase-row[data-layout="vqc"],
-  #pd-purchase-row[data-layout="vq"] {
-    grid-template-columns: 1fr;
+  .option-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
-  #pd-purchase-row[data-layout="vqc"] #pd-cycle-wrap {
-    grid-column: auto;
+  .option-chip {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 100px;
+  }
+  #pd-qty-block {
+    width: calc((100% - 8px) / 2);
+    max-width: 160px;
   }
 }
 

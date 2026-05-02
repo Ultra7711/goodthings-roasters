@@ -140,7 +140,7 @@ export const PRODUCTS: Product[] = [
     color: 'linear-gradient(135deg,#C4C0BA,#8A8680)',
     status: null,
     slug: 'guatemala-waykan',
-    subscription: false,
+    subscription: true,
     images: [
       { bg: '#ECEAE6', bgTheme: 'light', src: '/images/products/pd_img_quatemala_waykan.webp' },
       { bg: '#ECEAE6', bgTheme: 'light', src: '/images/products/pd_img_quatemala_waykan_02.webp' },
@@ -165,7 +165,7 @@ export const PRODUCTS: Product[] = [
     color: 'linear-gradient(135deg,#C4C0BA,#8A8680)',
     status: null,
     slug: 'ethiopia-buku-hurupa',
-    subscription: false,
+    subscription: true,
     popup: true,
     images: [
       { bg: '#ECEAE6', bgTheme: 'light', src: '/images/products/pd_img_buku_hurufa.webp' },
@@ -191,7 +191,7 @@ export const PRODUCTS: Product[] = [
     color: 'linear-gradient(135deg,#C4C0BA,#8A8680)',
     status: '수량 한정',
     slug: 'peru-de-caffein',
-    subscription: false,
+    subscription: true,
     images: [
       { bg: '#ECEAE6', bgTheme: 'light', src: '/images/products/pd_img_peru_de_caffein.webp' },
       { bg: '#ECEAE6', bgTheme: 'light', src: '/images/products/pd_img_peru_de_caffein_02.webp' },
@@ -216,7 +216,7 @@ export const PRODUCTS: Product[] = [
     color: 'linear-gradient(135deg,#C4C0BA,#8A8680)',
     status: '품절',
     slug: 'kenya-kaganda-aa',
-    subscription: false,
+    subscription: true,
     images: [
       { bg: '#ECEAE6', bgTheme: 'light', src: '/images/products/pd_img_keyna_kaganda.webp' },
       { bg: '#ECEAE6', bgTheme: 'light', src: '/images/products/pd_img_keyna_kaganda_02.webp' },

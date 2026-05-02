@@ -9,7 +9,7 @@
    Mock: cartRepo.upsertCartItem (DB 없이 테스트)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/repositories/cartRepo', () => ({
   upsertCartItem: vi.fn(),
@@ -29,8 +29,23 @@ import { OrderServiceError } from './orderService';
 import { PRODUCTS } from '@/lib/products';
 
 const coffeeBean = PRODUCTS.find((p) => p.category === 'Coffee Bean')!;
-const dripBag = PRODUCTS.find((p) => p.category === 'Drip Bag')!;
+/** 정기배송 불가 상품 mock — S132 Phase 1 에서 모든 카탈로그 상품이
+ *  subscription=true 로 전환되었으므로 subscription_not_allowed 검증을 위해
+ *  카탈로그에 mock 상품을 일시 주입하여 격리. */
+const dripBag = {
+  ...PRODUCTS.find((p) => p.category === 'Drip Bag')!,
+  slug: '__mock_non_subscribable__',
+  subscription: false,
+};
 const USER_ID = '11111111-1111-1111-1111-111111111111';
+
+beforeAll(() => {
+  PRODUCTS.push(dripBag);
+});
+afterAll(() => {
+  const i = PRODUCTS.findIndex((p) => p.slug === dripBag.slug);
+  if (i >= 0) PRODUCTS.splice(i, 1);
+});
 
 beforeEach(() => {
   vi.mocked(upsertCartItem).mockReset();

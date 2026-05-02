@@ -207,7 +207,7 @@ export default function CartDrawer() {
                               updateQty.mutate({ id: item.id, delta: -1 })
                             }
                           >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M6.3,12h11.3" />
                             </svg>
                           </button>
@@ -220,7 +220,7 @@ export default function CartDrawer() {
                               updateQty.mutate({ id: item.id, delta: 1 })
                             }
                           >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M12,6.3v11.3" />
                               <path d="M6.3,12h11.3" />
                             </svg>
