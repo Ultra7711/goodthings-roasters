@@ -28,16 +28,12 @@ import type {
   OrderCreateInput,
   OrderItemInput,
 } from '@/lib/schemas/order';
+import { fetchSiteSettings } from '@/lib/siteSettingsServer';
 
-/* ── 배송비 상수 (서버 단독 소스) ──────────────────────────────────────
-   BUG-FIX 2026-04-23: @/hooks/useCart · @/lib/cartCalc 등 외부 모듈에서
-   import 한 상수·함수가 Vercel Turbopack 프로덕션 번들에서 함수 객체로 치환되는
-   버그 확인 (PGRST202 → toInt fallback 은폐 → 총액 배송비 누락). 외부 의존
-   전부 제거하고 이 파일에 리터럴 상수로 고정. 값은 hooks/useCart.ts 의
-   FREE_SHIPPING_THRESHOLD(30000) / SHIPPING_FEE(3000) 과 동일 정책.
-   정책 변경 시 두 곳 동기화 필수. */
-const ORDER_FREE_SHIPPING_THRESHOLD = 30000;
-const ORDER_SHIPPING_FEE = 3000;
+/* ── 배송비 정책 (S129 H-5) ──────────────────────────────────────────
+   site_settings.shipping (key/value JSONB · 어드민 동적 설정) 단일 소스.
+   createOrderFromInput 가 fetchSiteSettings() 호출 후 사용.
+   fetch 실패 시 SITE_SETTINGS_DEFAULTS 가 자동 fallback (free_threshold=30000, base_fee=3500). */
 
 /* calcShippingFee 는 @/lib/cartCalc 로 이관 완료.
    이 파일은 calcShippingFee 심볼을 직접 import/re-export 하지 않는다 —
@@ -221,11 +217,17 @@ export async function createOrderFromInput(
   /* 1) 서버 권위 재계산 */
   const { rpcItems, subtotal } = recomputeItems(input.items);
 
-  /* 2) 배송비 / 총액 — 이 파일 내 로컬 상수 사용 (외부 import 없음, 위 주석 참조) */
+  /* 2) 배송비 정책 — site_settings.shipping (어드민 동적 설정).
+        실패 시 fetchSiteSettings 가 SITE_SETTINGS_DEFAULTS 반환 → ORDER_FREE_SHIPPING_THRESHOLD/FEE 와 동일.
+        enabled=false → 무료배송 정책 자체 비활성 (모든 결제에 base_fee). */
+  const { shipping: shippingPolicy } = await fetchSiteSettings();
+  const freeThreshold = shippingPolicy.enabled
+    ? shippingPolicy.free_threshold
+    : Number.POSITIVE_INFINITY;
+  const baseFee = shippingPolicy.base_fee;
+
   const shippingFeeAmount =
-    subtotal === 0 || subtotal >= ORDER_FREE_SHIPPING_THRESHOLD
-      ? 0
-      : ORDER_SHIPPING_FEE;
+    subtotal === 0 ? 0 : subtotal >= freeThreshold ? 0 : baseFee;
   const discountAmount = 0; // 프로모션 도입 시 확장
   const totalAmount = subtotal + shippingFeeAmount - discountAmount;
 

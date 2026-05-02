@@ -14,6 +14,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      /* `server-only` 는 production 클라 번들 차단 마커.
+         vitest 환경에서는 패키지가 resolve 안 돼서 import 자체가 실패하므로 빈 stub 으로 alias.
+         (S129 H-5: ordersServer · siteSettingsServer 가 import) */
+      'server-only': path.resolve(__dirname, './src/__mocks__/server-only.ts'),
     },
   },
 });

@@ -7,8 +7,10 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import NextTopLoader from 'nextjs-toploader';
 import AuthSyncProvider from '@/components/auth/AuthSyncProvider';
 import Providers from '@/components/providers/Providers';
+import { SiteSettingsProvider } from '@/components/providers/SiteSettingsProvider';
 import OverscrollColor from '@/components/ui/OverscrollColor';
 import TouchHoverGuard from '@/components/ui/TouchHoverGuard';
+import { fetchSiteSettings } from '@/lib/siteSettingsServer';
 import './globals.css';
 
 const inter = Inter({
@@ -29,14 +31,19 @@ export const metadata: Metadata = {
   description: 'good things, simply roasted. — 스페셜티 커피 로스터리',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
   /* BUG-006 D-007 (2026-04-23): `await headers()` 제거.
      nonce 기반 CSP 가 제거되어 전역 dynamic rendering 강제가 불필요해졌다.
-     Next.js 가 이제 정적 최적화 가능한 라우트를 shell 로 prerender 할 수 있다. */
+     Next.js 가 이제 정적 최적화 가능한 라우트를 shell 로 prerender 할 수 있다.
+
+     S129 H-5: site_settings fetch ('use cache' + cacheTag 적용 → 정적 캐싱).
+     어드민 저장 시 revalidateTag('site-settings') 로 무효화. */
+  const siteSettings = await fetchSiteSettings();
+
   return (
     <html lang="ko" className={`${inter.variable} ${pretendard.variable} antialiased`}>
       <head>
@@ -60,9 +67,11 @@ export default function RootLayout({
           <TouchHoverGuard />
         </Suspense>
         <div className="page-bg">
-          <Providers>
-            <AuthSyncProvider>{children}</AuthSyncProvider>
-          </Providers>
+          <SiteSettingsProvider initial={siteSettings}>
+            <Providers>
+              <AuthSyncProvider>{children}</AuthSyncProvider>
+            </Providers>
+          </SiteSettingsProvider>
         </div>
         <Analytics />
         <SpeedInsights />

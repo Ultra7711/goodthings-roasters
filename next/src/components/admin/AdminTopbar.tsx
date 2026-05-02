@@ -59,6 +59,10 @@ export default function AdminTopbar({ email, displayName }: Props) {
         background: 'var(--surface)',
         borderBottom: '1px solid var(--border)',
         gap: 12,
+        /* 스크롤 시에도 페이지 타이틀 + actions(저장 버튼 등) 항상 노출 (S129 H-5 후속 UX). */
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
       }}
     >
       <div

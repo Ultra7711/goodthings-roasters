@@ -30,7 +30,7 @@ import { useToast } from '@/hooks/useToast';
 import { TextField } from '@/components/ui/TextField';
 import { SearchIcon } from '@/components/ui/InputIcons';
 import { extractKrName, formatPrice } from '@/lib/utils';
-import { FREE_SHIPPING_THRESHOLD } from '@/hooks/useCart';
+import { useSiteSettings } from '@/components/providers/SiteSettingsProvider';
 import type { Subscription, SubscriptionCycle } from '@/types/subscription';
 import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
 import SiteHeader from '@/components/layout/SiteHeader';
@@ -70,6 +70,10 @@ type MyPagePageProps = {
 export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const router = useRouter();
   const { show: toast } = useToast();
+  const { shipping: shippingPolicy } = useSiteSettings();
+  const freeShippingThreshold = shippingPolicy.enabled
+    ? shippingPolicy.free_threshold
+    : Infinity;
   /* useAuthGuard: 로그아웃 감지 시 router.replace(/login) 자동 동작.
      BUG-168 Fix B: ready/authorized 분기 제거 — 서버 가드가 이미 인증 보장. */
   const { bypassRedirect } = useAuthGuard();
@@ -842,7 +846,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                       </div>
                       <div className="mp-order-price-row">
                         <span className="mp-order-price">{order.price}</span>
-                        {order.priceNum < FREE_SHIPPING_THRESHOLD && (
+                        {order.priceNum < freeShippingThreshold && (
                           <span className="mp-order-shipping-note">배송비 포함</span>
                         )}
                       </div>

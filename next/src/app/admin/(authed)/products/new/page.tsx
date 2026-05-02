@@ -144,10 +144,10 @@ export default function AdminProductNewPage() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                 <FormField label="판매가" required>
-                  <FormInput prefix="₩" defaultValue="18,000" suffix="KRW" />
+                  <FormInput defaultValue="18,000" suffix="원" />
                 </FormField>
                 <FormField label="할인가" hint="비워두면 정가 판매">
-                  <FormInput prefix="₩" placeholder="0" />
+                  <FormInput placeholder="0" suffix="원" />
                 </FormField>
                 <FormField label="재고" required>
                   <FormInput defaultValue="142" suffix="개" />

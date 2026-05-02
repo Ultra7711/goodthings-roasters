@@ -135,3 +135,16 @@
 @keyframes gtr-admin-spin {
   to { transform: rotate(360deg); }
 }
+
+/* indeterminate progress bar (S129 H-3: 시즌 배너 업로드) */
+@keyframes gtr-admin-indet {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+.gtr-admin-progress-indet {
+  position: absolute;
+  inset: 0;
+  background: var(--primary);
+  animation: gtr-admin-indet 1.4s ease-in-out infinite;
+}

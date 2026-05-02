@@ -27,13 +27,17 @@ import { PRODUCTS } from '@/lib/products';
 import { parsePrice } from '@/lib/utils';
 import { getSessionSnapshot } from '@/hooks/useSupabaseSession';
 import { showToast } from '@/lib/toastStore';
+import { useSiteSettings } from '@/components/providers/SiteSettingsProvider';
 import {
   readGuestCart,
   writeGuestCart,
   clearGuestCart,
 } from '@/lib/guestCart';
 
-/* ── 배송비 기준 (store.ts 에서 재수출 유지) ── */
+/* ── 배송비 기준 (DEPRECATED 상수 — site_settings.shipping 으로 대체됨, S129 H-5)
+   useCart hook 내부에서는 useSiteSettings() 로 dynamic 값 사용.
+   외부 import 자(MyPagePage 등)도 useSiteSettings 로 마이그레이션됨.
+   이 상수들은 backward-compat 용으로 남김 — 다음 정리 시 제거. */
 export const FREE_SHIPPING_THRESHOLD = 30000;
 export const SHIPPING_FEE = 3000;
 export const MIN_QUANTITY = 1;
@@ -159,6 +163,12 @@ async function fetchCart(): Promise<CartItem[]> {
 }
 
 export function useCartQuery() {
+  const { shipping } = useSiteSettings();
+  /* shipping.enabled = false → 무료배송 정책 자체 비활성 (모든 결제에 base_fee).
+     true → free_threshold 이상 무료. */
+  const FREE_THRESHOLD = shipping.enabled ? shipping.free_threshold : Infinity;
+  const BASE_FEE = shipping.base_fee;
+
   const query = useQuery({
     queryKey: CART_QUERY_KEY,
     queryFn: fetchCart,
@@ -172,11 +182,15 @@ export function useCartQuery() {
   const totalQty = items.reduce((s, i) => s + i.qty, 0);
   const subtotal = items.reduce((s, i) => s + i.priceNum * i.qty, 0);
   const shippingFee =
-    subtotal === 0 ? 0 : subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+    subtotal === 0 ? 0 : subtotal >= FREE_THRESHOLD ? 0 : BASE_FEE;
   const totalPrice = subtotal + shippingFee;
-  const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
-  const gaugePct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
-  const remainForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
+  const isFreeShipping = subtotal >= FREE_THRESHOLD;
+  const gaugePct = Number.isFinite(FREE_THRESHOLD)
+    ? Math.min(100, (subtotal / FREE_THRESHOLD) * 100)
+    : 0;
+  const remainForFree = Number.isFinite(FREE_THRESHOLD)
+    ? Math.max(0, FREE_THRESHOLD - subtotal)
+    : 0;
 
   return {
     items,

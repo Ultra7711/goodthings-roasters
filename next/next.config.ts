@@ -67,6 +67,14 @@ const nextConfig: NextConfig = {
     deviceSizes: [360, 768, 1024, 1440, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     qualities: [75, 85],
+    /* Supabase Storage public URL 허용 (S129 H-5 시즌 배너 + 향후 admin 업로드 이미지) */
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
   },
 
   async headers() {

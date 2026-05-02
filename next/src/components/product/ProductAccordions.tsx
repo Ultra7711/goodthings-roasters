@@ -12,6 +12,7 @@
 
 import { useEffect, useState } from 'react';
 import type { Product } from '@/lib/products';
+import { useSiteSettings } from '@/components/providers/SiteSettingsProvider';
 
 type AccordionKey = 'shipping' | 'return' | 'product-info';
 
@@ -33,6 +34,10 @@ function AccordionIcon() {
 
 export default function ProductAccordions({ category, slug }: Props) {
   const [openSet, setOpenSet] = useState<Set<AccordionKey>>(new Set());
+  const { shipping } = useSiteSettings();
+  const shippingNotice = shipping.enabled
+    ? `기본 배송비 ${shipping.base_fee.toLocaleString('ko-KR')}원 / ${shipping.free_threshold.toLocaleString('ko-KR')}원 이상 구매 시 무료 배송`
+    : `배송비 ${shipping.base_fee.toLocaleString('ko-KR')}원`;
 
   /* 상품 변경 시 전체 닫기 — prop(slug) 기반 동기화 의도의 setState-in-effect. */
   useEffect(() => {
@@ -64,7 +69,7 @@ export default function ProductAccordions({ category, slug }: Props) {
           <p><strong>평일 오후 2시 이전 주문 시 당일 발송</strong></p>
           <br />
           <p><strong>[ 국내 배송 안내 ]</strong></p>
-          <p>기본 배송비 3,000원 / 15,000원 이상 구매 시 무료 배송</p>
+          <p>{shippingNotice}</p>
           <p>주문 후 평균 1–3 영업일 이내 출고됩니다.</p>
           <p>토·일·공휴일은 발송이 이루어지지 않으며, 다음 영업일에 순차 발송됩니다.</p>
           <br />

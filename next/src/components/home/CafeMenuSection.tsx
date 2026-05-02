@@ -1,12 +1,14 @@
 /* ══════════════════════════════════════════
-   CafeMenuSection
-   프로토타입 #cafe-menu-blk (라인 818–876) 이식
-   ══════════════════════════════════════════ */
+   CafeMenuSection — server component (S129 H-5)
 
-'use client';
+   시즌 배너는 site_settings.season 에서 fetch.
+   - enabled = false → 배너 자체 렌더 안 함 (다른 카드 그리드는 유지)
+   - eyebrow / title / subtitle / cta_text / cta_link / image_path / image_alt 동적
+   ══════════════════════════════════════════ */
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { fetchSiteSettings } from '@/lib/siteSettingsServer';
 
 const CAT_CARDS = [
   {
@@ -29,33 +31,37 @@ const CAT_CARDS = [
   },
 ] as const;
 
-export default function CafeMenuSection() {
+export default async function CafeMenuSection() {
+  const { season } = await fetchSiteSettings();
+
   return (
     <section className="blk blk--bg-secondary cafe-menu-blk" id="cafe-menu-blk" data-header-theme="light">
-      {/* 시즌 배너 */}
-      <div className="season-banner-section" data-sr-toggle>
-        <div className="season-banner">
-          <div className="season-banner-img sr-img">
-            <Image
-              src="/images/sections/img_season_banner.webp"
-              alt="시즌 메뉴"
-              fill
-              sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1440px) 55vw, 720px"
-              style={{ objectFit: 'cover' }}
-            />
-          </div>
-          <div className="season-txt">
-            <div className="season-copy">
-              <span className="season-tag sr-txt sr-txt--d1" data-sr-eyebrow>2026 · SPRING</span>
-              <span className="season-h ed-h2 sr-txt sr-txt--d2">봄, 한 잔의 여유.</span>
-              <span className="season-desc sr-txt sr-txt--d3">벚꽃이 지기 전에 만나는 시즌 한정 메뉴</span>
+      {/* 시즌 배너 — site_settings.season.enabled */}
+      {season.enabled && (
+        <div className="season-banner-section" data-sr-toggle>
+          <div className="season-banner">
+            <div className="season-banner-img sr-img">
+              <Image
+                src={season.image_path}
+                alt={season.image_alt}
+                fill
+                sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1440px) 55vw, 720px"
+                style={{ objectFit: 'cover' }}
+              />
             </div>
-            <Link href="/menu?cat=signature" className="season-cta sr-txt sr-txt--d4" data-gtr-tap>
-              시즌 메뉴 보기
-            </Link>
+            <div className="season-txt">
+              <div className="season-copy">
+                <span className="season-tag sr-txt sr-txt--d1" data-sr-eyebrow>{season.eyebrow}</span>
+                <span className="season-h ed-h2 sr-txt sr-txt--d2">{season.title}</span>
+                <span className="season-desc sr-txt sr-txt--d3">{season.subtitle}</span>
+              </div>
+              <Link href={season.cta_link || '/menu'} className="season-cta sr-txt sr-txt--d4" data-gtr-tap>
+                {season.cta_text || '시즌 메뉴 보기'}
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 블록 헤더 */}
       <div className="blk-header cafe-menu-header" data-sr-toggle>

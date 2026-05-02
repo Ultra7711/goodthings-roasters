@@ -359,7 +359,7 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
                         fontWeight: 500,
                       }}
                     >
-                      ₩{o.totalAmount.toLocaleString()}
+                      {o.totalAmount.toLocaleString()}원
                     </td>
                     <td style={{ ...TD_STYLE, fontSize: 12, color: 'var(--foreground-muted)' }}>
                       {o.paymentLabel}

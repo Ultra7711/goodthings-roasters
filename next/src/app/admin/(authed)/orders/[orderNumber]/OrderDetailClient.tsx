@@ -243,7 +243,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
                       fontVariantNumeric: 'tabular-nums',
                     }}
                   >
-                    ₩{it.unitPrice.toLocaleString()}
+                    {it.unitPrice.toLocaleString()}원
                   </div>
                   <div
                     style={{
@@ -253,7 +253,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
                       fontVariantNumeric: 'tabular-nums',
                     }}
                   >
-                    ₩{it.lineTotal.toLocaleString()}
+                    {it.lineTotal.toLocaleString()}원
                   </div>
                 </div>
               ))}
@@ -272,15 +272,15 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
                 fontSize: 13,
               }}
             >
-              <Row label="소계">₩{detail.summary.subtotal.toLocaleString()}</Row>
+              <Row label="소계">{detail.summary.subtotal.toLocaleString()}원</Row>
               <Row label="배송비">
                 {detail.summary.shippingFee === 0
                   ? '무료'
-                  : `₩${detail.summary.shippingFee.toLocaleString()}`}
+                  : `${detail.summary.shippingFee.toLocaleString()}원`}
               </Row>
               {detail.summary.discountAmount > 0 && (
                 <Row label="할인" valueStyle={{ color: 'var(--primary)' }}>
-                  −₩{detail.summary.discountAmount.toLocaleString()}
+                  −{detail.summary.discountAmount.toLocaleString()}원
                 </Row>
               )}
               <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
@@ -289,7 +289,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
                 labelStyle={{ fontWeight: 500, color: 'var(--foreground)' }}
                 valueStyle={{ fontSize: 15, fontWeight: 600 }}
               >
-                ₩{detail.summary.totalAmount.toLocaleString()}
+                {detail.summary.totalAmount.toLocaleString()}원
               </Row>
             </div>
           </Card>
