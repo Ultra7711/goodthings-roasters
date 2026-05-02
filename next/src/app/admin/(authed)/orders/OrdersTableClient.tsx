@@ -1,0 +1,870 @@
+'use client';
+
+/* ══════════════════════════════════════════════════════════════════════════
+   OrdersTableClient — /admin/orders 인터랙티브 본체 (S128 Group B)
+
+   책임:
+   - 시안 inline style 100% 이식 (S125 결정 — Tailwind/shadcn 폐기)
+   - 탭·페이지네이션은 <Link href> (URL state)
+   - 검색은 debounced router.replace
+   - 기간·결제수단 드롭다운은 click-toggle 패턴 + 외부 클릭 close
+   - 선택 행(selected) UI 만 — 일괄 처리/송장 발급 액션은 carry-over
+
+   carry-over (시안 export 후 진입):
+   - 행 클릭 → /admin/orders/[orderNumber] 상세 (B-2)
+   - "발송 처리" 다이얼로그 + dispatchOrderAction (B-3)
+   - CSV 내보내기 / 주문 생성 / 일괄 처리 / 송장 발급 (placeholder)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import {
+  PAGE_SIZE,
+  PAYMENT_OPTIONS,
+  PERIOD_OPTIONS,
+  STATUS_TABS,
+  describeStatus,
+  formatKstDateTime,
+  type AdminOrdersSearchParams,
+  type ListedOrder,
+  type PaymentFilterKey,
+  type PeriodKey,
+  type StatusTabKey,
+  type StatusTone,
+} from '@/lib/admin/orders';
+
+type CountsShape = Record<StatusTabKey, number> & { pending: number };
+
+type Props = {
+  rows: ListedOrder[];
+  total: number;
+  counts: CountsShape;
+  filters: AdminOrdersSearchParams;
+};
+
+const TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> = {
+  neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: '#888' },
+  success: { bg: 'var(--success-soft)', fg: 'var(--success)', dot: 'var(--success)' },
+  warning: { bg: 'var(--warning-soft)', fg: 'var(--warning)', dot: 'var(--warning)' },
+  info:    { bg: 'var(--info-soft)',    fg: 'var(--info)',    dot: 'var(--info)' },
+  primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)', dot: 'var(--primary)' },
+};
+
+const TH_STYLE: React.CSSProperties = {
+  textAlign: 'left',
+  padding: '10px 14px',
+  fontSize: 11,
+  fontWeight: 500,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+  color: 'var(--foreground-muted)',
+};
+
+const TD_STYLE: React.CSSProperties = {
+  padding: '11px 14px',
+  verticalAlign: 'middle',
+};
+
+export default function OrdersTableClient({ rows, total, counts, filters }: Props) {
+  const router = useRouter();
+  const [selected, setSelected] = useState<string[]>([]);
+  const [searchValue, setSearchValue] = useState(filters.q);
+
+  /* filters.q 가 외부에서 바뀌면 (예: 탭 전환) input 도 동기화 */
+  useEffect(() => {
+    setSearchValue(filters.q);
+  }, [filters.q]);
+
+  /* URL builder — 현재 filters + override */
+  function buildHref(override: Partial<AdminOrdersSearchParams>): string {
+    const merged = { ...filters, ...override };
+    const params = new URLSearchParams();
+    if (merged.status !== 'all')   params.set('status', merged.status);
+    if (merged.period !== 'all')   params.set('period', merged.period);
+    if (merged.payment !== 'all')  params.set('payment', merged.payment);
+    if (merged.q.trim().length > 0) params.set('q', merged.q.trim());
+    if (merged.page > 1)           params.set('page', String(merged.page));
+    const qs = params.toString();
+    return qs.length > 0 ? `?${qs}` : '?';
+  }
+
+  /* 검색 — 300ms debounced router.replace (history pollution 방지) */
+  useEffect(() => {
+    if (searchValue === filters.q) return;
+    const t = setTimeout(() => {
+      router.replace(buildHref({ q: searchValue, page: 1 }));
+    }, 300);
+    return () => clearTimeout(t);
+    /* buildHref 는 filters · searchValue 의존 — 의존 배열에 두면 무한 루프.
+       닫힘 시점 값 캡처로 충분. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue]);
+
+  /* 페이지 윈도우 (... 포함 표시) */
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const pageWindow = useMemo(() => buildPageWindow(filters.page, pageCount), [filters.page, pageCount]);
+
+  /* 선택 행 헬퍼 — 표시 행만 대상 */
+  const allSelected = rows.length > 0 && selected.length === rows.length;
+  const indeterminate = selected.length > 0 && !allSelected;
+
+  function toggleRow(id: string) {
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  }
+  function toggleAll() {
+    setSelected(allSelected ? [] : rows.map((r) => r.id));
+  }
+
+  /* 페이지 변경 시 선택 초기화 (다른 행으로 컨텍스트 전환) */
+  useEffect(() => {
+    setSelected([]);
+  }, [filters.page, filters.status, filters.period, filters.payment, filters.q]);
+
+  return (
+    <>
+      <AdminTopbarActions>
+        <button type="button" style={SM_SECONDARY} disabled title="시안 단계 — carry-over">
+          <Download />
+          CSV 내보내기
+        </button>
+        <button type="button" style={SM_PRIMARY} disabled title="시안 단계 — carry-over">
+          <Plus />
+          주문 생성
+        </button>
+      </AdminTopbarActions>
+
+      {/* 헤더 */}
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 18 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 500, letterSpacing: '-0.02em' }}>
+            주문 관리
+          </h2>
+          <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
+            총 {counts.all.toLocaleString()}건의 주문
+            {counts.new > 0 ? ` · ${counts.new.toLocaleString()}건 처리 대기` : ''}
+            {counts.pending > 0 ? ` · 결제대기 ${counts.pending.toLocaleString()}건` : ''}
+          </div>
+        </div>
+      </div>
+
+      {/* 탭 */}
+      <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--border)', marginBottom: 16 }}>
+        {STATUS_TABS.map((t) => {
+          const active = t.id === filters.status;
+          const cnt = counts[t.id] ?? 0;
+          return (
+            <Link
+              key={t.id}
+              href={buildHref({ status: t.id, page: 1 })}
+              replace
+              style={{
+                padding: '8px 14px',
+                background: 'transparent',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: active ? 500 : 400,
+                color: active ? 'var(--foreground)' : 'var(--foreground-muted)',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                textDecoration: 'none',
+              }}
+            >
+              {t.label}
+              <span
+                style={{
+                  fontSize: 11,
+                  fontVariantNumeric: 'tabular-nums',
+                  color: active ? 'var(--foreground-muted)' : 'var(--foreground-subtle)',
+                  background: active ? 'var(--surface-muted)' : 'transparent',
+                  padding: '1px 6px',
+                  borderRadius: 4,
+                }}
+              >
+                {cnt.toLocaleString()}
+              </span>
+              {active && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    bottom: -1,
+                    height: 2,
+                    background: 'var(--primary)',
+                  }}
+                />
+              )}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* 필터 바 */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+        <SearchInput
+          value={searchValue}
+          onChange={setSearchValue}
+          placeholder="주문번호, 고객명, 이메일로 검색…"
+        />
+        <DropdownFilter
+          label="기간"
+          options={PERIOD_OPTIONS}
+          activeId={filters.period}
+          hasIcon
+          onChange={(id) => router.replace(buildHref({ period: id as PeriodKey, page: 1 }))}
+        />
+        <DropdownFilter
+          label="결제수단"
+          options={PAYMENT_OPTIONS}
+          activeId={filters.payment}
+          onChange={(id) => router.replace(buildHref({ payment: id as PaymentFilterKey, page: 1 }))}
+        />
+        <div style={{ flex: 1 }} />
+        {selected.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '0 10px',
+              height: 28,
+              borderRadius: 6,
+              background: 'var(--primary-soft)',
+              color: 'var(--primary-soft-fg)',
+              fontSize: 12,
+              fontWeight: 500,
+            }}
+          >
+            <span>{selected.length}건 선택됨</span>
+            <span aria-hidden style={{ width: 1, height: 14, background: 'currentColor', opacity: 0.2 }} />
+            <span style={{ cursor: 'not-allowed', opacity: 0.6 }} title="시안 단계 — carry-over">일괄 처리</span>
+            <span style={{ cursor: 'not-allowed', opacity: 0.6 }} title="시안 단계 — carry-over">송장 발급</span>
+          </div>
+        )}
+      </div>
+
+      {/* 테이블 */}
+      <div
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius)',
+          padding: 0,
+          overflow: 'hidden',
+        }}
+      >
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead>
+            <tr style={{ background: 'var(--surface-muted)', color: 'var(--foreground-muted)' }}>
+              <th style={{ ...TH_STYLE, width: 36 }}>
+                <button
+                  type="button"
+                  onClick={toggleAll}
+                  aria-label={allSelected ? '전체 선택 해제' : '전체 선택'}
+                  style={{ all: 'unset', cursor: 'pointer', display: 'inline-flex' }}
+                  disabled={rows.length === 0}
+                >
+                  <CheckBox checked={allSelected} indeterminate={indeterminate} />
+                </button>
+              </th>
+              <th style={TH_STYLE}>주문번호</th>
+              <th style={TH_STYLE}>주문일시</th>
+              <th style={TH_STYLE}>고객</th>
+              <th style={TH_STYLE}>상품</th>
+              <th style={{ ...TH_STYLE, textAlign: 'right' }}>금액</th>
+              <th style={TH_STYLE}>결제</th>
+              <th style={TH_STYLE}>상태</th>
+              <th style={{ ...TH_STYLE, width: 36 }} aria-label="actions" />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={9} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--foreground-muted)' }}>
+                  표시할 주문이 없습니다.
+                </td>
+              </tr>
+            ) : (
+              rows.map((o, i) => {
+                const sel = selected.includes(o.id);
+                const status = describeStatus(o.status);
+                return (
+                  <tr
+                    key={o.id}
+                    style={{
+                      borderTop: i === 0 ? 'none' : '1px solid var(--border)',
+                      background: sel ? 'var(--primary-soft)' : 'transparent',
+                    }}
+                  >
+                    <td style={TD_STYLE}>
+                      <button
+                        type="button"
+                        onClick={() => toggleRow(o.id)}
+                        aria-label={sel ? `${o.orderNumber} 선택 해제` : `${o.orderNumber} 선택`}
+                        style={{ all: 'unset', cursor: 'pointer', display: 'inline-flex' }}
+                      >
+                        <CheckBox checked={sel} />
+                      </button>
+                    </td>
+                    <td style={TD_STYLE}>
+                      <Link
+                        href={`/admin/orders/${o.orderNumber}`}
+                        className="gtr-mono"
+                        style={{
+                          fontSize: 12,
+                          color: 'var(--primary)',
+                          fontWeight: 500,
+                          textDecoration: 'none',
+                        }}
+                      >
+                        {o.orderNumber}
+                      </Link>
+                    </td>
+                    <td
+                      style={{
+                        ...TD_STYLE,
+                        color: 'var(--foreground-muted)',
+                        fontSize: 12,
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      {formatKstDateTime(o.createdAtIso)}
+                    </td>
+                    <td style={TD_STYLE}>
+                      <div style={{ fontWeight: 500 }}>{o.customerName}</div>
+                      <div style={{ fontSize: 11.5, color: 'var(--foreground-subtle)' }}>{o.contactEmail}</div>
+                    </td>
+                    <td
+                      style={{
+                        ...TD_STYLE,
+                        color: 'var(--foreground-muted)',
+                        maxWidth: 280,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title={o.itemsLabel}
+                    >
+                      {o.itemsLabel || <span style={{ opacity: 0.5 }}>—</span>}
+                    </td>
+                    <td
+                      style={{
+                        ...TD_STYLE,
+                        textAlign: 'right',
+                        fontVariantNumeric: 'tabular-nums',
+                        fontWeight: 500,
+                      }}
+                    >
+                      ₩{o.totalAmount.toLocaleString()}
+                    </td>
+                    <td style={{ ...TD_STYLE, fontSize: 12, color: 'var(--foreground-muted)' }}>
+                      {o.paymentLabel}
+                    </td>
+                    <td style={TD_STYLE}>
+                      <Badge tone={status.tone} dot>
+                        {status.label}
+                      </Badge>
+                    </td>
+                    <td style={TD_STYLE}>
+                      <button
+                        type="button"
+                        aria-label={`${o.orderNumber} 추가 작업`}
+                        title="시안 단계 — carry-over"
+                        disabled
+                        style={{
+                          width: 26,
+                          height: 26,
+                          border: 'none',
+                          background: 'transparent',
+                          borderRadius: 4,
+                          color: 'var(--foreground-muted)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'not-allowed',
+                          opacity: 0.5,
+                        }}
+                      >
+                        <MoreIcon />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+
+        {/* 페이지네이션 */}
+        <div
+          style={{
+            padding: '12px 18px',
+            borderTop: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: 12.5,
+            color: 'var(--foreground-muted)',
+          }}
+        >
+          <div>{describeRange(filters.page, total)}</div>
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <PageNav href={buildHref({ page: 1 })} disabled={filters.page === 1}>‹‹</PageNav>
+            <PageNav href={buildHref({ page: Math.max(1, filters.page - 1) })} disabled={filters.page === 1}>‹</PageNav>
+            {pageWindow.map((p, idx) =>
+              p === 'ellipsis' ? (
+                <span key={`e-${idx}`} style={ELLIPSIS_STYLE}>…</span>
+              ) : (
+                <PageNav key={p} href={buildHref({ page: p })} active={p === filters.page}>
+                  {p}
+                </PageNav>
+              ),
+            )}
+            <PageNav href={buildHref({ page: Math.min(pageCount, filters.page + 1) })} disabled={filters.page === pageCount}>›</PageNav>
+            <PageNav href={buildHref({ page: pageCount })} disabled={filters.page === pageCount}>››</PageNav>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ── 공유 헬퍼 ──────────────────────────────────────────────────────── */
+
+function describeRange(page: number, total: number): string {
+  if (total === 0) return '0건';
+  const start = (page - 1) * PAGE_SIZE + 1;
+  const end = Math.min(page * PAGE_SIZE, total);
+  return `${start.toLocaleString()} — ${end.toLocaleString()} / ${total.toLocaleString()}건`;
+}
+
+/** 페이지 번호 윈도우 — 7 페이지 이하면 전부 노출, 그 외엔 1 ... current-1 current current+1 ... last */
+function buildPageWindow(current: number, total: number): Array<number | 'ellipsis'> {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const window = new Set<number>([1, total, current, current - 1, current + 1]);
+  const sorted = [...window].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+  const out: Array<number | 'ellipsis'> = [];
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0 && sorted[i] - sorted[i - 1] > 1) out.push('ellipsis');
+    out.push(sorted[i]);
+  }
+  return out;
+}
+
+/* ── 로컬 컴포넌트 ─────────────────────────────────────────────────── */
+
+function CheckBox({ checked, indeterminate }: { checked: boolean; indeterminate?: boolean }) {
+  const filled = checked || indeterminate;
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: 16,
+        height: 16,
+        borderRadius: 4,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: filled ? '1px solid var(--primary)' : '1px solid var(--border-strong)',
+        background: filled ? 'var(--primary)' : 'var(--surface)',
+      }}
+    >
+      {checked && (
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      )}
+      {indeterminate && !checked && (
+        <span style={{ width: 8, height: 1.6, background: '#fff' }} />
+      )}
+    </span>
+  );
+}
+
+const PAGE_BUTTON_BASE: React.CSSProperties = {
+  minWidth: 26,
+  height: 26,
+  padding: '0 6px',
+  borderRadius: 5,
+  fontSize: 12,
+  fontVariantNumeric: 'tabular-nums',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  textDecoration: 'none',
+};
+
+const ELLIPSIS_STYLE: React.CSSProperties = {
+  ...PAGE_BUTTON_BASE,
+  color: 'var(--foreground-subtle)',
+  cursor: 'default',
+};
+
+function PageNav({
+  href,
+  children,
+  active,
+  disabled,
+}: {
+  href: string;
+  children: React.ReactNode;
+  active?: boolean;
+  disabled?: boolean;
+}) {
+  const style: React.CSSProperties = {
+    ...PAGE_BUTTON_BASE,
+    border: '1px solid ' + (active ? 'var(--primary)' : 'var(--border)'),
+    background: active ? 'var(--primary)' : 'var(--surface)',
+    color: active ? '#fff' : disabled ? 'var(--foreground-subtle)' : 'var(--foreground)',
+    fontWeight: active ? 500 : 400,
+    cursor: disabled ? 'default' : 'pointer',
+    opacity: disabled ? 0.6 : 1,
+    pointerEvents: disabled ? 'none' : 'auto',
+  };
+  if (disabled) {
+    return <span style={style}>{children}</span>;
+  }
+  return (
+    <Link href={href} replace style={style} aria-current={active ? 'page' : undefined}>
+      {children}
+    </Link>
+  );
+}
+
+function Badge({
+  tone,
+  children,
+  dot,
+}: {
+  tone: StatusTone;
+  children: React.ReactNode;
+  dot?: boolean;
+}) {
+  const t = TONES[tone];
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '2px 8px',
+        borderRadius: 999,
+        background: t.bg,
+        color: t.fg,
+        fontSize: 11.5,
+        fontWeight: 500,
+        letterSpacing: '-0.005em',
+        lineHeight: 1.5,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {dot && <span aria-hidden style={{ width: 5, height: 5, borderRadius: 999, background: t.dot }} />}
+      {children}
+    </span>
+  );
+}
+
+function SearchInput({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '0 10px',
+        height: 34,
+        background: 'var(--surface)',
+        border: '1px solid var(--input)',
+        borderRadius: 6,
+        flex: 1,
+        maxWidth: 360,
+      }}
+    >
+      <span style={{ color: 'var(--foreground-subtle)', display: 'flex' }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+      </span>
+      <input
+        type="search"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{
+          flex: 1,
+          minWidth: 0,
+          border: 'none',
+          outline: 'none',
+          background: 'transparent',
+          fontSize: 13,
+          color: 'var(--foreground)',
+          padding: 0,
+          height: '100%',
+        }}
+      />
+      {value.length > 0 && (
+        <button
+          type="button"
+          onClick={() => onChange('')}
+          aria-label="검색어 지우기"
+          title="지우기"
+          style={{
+            all: 'unset',
+            cursor: 'pointer',
+            color: 'var(--foreground-subtle)',
+            display: 'flex',
+            padding: 2,
+            borderRadius: 4,
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function DropdownFilter({
+  label,
+  options,
+  activeId,
+  hasIcon,
+  onChange,
+}: {
+  label: string;
+  options: ReadonlyArray<{ id: string; label: string }>;
+  activeId: string;
+  hasIcon?: boolean;
+  onChange: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocClick(e: MouseEvent) {
+      if (!wrapperRef.current) return;
+      if (!wrapperRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const activeOpt = options.find((o) => o.id === activeId) ?? options[0];
+  const isDefault = activeId === options[0].id;
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative', display: 'inline-flex' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        style={{
+          ...SM_SECONDARY,
+          /* 활성 필터(기본값 외) 시 시각적 강조 — primary 옅은 톤 */
+          ...(isDefault
+            ? null
+            : {
+                borderColor: 'var(--primary)',
+                color: 'var(--primary-soft-fg)',
+                background: 'var(--primary-soft)',
+              }),
+        }}
+      >
+        {hasIcon && (
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ marginRight: 6 }}
+          >
+            <path d="M3 6h18" />
+            <path d="M7 12h10" />
+            <path d="M10 18h4" />
+          </svg>
+        )}
+        {isDefault ? label : `${label}: ${activeOpt.label}`}
+        <ChevronDown />
+      </button>
+      {open && (
+        <ul
+          role="listbox"
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            marginTop: 4,
+            minWidth: 160,
+            padding: 4,
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 8,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+            listStyle: 'none',
+            zIndex: 10,
+          }}
+        >
+          {options.map((opt) => {
+            const active = opt.id === activeId;
+            return (
+              <li key={opt.id}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={active}
+                  onClick={() => {
+                    setOpen(false);
+                    onChange(opt.id);
+                  }}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '6px 10px',
+                    border: 'none',
+                    borderRadius: 4,
+                    background: active ? 'var(--primary-soft)' : 'transparent',
+                    color: active ? 'var(--primary-soft-fg)' : 'var(--foreground)',
+                    fontSize: 13,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {opt.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/* ── 인라인 SVG ─────────────────────────────────── */
+
+const Plus = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ marginRight: 4 }}
+  >
+    <path d="M5 12h14" />
+    <path d="M12 5v14" />
+  </svg>
+);
+
+const Download = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ marginRight: 6 }}
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path d="M7 10l5 5 5-5" />
+    <path d="M12 15V3" />
+  </svg>
+);
+
+const ChevronDown = () => (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ marginLeft: 6, opacity: 0.6 }}
+  >
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
+const MoreIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="1" />
+    <circle cx="12" cy="5" r="1" />
+    <circle cx="12" cy="19" r="1" />
+  </svg>
+);
+
+/* ── 시안 Button(size=sm) inline style ─────────────────────────────────── */
+
+const SM_BASE: React.CSSProperties = {
+  padding: '5px 10px',
+  fontSize: 12,
+  height: 28,
+  gap: 5,
+  borderRadius: 6,
+  fontWeight: 500,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  letterSpacing: '-0.005em',
+};
+
+const SM_SECONDARY: React.CSSProperties = {
+  ...SM_BASE,
+  background: 'var(--surface)',
+  color: 'var(--foreground)',
+  border: '1px solid var(--border)',
+};
+
+const SM_PRIMARY: React.CSSProperties = {
+  ...SM_BASE,
+  background: 'var(--primary)',
+  color: '#fff',
+  border: '1px solid var(--primary)',
+};

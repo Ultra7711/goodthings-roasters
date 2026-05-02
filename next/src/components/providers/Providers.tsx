@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CartDrawerProvider } from '@/contexts/CartDrawerContext';
@@ -35,7 +35,13 @@ export default function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <CartDrawerProvider>
         {children}
-        <CartDrawer />
+        {/* CartDrawer 는 useCartQuery (TanStack Query) 가 dynamic data 를 접근.
+            Next.js 16 cacheComponents 의 dynamic [param] 라우트 prerender 에서
+            "Uncached data outside Suspense" 로 build fail → Suspense 래핑.
+            평소 닫힌 상태로 hidden translateX, fallback null 안전. */}
+        <Suspense fallback={null}>
+          <CartDrawer />
+        </Suspense>
       </CartDrawerProvider>
     </QueryClientProvider>
   );

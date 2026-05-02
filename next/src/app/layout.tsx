@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { Inter } from 'next/font/google';
@@ -48,9 +48,17 @@ export default function RootLayout({
           AuthSyncProvider: Supabase 세션 → Zustand 동기화 브리지 (P0-2) +
           로그인/로그아웃 시 ['cart'] 캐시 invalidate. */}
       <body>
-        <NextTopLoader color="#7A6B52" height={2} showSpinner={false} />
-        <OverscrollColor />
-        <TouchHoverGuard />
+        {/* Next.js 16 cacheComponents: dynamic [param] 라우트 prerender 시
+            usePathname / window 접근 클라 컴포넌트는 Suspense 로 격리해야 함. */}
+        <Suspense fallback={null}>
+          <NextTopLoader color="#7A6B52" height={2} showSpinner={false} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <OverscrollColor />
+        </Suspense>
+        <Suspense fallback={null}>
+          <TouchHoverGuard />
+        </Suspense>
         <div className="page-bg">
           <Providers>
             <AuthSyncProvider>{children}</AuthSyncProvider>
