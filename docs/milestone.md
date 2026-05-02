@@ -187,6 +187,21 @@
 
 ---
 
+### V2 디자인 자문 적용 (Claude Design 자문 1) — 진행 중
+
+| Phase | 항목 | 상태 |
+|-------|------|------|
+| **1** | 토큰 정착 — `--brand-sand` 격상 + warning 분리 + focus ring 정리 | ✅ S131 (`0e97375d`) |
+| 1 | surface 6→4단 축약 (D-6) · 타이포 8단 재정렬 (D-7) · 섹션 패딩 160 (D-1) · 모션 (D-2) · 영문 부제 (D-3) · eyebrow (D-4) · Hero 80vh (D-5) · warning 시각 검증 (D-8) | ⏸️ 보류 (체감 차이 vs 회귀 위험 평가 후 재고려) |
+| 2 | 컴포넌트 통합 — Card · Accordion · Drawer · HeroVideo · SearchPanel + PDP 신규 3종 (OptionChipGroup · DripBagSteps · SpecTable) | ⬜ |
+| 3 | 페이지 적용 — 메인 → 샵 → PDP → 마이페이지 → 카트·체크아웃 → 나머지 | ⬜ |
+
+**자문 응답:** `memory/project_design_audit_v2.md` (보충본 통합 · 1763줄 raw)
+**우선순위:** `memory/project_design_audit_priorities.md` (39+ 항목)
+**정정 사항 3건:** Hero 카피 1—1 / SKU 6종 제약 → 시그니처 라벨 / PDP 썸네일 4컷 보류 (이미지 자산 부족)
+
+---
+
 ### Phase 5 — Quality Assurance ⬜
 
 > 개발 완료 후 일괄 실시.
