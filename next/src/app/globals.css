@@ -58,7 +58,10 @@
 
   /* ── 컬러: Surface ── */
   --color-surface-stone: #4A4845;
-  --color-surface-warm: #EADFD1;
+  /* V2 Phase 1 (S131): brand-sand 격상. 시즌 배너·마이페이지 다음 배송 카드·빈 상태 등 chapter break 패널.
+     legacy --color-surface-warm 은 alias 로 유지 — 신규 코드는 --brand-sand 권장. */
+  --brand-sand: #EADFD1;
+  --color-surface-warm: var(--brand-sand);
 
   /* ── 컬러: Interactive (CTA) ── */
   --color-btn-primary-bg: #1C1B19;
@@ -75,7 +78,9 @@
   --color-error: #C4554E;
   --color-success: #5C7A4B;
   --color-info: #4A6B8A;
-  --color-warning: #B8943F;
+  /* V2 Phase 1 (S131): warning 을 gold accent (--color-accent-gold #A5693A) 와 색상 거리 확보.
+     기존 #B8943F 는 카키-골드라 gold 액센트와 혼동 — 따뜻한 앰버로 전환. */
+  --color-warning: #C58A2A;
 
   /* ── 컬러: Status (warm 축 통일) ── */
   --color-status-live: var(--color-accent-gold);
@@ -235,7 +240,8 @@
   --color-border-input: #D9D6D2;
   /* 이미지가 배경과 직접 맞닿는 표면(썸네일·맵 오버레이 등)의 외곽선 — 웜 그레이 솔리드 */
   --color-border-surface: #E0DED9;
-  --color-focus-ring: rgba(74,72,69,.40);
+  /* V2 Phase 1 (S131): focus 표준 — gold 2px outline + 2px offset (이미 6 focus-visible 에서 적용 중).
+     기존 --color-focus-ring rgba 토큰 제거 — 사용처 0건 dead 토큰. */
 
   /* ── Input Box (상품 상세 구매 옵션 박스) ── */
   --color-input-box-bg: #FDFCFA;
