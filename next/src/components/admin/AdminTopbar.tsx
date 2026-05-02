@@ -73,7 +73,6 @@ export default function AdminTopbar({ email, displayName }: Props) {
         <h1
           style={{
             margin: 0,
-            fontFamily: 'var(--font-serif)',
             fontSize: 20,
             fontWeight: 500,
             letterSpacing: '-0.015em',

@@ -18,7 +18,6 @@ export default function AdminPlaceholder({ title, description, group }: Props) {
         <h2
           style={{
             margin: 0,
-            fontFamily: 'var(--font-serif)',
             fontSize: 24,
             fontWeight: 500,
             letterSpacing: '-0.02em',
@@ -133,7 +132,6 @@ export default function AdminPlaceholder({ title, description, group }: Props) {
           <h3
             style={{
               margin: 0,
-              fontFamily: 'var(--font-serif)',
               fontSize: 20,
               fontWeight: 500,
               letterSpacing: '-0.015em',

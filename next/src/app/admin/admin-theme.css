@@ -7,7 +7,6 @@
 :root {
   /* ── 타이포 ───────────────────────────── */
   --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-serif: 'Fraunces', 'Iowan Old Style', 'Apple Garamond', Georgia, serif;
 
   /* ── 메인 영역 (Cool light, B2C cream과 명확히 분리) ── */
   --background: #F8F8F7;          /* cool off-white */
@@ -102,8 +101,7 @@
   font-feature-settings: 'tnum' on, 'cv11' on;
   -webkit-font-smoothing: antialiased;
 }
-.gtr-admin h1, .gtr-admin h2, .gtr-admin h3, .gtr-admin .gtr-serif {
-  font-family: var(--font-serif);
+.gtr-admin h1, .gtr-admin h2, .gtr-admin h3 {
   font-weight: 500;
   letter-spacing: -0.015em;
 }

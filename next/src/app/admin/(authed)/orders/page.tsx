@@ -117,7 +117,6 @@ export default function AdminOrdersPage() {
           <h2
             style={{
               margin: 0,
-              fontFamily: 'var(--font-serif)',
               fontSize: 24,
               fontWeight: 500,
               letterSpacing: '-0.02em',

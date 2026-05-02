@@ -23,7 +23,6 @@ export default function BrandMark({ light = false, size = 28, showText = true }:
         style={{
           width: size,
           height: size,
-          fontFamily: 'var(--font-serif)',
           fontSize: size * 0.55,
           letterSpacing: '-0.02em',
         }}
@@ -34,7 +33,7 @@ export default function BrandMark({ light = false, size = 28, showText = true }:
         <div className="leading-tight">
           <div
             className={cn(
-              'gtr-serif text-sm',
+              'text-sm font-medium',
               light ? 'text-[var(--foreground)]' : 'text-[var(--sidebar-fg)]',
             )}
             style={{ letterSpacing: '-0.01em' }}

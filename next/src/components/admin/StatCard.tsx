@@ -61,7 +61,7 @@ export default function StatCard({
         )}
       </div>
       <div
-        className={cn('gtr-serif gtr-tnum mt-2.5 text-[28px] font-medium leading-tight')}
+        className={cn('gtr-tnum mt-2.5 text-[28px] font-medium leading-tight')}
         style={{ letterSpacing: '-0.02em', color: 'var(--foreground)' }}
       >
         {value}

@@ -110,7 +110,6 @@ async function WelcomeHeadingInner() {
       <h2
         style={{
           margin: 0,
-          fontFamily: 'var(--font-serif)',
           fontSize: 28,
           fontWeight: 500,
           letterSpacing: '-0.02em',
@@ -129,7 +128,6 @@ function WelcomeFallback() {
       <h2
         style={{
           margin: 0,
-          fontFamily: 'var(--font-serif)',
           fontSize: 28,
           fontWeight: 500,
           letterSpacing: '-0.02em',
@@ -199,8 +197,7 @@ export default function AdminDashboardPage() {
             <div
               style={{
                 marginTop: 10,
-                fontFamily: 'var(--font-serif)',
-                fontSize: 28,
+                      fontSize: 28,
                 fontWeight: 500,
                 letterSpacing: '-0.02em',
                 fontVariantNumeric: 'tabular-nums',
@@ -257,8 +254,7 @@ export default function AdminDashboardPage() {
               <h3
                 style={{
                   margin: 0,
-                  fontFamily: 'var(--font-serif)',
-                  fontSize: 15,
+                          fontSize: 15,
                   fontWeight: 500,
                 }}
               >
@@ -297,8 +293,7 @@ export default function AdminDashboardPage() {
             <h3
               style={{
                 margin: 0,
-                fontFamily: 'var(--font-serif)',
-                fontSize: 15,
+                      fontSize: 15,
                 fontWeight: 500,
               }}
             >
@@ -333,8 +328,7 @@ export default function AdminDashboardPage() {
             <h3
               style={{
                 margin: 0,
-                fontFamily: 'var(--font-serif)',
-                fontSize: 15,
+                      fontSize: 15,
                 fontWeight: 500,
               }}
             >

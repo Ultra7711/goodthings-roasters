@@ -30,7 +30,6 @@ const FLAVOR_TAGS = ['자스민', '베르가못', '복숭아', '깔끔한 산미
 
 const CARD_TITLE: React.CSSProperties = {
   margin: '0 0 16px',
-  fontFamily: 'var(--font-serif)',
   fontSize: 15,
   fontWeight: 500,
 };
@@ -58,7 +57,6 @@ export default function AdminProductNewPage() {
         <h2
           style={{
             margin: 0,
-            fontFamily: 'var(--font-serif)',
             fontSize: 24,
             fontWeight: 500,
             letterSpacing: '-0.02em',
