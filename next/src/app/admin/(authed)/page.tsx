@@ -1,53 +1,31 @@
 /* ══════════════════════════════════════════
-   Admin Dashboard (/admin) — S125: 시안 dashboard.jsx 100% inline style 이식.
-   - 데이터는 모두 placeholder (실데이터는 Group I 에서 연결).
-   - 시안 시각 (환영 헤더 + 4 stat cards + 최근 주문 + 사이드 위젯) 그대로.
+   Admin Dashboard (/admin) — S130 Group I-1: 시안 inline UI 유지 + RPC 실 데이터.
+   - admin_dashboard_overview RPC 1 round-trip → stats / tasks / recent / bestsellers.
+   - 시안 dashboard.jsx 의 4 카드 + 최근 주문 + 사이드 위젯 슬롯 그대로.
    ══════════════════════════════════════════ */
 
+import Link from 'next/link';
 import { Suspense, type CSSProperties } from 'react';
 import { getAdminClaims } from '@/lib/auth/getClaims';
+import { fetchAdminDashboard } from '@/lib/admin/dashboardServer';
+import { bestsellerPercents } from '@/lib/admin/dashboard';
 import DashboardActions from './DashboardActions';
-
-type Stat = {
-  label: string;
-  value: string;
-  sub: string;
-  accent?: boolean;
-  warn?: boolean;
-};
-
-const STATS: Stat[] = [
-  { label: '오늘 주문', value: '—', sub: 'Group I-1 에서 채워질 예정', accent: true },
-  { label: '이번 주 매출', value: '—', sub: 'Group I-1 에서 채워질 예정' },
-  { label: '활성 정기배송', value: '—', sub: 'Group I-1 에서 채워질 예정' },
-  { label: '대기 주문', value: '—', sub: 'Group I-1 에서 채워질 예정', warn: true },
-];
-
-const TASKS: { label: string; n: number; tone: 'primary' | 'warning' | 'danger' | 'info' }[] = [
-  { label: '신규 주문 처리', n: 0, tone: 'primary' },
-  { label: '로스팅 일정 확정', n: 0, tone: 'warning' },
-  { label: '재고 알림', n: 0, tone: 'danger' },
-  { label: '발송 대기', n: 0, tone: 'info' },
-];
-
-const BESTSELLERS: [string, number][] = [
-  ['에티오피아 예가체프 · 200g', 0],
-  ['하우스 블렌드 · 500g', 0],
-  ['콜롬비아 핑크버번', 0],
-  ['드립백 선물세트', 0],
-];
 
 const TONE_BG: Record<string, string> = {
   primary: 'var(--primary-soft)',
   warning: 'var(--warning-soft)',
   danger: 'var(--danger-soft)',
   info: 'var(--info-soft)',
+  success: 'var(--success-soft)',
+  neutral: 'var(--neutral-soft)',
 };
 const TONE_FG: Record<string, string> = {
   primary: 'var(--primary-soft-fg)',
   warning: 'var(--warning)',
   danger: 'var(--danger)',
   info: 'var(--info)',
+  success: 'var(--success)',
+  neutral: 'var(--neutral-soft-fg)',
 };
 
 const TODAY_LABEL = new Intl.DateTimeFormat('ko-KR', {
@@ -57,14 +35,12 @@ const TODAY_LABEL = new Intl.DateTimeFormat('ko-KR', {
   weekday: 'long',
 }).format(new Date());
 
-/* 시안 Card style — inline */
 const CARD_STYLE: CSSProperties = {
   background: 'var(--surface)',
   border: '1px solid var(--border)',
   borderRadius: 'var(--radius)',
 };
 
-/* 시안 Badge style */
 function Badge({ tone, children }: { tone: keyof typeof TONE_BG; children: React.ReactNode }) {
   return (
     <span
@@ -140,17 +116,21 @@ function WelcomeFallback() {
   );
 }
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const overview = await fetchAdminDashboard();
+  const { stats, tasks, recentOrders, bestsellers } = overview;
+  const bestsellerPcts = bestsellerPercents(bestsellers);
+
   return (
     <div>
-      {/* Topbar actions slot 으로 inject — 시안 dashboard.jsx 의 actions prop 매칭 */}
+      {/* Topbar actions slot */}
       <DashboardActions />
 
       {/* 환영 헤더 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 22 }}>
         <WelcomeHeading />
         <div style={{ fontSize: 13, color: 'var(--foreground-muted)' }}>
-          어드민 콘솔 인프라 구축 단계입니다. 실데이터는 Group I 통계 그룹에서 연결됩니다.
+          오늘 운영 현황을 한눈에 확인하세요.
         </div>
       </div>
 
@@ -163,7 +143,7 @@ export default function AdminDashboardPage() {
           marginBottom: 22,
         }}
       >
-        {STATS.map((s) => (
+        {stats.map((s) => (
           <div
             key={s.label}
             style={{
@@ -185,6 +165,18 @@ export default function AdminDashboardPage() {
                 }}
               />
             )}
+            {s.warn && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 2,
+                  background: 'var(--warning)',
+                }}
+              />
+            )}
             <div
               style={{
                 display: 'flex',
@@ -195,12 +187,12 @@ export default function AdminDashboardPage() {
               <div style={{ fontSize: 12.5, color: 'var(--foreground-muted)' }}>{s.label}</div>
             </div>
             <div
+              className="gtr-tnum"
               style={{
                 marginTop: 10,
-                      fontSize: 28,
+                fontSize: 28,
                 fontWeight: 500,
                 letterSpacing: '-0.02em',
-                fontVariantNumeric: 'tabular-nums',
                 color: 'var(--foreground)',
                 lineHeight: 1.1,
               }}
@@ -216,23 +208,6 @@ export default function AdminDashboardPage() {
             >
               {s.sub}
             </div>
-            <svg
-              width="100%"
-              height="28"
-              viewBox="0 0 100 28"
-              preserveAspectRatio="none"
-              style={{ marginTop: 10, display: 'block' }}
-              aria-hidden
-            >
-              <polyline
-                points="0,22 14,18 28,16 42,12 56,14 70,8 84,10 100,4"
-                fill="none"
-                stroke={s.accent ? 'var(--primary)' : 'var(--border-strong)'}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
           </div>
         ))}
       </div>
@@ -250,41 +225,92 @@ export default function AdminDashboardPage() {
               borderBottom: '1px solid var(--border)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <h3
-                style={{
-                  margin: 0,
-                          fontSize: 15,
-                  fontWeight: 500,
-                }}
-              >
-                최근 주문
-              </h3>
-              <Badge tone="primary">Group B 구현 예정</Badge>
-            </div>
-            <span
+            <h3
+              style={{
+                margin: 0,
+                fontSize: 15,
+                fontWeight: 500,
+              }}
+            >
+              최근 주문
+            </h3>
+            <Link
+              href="/admin/orders"
               style={{
                 fontSize: 12,
                 color: 'var(--foreground-muted)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 2,
-                cursor: 'pointer',
+                textDecoration: 'none',
               }}
             >
               전체 보기 <ChevronRight />
-            </span>
+            </Link>
           </div>
-          <div
-            style={{
-              padding: '48px 18px',
-              textAlign: 'center',
-              fontSize: 13,
-              color: 'var(--foreground-muted)',
-            }}
-          >
-            주문 데이터가 연결되면 최근 5건이 여기에 표시됩니다.
-          </div>
+          {recentOrders.length === 0 ? (
+            <div
+              style={{
+                padding: '48px 18px',
+                textAlign: 'center',
+                fontSize: 13,
+                color: 'var(--foreground-muted)',
+              }}
+            >
+              아직 주문이 없습니다.
+            </div>
+          ) : (
+            <div>
+              {recentOrders.map((o, idx) => (
+                <Link
+                  key={o.id}
+                  href={`/admin/orders/${o.orderNumber}`}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto auto',
+                    gap: 12,
+                    padding: '12px 18px',
+                    borderTop: idx === 0 ? 'none' : '1px solid var(--border)',
+                    fontSize: 13,
+                    color: 'var(--foreground)',
+                    textDecoration: 'none',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 8,
+                        alignItems: 'baseline',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      <span
+                        className="gtr-tnum"
+                        style={{ fontSize: 12, color: 'var(--foreground-muted)' }}
+                      >
+                        {o.orderNumber}
+                      </span>
+                      <span style={{ fontWeight: 500 }}>{o.customerName}</span>
+                    </div>
+                    <div style={{ fontSize: 11.5, color: 'var(--foreground-subtle)' }}>
+                      {o.createdAtLabel}
+                    </div>
+                  </div>
+                  <span
+                    className="gtr-tnum"
+                    style={{ fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {o.totalAmountLabel}
+                  </span>
+                  <Badge tone={o.statusTone}>{o.statusLabel}</Badge>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* side widgets */}
@@ -293,7 +319,7 @@ export default function AdminDashboardPage() {
             <h3
               style={{
                 margin: 0,
-                      fontSize: 15,
+                fontSize: 15,
                 fontWeight: 500,
               }}
             >
@@ -307,7 +333,7 @@ export default function AdminDashboardPage() {
                 gap: 10,
               }}
             >
-              {TASKS.map((t) => (
+              {tasks.map((t) => (
                 <div
                   key={t.label}
                   style={{
@@ -317,7 +343,24 @@ export default function AdminDashboardPage() {
                     fontSize: 13,
                   }}
                 >
-                  <span>{t.label}</span>
+                  <span
+                    style={{
+                      color: t.pending ? 'var(--foreground-muted)' : 'var(--foreground)',
+                    }}
+                  >
+                    {t.label}
+                    {t.pending && (
+                      <span
+                        style={{
+                          marginLeft: 6,
+                          fontSize: 11,
+                          color: 'var(--foreground-subtle)',
+                        }}
+                      >
+                        (준비 중)
+                      </span>
+                    )}
+                  </span>
                   <Badge tone={t.tone}>{t.n}</Badge>
                 </div>
               ))}
@@ -328,57 +371,79 @@ export default function AdminDashboardPage() {
             <h3
               style={{
                 margin: 0,
-                      fontSize: 15,
+                fontSize: 15,
                 fontWeight: 500,
               }}
             >
               이번 주 베스트셀러
             </h3>
-            <div
-              style={{
-                marginTop: 12,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 10,
-              }}
-            >
-              {BESTSELLERS.map(([n, q]) => (
-                <div key={n} style={{ fontSize: 12.5 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      marginBottom: 4,
-                    }}
-                  >
-                    <span>{n}</span>
-                    <span
-                      className="gtr-tnum"
-                      style={{ color: 'var(--foreground-muted)' }}
-                    >
-                      {q}건
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      height: 4,
-                      borderRadius: 2,
-                      background: 'var(--surface-muted)',
-                      overflow: 'hidden',
-                    }}
-                  >
+            {bestsellers.length === 0 ? (
+              <div
+                style={{
+                  marginTop: 16,
+                  fontSize: 12.5,
+                  color: 'var(--foreground-muted)',
+                  lineHeight: 1.6,
+                }}
+              >
+                이번 주에 판매된 상품이 없습니다.
+              </div>
+            ) : (
+              <div
+                style={{
+                  marginTop: 12,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                }}
+              >
+                {bestsellers.map((b, idx) => (
+                  <div key={b.productSlug + idx} style={{ fontSize: 12.5 }}>
                     <div
                       style={{
-                        height: '100%',
-                        width: `${q > 0 ? (q / 100) * 100 : 0}%`,
-                        background: 'var(--primary)',
-                        opacity: 0.8,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: 4,
                       }}
-                    />
+                    >
+                      <span
+                        style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          marginRight: 8,
+                        }}
+                      >
+                        {b.label}
+                      </span>
+                      <span
+                        className="gtr-tnum"
+                        style={{ color: 'var(--foreground-muted)', flexShrink: 0 }}
+                      >
+                        {b.quantity}건
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        height: 4,
+                        borderRadius: 2,
+                        background: 'var(--surface-muted)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${bestsellerPcts[idx]}%`,
+                          background: 'var(--primary)',
+                          opacity: 0.8,
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

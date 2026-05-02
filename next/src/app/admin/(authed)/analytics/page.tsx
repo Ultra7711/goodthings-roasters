@@ -1,17 +1,32 @@
 /* ══════════════════════════════════════════
-   AdminAnalyticsPage — 시안 empty.jsx 풀 이식 (S126).
-   통계 페이지의 빈 상태(데이터 부족) — 실제 인사이트 데이터 연결은 Group I-2.
+   AdminAnalyticsPage — S130 Group I-2: readiness 판정 + 실 데이터 매출 통계.
+   - 미달 (50건/14일 미만): 시안 empty.jsx 그대로 + 실제 cur 값으로 progress.
+   - 충족: period switcher + 4 stat cards + 상품별 테이블.
    ══════════════════════════════════════════ */
 
+import Link from 'next/link';
+import type { CSSProperties } from 'react';
+import { fetchAdminAnalytics } from '@/lib/admin/analyticsServer';
+import {
+  ANALYTICS_PERIOD_OPTIONS,
+  type AnalyticsPeriodKey,
+} from '@/lib/admin/analytics';
 import AnalyticsActions from './AnalyticsActions';
 
-const PLACEHOLDER_STATS = ['총 매출', '주문 건수', '평균 객단가', '재구매율'];
-const PROGRESS = [
-  { label: '주문 누적', cur: 23, max: 50, unit: '건' },
-  { label: '운영 일수', cur: 6, max: 14, unit: '일' },
-];
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
-export default function AdminAnalyticsPage() {
+const CARD_STYLE: CSSProperties = {
+  background: 'var(--surface)',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--radius)',
+};
+
+export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
+  const raw = await searchParams;
+  const view = await fetchAdminAnalytics(raw);
+
   return (
     <>
       <AnalyticsActions />
@@ -29,10 +44,35 @@ export default function AdminAnalyticsPage() {
           매출 통계
         </h2>
         <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
-          기간별 매출, 카테고리별 판매량, 정기배송 추이를 한눈에 보세요.
+          {view.readiness.ready
+            ? '기간별 매출, 상품별 판매량을 확인하세요.'
+            : '기간별 매출, 카테고리별 판매량, 정기배송 추이를 한눈에 보세요.'}
         </div>
       </div>
 
+      {view.readiness.ready ? <ReadyView view={view} /> : <NotReadyView readiness={view.readiness} />}
+    </>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   미달 — 시안 empty.jsx 그대로, progress bar 만 실제 cur 값으로 갱신.
+   ─────────────────────────────────────────────────────────────────── */
+
+const PLACEHOLDER_STAT_LABELS = ['총 매출', '주문 건수', '평균 객단가', '재구매율'];
+
+function NotReadyView({
+  readiness,
+}: {
+  readiness: { ordersCur: number; ordersMax: number; daysCur: number; daysMax: number };
+}) {
+  const progress = [
+    { label: '주문 누적', cur: readiness.ordersCur, max: readiness.ordersMax, unit: '건' },
+    { label: '운영 일수', cur: readiness.daysCur, max: readiness.daysMax, unit: '일' },
+  ];
+
+  return (
+    <>
       {/* placeholder 통계 카드 4종 (disabled) */}
       <div
         style={{
@@ -42,13 +82,11 @@ export default function AdminAnalyticsPage() {
           marginBottom: 16,
         }}
       >
-        {PLACEHOLDER_STATS.map((label) => (
+        {PLACEHOLDER_STAT_LABELS.map((label) => (
           <div
             key={label}
             style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius)',
+              ...CARD_STYLE,
               padding: 18,
               opacity: 0.55,
             }}
@@ -78,14 +116,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* main empty card */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-          padding: 0,
-        }}
-      >
+      <div style={{ ...CARD_STYLE, padding: 0 }}>
         <div
           style={{
             padding: '64px 24px',
@@ -107,10 +138,8 @@ export default function AdminAnalyticsPage() {
               backgroundImage:
                 'linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)',
               backgroundSize: '24px 24px',
-              maskImage:
-                'radial-gradient(ellipse at center, black 30%, transparent 70%)',
-              WebkitMaskImage:
-                'radial-gradient(ellipse at center, black 30%, transparent 70%)',
+              maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
+              WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
               pointerEvents: 'none',
             }}
           />
@@ -197,9 +226,14 @@ export default function AdminAnalyticsPage() {
               position: 'relative',
             }}
           >
-            통계 리포트는 최소 <strong style={{ color: 'var(--foreground)' }}>주문 50건</strong> 또는{' '}
-            <strong style={{ color: 'var(--foreground)' }}>운영 14일</strong>이 지나야 정확한 인사이트를 보여드려요.
-            현재까지 <strong style={{ color: 'var(--foreground)' }}>주문 23건 · 운영 6일</strong>이 누적됐어요.
+            통계 리포트는 최소{' '}
+            <strong style={{ color: 'var(--foreground)' }}>주문 {readiness.ordersMax}건</strong> 또는{' '}
+            <strong style={{ color: 'var(--foreground)' }}>운영 {readiness.daysMax}일</strong>이 지나야 정확한 인사이트를
+            보여드려요. 현재까지{' '}
+            <strong style={{ color: 'var(--foreground)' }}>
+              주문 {readiness.ordersCur}건 · 운영 {readiness.daysCur}일
+            </strong>
+            이 누적됐어요.
           </p>
 
           {/* progress bars */}
@@ -213,7 +247,7 @@ export default function AdminAnalyticsPage() {
               gap: 12,
             }}
           >
-            {PROGRESS.map(({ label, cur, max, unit }) => (
+            {progress.map(({ label, cur, max, unit }) => (
               <div key={label}>
                 <div
                   style={{
@@ -239,7 +273,7 @@ export default function AdminAnalyticsPage() {
                   <div
                     style={{
                       height: '100%',
-                      width: `${(cur / max) * 100}%`,
+                      width: `${Math.min(100, (cur / max) * 100)}%`,
                       background: 'var(--primary)',
                       borderRadius: 999,
                     }}
@@ -251,7 +285,7 @@ export default function AdminAnalyticsPage() {
 
           {/* CTA buttons */}
           <div style={{ marginTop: 28, display: 'flex', gap: 8, position: 'relative' }}>
-            <a
+            <Link
               href="/admin/orders"
               style={{
                 padding: '7px 14px',
@@ -270,41 +304,8 @@ export default function AdminAnalyticsPage() {
                 letterSpacing: '-0.005em',
               }}
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ marginRight: 4 }}
-              >
-                <path d="M5 12h14" />
-                <path d="M12 5v14" />
-              </svg>
-              주문 생성하기
-            </a>
-            <button
-              type="button"
-              disabled
-              style={{
-                padding: '7px 14px',
-                fontSize: 13,
-                height: 34,
-                borderRadius: 6,
-                fontWeight: 500,
-                background: 'var(--surface)',
-                color: 'var(--foreground)',
-                border: '1px solid var(--border)',
-                cursor: 'not-allowed',
-                letterSpacing: '-0.005em',
-                opacity: 0.7,
-              }}
-            >
-              샘플 데이터로 미리보기
-            </button>
+              주문 목록 열기
+            </Link>
           </div>
 
           {/* 팁 */}
@@ -340,11 +341,189 @@ export default function AdminAnalyticsPage() {
               💡
             </span>
             <span>
-              <strong style={{ color: 'var(--foreground)' }}>팁.</strong>{' '}
-              메인 사이트에 <a style={{ color: 'var(--primary)' }}>오픈 공지</a>를 등록하면 첫 주문이 평균 3배 빨라져요.
+              <strong style={{ color: 'var(--foreground)' }}>팁.</strong> 사이트 설정에서 오픈 공지를 등록하면 첫 주문이
+              평균 3배 빨라져요.
             </span>
           </div>
         </div>
+      </div>
+    </>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   충족 — period switcher + 4 stat cards + 상품 테이블.
+   ─────────────────────────────────────────────────────────────────── */
+
+function ReadyView({
+  view,
+}: {
+  view: {
+    period: AnalyticsPeriodKey;
+    stats: { label: string; value: string }[];
+    products: {
+      productSlug: string;
+      label: string;
+      quantity: number;
+      quantityLabel: string;
+      revenue: number;
+      revenueLabel: string;
+      orderCount: number;
+    }[];
+  };
+}) {
+  return (
+    <>
+      {/* period switcher */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 6,
+          marginBottom: 14,
+          flexWrap: 'wrap',
+        }}
+      >
+        {ANALYTICS_PERIOD_OPTIONS.map((opt) => {
+          const active = view.period === opt.id;
+          return (
+            <Link
+              key={opt.id}
+              href={`/admin/analytics?period=${opt.id}`}
+              style={{
+                padding: '6px 12px',
+                fontSize: 12.5,
+                borderRadius: 6,
+                border: `1px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
+                background: active ? 'var(--primary-soft)' : 'var(--surface)',
+                color: active ? 'var(--primary)' : 'var(--foreground)',
+                textDecoration: 'none',
+                fontWeight: active ? 500 : 400,
+              }}
+            >
+              {opt.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* 4 stat cards */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 12,
+          marginBottom: 16,
+        }}
+      >
+        {view.stats.map((s) => (
+          <div key={s.label} style={{ ...CARD_STYLE, padding: 18 }}>
+            <div style={{ fontSize: 12.5, color: 'var(--foreground-muted)' }}>{s.label}</div>
+            <div
+              className="gtr-tnum"
+              style={{
+                marginTop: 10,
+                fontSize: 24,
+                fontWeight: 500,
+                letterSpacing: '-0.02em',
+                color: 'var(--foreground)',
+                lineHeight: 1.1,
+              }}
+            >
+              {s.value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 상품별 테이블 */}
+      <div style={{ ...CARD_STYLE, padding: 0 }}>
+        <div
+          style={{
+            padding: '14px 18px',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 500 }}>상품별 판매</h3>
+          <span style={{ fontSize: 12, color: 'var(--foreground-muted)' }}>
+            {view.products.length}개 상품
+          </span>
+        </div>
+
+        {view.products.length === 0 ? (
+          <div
+            style={{
+              padding: '48px 18px',
+              textAlign: 'center',
+              fontSize: 13,
+              color: 'var(--foreground-muted)',
+            }}
+          >
+            선택한 기간에 판매된 상품이 없습니다.
+          </div>
+        ) : (
+          <div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 100px 100px 130px',
+                gap: 12,
+                padding: '10px 18px',
+                background: 'var(--surface-muted)',
+                fontSize: 11.5,
+                fontWeight: 500,
+                color: 'var(--foreground-muted)',
+                borderBottom: '1px solid var(--border)',
+              }}
+            >
+              <div>상품</div>
+              <div style={{ textAlign: 'right' }}>판매량</div>
+              <div style={{ textAlign: 'right' }}>주문 수</div>
+              <div style={{ textAlign: 'right' }}>매출</div>
+            </div>
+            {view.products.map((p, idx) => (
+              <div
+                key={p.productSlug + idx}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 100px 100px 130px',
+                  gap: 12,
+                  padding: '12px 18px',
+                  borderTop: idx === 0 ? 'none' : '1px solid var(--border)',
+                  fontSize: 13,
+                  alignItems: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {p.label}
+                </div>
+                <div className="gtr-tnum" style={{ textAlign: 'right' }}>
+                  {p.quantityLabel}
+                </div>
+                <div
+                  className="gtr-tnum"
+                  style={{ textAlign: 'right', color: 'var(--foreground-muted)' }}
+                >
+                  {p.orderCount}
+                </div>
+                <div
+                  className="gtr-tnum"
+                  style={{ textAlign: 'right', fontWeight: 500 }}
+                >
+                  {p.revenueLabel}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );
