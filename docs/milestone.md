@@ -3,8 +3,8 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-05-02 · Session 125 — 어드민 시안 inline style 100% 이식 (`adcd39e0`). Tailwind v4 + shadcn 매핑 폐기 → admin-theme.css 시안 tokens.css 그대로 (`.gtr-admin` wrapper) + AdminSidebar/Topbar/(authed)/layout/dashboard 모두 시안 `shell.jsx`/`dashboard.jsx` inline style 100% 이식 + DashboardActions Topbar slot inject (시안 actions prop 매칭). Step 2 (actions slot Context) + Step 3 (미세 spacing 5종) 모두 시안 이식에 자동 흡수. ~4h 추측 patch 누적 후 시안 ground truth 회귀 — 신규 절대 규칙 `feedback_design_pattern_mismatch_immediate_pivot.md` 작성 (S125 사고 재발 방지). **잔여:** 로그인 + AdminPlaceholder 8 페이지가 갈아엎기 전 패턴 (다음 세션 ~1h). 417/417 vitest green. 상세 `memory/project_session125_complete.md`.
-> 이전: Session 124 — 어드민 풀 구축 진입 (Group A 인프라 + Claude Design 핸드오프 + Step 1 폴리싱) (`f5f700bc`). Session 123 — 굿데이즈 라이트박스 잔존 closure (`07da3abb`). Session 122 — cream flash closure + cacheComponents cleanup self-destruct 패턴 학습 (`ec9dc910`).
+> **최종 업데이트:** 2026-05-02 · Session 126 — 어드민 시안 5종 화면 풀 이식 (`1c9151c0`). Claude Design 새 핸드오프 (TDWxBSVDsE_nScGaCF5aOQ) 의 6 화면 중 dashboard 외 5종을 시안 inline style 100% 이식 — login (380px 카드 + 도트 backdrop) · analytics (placeholder 4 카드 + 일러스트 + 진행률 + CTA + 팁) · orders (탭 6 + 검색·필터 + 데이터 테이블 + 페이지네이션 + 일괄 선택) · products/new 신규 라우트 (5탭 + 좌우 grid + 이미지 업로드 + 공개 라디오 + 로스팅) · settings (공지 라이브 미리보기 + 시즌 배너 + 무료 배송 정책 + 30일 분석 인사이트). shadcn 의존 0. AdminPlaceholder 도 시각 통일 (5/7 페이지 자동 흡수). (authed)/layout root div 에 `.gtr-admin` 클래스 추가 (S125 누락 fix — 시안 base style 활성). 데이터 mock — 실 API/Storage 는 Group B/D/H/I-2 백엔드 단계. 417/417 vitest · tsc 0 errors · next build success (admin 11 라우트 ◐ PPR). 상세 `memory/project_session126_complete.md`.
+> 이전: Session 125 — 어드민 시안 inline style 100% 이식 (`adcd39e0`, dashboard + shell). Session 124 — 어드민 풀 구축 진입 (Group A 인프라 + Claude Design 핸드오프 + Step 1 폴리싱) (`f5f700bc`). Session 123 — 굿데이즈 라이트박스 잔존 closure (`07da3abb`).
 
 ---
 
