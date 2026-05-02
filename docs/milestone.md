@@ -192,8 +192,15 @@
 | Phase | 항목 | 상태 |
 |-------|------|------|
 | **1** | 토큰 정착 — `--brand-sand` 격상 + warning 분리 + focus ring 정리 | ✅ S131 (`0e97375d`) |
-| 1 | surface 6→4단 축약 (D-6) · 타이포 8단 재정렬 (D-7) · 섹션 패딩 160 (D-1) · 모션 (D-2) · 영문 부제 (D-3) · eyebrow (D-4) · Hero 80vh (D-5) · warning 시각 검증 (D-8) | ⏸️ 보류 (체감 차이 vs 회귀 위험 평가 후 재고려) |
-| 2 | 컴포넌트 통합 — Card · Accordion · Drawer · HeroVideo · SearchPanel + PDP 신규 3종 (OptionChipGroup · DripBagSteps · SpecTable) | ⬜ |
+| 1 | surface 6→4단 축약 (D-6) · 타이포 8단 재정렬 (D-7) · 섹션 패딩 160 (D-1) · 모션 (D-2) · 영문 부제 (D-3) · eyebrow (D-4) · Hero 80vh (D-5) · warning 시각 검증 (D-8) · Hero 한글 보조카피 (D-9) · Hero 60-40 분할 (D-11) | ⏸️ 보류 (체감 차이 vs 회귀 위험 평가 후 재고려) |
+| **2 (A-1)** | HeroVideo 가드 의무화 (`preload="metadata"` 추가) | ✅ S132 (`878cbdff`) |
+| **2 (A-2)** | SpecTable 신규 — PDP 식약처 표 컴포넌트 분리 + 네이버 ground truth 데이터 + footer 좌우 분할 (notices + cert 마크) | ✅ S132 (`a0f521b5`) |
+| **2 (A-3)** | OptionChipGroup 신규 + 정기배송 탭 → 체크박스 격하 + 시각 일관성 정비 (B2C UI 만 — 할인 계산 D-15 carry-over) | ✅ S132 Phase 1 (`492b8e0d`) |
+| 2 (A-4) | DripBagSteps 신규 — 드립백 PDP 3-step 컴포넌트 | ⬜ |
+| 2 (A-5) | Card 통합 (ProductCard · CafeMenuCard) | ⬜ |
+| 2 (A-6) | Accordion 통합 | ⬜ |
+| 2 (A-7) | Drawer 통합 (검색 패널 풀 오버레이 → drawer) | ⬜ |
+| 2 보류 | D-12 SpecTable 12 키 폐기 · D-13 SpecTable 기본 펼침 · D-14 분쇄도 옵션 · D-15 정기배송 할인 계산 흐름 통합 (Phase 2) · D-16 어드민 Group E 정기배송 할인율 입력 (Phase 3) | ⏸️ |
 | 3 | 페이지 적용 — 메인 → 샵 → PDP → 마이페이지 → 카트·체크아웃 → 나머지 | ⬜ |
 
 **자문 응답:** `memory/project_design_audit_v2.md` (보충본 통합 · 1763줄 raw)
