@@ -203,10 +203,10 @@
 | **2 (A-3 Phase 2)** | PDP 레이아웃 대개편 — 가격 chip 통합 / status 좌상단 floating / 스텝퍼+CTA 한 줄 / 좌측 이미지 sticky / 아코디언 우측 최하단 / sub-pixel 누적 차단 | ✅ S133 (`eb3cfb52`) |
 | **2 (A-3 Phase 3)** | PDP 갤러리 yarl Inline+Thumbnails 도입 (D-20) — 공식 docs 패턴 (`inline.style` direct sizing + container query 100cqw) + 화살표 white 통일 (굿데이즈 동일 SVG) | ✅ S135 (`e6bca0b1`) |
 | **2 (A-4)** | DripBagSteps 분리 — 드립백 PDP 전용 (RecipeGuide 와 분리) + 레시피 카드 typography 정수화 (15/13/13/11) + padding/gap/illust 비례 축소 + TIP 영역 정리 + 아코디언 간격 통일 (96→48) + 모바일 #pd-inner padding 누락 추가 | ✅ S136 (`633297d3` + `a745513a`) |
-| 2 (A-5) | Card 통합 (ProductCard · CafeMenuCard) | ⬜ |
+| **2 (A-5)** | Card 통합 — `GenericCard` base 추출 (ShopCard · CafeMenuCard wrap) + Quick Add (sp-qa-bar) 폐기 + ShopPage `?item=` highlight 이식 + SearchResultCard product → `/shop?item=` shortcut + 좌상단 뱃지 위치 12/12 통일 + flash 0.6s delay (D-21 카드 뱃지 색상 시스템 보류) | ✅ S137 |
 | 2 (A-6) | Accordion 통합 | ⬜ |
 | 2 (A-7) | Drawer 통합 (검색 패널 풀 오버레이 → drawer) | ⬜ |
-| 2 보류 | D-12 SpecTable 12 키 폐기 · D-13 SpecTable 기본 펼침 · D-14 분쇄도 옵션 · D-15 정기배송 할인 계산 흐름 통합 (Phase 2) · D-16 어드민 Group E 정기배송 할인율 입력 (Phase 3) | ⏸️ |
+| 2 보류 | D-12 SpecTable 12 키 폐기 · D-13 SpecTable 기본 펼침 · D-14 분쇄도 옵션 · D-15 정기배송 할인 계산 흐름 통합 (Phase 2) · D-16 어드민 Group E 정기배송 할인율 입력 (Phase 3) · D-21 카드 뱃지 색상 시스템 통합 (자문 §6.2 sand 통일 vs emergency 신호 의미 충돌 — 별도 검토 필요) | ⏸️ |
 | 3 | 페이지 적용 — 메인 → 샵 → PDP → 마이페이지 → 카트·체크아웃 → 나머지 | ⬜ |
 
 **자문 응답:** `memory/project_design_audit_v2.md` (보충본 통합 · 1763줄 raw)
