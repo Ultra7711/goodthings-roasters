@@ -227,6 +227,16 @@
   --ls-en-display-56: -1.4px;
   --ls-en-display-72: -1.8px;
 
+  /* ── 헤딩 line-height 토큰 (S141 D-19 PR-2 · 8 정합 정수 px · 미디어쿼리 분기) ──
+     font-size 분기 토큰과 일관 — mobile base, tablet (≥768) / desktop (≥1024) 분기는 파일 하단.
+     사용처: display 헤더 / h1·h2 페이지 타이틀 / editorial 헤딩.
+     본문 line-height 는 한글 본문 별도 토큰 (`--lh-kr-body-*`) 또는 정수 px 직접. */
+  --lh-display: 40px;       /* mobile 36 × 1.11 / tablet 56 × 1.14 / desktop 72 × 1.11 */
+  --lh-h1: 40px;            /* mobile 32 × 1.25 / tablet 36 × 1.22 / desktop 40 × 1.30 */
+  --lh-h2: 32px;            /* mobile 24 × 1.33 / tablet 28 × 1.43 / desktop 28 × 1.43 */
+  --lh-h1-editorial: 40px;  /* mobile 32 × 1.25 / tablet 44 × 1.18 / desktop 52 × 1.23 */
+  --lh-h2-editorial: 32px;  /* mobile 28 × 1.14 / tablet 36 × 1.22 / desktop 44 × 1.18 */
+
   /* ── Editorial Typography Scale (Session 60 · design-interaction-plan §4 ②) ──
      히어로·주요 섹션 헤딩의 매거진급 임팩트 스케일. 기존 --type-display/h1/h2 와 병존.
      S140: clamp() → 미디어쿼리 분기 mobile base. tracking/leading 은 PR-3/PR-2 에서 변환. */
@@ -307,11 +317,12 @@
   --link-cta-letter-spacing: var(--ls-button);
   --link-cta-underline-offset: 6px;
 
-  /* ── line-height ── */
-  --lh-tight: 1.2;
-  --lh-snug: 1.35;
-  --lh-normal: 1.5;
-  --lh-relaxed: 1.7;
+  /* ── line-height (S141 PR-2 · ratio → 정수 px · 8 정합) ──
+     `--lh-relaxed` 사용처 0 (S139 inventory 잔존) — deprecate.
+     h1/h2/h3/display 헤딩은 분기 토큰 `--lh-h1/h2/...` 사용. */
+  --lh-tight: 24px;
+  --lh-snug: 24px;
+  --lh-normal: 24px;
 
   /* ── 탭 컴포넌트 ── */
   --tab-height: 48px;
@@ -459,6 +470,12 @@
     --type-hero-editorial-size: 80px;
     --type-h1-editorial-size: 44px;
     --type-h2-editorial-size: 36px;
+    /* 헤딩 line-height 분기 (S141 PR-2) */
+    --lh-display: 64px;
+    --lh-h1: 44px;
+    --lh-h2: 40px;
+    --lh-h1-editorial: 52px;
+    --lh-h2-editorial: 44px;
   }
 }
 
@@ -472,6 +489,11 @@
     --type-hero-editorial-size: 112px;
     --type-h1-editorial-size: 52px;
     --type-h2-editorial-size: 44px;
+    /* 헤딩 line-height 분기 (S141 PR-2) */
+    --lh-display: 80px;
+    --lh-h1: 52px;
+    --lh-h1-editorial: 64px;
+    --lh-h2-editorial: 52px;
   }
 }
 
@@ -1164,7 +1186,7 @@ button.hdr-icon-btn { background: none; border: none; }
   font-family: var(--font-kr);
   font-size: var(--type-caption-size);
   color: var(--color-text-tertiary);
-  line-height: 1.6;
+  line-height: 24px;
   max-height: 0;
   overflow: hidden;
   opacity: 0;
@@ -1444,7 +1466,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-caption-size);
   color: rgba(250,250,248,.4);
-  line-height: 1.6;
+  line-height: 24px;
   max-height: 0;
   overflow: hidden;
   opacity: 0;
@@ -1752,7 +1774,7 @@ footer.blk {
   font-weight: var(--type-h3-weight);
   color: var(--color-text-primary);
   letter-spacing: var(--ls-body);
-  line-height: 1.3;
+  line-height: 20px;
   margin-top: 2px;
 }
 
@@ -1763,13 +1785,13 @@ footer.blk {
 .ed-h1 {
   font-size: var(--type-h1-editorial-size);
   letter-spacing: -0.015em;
-  line-height: 1.15;
+  line-height: var(--lh-h1-editorial);
 }
 .ed-h2 {
   font-family: var(--font-kr);
   font-size: var(--type-h2-editorial-size);
   letter-spacing: -0.01em;
-  line-height: 1.2;
+  line-height: var(--lh-h2-editorial);
 }
 
 /* ══ #cafe-menu-blk 시즌 배너 ══ */
@@ -1812,7 +1834,7 @@ footer.blk {
   font-weight: 500;
   letter-spacing: var(--ls-uppercase);
   color: var(--color-label-on-warm);
-  line-height: 1.2;
+  line-height: 16px;
   margin-bottom: 14px;
 }
 .season-h {
@@ -1821,7 +1843,7 @@ footer.blk {
   font-weight: var(--type-h2-weight);
   letter-spacing: var(--ls-heading);
   color: var(--color-text-primary);
-  line-height: 1.2;
+  line-height: var(--lh-h2);
   margin-bottom: 20px;
 }
 .season-desc {
@@ -1829,7 +1851,7 @@ footer.blk {
   font-size: var(--type-heading-s-size);
   font-weight: 400;
   color: var(--color-text-secondary);
-  line-height: 1.5;
+  line-height: 24px;
   margin-bottom: 32px;
 }
 .season-cta {
@@ -1987,7 +2009,7 @@ footer.blk {
   font-size: var(--type-heading-s-size);
   font-weight: 400;
   color: var(--on-dark-secondary);
-  line-height: 1.6;
+  line-height: 24px;
 }
 /* 배경 이미지 */
 .img-coffee    { background: url('/images/cafe-menu/cm_img_milk_coffee.webp') center/cover no-repeat; }
@@ -2042,7 +2064,7 @@ footer.blk {
   letter-spacing: var(--ls-heading);
   color: var(--color-text-primary);
   margin-bottom: 20px;
-  line-height: 1.3;
+  line-height: var(--lh-h2);
   /* 히어로 슬로건과 호흡 맞춘 2줄 weight 대비 (상속 weight=300 + heavy=600) */
   display: flex;
   flex-direction: column;
@@ -2057,7 +2079,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 24px;
   color: var(--color-text-secondary);
   margin-bottom: 36px;
 }
@@ -2316,7 +2338,7 @@ footer.blk {
   font-weight: var(--type-h3-weight);
   color: var(--color-text-inverse);
   letter-spacing: var(--ls-body);
-  line-height: 1.3;
+  line-height: 20px;
   margin-bottom: 7px;
 }
 .tci-body {
@@ -2324,7 +2346,7 @@ footer.blk {
   font-size: var(--type-heading-s-size);
   font-weight: 400;
   color: var(--on-dark-secondary);
-  line-height: 1.6;
+  line-height: 24px;
   margin-bottom: 5px;
 }
 .img-subscription { background-image: url('/images/sections/img_services_subscription_new.webp'); }
@@ -2388,7 +2410,7 @@ footer.blk {
   font-weight: var(--type-h2-weight);
   color: var(--color-text-primary);
   letter-spacing: var(--ls-heading);
-  line-height: 1.3;
+  line-height: var(--lh-h2);
   margin-bottom: 11px;
 }
 .roastery-body {
@@ -2396,7 +2418,7 @@ footer.blk {
   font-size: var(--type-heading-s-size);
   font-weight: 400;
   color: var(--color-text-secondary);
-  line-height: 1.6;
+  line-height: 24px;
   margin-bottom: 36px;
 }
 .roastery-hours {
@@ -2405,7 +2427,7 @@ footer.blk {
   font-size: var(--type-heading-s-size);
   color: var(--color-text-secondary);
   margin-top: 10px;
-  line-height: 1.6;
+  line-height: 24px;
 }
 .roastery-cta-btn {
   font-family: var(--font-kr);
@@ -2513,7 +2535,7 @@ footer.blk {
   font-weight: var(--type-h1-weight);
   letter-spacing: var(--ls-display);
   color: var(--color-text-primary);
-  line-height: var(--lh-tight);
+  line-height: var(--lh-h1);
   margin: 0;
   opacity: 0;
   transform: translateY(20px);
@@ -2736,7 +2758,7 @@ footer.blk {
   font-weight: 500;
   color: var(--color-text-primary);
   margin: 0 0 6px;
-  line-height: 1.55;
+  line-height: 24px;
 }
 .sp-card-price {
   font-family: var(--font-en);
@@ -2946,7 +2968,7 @@ footer.blk {
   font-weight: 500;
   color: var(--color-text-primary);
   margin: 0 0 6px;
-  line-height: 1.5;
+  line-height: 24px;
 }
 .cm-card-price {
   font-family: var(--font-en);
@@ -2977,7 +2999,7 @@ footer.blk {
   font-weight: 600;
   letter-spacing: var(--ls-body);
   text-transform: uppercase;
-  line-height: 1.1;
+  line-height: 16px;
   text-align: center;
   color: var(--color-text-inverse);
   white-space: pre-line;
@@ -3215,7 +3237,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   color: var(--color-text-secondary);
-  line-height: 1.6;
+  line-height: 24px;
   margin: 0;
   white-space: pre-line;
 }
@@ -3275,7 +3297,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: 13px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 20px;
   color: var(--color-text-primary);
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -3419,7 +3441,7 @@ footer.blk {
   font-weight: var(--type-h3-weight);
   letter-spacing: var(--ls-heading);
   color: var(--color-text-primary);
-  line-height: var(--lh-tight);
+  line-height: 32px;
 }
 #cart-drawer-panel .cd-count {
   font-family: var(--font-en);
@@ -3666,12 +3688,12 @@ footer.blk {
   #cart-drawer-panel .cd-item-thumb { width: 96px; height: 96px; align-self: end; }
   #cart-drawer-panel .cd-item-category { font-size: 12px; line-height: 1; }
   #cart-drawer-panel .cd-item-name {
-    line-height: 1.4;
+    line-height: 20px;
     margin-top: 2px;
     margin-bottom: 8px;
     align-self: center;
   }
-  #cart-drawer-panel .cd-item-name-kr { font-size: 16px; line-height: 1.4; }
+  #cart-drawer-panel .cd-item-name-kr { font-size: 16px; line-height: 20px; }
   #cart-drawer-panel .cd-item-bottom { gap: 12px; margin-top: 0; }
   #cart-drawer-panel .cd-qty-btn { height: 44px; }
 }
@@ -3759,7 +3781,7 @@ footer.blk {
   font-weight: 400;
   color: var(--color-text-tertiary);
   flex: 1;
-  line-height: 1.5;
+  line-height: 24px;
 }
 #cart-drawer-panel .cd-si-price {
   font-family: var(--font-kr);
@@ -3942,7 +3964,7 @@ footer.blk {
   font-weight: var(--type-h1-weight);
   color: var(--color-text-primary);
   letter-spacing: var(--ls-display);
-  line-height: 1.3;
+  line-height: 20px;
   margin-bottom: 48px;
 }
 .pd-name-en {
@@ -4786,7 +4808,7 @@ footer.blk {
   font-size: var(--type-body-m-size);
   font-weight: 400;
   color: var(--color-text-secondary);
-  line-height: 1.7;
+  line-height: 24px;
   margin: -6px 0 24px;
   white-space: pre-line;
 }
@@ -4998,7 +5020,7 @@ footer.blk {
   font-size: var(--type-body-m-size);
   font-weight: 500;
   color: var(--color-text-primary);
-  line-height: 1.2;
+  line-height: 16px;
   text-align: center;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--color-border-tertiary);
@@ -5012,7 +5034,7 @@ footer.blk {
   font-size: var(--type-body-s-size);
   font-weight: 400;
   color: var(--color-text-secondary);
-  line-height: 1.7;
+  line-height: 24px;
   text-align: center;
   margin: 0;
 }
@@ -5104,7 +5126,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
   color: var(--color-text-secondary);
-  line-height: 1.8;
+  line-height: 28px;
   font-weight: 400;
 }
 .pd-drip-tip {
@@ -5141,7 +5163,7 @@ footer.blk {
   /* S136: heading-s (16) → body-s (13) — 부가 caption 톤 */
   font-size: var(--type-body-s-size);
   color: var(--color-text-secondary);
-  line-height: 1.8;
+  line-height: 28px;
   font-weight: 400;
 }
 @media (max-width: 767px) {
@@ -5238,7 +5260,7 @@ footer.blk {
   font-size: 15px;
   font-weight: 400;
   color: var(--color-text-secondary);
-  line-height: 1.9;
+  line-height: 28px;
   max-height: 0;
   overflow: hidden;
   opacity: 0;
@@ -5261,7 +5283,7 @@ footer.blk {
 .spec-table {
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
-  line-height: 1.7;
+  line-height: 24px;
 }
 .spec-table-grid {
   display: grid;
@@ -5315,7 +5337,7 @@ footer.blk {
   margin: 0;
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
-  line-height: 1.6;
+  line-height: 24px;
   color: var(--color-text-tertiary);
   border-bottom: 1px solid var(--color-border-tertiary);
 }
@@ -5469,7 +5491,7 @@ footer.blk {
   font-weight: var(--type-display-weight);
   color: rgba(250, 250, 248, 0.7);
   letter-spacing: var(--ls-display);
-  line-height: 1.1;
+  line-height: var(--lh-display);
   margin: 0;
   opacity: 0;
   transform: translateY(20px);
@@ -5480,7 +5502,7 @@ footer.blk {
   font-weight: 400;
   color: rgba(255, 255, 255, 0.75);
   letter-spacing: var(--ls-heading);
-  line-height: 1.6;
+  line-height: 28px;
   margin: 0;
   opacity: 0;
   transform: translateY(20px);
@@ -5565,14 +5587,14 @@ footer.blk {
   font-weight: var(--type-h2-weight);
   color: var(--color-text-primary);
   letter-spacing: var(--ls-heading);
-  line-height: 1.3;
+  line-height: var(--lh-h2);
   margin: 0 0 20px;
 }
 .st-col-body {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 24px;
   color: var(--color-text-secondary);
   margin: 0;
   word-break: keep-all;
@@ -5593,14 +5615,14 @@ footer.blk {
   font-weight: var(--type-h2-weight);
   color: var(--color-text-primary);
   letter-spacing: var(--ls-heading);
-  line-height: 1.3;
+  line-height: var(--lh-h2);
   margin: 0 0 20px;
 }
 .st-promise-body {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 24px;
   color: var(--color-text-secondary);
   margin: 0;
   max-width: 560px;
@@ -5735,7 +5757,7 @@ footer.blk {
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 24px;
   color: var(--color-text-secondary);
   margin: 0;
 }
@@ -5744,7 +5766,7 @@ footer.blk {
   font-size: var(--type-body-m-size);
   font-weight: 400;
   color: var(--color-text-primary);
-  line-height: 1.8;
+  line-height: 28px;
   margin: 0;
   padding-left: 12px;
   border-left: 2px solid var(--color-label-on-white);
@@ -5798,7 +5820,7 @@ footer.blk {
   font-weight: var(--type-h1-weight);
   color: var(--color-text-primary);
   letter-spacing: var(--ls-heading);
-  line-height: 1.3;
+  line-height: var(--lh-h1);
 }
 #bi-page-desc {
   font-family: var(--font-kr);
@@ -6569,7 +6591,7 @@ body.gd-route-transition.gd-route-transition--fade::before {
 .chp-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 .chp-section-desc {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
-  color: var(--color-text-secondary); margin-bottom: 16px; line-height: 1.8;
+  color: var(--color-text-secondary); margin-bottom: 16px; line-height: 28px;
 }
 .chp-section--guest .chp-section-title { margin-bottom: 6px; }
 
@@ -6616,7 +6638,7 @@ body.gd-route-transition.gd-route-transition--fade::before {
 .chp-helper {
   font-family: var(--font-kr); font-size: var(--type-caption-size); font-weight: 400;
   color: var(--color-text-caption); margin-top: 6px;
-  display: none; line-height: 1.5;
+  display: none; line-height: 24px;
 }
 .chp-helper.visible { display: block; }
 /* 포커스 시 헬퍼 표시 */
@@ -6809,7 +6831,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-login-primary-btn:active { opacity: .7; }
 .chp-login-benefit {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
-  color: var(--color-text-secondary); line-height: 1.6; margin: 16px 0 0; text-align: center;
+  color: var(--color-text-secondary); line-height: 24px; margin: 16px 0 0; text-align: center;
 }
 /* 비회원 Secondary CTA */
 .chp-guest-link-wrap { text-align: center; margin-top: 24px; }
@@ -6893,7 +6915,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-legal-note {
   display: flex; align-items: flex-start; gap: 8px;
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
-  color: var(--color-text-secondary); line-height: 1.7; margin-top: 24px;
+  color: var(--color-text-secondary); line-height: 24px; margin-top: 24px;
   padding: 16px 20px;
   background: var(--color-background-secondary);
   border-left: 2px solid var(--color-border-primary);
@@ -6944,7 +6966,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-sum-item-info { flex: 1; }
 .chp-sum-item-name {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 500;
-  color: var(--color-text-primary); line-height: 1.3; margin-bottom: 2px;
+  color: var(--color-text-primary); line-height: 20px; margin-bottom: 2px;
 }
 .chp-sum-item-meta {
   display: block;
@@ -7018,7 +7040,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* 타이틀 */
 .ocp-title {
   font-family: var(--font-kr); font-size: var(--type-h2-size); font-weight: var(--type-h2-weight);
-  letter-spacing: var(--ls-display); text-align: center; line-height: 1.4;
+  letter-spacing: var(--ls-display); text-align: center; line-height: var(--lh-h2);
 }
 /* 주문번호 */
 .ocp-order-num {
@@ -7140,7 +7162,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .lp-left { display: flex; flex-direction: column; align-items: center; gap: var(--gap-xs); margin-bottom: 48px; text-align: center; }
 .lp-page-title {
   font-family: var(--font-kr); font-size: var(--type-h2-size); font-weight: var(--type-h2-weight);
-  color: var(--color-text-primary); letter-spacing: var(--ls-heading); line-height: 1.3;
+  color: var(--color-text-primary); letter-spacing: var(--ls-heading); line-height: var(--lh-h2);
 }
 .lp-switch-wrap { display: flex; flex-direction: row; align-items: baseline; gap: var(--gap-xs); flex-wrap: wrap; justify-content: center; }
 .lp-switch-txt {
@@ -7307,7 +7329,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .lp-guest-buy-desc {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: var(--type-body-ui-weight);
-  color: var(--color-text-secondary); line-height: 1.7;
+  color: var(--color-text-secondary); line-height: 24px;
 }
 .lp-guest-buy-btn {
   display: inline-flex; align-items: center; justify-content: center;
@@ -7349,7 +7371,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   }
   /* 비회원 박스 본문 line-height 완화 (1.7 → 1.55) · 3줄 꺾임 방지 */
   .lp-guest-buy-desc {
-    line-height: 1.55;
+    line-height: 24px;
   }
   /* submit 버튼 아래 공간 · 소셜 divider 와의 간격 축소 */
   .lp-submit-btn {
@@ -7540,7 +7562,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-left { display: flex; flex-direction: column; gap: 0; padding-top: 8px; }
 .mp-page-title {
   font-family: var(--font-kr); font-size: var(--type-h1-size); font-weight: var(--type-h1-weight);
-  color: var(--color-text-primary); letter-spacing: var(--ls-heading); line-height: 1.3;
+  color: var(--color-text-primary); letter-spacing: var(--ls-heading); line-height: var(--lh-h1);
 }
 .mp-welcome-wrap { display: flex; flex-direction: row; align-items: baseline; gap: var(--gap-md); flex-wrap: wrap; margin-top: 16px; }
 .mp-welcome-txt {
@@ -7964,7 +7986,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .mp-modal-desc {
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 400;
-  color: var(--color-text-secondary); line-height: 1.6; margin: 0 0 28px;
+  color: var(--color-text-secondary); line-height: 24px; margin: 0 0 28px;
 }
 .mp-modal-actions { display: flex; gap: var(--gap-sm); }
 .mp-modal-cancel {
@@ -8086,7 +8108,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    line-height: 1.4;
+    line-height: 20px;
     margin: 2px 0 4px;
     font-size: 16px;
   }
@@ -8366,7 +8388,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-size: var(--type-h1-size);
   font-weight: var(--type-h1-weight);
   letter-spacing: var(--ls-display);
-  line-height: var(--lh-tight);
+  line-height: var(--lh-h1);
   margin: 0;
 }
 .cp-table-hdr {
@@ -8423,7 +8445,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
-.cp-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; line-height: 1.35; }
+.cp-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; line-height: 20px; }
 .cp-item-name-kr {
   font-family: var(--font-kr);
   font-size: var(--type-body-l-size);
@@ -8559,7 +8581,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   #cart-drawer-panel .cd-si-notice {
     grid-row: 2;
     grid-column: 1;
-    line-height: 1.5;
+    line-height: 24px;
   }
   #cart-drawer-panel .cd-shipping-item .shipping-gauge {
     grid-row: 2;
@@ -8578,7 +8600,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-weight: 400; color: var(--color-text-secondary);
   flex-shrink: 0; margin-right: var(--gap-lg);
 }
-.cp-shipping-notice { flex: 1; font-weight: 400; color: var(--color-text-tertiary); line-height: 1.5; }
+.cp-shipping-notice { flex: 1; font-weight: 400; color: var(--color-text-tertiary); line-height: 24px; }
 .cp-shipping-notice.free { color: var(--color-text-primary); }
 .cp-shipping-price {
   font-family: var(--font-kr);
@@ -8709,7 +8731,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     grid-column: 2 / 4;
     min-width: 0;
     overflow: hidden;
-    line-height: 1.4;
+    line-height: 20px;
     margin-top: 2px;
     margin-bottom: 8px;
     align-self: center;
@@ -8765,7 +8787,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cp-shipping-notice {
     grid-row: 2;
     grid-column: 1;
-    line-height: 1.5;
+    line-height: 24px;
   }
   .cp-shipping-row .shipping-gauge {
     grid-row: 2;
@@ -9286,7 +9308,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-family: var(--font-kr);
   font-size: 32px;
   font-weight: 400;
-  line-height: 1.3;
+  line-height: 20px;
   color: var(--color-text-primary);
   letter-spacing: -0.01em;
 }
@@ -9340,7 +9362,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   margin-bottom: 32px;
   font-family: var(--font-kr);
   font-size: 15px;
-  line-height: 1.8;
+  line-height: 28px;
   color: var(--color-text-secondary);
 }
 .legal-intro p { margin-bottom: 8px; }
@@ -9367,7 +9389,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .legal-paragraph {
   font-family: var(--font-kr);
   font-size: 15px;
-  line-height: 1.8;
+  line-height: 28px;
   color: var(--color-text-secondary);
   margin-bottom: 8px;
 }
@@ -9377,7 +9399,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   margin: 12px 0;
   font-family: var(--font-kr);
   font-size: 15px;
-  line-height: 1.8;
+  line-height: 28px;
   color: var(--color-text-secondary);
 }
 .legal-bullets li { margin-bottom: 6px; }
@@ -9392,7 +9414,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   gap: 16px;
   font-family: var(--font-kr);
   font-size: 15px;
-  line-height: 1.8;
+  line-height: 28px;
 }
 .legal-def-row dt {
   color: var(--color-text-tertiary);
