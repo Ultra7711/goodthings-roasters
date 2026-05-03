@@ -10,9 +10,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { ProductImage } from '@/lib/products';
+import type { ProductImage, ProductStatus } from '@/lib/products';
+import { getStatusBadgeClass } from '@/lib/products';
 
-type Props = { images: ProductImage[] };
+type Props = {
+  images: ProductImage[];
+  /** 상품 status — 좌상단 floating 뱃지 표시 (Shop 카드와 동일 위치) */
+  status?: ProductStatus;
+};
 
 /** 이미지 한 장을 background 쇼트핸드로 변환 */
 function imageBg(img: ProductImage): string {
@@ -21,7 +26,7 @@ function imageBg(img: ProductImage): string {
     : img.bg;
 }
 
-export default function ProductGallery({ images }: Props) {
+export default function ProductGallery({ images, status }: Props) {
   const [idx, setIdx] = useState(0);
 
   const multi = images.length > 1;
@@ -59,6 +64,7 @@ export default function ProductGallery({ images }: Props) {
   if (!current) {
     return (
       <div id="pd-img-main-wrap" className="no-nav">
+        {status && <span className={getStatusBadgeClass(status)}>{status}</span>}
         <div id="pd-img" style={{ background: '#f0ece6' }} />
       </div>
     );
@@ -71,6 +77,7 @@ export default function ProductGallery({ images }: Props) {
   return (
     <>
       <div id="pd-img-main-wrap" className={multi ? '' : 'no-nav'}>
+        {status && <span className={getStatusBadgeClass(status)}>{status}</span>}
         <button
           className={`pd-img-arrow arrow-btn arrow-btn-primary ${arrowColorClass}${multi ? '' : ' hidden'}`}
           id="pd-img-prev"

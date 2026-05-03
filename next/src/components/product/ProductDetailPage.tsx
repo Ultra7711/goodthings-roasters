@@ -17,32 +17,22 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { type Product, splitName, getStatusBadgeClass } from '@/lib/products';
+import { type Product, splitName } from '@/lib/products';
 import ProductGallery from './ProductGallery';
 import PurchaseRow from './PurchaseRow';
-import ProductDetailBody from './ProductDetailBody';
 import ProductRoastStage from './ProductRoastStage';
 import ProductFlavorNote from './ProductFlavorNote';
 import ProductRecipeGuide from './ProductRecipeGuide';
 import ProductAccordions from './ProductAccordions';
-
-function formatPrice(n: number): string {
-  return n.toLocaleString('ko-KR') + '원';
-}
 
 type Props = { product: Product };
 
 export default function ProductDetailPage({ product }: Props) {
   const pageRef = useRef<HTMLDivElement>(null);
 
-  /* 용량 선택 상태 — PurchaseRow 와 공유하여 #pd-price 실시간 갱신.
-     수량에는 반응하지 않고 선택된 용량의 단가만 표시한다. */
+  /* 용량 선택 상태 — PurchaseRow 가 chip · 수량 · CTA 가격 합계에 사용.
+     ProductDetailPage 에서는 더 이상 단가를 표시하지 않으므로 read 만 동기화. */
   const [volIdx, setVolIdx] = useState(0);
-  const hasVolumes = product.volumes.length > 0;
-  /* 상품 전체 품절 판정 — status === '품절' 이거나 모든 볼륨이 soldOut.
-     품절 상품에서는 가격 노출을 차단해 "구매 가능" 처럼 보이지 않게 한다. */
-  const allSoldOut = hasVolumes && product.volumes.every((v) => v.soldOut);
-  const isSoldOut = product.status === '품절' || allSoldOut;
 
   /* 진입 애니메이션 — ShopPage sp-anim 과 동일한 reflow 패턴.
      className remove → 강제 reflow(offsetHeight read) → add 순으로
@@ -65,52 +55,53 @@ export default function ProductDetailPage({ product }: Props) {
   }, [product.slug, product.volumes]);
 
   const { kr, en } = splitName(product.name);
-  const unitPrice = hasVolumes ? product.volumes[volIdx].price : 0;
-  /* 품절 상품은 가격 숨김 — 뱃지와 CTA 로만 상태 전달. */
-  const showPrice = hasVolumes && !isSoldOut;
+  const descParagraphs = product.desc.trim().split(/\n\n+/).filter(Boolean);
 
   return (
     <div id="pd-body" ref={pageRef}>
       <div id="pd-inner">
         <div id="pd-content">
-          {/* ── 좌: 이미지 갤러리 (아코디언은 하단으로 분리) ──
-              #pd-img-col 래퍼: sticky 의 컨테이닝 블록을 row 1 범위로 제한.
-              래퍼가 없으면 sticky 가 grid 컨테이너(#pd-content) 전체 높이까지 유지되어
-              row 2 에 배치된 아코디언과 시각적으로 겹침. */}
+          {/* ── 좌: 이미지 갤러리 (sticky) ──
+              데스크탑: #pd-img-wrap 이 sticky 로 우측 정보 스크롤 시에도 viewport 고정.
+              모바일(≤1023px): position static 으로 일반 흐름.
+              아코디언은 우측 #pd-info 마지막 element 로 이동 (PR 3 결정 · V2 §5.2). */}
           <div id="pd-img-col">
             <div id="pd-img-wrap">
-              <ProductGallery images={product.images} />
+              <ProductGallery images={product.images} status={product.status} />
             </div>
-            {/* 데스크탑: 아코디언을 이미지 바로 아래 배치 (sticky 컨테이닝 블록 = 좌측 컬럼).
-                모바일(≤1023px): #pd-img-col 이 display:contents 로 해제되어 order 로 재배치. */}
-            <ProductAccordions category={product.category} slug={product.slug} />
           </div>
 
-          {/* ── 우: 상품 정보 (RP-4c~e 에서 구매행/로스팅/노트/아코디언 추가) ── */}
+          {/* ── 우: 상품 정보 — 카테고리 → 이름 → 설명 → 옵션 → 로스팅/노트/레시피 → 아코디언 ── */}
           <div id="pd-info">
             <div id="pd-category">{product.category}</div>
             <div id="pd-name">
               <span className="pd-name-kr">{kr}</span>
               {en && <span className="pd-name-en">{en}</span>}
             </div>
-            {showPrice && <div id="pd-price">{formatPrice(unitPrice)}</div>}
-            {product.status && (
-              <span id="pd-status">
-                <span className={getStatusBadgeClass(product.status)}>{product.status}</span>
-              </span>
+            {descParagraphs.length > 0 && (
+              <div id="pd-desc">
+                {descParagraphs.map((para, i) => (
+                  <p key={i}>
+                    {para.split('\n').map((line, j, arr) => (
+                      <span key={j}>
+                        {line}
+                        {j < arr.length - 1 && <br />}
+                      </span>
+                    ))}
+                  </p>
+                ))}
+              </div>
             )}
-            <div id="pd-divider" />
-
-            {/* RP-4c: 구매 옵션 + 장바구니 */}
+            {/* RP-4c: 구매 옵션 + 장바구니
+                (status 뱃지는 좌측 이미지 좌상단으로 이동 — Shop 카드 일관) */}
             <PurchaseRow
               product={product}
               volIdx={volIdx}
               onVolChange={setVolIdx}
             />
 
-            {/* RP-4d: 상세 본문 / 로스팅 / 노트 / 레시피
+            {/* RP-4d: 로스팅 / 노트 / 레시피
                 (배송/교환반품 아코디언은 좌측 이미지 아래로 이동) */}
-            <ProductDetailBody desc={product.desc} specs={product.specs} />
             <ProductRoastStage roastStage={product.roastStage} />
             <ProductFlavorNote
               note={product.note}
@@ -118,6 +109,7 @@ export default function ProductDetailPage({ product }: Props) {
               noteColor={product.noteColor}
             />
             <ProductRecipeGuide product={product} />
+            <ProductAccordions category={product.category} slug={product.slug} />
           </div>
         </div>
 
