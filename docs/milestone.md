@@ -43,7 +43,7 @@
 
 - Sessions 18~49 디자인 폴리시·반응형 4BP 완료. Sessions 51~60 Phase 4 인프라(Vercel·Supabase·Sentry) + Phase 1 인터랙션 ②⑤⑧.
 - BUG-006 Tier 3 Stage C+D ✅ Session 66 (`9f954e90`) — Activity preserve + route-change event. 후속 묶음 A~E (S73~S77) 모두 closure.
-- BUG-100~178 polishing 대거 closure (Sessions 70~98). 결제 사고 BUG-172 closure (S91, public_token 컬럼 + virtualAccount 분기).
+- BUG-100~178 polishing 대거 closure (Sessions 70~98). 결제 사고 BUG-172 closure (S91, public_token 컬럼 + virtualAccount 분기). **BUG-179 closure (S138, `8acc6a79` — useAddCartItem.onSuccess client→server uuid 교체로 race 무력화). BUG-Kakao 모바일 팝업 closure (S138 자연 해소).**
 - 정기배송 백엔드 Group B+C ✅ Session 111. 카페 메뉴 좋아요 기능 ✅ Sessions 100·101. likes 외부 store 격리 ✅ Session 116.
 - 이미지 최적화 Phase 1 ✅ Session 121 (next/image · LQIP). yet-another-react-lightbox 라이브러리 컨버전 ✅ S121 + 잔존 1·2 closure ✅ S122·S123.
 - 코드 리뷰 R-SEC(S104·109) · R-FE1(S105~107) · R-FE3(S108) · R-FE2(S113) · R-S113/S114(S116) 진행. R-SEC 잔여 M-6/M-7/M-8/L-2/L-4.
@@ -204,7 +204,7 @@
 | **2 (A-3 Phase 3)** | PDP 갤러리 yarl Inline+Thumbnails 도입 (D-20) — 공식 docs 패턴 (`inline.style` direct sizing + container query 100cqw) + 화살표 white 통일 (굿데이즈 동일 SVG) | ✅ S135 (`e6bca0b1`) |
 | **2 (A-4)** | DripBagSteps 분리 — 드립백 PDP 전용 (RecipeGuide 와 분리) + 레시피 카드 typography 정수화 (15/13/13/11) + padding/gap/illust 비례 축소 + TIP 영역 정리 + 아코디언 간격 통일 (96→48) + 모바일 #pd-inner padding 누락 추가 | ✅ S136 (`633297d3` + `a745513a`) |
 | **2 (A-5)** | Card 통합 — `GenericCard` base 추출 (ShopCard · CafeMenuCard wrap) + Quick Add (sp-qa-bar) 폐기 + ShopPage `?item=` highlight 이식 + SearchResultCard product → `/shop?item=` shortcut + 좌상단 뱃지 위치 12/12 통일 + flash 0.6s delay (D-21 카드 뱃지 색상 시스템 보류) | ✅ S137 |
-| 2 (A-6) | Accordion 통합 | ⬜ |
+| **2 (A-6)** | Accordion 통합 — 공통 `Accordion.tsx` (controlled/uncontrolled · pd-accordion CSS 재사용) + ProductAccordions 리팩터 + `mp-accordion → mp-form-reveal` rename (CSS 24룰 + JSX 9곳) + `/legal/[slug]` 5페이지 SSG (terms/privacy/business-info/shipping/returns · canonical · openGraph · 시행일 통일 · 좌측 사이드 골드 active · shipping/returns useAccordion=true) + 골드 라인 상하 2px 인셋 (인접 분리) + Footer/MobileNavDrawer 약관 링크 + 토스 결제 일원화 텍스트 정합 | ✅ S138 (`68e025ff`) |
 | 2 (A-7) | Drawer 통합 (검색 패널 풀 오버레이 → drawer) | ⬜ |
 | 2 보류 | D-12 SpecTable 12 키 폐기 · D-13 SpecTable 기본 펼침 · D-14 분쇄도 옵션 · D-15 정기배송 할인 계산 흐름 통합 (Phase 2) · D-16 어드민 Group E 정기배송 할인율 입력 (Phase 3) · D-21 카드 뱃지 색상 시스템 통합 (자문 §6.2 sand 통일 vs emergency 신호 의미 충돌 — 별도 검토 필요) | ⏸️ |
 | 3 | 페이지 적용 — 메인 → 샵 → PDP → 마이페이지 → 카트·체크아웃 → 나머지 | ⬜ |
