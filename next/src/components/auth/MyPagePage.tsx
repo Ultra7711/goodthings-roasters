@@ -474,8 +474,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                 </div>
               </div>
               {/* 주소 아코디언 */}
-              <div className={`mp-accordion${isAddrOpen ? ' open' : ''}`}>
-                <div className="mp-accordion-inner" ref={addrFormRef}>
+              <div className={`mp-form-reveal${isAddrOpen ? ' open' : ''}`}>
+                <div className="mp-form-reveal-inner" ref={addrFormRef}>
                   <TextField
                     label="받는 분"
                     value={addressForm.form.name}
@@ -540,7 +540,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                       helper="동·호수 등 상세주소를 입력하세요."
                     />
                   )}
-                  <div className="mp-accordion-actions">
+                  <div className="mp-form-reveal-actions">
                     <button className="mp-cancel-btn" type="button" onClick={() => setAddrOpen(false)} data-gtr-tap>취소</button>
                     <button className="mp-save-btn" type="button" onClick={() => { addressForm.submit(); setTimeout(() => shakeFields(addrFormRef.current), 0); }} data-gtr-tap>저장</button>
                   </div>
@@ -613,8 +613,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                         </span>
                       </div>
                     </div>
-                    <div className={`mp-accordion mp-sub-accordion${subEditId === sub.id ? ' open' : ''}`}>
-                      <div className="mp-accordion-inner">
+                    <div className={`mp-form-reveal mp-form-reveal--sub${subEditId === sub.id ? ' open' : ''}`}>
+                      <div className="mp-form-reveal-inner">
                         <div className="chp-field has-value mp-cycle-dropdown-wrap" ref={subEditId === sub.id ? cycleDropdownRef : undefined}>
                           <button
                             className="chp-input mp-cycle-trigger"
@@ -682,7 +682,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                               : '배송이 일시정지 중입니다.'}
                           </div>
                         )}
-                        <div className="mp-accordion-actions mp-sub-accordion-actions">
+                        <div className="mp-form-reveal-actions mp-form-reveal-actions--sub">
                           <button
                             className="mp-cancel-btn"
                             type="button"
@@ -735,8 +735,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
               </span>
             </div>
             {/* 비밀번호 변경 아코디언 */}
-            <div className={`mp-accordion${isPwOpen ? ' open' : ''}`}>
-              <div className="mp-accordion-inner" ref={pwFormRef}>
+            <div className={`mp-form-reveal${isPwOpen ? ' open' : ''}`}>
+              <div className="mp-form-reveal-inner" ref={pwFormRef}>
                 <TextField
                   type="password"
                   label="현재 비밀번호"
@@ -771,7 +771,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
                   helper="비밀번호를 한 번 더 입력하세요."
                   wrapperClass={`pw2-field${pwForm.next ? ' pw2-visible' : ''}`}
                 />
-                <div className="mp-accordion-actions">
+                <div className="mp-form-reveal-actions">
                   <button className="mp-cancel-btn" type="button" onClick={() => { pwForm.reset(); setPwOpen(false); }} data-gtr-tap>취소</button>
                   <button className="mp-save-btn" type="button" onClick={() => { void pwForm.submit(); setTimeout(() => shakeFields(pwFormRef.current), 0); }} data-gtr-tap>변경</button>
                 </div>

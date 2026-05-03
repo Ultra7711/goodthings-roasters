@@ -360,9 +360,9 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
               <span style={{ display: 'inline-block', transform: bizOpen ? 'rotate(180deg)' : 'none', transition: 'transform 300ms ease' }}>▾</span>
             </button>
             <span className="mn-f-sep">·</span>
-            <span className="mn-f-legal">이용약관</span>
+            <Link href="/legal/terms" className="mn-f-legal" onClick={onClose}>이용약관</Link>
             <span className="mn-f-sep">·</span>
-            <span className="mn-f-legal">개인정보처리방침</span>
+            <Link href="/legal/privacy" className="mn-f-legal" onClick={onClose}>개인정보처리방침</Link>
           </div>
           <div
             className={`mn-f-biz-detail${bizOpen ? ' open' : ''}`}

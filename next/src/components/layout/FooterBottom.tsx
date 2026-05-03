@@ -37,6 +37,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BUSINESS_INFO } from '@/lib/constants';
 
@@ -160,9 +161,9 @@ export default function FooterBottom() {
           <span style={{ display: 'inline-block', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 300ms ease' }}>▾</span>
         </button>
         <span className="f-bottom-sep">·</span>
-        <span className="f-legal-link">이용약관</span>
+        <Link href="/legal/terms" className="f-legal-link">이용약관</Link>
         <span className="f-bottom-sep">·</span>
-        <span className="f-legal-link">개인정보처리방침</span>
+        <Link href="/legal/privacy" className="f-legal-link">개인정보처리방침</Link>
       </div>
 
       <div

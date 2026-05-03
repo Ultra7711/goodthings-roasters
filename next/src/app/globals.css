@@ -1099,6 +1099,7 @@ button.hdr-icon-btn { background: none; border: none; }
   font-size: var(--type-caption-size);
   color: var(--color-text-tertiary);
   cursor: pointer;
+  text-decoration: none;
   transition: color var(--duration-hover) ease;
 }
 .mn-f-legal:hover { color: var(--color-text-primary); }
@@ -1377,6 +1378,7 @@ footer.blk {
   font-size: var(--type-caption-size);
   color: rgba(250,250,248,.5);
   cursor: pointer;
+  text-decoration: none;
   transition: color var(--duration-hover) linear;
 }
 .f-legal-link:hover { color: var(--color-text-inverse); }
@@ -5111,13 +5113,14 @@ footer.blk {
   position: relative;
 }
 /* Step 3-A-3: 열린 아코디언에만 좌측 2px gold 엣지바 — 활성 상태 시그널.
-   본문 패딩을 밀지 않도록 ::before 로 절대 배치. */
+   본문 패딩을 밀지 않도록 ::before 로 절대 배치.
+   상하 2px 인셋 — 인접 아코디언 동시 펼침 시 골드 라인 시각 분리. */
 .pd-accordion::before {
   content: '';
   position: absolute;
   left: -12px;
-  top: 0;
-  bottom: 0;
+  top: 2px;
+  bottom: 2px;
   width: 2px;
   background: var(--color-accent-gold);
   opacity: 0;
@@ -7560,7 +7563,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-info-row-top { display: flex; align-items: baseline; justify-content: space-between; width: 100%; }
 .mp-info-addr-right { display: flex; align-items: baseline; gap: var(--gap-md); }
 .mp-info-row--action { align-items: center; box-shadow: inset 0 -1px 0 0 var(--color-border-hairline); }
-.mp-info-row--action:has(+ .mp-accordion.open) { border-bottom: none; }
+.mp-info-row--action:has(+ .mp-form-reveal.open) { border-bottom: none; }
 /* 회원 탈퇴: baseline 정렬 시 icon-btn top:6 + button display:flex baseline 차이로
    label 텍스트가 hairline 에 가깝게 시프트됨 → align-items:center 로 통일하면
    비밀번호 변경 행 (mp-info-row--action) 과 동일한 시각 정렬 확보. */
@@ -7583,17 +7586,17 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   text-align: right; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* 아코디언 */
-.mp-accordion {
+/* 폼 reveal 패널 (실제 아코디언 아닌 인라인 편집 폼 컨테이너 — V2 §6.3) */
+.mp-form-reveal {
   overflow: hidden;
   transition: max-height var(--duration-drawer) ease, opacity var(--duration-transition) ease;
   max-height: 0; opacity: 0;
 }
-.mp-accordion.open { max-height: 600px; opacity: 1; display: block !important; overflow: visible; }
-.mp-accordion-inner { padding: 24px 0 16px; }
-.mp-accordion-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-sm); margin-top: 12px; }
-.mp-accordion-actions > .mp-save-btn,
-.mp-accordion-actions > .mp-cancel-btn { width: 100%; min-width: 0; padding: 0; }
+.mp-form-reveal.open { max-height: 600px; opacity: 1; display: block !important; overflow: visible; }
+.mp-form-reveal-inner { padding: 24px 0 16px; }
+.mp-form-reveal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-sm); margin-top: 12px; }
+.mp-form-reveal-actions > .mp-save-btn,
+.mp-form-reveal-actions > .mp-cancel-btn { width: 100%; min-width: 0; padding: 0; }
 /* 일시정지 안내 */
 .mp-sub-paused-notice {
   display: flex; align-items: center; gap: 8px;
@@ -7670,7 +7673,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
 .mp-cancel-link:hover { color: var(--color-error); text-decoration-color: var(--color-error); }
-.mp-sub-accordion .mp-info-row { border-bottom: none; box-shadow: none; flex-wrap: wrap; row-gap: 6px; }
+.mp-form-reveal--sub .mp-info-row { border-bottom: none; box-shadow: none; flex-wrap: wrap; row-gap: 6px; }
 /* 정기배송 커스텀 드롭다운 — chp-field 인풋 + pd-dropdown-panel 메뉴 */
 .mp-cycle-dropdown-wrap { position: relative; }
 .mp-cycle-trigger {
@@ -7979,13 +7982,13 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     text-overflow: clip;
   }
 
-  /* P1 아코디언 액션 — grid 1fr:1fr (데스크탑·모바일 통일) */
-  .mp-accordion-actions { gap: 12px; }
+  /* P1 폼 reveal 액션 — grid 1fr:1fr (데스크탑·모바일 통일) */
+  .mp-form-reveal-actions { gap: 12px; }
   .mp-save-btn,
   .mp-cancel-btn { width: auto; padding: 0; }
   /* 정기배송 2버튼 — 모바일 폰트 축소 */
-  .mp-sub-accordion-actions > :nth-child(1),
-  .mp-sub-accordion-actions > :nth-child(2) { font-size: 13px; }
+  .mp-form-reveal-actions--sub > :nth-child(1),
+  .mp-form-reveal-actions--sub > :nth-child(2) { font-size: 13px; }
 
   /* P1 주문 카드 · overflow 해제 */
   .mp-order-card { min-width: 0; }
@@ -9199,5 +9202,196 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   #cm-body,
   #gd-inner {
     padding-bottom: 80px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   Legal Pages — /legal/[slug]
+   ──────────────────────────────────────────
+   5종 정적 컨텐츠 (terms · privacy · business-info · shipping · returns)
+   - 좌측 사이드 내비 (데스크탑) / 모바일 상단 가로 스크롤
+   - 우측 본문 (heading · paragraphs · bullets · definitions)
+   ══════════════════════════════════════════ */
+.legal-page {
+  background: var(--color-background-primary);
+  min-height: 100vh;
+}
+.legal-shell {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 48px 24px 120px;
+}
+.legal-hero {
+  border-bottom: 1px solid var(--color-border-secondary);
+  padding-bottom: 32px;
+  margin-bottom: 48px;
+}
+.legal-title {
+  font-family: var(--font-kr);
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+.legal-effective {
+  margin-top: 12px;
+  font-family: var(--font-kr);
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+.legal-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 64px;
+  align-items: start;
+}
+.legal-side {
+  position: sticky;
+  top: 96px;
+}
+.legal-side-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.legal-side-link {
+  display: block;
+  padding: 10px 12px;
+  font-family: var(--font-kr);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  transition: color var(--duration-hover) ease, border-color var(--duration-hover) ease;
+}
+.legal-side-link:hover {
+  color: var(--color-text-primary);
+}
+.legal-side-link.active {
+  color: var(--color-accent-gold);
+  font-weight: 500;
+  border-left-color: var(--color-accent-gold);
+}
+.legal-body {
+  min-width: 0;
+}
+.legal-intro {
+  margin-bottom: 32px;
+  font-family: var(--font-kr);
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+.legal-intro p { margin-bottom: 8px; }
+.legal-section { margin-bottom: 32px; }
+/* 정보 페이지 (shipping / returns) — heading 단위 Accordion 묶음 */
+.legal-accordion-list { display: block; }
+.legal-accordion-list .pd-accordion-body p { padding-left: 0; }
+.legal-accordion-list .legal-paragraph,
+.legal-accordion-list .legal-bullets,
+.legal-accordion-list .legal-defs {
+  /* pd-accordion-body 가 이미 font/color 지정하므로 본문 마진만 조정 */
+  margin: 0 0 8px;
+}
+.legal-accordion-list .legal-bullets { padding-left: 20px; }
+.legal-accordion-list .legal-defs { margin-top: 12px; }
+.legal-section-heading {
+  font-family: var(--font-kr);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+.legal-paragraph {
+  font-family: var(--font-kr);
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+.legal-bullets {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 12px 0;
+  font-family: var(--font-kr);
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+.legal-bullets li { margin-bottom: 6px; }
+.legal-defs {
+  margin: 12px 0;
+  display: grid;
+  gap: 6px;
+}
+.legal-def-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  font-family: var(--font-kr);
+  font-size: 15px;
+  line-height: 1.8;
+}
+.legal-def-row dt {
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+}
+.legal-def-row dd {
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.legal-footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border-secondary);
+  font-family: var(--font-kr);
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+.legal-footer p { margin-bottom: 4px; }
+
+@media (max-width: 768px) {
+  .legal-shell { padding: 56px 20px 80px; }
+  .legal-hero { padding-bottom: 24px; margin-bottom: 32px; }
+  .legal-title { font-size: 26px; }
+  .legal-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .legal-side {
+    position: static;
+    margin: 0 -20px;
+    padding: 0 20px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--color-border-hairline);
+  }
+  .legal-side-list {
+    flex-direction: row;
+    gap: 0;
+    min-width: max-content;
+  }
+  .legal-side-link {
+    padding: 12px 16px;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .legal-side-link.active {
+    border-bottom-color: var(--color-accent-gold);
+    border-left-color: transparent;
+  }
+  .legal-section-heading { font-size: 16px; }
+  .legal-paragraph,
+  .legal-bullets,
+  .legal-defs { font-size: 14px; }
+  .legal-def-row {
+    grid-template-columns: 110px 1fr;
+    gap: 12px;
   }
 }

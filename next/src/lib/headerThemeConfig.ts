@@ -44,6 +44,7 @@ const HEADER_INITIAL_THEME_RULES: HeaderThemeRule[] = [
   { path: '/checkout', theme: 'light' },            // 체크아웃: 밝은 배경
   { path: '/order-complete', theme: 'light' },      // 주문완료: 밝은 배경
   { path: '/biz-inquiry', theme: 'light' },         // 비즈니스 문의: 밝은 배경
+  { path: '/legal', theme: 'light' },               // 약관/안내 페이지: 밝은 배경
 ];
 
 const DEFAULT_INITIAL_THEME: HeaderTheme = 'dark';
