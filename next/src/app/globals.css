@@ -118,8 +118,11 @@
   --gap-md: 16px;
   --gap-lg: 20px;
   --gap-xl: 24px;
-  --ann-bar-height: clamp(32px, 2rem + 0.3vw, 36px);
-  --header-height: clamp(56px, 3.5rem + 0.3vw, 60px); /* 프로토타입 .hdr{height:60px} 기준 */
+  /* sticky offset (S143 PR-5) — clamp() → 정수 분기 (mobile 88 / tablet+ 96).
+     변경 시 sticky 의존 셀렉터 자동 보정 (R-1 도미노 차단). */
+  --ann-bar-height: 32px;
+  --header-height: 56px; /* 프로토타입 .hdr{height:60px} 기준 (mobile 56 / tablet+ 60) */
+  --sticky-offset: calc(var(--header-height) + var(--ann-bar-height));
 
   /* ── 모션 ── */
   --duration-hover: 200ms;
@@ -496,6 +499,9 @@
     --space-30: 96px;
     --layout-padding-x: 32px;
     --section-gap: 96px;
+    /* sticky offset 분기 (S143 PR-5) */
+    --ann-bar-height: 36px;
+    --header-height: 60px;
   }
 }
 
@@ -3932,7 +3938,7 @@ footer.blk {
    top = ann-bar + header (총 88~96px). 헤더 글래스 바로 아래 고정. */
 #pd-img-wrap {
   position: sticky;
-  top: calc(var(--ann-bar-height) + var(--header-height));
+  top: var(--sticky-offset);
   opacity: 0;
   transform: translateY(32px);
   transition: opacity var(--duration-slide) ease-out,
@@ -5676,8 +5682,8 @@ footer.blk {
   margin-top: 120px;
   margin-bottom: 80px;
   overflow: hidden;
-  /* sticky 헤더(96px) 보정 — 푸터 `/story#location` 링크에서 자동 스크롤 시 */
-  scroll-margin-top: 96px;
+  /* sticky 헤더 보정 (S143 PR-5: --sticky-offset 토큰화) — 푸터 `/story#location` 링크에서 자동 스크롤 시 */
+  scroll-margin-top: var(--sticky-offset);
 }
 .st-location-inner {
   display: grid;
@@ -5854,7 +5860,7 @@ footer.blk {
   gap: var(--gap-md);
   padding-top: 0;
   position: sticky;
-  top: 116px; /* announce 36 + header 60 + 20 */
+  top: calc(var(--sticky-offset) + 20px); /* sticky-offset 96 + 20 (S143 PR-5) */
 }
 #bi-page-title {
   font-family: var(--font-kr);
@@ -6978,7 +6984,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* 우측 주문 요약 */
 .chp-right {
   position: sticky;
-  top: 80px;
+  top: var(--sticky-offset);
   padding-top: 33px;
 }
 @media (max-width: 1023px) {
@@ -7883,7 +7889,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    padding-top 119px: 좌측 첫 mp-section ("계정 정보") title 위치와 정렬.
    참고: .mp-section:first-of-type{margin-top:24px} 가 mp-title-row/mp-welcome-wrap
    div 들 때문에 :first-of-type 매칭 실패 → 32px 가 적용된 상태 기준 fine-tune. */
-.mp-right { padding-top: 119px; position: sticky; top: 80px; align-self: start; }
+.mp-right { padding-top: 119px; position: sticky; top: var(--sticky-offset); align-self: start; }
 .mp-right .mp-section-title { margin-bottom: 24px; }
 
 /* 주문 카드 — #14: 단일 박스 내 hairline 구분 */
@@ -9368,7 +9374,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .legal-side {
   position: sticky;
-  top: 96px;
+  top: var(--sticky-offset);
 }
 .legal-side-list {
   list-style: none;
