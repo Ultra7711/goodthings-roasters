@@ -2612,12 +2612,6 @@ footer.blk {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  /* overflow:hidden 제거 — backdrop-filter(.sp-qa-content) 블러가 막히는 문제 방지
-     이미지 줌 클리핑은 .sp-card-img-wrap에서 처리 */
-}
-.sp-card-img-wrap {
-  position: absolute;
-  inset: 0;
   overflow: hidden;
   border: 1px solid var(--color-border-surface);
   background: var(--color-surface-warm);
@@ -2631,151 +2625,23 @@ footer.blk {
   transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
 }
 .sp-card-thumb:hover .sp-card-img { transform: scale(1.03); }
-.sp-card.sp-card--qa-open .sp-card-thumb:hover .sp-card-img { transform: none; }
 
-/* Quick Add */
-.sp-qa-content {
-  position: absolute;
-  bottom: 48px;
-  left: 0;
-  right: 0;
-  background: color-mix(in oklab, var(--color-background-primary) 72%, transparent);
-  /* backdrop-filter는 inline style로 주입 (Chrome GPU compositor layer 충돌 방지) */
-  border: 1px solid var(--color-border-tertiary);
-  border-bottom: none;
-  padding: 22px 16px 22px;
-  display: flex;           /* position:absolute라 레이아웃 영향 없음 — opacity로 show/hide */
-  flex-direction: column;
-  z-index: 3;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .15s ease;
+/* ── highlight 플래시 (URL ?item= 진입 시) ──
+   delay 0.6s — scrollIntoView smooth 완료 후 사용자가 카드 보고 있을 때 시작.
+   duration 0.7s × 2회 = 1.4s · 총 2.0s. ShopPage HIGHLIGHT_MS=2200 와 정합. */
+@keyframes sp-thumb-flash {
+  0%, 100% { opacity: 1; }
+  45%      { opacity: .35; }
 }
-.sp-card--qa-open .sp-qa-content {
-  opacity: 1;
-  pointer-events: auto;
-}
-.sp-qa-label {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: 400;
-  letter-spacing: var(--ls-button);
-  color: var(--color-text-primary);
-  margin-top: -2px; /* 패널 상단에서 2px 위로 이동 */
-  margin-bottom: 16px;
-  text-align: center;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0s, transform 0s; /* 닫힐 때 즉시 리셋 */
-}
-.sp-card--qa-open .sp-qa-label {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity .16s ease-out .03s, transform .16s ease-out .03s;
-}
-.sp-qa-vols { display: flex; gap: 8px; }
-.sp-qa-vol-btn {
-  flex: 1;
-  min-width: 40px;
-  height: 48px;
-  border: none;
-  box-shadow: inset 0 0 0 1px var(--color-border-primary);
-  background: var(--color-background-primary);
-  font-family: var(--font-en);
-  font-size: var(--type-body-ui-size);
-  color: var(--color-text-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0s, transform 0s; /* 닫힐 때 즉시 리셋 */
-}
-.sp-card--qa-open .sp-qa-vol-btn {
-  opacity: 1; transform: translateY(0);
-  transition: opacity .16s ease-out .14s, transform .16s ease-out .14s;
-}
-.sp-qa-vol-btn.active { box-shadow: inset 0 0 0 2px var(--color-text-primary); font-weight: 600; }
-/* 품목별 품절 — 선택 불가, 텍스트 취소선 + 흐리게 */
-.sp-qa-vol-btn.sold-out {
-  color: var(--color-text-caption);
-  text-decoration: line-through;
-  cursor: not-allowed;
-  opacity: .55;
-}
-.sp-qa-vol-btn.sold-out.active {
-  box-shadow: inset 0 0 0 1px var(--color-border-secondary);
-  font-weight: 400;
-}
-/* 빠른 추가 바 — 우하단 정사각형 아이콘 버튼, 상시 노출 */
-.sp-qa-bar {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  left: auto;
-  width: 48px;
-  height: 48px;
-  margin: 0;
-  background: var(--color-btn-primary-bg);
-  color: var(--color-text-inverse);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 1;
-  pointer-events: auto;
-  transition: width var(--duration-hover) ease, opacity var(--duration-transition);
-  z-index: 4;
-  border: none;
-}
-/* 오픈 상태 — 우측 앵커 유지하며 좌측으로 풀바 확장 */
-.sp-card--qa-open .sp-qa-bar { left: auto; right: 0; width: 100%; opacity: 1; pointer-events: auto; }
-.sp-card--qa-closing .sp-qa-bar { opacity: 1; pointer-events: none; transition: width var(--duration-hover) ease, opacity var(--duration-transition); }
-/* 품절 바 — 뱃지로 상태 표시가 충분하므로 숨김 */
-.sp-qa-bar--disabled { display: none; }
-.sp-qa-bar-text {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: 500;
-  letter-spacing: var(--ls-body);
-  pointer-events: none;
-  display: none;
-}
-/* 아이콘 — 기본 표시 */
-.sp-qa-bar-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-.sp-qa-bar-icon svg { transition: transform 250ms ease; }
-/* sp-qa-close — 아이콘이 대체하므로 숨김 */
-.sp-qa-close { display: none; }
-
-/* 오픈 상태 — 아이콘이 우측으로 이동하여 × 닫기로 전환 */
-.sp-card--qa-open .sp-qa-bar-icon {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 48px;
-  pointer-events: auto;
-}
-.sp-card--qa-open .sp-qa-bar-icon svg { transform: rotate(45deg) scale(1.143); }
-.sp-card--qa-open .sp-qa-bar-text { display: inline; }
-
-/* a11y: 빠른 추가 바 키보드 포커스 가시화 */
-.sp-card--qa-open .sp-qa-bar:focus-visible {
-  outline: 2px solid var(--color-accent-gold);
-  outline-offset: -2px;
+.sp-card--highlight .sp-card-thumb {
+  animation: sp-thumb-flash .7s ease .6s 2;
 }
 
-/* 배지 */
+/* 배지 (V2 §6.2 — 위치 12/12 · sand 통일 ltd/sold) */
 .sp-card-badge {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 12px;
+  left: 12px;
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
   font-weight: 600;
@@ -3034,8 +2900,8 @@ footer.blk {
 /* 온도 뱃지 (우하단 원형) */
 .cm-temp-badges {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
+  bottom: 12px;
+  right: 12px;
   display: flex;
   gap: 4px;
   pointer-events: none;
@@ -3073,8 +2939,8 @@ footer.blk {
 /* ── 카드 좋아요 버튼 ── */
 .cm-card-badges {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 12px;
+  left: 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -3093,8 +2959,8 @@ footer.blk {
 .cm-popular-badge--3 { background: #A07850; } /* 브론즈 */
 .cm-like-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 12px;
+  right: 12px;
   height: 48px;
   width: 48px;
   overflow: hidden;

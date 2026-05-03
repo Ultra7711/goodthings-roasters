@@ -1,252 +1,66 @@
+/* ══════════════════════════════════════════
+   ShopCard — GenericCard wrapper (V2 §6.2 통합)
+   - GenericCard 가 reveal IO · stagger · highlight · 슬롯 처리
+   - 차이: 클릭 → /shop/<slug> · status 뱃지만 (좋아요·온도뱃지 없음)
+   ══════════════════════════════════════════ */
+
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { type Product, extractKrName, formatStartPrice, getStatusBadgeClass } from '@/lib/products';
-import { useAddCartItem } from '@/hooks/useCart';
-import { SCROLL_REVEAL_THRESHOLD } from '@/lib/constants';
-
-/** 첫 번째 가용(품절 아닌) 볼륨 인덱스 — 전부 품절이면 0 */
-function findFirstAvailVolIdx(p: Product): number {
-  const idx = p.volumes.findIndex((v) => !v.soldOut);
-  return idx >= 0 ? idx : 0;
-}
+import {
+  type Product,
+  extractKrName,
+  formatStartPrice,
+  getStatusBadgeClass,
+} from '@/lib/products';
+import GenericCard from '@/components/common/GenericCard';
 
 type Props = {
   product: Product;
-  colIndex: number;   // 0~2, 스크롤 reveal stagger용
-  isSubFilter: boolean;
+  colIndex: number;
   scrollRoot: HTMLElement | null;
-  baseDelay?: number; // 초기 로드 시 추가 딜레이(ms) — 필터 전환 시는 0
-  instant?: boolean; // 탭 전환 후 새 카드 mount 시 true — entry 애니메이션 완전 스킵
+  baseDelay?: number;
+  instant?: boolean;
+  isHighlight?: boolean;
 };
 
-export default function ShopCard({ product: p, colIndex, isSubFilter, scrollRoot, baseDelay = 0, instant = false }: Props) {
+export default function ShopCard({
+  product: p,
+  colIndex,
+  scrollRoot,
+  baseDelay = 0,
+  instant = false,
+  isHighlight = false,
+}: Props) {
   const router = useRouter();
-  const addCart = useAddCartItem();
-
-  const [isQaOpen, setQaOpen] = useState(false);
-  const [isQaClosing, setQaClosing] = useState(false);
-  const [qaBarText, setQaBarText] = useState('빠른 추가');
-  const [activeVolIdx, setActiveVolIdx] = useState(() => findFirstAvailVolIdx(p));
-  const [isVisible, setIsVisible] = useState(instant);
-
-  const cardRef = useRef<HTMLDivElement>(null);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  function clearTimers() {
-    if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
-  }
-
-  // useCallback: useEffect(outside-click) 의존성 배열 안정화.
-  // p 는 key 로 인한 remount 로 인스턴스당 안정적이므로 [] deps 유지.
-  const closeQa = useCallback(() => {
-    setQaOpen(false);
-    setQaClosing(true);
-    setQaBarText('빠른 추가');
-    setActiveVolIdx(findFirstAvailVolIdx(p));
-    clearTimers();
-    // 250ms: bar 수축 완료 → closing 클래스 제거 → CSS base(48px 아이콘) 상태 복원
-    closeTimerRef.current = setTimeout(() => setQaClosing(false), 250);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // 스크롤 reveal — one-shot IntersectionObserver
-  useEffect(() => {
-    const el = cardRef.current;
-    if (!el || isVisible) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setIsVisible(true);
-          io.disconnect();
-        }
-      },
-      { root: scrollRoot, threshold: SCROLL_REVEAL_THRESHOLD },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [scrollRoot, isVisible]);
-
-  // qa 열릴 때 외부 클릭 감지 — capture 페이즈로 다른 요소 이벤트 관통 차단
-  useEffect(() => {
-    if (!isQaOpen) return;
-    const onDoc = (e: MouseEvent) => {
-      if (cardRef.current?.contains(e.target as Node)) return;
-      // 다른 카드의 sp-qa-bar 클릭: 해당 바가 열리도록 propagation 허용.
-      // 그 외 outside 클릭: 관통 차단.
-      if (!(e.target as HTMLElement).closest('.sp-qa-bar')) {
-        e.stopPropagation();
-      }
-      closeQa();
-    };
-    document.addEventListener('click', onDoc, true);
-    return () => document.removeEventListener('click', onDoc, true);
-  }, [isQaOpen, closeQa]);
-
-  // Unmount cleanup — resetTick 증가 또는 필터 전환 시 ShopCard 가 remount 되는데,
-  // 이때 진행 중이던 close 타이머가 unmounted 인스턴스에서 setState 를 호출하면
-  // 메모리 leak + React warning 발생.
-  useEffect(() => {
-    return () => {
-      if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
-    };
-  }, []);
 
   const img = p.images[0];
-  const isSoldOut = p.status === '품절';
-  const isDripBag = p.category === 'Drip Bag';
-  const showQaBar = !isSubFilter;
-  const thumbStyle = `${img?.bg ?? '#f5f5f3'}${img?.src ? ` url('${img.src}') center/contain no-repeat` : ''}`;
+  const imgStyle: React.CSSProperties = {
+    background: `${img?.bg ?? '#f5f5f3'}${
+      img?.src ? ` url('${img.src}') center/contain no-repeat` : ''
+    }`,
+  };
 
-  function openQa() {
-    clearTimers();
-    setQaOpen(true);
-    setQaBarText('장바구니에 담기');
-  }
-
-  function handleCardClick(e: React.MouseEvent) {
-    if ((e.target as HTMLElement).closest('.sp-qa-content, .sp-qa-bar')) return;
-    if (isQaOpen) { closeQa(); return; }
-    router.push(`/shop/${p.slug}`);
-  }
-
-  function handleBarClick(e: React.MouseEvent) {
-    e.stopPropagation();
-    if (!isQaOpen) { openQa(); return; }
-
-    /* 중복 클릭 가드 — closeQa() 250ms 트랜지션 동안 같은 mutate 가
-       이중 호출되어 카트 수량이 +2 되는 것을 막는다. (Session 15 code M-2) */
-    if (addCart.isPending) return;
-
-    const vol = p.volumes[activeVolIdx];
-    if (!vol || vol.soldOut) { closeQa(); return; }
-    addCart.mutate({
-      slug: p.slug,
-      name: p.name,
-      price: vol ? `${vol.price.toLocaleString('ko-KR')}원` : '',
-      priceNum: vol?.price ?? 0,
-      qty: 1,
-      color: p.color,
-      image: img?.src ?? null,
-      category: p.category,
-      volume: vol?.label ?? null,
-    });
-    closeQa();
-  }
+  const badgeSlot = p.status ? (
+    <span className={getStatusBadgeClass(p.status)}>
+      {p.status === 'NEW' ? 'NEW' : p.status}
+    </span>
+  ) : undefined;
 
   return (
-    <div
-      ref={cardRef}
-      className={`sp-card${isVisible ? ' sp-visible' : ''}${isQaOpen ? ' sp-card--qa-open' : ''}${isQaClosing ? ' sp-card--qa-closing' : ''}`}
-      style={{
-        transitionDelay: `${baseDelay + colIndex * 70}ms`,
-        '--sp-card-delay': `${baseDelay + colIndex * 70}ms`,
-      } as React.CSSProperties}
-      onClick={handleCardClick}
-      data-slug={p.slug}
-    >
-      <div className="sp-card-thumb">
-        {/* 이미지 줌 클리핑 전용 래퍼 — overflow:hidden을 여기서만 적용해
-            backdrop-filter(.sp-qa-content)가 부모 overflow:hidden에 막히지 않도록 분리 */}
-        <div className="sp-card-img-wrap">
-          <div className="sp-card-img" style={{ background: thumbStyle }} />
-        </div>
-
-        {/* 품절 카드도 뱃지를 표시한다. 품절 바는 hover 시에만 등장하므로
-            상시 표시되는 뱃지가 필요함 (품절 상태를 즉시 인지 가능하도록). */}
-        {p.status && (
-          <span className={getStatusBadgeClass(p.status)}>
-            {p.status === 'NEW' ? 'NEW' : p.status}
-          </span>
-        )}
-
-        {/* Quick Add */}
-        {showQaBar && !isSoldOut && (
-          <>
-            {/* backdropFilter를 inline style로 지정하는 이유:
-                부모(.sp-card-thumb)에 overflow:hidden이 없어야 하지만, .sp-card-img-wrap이
-                overflow:hidden을 사용하므로 backdrop-filter가 GPU compositor layer 충돌로
-                CSS에서 동작하지 않음 → inline style로 강제 적용 (프로토타입 동일 패턴) */}
-            <div
-              className="sp-qa-content"
-              style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <p className="sp-qa-label">{isDripBag ? '품목' : '용량'}</p>
-              <div className="sp-qa-vols">
-                {p.volumes.map((vol, i) => (
-                  <button
-                    key={vol.label}
-                    className={
-                      'sp-qa-vol-btn' +
-                      (i === activeVolIdx ? ' active' : '') +
-                      (vol.soldOut ? ' sold-out' : '')
-                    }
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (vol.soldOut) return;
-                      setActiveVolIdx(i);
-                    }}
-                    disabled={vol.soldOut}
-                    aria-disabled={vol.soldOut || undefined}
-                    type="button"
-                  >
-                    {vol.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* sp-qa-bar: div으로 유지해야 내부 button(sp-qa-close) 사용 가능 — button-in-button 스펙 위반 방지 */}
-            <div
-              className="sp-qa-bar"
-              role="button"
-              tabIndex={0}
-              onClick={handleBarClick}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleBarClick(e as unknown as React.MouseEvent); }}
-              aria-label="빠른 추가"
-            >
-              <span
-                className="sp-qa-bar-icon"
-                aria-hidden="true"
-                onClick={isQaOpen ? (e) => { e.stopPropagation(); closeQa(); } : undefined}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 5v14" />
-                  <path d="M5 12h14" />
-                </svg>
-              </span>
-              <span className="sp-qa-bar-text">{qaBarText}</span>
-              <button
-                className="sp-qa-close"
-                aria-label="닫기"
-                onClick={(e) => { e.stopPropagation(); closeQa(); }}
-                type="button"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17,7l-10,10" /><path d="M7,7l10,10" />
-                </svg>
-              </button>
-            </div>
-          </>
-        )}
-
-        {isSoldOut && showQaBar && (
-          <div
-            className="sp-qa-bar sp-qa-bar--disabled"
-            role="status"
-            aria-label="품절"
-          >
-            <span className="sp-qa-bar-text">품절</span>
-          </div>
-        )}
-      </div>
-
-      <div className="sp-card-info" onClick={(e) => { e.stopPropagation(); if (isQaOpen) closeQa(); }}>
-        <p className="sp-card-name">{extractKrName(p.name)}</p>
-        <p className="sp-card-price">{formatStartPrice(p)}</p>
-      </div>
-    </div>
+    <GenericCard
+      variant="shop"
+      onClick={() => router.push(`/shop/${p.slug}`)}
+      imgStyle={imgStyle}
+      badgeSlot={badgeSlot}
+      name={extractKrName(p.name)}
+      price={formatStartPrice(p)}
+      scrollRoot={scrollRoot}
+      colIndex={colIndex}
+      baseDelay={baseDelay}
+      instant={instant}
+      isHighlight={isHighlight}
+      dataSlug={p.slug}
+    />
   );
 }

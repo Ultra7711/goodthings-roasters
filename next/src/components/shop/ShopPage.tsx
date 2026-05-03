@@ -16,6 +16,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const COLS = 3;
 const CARD_BASE_DELAY_INIT = 420; // 초기 로드: 탭(0.3s) 등장 후 카드 시작 (ms)
+const HIGHLIGHT_MS = 2200;        // delay 0.6s + duration 0.7s × 2 = 2.0s + buffer
 const VALID_FILTERS: FilterKey[] = ['all', 'bean', 'drip', 'sub'];
 
 function isValidFilter(v: string | null): v is FilterKey {
@@ -37,6 +38,10 @@ export default function ShopPage() {
 
   const [filter, setFilter] = useState<FilterKey>(urlFilter);
   const [page, setPage] = useState(1);
+  const [highlightSlug, setHighlightSlug] = useState<string | null>(null);
+
+  // highlight timeout 을 ref 로 관리해 연속 URL 변경 시 경합 방지
+  const highlightTimeoutRef = useRef<number | null>(null);
 
   // Adjusting state during render — urlFilter 동기화.
   // React 19 권장 패턴: effect 대신 렌더 본문에서 이전 값과 비교 후 즉시 setState.
@@ -47,6 +52,42 @@ export default function ShopPage() {
     setPrevUrlFilter(urlFilter);
     setFilter(urlFilter);
     setPage(1);
+  }
+
+  // 검색 결과 → /shop?item=<slug> shortcut 진입.
+  // CafeMenuPage 의 ?item= 패턴과 동일 — 매칭 카드 페이지 계산 + highlightSlug 세팅.
+  // null 초기값 — 첫 렌더에서도 ?item= 복구 로직을 한 번 타도록.
+  const [prevSearchKey, setPrevSearchKey] = useState<string | null>(null);
+  const searchKey = searchParams.toString();
+  if (prevSearchKey !== searchKey) {
+    setPrevSearchKey(searchKey);
+    const targetSlug = searchParams.get('item');
+    if (targetSlug) {
+      const matched = PRODUCTS.find((p) => p.slug === targetSlug);
+      if (matched) {
+        // useMediaQuery 는 초기값 false → 첫 렌더에서 perPage 가 항상 데스크탑 값.
+        // window.matchMedia 를 직접 읽어 실제 뷰포트 기준으로 페이지 계산.
+        const perPageNow =
+          typeof window !== 'undefined' && window.matchMedia('(max-width: 479px)').matches
+            ? SP_PER_PAGE_MOBILE
+            : SP_PER_PAGE;
+        const listWithinFilter = filterProducts(PRODUCTS, urlFilter);
+        let idx = listWithinFilter.findIndex((p) => p.slug === targetSlug);
+        if (idx < 0) {
+          // mismatch — all 로 fallback
+          const listAll = filterProducts(PRODUCTS, 'all');
+          idx = listAll.findIndex((p) => p.slug === targetSlug);
+          if (idx >= 0) {
+            setFilter('all');
+            setPage(Math.floor(idx / perPageNow) + 1);
+            setHighlightSlug(targetSlug);
+          }
+        } else {
+          setPage(Math.floor(idx / perPageNow) + 1);
+          setHighlightSlug(targetSlug);
+        }
+      }
+    }
   }
   // body element — callback ref 로 받아 scrollRoot 전달 시 리렌더 트리거 보장
   const [bodyEl, setBodyEl] = useState<HTMLDivElement | null>(null);
@@ -109,6 +150,7 @@ export default function ShopPage() {
      조용한 진입 느낌을 모든 경우에 유지. */
   useEffect(() => {
     function onReset() {
+      setHighlightSlug(null);
       window.scrollTo({ top: 0, behavior: 'instant' });
       if (bodyEl) {
         bodyEl.classList.remove('sp-anim');
@@ -123,6 +165,24 @@ export default function ShopPage() {
     window.addEventListener('gtr:shop-reset', onReset);
     return () => window.removeEventListener('gtr:shop-reset', onReset);
   }, [bodyEl]);
+
+  // highlight 자동 소거 — highlightSlug 가 새로 세팅될 때마다 이전 timer 초기화 후 재등록
+  useEffect(() => {
+    if (highlightSlug === null) return;
+    if (highlightTimeoutRef.current !== null) {
+      window.clearTimeout(highlightTimeoutRef.current);
+    }
+    highlightTimeoutRef.current = window.setTimeout(() => {
+      setHighlightSlug(null);
+      highlightTimeoutRef.current = null;
+    }, HIGHLIGHT_MS);
+    return () => {
+      if (highlightTimeoutRef.current !== null) {
+        window.clearTimeout(highlightTimeoutRef.current);
+        highlightTimeoutRef.current = null;
+      }
+    };
+  }, [highlightSlug]);
 
   const isMobile = useMediaQuery('(max-width: 479px)');
   const perPage = isMobile ? SP_PER_PAGE_MOBILE : SP_PER_PAGE;
@@ -170,10 +230,10 @@ export default function ShopPage() {
             key={product.slug}
             product={product}
             colIndex={i % COLS}
-            isSubFilter={filter === 'sub'}
             scrollRoot={bodyEl}
             baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
             instant={!shouldAnimateCardsRef.current}
+            isHighlight={highlightSlug === product.slug}
           />
         ))}
       </div>

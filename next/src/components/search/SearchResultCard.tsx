@@ -26,7 +26,9 @@ export default function SearchResultCard({ result }: Props) {
     const categoryLabel = p.category;
     const thumbBg = firstImg?.bg ?? 'var(--color-background-secondary)';
 
-    const onClick = () => router.push(`/shop/${p.slug}`);
+    // V2 §6.2 — PDP 직행이 아닌 /shop 페이지의 해당 카드로 shortcut.
+    // ShopPage 가 ?item=<slug> 를 받아 페이지 계산 + highlight 플래시 + scrollIntoView.
+    const onClick = () => router.push(`/shop?item=${encodeURIComponent(p.slug)}`);
     const onKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
