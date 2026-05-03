@@ -3,7 +3,11 @@
 > Good Things Roasters 웹사이트 프로젝트의 **잔여 작업** 을 추적한다.
 > 완료 이력은 `docs/milestone-completed.md` 참조.
 >
-> **최종 업데이트:** 2026-05-03 · Session 136 — V2 자문 A-4 **DripBagSteps 컴포넌트 분리** + 레시피 카드 typography·여백·TIP·아코디언 간격 정리 (`633297d3` + `a745513a`). 자문 §6.12 권고대로 `DripBagSteps.tsx` 신규 (드립백 PDP 전용) · `ProductRecipeGuide` Coffee Bean 전용 · `ProductDetailPage` category 분기. 카드 typography 정수화 (제목 17.7→15 / 본문 16 Inter→13 Pretendard 신규 정의 / TIP 본문 16→13 / TIP 라벨 11px gold caps eyebrow 토큰화) · padding/gap/illust 비례 축소 (24/14/196 → 20/10/160 · 모바일 16/-/- · Drip Bag illust 반응형 오버플로우 fix) · TIP 영역 (분할선 제거 / align baseline / justify-self center 명시 / 비대칭 padding 12 20 0 / gap 12 / 라벨 width auto) · 아코디언 간격 (#pd-accordions margin-top 48→0 통일 · 모바일 #pd-info padding-bottom 0→60/40 복원 · 모바일 last accordion hairline 제거 · :has 우회 룰 폐기) · BUG-134 모바일 #pd-inner padding 누락 추가 (다른 페이지와 56px 통일). 458/458 vitest · tsc 0. 상세 `memory/project_session136_complete.md`.
+> **최종 업데이트:** 2026-05-04 · Session 140 — D-19 옵션 C **Typography·Grid 통합 sprint PR-1 (토큰 재정의)** (`bab8a43a`). font-size 토큰 11개 `clamp()` → 정수 px + 미디어쿼리 분기 (mobile base / `@media (min-width: 768px)` / `@media (min-width: 1024px)`). 자문 §D-7 desktop Display 72 부합. 한글 본문 별도 토큰 신규 (`--lh-kr-body-13/15/17/20` · `--ls-kr-body -0.3px` · `--ls-kr-heading -0.5px` · `--ls-en-body 0` · `--ls-en-h1-32~40` · `--ls-en-h2-24~28` · `--ls-en-display-40~72`) — Q3 외부 표준 (Pretendard Apple system 호환 + W3C 한글 + 모바일 UI 권고). 단계 1 정의만, 사용은 PR-2 (line-height) / PR-3 (letter-spacing) 부터. 외부 표준 검증: `memory/research_typography_grid_external_standards.md` §8 (MD3 + Pretendard GOV + W3C 한글 + 0.5px hairline + Modular Scale + Aesop/Drop Coffee). 458/458 vitest · tsc 0 · next build success. 후속 PR-2 (line-height ratio → 정수 px 64곳) / PR-3 (letter-spacing em → px 12곳 + border 0.5 → 1+alpha 2곳 + padding clamp 정수 3곳) / PR-5 (sticky offset 토큰 lock 5곳) / PR-6 (13페이지 시각 회귀 검증). 상세 `memory/project_session140_complete.md`.
+
+> 2026-05-04 · Session 139 — V2 자문 A-7 **Drawer 폭 토큰 통일** + D-22 폐기 (`47b2ca3e` + `3156dd0a`). CartDrawer `width: 664px` → `var(--drawer-width)` 540 (CafeNutritionSheet · MobileNavDrawer 와 동일 토큰). 모바일 풀스크린 룰 유지. 자문 §6.4/§6.9 "검색 패널 우측 480 Drawer 권고" → D-22 폐기 (검색 drop-down 유지 · 헤더 연속성 · 업계 표준 (Blue Bottle/Aesop/Drop Coffee) 부합 X). MobileNavDrawer 우측 슬라이드인 유지 (외부 8건 조사 결과 표준 없음). 카트 row 실측 (badge `display: none` 발견 후 정정) → 540 안전 확정. 추측 보고 위반 사례 → 진단 우선 메타룰 학습 (JSX + CSS 모두 확인 후 결론). **V2 Phase 2 (A-1~A-7) 모두 완료.** 458/458 vitest · tsc 0. 상세 `memory/project_session139_complete.md`.
+
+> 이전: Session 138 — V2 자문 A-6 **Accordion 통합** + 약관 5페이지 신규 + BUG-179/Kakao closure (`68e025ff` + `8acc6a79` + `bd59d841`). Session 137 — V2 자문 A-5 **카드 통합 단일 PR** + Quick Add 폐기 + ShopPage `?item=` highlight + D-21 보류 (`6eebd3ef` + `6bfbe802`). Session 136 — V2 자문 A-4 **DripBagSteps 컴포넌트 분리** + 레시피 카드 typography·여백·TIP·아코디언 간격 정리 (`633297d3` + `a745513a`). 자문 §6.12 권고대로 `DripBagSteps.tsx` 신규 (드립백 PDP 전용) · `ProductRecipeGuide` Coffee Bean 전용 · `ProductDetailPage` category 분기. 카드 typography 정수화 (제목 17.7→15 / 본문 16 Inter→13 Pretendard 신규 정의 / TIP 본문 16→13 / TIP 라벨 11px gold caps eyebrow 토큰화) · padding/gap/illust 비례 축소 (24/14/196 → 20/10/160 · 모바일 16/-/- · Drip Bag illust 반응형 오버플로우 fix) · TIP 영역 (분할선 제거 / align baseline / justify-self center 명시 / 비대칭 padding 12 20 0 / gap 12 / 라벨 width auto) · 아코디언 간격 (#pd-accordions margin-top 48→0 통일 · 모바일 #pd-info padding-bottom 0→60/40 복원 · 모바일 last accordion hairline 제거 · :has 우회 룰 폐기) · BUG-134 모바일 #pd-inner padding 누락 추가 (다른 페이지와 56px 통일). 458/458 vitest · tsc 0. 상세 `memory/project_session136_complete.md`.
 
 > 2026-05-03 · Session 135 — PDP 갤러리 yarl Inline+Thumbnails 정상화 (`e6bca0b1`). **V2 자문 적용 A-3 Phase 3 완료** (D-20). S134 의 4회 추측 CSS 트릭 누적 회귀 → S135 진단 우선 (yarl source + 공식 docs Context7) → 공식 권고 패턴 (`inline.style` 에 size 직접 부여 + container query `100cqw`) 1회 fix. 1장 = aspect-ratio 1/1, 2장+ = `calc(100cqw + 96px)` (메인 1:1 + 썸네일 96px). 부모 `.pd-yarl-wrap` 에 `container-type: inline-size`. 굿데이즈 라이트박스 동일 화살표 (48×48 SVG · strokeWidth 1.25 · white 80%/100% hover · top:50% 전체 중앙 · hover-only · 모바일 swipe). 신규 메모리 — `feedback_official_docs_after_2_failures.md` (1~2회 실패 시 공식 docs 강제 trigger). tsc 0 · 시각 검증 OK · master `e6bca0b1` ✅ pushed (squash merge feat/pdp-gallery-yarl). 상세 `memory/project_session135_complete.md`.
 >
@@ -212,6 +216,25 @@
 **자문 응답:** `memory/project_design_audit_v2.md` (보충본 통합 · 1763줄 raw)
 **우선순위:** `memory/project_design_audit_priorities.md` (39+ 항목)
 **정정 사항 3건:** Hero 카피 1—1 / SKU 6종 제약 → 시그니처 라벨 / PDP 썸네일 4컷 보류 (이미지 자산 부족)
+
+---
+
+#### D-19 옵션 C — Typography·Grid 통합 sprint 🔄
+
+> sub-pixel 누적 차단 + 8px line-height 정합 + 모바일 비례 손실 미디어쿼리 분기. 외부 표준 검증: `memory/research_typography_grid_external_standards.md` (MD3 + W3C 한글 + Pretendard GOV + Modular Scale + Aesop/Drop Coffee). 시각 회귀 위험 R-1~R-8 정량화: `memory/project_typography_subpixel_8px_grid.md`.
+
+| PR | 단계 | 상태 |
+|----|------|------|
+| **PR-1** | font-size 토큰 11개 `clamp()` → 정수 px + 미디어쿼리 분기 (mobile/tablet/desktop) + 한글 본문 별도 토큰 + 영문 헤딩 letter-spacing px 사전 계산 | ✅ S140 (`bab8a43a`) |
+| PR-2 | line-height ratio (1.x) → 정수 px (64곳 · 8 정합 표 적용) | ⬜ S141 |
+| PR-3 | letter-spacing em → px 변환 (12곳) + border 0.5 → 1px+alpha (2곳) + padding clamp 정수화 (3곳) | ⬜ S142 |
+| PR-5 | sticky offset 토큰 lock — `--sticky-offset` 신규 + 5곳 매직 넘버 교체 | ⬜ S143 |
+| PR-6 | 13페이지 시각 회귀 검증 (1440 / 768 / 360 사이드바이사이드) + line-clamp 줄 수 + IO/measurement 정합 | ⬜ S144 |
+
+**결정 지점 (S140 진입 승인 완료):**
+- Q1 line-height 정수 px ✅ — MD3 + 한글 본문 1.5~1.55x ↔ 8 정합
+- Q2 4px spacing 유지 + 8px line-height 정합 hybrid ✅ — MD3 권고
+- Q3 한글 본문 별도 토큰 ✅ — Pretendard Apple system 호환 + W3C + 모바일 UI
 
 ---
 
