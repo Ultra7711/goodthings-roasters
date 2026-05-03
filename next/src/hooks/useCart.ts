@@ -216,10 +216,13 @@ type MutationCtx = { previous: CartItem[] | undefined; wasLoggedIn: boolean };
 export function useAddCartItem() {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, AddToCartPayload, MutationCtx>({
+  /* BUG-179 fix — mutationFn 이 server row 반환 → onSuccess 에서 optimistic
+     항목의 client uuid 를 server uuid 로 교체. invalidate refetch 완료 전
+     사용자가 휴지통 클릭해도 server uuid 로 DELETE 호출되어 정상 삭제. */
+  return useMutation<ServerCartRow | null, Error, AddToCartPayload, MutationCtx>({
     mutationFn: async (payload) => {
       const isLoggedIn = getSessionSnapshot().isLoggedIn;
-      if (!isLoggedIn) return; /* 게스트: onMutate 에서 localStorage 반영 완료 */
+      if (!isLoggedIn) return null; /* 게스트: onMutate 에서 localStorage 반영 완료 */
       const input = payloadToInput(payload);
       if (!input) throw new Error('invalid_payload');
       const res = await fetch('/api/cart', {
@@ -229,6 +232,8 @@ export function useAddCartItem() {
         body: JSON.stringify(input),
       });
       if (!res.ok) throw new Error(`http_${res.status}`);
+      const body = (await res.json()) as ApiEnvelope<{ item: ServerCartRow }>;
+      return body.data?.item ?? null;
     },
     onMutate: async (payload) => {
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
@@ -249,6 +254,22 @@ export function useAddCartItem() {
       queryClient.setQueryData<CartItem[]>(CART_QUERY_KEY, next);
       if (!wasLoggedIn) writeGuestCart(next);
       return { previous, wasLoggedIn };
+    },
+    onSuccess: (serverRow, payload, context) => {
+      /* 게스트는 client uuid 를 그대로 유지 (서버 row 없음) */
+      if (!context?.wasLoggedIn || !serverRow) return;
+      /* payload 와 일치하는 cache 항목의 id 를 server uuid 로 교체.
+         invalidate refetch 완료 전이라도 즉시 DELETE 가능하도록. */
+      queryClient.setQueryData<CartItem[]>(CART_QUERY_KEY, (prev) => {
+        if (!prev) return prev;
+        const idx = findDuplicateIdx(prev, payload);
+        if (idx < 0) return prev;
+        const target = prev[idx];
+        if (target.id === serverRow.id) return prev;
+        return prev.map((item, i) =>
+          i === idx ? { ...item, id: serverRow.id, qty: serverRow.quantity } : item,
+        );
+      });
     },
     onError: (err, _payload, context) => {
       if (process.env.NODE_ENV === 'development') console.error('[useAddCartItem] failed', err);
