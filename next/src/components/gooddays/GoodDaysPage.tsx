@@ -313,7 +313,7 @@ export default function GoodDaysPage({ initialImgSrc }: Props) {
       </div>
 
       <Lightbox
-        className={controlsHidden ? 'gd-controls-hidden' : ''}
+        className={`gd-lightbox${controlsHidden ? ' gd-controls-hidden' : ''}`}
         open={lbOpen}
         close={handleClose}
         index={lbIndex}

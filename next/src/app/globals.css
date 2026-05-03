@@ -4127,69 +4127,103 @@ footer.blk {
 .arrow-btn-light { color: var(--arrow-btn-light-color); }
 .arrow-btn-light:not(:disabled):hover { color: var(--arrow-btn-light-color-hover); }
 
-/* ══ PD 메인 이미지 네비 (RP-4b) ══ */
-#pd-img::after {
+/* ══ PD 갤러리 — yet-another-react-lightbox 기반 (S135) ══
+   Inline plugin: 모달 X, 페이지 인라인 슬라이드.
+   Thumbnails plugin: 이미지 ≥ 2장일 때만 활성 (드래그/스와이프 빌트인).
+   기존 직접 구현 .pd-img-arrow / #pd-pagination 룰 일괄 폐기.
+   yarl 토큰은 .pd-yarl-wrap 안쪽으로만 한정 (굿데이즈 .gd-lightbox 와 영향 분리).
+
+   sizing 전략 (공식 docs 권고 패턴):
+   - LightboxRoot (Inline plugin) 의 size 는 ProductGallery 의 inline.style 로 직접 부여.
+   - 1장: { width: '100%', aspectRatio: '1 / 1' }
+   - 2장+: { width: '100%', height: 'calc(100cqw + var(--pd-yarl-thumbs-h))' }
+   - .pd-yarl-wrap 에 `container-type: inline-size` 부여하여 100cqw = wrap width 활성. */
+
+.pd-yarl-wrap {
+  position: relative;
+  width: 100%;
+  container-type: inline-size;
+  --pd-yarl-thumbs-h: 96px;  /* thumbs container outer: 12 padding-top + 80 thumb height + 4 ε */
+  /* 화살표 색상 — 굿데이즈 라이트박스와 동일 (white 80% / hover 100%).
+     bgTheme 분기 폐기 — 모든 슬라이드 위에 white 통일. */
+  --pd-yarl-arrow-color: hsla(0, 0%, 100%, .8);
+  --pd-yarl-arrow-color-hover: #fff;
+}
+
+/* yarl 내부 컨테이너 default 검정 backdrop → transparent (Inline 모드) */
+.pd-yarl-wrap .yarl__container,
+.pd-yarl-wrap .yarl__slide {
+  background: transparent;
+}
+/* 메인 carousel 영역 surface 배경 — 메인 영역에만 적용 (썸네일 컨테이너 X) */
+.pd-yarl-wrap:not(.pd-yarl--with-thumbs) .yarl__container,
+.pd-yarl-wrap.pd-yarl--with-thumbs .yarl__thumbnails_wrapper {
+  background: var(--color-surface-warm);
+}
+
+/* 슬라이드 배경 — bg 그라데이션 + src contain 합성 (custom render.slide) */
+.pd-yarl-slide-bg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+/* 호버 시 살짝 dim — 기존 #pd-img::after 패턴 보존 */
+.pd-yarl-slide-bg::after {
   content: '';
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,0);
   transition: background var(--duration-drawer) ease;
   pointer-events: none;
-  z-index: 1;
 }
-#pd-img-main-wrap:not(.no-nav):hover #pd-img::after { background: rgba(0,0,0,.06); }
+.pd-yarl-wrap:not(.no-nav):hover .pd-yarl-slide-bg::after {
+  background: rgba(0,0,0,.06);
+}
 
-.pd-img-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+/* 화살표 — hover-only + bgTheme 색상 (기존 .pd-img-arrow 패턴 보존) */
+.pd-yarl-wrap .yarl__navigation_prev,
+.pd-yarl-wrap .yarl__navigation_next {
+  color: var(--pd-yarl-arrow-color);
   opacity: 0;
-  z-index: 2;
   transition: opacity var(--duration-hover) linear, color var(--duration-hover) linear;
 }
-#pd-img-main-wrap:not(.no-nav):hover .pd-img-arrow:not(:disabled) { opacity: .5; }
-#pd-img-main-wrap:not(.no-nav):hover .pd-img-arrow:disabled { opacity: .15; }
-.pd-img-arrow:not(:disabled):hover { opacity: 1 !important; }
-#pd-img-prev { left: -26px; }
-#pd-img-next { right: -26px; }
-.pd-img-arrow.hidden { display: none; }
-
-/* 터치 환경 · 모바일 뷰포트: 메인 이미지 화살표 숨김 (스와이프로 대체) */
+.pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_prev:not(:disabled),
+.pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_next:not(:disabled) {
+  opacity: .5;
+}
+.pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_prev:disabled,
+.pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_next:disabled {
+  opacity: .15;
+}
+.pd-yarl-wrap .yarl__navigation_prev:not(:disabled):hover,
+.pd-yarl-wrap .yarl__navigation_next:not(:disabled):hover {
+  opacity: 1;
+  color: var(--pd-yarl-arrow-color-hover);
+}
+/* 모바일/터치 — 화살표 숨김 (yarl carousel swipe 빌트인 사용) */
 @media (pointer: coarse), (max-width: 767px) {
-  .pd-img-arrow { display: none; }
+  .pd-yarl-wrap .yarl__navigation_prev,
+  .pd-yarl-wrap .yarl__navigation_next {
+    display: none;
+  }
 }
 
-/* ══ PD 이미지 페이지네이션 도트 — .beans-dot 스타일 차용 ══ */
-#pd-pagination.pd-dots {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0;
+/* 썸네일 스트립 (Thumbnails plugin · position: bottom) */
+.pd-yarl-wrap .yarl__thumbnails_container {
+  background: transparent;
   padding: 12px 0 0;
 }
-.pd-dot {
-  height: 6px;
-  width: 6px;
-  border-radius: 3px;
-  background: var(--color-border-primary);
-  border: 17px solid transparent;
-  padding: 0;
-  cursor: pointer;
-  transition: width var(--duration-transition) var(--ease-spring), background var(--duration-transition) ease;
-  background-clip: padding-box;
-  box-sizing: content-box;
+.pd-yarl-wrap .yarl__thumbnails_thumbnail {
+  background: transparent;
+  border: 1px solid var(--color-border-secondary);
+  transition: border-color var(--duration-hover) linear;
 }
-.pd-dot.active {
-  width: 20px;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--color-text-primary);
-  background-clip: padding-box;
+.pd-yarl-wrap .yarl__thumbnails_thumbnail_active {
+  border-color: var(--color-text-primary);
 }
-
-/* 단일 이미지(no-nav) 시 호버해도 화살표 노출되지 않도록 */
-@media (pointer: fine) {
-  #pd-img-main-wrap.no-nav:hover .pd-img-arrow { opacity: 0 !important; pointer-events: none; }
+.pd-yarl-thumb-bg {
+  width: 100%;
+  height: 100%;
 }
 
 /* ══════════════════════════════════════════
@@ -6386,16 +6420,17 @@ body.gd-route-transition.gd-route-transition--fade::before {
 /* 라이트박스 컨트롤 일괄 fade — Lightbox root 의 .gd-controls-hidden 클래스로 토글.
    각 컨트롤은 자기 가장자리 방향으로 8px translate + opacity 0 (250ms ease).
    yarl default 의 .yarl__navigation_prev/next 가 translateY(-50%) 갖고 있으므로
-   base transform 에서 translateY(-50%) 보존 + translateX 추가 토글. */
-.yarl__navigation_prev {
+   base transform 에서 translateY(-50%) 보존 + translateX 추가 토글.
+   .gd-lightbox prefix 로 굿데이즈 모달 한정 (PDP Inline 비영향). */
+.gd-lightbox .yarl__navigation_prev {
   transform: translateY(-50%) translateX(0);
   transition: opacity 250ms ease, transform 250ms ease;
 }
-.yarl__navigation_next {
+.gd-lightbox .yarl__navigation_next {
   transform: translateY(-50%) translateX(0);
   transition: opacity 250ms ease, transform 250ms ease;
 }
-.yarl__toolbar {
+.gd-lightbox .yarl__toolbar {
   transform: translateY(0);
   transition: opacity 250ms ease, transform 250ms ease;
 }
