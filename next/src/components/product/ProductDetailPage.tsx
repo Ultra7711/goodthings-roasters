@@ -23,6 +23,7 @@ import PurchaseRow from './PurchaseRow';
 import ProductRoastStage from './ProductRoastStage';
 import ProductFlavorNote from './ProductFlavorNote';
 import ProductRecipeGuide from './ProductRecipeGuide';
+import DripBagSteps from './DripBagSteps';
 import ProductAccordions from './ProductAccordions';
 
 type Props = { product: Product };
@@ -108,7 +109,7 @@ export default function ProductDetailPage({ product }: Props) {
               noteTags={product.noteTags}
               noteColor={product.noteColor}
             />
-            <ProductRecipeGuide product={product} />
+            {product.category === 'Drip Bag' ? <DripBagSteps /> : <ProductRecipeGuide product={product} />}
             <ProductAccordions category={product.category} slug={product.slug} />
           </div>
         </div>

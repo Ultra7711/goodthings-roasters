@@ -4890,6 +4890,8 @@ footer.blk {
 /* ── 드립백 레시피: 3열 오버라이드 ── */
 #pd-recipe-cards.is-drip {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* S136: column-gap 16 (카드 사이 가로) 유지, row-gap 만 8 (카드 ↔ TIP 세로 거리 축소) */
+  row-gap: 8px;
 }
 /* <1024px: 1열 전환 (pd-content가 1col이 되므로 카드도 1열로) */
 @media (max-width: 1023px) {
@@ -4907,13 +4909,14 @@ footer.blk {
   }
 }
 
-/* ── 공통 카드 기반 (드립백 + 커피빈 공통) ── */
+/* ── 공통 카드 기반 (드립백 + 커피빈 공통)
+   S136: 폰트 축소 (15/13) 비례 padding/gap 축소 */
 .pd-recipe-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: 24px 24px 26px;
+  gap: 10px;
+  padding: 20px 20px 22px;
   background: var(--color-background-secondary);
   border-radius: 10px;
   min-width: 0;
@@ -5016,7 +5019,8 @@ footer.blk {
     align-items: center;
   }
   .pd-recipe-card--split .pd-recipe-illust img {
-    width: min(200px, 100%);
+    /* S136: 200 → 160 (폰트 축소 비례 통일) */
+    width: min(160px, 100%);
     height: auto;
     aspect-ratio: 1;
   }
@@ -5036,24 +5040,38 @@ footer.blk {
 
 /* ── 공통 공유 룰 (드립백 포함) ── */
 /* Drip Bag 일러스트 컨테이너 */
+/* S136: illust max 196 → 160 (폰트 축소 비례 카드 시각 anchor 비중 축소) */
 .pd-recipe-illust {
-  width: 196px;
-  height: 196px;
+  width: 160px;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 .pd-recipe-illust img {
-  width: 196px;
-  height: 196px;
+  width: 160px;
+  height: 160px;
   display: block;
 }
 
-/* 메서드명 */
+/* ── Drip Bag illust 반응형 — S136 (오버플로우 fix + 160 통일) ──
+   3-col 카드 폭 < 244px 시 절대값이 카드 밖으로 비어져 나옴.
+   split 패턴 (.pd-recipe-card--split) 과 동일하게 카드 폭 비례 + max 160. */
+#pd-recipe-cards.is-drip .pd-recipe-illust {
+  width: 100%;
+  height: auto;
+}
+#pd-recipe-cards.is-drip .pd-recipe-illust img {
+  width: min(160px, 100%);
+  height: auto;
+  aspect-ratio: 1 / 1;
+}
+
+/* 메서드명 — S136: clamp 17.7 → 정수 15 (Coffee Bean + Drip Bag 통일) */
 .pd-recipe-method {
   font-family: var(--font-kr);
-  font-size: var(--type-body-l-size);
+  font-size: var(--type-body-m-size);
   font-weight: 500;
   color: var(--color-text-primary);
   line-height: 1.2;
@@ -5061,6 +5079,18 @@ footer.blk {
   padding-bottom: 14px;
   border-bottom: 1px solid var(--color-border-tertiary);
   align-self: stretch;
+}
+
+/* 드립백 카드 본문 — S136: Pretendard 13 secondary line-height 1.7
+   기존엔 토큰 미할당 → root inherit (16 Inter) 의도치 않은 상태였음 */
+.pd-drip-step-body {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  text-align: center;
+  margin: 0;
 }
 
 /* 추출 데이터 표 ── */
@@ -5157,25 +5187,35 @@ footer.blk {
   /* 드립 카드 그리드의 4번째 셀 — 전체 폭 사용 */
   grid-column: 1 / -1;
   display: flex;
-  gap: var(--gap-lg);
-  align-items: center;
-  margin-top: 16px;
-  padding: 20px 0;
-  box-shadow: inset 0 1px 0 0 var(--color-border-tertiary), inset 0 -1px 0 0 var(--color-border-tertiary);
+  gap: 12px;
+  /* S136: baseline — 라벨/본문 텍스트 baseline 정렬 (line-height 차이 16.5 vs 23.39) */
+  align-items: baseline;
+  /* S136: 박스 자체 중앙 정렬 — width max-content + justify-self center 명시
+     (margin auto 가 grid item 에서 stretch default 와 충돌해 좌측 정렬되던 issue fix) */
+  width: max-content;
+  max-width: 100%;
+  justify-self: center;
+  margin: 0;
+  /* S136: padding 12 20 0 — top 12 (카드와 거리), bottom 0 (section margin 48 만 효력)
+     박스 배경 없어 비대칭 padding 시각 영향 0, 위/아래 거리 균등 (42 vs 48) */
+  padding: 12px 20px 0;
 }
 .pd-drip-tip-label {
+  /* V2 §6.12 (S136): 11px gold caption 톤 — eyebrow caps + accent-gold */
   font-family: var(--font-en);
-  font-size: var(--type-body-m-size);
-  font-weight: 500;
-  letter-spacing: var(--ls-step);
+  font-size: var(--type-label-size);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   white-space: nowrap;
-  color: var(--color-text-primary);
-  width: 5em;
+  color: var(--color-accent-gold);
+  /* S136: 5em 고정 폭 → 자연 폭 (라벨 뒤 빈 공간 제거) */
   flex-shrink: 0;
 }
 .pd-drip-tip-text {
   font-family: var(--font-kr);
-  font-size: var(--type-heading-s-size);
+  /* S136: heading-s (16) → body-s (13) — 부가 caption 톤 */
+  font-size: var(--type-body-s-size);
   color: var(--color-text-secondary);
   line-height: 1.8;
   font-weight: 400;
@@ -5193,18 +5233,13 @@ footer.blk {
    #pd-info padding 안에서 자연 흐름이라 자체 padding 0. */
 #pd-accordions {
   width: 100%;
-  margin-top: 48px;
+  /* S136: section margin-bottom 48 만 살림 (96 → 48 통일) */
+  margin-top: 0;
   padding: 0;
 }
-@media (max-width: 1024px) {
-  /* 모바일은 페이지 최하단 요소 — 하단 구분선 유지 */
-  #pd-accordions {
-    box-shadow: inset 0 -1px 0 0 var(--color-border-tertiary);
-  }
-  /* 드립백 TIP 케이스: 하단 라인 제거 + 마지막 섹션 margin 제거로 단일 구분선 */
-  #pd-info:has(.pd-drip-tip) > .pd-info-section:last-of-type { margin-bottom: 0; }
-  .pd-drip-tip { border-bottom: none; }
-}
+/* S136: 모바일 #pd-accordions box-shadow 하단 hairline 제거
+   (이전엔 푸터 직결 케이스 페이지 최하단 구분 위해 필요했으나
+    #pd-info padding-bottom 복원 후 의도 사라짐) */
 .pd-accordion {
   box-shadow: inset 0 1px 0 0 var(--color-border-tertiary);
   position: relative;
@@ -5392,7 +5427,8 @@ footer.blk {
     min-width: 0;
   }
   #pd-info {
-    padding: 0 40px;
+    /* S136: bottom 0 → 60 복원 (베이스 80 의 75%) — 푸터 간격 fix */
+    padding: 0 40px 60px;
     grid-column: 1;
     min-width: 0;
   }
@@ -5402,10 +5438,17 @@ footer.blk {
     padding: 0 20px 32px;
   }
   #pd-info {
-    padding: 0 20px;
+    /* S136: bottom 0 → 40 복원 — 푸터 간격 fix */
+    padding: 0 20px 40px;
   }
   .pd-recipe-card {
-    padding: 20px 20px 22px;
+    /* S136: 모바일 padding 비례 축소 */
+    padding: 16px 16px 18px;
+  }
+  .pd-drip-tip {
+    /* S136: 모바일 padding — top 12 / 좌우 16 (카드 padding 16 일치) / bottom 0
+       데스크탑 패턴 (12 20 0) 과 동일. bottom 0 으로 section margin-bottom 48 만 효력 */
+    padding: 12px 16px 0;
   }
   /* Flavor Note: 캔버스 크기 유지(자동 축소), 태그 gap 만 살짝 조정
      (사이즈는 데스크탑과 동일 — Roasting pill 과 동일 스펙) */
