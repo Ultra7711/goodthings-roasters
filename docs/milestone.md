@@ -232,7 +232,7 @@
 | **PR-1** | font-size 토큰 11개 `clamp()` → 정수 px + 미디어쿼리 분기 (mobile/tablet/desktop) + 한글 본문 별도 토큰 + 영문 헤딩 letter-spacing px 사전 계산 + mobile Display 40 → 36 (스토리 hero 꽉참 완화) | ✅ S140 (`bab8a43a` + `6bef0edb`) |
 | **PR-2** | line-height ratio (1.x) → 정수 px (64곳 · 8 정합) — 헤딩 line-height 분기 토큰 5종 신규 (`--lh-display/h1/h2/h1-editorial/h2-editorial`) + ratio 토큰 정수화 (`--lh-tight/snug/normal: 24px` · `--lh-relaxed` deprecate) + 헤딩 셀렉터 15곳 토큰 변환 + 본문 51곳 정수 px 일괄 (24/28/20/16) | ✅ S141 (`33e81bca`) |
 | **PR-3** | letter-spacing em → px (직접 12곳 + 토큰 11개) + 헤딩 3토큰 분기 (`--ls-display/heading/h1-editorial` 신규) + border 0.5px **실측 0곳 skip** + padding clamp 7곳 정수 분기 (`--space-20/24/30` + `--layout-padding-x` + `--section-gap` + sp/cm-grid gap) | ✅ S142 (`9f21ae4a`) |
-| PR-5 | sticky offset 토큰 lock — `--sticky-offset` 신규 + 5곳 매직 넘버 교체 | ⬜ S143 |
+| **PR-5** | sticky offset 토큰 lock — `--ann-bar-height`/`--header-height` clamp → 정수 분기 (mobile 88 / tablet+ 96) + `--sticky-offset` 신규 + 매직 넘버 6곳 토큰 교체 (`#pd-img-wrap`/`#bi-left`/`.chp-right`/`.mp-right`/`.legal-side`/`.st-location` scroll-margin) | ✅ S143 |
 | PR-6 | 13페이지 시각 회귀 검증 (1440 / 768 / 360 사이드바이사이드) + line-clamp 줄 수 + IO/measurement 정합 | ⬜ S144 |
 
 **결정 지점 (S140 진입 승인 완료):**
