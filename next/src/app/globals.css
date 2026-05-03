@@ -178,39 +178,66 @@
 }
 
 :root {
-  /* ── 타이포그래피 스케일 ── */
-  --type-display-size: clamp(2rem, 1.667rem + 1.481vw, 3rem);          --type-display-weight: 400;
-  --type-h1-size: clamp(1.625rem, 1.417rem + 0.926vw, 2.25rem);        --type-h1-weight: 300;
-  --type-h2-size: clamp(1.375rem, 1.167rem + 0.926vw, 2rem);           --type-h2-weight: 300;
-  --type-h3-size: clamp(1.125rem, 1rem + 0.556vw, 1.5rem);             --type-h3-weight: 400;
-  --type-heading-m-size: clamp(1rem, 0.958rem + 0.185vw, 1.125rem);    --type-heading-m-weight: 500;
-  --type-heading-s-size: 16px;     --type-heading-s-weight: 500;
-  --type-body-l-size: clamp(1rem, 0.958rem + 0.185vw, 1.125rem);       --type-body-l-weight: 500;
-  --type-body-m-size: 15px;        --type-body-m-weight: 400;
-  --type-body-s-size: 13px;        --type-body-s-weight: 400;
-  --type-label-size: 11px;         --type-label-weight: 600;
+  /* ── 타이포그래피 스케일 (S140 D-19 PR-1 · 정수 px + 미디어쿼리 분기) ──
+     mobile base. tablet (≥768) / desktop (≥1024) 분기는 파일 하단 @media 참조.
+     clamp() 폐기 사유: project_typography_subpixel_8px_grid.md R-3.
+     line-height 정수 px (PR-2) · letter-spacing px 변환 (PR-3) · sticky offset
+     토큰 lock (PR-5) 은 후속 PR 에서 적용. */
+  --type-display-size: 40px;        --type-display-weight: 400;
+  --type-h1-size: 32px;             --type-h1-weight: 300;
+  --type-h2-size: 24px;             --type-h2-weight: 300;
+  --type-h3-size: 20px;             --type-h3-weight: 400;
+  --type-heading-m-size: 16px;      --type-heading-m-weight: 500;
+  --type-heading-s-size: 16px;      --type-heading-s-weight: 500;
+  --type-body-l-size: 16px;         --type-body-l-weight: 500;
+  --type-body-m-size: 15px;         --type-body-m-weight: 400;
+  --type-body-s-size: 13px;         --type-body-s-weight: 400;
+  --type-label-size: 11px;          --type-label-weight: 600;
   --type-caption-size: 12px;
-  --type-input-size: 16px;         --type-input-weight: 400;
-  --type-price-l-size: clamp(1.5rem, 1.333rem + 0.741vw, 2rem);        --type-price-l-weight: 500;
-  --type-price-m-size: clamp(1.125rem, 1.083rem + 0.185vw, 1.25rem);   --type-price-m-weight: 600;
+  --type-input-size: 16px;          --type-input-weight: 400;
+  --type-price-l-size: 24px;        --type-price-l-weight: 500;
+  --type-price-m-size: 18px;        --type-price-m-weight: 600;
   /* 하위 호환 alias */
   --type-heading-l-size: var(--type-h2-size);
   --type-heading-l-weight: var(--type-h2-weight);
   --type-body-reading-size: var(--type-body-m-size);
   --type-body-reading-weight: var(--type-body-m-weight);
-  --type-body-ui-size: 14px;       --type-body-ui-weight: 400;
+  --type-body-ui-size: 14px;        --type-body-ui-weight: 400;
   --font-kr-align-fix: 0px;
 
+  /* ── 한글 본문 별도 토큰 (S140 D-19 PR-1 · Q3 외부 표준) ──
+     Pretendard = Apple system 호환. W3C 한글 letter-spacing 0 ↔ 모바일 UI -0.3.
+     line-height 한글 본문 1.5~1.55x ↔ 8 정합 (24px @ font-size 15) 부합.
+     사용은 PR-2 (line-height 정수 px) / PR-3 (letter-spacing px 변환) 에서 시작 —
+     단계 1 에서는 정의만. */
+  --lh-kr-body-13: 20px;
+  --lh-kr-body-15: 24px;
+  --lh-kr-body-17: 28px;
+  --lh-kr-body-20: 32px;
+  --ls-kr-body: -0.3px;
+  --ls-kr-heading: -0.5px;
+  --ls-en-body: 0;
+  /* 영문 헤딩 letter-spacing px 사전 계산 (font-size × -0.025em) — PR-3 매핑 대비 */
+  --ls-en-h1-32: -0.8px;
+  --ls-en-h1-36: -0.9px;
+  --ls-en-h1-40: -1px;
+  --ls-en-h2-24: -0.6px;
+  --ls-en-h2-28: -0.7px;
+  --ls-en-display-40: -1px;
+  --ls-en-display-56: -1.4px;
+  --ls-en-display-72: -1.8px;
+
   /* ── Editorial Typography Scale (Session 60 · design-interaction-plan §4 ②) ──
-     히어로·주요 섹션 헤딩의 매거진급 임팩트 스케일. 기존 --type-display/h1/h2 와 병존. */
-  --type-hero-editorial-size: clamp(2.5rem, 1.5rem + 5.5vw, 7rem);   /* 40→112px */
+     히어로·주요 섹션 헤딩의 매거진급 임팩트 스케일. 기존 --type-display/h1/h2 와 병존.
+     S140: clamp() → 미디어쿼리 분기 mobile base. tracking/leading 은 PR-3/PR-2 에서 변환. */
+  --type-hero-editorial-size: 48px;                                  /* mobile · tablet 80 / desktop 112 */
   --type-hero-editorial-weight: 300;                                 /* 기본 (단일 라인용) */
   --type-hero-editorial-weight-soft: 200;                            /* A안: 1라인 (보조) */
   --type-hero-editorial-weight-strong: 500;                          /* A안: 2라인 (강조) */
   --type-hero-editorial-tracking: -0.025em;
   --type-hero-editorial-leading: 1.05;
-  --type-h1-editorial-size: clamp(2rem, 1.5rem + 2.5vw, 3.25rem);    /* 32→52px */
-  --type-h2-editorial-size: clamp(1.75rem, 1.25rem + 2vw, 2.75rem);  /* 28→44px */
+  --type-h1-editorial-size: 32px;                                    /* mobile · tablet 44 / desktop 52 */
+  --type-h2-editorial-size: 28px;                                    /* mobile · tablet 36 / desktop 44 */
 
   /* ── Eyebrow Slide-in (design-interaction-plan §4 ⑧ 최종안) ──
      섹션 진입 시 eyebrow 가 label 박스 좌측 외부에서 슬라이드 인.
@@ -416,6 +443,36 @@
   --overlay-dim-bg: rgba(0,0,0,.35);
   /* --overlay-lightbox-bg 토큰 제거 (S121) — 라이트박스가 yet-another-react-lightbox
      라이브러리로 이전, styles.root.--yarl__color_backdrop 으로 직접 매핑. */
+}
+
+/* ── 타이포그래피 미디어쿼리 분기 (S140 D-19 PR-1) ──
+   mobile base 는 :root 정의. tablet (≥768) / desktop (≥1024) 에서만 차등.
+   분기 표 근거: research_typography_grid_external_standards.md §8 + 자문 §D-7. */
+@media (min-width: 768px) {
+  :root {
+    --type-display-size: 56px;
+    --type-h1-size: 36px;
+    --type-h2-size: 28px;
+    --type-heading-m-size: 18px;
+    --type-body-l-size: 17px;
+    --type-price-l-size: 28px;
+    --type-hero-editorial-size: 80px;
+    --type-h1-editorial-size: 44px;
+    --type-h2-editorial-size: 36px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --type-display-size: 72px;
+    --type-h1-size: 40px;
+    --type-h3-size: 24px;
+    --type-price-l-size: 32px;
+    --type-price-m-size: 20px;
+    --type-hero-editorial-size: 112px;
+    --type-h1-editorial-size: 52px;
+    --type-h2-editorial-size: 44px;
+  }
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
