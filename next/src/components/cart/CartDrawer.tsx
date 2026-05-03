@@ -2,7 +2,7 @@
    CartDrawer (Session 19 / 2026-04-18)
    프로토타입 #cart-drawer + openCartDrawer/renderCartDrawer 이식.
 
-   - 우측 슬라이드인 드로어 (664px, CafeNutritionSheet 패턴 준수)
+   - 우측 슬라이드인 드로어 (--drawer-width 토큰 540, 다른 드로어와 통일)
    - useCartDrawer context 에서 isOpen/close 수신
    - useCartQuery/useUpdateCartQty/useRemoveCartItem 으로 DB/게스트 카트 연동
    - ESC/배경/닫기버튼 3종 지원 (useDrawer 훅)
