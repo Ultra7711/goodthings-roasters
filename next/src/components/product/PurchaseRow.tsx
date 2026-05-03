@@ -112,7 +112,6 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
     sublabel: `${v.price.toLocaleString('ko-KR')}원`,
     value: v.label,
     disabled: v.soldOut,
-    badge: v.soldOut ? '품절' : undefined,
   }));
 
   const currentVolValue = hasVolumes ? product.volumes[volIdx].label : '';
