@@ -9318,13 +9318,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* ══════════════════════════════════════════
    BUG-134 — 모바일 전용 상단 여백 축소
    데스크탑 100px 유지 · 모바일에서만 56px 로 축소 (BUG-134 30px → S96 44px).
+   S136: #pd-inner 누락 추가 (PDP 만 모바일에서도 100 유지되어 다른 페이지와 어긋남).
    ══════════════════════════════════════════ */
 @media (max-width: 767px) {
   #sp-body,
   #cm-body,
   #gd-inner,
   #bi-body,
-  .cp-root {
+  .cp-root,
+  #pd-inner {
     padding-top: 56px;
   }
   #sp-body,
