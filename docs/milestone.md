@@ -196,6 +196,7 @@
 | **2 (A-1)** | HeroVideo 가드 의무화 (`preload="metadata"` 추가) | ✅ S132 (`878cbdff`) |
 | **2 (A-2)** | SpecTable 신규 — PDP 식약처 표 컴포넌트 분리 + 네이버 ground truth 데이터 + footer 좌우 분할 (notices + cert 마크) | ✅ S132 (`a0f521b5`) |
 | **2 (A-3)** | OptionChipGroup 신규 + 정기배송 탭 → 체크박스 격하 + 시각 일관성 정비 (B2C UI 만 — 할인 계산 D-15 carry-over) | ✅ S132 Phase 1 (`492b8e0d`) |
+| **2 (A-3 Phase 2)** | PDP 레이아웃 대개편 — 가격 chip 통합 / status 좌상단 floating / 스텝퍼+CTA 한 줄 / 좌측 이미지 sticky / 아코디언 우측 최하단 / sub-pixel 누적 차단 | ✅ S133 (`eb3cfb52`) |
 | 2 (A-4) | DripBagSteps 신규 — 드립백 PDP 3-step 컴포넌트 | ⬜ |
 | 2 (A-5) | Card 통합 (ProductCard · CafeMenuCard) | ⬜ |
 | 2 (A-6) | Accordion 통합 | ⬜ |
