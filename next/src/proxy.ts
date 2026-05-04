@@ -62,8 +62,17 @@ export function shouldOverrideReferrerPolicy(pathname: string): boolean {
 /**
  * CSP 구성 — 허용 오리진은 단일 출처에서 관리.
  * 서드파티 추가/삭제 시 이 함수만 수정하면 proxy 전체가 일관성 유지.
+ *
+ * frame-ancestors (S148 PR-2 advisory §6.1 D-1):
+ *   - 메인 페이지 (`/`) + 어드민 미리보기 (`/preview/*`) 만 'self' — 어드민 iframe 허용 (같은 origin).
+ *   - 그 외 (어드민·로그인·결제·체크아웃 등) 'none' 유지 — clickjacking 방어.
+ *   - OWASP "특정 페이지만 명시적 audit 후 'self'" 권고 부합.
+ *   - /preview/* 는 admin 가드 (page 단위) + robots noindex (preview/layout.tsx).
  */
-function buildContentSecurityPolicy(isDev: boolean): string {
+function buildContentSecurityPolicy(isDev: boolean, pathname: string): string {
+  /* 같은 origin iframe 허용 화이트리스트 (어드민 미리보기 용도).
+     subdomain 미포함 + port 정확 일치 (MDN spec) — 외부 임베드는 그대로 차단. */
+  const allowSelfFrame = pathname === '/' || pathname.startsWith('/preview/');
   // script-src (BUG-006 D-007, 2026-04-23):
   //   'self' — 자체 번들 chunk (integrity hash 로 공급망 보호)
   //   'unsafe-inline' — Next.js RSC hydration inline script (self.__next_f.push) 허용
@@ -91,8 +100,8 @@ function buildContentSecurityPolicy(isDev: boolean): string {
     `base-uri 'self'`,
     // OAuth 로그인 폼 submit 대상 (provider 인증 엔드포인트)
     `form-action 'self' https://accounts.google.com https://nid.naver.com https://kauth.kakao.com`,
-    // X-Frame-Options: DENY 와 동일 — iframe 임베드 전면 차단 (중복 시 frame-ancestors 우선)
-    `frame-ancestors 'none'`,
+    // pathname === '/' 만 'self' (어드민 미리보기) · 그 외 'none' (clickjacking 방어)
+    `frame-ancestors ${allowSelfFrame ? "'self'" : "'none'"}`,
     `upgrade-insecure-requests`,
   ];
 
@@ -105,7 +114,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   /* ── CSP 구성 ─────────────────────────────────────────────────────────
      BUG-006 D-007 (2026-04-23) 이후 nonce 기반 → strict-source-list + SRI.
      요청별 동적 요소 없음 → 상수. 응답 헤더에 주입 (아래 §2). */
-  const csp = buildContentSecurityPolicy(isDev);
+  const csp = buildContentSecurityPolicy(isDev, request.nextUrl.pathname);
   const requestHeaders = new Headers(request.headers);
 
   let supabaseResponse = NextResponse.next({

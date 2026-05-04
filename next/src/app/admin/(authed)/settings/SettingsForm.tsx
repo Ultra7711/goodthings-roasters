@@ -26,9 +26,12 @@ import {
   type NoticeSettings,
   type SeasonSettings,
   type ShippingSettings,
+  type SignatureSettings,
   type SiteSettings,
 } from '@/lib/siteSettings';
 import { uploadSeasonBanner } from '@/lib/admin/uploadSeasonBanner';
+import { uploadSignatureImage } from '@/lib/admin/uploadSignatureImage';
+import { PRODUCTS } from '@/lib/products';
 import {
   saveSiteSettingsAction,
   type SaveSettingsInput,
@@ -38,6 +41,19 @@ type UploadState =
   | { status: 'idle' }
   | { status: 'uploading'; fileName: string }
   | { status: 'error'; message: string };
+
+/** advisory §6.1 D-1 — 발행 전 4 brk 미리보기 검증 */
+type PreviewBrk = 'desktop' | 'laptop' | 'tablet' | 'mobile';
+const PREVIEW_BRK_OPTIONS: ReadonlyArray<{
+  key: PreviewBrk;
+  label: string;
+  width: number;
+}> = [
+  { key: 'desktop', label: 'Desktop', width: 1440 },
+  { key: 'laptop', label: 'Laptop', width: 1024 },
+  { key: 'tablet', label: 'Tablet', width: 768 },
+  { key: 'mobile', label: 'Mobile', width: 360 },
+];
 
 interface SettingsFormProps {
   initialSettings: SiteSettings;
@@ -49,7 +65,43 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   const [settings, setSettings] = useState<SiteSettings>(initialSettings);
   const [isPending, startTransition] = useTransition();
   const [uploadState, setUploadState] = useState<UploadState>({ status: 'idle' });
+  const [sigUploadState, setSigUploadState] = useState<UploadState>({ status: 'idle' });
+  const [previewBrk, setPreviewBrk] = useState<PreviewBrk>('desktop');
+  const [previewSrc, setPreviewSrc] = useState<string>(() =>
+    buildPreviewSrc(initialSettings.signature),
+  );
+  const [previewHeight, setPreviewHeight] = useState<number>(720);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const sigFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  /* settings.signature 변경 시 300ms debounce 후 iframe src 갱신 — 매 키 입력마다 reload 방지 */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPreviewSrc(buildPreviewSrc(settings.signature));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [settings.signature]);
+
+  /* iframe 으로부터 chapter height 수신 → iframe height 동기 (Phase H postMessage) */
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (e.origin !== window.location.origin) return;
+      const data = e.data as unknown;
+      if (
+        typeof data === 'object' &&
+        data !== null &&
+        'type' in data &&
+        (data as { type: unknown }).type === 'gtr:preview:height' &&
+        'height' in data &&
+        typeof (data as { height: unknown }).height === 'number'
+      ) {
+        const h = (data as { height: number }).height;
+        if (h > 0 && h < 5000) setPreviewHeight(Math.ceil(h));
+      }
+    }
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
 
   /* router.refresh 로 server component 가 fresh fetch 한 새 initialSettings 가
      내려오면 baseline 동기화. 사용자가 편집 중인 settings 는 건드리지 않음. */
@@ -71,6 +123,9 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
   }
   function updateShipping(patch: Partial<ShippingSettings>) {
     setSettings((prev) => ({ ...prev, shipping: { ...prev.shipping, ...patch } }));
+  }
+  function updateSignature(patch: Partial<SignatureSettings>) {
+    setSettings((prev) => ({ ...prev, signature: { ...prev.signature, ...patch } }));
   }
 
   function handleReset() {
@@ -96,6 +151,24 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
     }
   }
 
+  async function handleSigFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setSigUploadState({ status: 'uploading', fileName: file.name });
+    const result = await uploadSignatureImage(file);
+    if (result.ok) {
+      updateSignature({ image_path: result.publicUrl });
+      setSigUploadState({ status: 'idle' });
+      toast.success('이미지가 업로드되었습니다 · 변경사항 저장 후 반영됩니다');
+    } else {
+      const message = describeUploadError(result.error, result.detail);
+      setSigUploadState({ status: 'error', message });
+      toast.error(message);
+    }
+  }
+
   function handleSave() {
     const payload: SaveSettingsInput = {};
     if (!shallowEqualNotice(savedSettings.notice, settings.notice)) {
@@ -106,6 +179,9 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
     }
     if (!shallowEqualShipping(savedSettings.shipping, settings.shipping)) {
       payload.shipping = settings.shipping;
+    }
+    if (!shallowEqualSignature(savedSettings.signature, settings.signature)) {
+      payload.signature = settings.signature;
     }
 
     startTransition(async () => {
@@ -556,7 +632,527 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           </div>
         </SettingsCard>
 
-        {/* Section 3 — 무료 배송 */}
+        {/* Section 3 — 시그니처 한 잔 (S148 PR-2 advisory §6) */}
+        <SettingsCard
+          title="시그니처 섹션"
+          subtitle="메인 페이지 §2.2 sand 단독 chapter · 분기 갱신 (SS/SU/FW/WT)"
+          on={settings.signature.enabled}
+          onToggle={() =>
+            updateSignature({ enabled: !settings.signature.enabled })
+          }
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 240px',
+              gap: 16,
+              alignItems: 'flex-start',
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* eyebrow + 분기 자동 채움 */}
+              <FormField
+                label="Eyebrow (분기 라벨)"
+                hint="형식: Signature · 2026 SS · 분기 pill 클릭 시 자동 채움"
+              >
+                <FormInput
+                  value={settings.signature.eyebrow}
+                  onChange={(e) => updateSignature({ eyebrow: e.target.value })}
+                  placeholder="예: Signature · 2026 SS"
+                />
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 6,
+                    marginTop: 6,
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--foreground-muted)',
+                      marginRight: 2,
+                    }}
+                  >
+                    빠른 채움
+                  </span>
+                  {QUARTER_LABELS.map((q) => {
+                    const { year } = getCurrentQuarter();
+                    const composed = composeEyebrow(q, year);
+                    const sel = settings.signature.eyebrow === composed;
+                    return (
+                      <button
+                        key={q}
+                        type="button"
+                        onClick={() => updateSignature({ eyebrow: composed })}
+                        aria-pressed={sel}
+                        style={{
+                          padding: '3px 9px',
+                          fontSize: 11,
+                          fontWeight: 500,
+                          letterSpacing: '0.04em',
+                          borderRadius: 999,
+                          background: sel ? 'var(--primary)' : 'var(--surface)',
+                          color: sel ? '#fff' : 'var(--foreground-muted)',
+                          border: '1px solid ' + (sel ? 'var(--primary)' : 'var(--border)'),
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        {q} · {year}
+                      </button>
+                    );
+                  })}
+                </div>
+              </FormField>
+
+              {/* product 드롭다운 — Coffee Bean 만 (advisory §6.1 SKU 1개 매핑) */}
+              <FormField
+                label="제품 (Coffee Bean)"
+                hint="시그니처에 호명할 원두 1종 — 빈 값 시 chapter 자동 hide"
+              >
+                <select
+                  value={settings.signature.product_slug}
+                  onChange={(e) => updateSignature({ product_slug: e.target.value })}
+                  style={{
+                    width: '100%',
+                    height: 34,
+                    padding: '0 10px',
+                    border: '1px solid var(--input)',
+                    borderRadius: 6,
+                    fontSize: 13,
+                    fontFamily: 'inherit',
+                    color: 'var(--foreground)',
+                    outline: 'none',
+                    background: 'var(--surface)',
+                  }}
+                >
+                  <option value="">— 선택 —</option>
+                  {PRODUCTS.filter((p) => p.category === 'Coffee Bean').map((p) => (
+                    <option key={p.slug} value={p.slug}>
+                      {p.name} ({p.slug})
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+
+              <FormField label="제목 (한국어 제품명)" hint="최대 40자">
+                <FormInput
+                  value={settings.signature.title}
+                  onChange={(e) => updateSignature({ title: e.target.value })}
+                  maxLength={40}
+                  placeholder="예: 산뜻한 오후"
+                />
+              </FormField>
+
+              <FormField
+                label="본문 카피 (1~2줄)"
+                hint={`권장 80자 이내 · 명사형 짧게 · 현재 ${settings.signature.subtitle.length}/160자`}
+              >
+                <textarea
+                  value={settings.signature.subtitle}
+                  onChange={(e) => updateSignature({ subtitle: e.target.value })}
+                  maxLength={160}
+                  style={{
+                    width: '100%',
+                    minHeight: 64,
+                    resize: 'vertical',
+                    padding: '10px 12px',
+                    border: '1px solid var(--input)',
+                    borderRadius: 6,
+                    fontSize: 13,
+                    lineHeight: 1.6,
+                    fontFamily: 'inherit',
+                    color: 'var(--foreground)',
+                    outline: 'none',
+                    background: 'var(--surface)',
+                  }}
+                />
+              </FormField>
+
+              <FormField
+                label="플레이버 chip"
+                hint="최대 4개 · 권장 3개 · Tasting Notes 자동 가져오기 사용 권장"
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {settings.signature.flavor_chips.length === 0 ? (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: 'var(--foreground-muted)',
+                          fontStyle: 'italic',
+                        }}
+                      >
+                        (chip 없음 — 자동 가져오기 또는 수동 추가)
+                      </span>
+                    ) : (
+                      settings.signature.flavor_chips.map((chip, i) => (
+                        <span
+                          key={`${chip}-${i}`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            padding: '3px 4px 3px 10px',
+                            fontSize: 12,
+                            background: 'var(--surface-muted)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 999,
+                            color: 'var(--foreground)',
+                          }}
+                        >
+                          {chip}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateSignature({
+                                flavor_chips: settings.signature.flavor_chips.filter(
+                                  (_, idx) => idx !== i,
+                                ),
+                              })
+                            }
+                            aria-label={`${chip} 삭제`}
+                            style={{
+                              width: 18,
+                              height: 18,
+                              borderRadius: 999,
+                              border: 'none',
+                              background: 'transparent',
+                              color: 'var(--foreground-muted)',
+                              cursor: 'pointer',
+                              fontSize: 14,
+                              padding: 0,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              lineHeight: 1,
+                            }}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <FormInput
+                      placeholder="예: 복숭아 · 살구 · 시럽"
+                      maxLength={20}
+                      onKeyDown={(e) => {
+                        if (e.key !== 'Enter') return;
+                        e.preventDefault();
+                        const target = e.currentTarget;
+                        const value = target.value.trim();
+                        if (!value) return;
+                        if (settings.signature.flavor_chips.length >= 4) return;
+                        if (settings.signature.flavor_chips.includes(value)) return;
+                        updateSignature({
+                          flavor_chips: [...settings.signature.flavor_chips, value],
+                        });
+                        target.value = '';
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const notes = extractTastingNotes(settings.signature.product_slug);
+                        if (notes.length === 0) {
+                          toast.info('제품을 먼저 선택해 주세요');
+                          return;
+                        }
+                        updateSignature({ flavor_chips: notes });
+                        toast.success(`Tasting Notes ${notes.length}개를 가져왔습니다`);
+                      }}
+                      style={{
+                        ...SM_SECONDARY,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Tasting Notes 가져오기
+                    </button>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--foreground-muted)' }}>
+                    Enter 로 추가 · 현재 {settings.signature.flavor_chips.length}/4
+                  </div>
+                </div>
+              </FormField>
+            </div>
+
+            {/* 우측 — 이미지 5:4 + 안전 영역 가이드 (advisory §3.3 inset 12% 18%) */}
+            <div>
+              <FormField
+                label="이미지 (5:4 패키지 정면)"
+                hint="안전 영역 (점선) 안쪽에 패키지 라벨 배치"
+              >
+                {settings.signature.image_path ? (
+                  <div
+                    style={{
+                      borderRadius: 6,
+                      overflow: 'hidden',
+                      border: '1px solid var(--border)',
+                      aspectRatio: '5/4',
+                      backgroundImage: `url("${settings.signature.image_path}")`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      position: 'relative',
+                    }}
+                  >
+                    {/* 안전 영역 가이드 (advisory §3.3) — 좌우 18%, 상하 12% */}
+                    <div
+                      aria-hidden
+                      style={{
+                        position: 'absolute',
+                        inset: '12% 18%',
+                        border: '1px dashed rgba(28, 27, 25, 0.6)',
+                        background: 'rgba(28, 27, 25, 0.04)',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                    <span
+                      style={{
+                        position: 'absolute',
+                        bottom: 6,
+                        left: 6,
+                        fontFamily: 'monospace',
+                        fontSize: 10,
+                        padding: '3px 7px',
+                        borderRadius: 4,
+                        background: 'rgba(255,255,255,0.9)',
+                        color: 'var(--foreground-muted)',
+                        maxWidth: 'calc(100% - 12px)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {summarizeImagePath(settings.signature.image_path)}
+                    </span>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      borderRadius: 6,
+                      overflow: 'hidden',
+                      border: '1px solid var(--border)',
+                      aspectRatio: '5/4',
+                      background:
+                        'repeating-linear-gradient(135deg, #EEEDEB 0 6px, #F5F4F2 6px 12px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--foreground-muted)',
+                      fontSize: 11,
+                      position: 'relative',
+                    }}
+                  >
+                    <div
+                      aria-hidden
+                      style={{
+                        position: 'absolute',
+                        inset: '12% 18%',
+                        border: '1px dashed rgba(28, 27, 25, 0.4)',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                    이미지 없음
+                  </div>
+                )}
+              </FormField>
+              <FormField label="대체 텍스트 (alt)">
+                <FormInput
+                  value={settings.signature.image_alt}
+                  onChange={(e) => updateSignature({ image_alt: e.target.value })}
+                  maxLength={120}
+                />
+              </FormField>
+              <input
+                ref={sigFileInputRef}
+                type="file"
+                accept="image/webp,image/avif,image/jpeg,image/png"
+                onChange={handleSigFileChange}
+                style={{ display: 'none' }}
+              />
+              <button
+                type="button"
+                onClick={() => sigFileInputRef.current?.click()}
+                disabled={sigUploadState.status === 'uploading'}
+                style={{
+                  ...SM_SECONDARY,
+                  width: '100%',
+                  marginTop: 8,
+                  opacity: sigUploadState.status === 'uploading' ? 0.6 : 1,
+                  cursor: sigUploadState.status === 'uploading' ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {sigUploadState.status === 'uploading' ? '업로드 중…' : '이미지 변경'}
+              </button>
+
+              {sigUploadState.status === 'uploading' && (
+                <div style={{ marginTop: 8 }}>
+                  <div
+                    style={{
+                      height: 4,
+                      borderRadius: 2,
+                      background: 'var(--surface-muted)',
+                      overflow: 'hidden',
+                      position: 'relative',
+                    }}
+                  >
+                    <div className="gtr-admin-progress-indet" />
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontSize: 11,
+                      color: 'var(--foreground-muted)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title={sigUploadState.fileName}
+                  >
+                    {sigUploadState.fileName}
+                  </div>
+                </div>
+              )}
+
+              {sigUploadState.status === 'error' && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    padding: '8px 10px',
+                    borderRadius: 6,
+                    background: 'var(--danger-soft)',
+                    color: 'var(--danger)',
+                    border: '1px solid var(--danger)',
+                    fontSize: 11.5,
+                  }}
+                >
+                  {sigUploadState.message}
+                </div>
+              )}
+            </div>
+          </div>
+        </SettingsCard>
+
+        {/* Preview — advisory §6.1 D-1 4 brk 발행 전 미리보기 */}
+        <div
+          style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius)',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              padding: '16px 22px',
+              borderBottom: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 500 }}>
+                메인 페이지 미리보기
+              </h3>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: 'var(--foreground-muted)',
+                  marginTop: 2,
+                }}
+              >
+                시그니처 chapter 발행 전 4 brk 검증 · 저장된 설정 기준
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {PREVIEW_BRK_OPTIONS.map((opt) => {
+                const sel = previewBrk === opt.key;
+                return (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => setPreviewBrk(opt.key)}
+                    aria-pressed={sel}
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: 11.5,
+                      fontWeight: 500,
+                      borderRadius: 6,
+                      background: sel ? 'var(--primary)' : 'var(--surface)',
+                      color: sel ? '#fff' : 'var(--foreground-muted)',
+                      border: '1px solid ' + (sel ? 'var(--primary)' : 'var(--border)'),
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      letterSpacing: '-0.005em',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {opt.label}{' '}
+                    <span
+                      style={{
+                        opacity: 0.7,
+                        marginLeft: 4,
+                        fontFamily: 'monospace',
+                        fontSize: 10,
+                      }}
+                    >
+                      {opt.width}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {isDirty && (
+            <div
+              style={{
+                padding: '8px 22px',
+                background: 'var(--warning-soft)',
+                color: 'var(--warning)',
+                fontSize: 12,
+                borderBottom: '1px solid var(--border)',
+              }}
+            >
+              저장되지 않은 변경 {dirtyCount}개 — 미리보기는 즉시 반영 · 저장 시 라이브 사이트 반영
+            </div>
+          )}
+
+          <div
+            style={{
+              padding: 16,
+              background: 'var(--surface-muted)',
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              display: 'flex',
+              justifyContent: 'flex-start',
+            }}
+          >
+            <iframe
+              key={previewBrk}
+              src={previewSrc}
+              title={`시그니처 섹션 미리보기 — ${previewBrk}`}
+              style={{
+                width: PREVIEW_BRK_OPTIONS.find((o) => o.key === previewBrk)?.width ?? 1440,
+                height: previewHeight,
+                border: '1px solid var(--border)',
+                borderRadius: 6,
+                background: 'var(--color-background-primary, #FBF8F3)',
+                flexShrink: 0,
+                transition: 'height 200ms ease-out',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Section 4 — 무료 배송 */}
         <SettingsCard
           title="무료 배송 정책"
           subtitle="장바구니 임계 금액 이상에서 자동 적용"
@@ -681,14 +1277,76 @@ function shallowEqualShipping(a: ShippingSettings, b: ShippingSettings): boolean
     a.base_fee === b.base_fee
   );
 }
+function shallowEqualSignature(a: SignatureSettings, b: SignatureSettings): boolean {
+  if (a.flavor_chips.length !== b.flavor_chips.length) return false;
+  for (let i = 0; i < a.flavor_chips.length; i += 1) {
+    if (a.flavor_chips[i] !== b.flavor_chips[i]) return false;
+  }
+  return (
+    a.enabled === b.enabled &&
+    a.eyebrow === b.eyebrow &&
+    a.product_slug === b.product_slug &&
+    a.title === b.title &&
+    a.subtitle === b.subtitle &&
+    a.image_path === b.image_path &&
+    a.image_alt === b.image_alt
+  );
+}
 
 function describeUpdatedKeys(keys: ReadonlyArray<string>): string {
   const labels: Record<string, string> = {
     notice: '공지 배너',
     season: '시즌 배너',
     shipping: '무료 배송 정책',
+    signature: '시그니처 섹션',
   };
   return keys.map((k) => labels[k] ?? k).join(' · ');
+}
+
+/* ── 시그니처 분기 라벨 (advisory §6.1 자동 채움) ─────────────────────────
+   분기 매핑: 3~5월 SS · 6~8월 SU · 9~11월 FW · 12~2월 WT.
+   advisory §6.3 발행 D-day 와 일치 (3/1 SS · 6/15 SU · 9/1 FW · 12/1 WT). */
+const QUARTER_LABELS = ['SS', 'SU', 'FW', 'WT'] as const;
+type QuarterLabel = (typeof QUARTER_LABELS)[number];
+
+function getCurrentQuarter(date: Date = new Date()): { season: QuarterLabel; year: number } {
+  const m = date.getMonth() + 1; // 1-12
+  if (m >= 3 && m <= 5) return { season: 'SS', year: date.getFullYear() };
+  if (m >= 6 && m <= 8) return { season: 'SU', year: date.getFullYear() };
+  if (m >= 9 && m <= 11) return { season: 'FW', year: date.getFullYear() };
+  // 12~2월 WT — 1·2월은 직전 해 WT 시즌
+  return { season: 'WT', year: m === 12 ? date.getFullYear() : date.getFullYear() - 1 };
+}
+
+function composeEyebrow(season: QuarterLabel, year: number): string {
+  return `Signature · ${year} ${season}`;
+}
+
+/** SignatureSettings → /preview/signature URL. URLSearchParams 가 자동 encode.
+    chips 는 '|' 구분 (chip 안에 '|' 들어가지 않는다 가정). */
+function buildPreviewSrc(s: SignatureSettings): string {
+  const params = new URLSearchParams({
+    enabled: String(s.enabled),
+    eyebrow: s.eyebrow,
+    product_slug: s.product_slug,
+    title: s.title,
+    subtitle: s.subtitle,
+    chips: s.flavor_chips.join('|'),
+    image_path: s.image_path,
+    image_alt: s.image_alt,
+  });
+  return `/preview/signature?${params.toString()}`;
+}
+
+/** PRODUCTS 의 noteTags ("a | b | c | d") → chip 배열. 최대 3개 권장 (advisory §5.1). */
+function extractTastingNotes(slug: string): string[] {
+  const product = PRODUCTS.find((p) => p.slug === slug);
+  if (!product) return [];
+  return product.noteTags
+    .split(' | ')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 3);
 }
 
 function describeUploadError(error: string, detail?: string): string {

@@ -23,6 +23,7 @@ import {
   NoticeSettingsSchema,
   SeasonSettingsSchema,
   ShippingSettingsSchema,
+  SignatureSettingsSchema,
   type SiteSettingKey,
 } from '@/lib/siteSettings';
 import { SITE_SETTINGS_CACHE_TAG } from '@/lib/siteSettingsServer';
@@ -32,6 +33,7 @@ const SaveInputSchema = z.object({
   notice: NoticeSettingsSchema.optional(),
   season: SeasonSettingsSchema.optional(),
   shipping: ShippingSettingsSchema.optional(),
+  signature: SignatureSettingsSchema.optional(),
 });
 
 export type SaveSettingsInput = z.input<typeof SaveInputSchema>;
@@ -77,6 +79,7 @@ export async function saveSiteSettingsAction(
   if (data.notice) updates.push({ key: 'notice', value: data.notice });
   if (data.season) updates.push({ key: 'season', value: data.season });
   if (data.shipping) updates.push({ key: 'shipping', value: data.shipping });
+  if (data.signature) updates.push({ key: 'signature', value: data.signature });
 
   if (updates.length === 0) {
     return { ok: false, error: 'no_changes' };
