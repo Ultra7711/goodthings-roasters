@@ -5799,7 +5799,7 @@ footer.blk {
   gap: 6px;
 }
 .st-map-overlay-btn {
-  /* 사이트 CTA 스타일(light-outline/filled) 계승, 크기는 말풍선용으로 컴팩트 유지 */
+  /* PR-1c-7 — secondary outline (Blue Bottle 1px → 2px inner), 말풍선 컴팩트 사이즈 유지 */
   flex: 1;
   text-align: center;
   font-family: var(--font-kr);
@@ -5810,16 +5810,29 @@ footer.blk {
   border-radius: 0;
   text-decoration: none;
   color: var(--color-text-primary);
-  background: transparent;
-  border: 1px solid var(--color-btn-primary-bg);
-  transition: opacity var(--duration-transition) ease;
+  background: var(--color-background-pure);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
+  transition: box-shadow 200ms ease, background 200ms ease;
   white-space: nowrap;
 }
-.st-map-overlay-btn:active { opacity: .7; }
+.st-map-overlay-btn:hover,
+.st-map-overlay-btn:active {
+  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+}
+/* primary modifier — bg darken + base box-shadow override */
 .st-map-overlay-btn--primary {
   background: var(--color-btn-primary-bg);
   color: var(--color-text-inverse);
-  border-color: var(--color-btn-primary-bg);
+  box-shadow: none;
+}
+.st-map-overlay-btn--primary:hover {
+  background: var(--color-btn-primary-bg-hover);
+  box-shadow: none;
+}
+.st-map-overlay-btn--primary:active {
+  background: var(--color-btn-primary-bg-active);
+  box-shadow: none;
 }
 .st-location-info {
   display: flex;
@@ -9007,68 +9020,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .roastery-cta-btn:active {
   background: var(--color-btn-primary-bg-active);
 }
-/* ── 잔존: st-map-overlay 만 옛 gold 패턴 (PR-1c-7 폐기 예정) ── */
-.st-map-overlay-btn,
-.st-map-overlay-btn--primary {
-  position: relative;
-  overflow: hidden;
-}
+/* PR-1c 통일 완료 — 옛 gold underline ::after 시스템 전체 폐기 (BUG-144 (1) 그룹 + opacity:1 / position relative overflow hidden / disabled::after 모두 정리됨) */
 
-/* 다크 bg 버튼 → gold-on-dark (잔존 — st-map-overlay 만, PR-1c-7) */
-.st-map-overlay-btn--primary::after {
-  content: '';
-  position: absolute;
-  bottom: 1px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--color-accent-gold-on-dark);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 350ms var(--sr-easing);
-}
-.st-map-overlay-btn--primary:hover::after {
-  transform: scaleX(1);
-}
-
-/* 라이트 bg 버튼 → gold (잔존 — st-map-overlay 만) */
-.st-map-overlay-btn::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--color-accent-gold);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 350ms var(--sr-easing);
-}
-.st-map-overlay-btn:hover::after {
-  transform: scaleX(1);
-}
-
-/* hover 시 opacity 고정 (전역 darken 방지) — 잔존: st-map-overlay 만 */
-.st-map-overlay-btn:hover,
-.st-map-overlay-btn--primary:hover {
-  opacity: 1;
-}
-
-/* BUG-144 — touch 디바이스 (hover: none) 에서 hover 발화 차단.
-   모바일에서 스크롤·드래그 도중 손가락이 요소 위를 지나면 :hover 가 잠깐 발화 →
-   의도하지 않은 활성화 피드백. tap-and-hold 시 sticky hover 도 동일 문제.
-   데스크탑 hover 동작은 영향 없음. */
-
-/* BUG-144 (1) — CTA gold rule (`:hover::after` scaleX) 차단 (잔존 — st-map-overlay 만 PR-1c-7) */
+/* PR-1c-1~7 — Blue Bottle 패턴 통일 모바일 sticky hover 차단 */
 @media (hover: none) {
-  .st-map-overlay-btn:hover::after,
-  .st-map-overlay-btn--primary:hover::after {
-    transform: scaleX(0);
-  }
-}
-
-/* PR-1c-1~6 — Blue Bottle 패턴 (sig + 메인 + PDP + 인증 + 주문 + 마이페이지 + 비즈니스/시스템) 모바일 sticky hover 차단 */
-@media (hover: none) {
+  /* primary filled: hover bg darken 차단 → default bg 유지 */
   .sig-cta:hover,
   .season-cta:hover,
   .roastery-cta-btn:hover,
@@ -9082,13 +9038,16 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .mp-save-btn:not(:disabled):hover,
   .mp-modal-confirm:not(:disabled):hover,
   .bi-submit-btn:not(:disabled):hover,
-  .cta-btn-light-filled:not(:disabled):hover {
+  .cta-btn-light-filled:not(:disabled):hover,
+  .st-map-overlay-btn--primary:hover {
     background: var(--color-btn-primary-bg);
   }
+  /* secondary outline: hover 2px 차단 → 1px 유지 */
   .chp-empty-cta:hover,
   .mp-cancel-btn:not(:disabled):hover,
   .mp-modal-cancel:not(:disabled):hover,
-  .cta-btn-light-outline:not(:disabled):hover {
+  .cta-btn-light-outline:not(:disabled):hover,
+  .st-map-overlay-btn:hover {
     box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
   }
 }
