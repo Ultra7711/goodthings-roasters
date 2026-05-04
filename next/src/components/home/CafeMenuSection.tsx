@@ -11,8 +11,14 @@
      본문     = "원두를 마시는 또 다른 방법…"
    ══════════════════════════════════════════ */
 
+import Image from 'next/image';
+import Link from 'next/link';
 import { getActiveCafeEvent, getComingCafeEvent } from '@/lib/cafeEventsServer';
+import { CAFE_MENU } from '@/lib/cafeMenu';
 import EventBanner from './EventBanner';
+import MenuTab from './MenuTab';
+
+const FEATURED_ITEMS = CAFE_MENU.filter((i) => i.status === '시그니처').slice(0, 3);
 
 export default async function CafeMenuSection() {
   const activeEvent = await getActiveCafeEvent();
@@ -34,6 +40,52 @@ export default async function CafeMenuSection() {
 
       {/* 이벤트 배너 row — active 또는 7일 내 Coming */}
       {event && <EventBanner event={event} />}
+
+      {/* PR-1c — 매장 사진 + 시그니처 메뉴 3종
+          썸네일 사진 세로 가득 / 사진 내부 MENU 세로탭 (스크롤 좌상→우하 이동) */}
+      <div className="cafe-menu-split">
+        <div className="cafe-menu-split__photo">
+          <Image
+            src="/images/gallery/KakaoTalk_20260328_161956706_24.webp"
+            alt="굳띵즈 인의동 1호점 매장 내부"
+            fill
+            sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 640px"
+            style={{ objectFit: 'cover' }}
+          />
+          <MenuTab />
+        </div>
+        <div className="cafe-menu-split__items">
+          {FEATURED_ITEMS.map((item) => (
+            <Link
+              key={item.id}
+              href={`/menu?item=${encodeURIComponent(item.id)}`}
+              className="cmsplit-row"
+            >
+              <div className="cmsplit-thumb">
+                <Image
+                  src={item.img}
+                  alt={item.name}
+                  fill
+                  sizes="(max-width: 767px) 100px, (max-width: 1023px) 200px, 250px"
+                  style={{ objectFit: 'cover' }}
+                />
+              </div>
+              <div className="cmsplit-info">
+                {item.status && <span className="cmsplit-status">{item.status}</span>}
+                <div className="cmsplit-row-head">
+                  <span className="cmsplit-name">{item.name}</span>
+                  <span className="cmsplit-price">
+                    {item.price.toLocaleString('ko-KR')}원
+                  </span>
+                </div>
+                {item.menuDesc && (
+                  <p className="cmsplit-desc">{item.menuDesc}</p>
+                )}
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

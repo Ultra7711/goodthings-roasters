@@ -193,10 +193,11 @@ to public
 using (bucket_id = 'cafe-events');
 
 -- ── 6. Seed (5월 가정의 달) ─────────────────────────────────────────────
--- 사용자 결정 (S149):
---   - type = campaign (5번째 신규 type)
---   - 사진 = 임시 일러스트 (next/public/images/cafe-events/family-month-2026-05.png)
---   - h4 = "가족과 함께라면, 음료 한 잔 무료" (18자)
+-- 사용자 결정 (S149/S150):
+--   - type = campaign
+--   - 사진 = 카네이션/가족 일러스트 (next/public/images/cafe-events/family-month-2026-05.png)
+--   - h4 = "가족과 함께라면, 음료 한 잔 더 무료" (S150 — "더" 추가, 마케팅 임팩트 ↑)
+--   - desc = 부모+아이 그룹 트리거 (S150 — "또는 아이와" → "과 아이가" 정정)
 --   - CTA 없음 (cta_target NULL)
 insert into public.cafe_events (
   type, enabled, eyebrow, h4, meta, description,
@@ -209,9 +210,9 @@ values
     'campaign',
     true,
     'Now On · ~5/31',
-    '가족과 함께라면, 음료 한 잔 무료',
+    '가족과 함께라면, 음료 한 잔 더 무료',
     '5월 한 달 · 매장 한정 · 가족 동반',
-    '부모님 또는 아이와 함께 방문하시면 음료 한 잔을 무료로 드립니다.',
+    '부모님과 아이가 함께 방문하시면 음료 한 잔을 무료로 드립니다.',
     '/images/cafe-events/family-month-2026-05.png',
     '5월 가정의 달 이벤트 일러스트',
     '2026-05-01',

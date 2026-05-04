@@ -14,7 +14,8 @@ type Props = { event: CafeEvent };
 
 export default function EventBanner({ event }: Props) {
   return (
-    <div className="ev-banner">
+    <div className="ev-banner-bleed">
+      <div className="ev-banner">
       {/* 이미지 — 1:1 정사각 (desktop/tablet) · 16:9 (mobile via CSS) */}
       {event.image_path ? (
         <div className="ev-banner__img">
@@ -47,6 +48,7 @@ export default function EventBanner({ event }: Props) {
             자세히 →
           </Link>
         )}
+      </div>
       </div>
     </div>
   );
