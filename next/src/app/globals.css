@@ -7169,9 +7169,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   width: 100%; height: 48px; background: var(--color-btn-primary-bg); color: var(--color-text-inverse); border: none;
   font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing); cursor: pointer;
-  transition: opacity var(--duration-transition) ease;
+  transition: background 200ms ease;
 }
-.ocp-btn-primary:active { opacity: .7; }
+.ocp-btn-primary:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.ocp-btn-primary:not(:disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
 .ocp-btn-secondary {
   background: transparent; border: none; padding: 0;
   font-family: var(--font-kr); font-size: var(--link-cta-font-size); font-weight: var(--link-cta-font-weight);
@@ -8742,9 +8747,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-weight: var(--cta-btn-font-weight);
   letter-spacing: var(--cta-btn-letter-spacing);
   cursor: pointer;
-  transition: opacity var(--duration-transition) ease;
+  transition: background 200ms ease;
 }
-.cp-order-btn:active:not(:disabled) { opacity: .7; }
+/* PR-1c-4 — Blue Bottle hover/active darken (:not(:disabled) — loading 상태 default 유지) */
+.cp-order-btn:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.cp-order-btn:not(:disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
 .cp-order-btn:disabled { opacity: .35; cursor: not-allowed; }
 
 /* ══ Cart Page — Laptop (≤1200) 컬럼 폭 축소 ══ */
@@ -8950,8 +8961,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-dark-outline,
 .cta-btn-dark-filled,
 .cta-btn-light-outline,
-.ocp-btn-primary,
-.cp-order-btn,
 .bi-submit-btn,
 .mp-save-btn,
 .mp-cancel-btn,
@@ -8966,8 +8975,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* 다크 bg 버튼 → gold-on-dark */
 .cta-btn-light-filled::after,
 .cta-btn-dark-outline::after,
-.ocp-btn-primary::after,
-.cp-order-btn::after,
 .bi-submit-btn::after,
 .mp-save-btn::after,
 .mp-modal-confirm::after,
@@ -8985,8 +8992,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .cta-btn-light-filled:hover::after,
 .cta-btn-dark-outline:hover::after,
-.ocp-btn-primary:hover::after,
-.cp-order-btn:hover:not(:disabled)::after,
 .bi-submit-btn:hover::after,
 .mp-save-btn:hover::after,
 .mp-modal-confirm:hover::after,
@@ -9035,8 +9040,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-dark-outline:hover,
 .cta-btn-dark-filled:hover,
 .cta-btn-light-outline:hover,
-.ocp-btn-primary:hover,
-.cp-order-btn:hover:not(:disabled),
 .bi-submit-btn:hover,
 .mp-save-btn:hover,
 .mp-cancel-btn:hover,
@@ -9058,8 +9061,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cta-btn-dark-outline:hover::after,
   .cta-btn-dark-filled:hover::after,
   .cta-btn-light-outline:hover::after,
-  .ocp-btn-primary:hover::after,
-  .cp-order-btn:hover:not(:disabled)::after,
   .bi-submit-btn:hover::after,
   .mp-save-btn:hover::after,
   .mp-cancel-btn:hover::after,
@@ -9071,7 +9072,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   }
 }
 
-/* PR-1c-1·2·3 — Blue Bottle 패턴 (sig + 메인 + PDP + 인증) 모바일 sticky hover 차단 */
+/* PR-1c-1·2·3·4 — Blue Bottle 패턴 (sig + 메인 + PDP + 인증 + 주문) 모바일 sticky hover 차단 */
 @media (hover: none) {
   .sig-cta:hover,
   .season-cta:hover,
@@ -9080,7 +9081,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .lp-submit-btn:not(:disabled):hover,
   .lp-guest-buy-btn:not(:disabled):hover,
   .chp-submit-btn:not(:disabled):hover,
-  .chp-login-primary-btn:hover {
+  .chp-login-primary-btn:hover,
+  .cp-order-btn:not(:disabled):hover,
+  .ocp-btn-primary:not(:disabled):hover {
     background: var(--color-btn-primary-bg);
   }
   .chp-empty-cta:hover {
@@ -9105,7 +9108,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 @media (prefers-reduced-motion: reduce) {
   .cta-btn-light-filled::after, .cta-btn-dark-outline::after,
   .cta-btn-dark-filled::after, .cta-btn-light-outline::after,
-  .ocp-btn-primary::after, .cp-order-btn::after,
   .bi-submit-btn::after,
   .mp-save-btn::after, .mp-cancel-btn::after,
   .mp-modal-confirm::after, .mp-modal-cancel::after,
@@ -9117,8 +9119,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-dark-outline:disabled::after,
 .cta-btn-dark-filled:disabled::after,
 .cta-btn-light-outline:disabled::after,
-.ocp-btn-primary:disabled::after,
-.cp-order-btn:disabled::after,
 .bi-submit-btn:disabled::after,
 .mp-save-btn:disabled::after,
 .mp-cancel-btn:disabled::after,
