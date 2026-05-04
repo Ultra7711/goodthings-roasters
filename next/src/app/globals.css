@@ -2023,7 +2023,7 @@ footer.blk {
 }
 .ev-banner__eyebrow {
   font-family: var(--font-en);
-  font-size: var(--type-label-size);
+  font-size: var(--type-body-s-size);
   font-weight: 500;
   letter-spacing: 2px;
   color: var(--color-accent-gold);
@@ -2038,15 +2038,15 @@ footer.blk {
   margin: 6px 0 8px;
 }
 .ev-banner__meta {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-kr);
   font-size: var(--type-caption-size);
   letter-spacing: var(--ls-body-s);
   color: var(--ink-on-sand);
   line-height: 20px;
 }
 .ev-banner__desc {
-  font-size: var(--type-body-s-size);
-  line-height: var(--lh-kr-body-13);
+  font-size: var(--type-body-m-size);
+  line-height: var(--lh-kr-body-15);
   color: var(--ink-on-sand);
   margin: 8px 0 0;
   max-width: 380px;
