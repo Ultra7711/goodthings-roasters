@@ -2023,30 +2023,30 @@ footer.blk {
 }
 .ev-banner__eyebrow {
   font-family: var(--font-en);
-  font-size: 11px;
+  font-size: var(--type-label-size);
   font-weight: 500;
-  letter-spacing: 0.18em;
+  letter-spacing: 2px;
   color: var(--color-accent-gold);
   text-transform: uppercase;
 }
 .ev-banner__h4 {
-  font-size: 22px;
+  font-size: var(--type-h3-size);
   font-weight: 400;
-  letter-spacing: -0.015em;
+  letter-spacing: var(--ls-heading);
   color: var(--color-text-primary);
-  line-height: 1.3;
+  line-height: var(--lh-h3);
   margin: 6px 0 8px;
 }
 .ev-banner__meta {
   font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 12px;
-  letter-spacing: 0.02em;
+  font-size: var(--type-caption-size);
+  letter-spacing: var(--ls-body-s);
   color: var(--ink-on-sand);
-  line-height: 1.5;
+  line-height: 20px;
 }
 .ev-banner__desc {
-  font-size: 13.5px;
-  line-height: 1.65;
+  font-size: var(--type-body-s-size);
+  line-height: var(--lh-kr-body-13);
   color: var(--ink-on-sand);
   margin: 8px 0 0;
   max-width: 380px;
