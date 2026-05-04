@@ -1557,13 +1557,33 @@ footer.blk {
   cursor: pointer;
   border: none;
   white-space: nowrap;
-  transition: opacity var(--duration-transition) ease;
 }
-.cta-btn:active { opacity: .7; }
+/* PR-1c-6 — 시스템 변형 4종: light-filled (primary) + light-outline (secondary) 활성 / dark-* 미사용 잔존 */
 .cta-btn-dark-filled { background: var(--color-background-primary); color: var(--color-text-primary); }
 .cta-btn-dark-outline { background: transparent; color: var(--color-text-inverse); border: 1px solid var(--color-background-primary); }
-.cta-btn-light-filled { background: var(--color-btn-primary-bg); color: var(--color-text-inverse); }
-.cta-btn-light-outline { background: transparent; color: var(--color-text-primary); border: 1px solid var(--color-btn-primary-bg); }
+.cta-btn-light-filled {
+  background: var(--color-btn-primary-bg);
+  color: var(--color-text-inverse);
+  transition: background 200ms ease;
+}
+.cta-btn-light-filled:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.cta-btn-light-filled:not(:disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
+/* secondary outline 마이그레이션 — bg pure white + box-shadow inset 1px → 2px */
+.cta-btn-light-outline {
+  background: var(--color-background-pure);
+  color: var(--color-text-primary);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
+  transition: box-shadow 200ms ease;
+}
+.cta-btn-light-outline:not(:disabled):hover,
+.cta-btn-light-outline:not(:disabled):active {
+  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+}
 
 /* ══ 접근성 ══ */
 .sr-only {
@@ -6167,11 +6187,14 @@ footer.blk {
   font-size: var(--btn-font-size);
   font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing);
-  transition: opacity var(--duration-transition) ease;
+  transition: background 200ms ease;
   margin-bottom: 36px;
 }
-.bi-submit-btn:active {
-  opacity: 0.7;
+.bi-submit-btn:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.bi-submit-btn:not(:disabled):active {
+  background: var(--color-btn-primary-bg-active);
 }
 
 /* ── 개인정보 안내 ── */
@@ -8984,22 +9007,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .roastery-cta-btn:active {
   background: var(--color-btn-primary-bg-active);
 }
-/* ── 전체 CTA: position/overflow 기반 준비 ── */
-.cta-btn-light-filled,
-.cta-btn-dark-outline,
-.cta-btn-dark-filled,
-.cta-btn-light-outline,
-.bi-submit-btn,
+/* ── 잔존: st-map-overlay 만 옛 gold 패턴 (PR-1c-7 폐기 예정) ── */
 .st-map-overlay-btn,
 .st-map-overlay-btn--primary {
   position: relative;
   overflow: hidden;
 }
 
-/* 다크 bg 버튼 → gold-on-dark */
-.cta-btn-light-filled::after,
-.cta-btn-dark-outline::after,
-.bi-submit-btn::after,
+/* 다크 bg 버튼 → gold-on-dark (잔존 — st-map-overlay 만, PR-1c-7) */
 .st-map-overlay-btn--primary::after {
   content: '';
   position: absolute;
@@ -9012,20 +9027,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   transform-origin: left;
   transition: transform 350ms var(--sr-easing);
 }
-.cta-btn-light-filled:hover::after,
-.cta-btn-dark-outline:hover::after,
-.bi-submit-btn:hover::after,
 .st-map-overlay-btn--primary:hover::after {
   transform: scaleX(1);
 }
 
-/* 라이트 bg 버튼 → gold */
-.cta-btn-dark-filled::after,
-.cta-btn-light-outline::after,
+/* 라이트 bg 버튼 → gold (잔존 — st-map-overlay 만) */
 .st-map-overlay-btn::after {
   content: '';
   position: absolute;
-  bottom: 1px;
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 2px;
@@ -9034,27 +9044,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   transform-origin: left;
   transition: transform 350ms var(--sr-easing);
 }
-.cta-btn-dark-filled:hover::after,
-.cta-btn-light-outline:hover::after,
 .st-map-overlay-btn:hover::after {
   transform: scaleX(1);
 }
 
-/* BUG-127 (S70): outline 변종의 hover 밑줄을 outline 경계에 붙임.
-   기본 `bottom: 1px` 은 outline 위로 1px 떠보이므로 Primary (filled) 와 시각 베이스라인 불일치.
-   `bottom: 0` 으로 조정해 padding-box 하단 (= outline 상단) 에 직접 붙이도록 함. */
-.cta-btn-dark-outline::after,
-.cta-btn-light-outline::after,
-.st-map-overlay-btn::after {
-  bottom: 0;
-}
-
-/* hover 시 opacity 고정 (전역 darken 방지) */
-.cta-btn-light-filled:hover,
-.cta-btn-dark-outline:hover,
-.cta-btn-dark-filled:hover,
-.cta-btn-light-outline:hover,
-.bi-submit-btn:hover,
+/* hover 시 opacity 고정 (전역 darken 방지) — 잔존: st-map-overlay 만 */
 .st-map-overlay-btn:hover,
 .st-map-overlay-btn--primary:hover {
   opacity: 1;
@@ -9065,20 +9059,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    의도하지 않은 활성화 피드백. tap-and-hold 시 sticky hover 도 동일 문제.
    데스크탑 hover 동작은 영향 없음. */
 
-/* BUG-144 (1) — CTA gold rule (`:hover::after` scaleX) 차단 (잔존 — C-2~C-7 폐기 시 함께 정리) */
+/* BUG-144 (1) — CTA gold rule (`:hover::after` scaleX) 차단 (잔존 — st-map-overlay 만 PR-1c-7) */
 @media (hover: none) {
-  .cta-btn-light-filled:hover::after,
-  .cta-btn-dark-outline:hover::after,
-  .cta-btn-dark-filled:hover::after,
-  .cta-btn-light-outline:hover::after,
-  .bi-submit-btn:hover::after,
   .st-map-overlay-btn:hover::after,
   .st-map-overlay-btn--primary:hover::after {
     transform: scaleX(0);
   }
 }
 
-/* PR-1c-1·2·3·4·5 — Blue Bottle 패턴 (sig + 메인 + PDP + 인증 + 주문 + 마이페이지) 모바일 sticky hover 차단 */
+/* PR-1c-1~6 — Blue Bottle 패턴 (sig + 메인 + PDP + 인증 + 주문 + 마이페이지 + 비즈니스/시스템) 모바일 sticky hover 차단 */
 @media (hover: none) {
   .sig-cta:hover,
   .season-cta:hover,
@@ -9091,12 +9080,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cp-order-btn:not(:disabled):hover,
   .ocp-btn-primary:not(:disabled):hover,
   .mp-save-btn:not(:disabled):hover,
-  .mp-modal-confirm:not(:disabled):hover {
+  .mp-modal-confirm:not(:disabled):hover,
+  .bi-submit-btn:not(:disabled):hover,
+  .cta-btn-light-filled:not(:disabled):hover {
     background: var(--color-btn-primary-bg);
   }
   .chp-empty-cta:hover,
   .mp-cancel-btn:not(:disabled):hover,
-  .mp-modal-cancel:not(:disabled):hover {
+  .mp-modal-cancel:not(:disabled):hover,
+  .cta-btn-light-outline:not(:disabled):hover {
     box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
   }
 }
@@ -9116,18 +9108,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cta-btn-light-filled::after, .cta-btn-dark-outline::after,
-  .cta-btn-dark-filled::after, .cta-btn-light-outline::after,
-  .bi-submit-btn::after,
   .st-map-overlay-btn::after, .st-map-overlay-btn--primary::after { transition: none; }
 }
 
-/* 로딩·disabled 상태: 골드 라인 fill 유지 (hover-out 애니 차단) */
-.cta-btn-light-filled:disabled::after,
-.cta-btn-dark-outline:disabled::after,
-.cta-btn-dark-filled:disabled::after,
-.cta-btn-light-outline:disabled::after,
-.bi-submit-btn:disabled::after,
+/* 로딩·disabled 상태: 골드 라인 fill 유지 (hover-out 애니 차단) — 잔존 st-map 만 */
 .st-map-overlay-btn:disabled::after,
 .st-map-overlay-btn--primary:disabled::after { transform: scaleX(0); transition: none; }
 
