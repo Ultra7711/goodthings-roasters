@@ -7849,31 +7849,40 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .mp-cycle-chevron.open { transform: translateY(-50%) rotate(180deg); }
 .mp-cycle-dropdown-wrap .pd-dropdown-panel { top: 100%; left: -1px; right: -1px; }
+/* PR-1c-5 — primary filled (마이페이지 컨텍스트 height 44 / padding 0 32 / min-width 120) */
 .mp-save-btn {
   display: inline-flex; align-items: center; justify-content: center;
   height: 44px; padding: 0 32px; min-width: 120px;
   background: var(--color-btn-primary-bg); color: var(--color-text-inverse); border: none; cursor: pointer;
   font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing);
-  transition: transform .5s var(--ease-spring), opacity var(--duration-transition) ease;
-  will-change: transform; backface-visibility: hidden;
+  transition: background 200ms ease;
 }
-.mp-save-btn:hover { opacity: 1; }
-.mp-save-btn:active { opacity: .7; }
+.mp-save-btn:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.mp-save-btn:not(:disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
+/* PR-1c-5 — secondary outline 마이그레이션 (bg pure white + box-shadow inset 1→2) */
 .mp-cancel-btn {
   display: inline-flex; align-items: center; justify-content: center;
   height: 44px; padding: 0 32px; min-width: 120px;
-  background: transparent; color: var(--color-text-primary);
-  border: 1px solid var(--color-text-primary); cursor: pointer;
+  background: var(--color-background-pure); color: var(--color-text-primary);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
+  cursor: pointer;
   font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing);
-  transition: box-shadow var(--duration-hover) ease, transform .5s var(--ease-spring), opacity var(--duration-transition) ease;
-  will-change: transform; backface-visibility: hidden;
+  transition: box-shadow 200ms ease;
 }
-.mp-cancel-btn:active { opacity: .7; }
+.mp-cancel-btn:not(:disabled):hover,
+.mp-cancel-btn:not(:disabled):active {
+  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+}
 .mp-cancel-btn:disabled {
   color: var(--color-text-caption);
-  border-color: var(--color-border-secondary);
+  box-shadow: inset 0 0 0 1px var(--color-border-secondary);
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -8065,6 +8074,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-secondary); line-height: 24px; margin: 0 0 28px;
 }
 .mp-modal-actions { display: flex; gap: var(--gap-sm); }
+/* PR-1c-5 — modal cancel: secondary outline 마이그레이션 */
 .mp-modal-cancel {
   flex: 1;
   height: 44px;
@@ -8073,19 +8083,37 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing);
   color: var(--color-text-primary);
-  background: transparent;
-  border: 1px solid var(--color-text-primary);
+  background: var(--color-background-pure);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
   cursor: pointer;
-  transition: background-color var(--duration-hover) ease, opacity var(--duration-hover) ease;
+  transition: box-shadow 200ms ease;
 }
+.mp-modal-cancel:not(:disabled):hover,
+.mp-modal-cancel:not(:disabled):active {
+  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+}
+/* PR-1c-5 — modal confirm: primary filled (background-inverse → btn-primary-bg 정합) */
 .mp-modal-confirm {
   flex: 1; height: 44px;
   font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing);
-  color: var(--color-text-inverse); background-color: var(--color-background-inverse);
-  border: none; cursor: pointer; transition: opacity var(--duration-hover) ease;
+  color: var(--color-text-inverse); background-color: var(--color-btn-primary-bg);
+  border: none; cursor: pointer; transition: background 200ms ease;
 }
+.mp-modal-confirm:not(:disabled):hover {
+  background-color: var(--color-btn-primary-bg-hover);
+}
+.mp-modal-confirm:not(:disabled):active {
+  background-color: var(--color-btn-primary-bg-active);
+}
+/* danger modifier — error 색상 유지, 새 hover/active 룰 base 와 정합 */
 .mp-modal-confirm--danger { background-color: var(--color-error); }
+.mp-modal-confirm--danger:not(:disabled):hover,
+.mp-modal-confirm--danger:not(:disabled):active {
+  background-color: var(--color-error);
+  filter: brightness(0.9);
+}
 
 /* 비밀번호 펼침 시 회원 탈퇴 구분선 (버튼~구분선 간격 확보) */
 .mp-info-row.mp-info-row--withdraw.mp-withdraw-divider {
@@ -8962,10 +8990,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-dark-filled,
 .cta-btn-light-outline,
 .bi-submit-btn,
-.mp-save-btn,
-.mp-cancel-btn,
-.mp-modal-confirm,
-.mp-modal-cancel,
 .st-map-overlay-btn,
 .st-map-overlay-btn--primary {
   position: relative;
@@ -8976,8 +9000,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-light-filled::after,
 .cta-btn-dark-outline::after,
 .bi-submit-btn::after,
-.mp-save-btn::after,
-.mp-modal-confirm::after,
 .st-map-overlay-btn--primary::after {
   content: '';
   position: absolute;
@@ -8993,8 +9015,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-light-filled:hover::after,
 .cta-btn-dark-outline:hover::after,
 .bi-submit-btn:hover::after,
-.mp-save-btn:hover::after,
-.mp-modal-confirm:hover::after,
 .st-map-overlay-btn--primary:hover::after {
   transform: scaleX(1);
 }
@@ -9002,8 +9022,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* 라이트 bg 버튼 → gold */
 .cta-btn-dark-filled::after,
 .cta-btn-light-outline::after,
-.mp-cancel-btn::after,
-.mp-modal-cancel::after,
 .st-map-overlay-btn::after {
   content: '';
   position: absolute;
@@ -9018,8 +9036,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .cta-btn-dark-filled:hover::after,
 .cta-btn-light-outline:hover::after,
-.mp-cancel-btn:hover::after,
-.mp-modal-cancel:hover::after,
 .st-map-overlay-btn:hover::after {
   transform: scaleX(1);
 }
@@ -9029,8 +9045,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    `bottom: 0` 으로 조정해 padding-box 하단 (= outline 상단) 에 직접 붙이도록 함. */
 .cta-btn-dark-outline::after,
 .cta-btn-light-outline::after,
-.mp-cancel-btn::after,
-.mp-modal-cancel::after,
 .st-map-overlay-btn::after {
   bottom: 0;
 }
@@ -9041,10 +9055,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-dark-filled:hover,
 .cta-btn-light-outline:hover,
 .bi-submit-btn:hover,
-.mp-save-btn:hover,
-.mp-cancel-btn:hover,
-.mp-modal-confirm:hover,
-.mp-modal-cancel:hover,
 .st-map-overlay-btn:hover,
 .st-map-overlay-btn--primary:hover {
   opacity: 1;
@@ -9062,17 +9072,13 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cta-btn-dark-filled:hover::after,
   .cta-btn-light-outline:hover::after,
   .bi-submit-btn:hover::after,
-  .mp-save-btn:hover::after,
-  .mp-cancel-btn:hover::after,
-  .mp-modal-confirm:hover::after,
-  .mp-modal-cancel:hover::after,
   .st-map-overlay-btn:hover::after,
   .st-map-overlay-btn--primary:hover::after {
     transform: scaleX(0);
   }
 }
 
-/* PR-1c-1·2·3·4 — Blue Bottle 패턴 (sig + 메인 + PDP + 인증 + 주문) 모바일 sticky hover 차단 */
+/* PR-1c-1·2·3·4·5 — Blue Bottle 패턴 (sig + 메인 + PDP + 인증 + 주문 + 마이페이지) 모바일 sticky hover 차단 */
 @media (hover: none) {
   .sig-cta:hover,
   .season-cta:hover,
@@ -9083,10 +9089,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .chp-submit-btn:not(:disabled):hover,
   .chp-login-primary-btn:hover,
   .cp-order-btn:not(:disabled):hover,
-  .ocp-btn-primary:not(:disabled):hover {
+  .ocp-btn-primary:not(:disabled):hover,
+  .mp-save-btn:not(:disabled):hover,
+  .mp-modal-confirm:not(:disabled):hover {
     background: var(--color-btn-primary-bg);
   }
-  .chp-empty-cta:hover {
+  .chp-empty-cta:hover,
+  .mp-cancel-btn:not(:disabled):hover,
+  .mp-modal-cancel:not(:disabled):hover {
     box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
   }
 }
@@ -9109,8 +9119,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cta-btn-light-filled::after, .cta-btn-dark-outline::after,
   .cta-btn-dark-filled::after, .cta-btn-light-outline::after,
   .bi-submit-btn::after,
-  .mp-save-btn::after, .mp-cancel-btn::after,
-  .mp-modal-confirm::after, .mp-modal-cancel::after,
   .st-map-overlay-btn::after, .st-map-overlay-btn--primary::after { transition: none; }
 }
 
@@ -9120,10 +9128,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-dark-filled:disabled::after,
 .cta-btn-light-outline:disabled::after,
 .bi-submit-btn:disabled::after,
-.mp-save-btn:disabled::after,
-.mp-cancel-btn:disabled::after,
-.mp-modal-confirm:disabled::after,
-.mp-modal-cancel:disabled::after,
 .st-map-overlay-btn:disabled::after,
 .st-map-overlay-btn--primary:disabled::after { transform: scaleX(0); transition: none; }
 
