@@ -221,7 +221,11 @@
 | **2 (A-6)** | Accordion 통합 — 공통 `Accordion.tsx` (controlled/uncontrolled · pd-accordion CSS 재사용) + ProductAccordions 리팩터 + `mp-accordion → mp-form-reveal` rename (CSS 24룰 + JSX 9곳) + `/legal/[slug]` 5페이지 SSG (terms/privacy/business-info/shipping/returns · canonical · openGraph · 시행일 통일 · 좌측 사이드 골드 active · shipping/returns useAccordion=true) + 골드 라인 상하 2px 인셋 (인접 분리) + Footer/MobileNavDrawer 약관 링크 + 토스 결제 일원화 텍스트 정합 | ✅ S138 (`68e025ff`) |
 | **2 (A-7)** | Drawer 폭 토큰 통일 — CartDrawer `width: 664px` → `var(--drawer-width)` 540 (CafeNutritionSheet · MobileNavDrawer 와 동일 토큰). 자문 §6.4/§6.9 검색 패널 우측 480 Drawer 권고는 D-22 폐기 (검색 drop-down 유지) | ✅ S139 |
 | 2 보류 | D-12 SpecTable 12 키 폐기 · D-13 SpecTable 기본 펼침 · D-14 분쇄도 옵션 · D-15 정기배송 할인 계산 흐름 통합 (Phase 2) · D-16 어드민 Group E 정기배송 할인율 입력 (Phase 3) · D-21 카드 뱃지 색상 시스템 통합 (자문 §6.2 sand 통일 vs emergency 신호 의미 충돌 — 별도 검토 필요) · **D-22 자문 §6.4/§6.9 검색 패널 우측 Drawer 권고 폐기 (drop-down 유지 · 운영 현실 + 업계 표준 부합)** | ⏸️ |
-| 3 | 페이지 적용 — 메인 → 샵 → PDP → 마이페이지 → 카트·체크아웃 → 나머지 | ⬜ |
+| 3 (§2.2) | 메인 시그니처 chapter PR-1a — advisory-A pixel spec implement (Hero 직후 sand 단독 카드 + 5fr/7fr split + `--ink-on-sand` 토큰 + `SignatureChapter.tsx` server component + 마이그레이션 034 + 시즌 배너 폐기) + 디자인 수정 1차 (eyebrow `.blk-label` 통일 + sand 위 gold scoped / chip 13px `--type-body-s-size` / CTA PDP 패턴 답습 height 48 "상세 보기 →" / 사진 `<Link>` wrap + hover scale 1.02 / subtitle I 안) | ✅ S146 (`ad0c0627`) |
+| 3 (§2.2) | 메인 시그니처 chapter PR-1b — 화살표 제거 + active translateY → bg darken (Blue Bottle 패턴) | ⬜ S147 |
+| 3 (§2.2) | 시그니처 chapter PR-1c — 전 사이트 CTA 12+종 hover/active 통일 (Gold Fill ::after 일괄 폐기 + 단순 hover lighten/active darken) | ⬜ S147 (별도 sprint 분량) |
+| 3 (§2.2) | 시그니처 chapter PR-2 — advisory §6 어드민 워크플로 (입력 UI · 4 brk 미리보기 · 안전 영역 가이드 · 분기 캘린더) | ⬜ S148+ |
+| 3 (남은) | 메인 §2.3 라인업 그리드 / §2.5 카페 메뉴 split / §2.6 스토리·굿데이즈 / §2.7 Footer · 샵 / PDP / 마이페이지 / 카트·체크아웃 / 나머지 | ⬜ |
 
 **자문 응답:** `memory/project_design_audit_v2.md` (보충본 통합 · 1763줄 raw)
 **우선순위:** `memory/project_design_audit_priorities.md` (39+ 항목)
