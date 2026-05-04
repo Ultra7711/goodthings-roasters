@@ -2955,9 +2955,8 @@ footer.blk {
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
 }
-.sp-card-thumb:hover .sp-card-img { transform: scale(1.03); }
+/* S152 — hover scale 제거 (자문 §1.4/§1.5 권고지만 D-2 보류 → editorial 톤 채택) */
 
 /* ── highlight 플래시 (URL ?item= 진입 시) ──
    delay 0.6s — scrollIntoView smooth 완료 후 사용자가 카드 보고 있을 때 시작.
@@ -9686,13 +9685,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   cursor: pointer;
 }
 
-.sig-img > img {
-  transition: transform 300ms ease;
-}
-
-.sig-img:hover > img {
-  transform: scale(1.02);
-}
+/* S152 — hover scale 제거 (자문 §1.4/§1.5 권고지만 D-2 보류 → editorial 톤 채택) */
 
 /* H2 제품명 — Pretendard 26→28→32 + var(--lh-h2) (advisory §4.2 정합) */
 .sig-h2 {
