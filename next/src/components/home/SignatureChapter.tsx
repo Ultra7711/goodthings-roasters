@@ -6,7 +6,7 @@
    - 빈 상태 분기: enabled · image · product · subtitle · chips
    - SR 통합 (CafeMenuSection 패턴 답습)
    - data-header-theme="light" (sand bg 위 dark text)
-   - CTA = PDP 진입 ("상세 보기 →") · 사진 = PDP Link wrap (이중 진입 동기)
+   - CTA = PDP 진입 ("상세 보기") · 사진 = PDP Link wrap (이중 진입 동기)
    - eyebrow 는 시스템 .blk-label 클래스 통일
 
    참조:
@@ -65,10 +65,7 @@ export default async function SignatureChapter() {
           )}
           <div className="sig-cta-row sr-txt sr-txt--d4">
             <Link href={href} className="sig-cta" data-gtr-tap>
-              <span className="sig-cta-label">상세 보기</span>
-              <span className="sig-cta-arrow" aria-hidden="true">
-                →
-              </span>
+              상세 보기
             </Link>
           </div>
         </div>
