@@ -251,7 +251,76 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 880 }}>
-        {/* Section 1 — 공지 배너 */}
+        {/* Section 1 — 무료 배송 정책 (정책 기준 → 공지 배너 auto_text 자동 합성) */}
+        <SettingsCard
+          title="무료 배송 정책"
+          subtitle="장바구니 임계 금액 이상에서 자동 적용 · 공지 배너 자동 모드의 기준 금액"
+          on={settings.shipping.enabled}
+          onToggle={() => updateShipping({ enabled: !settings.shipping.enabled })}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <FormField label="기준 금액" hint="이 금액 이상 결제 시 무료">
+                <FormInput
+                  suffix="원 이상"
+                  inputMode="numeric"
+                  value={formatNumber(settings.shipping.free_threshold)}
+                  onChange={(e) =>
+                    updateShipping({ free_threshold: parseNumber(e.target.value) })
+                  }
+                />
+              </FormField>
+              <FormField label="기본 배송비">
+                <FormInput
+                  suffix="원"
+                  inputMode="numeric"
+                  value={formatNumber(settings.shipping.base_fee)}
+                  onChange={(e) =>
+                    updateShipping({ base_fee: parseNumber(e.target.value) })
+                  }
+                />
+              </FormField>
+            </div>
+
+            <div
+              style={{
+                padding: 12,
+                borderRadius: 6,
+                background: 'var(--info-soft)',
+                border: '1px solid #C5DCF1',
+                display: 'flex',
+                gap: 10,
+                alignItems: 'flex-start',
+                fontSize: 12.5,
+                color: 'var(--info)',
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ flexShrink: 0, marginTop: 1 }}
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4" />
+                <path d="M12 8h.01" />
+              </svg>
+              <div>
+                <div style={{ fontWeight: 500, color: '#1F4F8B' }}>참고</div>
+                <div style={{ marginTop: 2, color: 'var(--info)' }}>
+                  변경 시 메인 사이트 카트·체크아웃·마이페이지 모두 즉시 반영됩니다 (페이지 새로고침 후).
+                </div>
+              </div>
+            </div>
+          </div>
+        </SettingsCard>
+
+        {/* Section 2 — 공지 배너 */}
         <SettingsCard
           title="공지 배너"
           subtitle="페이지 최상단에 노출되는 1줄 띠 배너"
@@ -420,7 +489,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           </div>
         </SettingsCard>
 
-        {/* Section 2 — 시즌 배너 */}
+        {/* Section 3 — 시즌 배너 */}
         <SettingsCard
           title="시즌 배너"
           subtitle="홈 히어로 영역의 큰 배너"
@@ -632,7 +701,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           </div>
         </SettingsCard>
 
-        {/* Section 3 — 시그니처 한 잔 (S148 PR-2 advisory §6) */}
+        {/* Section 4 — 시그니처 섹션 (S148 PR-2 advisory §6) */}
         <SettingsCard
           title="시그니처 섹션"
           subtitle="메인 페이지 §2.2 sand 단독 chapter · 분기 갱신 (SS/SU/FW/WT)"
@@ -1152,74 +1221,6 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           </div>
         </div>
 
-        {/* Section 4 — 무료 배송 */}
-        <SettingsCard
-          title="무료 배송 정책"
-          subtitle="장바구니 임계 금액 이상에서 자동 적용"
-          on={settings.shipping.enabled}
-          onToggle={() => updateShipping({ enabled: !settings.shipping.enabled })}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <FormField label="기준 금액" hint="이 금액 이상 결제 시 무료">
-                <FormInput
-                  suffix="원 이상"
-                  inputMode="numeric"
-                  value={formatNumber(settings.shipping.free_threshold)}
-                  onChange={(e) =>
-                    updateShipping({ free_threshold: parseNumber(e.target.value) })
-                  }
-                />
-              </FormField>
-              <FormField label="기본 배송비">
-                <FormInput
-                  suffix="원"
-                  inputMode="numeric"
-                  value={formatNumber(settings.shipping.base_fee)}
-                  onChange={(e) =>
-                    updateShipping({ base_fee: parseNumber(e.target.value) })
-                  }
-                />
-              </FormField>
-            </div>
-
-            <div
-              style={{
-                padding: 12,
-                borderRadius: 6,
-                background: 'var(--info-soft)',
-                border: '1px solid #C5DCF1',
-                display: 'flex',
-                gap: 10,
-                alignItems: 'flex-start',
-                fontSize: 12.5,
-                color: 'var(--info)',
-              }}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ flexShrink: 0, marginTop: 1 }}
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 16v-4" />
-                <path d="M12 8h.01" />
-              </svg>
-              <div>
-                <div style={{ fontWeight: 500, color: '#1F4F8B' }}>참고</div>
-                <div style={{ marginTop: 2, color: 'var(--info)' }}>
-                  변경 시 메인 사이트 카트·체크아웃·마이페이지 모두 즉시 반영됩니다 (페이지 새로고침 후).
-                </div>
-              </div>
-            </div>
-          </div>
-        </SettingsCard>
       </div>
     </>
   );
