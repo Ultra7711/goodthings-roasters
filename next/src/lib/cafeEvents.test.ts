@@ -260,4 +260,47 @@ describe('composeEventEyebrow — 자문 §3.4 grammar', () => {
     });
     expect(eyebrow).toBe('Now On');
   });
+
+  /* PR-1d — Coming state override */
+  it('isComing=true → type 무관 "Coming · MM/DD~" 강제 (campaign)', () => {
+    const eyebrow = composeEventEyebrow(
+      {
+        type: 'campaign',
+        start_date: '2026-06-01',
+        end_date: '2026-06-30',
+        recurring: null,
+        season_label: null,
+      },
+      { isComing: true },
+    );
+    expect(eyebrow).toBe('Coming · 6/1~');
+  });
+
+  it('isComing=true + start_date 빈값 → "Coming"', () => {
+    const eyebrow = composeEventEyebrow(
+      {
+        type: 'campaign',
+        start_date: '',
+        end_date: '',
+        recurring: null,
+        season_label: null,
+      },
+      { isComing: true },
+    );
+    expect(eyebrow).toBe('Coming');
+  });
+
+  it('isComing=true 가 seasonal type 의 season_label 형식보다 우선', () => {
+    const eyebrow = composeEventEyebrow(
+      {
+        type: 'seasonal',
+        start_date: '2026-06-01',
+        end_date: '2026-08-31',
+        recurring: null,
+        season_label: 'Summer',
+      },
+      { isComing: true },
+    );
+    expect(eyebrow).toBe('Coming · 6/1~');
+  });
 });

@@ -14,6 +14,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { getActiveCafeEvent, getComingCafeEvent } from '@/lib/cafeEventsServer';
+import { composeEventEyebrow } from '@/lib/cafeEvents';
 import { CAFE_MENU } from '@/lib/cafeMenu';
 import EventBanner from './EventBanner';
 import MenuTab from './MenuTab';
@@ -21,9 +22,17 @@ import MenuTab from './MenuTab';
 const FEATURED_ITEMS = CAFE_MENU.filter((i) => i.status === '시그니처').slice(0, 3);
 
 export default async function CafeMenuSection() {
+  /* PR-1d — 3 분기 렌더:
+       Active   → DB eyebrow 그대로 (어드민 manual 입력 존중)
+       Coming   → composeEventEyebrow 로 "Coming · MM/DD~" override
+       비활성    → EventBanner 미렌더 */
   const activeEvent = await getActiveCafeEvent();
   const comingEvent = activeEvent ? null : await getComingCafeEvent();
   const event = activeEvent ?? comingEvent;
+  const isComing = !!comingEvent && !activeEvent;
+  const displayEvent = event && isComing
+    ? { ...event, eyebrow: composeEventEyebrow(event, { isComing: true }) }
+    : event;
 
   return (
     <section className="blk cafe-menu-blk" id="cafe-menu-blk" data-header-theme="light">
@@ -38,8 +47,8 @@ export default async function CafeMenuSection() {
         </p>
       </div>
 
-      {/* 이벤트 배너 row — active 또는 7일 내 Coming */}
-      {event && <EventBanner event={event} />}
+      {/* 이벤트 배너 row — active 또는 7일 내 Coming (eyebrow override) */}
+      {displayEvent && <EventBanner event={displayEvent} />}
 
       {/* PR-1c — 매장 사진 + 시그니처 메뉴 3종
           썸네일 사진 세로 가득 / 사진 내부 MENU 세로탭 (스크롤 좌상→우하 이동) */}

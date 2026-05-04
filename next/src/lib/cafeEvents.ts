@@ -179,17 +179,24 @@ export function selectComingEvent(
 /* ── 5. eyebrow grammar (자문 §3.4) ──────────────────────────────────────── */
 
 /**
- * eyebrow 자동 합성 (어드민 옵션). 어드민에서 manual 입력 시 그대로 사용.
+ * eyebrow 자동 합성. 어드민에서 manual 입력 시 그대로 사용 (B2C SSR 은 state 기반 override 가능).
  *
- * 자문 §3.4 grammar:
+ * 자문 §3.4 grammar (active state):
  *   - oneplus  : "Now On · 매주 화" (recurring 활용)
  *   - new_item : "Now On · ~MM/DD"
  *   - seasonal : "{Season} · ~MM/DD" — season_label 활용
- *   - collab   : "Coming · MM/DD~" (start_date 기준)
+ *   - collab   : "Coming · MM/DD~" (start_date 기준 — 사전 발표 패턴)
  *   - campaign : "Now On · ~MM/DD" (기본)
+ *
+ * Coming state override (S150 PR-1d):
+ *   options.isComing = true 시 type 무관 "Coming · MM/DD~" 강제
+ *   (selectComingEvent 가 반환한 7일 내 시작 이벤트의 SSR 분기 처리용)
  */
-export function composeEventEyebrow(event: Pick<CafeEvent,
-  'type' | 'start_date' | 'end_date' | 'recurring' | 'season_label'>): string {
+export function composeEventEyebrow(
+  event: Pick<CafeEvent,
+    'type' | 'start_date' | 'end_date' | 'recurring' | 'season_label'>,
+  options: { isComing?: boolean } = {},
+): string {
   const formatMd = (iso: string): string => {
     const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(iso);
     if (!m) return '';
@@ -198,6 +205,11 @@ export function composeEventEyebrow(event: Pick<CafeEvent,
 
   const endMd = event.end_date ? formatMd(event.end_date) : '';
   const startMd = event.start_date ? formatMd(event.start_date) : '';
+
+  // Coming state 강제 — type 무관 "Coming · MM/DD~"
+  if (options.isComing) {
+    return startMd ? `Coming · ${startMd}~` : 'Coming';
+  }
 
   switch (event.type) {
     case 'oneplus':
