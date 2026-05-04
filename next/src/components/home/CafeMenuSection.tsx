@@ -1,14 +1,12 @@
 /* ══════════════════════════════════════════
-   CafeMenuSection — server component (S129 H-5)
+   CafeMenuSection — server component
 
-   시즌 배너는 site_settings.season 에서 fetch.
-   - enabled = false → 배너 자체 렌더 안 함 (다른 카드 그리드는 유지)
-   - eyebrow / title / subtitle / cta_text / cta_link / image_path / image_alt 동적
+   S146 PR-1: 시즌 배너 폐기 (advisory-A 시그니처 chapter 로 대체).
+   - season 영역 DB row + 어드민 폼은 보존 (PR-2 carry-over)
+   - 카테고리 카드 그리드만 표시
    ══════════════════════════════════════════ */
 
-import Image from 'next/image';
 import Link from 'next/link';
-import { fetchSiteSettings } from '@/lib/siteSettingsServer';
 
 const CAT_CARDS = [
   {
@@ -31,38 +29,9 @@ const CAT_CARDS = [
   },
 ] as const;
 
-export default async function CafeMenuSection() {
-  const { season } = await fetchSiteSettings();
-
+export default function CafeMenuSection() {
   return (
     <section className="blk blk--bg-secondary cafe-menu-blk" id="cafe-menu-blk" data-header-theme="light">
-      {/* 시즌 배너 — site_settings.season.enabled */}
-      {season.enabled && (
-        <div className="season-banner-section" data-sr-toggle>
-          <div className="season-banner">
-            <div className="season-banner-img sr-img">
-              <Image
-                src={season.image_path}
-                alt={season.image_alt}
-                fill
-                sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1440px) 55vw, 720px"
-                style={{ objectFit: 'cover' }}
-              />
-            </div>
-            <div className="season-txt">
-              <div className="season-copy">
-                <span className="season-tag sr-txt sr-txt--d1" data-sr-eyebrow>{season.eyebrow}</span>
-                <span className="season-h ed-h2 sr-txt sr-txt--d2">{season.title}</span>
-                <span className="season-desc sr-txt sr-txt--d3">{season.subtitle}</span>
-              </div>
-              <Link href={season.cta_link || '/menu'} className="season-cta sr-txt sr-txt--d4" data-gtr-tap>
-                {season.cta_text || '시즌 메뉴 보기'}
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 블록 헤더 */}
       <div className="blk-header cafe-menu-header" data-sr-toggle>
         <span className="blk-label sr-txt sr-txt--d1" data-sr-eyebrow>CAFE MENU</span>

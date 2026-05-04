@@ -5,6 +5,7 @@
 
 import HeroSection from '@/components/home/HeroSection';
 import OverscrollTop from '@/components/ui/OverscrollTop';
+import SignatureChapter from '@/components/home/SignatureChapter';
 import CafeMenuSection from '@/components/home/CafeMenuSection';
 import PhilSection from '@/components/home/PhilSection';
 import BeansScrollSection from '@/components/home/BeansScrollSection';
@@ -17,6 +18,7 @@ export default function HomePage() {
       <OverscrollTop top="#1E1B16" />
       {/* #hero-blk margin-top:-96px는 globals.css에서 적용 */}
       <HeroSection />
+      <SignatureChapter />
       <CafeMenuSection />
       <PhilSection />
       <BeansScrollSection />

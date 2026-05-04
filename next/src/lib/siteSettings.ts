@@ -19,7 +19,7 @@ import { z } from 'zod';
 
 /* ── 영역 상수 ────────────────────────────────────────────────────────── */
 
-export const SITE_SETTING_KEYS = ['notice', 'season', 'shipping'] as const;
+export const SITE_SETTING_KEYS = ['notice', 'season', 'shipping', 'signature'] as const;
 export type SiteSettingKey = (typeof SITE_SETTING_KEYS)[number];
 
 /* ── 1. 공지 배너 (notice) ────────────────────────────────────────────── */
@@ -110,18 +110,52 @@ export const SHIPPING_DEFAULTS: ShippingSettings = {
   base_fee: 3500,
 };
 
+/* ── 4. 시그니처 chapter (signature) — S146 V2 §2.2 PR-1 ─────────────── */
+
+export const SignatureSettingsSchema = z.object({
+  enabled: z.boolean().default(false),
+  /** "Signature · 2026 SS" 형식 — eyebrow caps */
+  eyebrow: z.string().trim().max(40).default(''),
+  /** PRODUCTS 정적 배열 매핑용 slug (UUID 아님). 빈 값 → chapter hide. */
+  product_slug: z.string().trim().max(80).default(''),
+  /** 한국어 제품명 (예: "산뜻한 오후") */
+  title: z.string().trim().max(40).default(''),
+  /** 본문 1~2줄 호명 카피. advisory §4.3 max-width 340 한 줄 18~22자 */
+  subtitle: z.string().trim().max(160).default(''),
+  /** 플레이버 chip 3~4개. advisory §5.1 최대 4 권장 3 */
+  flavor_chips: z.array(z.string().trim().max(20)).max(4).default([]),
+  image_path: z.string().trim().max(500).default(''),
+  image_alt: z.string().trim().max(120).default(''),
+});
+
+export type SignatureSettings = z.infer<typeof SignatureSettingsSchema>;
+
+/** 코드 default — DB row 없을 때 fallback. enabled=false → chapter hide. */
+export const SIGNATURE_DEFAULTS: SignatureSettings = {
+  enabled: false,
+  eyebrow: '',
+  product_slug: '',
+  title: '',
+  subtitle: '',
+  flavor_chips: [],
+  image_path: '',
+  image_alt: '',
+};
+
 /* ── 통합 ────────────────────────────────────────────────────────────── */
 
 export interface SiteSettings {
   notice: NoticeSettings;
   season: SeasonSettings;
   shipping: ShippingSettings;
+  signature: SignatureSettings;
 }
 
 export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   notice: NOTICE_DEFAULTS,
   season: SEASON_DEFAULTS,
   shipping: SHIPPING_DEFAULTS,
+  signature: SIGNATURE_DEFAULTS,
 };
 
 /**
@@ -144,6 +178,7 @@ export function parseSiteSettingsRows(
     notice: safeParse(NoticeSettingsSchema, map.get('notice'), NOTICE_DEFAULTS),
     season: safeParse(SeasonSettingsSchema, map.get('season'), SEASON_DEFAULTS),
     shipping: safeParse(ShippingSettingsSchema, map.get('shipping'), SHIPPING_DEFAULTS),
+    signature: safeParse(SignatureSettingsSchema, map.get('signature'), SIGNATURE_DEFAULTS),
   };
 }
 
@@ -171,6 +206,7 @@ export function countDirtyAreas(
   if (!shallowEqual(initial.notice, current.notice)) n += 1;
   if (!shallowEqual(initial.season, current.season)) n += 1;
   if (!shallowEqual(initial.shipping, current.shipping)) n += 1;
+  if (!shallowEqual(initial.signature, current.signature)) n += 1;
   return n;
 }
 

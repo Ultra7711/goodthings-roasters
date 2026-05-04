@@ -62,6 +62,8 @@
      legacy --color-surface-warm 은 alias 로 유지 — 신규 코드는 --brand-sand 권장. */
   --brand-sand: #EADFD1;
   --color-surface-warm: var(--brand-sand);
+  /* sand bg 위 본문 전용 (WCAG AA 4.66:1). S146 §2.2 시그니처 chapter 본문/chip. */
+  --ink-on-sand: #5A4F3E;
 
   /* ── 컬러: Interactive (CTA) ── */
   --color-btn-primary-bg: #1C1B19;
@@ -9521,5 +9523,207 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .legal-def-row {
     grid-template-columns: 110px 1fr;
     gap: 12px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Signature chapter — S146 V2 §2.2 PR-1 (advisory-A pixel spec)
+   ────────────────────────────────────────────────────────────────────────
+   메인 Hero 직후 sand 단독 chapter. Aesop product feature 패턴.
+   - mobile-first: stacked (사진 → 텍스트)
+   - ≥1024 desktop: split 5fr 7fr (좌 텍스트 / 우 사진)
+   - 정수 px 강제 (sub-pixel 누적 차단 — S139 R-1~R-8)
+   - line-height var(--lh-h2) (advisory §4.2 H2 1.2 ratio 정합)
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Section — sand bg 풀폭 chapter break */
+.sig-section {
+  background: var(--brand-sand);
+  padding-top: 72px;
+  padding-bottom: 72px;
+}
+
+/* eyebrow — sand bg 위 채도 높은 gold (::before 라인 prefix 와 통일) */
+.sig-section .blk-label {
+  color: var(--color-accent-gold);
+}
+
+/* Card — mobile stacked / ≥1024 grid 5fr 7fr */
+.sig-card {
+  display: grid;
+  grid-template-columns: 1fr;        /* mobile/tablet stacked */
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Text column */
+.sig-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 32px 24px 36px;            /* mobile */
+}
+
+/* Image — Link wrap, 5:4 모든 brk, hover scale 1.02 */
+.sig-img {
+  position: relative;
+  display: block;
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.sig-img > img {
+  transition: transform 300ms ease;
+}
+
+.sig-img:hover > img {
+  transform: scale(1.02);
+}
+
+/* H2 제품명 — Pretendard 26→28→32 + var(--lh-h2) (advisory §4.2 정합) */
+.sig-h2 {
+  font-family: var(--font-kr);
+  font-size: 26px;                    /* mobile */
+  font-weight: 300;
+  line-height: var(--lh-h2);          /* mobile 32 / tablet 40 / desktop 40 */
+  letter-spacing: -0.5px;             /* mobile (26 × -0.02 = -0.52 정수화) */
+  color: var(--color-text-primary);
+  margin: 24px 0 0;
+}
+
+/* 본문 — Pretendard 15 / lh 26 / sand 위 ink */
+.sig-body {
+  font-family: var(--font-kr);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 26px;                  /* 15 × 1.75 = 26.25 → 정수 26 */
+  color: var(--ink-on-sand);
+  margin: 16px 0 0;
+  max-width: none;                    /* mobile 자연 wrap */
+  text-wrap: pretty;
+}
+
+/* Chips — flex row gap 6 */
+.sig-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 24px;
+}
+
+.sig-chips span {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0;
+  color: var(--ink-on-sand);
+  border: 1px solid var(--color-border-secondary);
+  padding: 4px 12px;
+}
+
+/* CTA row — mobile column / desktop row */
+.sig-cta-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+/* Primary CTA — PDP 패턴 답습 (height 48 / font 15) + 화살표 hover translateX */
+.sig-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;                        /* mobile 풀폭 */
+  height: 48px;                       /* PDP #pd-cart-btn 동일 */
+  font-family: var(--font-kr);
+  font-size: var(--cta-btn-font-size);
+  font-weight: var(--cta-btn-font-weight);
+  letter-spacing: var(--cta-btn-letter-spacing);
+  color: var(--color-text-inverse);
+  background: var(--color-btn-primary-bg);
+  padding: 0 28px;
+  border: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 200ms ease, transform 80ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sig-cta:hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+
+.sig-cta:active {
+  transform: translateY(1px);
+}
+
+.sig-cta-arrow {
+  display: inline-block;
+  transition: transform 200ms ease;
+}
+
+.sig-cta:hover .sig-cta-arrow {
+  transform: translateX(2px);
+}
+
+/* ── ≥768 tablet: padding 보강 + max-width / 본문 max-width ───────────── */
+@media (min-width: 768px) {
+  .sig-section {
+    padding-top: 96px;
+    padding-bottom: 96px;
+  }
+
+  .sig-card {
+    max-width: 736px;                 /* tablet 카드 폭 (768 - 32 gutter) */
+  }
+
+  .sig-text {
+    padding: 48px 40px;
+  }
+
+  .sig-h2 {
+    font-size: 28px;
+    letter-spacing: -0.6px;           /* 28 × -0.02 = -0.56 정수화 */
+  }
+
+  .sig-body {
+    max-width: 480px;
+  }
+}
+
+/* ── ≥1024 desktop/laptop: split 5fr 7fr / max-width 1280 / 외부 120 ─── */
+@media (min-width: 1024px) {
+  .sig-section {
+    padding-top: 120px;
+    padding-bottom: 120px;
+  }
+
+  .sig-card {
+    grid-template-columns: 5fr 7fr;
+    align-items: stretch;
+    gap: 64px;
+    max-width: 1280px;
+  }
+
+  .sig-text {
+    padding: 80px 64px;
+  }
+
+  .sig-h2 {
+    font-size: 32px;
+    letter-spacing: -0.6px;           /* 32 × -0.02 = -0.64 정수화 */
+  }
+
+  .sig-body {
+    max-width: 340px;                 /* 한 줄 18~22자 (advisory §4.3) */
+  }
+
+  .sig-cta {
+    width: auto;                      /* desktop inline */
   }
 }
