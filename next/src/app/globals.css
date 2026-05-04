@@ -1558,9 +1558,8 @@ footer.blk {
   border: none;
   white-space: nowrap;
 }
-/* PR-1c-6 — 시스템 변형 4종: light-filled (primary) + light-outline (secondary) 활성 / dark-* 미사용 잔존 */
-.cta-btn-dark-filled { background: var(--color-background-primary); color: var(--color-text-primary); }
-.cta-btn-dark-outline { background: transparent; color: var(--color-text-inverse); border: 1px solid var(--color-background-primary); }
+/* PR-1c — 시스템 변형 2종: light-filled (primary) + light-outline (secondary).
+   dark-filled / dark-outline 폐기 (S147 grep 사용처 0 확인) */
 .cta-btn-light-filled {
   background: var(--color-btn-primary-bg);
   color: var(--color-text-inverse);
