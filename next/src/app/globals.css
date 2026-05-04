@@ -65,10 +65,14 @@
   /* sand bg 위 본문 전용 (WCAG AA 4.66:1). S146 §2.2 시그니처 chapter 본문/chip. */
   --ink-on-sand: #5A4F3E;
 
-  /* ── 컬러: Interactive (CTA) ── */
-  --color-btn-primary-bg: #1C1B19;
-  --color-btn-primary-bg-hover: #2E2D2A;
-  --color-btn-primary-bg-active: #0F0E0D;
+  /* ── 컬러: Interactive (CTA) ── Blue Bottle darken 패턴 (warm-shifted textured → pure black) ── */
+  --color-btn-primary-bg: #36332E;            /* base · warm-shifted textured (R-B=8, system 비례 매치) */
+  --color-btn-primary-bg-hover: #000000;      /* hover · pure black darken (Blue Bottle 매치) */
+  --color-btn-primary-bg-active: #000000;     /* active · 동일 (옵션 A — 단순) */
+  /* light bg 변형 (RoasterySection 모바일 cream bg 등) — active darken 6% alpha */
+  --color-btn-light-bg-active: rgba(28, 27, 25, 0.06);
+  /* pure white surface — cream 페이지 배경 위 lift 효과 (PDP option-chip selected · secondary CTA) */
+  --color-background-pure: #FFFFFF;
 
   /* ── 컬러: Accent & Feedback ── */
   --color-accent-gold: #A5693A;
@@ -2474,7 +2478,7 @@ footer.blk {
   font-size: var(--type-body-ui-size);
   font-weight: 500;
   color: var(--color-text-inverse);
-  background: var(--color-background-inverse);
+  background: var(--color-btn-primary-bg);              /* PR-1c-1 — sig+season 와 정합 */
   border: none;
   width: 148px;
   height: 48px;
@@ -2514,6 +2518,11 @@ footer.blk {
     color: var(--color-text-primary);
     background: var(--color-background-primary);
   }
+  /* PR-1c-1 — light 변형 active darken (cream bg 위 6% alpha) */
+  .roastery-cta-btn:active {
+    background: var(--color-btn-light-bg-active);
+  }
+  /* light 변형은 base hover 룰 (dark darken) 모바일 무발동 — hover-none 디바이스 */
 }
 
 /* ══ .gooddays-sec (홈 모먼트 그리드) ══ */
@@ -4310,7 +4319,7 @@ footer.blk {
   border-color: transparent;
   color: var(--color-text-primary);
   font-weight: 500;
-  background: #FFFFFF;
+  background: var(--color-background-pure);
   box-shadow: inset 0 0 0 2px var(--color-text-primary);
 }
 .option-chip--disabled {
@@ -8907,39 +8916,24 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   }
 }
 
-/* ══ Step 3-A-4: Primary CTA hover gold rule ══
-   호버 시 하단 2px gold 인셋 선으로 state 시그널.
-   다크 bg 버튼 → gold-on-dark (#C28E5A)
-   라이트 bg 버튼 → gold (#A47146)
-   site-wide darken(opacity .85) 패턴과 병행 사용. */
+/* ══ Step 3-A-4: Primary CTA hover gold rule (PR-1c 통일 진행 중) ══
+   다크 bg 버튼 → gold-on-dark (#C28E5A) — 잔존 (C-2~C-7 카테고리에서 단계 폐기)
+   라이트 bg 버튼 → gold (#A47146) — 잔존
+   메인 (.season-cta · .roastery-cta-btn) 은 PR-1c-1 에서 Blue Bottle 패턴
+   (hover bg lighten / active bg darken) 으로 전환됨. */
 
-/* hover 미정의 CTA에 darken 통일 */
+/* PR-1c-1 메인 — Blue Bottle hover lighten / active darken 통일 */
 .season-cta,
 .roastery-cta-btn {
-  position: relative;
-  overflow: hidden;
-  transition: opacity var(--duration-hover) ease;
+  transition: background 200ms ease;
 }
-/* ⑩ Directional Gold Fill — 호버 진입: 좌→우 fill, 호버 이탈: 우→shrink */
-.season-cta::after,
-.roastery-cta-btn::after {
-  content: '';
-  position: absolute;
-  bottom: 1px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--color-accent-gold-on-dark);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 350ms var(--sr-easing);
+.season-cta:hover,
+.roastery-cta-btn:hover {
+  background: var(--color-btn-primary-bg-hover);
 }
-.season-cta:hover::after,
-.roastery-cta-btn:hover::after {
-  transform: scaleX(1);
-}
-@media (prefers-reduced-motion: reduce) {
-  .season-cta::after, .roastery-cta-btn::after { transition: none; }
+.season-cta:active,
+.roastery-cta-btn:active {
+  background: var(--color-btn-primary-bg-active);
 }
 /* ── 전체 CTA: position/overflow 기반 준비 ── */
 .cta-btn-light-filled,
@@ -9068,10 +9062,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    의도하지 않은 활성화 피드백. tap-and-hold 시 sticky hover 도 동일 문제.
    데스크탑 hover 동작은 영향 없음. */
 
-/* BUG-144 (1) — CTA gold rule (`:hover::after` scaleX) 차단 */
+/* BUG-144 (1) — CTA gold rule (`:hover::after` scaleX) 차단 (잔존 — C-2~C-7 폐기 시 함께 정리) */
 @media (hover: none) {
-  .season-cta:hover::after,
-  .roastery-cta-btn:hover::after,
   .cta-btn-light-filled:hover::after,
   .cta-btn-dark-outline:hover::after,
   .cta-btn-dark-filled:hover::after,
@@ -9092,6 +9084,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .st-map-overlay-btn--primary:hover::after,
   .chp-empty-cta:hover::after {
     transform: scaleX(0);
+  }
+}
+
+/* PR-1c-1 — Blue Bottle 패턴 (sig + 메인) 모바일 sticky hover 차단 */
+@media (hover: none) {
+  .sig-cta:hover,
+  .season-cta:hover,
+  .roastery-cta-btn:hover {
+    background: var(--color-btn-primary-bg);
   }
 }
 
@@ -9650,7 +9651,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   letter-spacing: var(--cta-btn-letter-spacing);
   color: var(--color-text-inverse);
   background: var(--color-btn-primary-bg);
-  padding: 0 28px;
+  padding: 0;                         /* mobile 풀폭 — 다른 풀폭 CTA 정합 */
   border: 0;
   text-decoration: none;
   cursor: pointer;
@@ -9665,11 +9666,43 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .sig-cta:active {
   background: var(--color-btn-primary-bg-active);
 }
+/* @media (hover: none) sticky hover 차단은 line 9072 그룹 룰 (PR-1c-1) 참조 */
 
-/* BUG-144 패턴 — 모바일 (hover: none) sticky hover 차단. PR-1c 통일 시 그룹 합칠 예정 */
+/* ══ PR-1c-1 Secondary CTA (Aesop/Blue Bottle outline 패턴) ══
+   base: 웜 화이트 bg + 1px 웜 블랙 inner outline (box-shadow inset)
+   hover: inner 2px (두께만 변화, layout shift 차단)
+   active: 동일 (옵션 A 단순 — primary 와 정합)
+   loading state (disabled): 1px outline 유지 (텍스트 swap 만)
+   사용 예: Modal cancel · 부차 CTA — 적용처는 PR-1c-2~ 단계에서 확정 */
+.cta-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 32px;
+  min-width: 120px;
+  font-family: var(--font-kr);
+  font-size: var(--cta-btn-font-size);
+  font-weight: var(--cta-btn-font-weight);
+  letter-spacing: var(--cta-btn-letter-spacing);
+  color: var(--color-text-primary);
+  background: var(--color-background-pure);          /* cream 페이지 위 lift (option-chip selected 정합) */
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: box-shadow 200ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cta-btn-secondary:hover,
+.cta-btn-secondary:active {
+  box-shadow: inset 0 0 0 2px var(--color-text-primary);
+}
+
 @media (hover: none) {
-  .sig-cta:hover {
-    background: var(--color-btn-primary-bg);
+  .cta-btn-secondary:hover {
+    box-shadow: inset 0 0 0 1px var(--color-text-primary);
   }
 }
 
@@ -9728,5 +9761,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
   .sig-cta {
     width: auto;                      /* desktop inline */
+    padding: 0 32px;                  /* .mp-save-btn 32px 통일 */
+    min-width: 120px;                 /* .mp-save-btn min-width 120 통일 */
   }
 }
