@@ -60,6 +60,11 @@ const Icons = {
       <path d="M2 11h12v3a8 8 0 0 1-8 8 8 8 0 0 1-4-1z" />
     </svg>
   ),
+  cafeEvent: (p: React.SVGProps<SVGSVGElement> = {}) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M3 11l18-5v12L3 14v-3z" /><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+    </svg>
+  ),
   gooddays: (p: React.SVGProps<SVGSVGElement> = {}) => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
       <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" />
@@ -95,6 +100,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/admin/products', label: '상품', icon: Icons.product },
       { href: '/admin/menu', label: '카페 메뉴', icon: Icons.cafeMenu },
+      { href: '/admin/cafe-events', label: '카페 이벤트', icon: Icons.cafeEvent },
       { href: '/admin/users', label: '고객', icon: Icons.customers },
       { href: '/admin/gooddays', label: '굿데이즈', icon: Icons.gooddays },
     ],

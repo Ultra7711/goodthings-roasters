@@ -1205,7 +1205,6 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
             }}
           >
             <iframe
-              key={previewBrk}
               src={previewSrc}
               title={`시그니처 섹션 미리보기 — ${previewBrk}`}
               style={{
@@ -1215,7 +1214,6 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
                 borderRadius: 6,
                 background: 'var(--color-background-primary, #FBF8F3)',
                 flexShrink: 0,
-                transition: 'height 200ms ease-out',
               }}
             />
           </div>

@@ -15,7 +15,7 @@
    ══════════════════════════════════════════ */
 
 import { Suspense, type ReactNode, type CSSProperties } from 'react';
-import SRInitializer from '@/components/layout/SRInitializer';
+import SRInitializerClient from './SRInitializerClient';
 import PreviewHeightSync from './PreviewHeightSync';
 
 const WRAPPER_STYLE: CSSProperties = {
@@ -31,7 +31,7 @@ export default function PreviewLayout({ children }: { children: ReactNode }) {
   return (
     <div style={WRAPPER_STYLE}>
       <Suspense fallback={null}>{children}</Suspense>
-      <SRInitializer />
+      <SRInitializerClient />
       <PreviewHeightSync />
     </div>
   );
