@@ -1,78 +1,39 @@
 /* ══════════════════════════════════════════
    CafeMenuSection — server component
+   (S149 V2 §2.5 PR-1b)
 
-   S146 PR-1: 시즌 배너 폐기 (advisory-A 시그니처 chapter 로 대체).
-   - season 영역 DB row + 어드민 폼은 보존 (PR-2 carry-over)
-   - 카테고리 카드 그리드만 표시
+   advisory-E §4 ① stacked 패턴:
+     chapter head → 이벤트 row (조건부) → 메뉴 split (PR-1c)
+
+   chapter head 카피 (advisory-E §6.2):
+     eyebrow  = "Cafe · 인의동 1호점"
+     h2       = "매장에서, 다른 잔"
+     본문     = "원두를 마시는 또 다른 방법…"
    ══════════════════════════════════════════ */
 
-import Link from 'next/link';
+import { getActiveCafeEvent, getComingCafeEvent } from '@/lib/cafeEventsServer';
+import EventBanner from './EventBanner';
 
-const CAT_CARDS = [
-  {
-    cat: 'brewing',
-    cls: 'img-coffee',
-    title: 'Coffee',
-    desc: '직접 로스팅한 원두로 내리는 한 잔',
-  },
-  {
-    cat: 'non-coffee',
-    cls: 'img-beverage',
-    title: 'Non Coffee',
-    desc: '티, 에이드, 그리고 계절 음료',
-  },
-  {
-    cat: 'dessert',
-    cls: 'img-dessert',
-    title: 'Dessert',
-    desc: '매장에서 직접 굽는 빵과 디저트',
-  },
-] as const;
+export default async function CafeMenuSection() {
+  const activeEvent = await getActiveCafeEvent();
+  const comingEvent = activeEvent ? null : await getComingCafeEvent();
+  const event = activeEvent ?? comingEvent;
 
-export default function CafeMenuSection() {
   return (
-    <section className="blk blk--bg-secondary cafe-menu-blk" id="cafe-menu-blk" data-header-theme="light">
-      {/* 블록 헤더 */}
-      <div className="blk-header cafe-menu-header" data-sr-toggle>
-        <span className="blk-label sr-txt sr-txt--d1" data-sr-eyebrow>CAFE MENU</span>
-        <span className="blk-heading sr-txt sr-txt--d2">오늘, 매장에서.</span>
+    <section className="blk cafe-menu-blk" id="cafe-menu-blk" data-header-theme="light">
+      {/* chapter head */}
+      <div className="cafe-menu-head" data-sr-toggle>
+        <span className="blk-label sr-txt sr-txt--d1" data-sr-eyebrow>
+          Cafe · 인의동 1호점
+        </span>
+        <h2 className="cafe-menu-h2 sr-txt sr-txt--d2">매장에서, 다른 잔</h2>
+        <p className="cafe-menu-desc sr-txt sr-txt--d3">
+          원두를 마시는 또 다른 방법. 매장 한정 메뉴와 시즌 음료를 만나보세요.
+        </p>
       </div>
 
-      {/* 카테고리 카드 그리드 */}
-      <div className="cat-grid">
-        {CAT_CARDS.map(({ cat, cls, title, desc }) => (
-          <Link
-            key={cat}
-            href={`/menu?cat=${cat}`}
-            className="cat-card"
-            data-sr-toggle
-            data-cat={cat}
-            data-gtr-tap
-          >
-            <div className="cat-card-clip">
-              <div className="cat-img">
-                <div className={`cat-img-inner ${cls}`} />
-                <div className="cat-overlay">
-                  <svg
-                    className="cat-arrow"
-                    viewBox="0 0 48 48"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M10,24h28" />
-                    <path d="M24,10l14,14-14,14" />
-                  </svg>
-                  <div className="cat-title">{title}</div>
-                  <div className="cat-desc">{desc}</div>
-                </div>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+      {/* 이벤트 배너 row — active 또는 7일 내 Coming */}
+      {event && <EventBanner event={event} />}
     </section>
   );
 }
