@@ -4654,14 +4654,16 @@ footer.blk {
   cursor: pointer;
   flex: 1 1 auto;
   min-width: 0;
-  transition:
-    transform .5s var(--ease-spring),
-    opacity var(--duration-transition) ease;
-  will-change: transform;
-  backface-visibility: hidden;
+  transition: background 200ms ease;
   margin-bottom: 0;
 }
-#pd-cart-btn:active { opacity: .7; }
+/* PR-1c-2 — Blue Bottle hover/active darken (.disabled 제외) */
+#pd-cart-btn:not(.disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+#pd-cart-btn:not(.disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
 #pd-cart-btn.disabled { opacity: .3; pointer-events: none; }
 /* a11y: 키보드 포커스 가시화 — Session 51 */
 #pd-cart-btn:focus-visible {
@@ -6567,6 +6569,7 @@ body.gd-route-transition.gd-route-transition--fade::before {
   color: var(--color-text-tertiary);
   margin: 0;
 }
+/* PR-1c-3 — secondary outline 패턴 마이그레이션 (Aesop/Blue Bottle 1px → 2px inner) */
 .chp-empty-cta {
   display: inline-flex;
   align-items: center;
@@ -6579,30 +6582,18 @@ body.gd-route-transition.gd-route-transition--fade::before {
   font-weight: var(--cta-btn-font-weight);
   letter-spacing: var(--cta-btn-letter-spacing);
   color: var(--color-text-primary);
-  background: transparent;
-  border: 1px solid var(--color-btn-primary-bg);
+  background: var(--color-background-pure);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
   text-decoration: none;
   white-space: nowrap;
-  position: relative;
-  overflow: hidden;
   cursor: pointer;
-  transition: opacity var(--duration-transition) ease;
+  transition: box-shadow 200ms ease;
 }
-.chp-empty-cta::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--color-accent-gold);
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 350ms var(--sr-easing);
+.chp-empty-cta:hover,
+.chp-empty-cta:active {
+  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
 }
-.chp-empty-cta:hover::after { transform: scaleX(1); transform-origin: left; }
-.chp-empty-cta:hover { opacity: 1; }
-.chp-empty-cta:active { opacity: .7; }
 
 /* 2열 바디 */
 .chp-body {
@@ -6887,9 +6878,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing); cursor: pointer; margin-top: 16px;
   text-decoration: none;
-  transition: opacity var(--duration-transition) ease;
+  transition: background 200ms ease;
 }
-.chp-login-primary-btn:active { opacity: .7; }
+/* Link 컴포넌트라 disabled 없음 — 일반 :hover/:active */
+.chp-login-primary-btn:hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.chp-login-primary-btn:active {
+  background: var(--color-btn-primary-bg-active);
+}
 .chp-login-benefit {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
   color: var(--color-text-secondary); line-height: 24px; margin: 16px 0 0; text-align: center;
@@ -6958,10 +6955,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   width: 100%; height: 48px; background: var(--color-btn-primary-bg); color: var(--color-text-inverse); border: none;
   font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing); cursor: pointer; margin-top: 32px;
-  transition: transform .5s var(--ease-spring), opacity var(--duration-transition) ease;
-  will-change: transform; backface-visibility: hidden;
+  transition: background 200ms ease;
 }
-.chp-submit-btn:active { opacity: .7; }
+.chp-submit-btn:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.chp-submit-btn:not(:disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
 
 /* 결제 2단계 "이전으로 돌아가기" — 모바일 폭에서 "이전" 으로 축약
    (40% 폭 버튼 내부에서 "이전으로 돌아가기" 줄바꿈 방지 · 500px 까지 확보) */
@@ -7293,11 +7294,16 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   border: none; cursor: pointer;
   font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing);
-  transition: transform .5s var(--ease-spring), opacity var(--duration-transition) ease;
-  will-change: transform; backface-visibility: hidden;
+  transition: background 200ms ease;
   margin-bottom: 36px;
 }
-.lp-submit-btn:active { opacity: .7; }
+/* PR-1c-3 — Blue Bottle hover/active darken (:not(:disabled) — loading 상태 default 유지) */
+.lp-submit-btn:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.lp-submit-btn:not(:disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
 .lp-submit-btn:disabled { opacity: .5; cursor: not-allowed; }
 
 /* 데모 채우기 버튼 */
@@ -7398,10 +7404,14 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing);
   background: var(--color-btn-primary-bg); color: var(--color-text-inverse); border: none; cursor: pointer;
-  transition: transform .5s var(--ease-spring), opacity var(--duration-transition) ease;
-  will-change: transform; backface-visibility: hidden;
+  transition: background 200ms ease;
 }
-.lp-guest-buy-btn:active { opacity: .7; }
+.lp-guest-buy-btn:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.lp-guest-buy-btn:not(:disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
 
 /* ══ LoginPage — Mobile (≤768) 정규화 (P0 + P1 + P2) ══
    기존 데스크탑 스펙이 모바일 분기 없이 적용되던 것을 BP 분기.
@@ -8940,14 +8950,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-dark-outline,
 .cta-btn-dark-filled,
 .cta-btn-light-outline,
-.lp-submit-btn,
-.lp-guest-buy-btn,
-.chp-submit-btn,
-.chp-login-primary-btn,
 .ocp-btn-primary,
 .cp-order-btn,
 .bi-submit-btn,
-#pd-cart-btn,
 .mp-save-btn,
 .mp-cancel-btn,
 .mp-modal-confirm,
@@ -8961,14 +8966,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* 다크 bg 버튼 → gold-on-dark */
 .cta-btn-light-filled::after,
 .cta-btn-dark-outline::after,
-.lp-submit-btn::after,
-.lp-guest-buy-btn::after,
-.chp-submit-btn::after,
-.chp-login-primary-btn::after,
 .ocp-btn-primary::after,
 .cp-order-btn::after,
 .bi-submit-btn::after,
-#pd-cart-btn::after,
 .mp-save-btn::after,
 .mp-modal-confirm::after,
 .st-map-overlay-btn--primary::after {
@@ -8985,14 +8985,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .cta-btn-light-filled:hover::after,
 .cta-btn-dark-outline:hover::after,
-.lp-submit-btn:hover::after,
-.lp-guest-buy-btn:hover::after,
-.chp-submit-btn:hover::after,
-.chp-login-primary-btn:hover::after,
 .ocp-btn-primary:hover::after,
 .cp-order-btn:hover:not(:disabled)::after,
 .bi-submit-btn:hover::after,
-#pd-cart-btn:hover:not(.disabled)::after,
 .mp-save-btn:hover::after,
 .mp-modal-confirm:hover::after,
 .st-map-overlay-btn--primary:hover::after {
@@ -9040,14 +9035,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-dark-outline:hover,
 .cta-btn-dark-filled:hover,
 .cta-btn-light-outline:hover,
-.lp-submit-btn:hover,
-.lp-guest-buy-btn:hover,
-.chp-submit-btn:hover,
-.chp-login-primary-btn:hover,
 .ocp-btn-primary:hover,
 .cp-order-btn:hover:not(:disabled),
 .bi-submit-btn:hover,
-#pd-cart-btn:hover:not(.disabled),
 .mp-save-btn:hover,
 .mp-cancel-btn:hover,
 .mp-modal-confirm:hover,
@@ -9068,31 +9058,33 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cta-btn-dark-outline:hover::after,
   .cta-btn-dark-filled:hover::after,
   .cta-btn-light-outline:hover::after,
-  .lp-submit-btn:hover::after,
-  .lp-guest-buy-btn:hover::after,
-  .chp-submit-btn:hover::after,
-  .chp-login-primary-btn:hover::after,
   .ocp-btn-primary:hover::after,
   .cp-order-btn:hover:not(:disabled)::after,
   .bi-submit-btn:hover::after,
-  #pd-cart-btn:hover:not(.disabled)::after,
   .mp-save-btn:hover::after,
   .mp-cancel-btn:hover::after,
   .mp-modal-confirm:hover::after,
   .mp-modal-cancel:hover::after,
   .st-map-overlay-btn:hover::after,
-  .st-map-overlay-btn--primary:hover::after,
-  .chp-empty-cta:hover::after {
+  .st-map-overlay-btn--primary:hover::after {
     transform: scaleX(0);
   }
 }
 
-/* PR-1c-1 — Blue Bottle 패턴 (sig + 메인) 모바일 sticky hover 차단 */
+/* PR-1c-1·2·3 — Blue Bottle 패턴 (sig + 메인 + PDP + 인증) 모바일 sticky hover 차단 */
 @media (hover: none) {
   .sig-cta:hover,
   .season-cta:hover,
-  .roastery-cta-btn:hover {
+  .roastery-cta-btn:hover,
+  #pd-cart-btn:not(.disabled):hover,
+  .lp-submit-btn:not(:disabled):hover,
+  .lp-guest-buy-btn:not(:disabled):hover,
+  .chp-submit-btn:not(:disabled):hover,
+  .chp-login-primary-btn:hover {
     background: var(--color-btn-primary-bg);
+  }
+  .chp-empty-cta:hover {
+    box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
   }
 }
 
@@ -9113,10 +9105,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 @media (prefers-reduced-motion: reduce) {
   .cta-btn-light-filled::after, .cta-btn-dark-outline::after,
   .cta-btn-dark-filled::after, .cta-btn-light-outline::after,
-  .lp-submit-btn::after, .lp-guest-buy-btn::after,
-  .chp-submit-btn::after, .chp-login-primary-btn::after,
   .ocp-btn-primary::after, .cp-order-btn::after,
-  .bi-submit-btn::after, #pd-cart-btn::after,
+  .bi-submit-btn::after,
   .mp-save-btn::after, .mp-cancel-btn::after,
   .mp-modal-confirm::after, .mp-modal-cancel::after,
   .st-map-overlay-btn::after, .st-map-overlay-btn--primary::after { transition: none; }
@@ -9127,10 +9117,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cta-btn-dark-outline:disabled::after,
 .cta-btn-dark-filled:disabled::after,
 .cta-btn-light-outline:disabled::after,
-.lp-submit-btn:disabled::after,
-.lp-guest-buy-btn:disabled::after,
-.chp-submit-btn:disabled::after,
-.chp-login-primary-btn:disabled::after,
 .ocp-btn-primary:disabled::after,
 .cp-order-btn:disabled::after,
 .bi-submit-btn:disabled::after,
@@ -9688,7 +9674,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-primary);
   background: var(--color-background-pure);          /* cream 페이지 위 lift (option-chip selected 정합) */
   border: 0;
-  box-shadow: inset 0 0 0 1px var(--color-text-primary);
+  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);   /* outline = primary default (warm #36332E) */
   text-decoration: none;
   cursor: pointer;
   transition: box-shadow 200ms ease;
@@ -9697,12 +9683,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 .cta-btn-secondary:hover,
 .cta-btn-secondary:active {
-  box-shadow: inset 0 0 0 2px var(--color-text-primary);
+  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
 }
 
 @media (hover: none) {
   .cta-btn-secondary:hover {
-    box-shadow: inset 0 0 0 1px var(--color-text-primary);
+    box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
   }
 }
 
