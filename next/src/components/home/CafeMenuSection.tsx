@@ -32,7 +32,7 @@ export default async function CafeMenuSection() {
         <span className="blk-label sr-txt sr-txt--d1" data-sr-eyebrow>
           CAFE MENU
         </span>
-        <h2 className="cafe-menu-h2 sr-txt sr-txt--d2">오늘, 매장에서.</h2>
+        <h2 className="cafe-menu-h2 sr-txt sr-txt--d2">오늘, 매장에서</h2>
         <p className="cafe-menu-desc sr-txt sr-txt--d3">
           원두를 마시는 또 다른 방법. 매장 한정 메뉴와 시즌 음료를 만나보세요.
         </p>

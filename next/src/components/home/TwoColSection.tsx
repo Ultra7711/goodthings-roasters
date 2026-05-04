@@ -27,7 +27,7 @@ export default function TwoColSection() {
                 <path d="M24,10l14,14-14,14" />
               </svg>
               <div className="tci-lbl sr-txt sr-txt--d1" data-sr-eyebrow>Subscription</div>
-              <div className="tci-h sr-txt sr-txt--d2">매달, 문 앞까지.</div>
+              <div className="tci-h sr-txt sr-txt--d2">매달, 문 앞까지</div>
               <div className="tci-body sr-txt sr-txt--d3">엄선된 원두를 원하는 주기에 맞춰 배송합니다.</div>
             </div>
           </div>
@@ -51,7 +51,7 @@ export default function TwoColSection() {
                 <path d="M24,10l14,14-14,14" />
               </svg>
               <div className="tci-lbl sr-txt sr-txt--d1" data-sr-eyebrow>Business</div>
-              <div className="tci-h sr-txt sr-txt--d2">좋은 원두를, 좋은 공간에.</div>
+              <div className="tci-h sr-txt sr-txt--d2">좋은 원두를, 좋은 공간에</div>
               <div className="tci-body sr-txt sr-txt--d3">카페, 레스토랑, 오피스에 맞춤 납품합니다.</div>
             </div>
           </div>
