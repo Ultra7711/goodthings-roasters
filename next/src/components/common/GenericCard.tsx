@@ -59,6 +59,8 @@ const VARIANT_CLASS: Record<Variant, VariantClasses> = {
   },
 };
 
+type ThumbAspect = '1:1' | '5:4';
+
 type Props = {
   variant: Variant;
 
@@ -70,6 +72,9 @@ type Props = {
 
   /** 썸네일 inner div 의 inline style — backgroundColor·backgroundImage 등 호출자 책임 */
   imgStyle: CSSProperties;
+
+  /** 썸네일 가로:세로 비율 — V2 §2.3 원두 5:4 / 드립백 1:1. default 1:1 */
+  thumbAspect?: ThumbAspect;
 
   /** 슬롯 — 카드별 부가 요소 주입 */
   badgeSlot?: ReactNode;       // 좌상단 (status badge)
@@ -100,6 +105,7 @@ export default function GenericCard({
   asButton = false,
   ariaLabel,
   imgStyle,
+  thumbAspect = '1:1',
   badgeSlot,
   topRightSlot,
   bottomRightSlot,
@@ -177,7 +183,10 @@ export default function GenericCard({
       data-slug={dataSlug}
       data-cm-id={dataCmId}
     >
-      <div className={cls.thumb}>
+      <div
+        className={cls.thumb}
+        style={thumbAspect === '5:4' ? { aspectRatio: '5 / 4' } : undefined}
+      >
         <div className={cls.img} style={imgStyle} />
         {badgeSlot}
         {topRightSlot}

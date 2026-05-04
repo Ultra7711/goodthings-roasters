@@ -61,6 +61,12 @@ export default async function CafeMenuSection() {
             sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 640px"
             style={{ objectFit: 'cover' }}
           />
+          {/* S152 — 사진 전체 클릭 시 /menu 이동 (태블릿/모바일 MenuTab 숨김 시 진입 보장) */}
+          <Link
+            href="/menu"
+            className="cmsplit-photo-link"
+            aria-label="전체 메뉴 보기"
+          />
           <MenuTab />
         </div>
         <div className="cafe-menu-split__items">
@@ -81,12 +87,7 @@ export default async function CafeMenuSection() {
               </div>
               <div className="cmsplit-info">
                 {item.status && <span className="cmsplit-status">{item.status}</span>}
-                <div className="cmsplit-row-head">
-                  <span className="cmsplit-name">{item.name}</span>
-                  <span className="cmsplit-price">
-                    {item.price.toLocaleString('ko-KR')}원
-                  </span>
-                </div>
+                <span className="cmsplit-name">{item.name}</span>
                 {item.menuDesc && (
                   <p className="cmsplit-desc">{item.menuDesc}</p>
                 )}

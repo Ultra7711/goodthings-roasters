@@ -8,7 +8,7 @@ import OverscrollTop from '@/components/ui/OverscrollTop';
 import SignatureChapter from '@/components/home/SignatureChapter';
 import CafeMenuSection from '@/components/home/CafeMenuSection';
 import PhilSection from '@/components/home/PhilSection';
-import BeansScrollSection from '@/components/home/BeansScrollSection';
+import LineupSection from '@/components/home/LineupSection';
 import TwoColSection from '@/components/home/TwoColSection';
 import RoasterySection from '@/components/home/RoasterySection';
 import GoodDaysSection from '@/components/home/GoodDaysSection';
@@ -19,9 +19,9 @@ export default function HomePage() {
       {/* #hero-blk margin-top:-96px는 globals.css에서 적용 */}
       <HeroSection />
       <SignatureChapter />
+      <LineupSection />
       <CafeMenuSection />
       <PhilSection />
-      <BeansScrollSection />
       <TwoColSection />
       <RoasterySection />
       <GoodDaysSection />

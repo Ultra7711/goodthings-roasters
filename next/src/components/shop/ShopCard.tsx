@@ -22,6 +22,8 @@ type Props = {
   baseDelay?: number;
   instant?: boolean;
   isHighlight?: boolean;
+  /** V2 §2.3 원두 5:4 / 드립백 1:1. default 1:1 (기존 ShopPage 호환) */
+  aspect?: '1:1' | '5:4';
 };
 
 export default function ShopCard({
@@ -31,6 +33,7 @@ export default function ShopCard({
   baseDelay = 0,
   instant = false,
   isHighlight = false,
+  aspect = '1:1',
 }: Props) {
   const router = useRouter();
 
@@ -52,6 +55,7 @@ export default function ShopCard({
       variant="shop"
       onClick={() => router.push(`/shop/${p.slug}`)}
       imgStyle={imgStyle}
+      thumbAspect={aspect}
       badgeSlot={badgeSlot}
       name={extractKrName(p.name)}
       price={formatStartPrice(p)}

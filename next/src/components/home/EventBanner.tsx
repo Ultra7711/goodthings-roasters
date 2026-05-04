@@ -23,7 +23,7 @@ export default function EventBanner({ event }: Props) {
             src={event.image_path}
             alt={event.image_alt || event.h4}
             fill
-            sizes="(max-width: 767px) 100vw, (max-width: 1023px) 200px, 240px"
+            sizes="(max-width: 767px) 100vw, (max-width: 1023px) 200px, 260px"
             style={{ objectFit: 'cover' }}
           />
         </div>

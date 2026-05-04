@@ -1697,17 +1697,6 @@ footer.blk {
   from { transform: translateX(-16px); }
   to   { transform: translateX(2px); }
 }
-@keyframes beans-bounce-start {
-  0%   { transform: translateX(-8px); }
-  50%  { transform: translateX(4px); }
-  100% { transform: translateX(0); }
-}
-@keyframes beans-bounce-end {
-  0%   { transform: translateX(8px); }
-  50%  { transform: translateX(-4px); }
-  100% { transform: translateX(0); }
-}
-
 /* ══ Sub-page enter motion (prototype L733 pageEnter)
      Prototype applies to `.sub-page.open #st-body / #biz-body / #gd-body`.
      Next.js route mount attaches animation to each page root
@@ -2012,12 +2001,11 @@ footer.blk {
   margin-bottom: 72px;
 }
 .ev-banner {
-  padding: 28px 60px;
+  padding: 32px 60px;                 /* S152 — 이미지 260 비례 vertical 28→32 */
   display: grid;
-  grid-template-columns: 240px auto;
+  grid-template-columns: 260px 1fr;   /* S152 — 240px auto → 260px 1fr (본문 우측 padding 라인까지 확장) */
   gap: 32px;
   align-items: center;
-  justify-content: center;
   max-width: 1440px;
   margin: 0 auto;
 }
@@ -2060,7 +2048,6 @@ footer.blk {
   line-height: var(--lh-kr-body-15);
   color: var(--ink-on-sand);
   margin: 0;
-  max-width: 380px;
 }
 .ev-banner__cta {
   font-size: 12.5px;
@@ -2161,7 +2148,7 @@ footer.blk {
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-  justify-content: center;
+  justify-content: flex-end;          /* S152 — center 가 불안 → 하단 정렬 (사용자 요청 A) */
   padding: 4px 0;
 }
 .cmsplit-status {
@@ -2170,12 +2157,6 @@ footer.blk {
   color: var(--color-accent-gold);
   letter-spacing: 0.3px;
 }
-.cmsplit-row-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-}
 .cmsplit-name {
   font-family: var(--font-kr);
   font-size: var(--type-body-l-size);
@@ -2183,14 +2164,6 @@ footer.blk {
   color: var(--color-text-primary);
   line-height: 24px;
   min-width: 0;
-}
-.cmsplit-price {
-  font-family: var(--font-en);
-  font-size: var(--type-body-m-size);
-  font-weight: 400;
-  color: var(--color-text-primary);
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 .cmsplit-desc {
   font-size: var(--type-body-s-size);
@@ -2230,10 +2203,33 @@ footer.blk {
 .menu-tab:hover { background: var(--color-btn-primary-bg-hover); }
 .menu-tab span { display: block; line-height: 1; }
 
+/* S152 — 사진 전체 클릭 시 /menu 이동 (모든 brk · MenuTab z-index 2 보다 아래) */
+.cmsplit-photo-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  text-indent: -9999px;
+  overflow: hidden;
+}
+
+/* S152 — desktop 1024+ 만: info 가 row 상단 기준 85% 까지 차지
+   → flex-end 와 결합해 텍스트 끝이 thumb 박스 85% 지점 (베이스라인 바닥에서 살짝 위) */
+@media (min-width: 1024px) {
+  .cmsplit-info {
+    align-self: flex-start;
+    height: 85%;
+  }
+}
+
 @media (max-width: 1023px) and (min-width: 768px) {
   .cafe-menu-split { padding: 0 48px; }
   .cafe-menu-split__items { padding: 0 0 0 40px; gap: 20px; }
   .cmsplit-row { gap: 20px; }
+}
+/* S152 — 태블릿+모바일 MenuTab 숨김 (사진 전체 클릭으로 /menu 진입) */
+@media (max-width: 1023px) {
+  .menu-tab { display: none; }
 }
 @media (max-width: 767px) {
   .cafe-menu-split { grid-template-columns: 1fr; padding: 0 24px; }
@@ -2249,7 +2245,6 @@ footer.blk {
     gap: 16px;
     min-height: 100px;
   }
-  .menu-tab { display: none; }
 }
 
 .cat-img::before {
@@ -2427,125 +2422,66 @@ footer.blk {
   }
 }
 
-/* ══ .blk-scroll (Featured Beans) ══ */
-.beans-blk { padding: 120px 0; }
-@media (max-width: 767px) {
-  .beans-blk { padding: 120px 0 80px; }
-}
-/* overflow:visible — 카드가 섹션 경계에서 잘리지 않도록 (프로토타입 라인 536) */
-.blk-scroll { overflow: visible; }
-.beans-sec { padding: 0; }
-/* Featured Beans 블록 헤더 padding (기존 인라인 style 이관) */
-.beans-header { padding: 0 60px; }
-@media (max-width: 767px) {
-  .beans-header { padding: 0 24px; }
-}
-.beans-scroll {
-  display: flex;
-  gap: var(--gap-lg);
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding: 0 max(60px, calc((100vw - 1440px) / 2 + 60px));
-  cursor: grab;
-  user-select: none;
-}
-.beans-scroll.dragging { cursor: grabbing; user-select: none; }
-.beans-scroll.dragging .bean-card { pointer-events: none; }
-.beans-scroll::-webkit-scrollbar { display: none; }
-.beans-scroll .bean-card { flex-shrink: 0; width: 25vw; max-width: 360px; user-select: none; }
-@media (max-width: 1023px) {
-  .beans-scroll .bean-card { width: 40vw; }
-}
-@media (max-width: 767px) {
-  /* 2.25장 가시: 360vw 기준 카드 폭 ≈ 44vw (≈158px) → 2.27장 */
-  .beans-scroll .bean-card { width: 44vw; max-width: 200px; }
-  .beans-scroll { padding: 0 24px; }
-}
-.beans-dots {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0;
-  /* Session 43 — beans-dot border 9 → 17 확장으로 16px 초과 증가분을 padding-top 축소로 상쇄 */
-  padding: 12px 0 0;
-}
-.beans-dot {
-  height: 6px;
-  width: 6px;
-  border-radius: 3px;
-  background: var(--color-border-primary);
-  /* Session 43 — tap-area 40x40 (dot 6 + border 17 * 2 = 40, transparent border 로 시각 점은 6px 유지) */
-  border: 17px solid transparent;
-  padding: 0;
-  cursor: pointer;
-  transition: width var(--duration-transition) var(--ease-spring), background var(--duration-transition) ease;
-  background-clip: padding-box;
-  box-sizing: content-box;
-}
-/* 선택 상태 2px 라인 (transparent border 17 로 hit-area 유지) */
-.beans-dot.active { width: 20px; height: 2px; border-radius: 1px; background: var(--color-text-primary); background-clip: padding-box; }
-.beans-scroll.bounce-start { animation: beans-bounce-start var(--duration-fade) ease-out; }
-.beans-scroll.bounce-end   { animation: beans-bounce-end var(--duration-fade) ease-out; }
-
-/* 빈 카드 */
-.bean-card { position: relative; overflow: hidden; cursor: pointer; }
-.bean-img {
-  position: relative;
-  aspect-ratio: 1/1;
-  width: 100%;
-  overflow: hidden;
-  background: var(--color-surface-warm);
-  display: block;
-  font-size: 0;
-}
-.bean-img::before { content: none; }
-.bean-img::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0);
-  transition: background 1.2s cubic-bezier(.25,.1,.25,1);
-  pointer-events: none;
-  z-index: 2;
-}
-.bean-card:hover .bean-img::after { background: rgba(0,0,0,.04); }
-.bean-img-inner {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
-}
-.bean-card:hover .bean-img-inner { transform: scale(1.03); }
-.bean-info {
-  height: 90px;
+/* ══ Lineup (V2 §2.3 전체 라인업 — 원두 2 + 드립백 4 2행 그리드) ══ */
+.lineup-blk {
+  padding: 120px 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--gap-sm);
-  text-align: center;
+  gap: 80px;
 }
-.bean-info-cat {
+@media (max-width: 767px) {
+  .lineup-blk { padding: 120px 0 80px; gap: 60px; }
+}
+
+.lineup-row {
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 60px;
+  box-sizing: border-box;
+}
+@media (max-width: 767px) {
+  .lineup-row { padding: 0 24px; }
+}
+
+.lineup-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+  margin-bottom: 40px;
+}
+.lineup-eyebrow {
   font-family: var(--font-en);
   font-size: var(--type-body-s-size);
   font-weight: 500;
-  color: var(--color-text-caption);
+  color: var(--color-label-on-white);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  transform: translateY(4px);
 }
-.bean-info-name {
+.lineup-heading {
   font-family: var(--font-kr);
-  font-size: var(--type-body-l-size);
-  font-weight: 500;
+  font-size: var(--type-h3-size);
+  font-weight: var(--type-h3-weight);
   color: var(--color-text-primary);
   letter-spacing: var(--ls-body);
-  transform: translateY(-2px);
+  line-height: var(--lh-h3);
+  margin: 2px 0 0;
 }
-.pkg { width: 50%; height: 70%; border-radius: 1px; }
+
+.lineup-grid {
+  display: grid;
+  gap: 24px;
+}
+.lineup-grid--bean { grid-template-columns: repeat(2, 1fr); }
+.lineup-grid--drip { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 1023px) {
+  .lineup-grid { gap: 20px; }
+}
+@media (max-width: 767px) {
+  .lineup-grid { gap: 16px; }
+  .lineup-grid--bean { grid-template-columns: 1fr; }
+  .lineup-grid--drip { grid-template-columns: repeat(2, 1fr); }
+}
 
 /* ══ .two-col (서비스 카드) ══ */
 .two-col-blk { padding: 120px 0; }
@@ -9466,7 +9402,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 @media (max-width: 767px) {
   .hero-c,
   .cat-grid,
-  .beans-header,
   .two-col,
   #sp-body,
   #cm-body,
@@ -9485,8 +9420,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     padding-left: 24px;
     padding-right: 24px;
   }
-  /* beans-scroll: 카드 레일 시작 gutter 만 24px (max() 계산 불필요) */
-  .beans-scroll { padding: 0 24px; }
 }
 
 /* ══════════════════════════════════════════
@@ -9919,10 +9852,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     align-items: stretch;
     gap: 64px;
     max-width: 1440px;
+    padding: 0 60px;                  /* S152 — 다른 섹션 좌우 gutter 60 정합 (lineup-row · gooddays-sec · phil 동일) */
+    box-sizing: border-box;
   }
 
   .sig-text {
-    padding: 80px 64px;
+    padding: 80px 0;                  /* S152 — 좌우 padding 은 .sig-card 의 60px gutter 가 담당 */
   }
 
   .sig-h2 {
