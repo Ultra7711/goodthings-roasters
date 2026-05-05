@@ -102,7 +102,7 @@ export default function ProductGallery({ images, status }: Props) {
                 height: 80,
                 gap: 8,
                 border: 0,
-                borderRadius: 4,
+                borderRadius: 0,
                 padding: 0,
                 vignette: false,
                 imageFit: 'contain',

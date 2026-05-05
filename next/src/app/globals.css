@@ -78,6 +78,16 @@
   /* pure white surface — cream 페이지 배경 위 lift 효과 (PDP option-chip selected · secondary CTA) */
   --color-background-pure: #FFFFFF;
 
+  /* ── status 시스템 (S158 PR-A) ── 외곽선 + disabled opacity 통일
+     selectable 외곽선 = primary CTA 컬러 (#36332E) → "선택할 수 있음" 시각 강조
+     selected 외곽선 = text-primary (#1C1B19) inset 2px → 무게 추가
+     disabled opacity = 카테고리별 분리 (CTA / chip / icon) */
+  --color-control-border: var(--color-btn-primary-bg);
+  --color-control-border-selected: var(--color-text-primary);
+  --state-disabled-opacity-cta: 0.3;
+  --state-disabled-opacity-chip: 0.7;
+  --state-disabled-opacity-icon: 0.25;
+
   /* ── 컬러: Accent & Feedback ── */
   --color-accent-gold: #A5693A;
   --color-accent-gold-on-dark: #D9A36A;
@@ -4399,6 +4409,7 @@ footer.blk {
 .pd-yarl-wrap .yarl__thumbnails_thumbnail {
   background: transparent;
   border: 1px solid var(--color-border-secondary);
+  border-radius: 0;
   transition: border-color var(--duration-hover) linear;
 }
 .pd-yarl-wrap .yarl__thumbnails_thumbnail_active {
@@ -4478,7 +4489,7 @@ footer.blk {
   padding: 0 12px;
   min-width: 0;
   background: transparent;
-  border: 1px solid var(--color-border-secondary);
+  border: 1px solid var(--color-control-border);
   border-radius: 2px;
   font-family: var(--font-kr);
   font-size: var(--pd-input-font-size);
@@ -4496,7 +4507,7 @@ footer.blk {
   color: var(--color-text-primary);
   font-weight: 500;
   background: var(--color-background-pure);
-  box-shadow: inset 0 0 0 2px var(--color-text-primary);
+  box-shadow: inset 0 0 0 2px var(--color-control-border-selected);
 }
 .option-chip--disabled {
   color: var(--color-text-caption);
@@ -4529,7 +4540,7 @@ footer.blk {
   position: relative;
   height: var(--pd-input-height);
   padding: 0 18px;
-  border: 1px solid var(--color-border-secondary);
+  border: 1px solid var(--color-control-border);
   border-radius: 2px;
   display: flex;
   align-items: center;
@@ -4543,7 +4554,7 @@ footer.blk {
 .pd-sub-box--checked {
   border-color: transparent;
   background: #FFFFFF;
-  box-shadow: inset 0 0 0 2px var(--color-text-primary);
+  box-shadow: inset 0 0 0 2px var(--color-control-border-selected);
 }
 .pd-sub-toggle {
   display: inline-flex;
@@ -4601,12 +4612,16 @@ footer.blk {
   outline-offset: 2px;
 }
 .pd-sub-toggle-label {
-  font-weight: 500;
+  font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   /* 한글 line-height normal 보정 — 시각 중앙 정렬 */
   line-height: 1;
+}
+/* 활성 시 라벨 강조 — selected 패턴 (chip · sub-box) 과 동일 weight 500 */
+.pd-sub-box--checked .pd-sub-toggle-label {
+  font-weight: 500;
 }
 .pd-sub-cycle-preview {
   font-family: var(--font-kr);
@@ -4678,13 +4693,13 @@ footer.blk {
   position: relative;
   height: var(--pd-input-height, 52px);
   background: transparent;
-  border: 1px solid var(--color-input-box-border);
+  border: 1px solid var(--color-control-border);
   display: flex;
   align-items: center;
   transition: border-color var(--duration-hover) ease;
 }
 .pd-input-box:focus-within {
-  border-color: var(--color-input-box-border-hover);
+  border-color: var(--color-control-border-selected);
 }
 
 /* 드롭다운 트리거 버튼 (용량 / 주기) */
