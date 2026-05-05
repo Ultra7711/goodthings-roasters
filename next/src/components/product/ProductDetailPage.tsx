@@ -106,8 +106,9 @@ export default function ProductDetailPage({ product }: Props) {
           </div>
         </div>
 
-        {/* ② Tasting — Roasting + Flavor 묶음 (V2 §5.3)
-            sand 패널 디자인은 PR-2 carry-over · PR-1 은 구조만 분리 */}
+        {/* ② Tasting — Roasting + Flavor 묶음 (V2 §5.3 · PR-2b S157 + 후속)
+            sand 패널 + 2-col split. 1024+: Roasting col 1 / Flavor col 2 row span 2 / 면책 col 1 row 2 (좌측 끝, Flavor 끝과 baseline).
+            1023↓: 1-col stacking — Roasting → Flavor → 면책 (chapter 끝). chapter header 는 PR-2c carry-over. */}
         <section className="pd-chapter pd-chapter-tasting">
           <ProductRoastStage roastStage={product.roastStage} />
           <ProductFlavorNote
@@ -115,6 +116,9 @@ export default function ProductDetailPage({ product }: Props) {
             noteTags={product.noteTags}
             noteColor={product.noteColor}
           />
+          <p className="pd-tasting-disclaimer">
+            큐그레이더 평가가 아닌 시음 메모로, 상대 비교 참고용입니다.
+          </p>
         </section>
 
         {/* ③ Brewing — 4 도구 카드 (원두) / 3 단계 (드립백) (V2 §5.4) */}

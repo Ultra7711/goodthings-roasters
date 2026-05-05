@@ -99,7 +99,8 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
         ctx.moveTo(cx, cy);
         ctx.lineTo(cx + axisExt * Math.cos(a), cy + axisExt * Math.sin(a));
         ctx.setLineDash([]);
-        ctx.strokeStyle = 'rgba(0,0,0,.08)';
+        /* sand bg context — axes/grid 색상 강화 (V2 §5.3 PR-2b · S157) */
+        ctx.strokeStyle = 'rgba(28,27,25,.18)';
         ctx.lineWidth = 0.5;
         ctx.stroke();
       }
@@ -117,11 +118,11 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
         ctx.closePath();
         if (lv === 5) {
           ctx.setLineDash([]);
-          ctx.strokeStyle = 'rgba(0,0,0,.18)';
+          ctx.strokeStyle = 'rgba(28,27,25,.30)';
           ctx.lineWidth = 0.8;
         } else {
           ctx.setLineDash([4, 4]);
-          ctx.strokeStyle = 'rgba(0,0,0,.12)';
+          ctx.strokeStyle = 'rgba(28,27,25,.20)';
           ctx.lineWidth = 0.5;
         }
         ctx.stroke();
@@ -135,7 +136,7 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
         const lx = cx + lr * Math.cos(a);
         const ly = cy + lr * Math.sin(a);
         ctx.font = '500 13px "Pretendard Variable","Pretendard",sans-serif';
-        ctx.fillStyle = 'rgba(0,0,0,.55)';
+        ctx.fillStyle = '#5A4F3E';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(LABELS[i], lx, ly);
@@ -179,7 +180,8 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
           ctx.lineWidth = 2.5;
           ctx.stroke();
         } else {
-          ctx.fillStyle = '#FAFAF8';
+          /* sand bg 위 white 도트 (S157 PR-2b) */
+          ctx.fillStyle = '#FFFFFF';
           ctx.fill();
           ctx.strokeStyle = hexToRgba(color, 1);
           ctx.lineWidth = 2.5;
@@ -325,11 +327,7 @@ export default function ProductFlavorNote({ note, noteTags, noteColor }: Props) 
         </div>
         <div id="pd-note-tags">
           {tags.map((t, i) => (
-            <span
-              key={i}
-              className="pd-note-tag"
-              style={{ borderColor: color }}
-            >
+            <span key={i} className="pd-note-tag">
               {t}
             </span>
           ))}

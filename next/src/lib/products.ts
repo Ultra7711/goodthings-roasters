@@ -43,7 +43,7 @@ export type ProductStatus =
   | null;
 
 /** 로스팅 단계 */
-export type RoastStage = 'light' | 'medium-light' | 'medium' | 'medium-dark' | 'dark';
+export type RoastStage = 'light' | 'medium-light' | 'medium' | 'medium-dark' | 'dark' | 'italian';
 
 export type Product = {
   category: 'Coffee Bean' | 'Drip Bag';
@@ -91,7 +91,7 @@ export const PRODUCTS: Product[] = [
     desc: '가을의 밤 블렌드는 굳띵즈만의 첫 번째 시그니처 블렌드로 낮은 산미와 구수하고 묵직한 단맛으로 누구에게나 호불호 없이 모든 사람들에게 사랑받는 커피입니다.\n\n가장 대중적이지만 그 안에서 작은 차이로 맛의 퀄리티를 높인 에스프레소 블렌딩으로 라떼를 즐겨 드시는 분께 추천합니다.',
     specs: '블렌드: Espresso Blend · 원산지: Brazil, Colombia, Ethiopia, India · 로스팅 포인트: Medium Dark',
     note: { sweet: 3.5, body: 3.5, aftertaste: 4, aroma: 3.5, acidity: 3 },
-    noteTags: 'Nutty | Caramel | Medium | Long After',
+    noteTags: '견과 | 캐러멜 | 중간 | 긴 여운',
     noteColor: '#A47146',
     roastStage: 'medium-dark',
     recipe: [
@@ -118,7 +118,7 @@ export const PRODUCTS: Product[] = [
     desc: '산뜻한 오후 블렌드는 굳띵즈의 두 번째 시그니처 블렌드로, 밝은 산미는 가벼운 단맛과 하모니를 이루며 매우 높은 청량감을 느낄 수 있는 커피입니다.\n\n스페셜티 커피에서 경험할 수 있는 상큼한 산미와 청량감이 돋보이는 에스프레소 블렌딩입니다.',
     specs: '블렌드: Espresso Blend · 원산지: Colombia, Guatemala, Kenya · 로스팅 포인트: Medium',
     note: { sweet: 3, body: 2, aftertaste: 2, aroma: 4, acidity: 4 },
-    noteTags: 'Fruit | Stonefruit | Syrup | Clean After',
+    noteTags: '과일향 | 복숭아 살구 | 시럽 | 깔끔한 여운',
     noteColor: '#A47146',
     roastStage: 'medium',
     recipe: [
@@ -148,7 +148,7 @@ export const PRODUCTS: Product[] = [
     desc: '과테말라 와이칸의 와이칸은 마야어로 밤하늘에 빛나는 별을 뜻합니다.\n과일과 바닐라의 향미와 촉촉한 질감이 느껴지는 부드러운 매력의 커피입니다.',
     specs: '블렌드: Espresso Blend · 원산지: Guatemala · 로스팅 포인트: Medium',
     note: { sweet: 4, body: 2, aftertaste: 2, aroma: 3, acidity: 2 },
-    noteTags: 'Fruity | Vanilla | Syrupy | Clean After',
+    noteTags: '과일향 | 바닐라 | 시럽감 | 깔끔한 여운',
     noteColor: '#A47146',
     roastStage: 'medium-light',
     recipe: [],
@@ -174,7 +174,7 @@ export const PRODUCTS: Product[] = [
     desc: '에티오피아 부쿠 후루파는 커피의 시작 에티오피아 지역의 최고의 맛을 자랑합니다.\n싱그러운 살구와 풍성하게 다가오는 꽃향기를 느낄 수 있습니다.\n풍부한 향미와 바디감, 단맛이 좋은 특징이 있습니다.',
     specs: '블렌드: Espresso Blend · 원산지: Ethiopia · 로스팅 포인트: Light',
     note: { sweet: 3.5, body: 2.5, aftertaste: 2, aroma: 4.5, acidity: 3.5 },
-    noteTags: 'Rasberry | Plum | Apricot | Creamy | Tea Like',
+    noteTags: '라즈베리 | 자두 | 살구 | 크리미 | 차 같은',
     noteColor: '#A47146',
     roastStage: 'light',
     recipe: [],
@@ -199,7 +199,7 @@ export const PRODUCTS: Product[] = [
     desc: '페루 디카프는 아카시아 꿀, 몽글몽글한 질감, 달콤한 과일, 밤의 고소한 맛과 함께 입안에서 묵직함이 느껴지는 커피입니다.\n카페인이 부담스럽거나 산미있는 커피를 좋아하지 않는 분에게 추천합니다.',
     specs: '블렌드: Espresso Blend · 원산지: Peru · 로스팅 포인트: Medium',
     note: { sweet: 4, body: 3.5, aftertaste: 3.5, aroma: 3, acidity: 3 },
-    noteTags: 'Acacia Honey | Mellow | Round | Clean',
+    noteTags: '아카시아꿀 | 부드러운 | 둥근 | 깔끔한',
     noteColor: '#A47146',
     roastStage: 'medium',
     recipe: [],
@@ -224,7 +224,7 @@ export const PRODUCTS: Product[] = [
     desc: '케냐 카간다 원두는 약간의 과일향과 진하지 않은 단맛, 적당한 바디감을 가지고 있는 매력적인 커피입니다.\n순하고 무난한 쓴맛으로 누구나 가볍게 즐길 수 있습니다.',
     specs: '블렌드: Espresso Blend · 원산지: Kenya · 로스팅 포인트: Light',
     note: { sweet: 4, body: 3.5, aftertaste: 4, aroma: 4, acidity: 3.5 },
-    noteTags: 'Redplum | Blackcherry | Grape | Grape Fruit | Cacao',
+    noteTags: '붉은 자두 | 블랙체리 | 포도 | 자몽 | 카카오',
     noteColor: '#A47146',
     roastStage: 'light',
     recipe: [],
