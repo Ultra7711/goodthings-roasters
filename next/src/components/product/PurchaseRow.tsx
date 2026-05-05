@@ -224,7 +224,7 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
             <div className="pd-qty-stepper">
               <svg
                 id="pd-qty-minus"
-                className="pd-qty-icon"
+                className={`pd-qty-icon${qty <= 1 ? ' pd-qty-icon--disabled' : ''}`}
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -234,10 +234,6 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
                 role="button"
                 aria-label="감소"
                 onClick={decQty}
-                style={{
-                  opacity: qty <= 1 ? 0.25 : undefined,
-                  pointerEvents: qty <= 1 ? 'none' : undefined,
-                }}
               >
                 <path d="M6.3,12h11.3" />
               </svg>

@@ -1608,6 +1608,22 @@ footer.blk {
   border: 0;
 }
 
+/* PR-D (S158) — 키보드 포커스 가시화 글로벌 룰 (WCAG 2.4.7).
+   기존 7곳 개별 정의 spec 동일 → 글로벌 selector list 로 일괄 커버.
+   기존 명시 룰은 안전 위해 유지 (중복 무해, spec 일치). [role="button"] 으로
+   <div role="button"> (예: #pd-cart-btn) 도 자동 포함. */
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
+}
+
 /* ════════════════════════════════════════════
    P-2: 홈 페이지 섹션 CSS
    ──────────────────────────────────────────
@@ -2933,7 +2949,7 @@ footer.blk {
   transition: color var(--duration-hover) ease;
 }
 .sp-pg-arrow:hover { color: var(--color-icon-default); }
-.sp-pg-arrow:disabled { opacity: .3; pointer-events: none; }
+.sp-pg-arrow:disabled { opacity: var(--state-disabled-opacity-cta); pointer-events: none; }
 
 /* ══════════════════════════════════════════
    CAFE MENU PAGE — RP-5
@@ -3731,8 +3747,8 @@ footer.blk {
   margin-left: 0;
   width: 104px;
   height: 36px;
-  background: transparent;
-  border: 1px solid var(--color-border-surface);
+  background: var(--color-background-pure);
+  border: 1px solid var(--color-control-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3753,9 +3769,9 @@ footer.blk {
   padding: 0;
   flex-shrink: 0;
 }
-#cart-drawer-panel .cd-qty-btn:hover { color: var(--color-icon-default); }
+#cart-drawer-panel .cd-qty-btn:hover { color: var(--color-text-primary); }
 #cart-drawer-panel .cd-qty-btn.disabled,
-#cart-drawer-panel .cd-qty-btn:disabled { opacity: .25; pointer-events: none; }
+#cart-drawer-panel .cd-qty-btn:disabled { opacity: var(--state-disabled-opacity-icon); pointer-events: none; }
 #cart-drawer-panel .cd-qty-num {
   flex: 1;
   text-align: center;
@@ -4511,9 +4527,14 @@ footer.blk {
 }
 .option-chip--disabled {
   color: var(--color-text-caption);
+  border-color: var(--color-text-caption);
   text-decoration: line-through;
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: var(--state-disabled-opacity-chip);
+}
+/* sub 자체 color 명시가 main 의 disabled color override → 같이 caption 으로 통일 */
+.option-chip--disabled .option-chip-sub {
+  color: var(--color-text-caption);
 }
 .option-chip-main {
   white-space: nowrap;
@@ -4684,7 +4705,7 @@ footer.blk {
 #pd-qty-block .pd-input-box {
   height: var(--pd-input-height);
   padding: 0;
-  background: #FFFFFF;
+  background: var(--color-background-pure);
 }
 
 /* 입력 박스 (드롭다운 트리거 + 수량 스테퍼 공용)
@@ -4786,10 +4807,13 @@ footer.blk {
 .pd-dropdown-option:hover { background: var(--color-background-secondary); }
 .pd-dropdown-option.active { font-weight: 500; }
 
-/* 품목별 품절 옵션 — 선택 불가, 본문 흐리게 */
+/* 품목별 품절 옵션 — 선택 불가, 본문 흐리게.
+   PR-C (S158): chip disabled 와 통일 (line-through + opacity 토큰). */
 .pd-dropdown-option.sold-out {
   color: var(--color-text-caption);
+  text-decoration: line-through;
   cursor: not-allowed;
+  opacity: var(--state-disabled-opacity-chip);
 }
 .pd-dropdown-option.sold-out:hover { background: transparent; }
 
@@ -4823,6 +4847,12 @@ footer.blk {
   flex-shrink: 0;
 }
 .pd-qty-icon:hover { color: var(--color-text-primary); }
+/* PR-B (S158): 인라인 style → 클래스 + 토큰 (--state-disabled-opacity-icon).
+   pointer-events none 이 hover 도 차단하므로 :hover 룰 자동 무시. */
+.pd-qty-icon--disabled {
+  opacity: var(--state-disabled-opacity-icon);
+  pointer-events: none;
+}
 #pd-qty-num {
   flex: 1;
   text-align: center;
@@ -4858,7 +4888,7 @@ footer.blk {
 #pd-cart-btn:not(.disabled):active {
   background: var(--color-btn-primary-bg-active);
 }
-#pd-cart-btn.disabled { opacity: .3; pointer-events: none; }
+#pd-cart-btn.disabled { opacity: var(--state-disabled-opacity-cta); pointer-events: none; }
 /* a11y: 키보드 포커스 가시화 — Session 51 */
 #pd-cart-btn:focus-visible {
   outline: 2px solid var(--color-accent-gold);
@@ -7509,7 +7539,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .lp-submit-btn:not(:disabled):active {
   background: var(--color-btn-primary-bg-active);
 }
-.lp-submit-btn:disabled { opacity: .5; cursor: not-allowed; }
+.lp-submit-btn:disabled { opacity: var(--state-disabled-opacity-cta); cursor: not-allowed; }
 
 /* 데모 채우기 버튼 */
 .lp-demo-fill-btn {
@@ -7521,7 +7551,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   letter-spacing: var(--ls-body); transition: color var(--duration-hover) ease, border-color var(--duration-hover) ease;
 }
 .lp-demo-fill-btn:hover { color: var(--color-text-primary); border-color: var(--color-text-caption); }
-.lp-demo-fill-btn:disabled { opacity: .5; cursor: not-allowed; }
+.lp-demo-fill-btn:disabled { opacity: var(--state-disabled-opacity-cta); cursor: not-allowed; }
 
 /* 구분선 */
 .lp-divider-wrap { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
@@ -8780,7 +8810,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cp-qty {
   display: inline-flex; align-items: center;
   justify-content: space-between;
-  border: 1px solid var(--color-border-surface);
+  background: var(--color-background-pure);
+  border: 1px solid var(--color-control-border);
   height: 36px;
   width: 104px;
 }
@@ -8791,9 +8822,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-icon-default);
   transition: color var(--duration-hover) ease;
 }
-.cp-qty-btn:hover { color: var(--color-icon-default); }
+.cp-qty-btn:hover { color: var(--color-text-primary); }
 .cp-qty-btn:disabled,
-.cp-qty-btn.disabled { opacity: .25; pointer-events: none; }
+.cp-qty-btn.disabled { opacity: var(--state-disabled-opacity-icon); pointer-events: none; }
 .cp-qty-num {
   min-width: 28px; text-align: center;
   font-family: var(--font-en);
@@ -8984,7 +9015,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .cp-order-btn:not(:disabled):active {
   background: var(--color-btn-primary-bg-active);
 }
-.cp-order-btn:disabled { opacity: .35; cursor: not-allowed; }
+.cp-order-btn:disabled { opacity: var(--state-disabled-opacity-cta); cursor: not-allowed; }
 
 /* ══ Cart Page — Laptop (≤1200) 컬럼 폭 축소 ══ */
 @media (max-width: 1200px) {
