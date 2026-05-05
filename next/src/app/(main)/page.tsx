@@ -9,6 +9,7 @@ import SignatureChapter from '@/components/home/SignatureChapter';
 import CafeMenuSection from '@/components/home/CafeMenuSection';
 import LineupSection from '@/components/home/LineupSection';
 import StoryChapter from '@/components/home/StoryChapter';
+import NewsletterSection from '@/components/home/NewsletterSection';
 
 export default function HomePage() {
   return (
@@ -20,6 +21,7 @@ export default function HomePage() {
       <LineupSection />
       <CafeMenuSection />
       <StoryChapter />
+      <NewsletterSection />
     </div>
   );
 }

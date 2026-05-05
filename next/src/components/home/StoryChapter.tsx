@@ -59,7 +59,7 @@ export default function StoryChapter() {
       <div className="story-stage story-stage--dark" data-header-theme="dark" data-sr-toggle>
         <div className="story-stage__inner">
           <div className="story-gd__head">
-            <span className="blk-label sr-txt sr-txt--d1" data-sr-eyebrow>GOOD DAYS</span>
+            <span className="blk-label blk-label--on-dark sr-txt sr-txt--d1" data-sr-eyebrow>GOOD DAYS</span>
             <h3 className="story-gd__h sr-txt sr-txt--d2">좋은 순간들</h3>
           </div>
           <div className="story-gd__grid">

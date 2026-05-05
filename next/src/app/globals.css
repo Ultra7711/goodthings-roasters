@@ -2377,13 +2377,10 @@ footer.blk {
 .story-stage--cream .blk-label {
   color: var(--color-accent-gold);
 }
-/* dark bg 위 .blk-label override — eyebrow 텍스트 + 32px gold 라인 모두 dark variant */
-.story-stage--dark .blk-label {
-  color: var(--color-label-on-dark);
-}
-.story-stage--dark .blk-label::before {
-  background: var(--color-accent-gold-on-dark);
-}
+/* dark bg 위 .blk-label modifier — JSX 에 .blk-label--on-dark 부여
+   → text + 32px gold 라인 모두 dark variant. 사용처: Story Stage 2 / Newsletter / 향후 다크 섹션 */
+.blk-label--on-dark { color: var(--color-label-on-dark); }
+.blk-label--on-dark::before { background: var(--color-accent-gold-on-dark); }
 .story-gd__h {
   font-family: var(--font-kr);
   font-size: var(--type-h2-size);
@@ -2425,6 +2422,107 @@ footer.blk {
 /* <768 — 모바일 padding 축소 */
 @media (max-width: 767px) {
   .story-stage__inner { padding: 80px 24px; }
+}
+
+/* ══ V2 §2.7 — Newsletter CTA (Footer 직전 dark 종결 섹션) ══
+   submit = UI only · client Zod 검증 · DB/SaaS 연동 D-25 carry-over
+   - bg --ink-section (Story Stage 2 통일)
+   - 좌측 정렬 max-width 560 (자문 wireframe spec)
+   - layout: inner 에 max-width 1440 + padding 박음 (.story-stage__inner 패턴 정합) */
+.newsletter-section {
+  background: var(--ink-section);
+}
+.newsletter-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 120px 60px;
+}
+.newsletter-h {
+  font-family: var(--font-kr);
+  font-size: var(--type-h2-size);
+  font-weight: var(--type-h2-weight);
+  letter-spacing: var(--ls-heading);
+  line-height: var(--lh-h2);
+  color: var(--color-text-inverse);
+  margin: 14px 0 16px;
+  max-width: 560px;
+}
+.newsletter-body {
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--color-text-body-dark);
+  margin: 0 0 24px;
+  max-width: 560px;
+}
+.newsletter-form {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-hairline-on-dark);
+  max-width: 420px;
+  gap: 12px;
+}
+.newsletter-input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--color-text-inverse);
+  padding: 12px 0;
+  font-size: var(--type-body-s-size);
+  font-family: var(--font-kr);
+  min-width: 0;
+}
+.newsletter-input::placeholder {
+  color: var(--on-dark-tertiary);
+}
+/* autofill 정합 — 사이트 검증 패턴 (line 582~603 · BUG-106) 정확 답습:
+   ① box-shadow 양쪽 (-webkit-) + hex 직접 (iOS CSS 변수 미지원 대응)
+   ② transition step-end + 99999s (noahliebman.net/2024/08 — UA !important 시간축 차단)
+   #28241D = --ink-section (newsletter dark bg) / #FAFAF8 = --color-text-inverse */
+.newsletter-input:-webkit-autofill,
+.newsletter-input:-webkit-autofill:hover,
+.newsletter-input:-webkit-autofill:focus,
+.newsletter-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #28241D inset !important;
+  box-shadow: 0 0 0 1000px #28241D inset !important;
+  -webkit-text-fill-color: #FAFAF8 !important;
+  caret-color: #FAFAF8;
+  transition:
+    background-color 99999s step-end,
+    color 99999s step-end;
+}
+.newsletter-btn {
+  background: transparent;
+  border: 0;
+  color: var(--color-accent-gold-on-dark);
+  font-size: var(--type-body-s-size);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  padding: 12px 0;
+  font-family: var(--font-kr);
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 200ms ease;
+}
+.newsletter-btn:hover { opacity: 0.8; }
+.newsletter-msg {
+  display: block;
+  margin-top: 12px;
+  font-size: var(--type-body-s-size);
+  font-family: var(--font-kr);
+  max-width: 420px;
+}
+.newsletter-msg--error { color: var(--color-error); }
+.newsletter-msg--success { color: var(--color-accent-gold-on-dark); }
+
+@media (max-width: 1023px) {
+  .newsletter-inner { padding: 80px 48px; }
+}
+@media (max-width: 767px) {
+  .newsletter-inner { padding: 80px 24px; }
 }
 
 /* ══ Lineup (V2 §2.3 전체 라인업 — 원두 2 + 드립백 4 2행 그리드) ══ */
