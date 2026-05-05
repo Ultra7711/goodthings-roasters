@@ -106,10 +106,14 @@ export default function ProductDetailPage({ product }: Props) {
           </div>
         </div>
 
-        {/* ② Tasting — Roasting + Flavor 묶음 (V2 §5.3 · PR-2b S157 + 후속)
-            sand 패널 + 2-col split. 1024+: Roasting col 1 / Flavor col 2 row span 2 / 면책 col 1 row 2 (좌측 끝, Flavor 끝과 baseline).
-            1023↓: 1-col stacking — Roasting → Flavor → 면책 (chapter 끝). chapter header 는 PR-2c carry-over. */}
+        {/* ② Tasting — sand 패널 + 2-col split (Advisory C §1~3)
+            1024+: heading 풀폭 row 1 / Roasting col 1 row 2 / Flavor col 2 row 2-3 / 면책 col 1 row 3
+            1023↓: 1-col stacking — heading → Roasting → Flavor → 면책 */}
         <section className="pd-chapter pd-chapter-tasting">
+          <header className="pd-chapter-header">
+            <p className="pd-chapter-eyebrow">Chapter 02 · Tasting</p>
+            <h2 className="pd-chapter-h2">맛 노트</h2>
+          </header>
           <ProductRoastStage roastStage={product.roastStage} />
           <ProductFlavorNote
             note={product.note}
@@ -121,8 +125,12 @@ export default function ProductDetailPage({ product }: Props) {
           </p>
         </section>
 
-        {/* ③ Brewing — 4 도구 카드 (원두) / 3 단계 (드립백) (V2 §5.4) */}
+        {/* ③ Brewing — 4 도구 카드 (원두) / 3 단계 (드립백) (V2 §5.4 · Advisory C §7.1) */}
         <section className="pd-chapter pd-chapter-brewing">
+          <header className="pd-chapter-header">
+            <p className="pd-chapter-eyebrow">Chapter 03 · Brewing</p>
+            <h2 className="pd-chapter-h2">추출</h2>
+          </header>
           {product.category === 'Drip Bag' ? <DripBagSteps /> : <ProductRecipeGuide product={product} />}
         </section>
 
