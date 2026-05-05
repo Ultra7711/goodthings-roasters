@@ -36,6 +36,16 @@ import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
 import SiteHeader from '@/components/layout/SiteHeader';
 import { ChevronRight, CopyIcon, InfoCircleIcon } from '@/components/ui/Icons';
 import {
+  useSubscriptionsQuery,
+  useUpdateSubscriptionCycle,
+  useCancelSubscription,
+  useSkipSubscription,
+  usePauseSubscription,
+  useResumeSubscription,
+} from '@/hooks/useSubscriptions';
+import { useOrdersQuery } from '@/hooks/useOrders';
+import { useDeleteAccount } from '@/hooks/useAccountDeletion';
+import {
   useMyPageAddrOpen,
   useMyPagePwOpen,
   useMyPageSubEditId,
@@ -117,17 +127,8 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   /* 헤더는 SiteHeader 컴포넌트가 sticky/atTop/검색/모바일 드로어/카트 드로어를 자체 관리.
      마이페이지는 메인 라우트와 동일한 로고 + nav + 검색·마이페이지·카트 아이콘 구조. */
 
-  /* ── 주문 내역 ── */
-  const [orders, setOrders] = useState<import('@/types/order').Order[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/orders', { credentials: 'same-origin' })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((json: { data: import('@/types/order').Order[] }) => setOrders(json.data ?? []))
-      .catch(() => {})
-      .finally(() => setOrdersLoading(false));
-  }, []);
+  /* ── 주문 내역 (TanStack Query — S161 PR-1) ── */
+  const { orders, isLoading: ordersLoading } = useOrdersQuery();
 
   /* ── 주문 카드 열림 상태 (store) ── */
   const openOrders = useMyPageOpenOrders();
@@ -166,17 +167,15 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
     setPwOpen(true);
   }, [pwForm]);
 
-  /* ── 정기배송 상태 ── */
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [subsLoading, setSubsLoading] = useState(true);
+  /* ── 정기배송 상태 (TanStack Query — S161 PR-1) ── */
+  const { subscriptions, isLoading: subsLoading } = useSubscriptionsQuery();
+  const updateCycleMutation = useUpdateSubscriptionCycle();
+  const cancelMutation = useCancelSubscription();
+  const skipMutation = useSkipSubscription();
+  const pauseMutation = usePauseSubscription();
+  const resumeMutation = useResumeSubscription();
+  const deleteAccountMutation = useDeleteAccount();
 
-  useEffect(() => {
-    fetch('/api/subscriptions', { credentials: 'same-origin' })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((json: { data: Subscription[] }) => setSubscriptions(json.data ?? []))
-      .catch(() => {})
-      .finally(() => setSubsLoading(false));
-  }, []);
   const subCycleEdit = useMyPageSubCycleEdit();
   const isCycleDropdownOpen = useMyPageCycleDropdownOpen();
   const cycleDropdownRef = useRef<HTMLDivElement>(null);
@@ -239,95 +238,64 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
     [],
   );
 
-  const saveSubCycle = useCallback(async (subId: string) => {
+  /* ── Subscription mutation handler (TanStack Query — S161 PR-1) ──
+     hook 의 onError 가 default toast 호출. caller 는 success path 만 정의. */
+
+  const saveSubCycle = useCallback((subId: string) => {
     if (!subCycleEdit) return;
-    /* paused 상태에서 cycle 변경 시 사용자에게 "재개 후 적용" 안내가 필요하므로
-       PATCH 전 현재 상태 캡처 (응답으로 받은 status 는 paused 유지됨). */
+    /* paused 상태에서 cycle 변경 시 "재개 후 적용" 안내 — PATCH 전 캡처 */
     const prev = subscriptions.find((s) => s.id === subId);
     const wasPaused = prev?.status === 'paused';
-    try {
-      const res = await fetch(`/api/subscriptions/${subId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ cycle: subCycleEdit }),
-      });
-      if (!res.ok) throw new Error();
-      const json = (await res.json()) as { data: Subscription };
-      setSubscriptions((prev) => prev.map((s) => (s.id === subId ? json.data : s)));
-      setSubEditId(null);
-      toast(
-        wasPaused
-          ? '배송 주기가 변경되었습니다. 재개 시 새 주기로 배송됩니다.'
-          : '배송 주기가 변경되었습니다.',
-      );
-    } catch {
-      toast('주기 변경에 실패했습니다. 다시 시도해 주세요.');
-    }
-  }, [subCycleEdit, subscriptions, toast]);
+    updateCycleMutation.mutate(
+      { id: subId, cycle: subCycleEdit },
+      {
+        onSuccess: () => {
+          setSubEditId(null);
+          toast(
+            wasPaused
+              ? '배송 주기가 변경되었습니다. 재개 시 새 주기로 배송됩니다.'
+              : '배송 주기가 변경되었습니다.',
+          );
+        },
+      },
+    );
+  }, [subCycleEdit, subscriptions, toast, updateCycleMutation]);
 
-  const cancelSub = useCallback(async (subId: string) => {
-    try {
-      const res = await fetch(`/api/subscriptions/${subId}`, {
-        method: 'DELETE',
-        credentials: 'same-origin',
-      });
-      if (!res.ok) throw new Error();
-      setSubscriptions((prev) => prev.filter((s) => s.id !== subId));
-      setSubEditId(null);
-      setCancelConfirmSubId(null);
-      toast('구독이 해지되었습니다.');
-    } catch {
-      toast('해지에 실패했습니다. 다시 시도해 주세요.');
-    }
-  }, [toast]);
+  const cancelSub = useCallback((subId: string) => {
+    cancelMutation.mutate(subId, {
+      onSuccess: () => {
+        setSubEditId(null);
+        setCancelConfirmSubId(null);
+        toast('구독이 해지되었습니다.');
+      },
+    });
+  }, [cancelMutation, toast]);
 
-  const skipDelivery = useCallback(async (subId: string) => {
-    try {
-      const res = await fetch(`/api/subscriptions/${subId}/skip`, {
-        method: 'POST',
-        credentials: 'same-origin',
-      });
-      if (!res.ok) throw new Error();
-      const json = (await res.json()) as { data: Subscription };
-      setSubscriptions((prev) => prev.map((s) => (s.id === subId ? json.data : s)));
-      setSkipConfirmSubId(null);
-      toast('다음 배송일이 변경되었습니다.');
-    } catch {
-      toast('건너뛰기에 실패했습니다. 다시 시도해 주세요.');
-    }
-  }, [toast]);
+  const skipDelivery = useCallback((subId: string) => {
+    skipMutation.mutate(subId, {
+      onSuccess: () => {
+        setSkipConfirmSubId(null);
+        toast('다음 배송일이 변경되었습니다.');
+      },
+    });
+  }, [skipMutation, toast]);
 
-  const pauseSub = useCallback(async (subId: string) => {
-    try {
-      const res = await fetch(`/api/subscriptions/${subId}/pause`, {
-        method: 'POST',
-        credentials: 'same-origin',
-      });
-      if (!res.ok) throw new Error();
-      const json = (await res.json()) as { data: Subscription };
-      setSubscriptions((prev) => prev.map((s) => (s.id === subId ? json.data : s)));
-      setPauseConfirmSubId(null);
-      toast('정기배송이 일시정지되었습니다.');
-    } catch {
-      toast('일시정지에 실패했습니다. 다시 시도해 주세요.');
-    }
-  }, [toast]);
+  const pauseSub = useCallback((subId: string) => {
+    pauseMutation.mutate(subId, {
+      onSuccess: () => {
+        setPauseConfirmSubId(null);
+        toast('정기배송이 일시정지되었습니다.');
+      },
+    });
+  }, [pauseMutation, toast]);
 
-  const resumeSub = useCallback(async (subId: string) => {
-    try {
-      const res = await fetch(`/api/subscriptions/${subId}/resume`, {
-        method: 'POST',
-        credentials: 'same-origin',
-      });
-      if (!res.ok) throw new Error();
-      const json = (await res.json()) as { data: Subscription };
-      setSubscriptions((prev) => prev.map((s) => (s.id === subId ? json.data : s)));
-      toast('정기배송이 재개되었습니다.');
-    } catch {
-      toast('재개에 실패했습니다. 다시 시도해 주세요.');
-    }
-  }, [toast]);
+  const resumeSub = useCallback((subId: string) => {
+    resumeMutation.mutate(subId, {
+      onSuccess: () => {
+        toast('정기배송이 재개되었습니다.');
+      },
+    });
+  }, [resumeMutation, toast]);
 
   /* ── 로그아웃 ──
      supabase.auth.signOut() 호출 → SIGNED_OUT 이벤트 →
@@ -343,49 +311,36 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
     router.replace('/');
   }, [bypassRedirect, router, toast]);
 
-  /* ── 회원 탈퇴 (Session 8-E) ──
-     POST /api/account/delete → RPC delete_account + auth.admin.deleteUser.
-     409 subscription_active → 정기배송 선 해지 안내.
-     429 rate_limited → 재시도 안내.
+  /* ── 회원 탈퇴 (Session 8-E · S161 PR-1) ──
+     useDeleteAccount adapter 가 fetch + status 분기.
+     409 subscription_active / 429 rate_limited / 200 success / network error
+     모두 result kind 반환 → caller 가 toast + redirect 처리.
      성공 시 로컬 signOut + '/' 리다이렉트. */
   const confirmWithdraw = useCallback(async () => {
     try {
-      const res = await fetch('/api/account/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirm: '탈퇴' }),
-      });
-
-      if (res.status === 409) {
-        const json = (await res.json().catch(() => null)) as
-          | { error?: string; detail?: string }
-          | null;
-        if (json?.detail === 'subscription_active') {
+      const result = await deleteAccountMutation.mutateAsync();
+      switch (result.kind) {
+        case 'subscription_active':
           toast('진행 중인 정기배송을 먼저 해지해 주세요.');
           return;
-        }
+        case 'rate_limited':
+          toast('요청이 많습니다. 잠시 후 다시 시도해 주세요.');
+          return;
+        case 'error':
+          toast('탈퇴 처리 중 오류가 발생했습니다. 다시 시도해 주세요.');
+          return;
+        case 'success':
+          setWithdrawOpen(false);
+          /* 서버에서 이미 signOut 완료 — 로컬 세션 쿠키 정리 (실패해도 무시) */
+          await supabase.auth.signOut().catch(() => {});
+          toast('탈퇴 처리가 완료되었습니다.');
+          bypassRedirect();
+          router.replace('/');
       }
-
-      if (res.status === 429) {
-        toast('요청이 많습니다. 잠시 후 다시 시도해 주세요.');
-        return;
-      }
-
-      if (!res.ok) {
-        toast('탈퇴 처리 중 오류가 발생했습니다. 다시 시도해 주세요.');
-        return;
-      }
-
-      setWithdrawOpen(false);
-      /* 서버에서 이미 signOut 완료 — 로컬 세션 쿠키 정리 (실패해도 무시) */
-      await supabase.auth.signOut().catch(() => {});
-      toast('탈퇴 처리가 완료되었습니다.');
-      bypassRedirect();
-      router.replace('/');
     } catch {
       toast('네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
     }
-  }, [bypassRedirect, router, toast]);
+  }, [bypassRedirect, deleteAccountMutation, router, toast]);
 
   /* ── 주문번호 복사 ── */
   const copyOrderNumber = useCallback(async (num: string) => {
