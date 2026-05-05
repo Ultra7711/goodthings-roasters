@@ -2807,7 +2807,8 @@ summary:focus-visible,
 @media (max-width: 1023px) { .sp-grid { gap: 16px; } }
 @media (max-width: 767px)  {
   .sp-grid { gap: 12px; }
-  .sp-grid--bean { grid-template-columns: 1fr; }
+  .sp-grid--bean { grid-template-columns: repeat(2, 1fr); }
+  .sp-grid--bean .sp-card-thumb { aspect-ratio: 1 / 1 !important; }
   .sp-grid--drip { grid-template-columns: repeat(2, 1fr); }
 }
 .sp-card {
