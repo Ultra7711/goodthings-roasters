@@ -22,7 +22,7 @@ export type AccountDeletionResult =
   | { kind: 'rate_limited' }
   | { kind: 'error' };
 
-async function postAccountDelete(): Promise<AccountDeletionResult> {
+export async function postAccountDelete(): Promise<AccountDeletionResult> {
   const res = await fetch('/api/account/delete', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

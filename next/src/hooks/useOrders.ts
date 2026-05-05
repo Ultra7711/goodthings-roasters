@@ -13,7 +13,7 @@ type ApiEnvelope<T> = { data?: T; error?: { code?: string } };
 
 export const ORDERS_QUERY_KEY = ['orders'] as const;
 
-async function fetchOrders(): Promise<Order[]> {
+export async function fetchOrders(): Promise<Order[]> {
   const res = await fetch('/api/orders', { credentials: 'same-origin' });
   if (!res.ok) throw new Error(`orders_fetch_${res.status}`);
   const body = (await res.json()) as ApiEnvelope<Order[]>;

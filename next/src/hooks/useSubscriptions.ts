@@ -29,7 +29,7 @@ export const SUBSCRIPTIONS_QUERY_KEY = ['subscriptions'] as const;
    Query
    ══════════════════════════════════════════ */
 
-async function fetchSubscriptions(): Promise<Subscription[]> {
+export async function fetchSubscriptions(): Promise<Subscription[]> {
   const res = await fetch('/api/subscriptions', { credentials: 'same-origin' });
   if (!res.ok) throw new Error(`subscriptions_fetch_${res.status}`);
   const body = (await res.json()) as ApiEnvelope<Subscription[]>;
