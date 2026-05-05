@@ -4048,15 +4048,17 @@ footer.blk {
   }
 }
 
-/* PR-1 (S155): 데스크탑 우측 정보 컨트롤 영역 하단 정렬.
-   설명(#pd-desc) 이 짧으면 PurchaseRow 가 우측 column 위쪽에 떠 있고
-   좌 이미지(메인 + 썸네일) 끝과 빈 공간이 생긴다. 동시에 우측 자연 높이가
-   좌 이미지 자연 높이보다 짧으면 sticky 가 좌 이미지를 위로 살짝 들어 올렸다
-   풀리는 어색한 짧은 움직임이 발생.
-   PurchaseRow 를 flex column 의 margin-top: auto 로 하단 푸시 → 우측 콘텐츠가
-   좌 이미지 끝까지 자연 채움 → 좌 썸네일 하단과 baseline 정렬 + sticky 동작 자연스러워짐.
-   모바일은 1-col 이라 자연 흐름. */
+/* PR-2a (S156 D안): 데스크탑 우측 정보 컨트롤 영역 baseline = 메인 이미지 하단(=100cqw).
+   #pd-info 에 padding-bottom = 좌 yarl 썸네일 트랙 height (--pd-thumbs-h) 부여 →
+   margin-top: auto 로 column 끝까지 푸시된 PurchaseRow 가 padding-bottom 만큼 위로 빠짐 →
+   CTA 끝 = 좌측 wrap 끝 - 썸네일 height = 메인 이미지 하단 ✅
+   썸네일 없는 상품(--pd-thumbs-h=0) 은 자연스럽게 좌 wrap 끝 = 메인 끝 = baseline 일치.
+   --pd-thumbs-h 는 ProductDetailPage 가 #pd-content 에 inline style 로 set (96px | 0px).
+   모바일은 1-col 이라 padding-bottom 영향 없음 (자연 흐름). */
 @media (min-width: 1024px) {
+  #pd-info {
+    padding-bottom: var(--pd-thumbs-h, 0);
+  }
   #pd-info .pd-purchase {
     margin-top: auto;
   }
@@ -4589,7 +4591,10 @@ footer.blk {
   display: flex;
   align-items: stretch;
   gap: 8px;
-  margin-bottom: 24px;
+  /* PR-2a (S156 D안): margin-bottom 24 → 0. PurchaseRow 의 마지막 자식이라
+     데스크탑 baseline 정렬 (= #pd-info padding-bottom: var(--pd-thumbs-h)) 와 redundant.
+     모바일도 ②③④ chapter padding-top 48 이 spacing 담당. */
+  margin-bottom: 0;
 }
 #pd-qty-block {
   flex: 0 0 calc((100% - 8px * 2) / 3);

@@ -16,7 +16,7 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { type Product, splitName } from '@/lib/products';
 import ProductGallery from './ProductGallery';
 import PurchaseRow from './PurchaseRow';
@@ -58,13 +58,20 @@ export default function ProductDetailPage({ product }: Props) {
   const { kr, en } = splitName(product.name);
   const descParagraphs = product.desc.trim().split(/\n\n+/).filter(Boolean);
 
+  /* PR-2a (S156 D안): 우측 #pd-info 의 padding-bottom 을 좌측 yarl 썸네일 트랙 height 만큼 부여.
+     썸네일 있을 때만 96px (= --pd-yarl-thumbs-h 동일값) 로 PurchaseRow 의 CTA baseline 을
+     메인 이미지 하단(=100cqw) 에 정렬. 썸네일 없으면 0 → 자연 흐름.
+     데스크탑 1024+ 에서만 globals.css 가 var() 를 read 한다. */
+  const hasThumbs = product.images.length > 1;
+  const contentStyle = { '--pd-thumbs-h': hasThumbs ? '96px' : '0px' } as CSSProperties;
+
   return (
     <div id="pd-body" ref={pageRef}>
       <div id="pd-inner">
         {/* ① Hero — 좌: sticky 이미지 / 우: 정보 + 옵션 + CTA (V2 §5.2)
             sticky 동작 범위: #pd-content 안에서만 — 풀폭 ②③④ chapter 위로 따라오지 않음
             (specialty coffee 외부 표준 검증: Drop Coffee · 프릳츠 · 커피리브레 모두 풀폭 chapter sticky 패턴 사용 X) */}
-        <div id="pd-content">
+        <div id="pd-content" style={contentStyle}>
           <div id="pd-img-col">
             <div id="pd-img-wrap">
               <ProductGallery images={product.images} status={product.status} />
