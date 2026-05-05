@@ -4149,15 +4149,18 @@ summary:focus-visible,
 }
 .pd-chapter-h2 {
   font-family: var(--font-kr);
-  font-size: 36px;
-  font-weight: 300;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-size: var(--type-h1-size);
+  font-weight: var(--type-h1-weight);
+  letter-spacing: var(--ls-heading);
+  line-height: var(--lh-h1);
   color: var(--color-text-primary);
   margin: 0;
 }
 @media (max-width: 767px) {
-  .pd-chapter-h2 { font-size: 26px; }
+  .pd-chapter-h2 {
+    font-size: var(--type-h2-size);
+    line-height: var(--lh-h2);
+  }
 }
 
 /* ② Tasting chapter — sand 패널 풀폭 + 2-col split (Advisory C §1.1~1.3)
@@ -5009,13 +5012,13 @@ summary:focus-visible,
 }
 
 /* ── 로스팅 게이지 (Advisory C §2.2 · S163 PR-2) ──
-   그라디언트 핀: 8px track (베이지→다크) + 14px cream/ink 핀
-   5-tick 라벨 · KO 22px / EN 11px mono 라벨 row · 설명 13.5px */
+   그라디언트 track + cream/ink 핀 · 5-tick · KO/EN 라벨 row · 설명
+   폰트는 자문 raw 값(9·11·13.5·22) 대신 프로젝트 type 토큰 매핑 */
 .pd-roast-section-label {
   font-family: var(--font-en);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-size: var(--type-body-s-size);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--ls-label);
   color: var(--ink-on-sand);
   text-transform: uppercase;
   margin: 0 0 16px;
@@ -5037,44 +5040,50 @@ summary:focus-visible,
   border: 2px solid var(--color-text-primary);
 }
 .pd-roast-ticks {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  font-family: ui-monospace, monospace;
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  color: var(--ink-on-sand);
-  text-transform: uppercase;
+  position: relative;
+  height: 20px;
   margin-bottom: 32px;
 }
-.pd-roast-ticks span:first-child { text-align: left; }
-.pd-roast-ticks span:last-child { text-align: right; }
-.pd-roast-ticks span:not(:first-child):not(:last-child) { text-align: center; }
+.pd-roast-tick {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--font-kr);
+  font-size: var(--type-label-size);
+  font-weight: var(--type-body-m-weight);
+  letter-spacing: var(--ls-kr-body);
+  color: var(--ink-on-sand);
+}
+/* 첫/마지막 라벨은 트랙 외부로 흘러나가지 않도록 가장자리에 anchor */
+.pd-roast-tick:first-child { transform: translateX(0); }
+.pd-roast-tick:last-child { transform: translateX(-100%); }
 .pd-roast-ko-en {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: end;
+  align-items: baseline;
   margin-bottom: 16px;
 }
 .pd-roast-ko {
   font-family: var(--font-kr);
-  font-size: 22px;
-  font-weight: 400;
-  letter-spacing: -0.015em;
+  font-size: var(--type-h3-size);
+  font-weight: var(--type-h3-weight);
+  letter-spacing: var(--ls-kr-heading);
   color: var(--color-text-primary);
 }
 .pd-roast-en {
-  font-family: ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.16em;
+  font-family: var(--font-en);
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--ls-editorial);
   color: var(--ink-on-sand);
   text-transform: uppercase;
   text-align: right;
 }
 .pd-roast-desc {
   font-family: var(--font-kr);
-  font-size: 13.5px;
+  font-size: var(--type-body-m-size);
   color: var(--ink-on-sand);
-  line-height: 1.7;
+  line-height: var(--lh-kr-body-15);
   margin: 0;
   max-width: 380px;
 }
