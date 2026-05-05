@@ -1,17 +1,16 @@
 /* ══════════════════════════════════════════
    ShopSkeleton — /shop Suspense fallback (BUG-159 · S94)
 
-   실제 ShopPage 레이아웃 치수 기준:
+   V2 §4.1 row 분리 그리드 정합:
    - #sp-body: max-width 1440px · padding 100px 60px 120px
-   - 페이지 제목: --type-h1-size (≈36px) · line-height 1.2 → 36px
-   - 부제: --type-body-l-size (≈17px) · margin-top 16px → 22px
-   - 필터 탭: padding 20px 30px 16px · min-width 72px → 각 탭 높이 55px
-   - 카드 thumb: aspect-ratio 1/1 · 100% width
-   - 카드 info: padding 16px 4px 28px · name 26px (17px × lh1.55) + 6px gap + price 22px
+   - 페이지 제목 36px + 부제 22px
+   - 필터 탭 3개 (전체·원두·드립백) + SKU 카운트
+   - 원두 row: 5:4 2-col / 드립백 row: 1:1 4-col
    ══════════════════════════════════════════ */
 
-const FILTER_TAB_WIDTHS = [32, 32, 48, 64]; /* 전체·원두·드립백·정기배송 텍스트 너비(px) */
-const CARD_COUNT = 6; /* 3열 × 2행 */
+const FILTER_TAB_WIDTHS = [32, 32, 48]; /* 전체·원두·드립백 텍스트 너비(px) */
+const BEAN_COUNT = 2;
+const DRIP_COUNT = 4;
 
 export default function ShopSkeleton() {
   return (
@@ -24,7 +23,7 @@ export default function ShopSkeleton() {
             <div className="skel" style={{ height: 22, width: 340, marginTop: 16 }} />
           </div>
 
-          {/* 필터 탭 */}
+          {/* 필터 탭 — 3 탭 + SKU 카운트 */}
           <div className="sp-skel-filter" role="presentation">
             {FILTER_TAB_WIDTHS.map((w, i) => (
               <div key={i} className="sp-skel-tab">
@@ -34,21 +33,44 @@ export default function ShopSkeleton() {
           </div>
         </div>
 
-        {/* 상품 그리드 */}
-        <div id="sp-grid" role="presentation">
-          {Array.from({ length: CARD_COUNT }).map((_, i) => (
-            <div key={i} className="sp-skel-card">
-              {/* 이미지 — aspect-ratio 1:1, position:relative는 .sp-card-thumb CSS에서 처리 */}
-              <div className="sp-card-thumb">
-                <div className="skel sp-skel-thumb" />
-              </div>
-              {/* 상품 정보 — padding 16px 4px 28px, text-align: center */}
-              <div className="sp-card-info">
-                <div className="skel sp-skel-name" />
-                <div className="skel sp-skel-price" />
-              </div>
+        {/* 카테고리 분리 row */}
+        <div id="sp-rows" role="presentation">
+          <section className="sp-row" data-kind="bean">
+            <header className="sp-row-header sp-row-header--enter">
+              <div className="skel" style={{ height: 14, width: 90 }} />
+            </header>
+            <div className="sp-grid sp-grid--bean">
+              {Array.from({ length: BEAN_COUNT }).map((_, i) => (
+                <div key={i} className="sp-skel-card">
+                  <div className="sp-card-thumb" style={{ aspectRatio: '5 / 4' }}>
+                    <div className="skel sp-skel-thumb" />
+                  </div>
+                  <div className="sp-card-info">
+                    <div className="skel sp-skel-name" />
+                    <div className="skel sp-skel-price" />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </section>
+          <section className="sp-row" data-kind="drip">
+            <header className="sp-row-header sp-row-header--enter">
+              <div className="skel" style={{ height: 14, width: 70 }} />
+            </header>
+            <div className="sp-grid sp-grid--drip">
+              {Array.from({ length: DRIP_COUNT }).map((_, i) => (
+                <div key={i} className="sp-skel-card">
+                  <div className="sp-card-thumb">
+                    <div className="skel sp-skel-thumb" />
+                  </div>
+                  <div className="sp-card-info">
+                    <div className="skel sp-skel-name" />
+                    <div className="skel sp-skel-price" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       </div>
     </div>

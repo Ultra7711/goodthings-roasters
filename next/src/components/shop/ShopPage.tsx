@@ -14,10 +14,14 @@ import {
 } from '@/lib/products';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
-const COLS = 3;
+const COLS_BEAN = 2;
+const COLS_DRIP = 4;
 const CARD_BASE_DELAY_INIT = 420; // 초기 로드: 탭(0.3s) 등장 후 카드 시작 (ms)
 const HIGHLIGHT_MS = 2200;        // delay 0.6s + duration 0.7s × 2 = 2.0s + buffer
-const VALID_FILTERS: FilterKey[] = ['all', 'bean', 'drip', 'sub'];
+const VALID_FILTERS: FilterKey[] = ['all', 'bean', 'drip'];
+
+const BEANS = PRODUCTS.filter((p) => p.category === 'Coffee Bean');
+const DRIPS = PRODUCTS.filter((p) => p.category === 'Drip Bag');
 
 function isValidFilter(v: string | null): v is FilterKey {
   return v !== null && (VALID_FILTERS as string[]).includes(v);
@@ -186,11 +190,15 @@ export default function ShopPage() {
 
   const isMobile = useMediaQuery('(max-width: 479px)');
   const perPage = isMobile ? SP_PER_PAGE_MOBILE : SP_PER_PAGE;
-  const filtered = filterProducts(PRODUCTS, filter);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+  /* V2 §4 — row 분리 후 카드는 row 안에서 모두 노출. 페이지네이션은 totalPages>1
+     일 때만 등장 → SKU 6종 / perPage 20·10 에서 자연 비활성. SKU 확장 시 row × 페이지
+     인터랙션 별도 PR 재설계 (carry-over). */
+  const filteredCount = filterProducts(PRODUCTS, filter).length;
+  const totalPages = Math.max(1, Math.ceil(filteredCount / perPage));
   const currentPage = Math.min(page, totalPages);
-  const start = (currentPage - 1) * perPage;
-  const items = filtered.slice(start, start + perPage);
+
+  const showBean = filter === 'all' || filter === 'bean';
+  const showDrip = filter === 'all' || filter === 'drip';
 
   const activeTab = FILTER_TABS.find((t) => t.key === filter) ?? FILTER_TABS[0];
 
@@ -214,28 +222,60 @@ export default function ShopPage() {
       <div id="sp-head">
         <div id="sp-title-area" className="page-title-area">
           <h1 id="sp-page-title" className="page-title">{activeTab.titleKr}</h1>
-          <p id="sp-page-subtitle" className="page-subtitle">{activeTab.subtitleKr}</p>
+          <p id="sp-page-subtitle" className="page-subtitle">천천히, 제대로 만듭니다.</p>
         </div>
 
         <ShopFilterTabs active={filter} onChange={handleFilterChange} />
       </div>
 
-      {/* 상품 그리드 */}
-      {/* 카드 마운트 시점의 transitionDelay 를 고정하기 위해 isInitRef 를 렌더 중 read-only 로 사용 —
-          state 로 전환하면 첫 렌더 420ms → 후속 렌더 0 으로 덮여 의도가 무너짐. */}
+      {/* V2 §4.1 — 카테고리 분리 row.
+          전체 탭: 두 row 모두 / 원두·드립백 탭: 단일 row.
+          eyebrow 에 SKU 카운트 정직 노출 (자문 §4.1 핵심 시그널). H2 는 페이지 H1 과 중복이라 폐기.
+          isInitRef 를 렌더 중 read-only 로 사용 — state 전환 시 첫 렌더 420ms → 후속 0 으로 덮여 의도가 무너짐. */}
       {/* eslint-disable react-hooks/refs */}
-      <div id="sp-grid">
-        {items.map((product, i) => (
-          <ShopCard
-            key={product.slug}
-            product={product}
-            colIndex={i % COLS}
-            scrollRoot={bodyEl}
-            baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
-            instant={!shouldAnimateCardsRef.current}
-            isHighlight={highlightSlug === product.slug}
-          />
-        ))}
+      <div id="sp-rows">
+        {showBean && (
+          <section className="sp-row" data-kind="bean">
+            <header className={`sp-row-header${isInitRef.current ? ' sp-row-header--enter' : ''}`}>
+              <span className="sp-row-eyebrow">Coffee Beans</span>
+            </header>
+            <div className="sp-grid sp-grid--bean">
+              {BEANS.map((p, i) => (
+                <ShopCard
+                  key={p.slug}
+                  product={p}
+                  colIndex={i % COLS_BEAN}
+                  scrollRoot={bodyEl}
+                  baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
+                  instant={!shouldAnimateCardsRef.current}
+                  isHighlight={highlightSlug === p.slug}
+                  aspect="5:4"
+                />
+              ))}
+            </div>
+          </section>
+        )}
+        {showDrip && (
+          <section className="sp-row" data-kind="drip">
+            <header className={`sp-row-header${isInitRef.current ? ' sp-row-header--enter' : ''}`}>
+              <span className="sp-row-eyebrow">Drip Bag</span>
+            </header>
+            <div className="sp-grid sp-grid--drip">
+              {DRIPS.map((p, i) => (
+                <ShopCard
+                  key={p.slug}
+                  product={p}
+                  colIndex={i % COLS_DRIP}
+                  scrollRoot={bodyEl}
+                  baseDelay={isInitRef.current ? CARD_BASE_DELAY_INIT : 0}
+                  instant={!shouldAnimateCardsRef.current}
+                  isHighlight={highlightSlug === p.slug}
+                  aspect="1:1"
+                />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
       {/* eslint-enable react-hooks/refs */}
 

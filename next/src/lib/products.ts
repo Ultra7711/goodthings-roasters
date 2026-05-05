@@ -272,14 +272,13 @@ export function formatStartPrice(product: Product): string {
   return isNaN(raw) ? product.price : raw.toLocaleString('ko-KR') + '원';
 }
 
-/** 필터 키 */
-export type FilterKey = 'all' | 'bean' | 'drip' | 'sub';
+/** 필터 키. 정기배송 탭은 V2 §4.1 별도 라우트 분리 (carry-over) — 본 타입에서 제외 */
+export type FilterKey = 'all' | 'bean' | 'drip';
 
-export const FILTER_TABS: { key: FilterKey; label: string; titleKr: string; subtitleKr: string }[] = [
-  { key: 'all',  label: '모든 상품', titleKr: '모든 상품', subtitleKr: '천천히, 제대로 만듭니다.' },
-  { key: 'bean', label: '커피 빈',   titleKr: '커피 빈',   subtitleKr: '천천히, 제대로 만듭니다.' },
-  { key: 'drip', label: '드립백',    titleKr: '드립백',    subtitleKr: '천천히, 제대로 만듭니다.' },
-  { key: 'sub',  label: '정기 배송', titleKr: '정기 배송', subtitleKr: '천천히, 제대로 만듭니다.' },
+export const FILTER_TABS: { key: FilterKey; label: string; titleKr: string }[] = [
+  { key: 'all',  label: '전체',  titleKr: '모든 상품' },
+  { key: 'bean', label: '원두',  titleKr: '원두' },
+  { key: 'drip', label: '드립백', titleKr: '드립백' },
 ];
 
 export const SP_PER_PAGE = 20;
@@ -295,7 +294,6 @@ export function filterProducts(products: Product[], filter: FilterKey): Product[
   switch (filter) {
     case 'bean': return products.filter((p) => p.category === 'Coffee Bean');
     case 'drip': return products.filter((p) => p.category === 'Drip Bag');
-    case 'sub':  return products.filter((p) => p.subscription);
     default:     return products;
   }
 }
