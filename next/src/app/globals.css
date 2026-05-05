@@ -4455,24 +4455,44 @@ summary:focus-visible,
 
 /* ── 전체 품절 시 구매 옵션 일괄 비활성 (PR 2 결정 — A안) ──
    chip / 정기배송 박스 / 수량 stepper 모두 표시는 유지하되 인터랙션 차단.
-   CTA 는 자체 .disabled 가 더 강한 opacity (0.3) 로 처리. */
+   CTA 는 자체 .disabled 가 더 강한 opacity 토큰 (.3) 로 처리.
+   S158: 영역 opacity + chip 시각 모두 .option-chip--disabled (개별 sold-out) 과 통일. */
 .pd-purchase--disabled .option-chip-group,
 .pd-purchase--disabled #pd-subscription-block,
 .pd-purchase--disabled #pd-qty-block {
-  opacity: 0.5;
+  opacity: var(--state-disabled-opacity-chip);
   pointer-events: none;
 }
-/* 품절 시 chip "선택됨" 시각 해제 — 모든 chip 을 동등 톤으로 표시 */
+/* 품절 시 chip 들 disabled 시각 통일 — selected 강조 해제 + caption border + line-through */
+.pd-purchase--disabled .option-chip,
 .pd-purchase--disabled .option-chip--selected {
+  border-color: var(--color-text-caption);
+  color: var(--color-text-caption);
   background: transparent;
   box-shadow: none;
-  border-color: var(--color-border-secondary);
-  color: var(--color-text-secondary);
+  text-decoration: line-through;
   font-weight: 400;
+}
+.pd-purchase--disabled .option-chip-sub {
+  color: var(--color-text-caption);
 }
 /* 품절 시 stepper 박스 흰 배경 해제 — chip 일반 톤과 일치 */
 .pd-purchase--disabled #pd-qty-block .pd-input-box {
   background: transparent;
+}
+/* sub-box · stepper 도 chip 과 동일 caption 톤 통일 (line-through 는 chip 만 — 라벨/숫자 가독성 보존) */
+.pd-purchase--disabled .pd-sub-box,
+.pd-purchase--disabled .pd-sub-box--checked,
+.pd-purchase--disabled #pd-qty-block .pd-input-box {
+  border-color: var(--color-text-caption);
+  box-shadow: none;
+}
+.pd-purchase--disabled .pd-sub-toggle,
+.pd-purchase--disabled .pd-sub-toggle-label,
+.pd-purchase--disabled .pd-sub-cycle-trigger,
+.pd-purchase--disabled #pd-qty-num,
+.pd-purchase--disabled .pd-qty-icon {
+  color: var(--color-text-caption);
 }
 
 /* ── OptionChipGroup (V2 §6.11) ── */
