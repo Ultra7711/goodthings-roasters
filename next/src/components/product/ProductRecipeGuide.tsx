@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════
    ProductRecipeGuide — Coffee Bean 전용 (S136 분리)
    ──────────────────────────────────────────
-   - product.recipe[] 로 에어로프레스/에스프레소/모카포트/브루잉 카드
+   - product.recipe[] 로 에어로프레스/에스프레소/모카포트/드립 카드
    - 카드 헤더 = 196×196 컬러 일러스트, 본문 = 메서드명 + 추출 데이터 표
    - Drip Bag 3단계는 DripBagSteps.tsx 로 분리 (V2 §6.12 · S136)
    ══════════════════════════════════════════ */
@@ -14,12 +14,12 @@ type Props = {
 
 const ILLUST_SIZE = 196;
 
-/** Coffee Bean 메서드 → 일러스트 파일 슬러그 */
+/** Coffee Bean 메서드 → 일러스트 파일 슬러그 (slug 'brewing' 은 SVG 파일명 호환 유지) */
 const COFFEE_METHOD_SLUG: Record<string, string> = {
   '에어로프레스': 'aeropress',
   '에스프레소': 'espresso',
   '모카포트': 'mokapot',
-  '브루잉': 'brewing',
+  '드립': 'brewing',
 };
 
 export default function ProductRecipeGuide({ product }: Props) {

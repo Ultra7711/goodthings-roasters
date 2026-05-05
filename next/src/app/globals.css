@@ -4116,8 +4116,14 @@ summary:focus-visible,
   padding-top: 0;
   box-shadow: none;
 }
+/* ③ Brewing chapter — Tasting 호흡 통일 (S159 PR-2c) */
 .pd-chapter-brewing {
-  padding-top: 48px;
+  padding-top: 80px;
+}
+@media (max-width: 1023px) {
+  .pd-chapter-brewing {
+    padding-top: 56px;
+  }
 }
 /* ② Tasting chapter — sand 패널 풀폭 + 2-col split (V2 §5.3 PR-2b · S157)
    #pd-inner max-width 1440 안에 갇힌 chapter 를 negative margin 으로 화면 풀폭 확장,
@@ -5120,14 +5126,25 @@ summary:focus-visible,
                 MQ는 베이스 뒤 선언, flex:1 1 0 illust 금지
    ══════════════════════════════════════════════════════════════ */
 
-/* ── 카드 그리드 컨테이너 ── */
+/* ── 카드 그리드 컨테이너 ──
+   S159 PR-2c (V2 §5.4): 1280+ 에서 4-col (자문 §5.4 g4 와이어프레임 1440 baseline 부합).
+   - 1280+ 원두 4-col / 드립백 3-col
+   - 1024-1279 원두 2-col / 드립백 3-col (좁은 데스크탑 카드 폭 polish 우선)
+   - <1024 원두 1-col / 드립백 3-col
+   - <=480 모두 1-col */
 #pd-recipe-cards {
   display: grid;
-  /* 기본: 2열 (데스크탑 >=1024px) */
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--gap-md);
   /* CQ: 카드 폭 기준 illust 크기 조정을 위해 container 선언 */
   container-type: inline-size;
+}
+
+/* 1280+: 원두 4-col (chapter 풀폭 활용 · 자문 §5.4 부합) */
+@media (min-width: 1280px) {
+  #pd-recipe-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 /* ── 드립백 레시피: 3열 오버라이드 ── */
@@ -5136,8 +5153,9 @@ summary:focus-visible,
   /* S136: column-gap 16 (카드 사이 가로) 유지, row-gap 만 8 (카드 ↔ TIP 세로 거리 축소) */
   row-gap: 8px;
 }
-/* <1024px: 1열 전환 (pd-content가 1col이 되므로 카드도 1열로) */
-@media (max-width: 1023px) {
+/* <768px: 1열 전환 (모바일 콘텐츠 폭 좁아 사이드바이사이드 카드도 1 col) —
+   S159 PR-2c: 기존 1023 분기 → 767 분기. 768-1023 사이드바이사이드 카드 2 cols 활용 */
+@media (max-width: 767px) {
   #pd-recipe-cards {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -5153,15 +5171,18 @@ summary:focus-visible,
 }
 
 /* ── 공통 카드 기반 (드립백 + 커피빈 공통)
-   S136: 폰트 축소 (15/13) 비례 padding/gap 축소 */
+   S136: 폰트 축소 (15/13) 비례 padding/gap 축소
+   S159 PR-2c (V2 §5.4): 자문 spec 부합 — bg 제거 + border 1px line + R 0
+   (사이트 R 0 흐름 통일 — S157 chip · S158 yarl · specialty editorial 톤) */
 .pd-recipe-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 20px 20px 22px;
-  background: var(--color-background-secondary);
-  border-radius: 10px;
+  padding: 20px;
+  background: transparent;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0;
   min-width: 0;
 }
 
@@ -5275,6 +5296,14 @@ summary:focus-visible,
     padding-top: 0;
   }
 
+  /* dl table 박스: 데스크탑 stack 중앙 정렬 (S159 PR-2c · 드립백 톤 통일) —
+     모바일 사이드바이사이드는 좌측 정렬 유지, 데스크탑 stack 만 중앙. */
+  .pd-recipe-card--split .pd-recipe-text .pd-recipe-table,
+  .pd-recipe-card--split .pd-recipe-table {
+    margin: 0 auto;
+    width: fit-content;
+  }
+
   /* 메서드명: 데스크탑에서 중앙 정렬 */
   .pd-recipe-card--split .pd-recipe-text .pd-recipe-method {
     text-align: center;
@@ -5339,13 +5368,16 @@ summary:focus-visible,
 /* 추출 데이터 표 ── */
 /* max-content minmax(0,1fr): dt는 자연 폭, dd는 남은 공간 전부 차지하며 오버플로 없음 */
 /* 기존 max-content max-content 는 긴 dd("2분 이내(뜸 30초)")가 카드 밖으로 넘치는 원인이었음 */
+/* S159 PR-2c: font-size body-m 15 → body-s 13 (드립백 step body 와 톤 통일) +
+   line-height 24 → 20 (body-s 13 비례 1.54 — 4 row 행간 압축 / 카드 컴팩트) */
 .pd-recipe-table {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   row-gap: 6px;
   column-gap: var(--gap-sm);
   font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
+  font-size: var(--type-body-s-size);
+  line-height: 20px;
   align-items: baseline;
   /* split 카드에서는 margin:0 (위 .pd-recipe-card--split .pd-recipe-table 으로 덮임) */
   /* 드립백 카드에서는 width:fit-content + margin:0 auto (중앙 정렬) */

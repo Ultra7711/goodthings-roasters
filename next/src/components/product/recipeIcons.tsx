@@ -4,7 +4,7 @@
    프로토타입 _recipeSVGs (8892~8896) / _DRIP_SVGS (8900~8920) 이식.
    모두 currentColor 로 stroke/fill 을 지정해 CSS 에서 색상 제어 가능.
 
-   CoffeeBean: 에어로프레스 · 에스프레소 · 모카포트 · 브루잉 (48x48)
+   CoffeeBean: 에어로프레스 · 에스프레소 · 모카포트 · 드립 (48x48)
    DripBag   : 패킷 열기 · 컵에 걸기 · 주전자로 붓기    (64x64)
    ══════════════════════════════════════════ */
 
@@ -63,7 +63,7 @@ export const RECIPE_ICONS: Record<string, (props: IconProps) => ReactElement> = 
       <path d="M33.69,23h3c1.1,0,2,.9,2,2v8c0,1.1-.9,2-2,2h-3" />
     </svg>
   ),
-  '브루잉': ({ className }) => (
+  '드립': ({ className }) => (
     <svg className={className} {...stroke48}>
       <line x1="8" y1="3" x2="40" y2="3" />
       <line x1="11" y1="7" x2="37" y2="7" />
