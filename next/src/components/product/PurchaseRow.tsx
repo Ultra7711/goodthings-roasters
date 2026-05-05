@@ -276,7 +276,12 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
             }
           }}
         >
-          <span className="pd-cart-btn-label">{cartLabel}</span>
+          <span
+            className="pd-cart-btn-label"
+            data-short={disabled ? null : '담기'}
+          >
+            {cartLabel}
+          </span>
           {!disabled && (
             <>
               <span className="pd-cart-btn-sep" aria-hidden="true">|</span>

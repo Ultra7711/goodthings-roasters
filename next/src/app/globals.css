@@ -4859,6 +4859,19 @@ footer.blk {
   font-weight: var(--cta-btn-font-weight);
 }
 
+/* BUG-360 — 좁은 모바일 (< 375) 컨트롤 정보 단축
+   - CTA 라벨 "장바구니에 담기" → "담기" (호흡 약 100px 확보)
+   - chip sub 가격 숨김 (가격은 위 #pd-price + CTA 우측에 이미 표시 → 중복 제거)
+   data-short 없는 품절/disabled CTA 는 풀 라벨 유지. */
+@media (max-width: 374.98px) {
+  .pd-cart-btn-label[data-short] { font-size: 0; }
+  .pd-cart-btn-label[data-short]::before {
+    content: attr(data-short);
+    font-size: var(--cta-btn-font-size);
+  }
+  .option-chip-sub { display: none; }
+}
+
 /* 반응형 — 모바일도 chip 한 줄 강제 (사용자 요청).
    grid repeat(N, 1fr) 유지 + 패딩 축소 (.option-chip 0 12px) 로 한 줄에 맞춤.
    sublabel 까지 nowrap, 공간 부족 시 폰트 축약. */
