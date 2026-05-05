@@ -1,17 +1,15 @@
 /* ══════════════════════════════════════════
-   Home Page — P-2
-   프로토타입 라인 803–993 홈 섹션 이식
+   Home Page — V2 §2 메인 5섹션 통합 (S153 §2.6)
+   1) Hero · 2) Signature · 3) Lineup · 4) CafeMenu · 5) StoryChapter (cream→dark)
    ══════════════════════════════════════════ */
 
 import HeroSection from '@/components/home/HeroSection';
 import OverscrollTop from '@/components/ui/OverscrollTop';
 import SignatureChapter from '@/components/home/SignatureChapter';
 import CafeMenuSection from '@/components/home/CafeMenuSection';
-import PhilSection from '@/components/home/PhilSection';
 import LineupSection from '@/components/home/LineupSection';
-import TwoColSection from '@/components/home/TwoColSection';
-import RoasterySection from '@/components/home/RoasterySection';
-import GoodDaysSection from '@/components/home/GoodDaysSection';
+import StoryChapter from '@/components/home/StoryChapter';
+
 export default function HomePage() {
   return (
     <div id="home-body">
@@ -21,10 +19,7 @@ export default function HomePage() {
       <SignatureChapter />
       <LineupSection />
       <CafeMenuSection />
-      <PhilSection />
-      <TwoColSection />
-      <RoasterySection />
-      <GoodDaysSection />
+      <StoryChapter />
     </div>
   );
 }

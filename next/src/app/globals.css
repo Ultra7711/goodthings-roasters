@@ -17,6 +17,10 @@
   --color-background-tertiary: #E4DACB;
   --color-background-inverse: #1E1B16;
 
+  /* V2 §1.1 — 다크 섹션 토큰 분리. 자문 §2.6 GoodDays Stage 2 등 본문 다크 chapter 용.
+     Hero/Roastery (#1E1B16) 와 Footer (#3A352D) 사이의 warm 다크 섹션. */
+  --ink-section: #28241D;
+
   /* 약한 강조용 표면 (bg1 대비 ~3% 델타, "있는 듯 없는 듯" 구분).
      마이페이지 섹션 박스 · 체크아웃 요약 패널 등 subtle surface 에 재사용. */
   --color-surface-subtle: #F5F1EA;
@@ -653,8 +657,6 @@ textarea:-webkit-autofill:focus {
 .season-txt,
 .cat-grid,
 .section-cta,
-.phil,
-.gooddays-sec,
 .f-inner {
   max-width: 1440px;
   margin-left: auto;
@@ -664,7 +666,6 @@ textarea:-webkit-autofill:focus {
 /* 풀블리드 섹션: 배경만 풀폭 */
 .hero,
 .season-banner,
-.roastery,
 .footer {
   width: 100%;
 }
@@ -1906,23 +1907,6 @@ footer.blk {
   line-height: 24px;
   margin-bottom: 32px;
 }
-.season-cta {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-ui-size);
-  font-weight: 500;
-  color: var(--color-text-inverse);
-  background: var(--color-btn-primary-bg);
-  border: none;
-  width: 148px;
-  height: 48px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  letter-spacing: var(--ls-button);
-}
-
 /* <768: 시즌 배너 세로 스택 — season-txt 의 flex-shrink 압축 방지 */
 @media (max-width: 767px) {
   .season-banner-section { padding: 0; }
@@ -2152,7 +2136,7 @@ footer.blk {
   padding: 4px 0;
 }
 .cmsplit-status {
-  font-size: var(--type-caption-size);
+  font-size: var(--type-body-s-size);
   font-weight: 600;
   color: var(--color-accent-gold);
   letter-spacing: 0.3px;
@@ -2316,109 +2300,125 @@ footer.blk {
 .img-beverage  { background: url('/images/sections/img_cafemenu_beverage_main.webp') center/cover no-repeat; }
 .img-dessert   { background: url('/images/sections/img_cafemenu_dessert_main.webp') center/cover no-repeat; }
 
-/* ══ .phil-section ══ */
-.phil-section { background: var(--color-surface-warm); padding: 120px 0; }
-.phil {
-  /* 공통 max-width 1440 그룹(.hdr, .hero-c, …, .phil, …)의 override:
-     우측 이미지를 viewport 우측 끝까지 bleed하고, 이미지가 섹션 높이를
-     상하로 꽉 채우도록 풀 width flex 컨테이너로 재구성. 텍스트 위치는
-     1440 centered 레이아웃 기준을 유지. */
+/* ══ V2 §2.6 — Story + GoodDays Cream → Dark ══
+   Stage 1 (cream): The Story 텍스트 + 좌측 이미지
+   Stage 2 (dark · --ink-section): GoodDays 4컷 그리드
+   - 자문 §0 핵심결정 #2 메인 5섹션 통합. PhilSection·TwoColSection·RoasterySection·
+     GoodDaysSection 흡수. cream→dark 한 chapter 묶음.
+   - cream flash (S122) 차단: Stage 2 wrapper 자체가 dark bg (부모 사전 칠하기) */
+
+.story-chapter {
   display: flex;
-  align-items: stretch;
-  max-width: none;
-  width: 100%;
-  margin: 0;
-  padding-left: max(60px, calc((100vw - 1320px) / 2));
-  padding-right: 0;
-  gap: var(--gap-lg);
-  /* 기존 aspect-ratio: 2/1 (content-width 1320 기준 660px)의 높이를 유지.
-     viewport가 작아지면 비례 축소. */
-  height: min(660px, calc((100vw - 120px) / 2));
+  flex-direction: column;
 }
-.phil-txt {
-  /* 텍스트 : 이미지 = 1 : 2 비율.
-     가용 가로 공간 = 100vw - padding-left - gap. 텍스트는 그 1/3 차지.
-     이미지는 flex: 1 1 auto로 나머지 2/3을 자동으로 채움. */
-  flex: 0 0 calc((100vw - max(60px, (100vw - 1320px) / 2) - 20px) / 3);
-  order: -1;
+.story-stage--cream { background: var(--color-surface-warm); }
+.story-stage--dark  { background: var(--ink-section); }
+
+.story-stage__inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 120px 60px;
+}
+
+/* Stage 1 — image + text grid */
+.story-stage--cream .story-stage__inner {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+.story-img {
+  position: relative;
+  aspect-ratio: 3/2;
+  width: 100%;
+  overflow: hidden;
+}
+.story-img__inner {
+  position: absolute;
+  inset: 0;
+  background: url('/images/sections/img_philosophy.webp') center/cover no-repeat;
+}
+.story-txt {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: center;
-  gap: 0;
-  padding: 0;
 }
-.phil-lbl {
-  font-family: var(--font-en);
-  font-size: var(--type-body-s-size);
-  font-weight: 500;
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
-  color: var(--color-label-on-warm);
-  margin-bottom: 14px;
-}
-.phil-h {
+.story-h {
   font-family: var(--font-kr);
   font-size: var(--type-h2-size);
   font-weight: var(--type-h2-weight);
   letter-spacing: var(--ls-heading);
-  color: var(--color-text-primary);
-  margin-bottom: 20px;
   line-height: var(--lh-h2);
-  /* 히어로 슬로건과 호흡 맞춘 2줄 weight 대비 (상속 weight=300 + heavy=600) */
+  color: var(--color-text-primary);
+  margin: 14px 0 20px;
   display: flex;
   flex-direction: column;
 }
-.phil-h-line {
-  display: block;  /* 부모 flex 미적용 상황 방어 */
-}
-.phil-h-line--2 {
-  font-weight: 500;
-}
-.phil-body {
+.story-h__line { display: block; }
+.story-h__line--bold { font-weight: 500; }
+.story-body {
   font-family: var(--font-kr);
   font-size: var(--type-heading-s-size);
   font-weight: 400;
   line-height: 24px;
   color: var(--color-text-secondary);
-  margin-bottom: 36px;
-}
-.phil-img {
-  position: relative;
-  flex: 1 1 auto;
-  align-self: stretch;
-  overflow: hidden;
-}
-.phil-img-inner {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
-  background: url('/images/sections/img_philosophy.webp') center/cover no-repeat;
+  margin: 0;
 }
 
-/* <768: 스토리 섹션 세로 스택 (시즌 배너와 동일 패턴)
-   - 이미지 위 / 텍스트 아래
-   - 좌우 24px padding (시즌 배너와 좌측 라인 정렬)
-   - 상하 64/80px 여백으로 배경이 인접 섹션과 맞닿지 않도록 */
+/* Stage 2 — GoodDays head + grid */
+.story-gd__head {
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* sand bg 위 .blk-label — sig-section / ev-banner 와 동일 gold 톤 통일 */
+.story-stage--cream .blk-label {
+  color: var(--color-accent-gold);
+}
+/* dark bg 위 .blk-label override — eyebrow 텍스트 + 32px gold 라인 모두 dark variant */
+.story-stage--dark .blk-label {
+  color: var(--color-label-on-dark);
+}
+.story-stage--dark .blk-label::before {
+  background: var(--color-accent-gold-on-dark);
+}
+.story-gd__h {
+  font-family: var(--font-kr);
+  font-size: var(--type-h2-size);
+  font-weight: var(--type-h2-weight);
+  letter-spacing: var(--ls-heading);
+  line-height: var(--lh-h2);
+  color: var(--color-text-inverse);
+  margin: 0;
+}
+.story-gd__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.story-gd__card {
+  position: relative;
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  background: var(--color-background-secondary);
+  display: block;
+}
+.story-gd__img {
+  width: 100%;
+  height: 100%;
+}
+
 @media (max-width: 767px) {
-  .phil-section { padding: 0; }
-  .phil {
-    flex-direction: column;
-    height: auto;
-    padding: 0 0 80px;
+  .story-stage__inner { padding: 80px 24px; }
+  .story-stage--cream .story-stage__inner {
+    grid-template-columns: 1fr;
     gap: 48px;
   }
-  .phil-img {
-    flex: 0 0 auto;
-    width: 100%;
-    aspect-ratio: 4/5;
-  }
-  .phil-txt {
-    flex: 0 0 auto;
-    width: 100%;
-    order: 0;
-    padding: 0 24px;
+  .story-img { aspect-ratio: 4/5; }
+  .story-gd__grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -2481,290 +2481,6 @@ footer.blk {
   .lineup-grid { gap: 16px; }
   .lineup-grid--bean { grid-template-columns: 1fr; }
   .lineup-grid--drip { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* ══ .two-col (서비스 카드) ══ */
-.two-col-blk { padding: 120px 0; }
-@media (max-width: 767px) {
-  .two-col-blk { padding: 120px 0 200px; }
-}
-.two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--gap-lg);
-  padding: 0 60px;
-  max-width: 1440px;
-  margin: 0 auto;
-  width: 100%;
-}
-/* <768: 좌측 라인 24px (시즌 배너·카페 메뉴와 정렬) + 1열 스택 */
-@media (max-width: 767px) {
-  .two-col {
-    grid-template-columns: 1fr;
-    padding: 0 24px;
-    gap: 16px;
-  }
-}
-.tci { overflow: hidden; cursor: pointer; }
-.tci-img {
-  position: relative;
-  aspect-ratio: 650/488;
-  width: 100%;
-  overflow: hidden;
-  font-size: 0;
-}
-.tci-img::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.18) 55%, transparent 100%);
-  pointer-events: none;
-  z-index: 1;
-  transition: opacity .5s ease-out;
-}
-.tci-img-inner {
-  width: 100%;
-  height: 100%;
-  background: var(--color-background-secondary) center/cover no-repeat;
-  opacity: 0;
-  filter: blur(12px);
-  transition: transform 1.2s cubic-bezier(.25,.1,.25,1), opacity 0.9s ease-out, filter 0.9s ease-out;
-}
-.sr--visible .tci-img-inner,
-.tci-img-inner.sr--visible { opacity: 1; filter: blur(0); }
-.tci:hover .tci-img-inner { transform: scale(1.03); }
-.tci:hover .tci-img::before { opacity: .82; }
-.tci-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 28px;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-}
-.tci-arrow {
-  width: 48px;
-  height: 48px;
-  color: var(--color-text-inverse);
-  opacity: 0;
-  transform: translateX(0);
-  /* hover-out: opacity만 서서히 fade (transform은 animation 전용 → 충돌 없음) */
-  transition: opacity 350ms ease;
-  margin-bottom: 16px;
-  /* SVG 내부 좌측 여백(x=10) 보정 — 애니메이션 종료 시 화살표 시각적 좌측이 텍스트와 정렬 */
-  margin-left: -10px;
-}
-.tci:hover .tci-arrow {
-  opacity: 1;
-  transform: translateX(2px);
-  transition: opacity var(--duration-fade) ease-out;
-  animation: cat-arrow-slide-r2 var(--duration-fade) ease-out;
-}
-.tci-lbl {
-  font-family: var(--font-en);
-  font-size: var(--type-body-s-size);
-  font-weight: 500;
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
-  color: var(--color-label-on-dark);
-  margin-bottom: 4px;
-}
-.tci-h {
-  font-family: var(--font-kr);
-  font-size: var(--type-h3-size);
-  font-weight: var(--type-h3-weight);
-  color: var(--color-text-inverse);
-  letter-spacing: var(--ls-body);
-  line-height: var(--lh-h3);
-  margin-bottom: 7px;
-}
-.tci-body {
-  font-family: var(--font-kr);
-  font-size: var(--type-heading-s-size);
-  font-weight: 400;
-  color: var(--on-dark-secondary);
-  line-height: 24px;
-  margin-bottom: 5px;
-}
-.img-subscription { background-image: url('/images/sections/img_services_subscription_new.webp'); }
-.img-business     { background-image: url('/images/sections/img_services_business_new.webp'); }
-
-/* ══ .roastery ══
-   레이아웃: 가로 1 : 3 분할.
-   - 좌측 25%: 웜화이트 배경 패널 (텍스트 영역)
-   - 우측 75%: 기존 배경 이미지 + 그라데이션 overlay
-*/
-.roastery {
-  position: relative;
-  min-height: 680px;
-  padding-top: 120px;
-  background: var(--color-background-secondary);
-  display: flex;
-  align-items: flex-end;
-  overflow: hidden;
-  /* 1440 그리드 기준 좌측 25% 패널 경계:
-     - ≤1440: 360px (고정 25%)
-     - >1440: 360 + (100vw-1440)/2  (1440-centered 그리드의 좌측 25% 끝단) */
-  --roastery-panel-edge: max(300px, calc((100vw - 1440px) / 2 + 360px));
-  /* 텍스트 시작 위치(1440-centered + 60px 패딩) */
-  --roastery-text-start: max(60px, calc((100vw - 1440px) / 2 + 60px));
-}
-.roastery-bg {
-  position: absolute;
-  top: 120px;
-  right: 0;
-  bottom: 0;
-  left: var(--roastery-panel-edge);
-  background:
-    linear-gradient(to bottom, transparent 75%, var(--color-background-secondary) 100%),
-    url('/images/sections/img_roastery.webp') center/cover no-repeat;
-}
-.roastery-c {
-  position: relative;
-  z-index: 1;
-  /* 1440 그리드 기준 좌측 패널(30~32% 내외)에 수납.
-     - 좌측 패딩: 1440-centered + 60px (다른 섹션들과 일치)
-     - 우측 경계: 패널 끝(roastery-panel-edge) - 40px 내측 여백 */
-  width: var(--roastery-panel-edge);
-  margin: 0;
-  padding: 0 40px 60px var(--roastery-text-start);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-.roastery-lbl {
-  font-family: var(--font-en);
-  font-size: var(--type-body-s-size);
-  font-weight: 500;
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
-  color: var(--color-label-on-white);
-  margin-bottom: 8px;
-}
-.roastery-h {
-  font-family: var(--font-kr);
-  font-size: var(--type-h2-size);
-  font-weight: var(--type-h2-weight);
-  color: var(--color-text-primary);
-  letter-spacing: var(--ls-heading);
-  line-height: var(--lh-h2);
-  margin-bottom: 11px;
-}
-.roastery-body {
-  font-family: var(--font-kr);
-  font-size: var(--type-heading-s-size);
-  font-weight: 400;
-  color: var(--color-text-secondary);
-  line-height: 24px;
-  margin-bottom: 36px;
-}
-.roastery-hours {
-  display: block;
-  font-family: var(--font-kr);
-  font-size: var(--type-heading-s-size);
-  color: var(--color-text-secondary);
-  margin-top: 10px;
-  line-height: 24px;
-}
-.roastery-cta-btn {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-ui-size);
-  font-weight: 500;
-  color: var(--color-text-inverse);
-  background: var(--color-btn-primary-bg);              /* PR-1c-1 — sig+season 와 정합 */
-  border: none;
-  width: 148px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  letter-spacing: var(--ls-button);
-  text-decoration: none;
-}
-
-/* ══ .roastery 모바일 — 풀블리드 + 하단 그라데이션 텍스트 오버레이 ══
-   라벨/타이틀은 다크 오버레이 위 on-dark 컬러 강제 */
-@media (max-width: 767px) {
-  .roastery {
-    min-height: 70svh;
-    padding: 0;
-    align-items: flex-end;
-  }
-  .roastery-bg {
-    top: 0;
-    left: 0;
-    background:
-      linear-gradient(to bottom, transparent 35%, rgba(0, 0, 0, 0.65) 85%, rgba(0, 0, 0, 0.78) 100%),
-      url('/images/sections/img_roastery.webp') center/cover no-repeat;
-  }
-  .roastery-c {
-    width: 100%;
-    padding: 0 24px 48px;
-  }
-  .roastery-lbl { color: var(--color-label-on-dark); }
-  .roastery-h { color: var(--color-text-inverse); }
-  .roastery-body,
-  .roastery-hours { color: rgba(250, 250, 248, 0.82); }
-  .roastery-hours .emph-time { color: var(--color-text-inverse); }
-  .roastery-cta-btn {
-    color: var(--color-text-primary);
-    background: var(--color-background-primary);
-  }
-  /* PR-1c-1 — light 변형 active darken (cream bg 위 6% alpha) */
-  .roastery-cta-btn:active {
-    background: var(--color-btn-light-bg-active);
-  }
-  /* light 변형은 base hover 룰 (dark darken) 모바일 무발동 — hover-none 디바이스 */
-}
-
-/* ══ .gooddays-sec (홈 모먼트 그리드) ══ */
-.gooddays-sec { padding: 80px 60px 120px; }
-.moments-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  grid-template-rows: repeat(2, 1fr);
-  gap: var(--gap-lg);
-  aspect-ratio: 33/16;
-}
-.moment-card {
-  background: var(--color-background-secondary);
-  overflow: hidden;
-  cursor: pointer;
-  position: relative;
-}
-.moment-card:first-child { grid-row: 1/3; }
-.moment-img {
-  width: 100%;
-  height: 100%;
-  background: inherit;
-  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
-}
-.moment-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0);
-  transition: background var(--duration-transition) ease;
-  pointer-events: none;
-  z-index: 1;
-}
-.moment-card:hover .moment-img { transform: scale(1.03); }
-.moment-card:hover::after { background: rgba(0,0,0,.06); }
-@media (max-width: 767px) {
-  .gooddays-sec { padding: 80px 24px 80px; }
-  .moments-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(5, auto);
-    aspect-ratio: auto;
-    gap: var(--gap-md);
-  }
-  .moments-grid .moment-card:first-child { grid-row: auto; }
-  .moments-grid .moment-card { aspect-ratio: 3/2; }
 }
 
 /* ══════════════════════════════════════════
@@ -9177,33 +8893,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   }
 }
 
-/* ══ Step 3-A-4: Primary CTA hover gold rule (PR-1c 통일 진행 중) ══
-   다크 bg 버튼 → gold-on-dark (#C28E5A) — 잔존 (C-2~C-7 카테고리에서 단계 폐기)
-   라이트 bg 버튼 → gold (#A47146) — 잔존
-   메인 (.season-cta · .roastery-cta-btn) 은 PR-1c-1 에서 Blue Bottle 패턴
-   (hover bg lighten / active bg darken) 으로 전환됨. */
-
-/* PR-1c-1 메인 — Blue Bottle hover lighten / active darken 통일 */
-.season-cta,
-.roastery-cta-btn {
-  transition: background 200ms ease;
-}
-.season-cta:hover,
-.roastery-cta-btn:hover {
-  background: var(--color-btn-primary-bg-hover);
-}
-.season-cta:active,
-.roastery-cta-btn:active {
-  background: var(--color-btn-primary-bg-active);
-}
 /* PR-1c 통일 완료 — 옛 gold underline ::after 시스템 전체 폐기 (BUG-144 (1) 그룹 + opacity:1 / position relative overflow hidden / disabled::after 모두 정리됨) */
 
 /* PR-1c-1~7 — Blue Bottle 패턴 통일 모바일 sticky hover 차단 */
 @media (hover: none) {
   /* primary filled: hover bg darken 차단 → default bg 유지 */
   .sig-cta:hover,
-  .season-cta:hover,
-  .roastery-cta-btn:hover,
   #pd-cart-btn:not(.disabled):hover,
   .lp-submit-btn:not(:disabled):hover,
   .lp-guest-buy-btn:not(:disabled):hover,
@@ -9228,15 +8923,13 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   }
 }
 
-/* BUG-144 (2) — 메인 카드 (.cat-card · .tci) hover 효과 3종 차단:
+/* BUG-144 (2) — 메인 카드 (.cat-card) hover 효과 3종 차단:
    이미지 scale(1.03) · overlay darken(.82) · 화살표 fade-in + slide. */
 @media (hover: none) {
-  .cat-card:hover .cat-img-inner,
-  .tci:hover .tci-img-inner {
+  .cat-card:hover .cat-img-inner {
     transform: none;
   }
-  .cat-card:hover .cat-arrow,
-  .tci:hover .tci-arrow {
+  .cat-card:hover .cat-arrow {
     opacity: 0;
     animation: none;
   }
@@ -9263,18 +8956,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 
 /* cat-card 탭: 이미지 줌 + 오버레이 + 화살표 350ms 완성 */
-.cat-card.is-tapping .cat-img-inner,
-.tci.is-tapping .tci-img-inner {
+.cat-card.is-tapping .cat-img-inner {
   transform: scale(1.03);
   transition: transform var(--duration-tap) cubic-bezier(.25,.1,.25,1);
 }
-.cat-card.is-tapping .cat-img::before,
-.tci.is-tapping .tci-img::before {
+.cat-card.is-tapping .cat-img::before {
   opacity: .82;
   transition: opacity var(--duration-tap) ease;
 }
-.cat-card.is-tapping .cat-arrow,
-.tci.is-tapping .tci-arrow {
+.cat-card.is-tapping .cat-arrow {
   opacity: 1;
   transform: translateX(2px);
   transition: opacity var(--duration-tap) ease;
@@ -9283,12 +8973,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 /* ══ Step 3-A-5: 섹션 eyebrow gold rule ══
    Home·Story 섹션 머리 uppercase eyebrow 앞에 32px gold 수평선.
-   대상: .blk-label · .phil-lbl · .roastery-lbl · .tci-lbl · .st-label (5종)
+   대상: .blk-label · .st-label (2종)
    제외: .season-tag (시즌 배너 별도 맥락) */
 .blk-label,
-.phil-lbl,
-.roastery-lbl,
-.tci-lbl,
 .st-label,
 .season-tag {
   display: inline-flex;
@@ -9296,9 +8983,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   gap: 12px;
 }
 .blk-label::before,
-.phil-lbl::before,
-.roastery-lbl::before,
-.tci-lbl::before,
 .st-label::before,
 .season-tag::before {
   content: '';
@@ -9307,23 +8991,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   height: 2px;
   background: var(--color-accent-gold);
 }
-/* 이미지 배경 위 eyebrow → on-image variant (더 밝게 · 복잡한 이미지 대비 확보) */
-.tci-lbl::before {
-  background: var(--color-accent-gold-on-image);
-}
-/* 모바일 Visit 섹션: 풀블리드 이미지 배경 → tci-lbl 과 동일 처리 */
-@media (max-width: 767px) {
-  .roastery-lbl::before { background: var(--color-accent-gold-on-image); }
-}
 
 /* ══ Eyebrow Slide-in (design-interaction-plan §4 ⑧ 최종안) ══
    sr-txt 가 붙은 label 은 eyebrow 가 박스 좌측 외부에서 진입.
    초기: margin-left -44px → label 박스 밖 (overflow: hidden 마스킹).
    sr--visible: margin-left 0 → eyebrow 가 들어오며 텍스트를 우측으로 밀어냄. */
 .blk-label.sr-txt,
-.phil-lbl.sr-txt,
-.roastery-lbl.sr-txt,
-.tci-lbl.sr-txt,
 .st-label.sr-txt,
 .season-tag.sr-txt {
   overflow: hidden;
@@ -9331,9 +9004,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* 초기·리셋 상태: transition 없음 → sr--visible 제거 시 즉시 -44px 복귀
    (섹션 벗어났다 재진입하면 항상 처음부터 슬라이드 재생) */
 .blk-label.sr-txt::before,
-.phil-lbl.sr-txt::before,
-.roastery-lbl.sr-txt::before,
-.tci-lbl.sr-txt::before,
 .st-label.sr-txt::before,
 .season-tag.sr-txt::before {
   margin-left: var(--eyebrow-slide-distance);
@@ -9342,12 +9012,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    [data-sr-eyebrow] 요소는 독립 IO(sr--ew)로만 발화 → 부모 sr--visible 경로 차단. */
 .sr--visible .blk-label.sr-txt:not([data-sr-eyebrow])::before,
 .blk-label.sr-txt.sr--visible::before,
-.sr--visible .phil-lbl.sr-txt:not([data-sr-eyebrow])::before,
-.phil-lbl.sr-txt.sr--visible::before,
-.sr--visible .roastery-lbl.sr-txt:not([data-sr-eyebrow])::before,
-.roastery-lbl.sr-txt.sr--visible::before,
-.sr--visible .tci-lbl.sr-txt:not([data-sr-eyebrow])::before,
-.tci-lbl.sr-txt.sr--visible::before,
 .sr--visible .st-label.sr-txt:not([data-sr-eyebrow])::before,
 .st-label.sr-txt.sr--visible::before,
 .sr--visible .season-tag.sr-txt:not([data-sr-eyebrow])::before,
@@ -9363,9 +9027,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 @media (prefers-reduced-motion: reduce) {
   .blk-label.sr-txt::before,
-  .phil-lbl.sr-txt::before,
-  .roastery-lbl.sr-txt::before,
-  .tci-lbl.sr-txt::before,
   .st-label.sr-txt::before,
   .season-tag.sr-txt::before {
     margin-left: 0;

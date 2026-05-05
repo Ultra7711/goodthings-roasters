@@ -55,7 +55,7 @@ export default async function CafeMenuSection() {
       <div className="cafe-menu-split">
         <div className="cafe-menu-split__photo">
           <Image
-            src="/images/gallery/KakaoTalk_20260328_161956706_24.webp"
+            src="/images/gallery/cafe.webp"
             alt="굳띵즈 인의동 1호점 매장 내부"
             fill
             sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 640px"
