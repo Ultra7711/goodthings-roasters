@@ -2410,16 +2410,21 @@ footer.blk {
   height: 100%;
 }
 
-@media (max-width: 767px) {
-  .story-stage__inner { padding: 80px 24px; }
+/* 1023 이하 (tablet + mobile) — column stack + 텍스트→이미지 order (자문 §2.7) */
+@media (max-width: 1023px) {
+  .story-stage__inner { padding: 80px 48px; }
   .story-stage--cream .story-stage__inner {
     grid-template-columns: 1fr;
     gap: 48px;
   }
-  .story-img { aspect-ratio: 4/5; }
-  .story-gd__grid {
-    grid-template-columns: 1fr 1fr;
-  }
+  .story-img { order: 2; }
+  .story-txt { order: 1; }
+  .story-gd__grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* <768 — 모바일 padding 축소 */
+@media (max-width: 767px) {
+  .story-stage__inner { padding: 80px 24px; }
 }
 
 /* ══ Lineup (V2 §2.3 전체 라인업 — 원두 2 + 드립백 4 2행 그리드) ══ */
@@ -9399,12 +9404,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   margin-top: 32px;
 }
 
-/* Primary CTA — PDP 패턴 답습 (height 48 / font 15) + Blue Bottle hover lighten / active darken */
+/* Primary CTA — 메인 sand chapter (시그니처 / 스토리) 전용 inline CTA.
+   정책: 풀-스트레치 CTA 는 상점 페이지 (PDP / Cart / Checkout / Login 등 폼 submit) 만.
+   메인 chapter sand bg editorial 톤은 모든 brk 에서 inline + padding (S153 정책 통일).
+   height 48 / font 15 / Blue Bottle hover lighten / active darken */
 .sig-cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 100%;                        /* mobile 풀폭 */
+  width: auto;                        /* 모든 brk inline */
   height: 48px;                       /* PDP #pd-cart-btn 동일 */
   font-family: var(--font-kr);
   font-size: var(--cta-btn-font-size);
@@ -9412,7 +9420,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   letter-spacing: var(--cta-btn-letter-spacing);
   color: var(--color-text-inverse);
   background: var(--color-btn-primary-bg);
-  padding: 0;                         /* mobile 풀폭 — 다른 풀폭 CTA 정합 */
+  padding: 0 32px;                    /* .mp-save-btn 32px 통일 */
+  min-width: 120px;                   /* .mp-save-btn min-width 120 통일 */
   border: 0;
   text-decoration: none;
   cursor: pointer;
@@ -9521,11 +9530,5 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
   .sig-body {
     max-width: 340px;                 /* 한 줄 18~22자 (advisory §4.3) */
-  }
-
-  .sig-cta {
-    width: auto;                      /* desktop inline */
-    padding: 0 32px;                  /* .mp-save-btn 32px 통일 */
-    min-width: 120px;                 /* .mp-save-btn min-width 120 통일 */
   }
 }
