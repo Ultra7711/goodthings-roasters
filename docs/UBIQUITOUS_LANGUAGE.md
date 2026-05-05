@@ -111,3 +111,48 @@
 2. **Spec code ≠ Wireframe intent** — 자문 코드만 보지 말고 와이어 구조 함께 읽기
 3. **사용자 자연어 "스티키" = default Floating CTA 해석** — CSS spec 동작은 일반 사용자 mental model 외
 4. **GTR 프로젝트 = Specialty editorial 톤** — General e-commerce 패턴 도입 전 톤 부합 검증
+
+---
+
+## My Page Modules (Account Domain · S161)
+
+> S161 (2026-05-06) Architecture deepening review. `MyPagePage.tsx` 983 LOC god component 분해. 5 sub-Module + Modal 도메인 응집 결정 (Q1=A · Q2=α · Q3=γ).
+
+| Term | Definition | Aliases to avoid |
+|------|------------|------------------|
+| **My Page Container** | `/mypage` 라우트 layout module — 5 sub-Module 조합 + logout/withdraw redirect callback 처리 | MyPagePage (구체 구현 ≠ 개념) |
+| **Account Info Row** | 이름·이메일 표시 (정적). props 만 받는 pure module | profile section, user info |
+| **Address Section** | 배송지 표시 + 편집 아코디언. 1 주소 한정 (multi 미지원). `useAddressForm` 도메인 hook 직접 호출 | shipping form, address form |
+| **Subscription Editor** | 구독 list + 4 mutation (cycle/cancel/skip/pause) + 3 modal (skip/cancel/pause) 응집 module | subscription manager, recurring panel |
+| **Account Management** | 비밀번호 변경 + 회원 탈퇴 entry + Withdrawal Modal 응집 module | account settings |
+| **Order History** | 주문 list + 아코디언 + 주문번호 복사 + free shipping 표시 | orders list |
+| **Withdrawal Flow** | 회원 탈퇴 — 409 정기배송 차단 / 429 rate limit / 200 success 분기 | account deletion |
+
+## Subscription / Order / Account Hooks (TanStack Query Adapter · S161)
+
+> Q4 옵션 3 채택. Production adapter = `fetch`, test adapter = in-memory mock. **Two adapters = real seam**.
+
+| Term | Endpoint | Notes |
+|------|---------|-------|
+| **useSubscriptionsQuery** | GET `/api/subscriptions` | query key `['subscriptions']` |
+| **useUpdateSubscriptionCycle** | PATCH `/api/subscriptions/[id]` | paused 상태 carry-over 안내 invariant |
+| **useCancelSubscription** | DELETE `/api/subscriptions/[id]` | optimistic remove |
+| **useSkipSubscription** | POST `/api/subscriptions/[id]/skip` | nextDate += cycleDays |
+| **usePauseSubscription** | POST `/api/subscriptions/[id]/pause` | status: active → paused |
+| **useResumeSubscription** | POST `/api/subscriptions/[id]/resume` | status: paused → active |
+| **useOrdersQuery** | GET `/api/orders` | query key `['orders']` |
+| **useDeleteAccount** | POST `/api/account/delete` | 409 subscription_active / 429 rate_limited / 200 success 분기 |
+
+## Architecture Vocabulary (LANGUAGE.md)
+
+> S161 Architecture review 어휘. `mattpocock/improve-codebase-architecture/LANGUAGE.md` 정의 그대로 채용.
+
+- **Module** — interface + implementation 가진 모든 것 (function/class/package/slice)
+- **Interface** — caller 가 학습해야 하는 surface 전부 (type signature + invariants + error modes + ordering + config)
+- **Depth** — interface 작은 surface 안에 큰 behaviour. deep = 큰 leverage. shallow = interface ≈ implementation
+- **Seam** — interface 가 위치하는 곳. 행동 변경 가능 location (Michael Feathers)
+- **Adapter** — seam 에서 interface 만족하는 concrete thing
+- **Leverage** — caller 가 depth 에서 얻는 것
+- **Locality** — maintainer 가 depth 에서 얻는 것 (변경/버그/지식 한 location 응집)
+- **Deletion test** — 모듈 삭제 시 복잡도 사라지면 pass-through. 복잡도 N callers 에 재현되면 일하고 있음
+- **Two adapters = real seam** — 1 adapter 는 hypothetical seam (단순 indirection). 2 adapter (production + test 등) 부터 진짜 seam
