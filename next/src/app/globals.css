@@ -4145,7 +4145,7 @@ summary:focus-visible,
   margin: 0 0 14px;
 }
 .pd-chapter-tasting .pd-chapter-eyebrow {
-  color: var(--color-label-on-warm);
+  color: var(--color-accent-gold);
 }
 .pd-chapter-h2 {
   font-family: var(--font-kr);
@@ -4257,7 +4257,7 @@ summary:focus-visible,
   font-weight: 500;
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  color: var(--color-text-caption);
+  color: var(--color-label-on-white);
   margin-bottom: 12px;
 }
 #pd-name {

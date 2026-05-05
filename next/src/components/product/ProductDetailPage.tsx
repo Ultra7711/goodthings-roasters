@@ -111,7 +111,7 @@ export default function ProductDetailPage({ product }: Props) {
             1023↓: 1-col stacking — heading → Roasting → Flavor → 면책 */}
         <section className="pd-chapter pd-chapter-tasting">
           <header className="pd-chapter-header">
-            <p className="pd-chapter-eyebrow">Chapter 02 · Tasting</p>
+            <p className="pd-chapter-eyebrow">Tasting</p>
             <h2 className="pd-chapter-h2">맛 노트</h2>
           </header>
           <ProductRoastStage roastStage={product.roastStage} />
@@ -128,7 +128,7 @@ export default function ProductDetailPage({ product }: Props) {
         {/* ③ Brewing — 4 도구 카드 (원두) / 3 단계 (드립백) (V2 §5.4 · Advisory C §7.1) */}
         <section className="pd-chapter pd-chapter-brewing">
           <header className="pd-chapter-header">
-            <p className="pd-chapter-eyebrow">Chapter 03 · Brewing</p>
+            <p className="pd-chapter-eyebrow">Brewing</p>
             <h2 className="pd-chapter-h2">추출</h2>
           </header>
           {product.category === 'Drip Bag' ? <DripBagSteps /> : <ProductRecipeGuide product={product} />}
