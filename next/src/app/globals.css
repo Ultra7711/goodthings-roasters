@@ -4198,16 +4198,6 @@ summary:focus-visible,
     align-self: end;
   }
 }
-/* 활성 단계 한글 설명 (S157 후속 옵션 C) — current 라벨과 한 그룹 (margin-top 0) */
-.pd-roast-description {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: 400;
-  color: var(--ink-on-sand);
-  line-height: 1.6;
-  margin: 0;
-  max-width: 480px;
-}
 /* 면책 — 우측 컬럼 끝 (S157 후속 옵션 C) · 1024+ margin-top: auto 로 chapter 끝 baseline */
 .pd-tasting-disclaimer {
   font-family: var(--font-kr);
@@ -5018,73 +5008,75 @@ summary:focus-visible,
   margin-bottom: 18px;
 }
 
-/* ── 로스팅 스테이지 (V2 §5.3 PR-2b · S157) ──
-   자문 와이어프레임 (project_design_audit_v2_raw.html:1300–1311):
-   - bar height 32 · border 1px #C9BBA3 · segment gap 0
-   - 활성 segment 자체에 outline 2px ink + offset 2px
-   - 차트 위 "로스팅 단계 — {활성라벨}" 단일 강조 (.pd-roast-current)
-   - 차트 아래 6단 라벨 row space-between · 11px · ink-on-sand */
-.pd-roast-current {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: 400;
-  color: var(--ink-on-sand);
-  /* 라벨 row 다음 활성 단계 강조 — 위 gap-lg (차트 그룹과 분리) / 아래 4 (description 한 그룹) */
-  margin: var(--gap-lg) 0 4px;
-}
-.pd-roast-current strong {
-  font-weight: inherit;
-}
-#pd-roast-bar {
-  position: relative;
-  height: 32px;
-  border: 1px solid #C9BBA3;
-  margin-bottom: 6px;
-}
-#pd-roast-segments {
-  display: flex;
-  height: 100%;
-}
-.pd-roast-seg {
-  flex: 1;
-  transition: opacity .8s ease, filter .8s ease;
-  opacity: .3;
-  filter: grayscale(1);
-}
-.pd-roast-seg.filled {
-  opacity: 1;
-  filter: grayscale(0);
-}
-.pd-roast-seg.active {
-  outline: 2px solid var(--color-text-primary);
-  outline-offset: 2px;
-  /* ink outline 안쪽 면에 sand 2px 라인 — segment 색상 외부 (S157 PR-2b 사용자 요청) */
-  box-shadow: 0 0 0 2px #e9dfd2;
-  position: relative;
-  z-index: 1;
-}
-#pd-roast-labels {
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
-  color: var(--ink-on-sand);
-  align-items: flex-start;
-}
-#pd-roast-labels span {
-  text-align: center;
-  flex: 1;
-  transition: color var(--duration-transition) ease, font-weight var(--duration-transition) ease;
-}
-/* 좁은 brk (1024-1280) 좌측 컬럼 폭 협소 → letter-spacing 압축 + 줄바꿈 허용 (S157 후속 B) */
-@media (min-width: 1024px) and (max-width: 1280px) {
-  #pd-roast-labels {
-    letter-spacing: -0.02em;
-  }
-}
-#pd-roast-labels span.active {
-  color: var(--color-text-primary);
+/* ── 로스팅 게이지 (Advisory C §2.2 · S163 PR-2) ──
+   그라디언트 핀: 8px track (베이지→다크) + 14px cream/ink 핀
+   5-tick 라벨 · KO 22px / EN 11px mono 라벨 row · 설명 13.5px */
+.pd-roast-section-label {
+  font-family: var(--font-en);
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--ink-on-sand);
+  text-transform: uppercase;
+  margin: 0 0 16px;
+}
+.pd-roast-track {
+  position: relative;
+  height: 8px;
+  background: linear-gradient(90deg, #C9A678 0%, #8C5A2E 50%, #2D1F12 100%);
+  margin-bottom: 12px;
+}
+.pd-roast-pin {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-background-primary);
+  border: 2px solid var(--color-text-primary);
+}
+.pd-roast-ticks {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  font-family: ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--ink-on-sand);
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+.pd-roast-ticks span:first-child { text-align: left; }
+.pd-roast-ticks span:last-child { text-align: right; }
+.pd-roast-ticks span:not(:first-child):not(:last-child) { text-align: center; }
+.pd-roast-ko-en {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  margin-bottom: 16px;
+}
+.pd-roast-ko {
+  font-family: var(--font-kr);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  color: var(--color-text-primary);
+}
+.pd-roast-en {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--ink-on-sand);
+  text-transform: uppercase;
+  text-align: right;
+}
+.pd-roast-desc {
+  font-family: var(--font-kr);
+  font-size: 13.5px;
+  color: var(--ink-on-sand);
+  line-height: 1.7;
+  margin: 0;
+  max-width: 380px;
 }
 
 /* ── Flavor Note: 레이더 차트(센터) + 태그 pill(하단) ── */
