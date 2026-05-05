@@ -4132,16 +4132,20 @@ summary:focus-visible,
     margin-bottom: 36px;
   }
 }
-/* PDP chapter 헤딩 — Advisory C §1.2 (eyebrow gold caps + H2 editorial)
-   Tasting(sand) / Brewing(cream) 양쪽에서 사용. */
+/* PDP chapter 헤딩 — Advisory C §1.2 (eyebrow + H2 editorial)
+   blk-label 시스템 폰트 스펙 통일 · 배경별 색 토큰 분리.
+   default = cream bg (Brewing) / sand override = Tasting */
 .pd-chapter-eyebrow {
   font-family: var(--font-en);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  color: var(--color-accent-gold);
+  color: var(--color-label-on-white);
   margin: 0 0 14px;
+}
+.pd-chapter-tasting .pd-chapter-eyebrow {
+  color: var(--color-label-on-warm);
 }
 .pd-chapter-h2 {
   font-family: var(--font-kr);
