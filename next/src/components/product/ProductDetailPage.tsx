@@ -61,18 +61,16 @@ export default function ProductDetailPage({ product }: Props) {
   return (
     <div id="pd-body" ref={pageRef}>
       <div id="pd-inner">
+        {/* ① Hero — 좌: sticky 이미지 / 우: 정보 + 옵션 + CTA (V2 §5.2)
+            sticky 동작 범위: #pd-content 안에서만 — 풀폭 ②③④ chapter 위로 따라오지 않음
+            (specialty coffee 외부 표준 검증: Drop Coffee · 프릳츠 · 커피리브레 모두 풀폭 chapter sticky 패턴 사용 X) */}
         <div id="pd-content">
-          {/* ── 좌: 이미지 갤러리 (sticky) ──
-              데스크탑: #pd-img-wrap 이 sticky 로 우측 정보 스크롤 시에도 viewport 고정.
-              모바일(≤1023px): position static 으로 일반 흐름.
-              아코디언은 우측 #pd-info 마지막 element 로 이동 (PR 3 결정 · V2 §5.2). */}
           <div id="pd-img-col">
             <div id="pd-img-wrap">
               <ProductGallery images={product.images} status={product.status} />
             </div>
           </div>
 
-          {/* ── 우: 상품 정보 — 카테고리 → 이름 → 설명 → 옵션 → 로스팅/노트/레시피 → 아코디언 ── */}
           <div id="pd-info">
             <div id="pd-category">{product.category}</div>
             <div id="pd-name">
@@ -93,28 +91,34 @@ export default function ProductDetailPage({ product }: Props) {
                 ))}
               </div>
             )}
-            {/* RP-4c: 구매 옵션 + 장바구니
-                (status 뱃지는 좌측 이미지 좌상단으로 이동 — Shop 카드 일관) */}
             <PurchaseRow
               product={product}
               volIdx={volIdx}
               onVolChange={setVolIdx}
             />
-
-            {/* RP-4d: 로스팅 / 노트 / 레시피
-                (배송/교환반품 아코디언은 좌측 이미지 아래로 이동) */}
-            <ProductRoastStage roastStage={product.roastStage} />
-            <ProductFlavorNote
-              note={product.note}
-              noteTags={product.noteTags}
-              noteColor={product.noteColor}
-            />
-            {product.category === 'Drip Bag' ? <DripBagSteps /> : <ProductRecipeGuide product={product} />}
-            <ProductAccordions category={product.category} slug={product.slug} />
           </div>
         </div>
 
-        {/* Story section 은 RP-4e 에서 구현 */}
+        {/* ② Tasting — Roasting + Flavor 묶음 (V2 §5.3)
+            sand 패널 디자인은 PR-2 carry-over · PR-1 은 구조만 분리 */}
+        <section className="pd-chapter pd-chapter-tasting">
+          <ProductRoastStage roastStage={product.roastStage} />
+          <ProductFlavorNote
+            note={product.note}
+            noteTags={product.noteTags}
+            noteColor={product.noteColor}
+          />
+        </section>
+
+        {/* ③ Brewing — 4 도구 카드 (원두) / 3 단계 (드립백) (V2 §5.4) */}
+        <section className="pd-chapter pd-chapter-brewing">
+          {product.category === 'Drip Bag' ? <DripBagSteps /> : <ProductRecipeGuide product={product} />}
+        </section>
+
+        {/* ④ Detail — 아코디언 + SpecTable (V2 §5.5) */}
+        <section className="pd-chapter pd-chapter-detail">
+          <ProductAccordions category={product.category} slug={product.slug} />
+        </section>
       </div>
     </div>
   );

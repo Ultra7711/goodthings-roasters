@@ -4022,7 +4022,9 @@ footer.blk {
   transition-delay: .15s;
   display: flex;
   flex-direction: column;
-  padding: 0 60px 80px 20px;
+  /* PR-1 (S155): padding-bottom 80 → 0 — ② Tasting chapter 가 이어지므로
+     #pd-info 자체 하단 spacing 제거. 페이지 끝 spacing 은 ④ Detail chapter 가 담당. */
+  padding: 0 60px 0 20px;
   grid-column: 2;
 }
 #pd-body.pd-anim #pd-img-wrap {
@@ -4041,8 +4043,60 @@ footer.blk {
   }
   #pd-info {
     grid-column: 1;
-    padding: 48px var(--layout-padding-x) 80px;
+    /* PR-1: padding-bottom 80 → 0 (chapter 가 이어짐) */
+    padding: 48px var(--layout-padding-x) 0;
   }
+}
+
+/* PR-1 (S155): 데스크탑 우측 정보 컨트롤 영역 하단 정렬.
+   설명(#pd-desc) 이 짧으면 PurchaseRow 가 우측 column 위쪽에 떠 있고
+   좌 이미지(메인 + 썸네일) 끝과 빈 공간이 생긴다. 동시에 우측 자연 높이가
+   좌 이미지 자연 높이보다 짧으면 sticky 가 좌 이미지를 위로 살짝 들어 올렸다
+   풀리는 어색한 짧은 움직임이 발생.
+   PurchaseRow 를 flex column 의 margin-top: auto 로 하단 푸시 → 우측 콘텐츠가
+   좌 이미지 끝까지 자연 채움 → 좌 썸네일 하단과 baseline 정렬 + sticky 동작 자연스러워짐.
+   모바일은 1-col 이라 자연 흐름. */
+@media (min-width: 1024px) {
+  #pd-info .pd-purchase {
+    margin-top: auto;
+  }
+}
+
+/* ══ PDP 4-chapter — V2 §5.1 (PR-1 S155) ══
+   ② Tasting · ③ Brewing · ④ Detail 풀폭 chapter 컨테이너.
+   ① Hero (#pd-content) 끝 후 풀폭으로 이어짐 — 좌측 sticky 이미지는
+   #pd-content 안에서만 동작하고 chapter 위로는 따라오지 않음.
+
+   PR-1 범위: 구조 분리만. sand 패널·Roasting/Flavor 묶음 디자인·
+   모바일 sticky CTA bar 는 PR-2/3 carry-over.
+
+   각 chapter 는 #pd-inner (max-width 1440) 안에서 좌우 padding 60 (데스크탑) /
+   --layout-padding-x (모바일) 로 콘텐츠 정렬. */
+.pd-chapter {
+  padding: 0 60px;
+}
+@media (max-width: 1023px) {
+  .pd-chapter {
+    padding: 0 var(--layout-padding-x);
+  }
+}
+/* chapter 첫 자식이 .pd-info-section 인 경우 (Roasting · RecipeGuide · DripBagSteps):
+   상단 hairline + padding-top 48 제거 — chapter 시작점에 hairline 그어지면 어색.
+   chapter 자체 spacing (#pd-info padding-bottom 0 → ② chapter 첫 컴포넌트 사이 자연 호흡 부족) 보정 위해
+   chapter 자체 padding-top 48 부여. */
+.pd-chapter > .pd-info-section:first-child {
+  padding-top: 0;
+  box-shadow: none;
+}
+.pd-chapter-tasting,
+.pd-chapter-brewing {
+  padding-top: 48px;
+}
+/* ④ Detail chapter — 페이지 끝 spacing.
+   #pd-accordions 자체는 padding/margin 0. 페이지 하단 80 (데스크탑) / 80 (모바일) 부여. */
+.pd-chapter-detail {
+  padding-top: 48px;
+  padding-bottom: 80px;
 }
 
 /* 좌: 이미지 */
