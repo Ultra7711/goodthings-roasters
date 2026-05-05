@@ -5049,14 +5049,11 @@ summary:focus-visible,
   transform: translateX(-50%);
   white-space: nowrap;
   font-family: var(--font-kr);
-  font-size: var(--type-label-size);
+  font-size: var(--type-body-s-size);
   font-weight: var(--type-body-m-weight);
   letter-spacing: var(--ls-kr-body);
   color: var(--ink-on-sand);
 }
-/* 첫/마지막 라벨은 트랙 외부로 흘러나가지 않도록 가장자리에 anchor */
-.pd-roast-tick:first-child { transform: translateX(0); }
-.pd-roast-tick:last-child { transform: translateX(-100%); }
 .pd-roast-ko-en {
   display: grid;
   grid-template-columns: 1fr 1fr;

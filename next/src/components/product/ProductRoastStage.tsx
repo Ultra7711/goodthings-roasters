@@ -11,15 +11,16 @@ import type { Product } from '@/lib/products';
 const STAGES = ['light', 'medium-light', 'medium', 'medium-dark', 'dark', 'italian'] as const;
 const STAGE_KO = ['라이트', '미디엄 라이트', '미디엄', '미디엄 다크', '다크', '이탈리안'];
 const STAGE_EN = ['Light', 'Medium Light', 'Medium', 'Medium Dark', 'Dark', 'Italian'];
-/* 5-tick 게이지: italian 은 dark 와 동일 위치(100%) */
-const STAGE_PIN_PCT = [0, 25, 50, 75, 100, 100] as const;
-/* tick 라벨 — 0/25/50/75/100% 위치에 정확히 배치 (italian 은 dark 와 동일 → 5등분 유지) */
+/* 5-tick 게이지: 10~90% 안쪽 영역 5등분 (간격 20%) — pin/label 항상 중앙 정렬
+   italian 은 dark 와 동일 위치(90%) */
+const STAGE_PIN_PCT = [10, 30, 50, 70, 90, 90] as const;
+/* tick 라벨 — 10/30/50/70/90% 위치에 정확히 5등분 */
 const TICKS: { pct: number; label: string }[] = [
-  { pct: 0, label: '라이트' },
-  { pct: 25, label: '미디엄 라이트' },
+  { pct: 10, label: '라이트' },
+  { pct: 30, label: '미디엄 라이트' },
   { pct: 50, label: '미디엄' },
-  { pct: 75, label: '미디엄 다크' },
-  { pct: 100, label: '다크' },
+  { pct: 70, label: '미디엄 다크' },
+  { pct: 90, label: '다크' },
 ];
 const STAGE_DESCRIPTIONS = [
   '산미가 두드러지는 가장 옅은 로스팅',
