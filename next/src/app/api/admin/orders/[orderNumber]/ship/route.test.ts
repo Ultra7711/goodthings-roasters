@@ -58,11 +58,11 @@ type AdminStubOpts = {
 };
 
 function makeAdminStub(opts: AdminStubOpts = {}) {
-  const single = vi.fn(async () => ({
+  const maybeSingle = vi.fn(async () => ({
     data: opts.orderRow ?? { id: 'order-uuid-1' },
     error: opts.lookupError ?? null,
   }));
-  const eq = vi.fn(() => ({ single }));
+  const eq = vi.fn(() => ({ maybeSingle }));
   const select = vi.fn(() => ({ eq }));
   const from = vi.fn(() => ({ select }));
   const rpc = vi.fn(async () => ({
