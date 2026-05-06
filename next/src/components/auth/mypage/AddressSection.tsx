@@ -6,7 +6,6 @@ import { useAddressForm } from '@/hooks/useAddressForm';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
 import { useInputNav } from '@/hooks/useInputNav';
 import { shakeFields } from '@/lib/shakeFields';
-import { useToast } from '@/hooks/useToast';
 import { TextField } from '@/components/ui/TextField';
 import { SearchIcon } from '@/components/ui/InputIcons';
 import { ChevronRight } from '@/components/ui/Icons';
@@ -14,21 +13,19 @@ import { useMyPageAddrOpen, setAddrOpen } from '@/lib/myPageUiStore';
 
 type Props = {
   initialAddress: UserAddress | null;
+  /** Query 로딩 상태. true 면 "불러오는 중…" placeholder 로 깜빡임 차단. */
+  isLoading?: boolean;
+  /** 저장 시도 콜백. close/toast 는 호출자(MyPagePage)가 mutation 결과로 처리. */
   onSaved: (addr: UserAddress) => void;
 };
 
-export default function AddressSection({ initialAddress, onSaved }: Props) {
-  const { show: toast } = useToast();
+export default function AddressSection({ initialAddress, isLoading = false, onSaved }: Props) {
   const isAddrOpen = useMyPageAddrOpen();
   const formRef = useRef<HTMLDivElement>(null);
 
   const addressForm = useAddressForm({
     initial: initialAddress,
-    onSave: (addr) => {
-      onSaved(addr);
-      setAddrOpen(false);
-      toast('배송지가 저장되었습니다.');
-    },
+    onSave: onSaved,
   });
 
   const { setField } = addressForm;
@@ -43,9 +40,12 @@ export default function AddressSection({ initialAddress, onSaved }: Props) {
   }, [addressForm, initialAddress]);
 
   const hasAddress = !!initialAddress;
-  const addrDisplay = initialAddress
-    ? `(${initialAddress.zipcode}) ${initialAddress.addr1}${initialAddress.addr2 ? ` ${initialAddress.addr2}` : ''}`
-    : '등록된 배송지 정보가 없습니다.';
+  const addrDisplay = isLoading && !hasAddress
+    ? '불러오는 중…'
+    : initialAddress
+      ? `(${initialAddress.zipcode}) ${initialAddress.addr1}${initialAddress.addr2 ? ` ${initialAddress.addr2}` : ''}`
+      : '등록된 배송지 정보가 없습니다.';
+  const isPlaceholderText = !hasAddress; /* 로딩·빈 상태 모두 회색 (#9C9890) */
 
   return (
     <div className="mp-info-row mp-info-row--addr">
@@ -54,6 +54,7 @@ export default function AddressSection({ initialAddress, onSaved }: Props) {
         role="button"
         tabIndex={0}
         aria-label={isAddrOpen ? '닫기' : hasAddress ? '주소 편집' : '새 주소 추가'}
+        aria-busy={isLoading || undefined}
         onClick={() => (isAddrOpen ? setAddrOpen(false) : open())}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -67,7 +68,7 @@ export default function AddressSection({ initialAddress, onSaved }: Props) {
         <div className="mp-info-addr-right">
           <span
             className="mp-info-value mp-info-addr-text"
-            style={!hasAddress ? { color: '#9C9890' } : undefined}
+            style={isPlaceholderText ? { color: '#9C9890' } : undefined}
           >
             {addrDisplay}
           </span>

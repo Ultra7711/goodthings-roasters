@@ -10,14 +10,16 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
+import { useDefaultAddressQuery, useSaveDefaultAddress } from '@/hooks/useDefaultAddress';
 import { supabase } from '@/lib/supabase';
 import type { AuthClaims } from '@/lib/auth/getClaims';
 import type { UserAddress } from '@/types/address';
 import { useToast } from '@/hooks/useToast';
+import { setAddrOpen } from '@/lib/myPageUiStore';
 import SiteHeader from '@/components/layout/SiteHeader';
 import AccountInfoRow from '@/components/auth/mypage/AccountInfoRow';
 import AddressSection from '@/components/auth/mypage/AddressSection';
@@ -49,9 +51,29 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const emailHandle = effectiveEmail.split('@')[0];
   const displayName = metaName ?? emailHandle ?? null;
 
-  /* 주소는 DB persist 미도입 — 로컬 state (세션 내 임시).
-     ADR-004 Step C-2.5: 기존 Zustand 도 partialize 로 persist 안 했으므로 동작 동일. */
-  const [address, setAddress] = useState<UserAddress | null>(null);
+  /* 기본 배송지: addresses 테이블에 persist (S174).
+     - useDefaultAddressQuery: GET /api/account/addresses (RLS) → default 1건
+     - useSaveDefaultAddress: PUT /api/account/addresses → upsert
+     - close/toast 는 mutation 결과에 따라 본 컴포넌트가 처리. */
+  /* isPending: enabled=false 이거나 첫 fetch 진행 중 (data === undefined) 인
+     모든 상태를 포괄. isLoading 은 enabled=false 시 false 라 placeholder 누락. */
+  const { data: addressData, isPending: isAddressLoading } = useDefaultAddressQuery();
+  const saveAddress = useSaveDefaultAddress();
+  const handleSaveAddress = useCallback(
+    (addr: UserAddress) => {
+      saveAddress.mutate(addr, {
+        onSuccess: () => {
+          setAddrOpen(false);
+          toast('배송지가 저장되었습니다.');
+        },
+        onError: (err) => {
+          console.error('[mypage.address] save failed', err);
+          toast('배송지 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+        },
+      });
+    },
+    [saveAddress, toast],
+  );
 
   /* ── 로그아웃 ──
      supabase.auth.signOut() 호출 → SIGNED_OUT 이벤트 →
@@ -103,7 +125,11 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
             <h2 className="mp-section-title">계정 정보</h2>
             <div className="mp-section-body">
               <AccountInfoRow name={metaName ?? emailHandle ?? ''} email={effectiveEmail} />
-              <AddressSection initialAddress={address} onSaved={setAddress} />
+              <AddressSection
+                initialAddress={addressData ?? null}
+                isLoading={isAddressLoading}
+                onSaved={handleSaveAddress}
+              />
             </div>
           </div>
 
