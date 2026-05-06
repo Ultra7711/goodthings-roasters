@@ -65,67 +65,9 @@
 
 ### 컬러 시스템 (Warm-shifted B&W)
 
-> ⚠️ **토큰 사용 전 `globals.css` grep 필수** — 이 표가 source of truth. 기억·추측으로 토큰명 작성 금지.
-
-**Background**
-
-| 토큰 | 값 | 용도 |
-|------|------|------|
-| `--color-background-primary` | `#FBF8F3` | 기본 배경 (cream white) |
-| `--color-background-secondary` | `#EFEAE0` | 보조 배경 |
-| `--color-background-tertiary` | `#E4DACB` | 3차 배경 |
-| `--color-background-inverse` | `#1E1B16` | 다크 배경 (warm black) |
-| `--color-surface-warm` | `#EADFD1` | 섹션 배경 (sandy beige) — Phil·시즌배너 등 |
-| `--color-surface-subtle` | `#F5F1EA` | subtle 표면 — 마이페이지·체크아웃 패널 |
-
-**Text**
-
-| 토큰 | 값 | 용도 |
-|------|------|------|
-| `--color-text-primary` | `#1C1B19` | 헤딩·CTA·네비게이션 |
-| `--color-text-secondary` | `#4A4843` | 본문 |
-| `--color-text-tertiary` | `#6B6863` | 보조 라벨·메타 |
-| `--color-text-caption` | `#9C9890` | 캡션·플레이스홀더 |
-| `--color-text-inverse` | `#FAFAF8` | 다크 배경 위 텍스트 |
-| `--color-text-hint` | `#A8A49E` | 힌트 텍스트 |
-
-**On-dark (다크 배경 위 텍스트)**
-
-| 토큰 | 용도 |
-|------|------|
-| `--on-dark-primary` | 다크 배경 강조 텍스트 (`--color-text-heading-dark`) |
-| `--on-dark-secondary` | 다크 배경 보조 텍스트 |
-| `--on-dark-tertiary` | 다크 배경 캡션 |
-
-**Border**
-
-| 토큰 | 값 | 용도 |
-|------|------|------|
-| `--color-border-hairline` | `rgba(28,27,25,.06)` | 가장 얇은 구분선 |
-| `--color-border-secondary` | `rgba(28,27,25,.12)` | 일반 구분선 |
-| `--color-border-primary` | `rgba(28,27,25,.20)` | 강조 구분선 |
-| `--color-border-input` | `#D9D6D2` | 인풋 테두리 |
-| `--color-border-hairline-on-dark` | `rgba(255,255,255,.10)` | 다크 배경 구분선 |
-
-**Accent / Label**
-
-| 토큰 | 값 | 용도 |
-|------|------|------|
-| `--color-accent-gold` | `#A5693A` | 골드 강조 (라이트 배경) |
-| `--color-accent-gold-on-dark` | `#D9A36A` | 골드 강조 (다크 배경) |
-| `--color-accent-gold-on-image` | `#F0C89C` | eyebrow 라인 (이미지 배경) |
-| `--color-label-on-white` | `#9A7E54` | eyebrow 텍스트 (화이트 배경) |
-| `--color-label-on-warm` | `#857052` | eyebrow 텍스트 (웜 배경) |
-| `--color-label-on-dark` | `#C8BFB1` | eyebrow 텍스트 (다크 배경) |
-
-**Feedback**
-
-| 토큰 | 값 |
-|------|------|
-| `--color-error` | `#C4554E` |
-| `--color-success` | `#5C7A4B` |
-| `--color-info` | `#4A6B8A` |
-| `--color-warning` | `#B8943F` |
+> ⚠️ **토큰 사용 전 `next/src/app/globals.css` 의 `:root` 블록 grep 필수** — globals.css 가 진짜 source of truth.
+> 카테고리별 토큰 표 (Background · Surface · Text 5단계 · On-dark · CTA · Status · Border · Icon · Accent · Roast · Feedback): `docs/gtr-design-guide.md` **Part 1 Color System** 참조.
+> 신규 토큰 추가 시: globals.css 정의 → docs/gtr-design-guide.md 갱신 (drift 차단).
 
 ### 타이포그래피
 
