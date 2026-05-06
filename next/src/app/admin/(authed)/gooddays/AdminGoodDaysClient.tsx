@@ -134,14 +134,22 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
 
   /* ── 업로드 ──────────────────────────────────────────────────────────── */
   async function handleUpload(formData: FormData) {
-    const result = await uploadGoodDaysImageAction(formData);
-    if (!result.ok) {
-      toast.error(`업로드 실패 (${result.detail ?? result.error})`);
+    /* Server Action 자체가 throw 하는 경우 (예: body 한도 초과 등 Next.js 단계 실패) 도
+       graceful 처리 — UI 잠금 방지. */
+    try {
+      const result = await uploadGoodDaysImageAction(formData);
+      if (!result.ok) {
+        toast.error(`업로드 실패 (${result.detail ?? result.error})`);
+        return false;
+      }
+      toast.success('업로드 완료');
+      router.refresh();
+      return true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'unknown';
+      toast.error(`업로드 실패 (${message.slice(0, 100)})`);
       return false;
     }
-    toast.success('업로드 완료');
-    router.refresh();
-    return true;
   }
 
   return (
@@ -429,8 +437,13 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
     fd.append('alt', alt);
     fd.append('featured', featured ? 'true' : 'false');
     setSubmitting(true);
-    const ok = await onSubmit(fd);
-    setSubmitting(false);
+    let ok = false;
+    try {
+      ok = await onSubmit(fd);
+    } finally {
+      /* onSubmit 이 throw 해도 모달 버튼 잠김 해제 보장. */
+      setSubmitting(false);
+    }
     if (ok) {
       reset();
       onOpenChange(false);

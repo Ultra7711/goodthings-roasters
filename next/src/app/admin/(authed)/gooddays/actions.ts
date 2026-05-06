@@ -240,9 +240,15 @@ export async function updateGoodDaysImageAction(input: {
 /**
  * sort_order 일괄 UPDATE — 드래그 리오더.
  *
- * UNIQUE DEFERRABLE INITIALLY DEFERRED 가 트랜잭션 종료 시점 검증 →
- * 중간 상태 (1↔2 swap 등) 의 unique 충돌 회피.
- * 단일 RPC 미존재 — 어드민 빈도 낮음, 단순 loop UPDATE 채택.
+ * 2-pass 패턴 (S167 J-4 fix):
+ *   supabase-js 의 sequential update 는 statement 단위 자체 commit → DEFERRABLE
+ *   INITIALLY DEFERRED 가 무효 (트랜잭션 종료 = 매 statement 의 implicit commit).
+ *   따라서 단순 loop UPDATE 는 1↔2 swap 등에서 unique 충돌.
+ *
+ *   해결: 1차 loop = 음수 sort_order (-1, -2, ...) 부여 → 양수 영역과 충돌 X,
+ *         2차 loop = 정상 양수 sort_order (1, 2, ...) 부여.
+ *
+ * 향후 성능 이슈 발생 시 PL/pgSQL RPC (단일 트랜잭션) 로 전환 가능.
  */
 export async function reorderGoodDaysImagesAction(input: {
   orderedIds: string[];
@@ -256,22 +262,35 @@ export async function reorderGoodDaysImagesAction(input: {
   }
 
   const admin = getSupabaseAdmin();
-
-  /* DB 함수 reorder_gooddays_gallery 가 없으므로 client-side loop UPDATE.
-     트랜잭션 단위 X — 부분 실패 시 후속 update_at 차이로 진단 가능.
-     향후 성능 이슈 발생 시 RPC 도입. */
   const ids = parsed.data.orderedIds;
+
+  /* 1차 — 모든 row 음수 sort_order 부여. 양수 1..N 영역과 충돌 X. */
+  for (let i = 0; i < ids.length; i++) {
+    const { error } = await admin
+      .from('gooddays_gallery')
+      .update({ sort_order: -(i + 1), updated_by: claims.userId })
+      .eq('id', ids[i]);
+    if (error) {
+      console.error('[reorderGoodDaysImagesAction] pass1 failed', {
+        idx: i,
+        message: error.message?.slice(0, 200),
+      });
+      return { ok: false, error: 'server_error', detail: `pass1_idx_${i}` };
+    }
+  }
+
+  /* 2차 — 정상 양수 sort_order 부여. 음수 영역과 충돌 X. */
   for (let i = 0; i < ids.length; i++) {
     const { error } = await admin
       .from('gooddays_gallery')
       .update({ sort_order: i + 1, updated_by: claims.userId })
       .eq('id', ids[i]);
     if (error) {
-      console.error('[reorderGoodDaysImagesAction] update failed', {
+      console.error('[reorderGoodDaysImagesAction] pass2 failed', {
         idx: i,
         message: error.message?.slice(0, 200),
       });
-      return { ok: false, error: 'server_error', detail: `idx_${i}` };
+      return { ok: false, error: 'server_error', detail: `pass2_idx_${i}` };
     }
   }
 

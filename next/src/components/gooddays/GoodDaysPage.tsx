@@ -105,11 +105,20 @@ export default function GoodDaysPage({ initialImgSrc, gallery }: Props) {
   }, []);
 
   /* initialImgSrc prop 으로 첫 마운트 시점 라이트박스 인덱스 결정.
-     useState 초기값 함수가 첫 paint 에 라이트박스 open 보장 → 흰 본문 노출 차단. */
+     useState 초기값 함수가 첫 paint 에 라이트박스 open 보장 → 흰 본문 노출 차단.
+
+     basename 매칭 (S167 J-3 fix):
+     - 메인 페이지 (StoryChapter) 의 shortcut 은 hardcoded 로컬 path 전달:
+       /gooddays?img=/images/gallery/KakaoTalk_..._01.webp
+     - DB 전환 후 ordered[i].src 는 Storage public URL:
+       https://xxx.supabase.co/storage/v1/object/public/gooddays-images/KakaoTalk_..._01.webp
+     - filename basename 으로만 비교 → 두 경로 형태 모두 매칭. */
   const initialIdx = useMemo(
     () => {
       if (!initialImgSrc) return -1;
-      return ordered.findIndex((item) => item.src === initialImgSrc);
+      const target = initialImgSrc.split('/').pop();
+      if (!target) return -1;
+      return ordered.findIndex((item) => item.src.split('/').pop() === target);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -131,7 +140,10 @@ export default function GoodDaysPage({ initialImgSrc, gallery }: Props) {
     }
     if (lastHandledImgSrcRef.current === imgSrc) return;
     if (ordered.length === 0) return;
-    const idx = ordered.findIndex((item) => item.src === imgSrc);
+    /* basename 매칭 — initialIdx 와 동일 (S167 J-3 fix). */
+    const target = imgSrc.split('/').pop();
+    if (!target) return;
+    const idx = ordered.findIndex((item) => item.src.split('/').pop() === target);
     if (idx < 0) return;
     lastHandledImgSrcRef.current = imgSrc;
     setLbIndex(idx);

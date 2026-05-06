@@ -43,6 +43,16 @@ const nextConfig: NextConfig = {
   // Next.js 가 Node.js native 모듈을 webpack 으로 처리하지 않고 런타임에 require 한다.
   serverExternalPackages: ["@node-rs/argon2"],
 
+  // Server Action body 크기 한도 — 기본 1MB → 6MB 상향 (S167 J-4 fix).
+  // 굿데이즈 갤러리 업로드 등 어드민 이미지 multipart upload 가 5MB 한도까지 허용되며,
+  // FormData 인코딩 오버헤드 + base64 변환 마진을 위해 6MB 로 설정.
+  // Storage 버킷 측 file_size_limit (5MB, 028 마이그레이션) 가 최종 가드.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '6mb',
+    },
+  },
+
   // Cache Components (PPR) 활성화 (BUG-006 D-011, Stage C, 2026-04-24):
   //   모든 페이지가 기본 dynamic 이 되며, 정적 캐시는 `'use cache'` 디렉티브로 명시.
   //   runtime data access (cookies/headers/params/searchParams) 는 <Suspense> 경계 필수.
