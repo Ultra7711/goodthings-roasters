@@ -234,10 +234,15 @@ export default function CheckoutPage() {
       setStep('form');
       setOrderResult(null);
       setSubmitting(false);
-      resetForm();
+      /* S170: 로그인 사용자는 마이페이지 기본 배송지 prefill 미구현 상태이므로
+         cart 변경 시 resetForm 호출하면 받는분/주소가 모두 비워져 재입력 부담.
+         step 전환만 수행하고 입력값은 유지. 비로그인은 기존대로 게스트 데이터
+         stale 정리를 위해 resetForm. address prefill 통합은 별 sprint
+         (project_checkout_address_prefill.md) carry-over. */
+      if (!isLoggedIn) resetForm();
       orderCartSigRef.current = null;
     }
-  }, [cartSig, user?.id, isFormRevealed, resetForm]);
+  }, [cartSig, user?.id, isFormRevealed, isLoggedIn, resetForm]);
 
   /* 재진입 reset (BUG-112/161). 비로그인 케이스만 담당.
      로그인 케이스는 D-1 이 user.id 변화로 처리.
