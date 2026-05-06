@@ -106,6 +106,45 @@ export type ListedUser = {
   orderCount: number;          /* 누적 주문 수 (orders.user_id 그룹 카운트) */
 };
 
+/** 상세 페이지 — 프로필 단일 행 */
+export type UserDetailProfile = {
+  id: string;
+  email: string;
+  fullName: string | null;
+  displayName: string | null;
+  phone: string | null;
+  role: DbUserRole;
+  createdAtIso: string;
+  updatedAtIso: string;
+};
+
+/** 상세 페이지 — 사용자 주문 1행 (최근 N개) */
+export type ListedUserOrder = {
+  id: string;
+  orderNumber: string;
+  createdAtIso: string;
+  status:
+    | 'pending'
+    | 'paid'
+    | 'shipping'
+    | 'delivered'
+    | 'cancelled'
+    | 'refund_requested'
+    | 'refund_processing'
+    | 'refunded';
+  totalAmount: number;
+};
+
+/** admin_audit 1행 (역할 변경 이력) */
+export type AdminAuditEntry = {
+  id: string;
+  actorId: string | null;
+  actorEmail: string | null;       /* JOIN profiles.email */
+  action: 'grant_admin' | 'revoke_admin';
+  reason: string | null;
+  createdAtIso: string;
+};
+
 /* ── 표시 포맷 헬퍼 ──────────────────────────────────────────────────── */
 
 function pad2(n: number): string {
@@ -127,6 +166,18 @@ function toKstParts(iso: string): { yyyy: number; mm: number; dd: number } {
 export function formatJoinedDate(iso: string): string {
   const p = toKstParts(iso);
   return `${p.yyyy}.${pad2(p.mm)}.${pad2(p.dd)}`;
+}
+
+/** ISO timestamp → KST "YYYY.MM.DD HH:mm" (감사 로그 시각) */
+export function formatAuditTimestamp(iso: string): string {
+  const d = new Date(iso);
+  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  const yyyy = kst.getUTCFullYear();
+  const mm = kst.getUTCMonth() + 1;
+  const dd = kst.getUTCDate();
+  const hh = kst.getUTCHours();
+  const mi = kst.getUTCMinutes();
+  return `${yyyy}.${pad2(mm)}.${pad2(dd)} ${pad2(hh)}:${pad2(mi)}`;
 }
 
 /** 이름 표시 우선순위 — display_name → full_name → email local-part. */

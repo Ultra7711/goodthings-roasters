@@ -20,11 +20,17 @@ import {
   PAGE_SIZE,
   parseSearchParams,
   sanitizeSearchQuery,
+  type AdminAuditEntry,
   type AdminUsersSearchParams,
   type DbUserRole,
   type ListedUser,
+  type ListedUserOrder,
   type RoleTabKey,
+  type UserDetailProfile,
 } from './users';
+
+/** 상세 페이지 — 최근 주문 N개 */
+const RECENT_ORDERS_LIMIT = 20;
 
 /**
  * Postgrest/일반 Error 모두 동일 형태로 요약. 200자 cap (민감정보 누출 회피).
@@ -160,4 +166,162 @@ export async function fetchAdminUsers(
   }));
 
   return { rows, total: count ?? 0, counts, filters };
+}
+
+/* ── 상세 조회 ──────────────────────────────────────────────────────── */
+
+type ProfileDetailRow = {
+  id: string;
+  email: string;
+  full_name: string | null;
+  display_name: string | null;
+  phone: string | null;
+  role: DbUserRole;
+  created_at: string;
+  updated_at: string;
+};
+
+type UserOrderRow = {
+  id: string;
+  order_number: string;
+  created_at: string;
+  status: ListedUserOrder['status'];
+  total_amount: number;
+};
+
+type AuditRow = {
+  id: string;
+  actor_id: string | null;
+  action: 'grant_admin' | 'revoke_admin';
+  reason: string | null;
+  created_at: string;
+};
+
+export type AdminUserDetail = {
+  profile: UserDetailProfile;
+  orders: ListedUserOrder[];
+  audit: AdminAuditEntry[];
+};
+
+/**
+ * /admin/users/[id] 상세 fetch.
+ *
+ * 1) profile (profiles_select_admin RLS)
+ * 2) 최근 주문 N개 (orders_select_admin RLS, user_id = id)
+ * 3) admin_audit — target_user_id = id 의 grant/revoke 이력
+ * 4) audit.actor_id 프로필 lookup (이메일 표시용)
+ *
+ * profile not_found → null. 호출처가 notFound() 처리.
+ *
+ * RLS:
+ * - admin_audit_select_admin (020) — admin SELECT 허용.
+ * - profiles_select_admin (020) — admin 이 actor 프로필 lookup 가능.
+ */
+export async function fetchAdminUserDetail(
+  id: string,
+): Promise<AdminUserDetail | null> {
+  const supabase = await createRouteHandlerClient();
+
+  /* 1·2·3) 병렬 fetch */
+  const [profileRes, ordersRes, auditRes] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select(
+        'id, email, full_name, display_name, phone, role, created_at, updated_at',
+      )
+      .eq('id', id)
+      .maybeSingle(),
+    supabase
+      .from('orders')
+      .select('id, order_number, created_at, status, total_amount')
+      .eq('user_id', id)
+      .order('created_at', { ascending: false })
+      .limit(RECENT_ORDERS_LIMIT),
+    supabase
+      .from('admin_audit')
+      .select('id, actor_id, action, reason, created_at')
+      .eq('target_user_id', id)
+      .order('created_at', { ascending: false }),
+  ]);
+
+  if (profileRes.error) {
+    console.error(
+      '[fetchAdminUserDetail] profile failed',
+      summarizePgError(profileRes.error),
+    );
+  }
+  if (ordersRes.error) {
+    console.error(
+      '[fetchAdminUserDetail] orders failed',
+      summarizePgError(ordersRes.error),
+    );
+  }
+  if (auditRes.error) {
+    console.error(
+      '[fetchAdminUserDetail] audit failed',
+      summarizePgError(auditRes.error),
+    );
+  }
+
+  const profileRow = profileRes.data as ProfileDetailRow | null;
+  if (!profileRow) return null;
+
+  const orderRows = (ordersRes.data ?? []) as UserOrderRow[];
+  const auditRows = (auditRes.data ?? []) as AuditRow[];
+
+  /* 4) actor email 매핑 — admin_audit.actor_id 의 profiles.email lookup. */
+  const actorIds = Array.from(
+    new Set(
+      auditRows
+        .map((r) => r.actor_id)
+        .filter((v): v is string => typeof v === 'string'),
+    ),
+  );
+  const actorEmails = new Map<string, string>();
+  if (actorIds.length > 0) {
+    const { data: actorRows, error: actorErr } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .in('id', actorIds);
+    if (actorErr) {
+      console.error(
+        '[fetchAdminUserDetail] actor lookup failed',
+        summarizePgError(actorErr),
+      );
+    } else if (actorRows) {
+      for (const row of actorRows as { id: string; email: string }[]) {
+        actorEmails.set(row.id, row.email);
+      }
+    }
+  }
+
+  const profile: UserDetailProfile = {
+    id: profileRow.id,
+    email: profileRow.email,
+    fullName: profileRow.full_name,
+    displayName: profileRow.display_name,
+    phone: profileRow.phone,
+    role: profileRow.role,
+    createdAtIso: profileRow.created_at,
+    updatedAtIso: profileRow.updated_at,
+  };
+
+  const orders: ListedUserOrder[] = orderRows.map((r) => ({
+    id: r.id,
+    orderNumber: r.order_number,
+    createdAtIso: r.created_at,
+    status: r.status,
+    totalAmount: r.total_amount,
+  }));
+
+  const audit: AdminAuditEntry[] = auditRows.map((r) => ({
+    id: r.id,
+    actorId: r.actor_id,
+    actorEmail: r.actor_id ? actorEmails.get(r.actor_id) ?? null : null,
+    action: r.action,
+    reason: r.reason,
+    createdAtIso: r.created_at,
+  }));
+
+  return { profile, orders, audit };
 }
