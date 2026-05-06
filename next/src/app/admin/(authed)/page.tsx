@@ -1,7 +1,8 @@
 /* ══════════════════════════════════════════
    Admin Dashboard (/admin) — S130 Group I-1: 시안 inline UI 유지 + RPC 실 데이터.
    - admin_dashboard_overview RPC 1 round-trip → stats / tasks / recent / bestsellers.
-   - 시안 dashboard.jsx 의 4 카드 + 최근 주문 + 사이드 위젯 슬롯 그대로.
+   - 시안 dashboard.jsx 의 stat 카드 + 최근 주문 + 사이드 위젯 슬롯 그대로.
+   - S171: pending_orders 카드 제거 (무통장입금 잔재) → 3 카드 grid.
    ══════════════════════════════════════════ */
 
 import Link from 'next/link';
@@ -138,7 +139,7 @@ export default async function AdminDashboardPage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 12,
           marginBottom: 22,
         }}

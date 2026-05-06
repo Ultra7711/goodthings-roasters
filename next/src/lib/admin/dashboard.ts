@@ -20,7 +20,6 @@ export type DashboardStatsRpc = {
   today_orders: number;
   week_revenue: number;
   active_subscriptions: number;
-  pending_orders: number;
 };
 
 export type DashboardTasksRpc = {
@@ -121,7 +120,6 @@ const FALLBACK_OVERVIEW: DashboardOverviewRpc = {
     today_orders: 0,
     week_revenue: 0,
     active_subscriptions: 0,
-    pending_orders: 0,
   },
   tasks: {
     new_orders: 0,
@@ -160,12 +158,6 @@ export function mapOverview(rpc: DashboardOverviewRpc): DashboardOverview {
       label: '활성 정기배송',
       value: statCountText(rpc.stats.active_subscriptions),
       sub: rpc.stats.active_subscriptions > 0 ? '운영 중인 구독' : '활성 구독 없음',
-    },
-    {
-      label: '대기 주문',
-      value: statCountText(rpc.stats.pending_orders),
-      sub: rpc.stats.pending_orders > 0 ? '발송 처리 필요' : '대기 주문 없음',
-      warn: rpc.stats.pending_orders > 0,
     },
   ];
 
