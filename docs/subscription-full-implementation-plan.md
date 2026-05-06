@@ -54,7 +54,7 @@
 | # | 작업 | 추정 | 비고 |
 |---|------|------|------|
 | **A-1** | production Supabase 마이그레이션 005·019~024 적용 여부 검증·동기화 | 30~60m | S91 사고 재발 방지. SQL Editor 또는 supabase CLI 사용 |
-| **A-2** ✅ | `subscription_period` enum 정합 (S165 완료) — `lib/subscription/cycles.ts` 단일 SoT 도입 + `CYCLE_DAYS` 매핑 통합 + `SUBSCRIPTION_PERIODS` deprecated re-export | — | UI/DB 모두 `'2주'·'4주'·'6주'·'8주'` 4값 |
+| **A-2** ✅ | `subscription_period` enum 정합 (S165 완료 · 3 PR) — `lib/subscription/cycles.ts` 단일 SoT 도입 + `CYCLE_DAYS` 매핑 통합 + 호출처 갱신 (`SUBSCRIPTION_PERIODS` / `SubscriptionPeriod` deprecated 제거 완료) | — | UI/DB 모두 `'2주'·'4주'·'6주'·'8주'` 4값 |
 | **A-3** | (선택) ADR-005 결정 — cycle 을 lookup 테이블로 이관할지 enum 유지할지 | 1~2h | 어드민 편집 필요시 후보 B (lookup 테이블) 채택. `memory/project_adr005_subscription_cycles_queue.md` 참조 |
 
 ### 🟠 Group B — 결제 흐름 → 정기배송 INSERT (단절된 흐름 복구)

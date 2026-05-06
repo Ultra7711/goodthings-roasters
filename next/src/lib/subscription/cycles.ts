@@ -11,12 +11,15 @@
    - 본 파일이 runtime SoT — `SUBSCRIPTION_CYCLES` tuple + `CYCLE_DAYS` 매핑.
    - `_ExhaustiveCheck` 로 DB enum 추가 시 컴파일 에러 발생 → 동기화 누락 방지.
 
-   호출처 (S165 PR-2 정합 후):
+   호출처 (S165 PR-3 정합 후):
    - components/auth/mypage/SubscriptionEditor.tsx
    - lib/repositories/subscriptionRepo.ts
+   - lib/repositories/cartRepo.ts
    - app/api/subscriptions/[id]/route.ts (zod schema)
-   - lib/schemas/order.ts (SUBSCRIPTION_PERIODS = SUBSCRIPTION_CYCLES re-export)
-   - types/subscription.ts (SubscriptionCycle = SubscriptionCycle re-export)
+   - lib/schemas/order.ts (z.enum 직접 호출)
+   - lib/schemas/cart.ts (z.enum 직접 호출)
+   - hooks/useCart.ts (z.enum 직접 호출 + SubscriptionCycle 타입)
+   - types/subscription.ts (re-export — Subscription 타입 호환)
 
    carry-over: ADR-005 lookup 테이블 (어드민 cycle 편집) — 별 sprint.
    ══════════════════════════════════════════════════════════════════════════ */

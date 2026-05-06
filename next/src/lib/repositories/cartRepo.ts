@@ -13,7 +13,7 @@
 
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import type { OrderItemType } from '@/types/db';
-import type { SubscriptionPeriod } from '@/lib/schemas/order';
+import type { SubscriptionCycle } from '@/lib/subscription/cycles';
 
 /* ── DTO ──────────────────────────────────────────────────────────────── */
 
@@ -25,7 +25,7 @@ export type CartItemRow = {
   quantity: number;
   unit_price_snapshot: number;
   item_type: OrderItemType;
-  subscription_period: SubscriptionPeriod | null;
+  subscription_period: SubscriptionCycle | null;
   created_at: string;
   updated_at: string;
 };
@@ -47,7 +47,7 @@ export type UpsertCartItemParams = {
   unitPriceSnapshot: number;
   itemType: OrderItemType;
   /** itemType = 'subscription' 일 때만 non-null. */
-  subscriptionPeriod: SubscriptionPeriod | null;
+  subscriptionPeriod: SubscriptionCycle | null;
 };
 
 /** quantity 합산 시 상한 (cart_items_quantity_range CHECK 와 동일) */
@@ -193,7 +193,7 @@ export type BulkMergeItem = {
   quantity: number;
   unitPriceSnapshot: number;
   itemType: OrderItemType;
-  subscriptionPeriod: SubscriptionPeriod | null;
+  subscriptionPeriod: SubscriptionCycle | null;
 };
 
 /**

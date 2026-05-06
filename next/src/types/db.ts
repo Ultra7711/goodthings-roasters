@@ -9,7 +9,7 @@
 
    동기화 대상:
    - 003_orders.sql          → OrderStatus, PaymentMethod
-   - 004_order_items.sql     → OrderItemType, SubscriptionPeriod
+   - 004_order_items.sql     → OrderItemType, DbSubscriptionPeriod (UI alias = SubscriptionCycle, lib/subscription/cycles.ts)
    - 005_subscriptions.sql   → SubscriptionStatus (P2-C 에서 활성화)
    - 006_payment_transactions.sql → PaymentEventType (P2-B 에서 활성화)
 

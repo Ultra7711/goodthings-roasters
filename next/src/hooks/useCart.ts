@@ -21,8 +21,10 @@ import { useCallback } from 'react';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CartItem, AddToCartPayload } from '@/types/cart';
-import type { SubscriptionPeriod } from '@/lib/schemas/order';
-import { SUBSCRIPTION_PERIODS } from '@/lib/schemas/order';
+import {
+  SUBSCRIPTION_CYCLES,
+  type SubscriptionCycle,
+} from '@/lib/subscription/cycles';
 import { PRODUCTS } from '@/lib/products';
 import { parsePrice } from '@/lib/utils';
 import { getSessionSnapshot } from '@/hooks/useSupabaseSession';
@@ -63,11 +65,11 @@ type ServerCartRow = {
 
 type ApiEnvelope<T> = { data?: T; error?: { code?: string } };
 
-function toSubscriptionPeriod(
+function toSubscriptionCycle(
   v: string | null | undefined,
-): SubscriptionPeriod | null {
+): SubscriptionCycle | null {
   if (v == null) return null;
-  const result = z.enum(SUBSCRIPTION_PERIODS).safeParse(v);
+  const result = z.enum(SUBSCRIPTION_CYCLES).safeParse(v);
   return result.success ? result.data : null;
 }
 
@@ -104,7 +106,7 @@ function payloadToInput(payload: AddToCartPayload) {
     quantity: Math.min(99, Math.max(1, payload.qty)),
     itemType: type,
     subscriptionPeriod:
-      type === 'subscription' ? toSubscriptionPeriod(payload.period) : null,
+      type === 'subscription' ? toSubscriptionCycle(payload.period) : null,
   };
 }
 

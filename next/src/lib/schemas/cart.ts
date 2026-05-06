@@ -2,9 +2,9 @@
    schemas/cart.ts — 장바구니 API zod 스키마 (Session 12)
 
    원칙:
-   - 서버가 권위. 클라이언트는 "무엇을(slug+volume) 얼마나(qty) 어떤 구매방식(type+period)"
+   - 서버가 권위. 클라이언트는 "무엇을(slug+volume) 얼마나(qty) 어떤 구매방식(type+cycle)"
      만 전달하고, unit_price_snapshot 은 서버가 PRODUCTS 카탈로그 기준으로 직접 계산 후 저장.
-   - order.ts 의 SUBSCRIPTION_PERIODS / OrderItemInputSchema 와 enum 구조 일치.
+   - order.ts 의 OrderItemInputSchema 와 enum 구조 일치 (lib/subscription/cycles SoT).
 
    참조:
    - supabase/migrations/019_cart_items.sql
@@ -12,7 +12,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { z } from 'zod';
-import { SUBSCRIPTION_PERIODS } from './order';
+import { SUBSCRIPTION_CYCLES } from '@/lib/subscription/cycles';
 
 /* ── 카트 아이템 입력 (POST /api/cart, merge) ───────────────────────── */
 
@@ -24,7 +24,7 @@ export const CartItemInputSchema = z
     /** 수량 (order_items 와 동일 — 1..99) */
     quantity: z.number().int().min(1).max(99),
     itemType: z.enum(['normal', 'subscription']).default('normal'),
-    subscriptionPeriod: z.enum(SUBSCRIPTION_PERIODS).nullish(),
+    subscriptionPeriod: z.enum(SUBSCRIPTION_CYCLES).nullish(),
   })
   .refine(
     (v) =>

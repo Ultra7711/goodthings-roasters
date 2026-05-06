@@ -31,17 +31,7 @@ const EmailSchema = z.string().email({ message: 'invalid_email' }).max(255);
 
 /* ── 주문 아이템 (클라 → 서버) ─────────────────────────────────────────── */
 
-/* SUBSCRIPTION_PERIODS · SubscriptionPeriod 는 lib/subscription/cycles.ts 가 SoT (S165).
-   기존 호출처 호환을 위해 별칭 re-export. 신규 코드는 SUBSCRIPTION_CYCLES 를 사용한다. */
-import {
-  SUBSCRIPTION_CYCLES,
-  type SubscriptionCycle,
-} from '@/lib/subscription/cycles';
-
-/** @deprecated S165: SUBSCRIPTION_CYCLES (lib/subscription/cycles.ts) 사용. */
-export const SUBSCRIPTION_PERIODS = SUBSCRIPTION_CYCLES;
-/** @deprecated S165: SubscriptionCycle (lib/subscription/cycles.ts) 사용. */
-export type SubscriptionPeriod = SubscriptionCycle;
+import { SUBSCRIPTION_CYCLES } from '@/lib/subscription/cycles';
 
 export const OrderItemInputSchema = z
   .object({
@@ -51,7 +41,7 @@ export const OrderItemInputSchema = z
     /** 수량 (상한은 UX 관점 99 — 상품당 대량 주문 방지) */
     quantity: z.number().int().min(1).max(99),
     itemType: z.enum(['normal', 'subscription']).default('normal'),
-    subscriptionPeriod: z.enum(SUBSCRIPTION_PERIODS).nullish(),
+    subscriptionPeriod: z.enum(SUBSCRIPTION_CYCLES).nullish(),
   })
   .refine(
     (v) =>
