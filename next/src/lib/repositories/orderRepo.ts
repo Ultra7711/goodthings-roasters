@@ -346,3 +346,28 @@ export async function findGuestOrderByTokenWithHash(
   if (error) throw error;
   return data ?? null;
 }
+
+/* ── CANCEL ───────────────────────────────────────────────────────────── */
+
+/**
+ * 로그인 사용자의 pending 주문을 cancelled 로 전환.
+ * - 이미 pending 이 아닌 주문은 건드리지 않는다 (graceful no-op).
+ * - service_role 사용 + user_id 명시 필터 → 타인 주문 보호.
+ * @returns 실제로 cancelled 된 경우 true, no-op 이면 false.
+ */
+export async function cancelPendingOrderForUser(
+  orderNumber: string,
+  userId: string,
+): Promise<boolean> {
+  const admin = getSupabaseAdmin();
+  const { data, error } = await admin
+    .from('orders')
+    .update({ status: 'cancelled' })
+    .eq('order_number', orderNumber)
+    .eq('user_id', userId)
+    .eq('status', 'pending')
+    .select('id');
+
+  if (error) throw error;
+  return (data?.length ?? 0) > 0;
+}

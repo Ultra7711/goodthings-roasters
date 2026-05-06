@@ -60,20 +60,30 @@ export default function CheckoutPayment({
      (effect 내부 setState 금지 규칙 회피) */
   const [loadFailed, setLoadFailed] = useState(!CLIENT_KEY);
 
+  /* ── pending 주문 명시 취소 (PR-B) ──
+     fire-and-forget. 실패해도 UX 를 막지 않는다. 서버 측 graceful no-op 처리.
+  */
+  const cancelPending = useCallback(() => {
+    fetch(`/api/orders/${orderNumber}/cancel`, { method: 'POST' }).catch(() => {});
+  }, [orderNumber]);
+
   /* ── requesting 무한 대기 복구 ──
      Toss 결제창에서 '이전' 클릭 시 브라우저 bfcache 로 이 페이지가 복원되면
      requesting=true 상태가 그대로 남아 CTA 가 "결제창 이동 중…" 으로 무한 대기.
      두 경로로 복구:
-     1. pageshow persisted=true — bfcache 복원 (이 버그의 근본 경로)
+     1. pageshow persisted=true — bfcache 복원 (이 버그의 근본 경로) + pending cancel
      2. 15초 안전망 — SDK 가 promise reject 없이 결제창이 닫히는 드문 케이스
   */
   useEffect(() => {
     const onPageShow = (event: PageTransitionEvent) => {
-      if (event.persisted) setRequesting(false);
+      if (event.persisted) {
+        setRequesting(false);
+        cancelPending();
+      }
     };
     window.addEventListener('pageshow', onPageShow);
     return () => window.removeEventListener('pageshow', onPageShow);
-  }, []);
+  }, [cancelPending]);
 
   useEffect(() => {
     if (!requesting) return;
@@ -149,6 +159,12 @@ export default function CheckoutPayment({
       });
   }, [amount, ready]);
 
+  /* ── 이전 버튼 ── */
+  const handleBack = useCallback(() => {
+    cancelPending();
+    onBack();
+  }, [cancelPending, onBack]);
+
   /* ── 결제 요청 ──
      성공 시 Toss 가 successUrl 로 redirect → 이 라인 이후 실행되지 않음.
      실패는 예외로 throw. 사용자 취소(UserCancelError)는 silent.
@@ -218,7 +234,7 @@ export default function CheckoutPayment({
         <button
           type="button"
           className="mp-cancel-btn"
-          onClick={onBack}
+          onClick={handleBack}
           style={{ width: '100%', height: 48, marginTop: 24 }}
           data-gtr-tap
         >
@@ -251,7 +267,7 @@ export default function CheckoutPayment({
         <button
           type="button"
           className="mp-cancel-btn"
-          onClick={onBack}
+          onClick={handleBack}
           disabled={requesting}
           style={{ flex: '0 0 40%', height: 48, marginTop: 0, padding: '0 12px', minWidth: 0 }}
           data-gtr-tap
