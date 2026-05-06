@@ -27,6 +27,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { mergeGuestCartToServer, clearMergeFlag } from '@/lib/cartMerge';
 import { CART_QUERY_KEY } from '@/hooks/useCart';
+import { ACCOUNT_ADDRESS_QUERY_KEY } from '@/hooks/useDefaultAddress';
 import { showToast } from '@/lib/toastStore';
 
 type Props = { children: ReactNode };
@@ -50,6 +51,12 @@ export default function AuthSyncProvider({ children }: Props) {
         .catch((err) => console.error('[AuthSync] cart invalidate failed', err));
     };
 
+    const invalidateDefaultAddress = () => {
+      queryClient
+        .invalidateQueries({ queryKey: ACCOUNT_ADDRESS_QUERY_KEY })
+        .catch((err) => console.error('[AuthSync] address invalidate failed', err));
+    };
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -59,6 +66,7 @@ export default function AuthSyncProvider({ children }: Props) {
            단, 첫 INITIAL_SESSION / SIGNED_IN 은 ref 가 null 또는 다른 id 이므로 통과. */
         if (prevUserIdRef.current === userId) {
           invalidateCart(); // 토큰 갱신 시에도 cart 최신화 보장
+          invalidateDefaultAddress();
           return;
         }
         prevUserIdRef.current = userId;
@@ -77,13 +85,17 @@ export default function AuthSyncProvider({ children }: Props) {
             console.error('[AuthSync] cart merge threw', err);
             showToast('장바구니 동기화 중 오류가 발생했습니다.');
           })
-          .finally(invalidateCart);
+          .finally(() => {
+            invalidateCart();
+            invalidateDefaultAddress();
+          });
       } else if (event === 'SIGNED_OUT') {
         const prevUserId = prevUserIdRef.current;
         if (prevUserId) clearMergeFlag(prevUserId);
         prevUserIdRef.current = null;
         /* 로그아웃 직후 queryFn 은 게스트 localStorage 를 읽도록 전환됨. */
         invalidateCart();
+        invalidateDefaultAddress();
       }
     });
 
