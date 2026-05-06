@@ -231,12 +231,14 @@ const ORDER_SELECT = `
 /**
  * 회원 본인 주문 목록 (최신순).
  * RLS `orders_select_own` 에 의해 본인 주문만 반환.
+ * pending 제외 (S171): 결제 미확정 row 는 사용자 재진입 경로 부재 → 노출 가치 없음.
  */
 export async function findOrdersForUser(limit = 20, offset = 0): Promise<OrderRow[]> {
   const supabase = await createRouteHandlerClient();
   const { data, error } = await supabase
     .from('orders')
     .select(ORDER_SELECT)
+    .neq('status', 'pending')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -247,6 +249,7 @@ export async function findOrdersForUser(limit = 20, offset = 0): Promise<OrderRo
 /**
  * 회원 본인 주문 조회.
  * RLS `orders_select_own` 에 의해 타인 주문은 자동 차단(= null 반환).
+ * pending 제외 (S171): URL 조작으로도 결제 미확정 row 노출 차단.
  */
 export async function findOrderForUser(
   orderNumber: string,
@@ -256,6 +259,7 @@ export async function findOrderForUser(
     .from('orders')
     .select(ORDER_SELECT)
     .eq('order_number', orderNumber)
+    .neq('status', 'pending')
     .maybeSingle<OrderRow>();
 
   if (error) throw error;
@@ -285,6 +289,7 @@ export async function findGuestOrderWithHash(
     .eq('order_number', orderNumber)
     .eq('guest_email', email)
     .is('user_id', null)
+    .neq('status', 'pending')
     .maybeSingle<OrderRow & { guest_lookup_pin_hash: string | null }>();
 
   if (error) throw error;
@@ -310,6 +315,7 @@ export async function findOrderForUserByToken(
     .from('orders')
     .select(ORDER_SELECT)
     .eq('public_token', publicToken)
+    .neq('status', 'pending')
     .maybeSingle<OrderRow>();
 
   if (error) throw error;
@@ -334,6 +340,7 @@ export async function findGuestOrderByTokenWithHash(
     .eq('public_token', publicToken)
     .eq('guest_email', email)
     .is('user_id', null)
+    .neq('status', 'pending')
     .maybeSingle<OrderRow & { guest_lookup_pin_hash: string | null }>();
 
   if (error) throw error;
