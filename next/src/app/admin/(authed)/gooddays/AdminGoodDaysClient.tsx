@@ -15,7 +15,7 @@
    - 드래그 종료 시 즉시 reorder action 호출 (낙관 X, 일관성 우선).
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -70,6 +70,23 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
   const [items, setItems] = useState<GoodDaysGalleryRow[]>(initialItems);
   const [isPending, startTransition] = useTransition();
   const [uploadOpen, setUploadOpen] = useState(false);
+
+  /* dnd-kit 의 announcer ID (DndDescribedBy-N) 가 SSR vs CSR 별 카운터에서 발급되어
+     hydration mismatch 발생. Grid 부분만 mounted 후에 render → SSR 시점 dnd-kit 회피.
+     (S167 J-4 fix) */
+  const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  /* router.refresh() 후 server fetch 결과 (initialItems prop) → items state 동기화.
+     mutation actions (upload/delete/reorder/update) 가 모두 router.refresh() 호출 →
+     이 useEffect 가 stale state 덮어쓰기. (S167 J-4 fix) */
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    setItems(initialItems);
+  }, [initialItems]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -187,7 +204,19 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
       </div>
 
       {/* ── 그리드 ─────────────────────────────────────────────────────── */}
-      {items.length === 0 ? (
+      {!mounted ? (
+        <div
+          aria-hidden
+          style={{
+            padding: '64px 24px',
+            textAlign: 'center',
+            color: 'var(--foreground-muted)',
+            fontSize: 14,
+          }}
+        >
+          로딩 중…
+        </div>
+      ) : items.length === 0 ? (
         <div
           style={{
             border: '1px dashed var(--border)',
