@@ -40,6 +40,7 @@ export const LEGAL_SLUGS = [
   'business-info',
   'shipping',
   'returns',
+  'payment-faq',
 ] as const;
 
 export type LegalSlug = (typeof LEGAL_SLUGS)[number];
@@ -523,7 +524,6 @@ const SHIPPING: LegalDoc = {
   title: '배송 안내',
   description: '굳띵즈 로스터스 배송 안내 — 배송비, 배송 기간, 영업일 기준 출고 일정과 배송 관련 주의 사항을 안내합니다.',
   effectiveDate: '시행일: 2026년 4월 26일',
-  useAccordion: true,
   sections: [
     {
       heading: '배송사',
@@ -582,7 +582,6 @@ const RETURNS: LegalDoc = {
   title: '취소 · 반품 · 교환 안내',
   description: '굳띵즈 로스터스 취소·반품·교환 안내 — 신청 기간, 가능·불가능 사례, 배송비 부담 기준, 환불 처리 절차를 안내합니다.',
   effectiveDate: '시행일: 2026년 4월 26일',
-  useAccordion: true,
   sections: [
     {
       heading: '주문 취소',
@@ -688,12 +687,122 @@ const RETURNS: LegalDoc = {
   ],
 };
 
+const PAYMENT_FAQ: LegalDoc = {
+  slug: 'payment-faq',
+  title: '결제 안내 FAQ',
+  description:
+    '굳띵즈 로스터스 결제 안내 FAQ — 결제 수단·가상계좌·결제 실패·환불·정기배송 등 자주 묻는 결제 관련 질문에 답변드립니다.',
+  sections: [
+    {
+      heading: '결제 수단은 무엇이 있나요?',
+      bullets: [
+        '신용·체크카드',
+        '계좌이체 (가상계좌 입금)',
+        '간편결제 (토스페이·카카오페이·네이버페이 등 — 일반 1회성 결제 한정)',
+      ],
+      paragraphs: ['결제는 모두 토스페이먼츠를 통해 안전하게 처리됩니다.'],
+    },
+    {
+      heading: '가상계좌(무통장 입금) 결제 기한은?',
+      bullets: [
+        '가상계좌 발급 후 7일 이내에 입금해 주세요.',
+        '기한 내 미입금 시 주문이 자동 취소됩니다.',
+        '입금 확인은 자동 처리되며, 영업일 기준 10분 이내 결제 완료 안내가 발송됩니다.',
+      ],
+    },
+    {
+      heading: '가상계좌 기한이 지났습니다. 같은 계좌로 다시 입금할 수 있나요?',
+      bullets: [
+        '만료된 가상계좌로는 입금하실 수 없으며, 같은 주문에 대한 가상계좌 재발급은 지원하지 않습니다.',
+        '새 주문을 진행하시면 새 가상계좌가 발급됩니다.',
+        '기한 내 입금이 어려우시면 카드 결제로 새 주문을 진행해 주세요.',
+      ],
+    },
+    {
+      heading: '결제가 실패했습니다. 어떻게 하나요?',
+      paragraphs: ['[카드 거절]'],
+      bullets: [
+        '카드사 승인 한도·잔액·해외 결제 차단 등을 확인해 주세요.',
+        '다른 카드로 재시도하거나 가상계좌 결제로 전환할 수 있습니다.',
+      ],
+    },
+    {
+      paragraphs: ['[네트워크 오류·일시 장애]'],
+      bullets: [
+        '잠시 후 다시 시도해 주세요.',
+        '결제 화면이 멈춘 경우 새로고침 후 마이페이지 > 주문 내역에서 상태를 확인해 주세요.',
+      ],
+    },
+    {
+      paragraphs: ['[중복 결제 의심]'],
+      bullets: [
+        '마이페이지 > 주문 내역에서 동일 주문이 중복 생성되었는지 확인해 주세요.',
+        '중복 결제가 확인되면 고객센터로 연락 주시면 즉시 환불 처리해 드립니다.',
+      ],
+    },
+    {
+      heading: '영수증은 어디서 발급받나요?',
+      bullets: [
+        '결제 완료 후 등록하신 이메일로 결제 영수증이 자동 발송됩니다.',
+        '마이페이지 > 주문 내역에서도 영수증을 다시 확인하실 수 있습니다.',
+        '현금영수증·세금계산서가 필요하신 경우 결제 시 토스페이먼츠 화면에서 신청하시거나, 고객센터로 문의해 주세요.',
+      ],
+    },
+    {
+      heading: '정기배송 결제는 어떻게 되나요?',
+      bullets: [
+        '정기배송 첫 회차는 일반 결제와 동일하게 진행됩니다.',
+        '다음 회차부터의 자동 결제(빌링) 기능은 현재 준비 중이며, 도입 시점은 별도 안내드릴 예정입니다.',
+        '도입 전까지는 다음 회차 안내 메일을 받으신 후 마이페이지에서 직접 결제해 주세요.',
+      ],
+    },
+    {
+      heading: '환불은 어떻게 받나요?',
+      bullets: [
+        '결제 후 출고 전이라면 마이페이지 > 주문 내역에서 직접 취소하시거나, 고객센터로 연락 주세요.',
+        '출고 후·배송 완료 후의 반품·교환 절차는 [취소·반품·교환 안내] 페이지를 참고해 주세요.',
+      ],
+      paragraphs: ['결제 수단별 환불 일정:'],
+      definitions: [
+        { label: '신용카드', value: '카드사 승인 취소 (3~5 영업일 소요, 카드사 정책에 따라 상이)' },
+        { label: '계좌이체·가상계좌', value: '환불 신청 시 기재한 계좌로 3 영업일 이내 입금' },
+        { label: '간편결제', value: '해당 결제 수단으로 환불 또는 이용사 정책에 따름' },
+      ],
+    },
+    {
+      paragraphs: [
+        '※ 환불 지연 시 지연 기간에 대하여 연이율 15%의 지연이자가 발생합니다.',
+      ],
+    },
+    {
+      heading: '결제 정보는 안전하게 보관되나요?',
+      bullets: [
+        '굳띵즈 로스터스는 카드 번호·CVC 등 결제 정보를 직접 저장하지 않습니다.',
+        '모든 결제는 토스페이먼츠의 PG 시스템을 통해 처리되며, 카드 정보는 토스페이먼츠 측에서 PCI-DSS 표준에 따라 암호화·보관됩니다.',
+        '자세한 개인정보 처리 방침은 [개인정보처리방침] 페이지를 참고해 주세요.',
+      ],
+    },
+    {
+      heading: '그 외 문의는 어디로?',
+      definitions: [
+        { label: '이메일', value: 'jung6419@naver.com' },
+        { label: '전화', value: '010-9062-9910' },
+      ],
+    },
+  ],
+  footer: [
+    '주식회사 브이티이코프 | 굳띵즈 로스터스',
+    '대표자: 김주호',
+  ],
+};
+
 const DOCS: Record<LegalSlug, LegalDoc> = {
   terms: TERMS,
   privacy: PRIVACY,
   'business-info': BUSINESS_INFO,
   shipping: SHIPPING,
   returns: RETURNS,
+  'payment-faq': PAYMENT_FAQ,
 };
 
 export function getLegalDoc(slug: LegalSlug): LegalDoc {
@@ -706,4 +815,5 @@ export const LEGAL_NAV = [
   { slug: 'business-info', label: '사업자 정보' },
   { slug: 'shipping', label: '배송 안내' },
   { slug: 'returns', label: '취소·반품·교환' },
+  { slug: 'payment-faq', label: '결제 안내 FAQ' },
 ] as const;

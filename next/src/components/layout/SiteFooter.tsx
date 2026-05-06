@@ -51,6 +51,7 @@ export default function SiteFooter() {
             <div>
               <div className="f-col-title">Contact</div>
               <FooterWholesaleLink />
+              <Link href="/legal/payment-faq" className="footer-col-link">FAQ</Link>
             </div>
           </div>
 
