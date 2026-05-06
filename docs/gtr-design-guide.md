@@ -77,77 +77,154 @@
 매장 오프라인 공간에서 추출한 웜 뉴트럴 톤을 디지털로 번역합니다.
 순백·순흑이 아닌 따뜻한 뉘앙스가 핵심입니다.
 
+> **Source of Truth:** `next/src/app/globals.css` 의 `:root` 블록.
+> 본 가이드는 reference. 토큰 사용 전 `globals.css` grep 으로 최신 값 확인.
+> 운영 정책: `feedback_diagnose_first_meta_rule.md` (추측 금지, 진단 우선).
+
 ### Background
 
 | 이름 | Hex | CSS Token | 용도 |
 |------|-----|-----------|------|
-| Warm White | `#FAFAF8` | `--color-background-primary` | 메인 배경 |
-| Warm Gray 50 | `#F5F3F0` | `--color-background-secondary` | 섹션 교차, 카드 배경 |
-| Warm Gray 100 | `#ECEAE6` | `--color-background-tertiary` | 입력 필드, 깊은 카드 |
-| Pure White | `#FFFFFF` | `--color-background-elevated` | 모달, 드롭다운 |
+| Cream White | `#FBF8F3` | `--color-background-primary` | 메인 배경 |
+| Warm Cream 50 | `#EFEAE0` | `--color-background-secondary` | 섹션 교차, 보조 배경 |
+| Warm Cream 100 | `#E4DACB` | `--color-background-tertiary` | 깊은 카드, 입력 배경 |
+| Warm Black | `#1E1B16` | `--color-background-inverse` | 다크 섹션 (Hero/Roastery) |
+| Pure White | `#FFFFFF` | `--color-background-pure` | cream 위 lift (PDP chip selected · secondary CTA) |
 
-### Text
+### Surface
 
-| 이름 | Hex | CSS Token | 용도 | WCAG 대비 |
-|------|-----|-----------|------|-----------|
-| Warm Black | `#1C1B19` | `--color-text-primary` | 헤드라인, 본문 | 16.8:1 |
-| Warm Gray 600 | `#6B6863` | `--color-text-secondary` | 설명문, 캡션 | 5.2:1 |
-| Warm Gray 400 | `#9C9890` | `--color-text-tertiary` | 힌트, placeholder | 3.1:1 |
-| Warm White | `#FAFAF8` | `--color-text-inverse` | 다크 배경 위 텍스트 | — |
-| Disabled | `#BBBBBB` | `--color-text-disabled` | 비활성 텍스트 | — |
+| 이름 | 값 | CSS Token | 용도 |
+|------|-----|-----------|------|
+| Stone Gray | `#4A4845` | `--color-surface-stone` | 푸터, 다크 섹션 |
+| Brand Sand | `#EADFD1` | `--brand-sand` / `--color-surface-warm` | chapter break 패널 (시즌 배너·시그니처 chapter) |
+| Surface Subtle | `#F5F1EA` | `--color-surface-subtle` | 마이페이지·체크아웃 subtle 패널 |
+| Ink Section | `#28241D` | `--ink-section` | V2 다크 chapter (GoodDays Stage 2) |
+| Ink on Sand | `#5A4F3E` | `--ink-on-sand` | sand bg 위 본문 (S146 시그니처 chapter, WCAG AA 4.66:1) |
 
-### Dark Background Text (on-dark)
+### Text — 의도 기반 5단계 (light 배경)
+
+| 단계 | Hex | CSS Token | 용도 |
+|------|-----|-----------|------|
+| Display | `#0F0E0D` | `--color-text-display-light` | 히어로/메인 초강조 |
+| Heading | `#1C1B19` | `--color-text-heading-light` | 섹션·페이지 타이틀, h2/h3 |
+| Body | `#4A4843` | `--color-text-body-light` | 본문 기본 ★ 가독성 우선 |
+| Support | `#6B6863` | `--color-text-support-light` | 보조 설명, 메타, 라벨 |
+| Caption | `#9C9890` | `--color-text-caption-light` | 캡션, 힌트, placeholder |
+
+### Text — dark 배경 (불투명 환산)
+
+| 단계 | Hex | CSS Token | rgba 환산 |
+|------|-----|-----------|-----------|
+| Display | `#FDFCFA` | `--color-text-display-dark` | — |
+| Heading | `#EFEEED` | `--color-text-heading-dark` | (.95) |
+| Body | `#D6D5D3` | `--color-text-body-dark` | — |
+| Support | `#C2C2C0` | `--color-text-support-dark` | (.75) |
+| Caption | `#969593` | `--color-text-caption-dark` | (.55) |
+
+### Text — Semantic alias (호출처 친화)
+
+| 토큰 | 값 (light) | 용도 |
+|------|------|------|
+| `--color-text-primary` | `#1C1B19` (heading) | 헤딩·CTA·네비게이션 |
+| `--color-text-secondary` | `#4A4843` (body) | 본문·밑줄링크 |
+| `--color-text-tertiary` | `#6B6863` (support) | 보조라벨·메타·아이콘 |
+| `--color-text-caption` | `#9C9890` (caption) | 캡션·플레이스홀더 |
+| `--color-text-inverse` | `#FAFAF8` | 다크 배경 위 텍스트 |
+| `--color-text-hint` | `#A8A49E` | 힌트 |
+| `--color-text-disabled` | `#bbbbbb` | 비활성 |
+| `--color-text-placeholder` | `#9C9890` | placeholder |
+
+### On-dark (다크 배경 alias)
+
+| 토큰 | 값 |
+|------|------|
+| `--on-dark-primary` | `#EFEEED` (heading-dark) |
+| `--on-dark-secondary` | `#C2C2C0` (support-dark) |
+| `--on-dark-tertiary` | `#969593` (caption-dark) |
+| `--on-dark-muted` | icon-on-dark-subtle |
+
+### Interactive (CTA) — Blue Bottle darken 패턴 (S147)
+
+| 상태 | Hex | CSS Token | 비고 |
+|------|-----|-----------|------|
+| Default | `#36332E` | `--color-btn-primary-bg` | warm-shifted textured (R-B=8 비례) |
+| Hover | `#000000` | `--color-btn-primary-bg-hover` | pure black darken (Blue Bottle 매치) |
+| Active | `#000000` | `--color-btn-primary-bg-active` | 동일 (옵션 A — 단순) |
+| Light Active | `rgba(28,27,25,0.06)` | `--color-btn-light-bg-active` | cream bg 위 active darken |
+
+### Status 시스템 (S158 PR-A · selectable + disabled)
 
 | 토큰 | 값 | 용도 |
 |------|-----|------|
-| `--on-dark-primary` | `rgba(250,250,248,.95)` | 헤딩, 강조 |
-| `--on-dark-secondary` | `rgba(250,250,248,.75)` | 본문, 서브 텍스트 |
-| `--on-dark-tertiary` | `rgba(250,250,248,.55)` | 보조, 태그 |
-| `--on-dark-muted` | `rgba(255,255,255,.42)` | 푸터 레이블, 소형 텍스트 |
+| `--color-control-border` | `#36332E` (= btn-primary-bg) | selectable 외곽선 (chip/sub-box/input) |
+| `--color-control-border-selected` | `#1C1B19` (= text-primary) | selected inset 2px 강조 |
+| `--state-disabled-opacity-cta` | `0.3` | CTA 비활성 |
+| `--state-disabled-opacity-chip` | `0.7` | chip 비활성 |
+| `--state-disabled-opacity-icon` | `0.25` | 아이콘 비활성 |
+
+### Border
+
+| 이름 | 값 | CSS Token | 용도 |
+|------|-----|-----------|------|
+| Hairline | `rgba(28,27,25,.06)` | `--color-border-hairline` | 카드 내부, 미세 구분 |
+| Hairline (dark) | `rgba(255,255,255,.10)` | `--color-border-hairline-on-dark` | 다크 배경 hairline |
+| Secondary | `rgba(28,27,25,.12)` | `--color-border-secondary` | 일반 구분선 |
+| Primary | `rgba(28,27,25,.20)` | `--color-border-primary` | 강조 구분선 |
+| Tertiary | `rgba(28,27,25,.06)` | `--color-border-tertiary` | (alias of hairline) |
+| Strong | `rgba(28,27,25,.20)` | `--color-border-strong` | 섹션 구분선 |
+| Input | `#D9D6D2` | `--color-border-input` | 인풋 테두리 |
+| Surface | `#E0DED9` | `--color-border-surface` | surface 경계 |
 
 ### Icon
 
 | 토큰 | 값 | 용도 |
 |------|-----|------|
-| `--color-icon-default` | `var(--color-text-tertiary)` | 아이콘 기본 컬러 |
+| `--color-icon-default` | `#6B6863` (text-tertiary) | 기본 아이콘 |
+| `--color-icon-muted` | `#8A8A86` | muted 아이콘 |
+| `--color-icon-muted-hover` | `--color-icon-default` | hover 시 default |
 
-### Surface
+### Accent / Label
 
 | 이름 | Hex | CSS Token | 용도 |
 |------|-----|-----------|------|
-| Stone Gray | `#4A4845` | `--color-surface-stone` | 푸터, 다크 섹션 |
-| Warm Sand | `#E8E2DA` | `--color-surface-warm` | 부드러운 표면 |
+| Gold | `#A5693A` | `--color-accent-gold` | 강조 (라이트 배경) |
+| Gold on Dark | `#D9A36A` | `--color-accent-gold-on-dark` | 다크 배경 강조 |
+| Gold on Image | `#F0C89C` | `--color-accent-gold-on-image` | 복잡 이미지 위 eyebrow |
+| Flavor Marker | `#8C5A2E` | `--color-flavor-marker` | 레이더 마커 (S164) |
+| Label on White | `#9A7E54` | `--color-label-on-white` | eyebrow (화이트 배경) |
+| Label on Warm | `#857052` | `--color-label-on-warm` | eyebrow (sand 배경) |
+| Label on Dark | `#C8BFB1` | `--color-label-on-dark` | eyebrow (다크 배경) |
 
-### Lines & Borders
+### Roast Gradient (S164 — 5단계 보간)
 
-| 이름 | 값 | CSS Token | 용도 |
-|------|-----|-----------|------|
-| Hairline | `rgba(28,27,25,.06)` | `--color-border-hairline` | 카드 내부, 미세 구분 |
-| Primary | `rgba(28,27,25,.12)` | `--color-border-primary` | 카드 테두리, 인풋 |
-| Strong | `rgba(28,27,25,.20)` | `--color-border-strong` | 섹션 구분선 |
-
-### Interactive (CTA)
-
-| 상태 | Hex | CSS Token |
-|------|-----|-----------|
-| Default | `#1C1B19` | `--color-btn-primary-bg` |
-| Hover | `#2E2D2A` | `--color-btn-primary-bg-hover` |
-| Active | `#0F0E0D` | `--color-btn-primary-bg-active` |
-| Focus Ring | `rgba(74,72,69,.40)` | `--color-focus-ring` |
+| 단계 | Hex | CSS Token | gradient % |
+|------|-----|-----------|-----------|
+| Light | `#BD9769` | `--color-roast-light` | 10% |
+| Medium-Light | `#A4784C` | `--color-roast-medium-light` | 30% |
+| Medium | `#8C5A2E` | `--color-roast-medium` | 50% |
+| Medium-Dark | `#664223` | `--color-roast-medium-dark` | 70% |
+| Dark | `#402B18` | `--color-roast-dark` | 90% (italian = dark) |
 
 ### System Feedback
 
-| 이름 | Hex | CSS Token |
-|------|-----|-----------|
-| Success / Olive | `#5C7A4B` | `--color-success` |
-| Error / Warm Red | `#C4554E` | `--color-error` |
-| Info / Warm Blue | `#4A6B8A` | `--color-info` |
-| Warning / Amber | `#B8943F` | `--color-warning` |
-| Accent / Oak Brown | `#7A6B52` | `--color-accent-gold` |
+| 이름 | Hex | CSS Token | 비고 |
+|------|-----|-----------|------|
+| Error / Warm Red | `#C4554E` | `--color-error` | |
+| Success / Olive | `#5C7A4B` | `--color-success` | |
+| Info / Warm Blue | `#4A6B8A` | `--color-info` | |
+| Warning / Amber | `#C58A2A` | `--color-warning` | V2 Phase 1 (S131) — gold accent 와 색상 거리 확보 |
 
-### Extended Palettes
+### Status (warm 축 통일)
 
-코어 팔레트를 90% 사용하고, 아래는 "양념"으로만 사용합니다.
+| 토큰 | 값 | 용도 |
+|------|-----|------|
+| `--color-status-live` | `--color-accent-gold` | 진행중 |
+| `--color-status-done` | `#7A7068` | 완료 |
+| `--color-status-new` | `#B8563A` | 신규 |
+
+### Extended Palettes (양념용)
+
+코어 팔레트를 90% 사용하고, 아래는 보조로만 사용합니다.
 
 **Stone** — `#4A4845` → `#6B6863` → `#9C9890` → `#D9D6D2`
 **Oak** — `#7A6B52` → `#A08B6D` → `#C4A882` → `#E8DFD2`
