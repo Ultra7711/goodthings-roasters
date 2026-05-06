@@ -37,8 +37,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Star, Trash2, Upload } from 'lucide-react';
-import { Button } from '@/components/admin/ui/button';
-import { Input } from '@/components/admin/ui/input';
+import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Switch } from '@/components/admin/ui/switch';
 import { Label } from '@/components/admin/ui/label';
 import {
@@ -49,6 +48,62 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/admin/ui/dialog';
+/* admin 일관 패턴 — input/button 은 cafe-events 표준 답습:
+   native element + inline style + admin 디자인 토큰. shadcn 컴포넌트 미사용. */
+const ADMIN_INPUT_STYLE: React.CSSProperties = {
+  width: '100%',
+  height: 34,
+  padding: '0 10px',
+  background: 'var(--surface)',
+  border: '1px solid var(--input)',
+  borderRadius: 6,
+  fontSize: 13,
+  color: 'var(--foreground)',
+  outline: 'none',
+  fontFamily: 'inherit',
+  letterSpacing: '-0.005em',
+};
+const ADMIN_FILE_INPUT_STYLE: React.CSSProperties = {
+  ...ADMIN_INPUT_STYLE,
+  padding: '6px 10px',
+  lineHeight: '20px',
+};
+const ADMIN_BTN_BASE: React.CSSProperties = {
+  padding: '6px 14px',
+  fontSize: 13,
+  height: 32,
+  borderRadius: 6,
+  fontWeight: 500,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 6,
+  whiteSpace: 'nowrap',
+  letterSpacing: '-0.005em',
+  fontFamily: 'inherit',
+  cursor: 'pointer',
+};
+const ADMIN_BTN_PRIMARY: React.CSSProperties = {
+  ...ADMIN_BTN_BASE,
+  background: 'var(--primary)',
+  color: '#fff',
+  border: '1px solid var(--primary)',
+};
+const ADMIN_BTN_SECONDARY: React.CSSProperties = {
+  ...ADMIN_BTN_BASE,
+  background: 'var(--surface)',
+  color: 'var(--foreground)',
+  border: '1px solid var(--border)',
+};
+const ADMIN_BTN_GHOST_DANGER: React.CSSProperties = {
+  ...ADMIN_BTN_BASE,
+  height: 28,
+  padding: '4px 8px',
+  fontSize: 12,
+  background: 'transparent',
+  color: 'var(--danger)',
+  border: '1px solid transparent',
+};
 import type { GoodDaysGalleryRow } from '@/lib/gooddaysServer';
 import {
   deleteGoodDaysImageAction,
@@ -170,37 +225,76 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
   }
 
   return (
-    <div>
-      {/* ── 헤더 ────────────────────────────────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 22,
-        }}
-      >
-        <div>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 24,
-              fontWeight: 500,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            굿데이즈 갤러리
-          </h2>
-          <div
-            style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}
-          >
-            {items.length}장 · 드래그로 순서 변경 · 토글로 활성/비활성
-          </div>
-        </div>
-        <Button onClick={() => setUploadOpen(true)} disabled={isPending}>
-          <Upload size={16} style={{ marginRight: 6 }} />
+    <>
+      {/* ── 상단 sticky topbar 우측 actions slot ──────────────────────── */}
+      {/* 시안 Button(size=sm) inline style — dashboard/cafe-events 답습.
+         sm: padding 5/10, fontSize 12, height 28, gap 5, primary BG. */}
+      <AdminTopbarActions>
+        <button
+          type="button"
+          style={{
+            padding: '5px 10px',
+            fontSize: 12,
+            height: 28,
+            gap: 5,
+            borderRadius: 6,
+            fontWeight: 500,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            whiteSpace: 'nowrap',
+            letterSpacing: '-0.005em',
+            background: 'var(--primary)',
+            color: '#fff',
+            border: '1px solid var(--primary)',
+            cursor: isPending ? 'not-allowed' : 'pointer',
+            opacity: isPending ? 0.6 : 1,
+            fontFamily: 'inherit',
+          }}
+          onClick={() => setUploadOpen(true)}
+          disabled={isPending}
+        >
+          <Upload size={14} style={{ marginRight: 4 }} />
           이미지 업로드
-        </Button>
+        </button>
+      </AdminTopbarActions>
+
+      {/* ── 페이지 헤더 ─────────────────────────────────────────────── */}
+      <div style={{ marginBottom: 22 }}>
+        <h2
+          style={{
+            margin: 0,
+            fontSize: 24,
+            fontWeight: 500,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          굿데이즈 갤러리
+        </h2>
+        <div
+          style={{
+            marginTop: 4,
+            fontSize: 13,
+            color: 'var(--foreground-muted)',
+            lineHeight: 1.6,
+          }}
+        >
+          {items.length}장 · 드래그로 순서 변경 · 토글로 활성/비활성
+          <br />
+          <span style={{ color: 'var(--foreground-subtle)' }}>
+            <Star
+              size={11}
+              fill="currentColor"
+              style={{
+                color: 'var(--primary)',
+                display: 'inline',
+                verticalAlign: '-1px',
+                marginRight: 4,
+              }}
+            />
+            Featured = 매거진 그리드 큰 사진 슬롯에 우선 배치
+          </span>
+        </div>
       </div>
 
       {/* ── 그리드 ─────────────────────────────────────────────────────── */}
@@ -227,7 +321,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
             fontSize: 14,
           }}
         >
-          아직 등록된 이미지가 없습니다. 우측 상단 "이미지 업로드" 로 시작하세요.
+          아직 등록된 이미지가 없습니다. 상단 "이미지 업로드" 로 시작하세요.
         </div>
       ) : (
         <DndContext
@@ -274,7 +368,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
         onOpenChange={setUploadOpen}
         onSubmit={handleUpload}
       />
-    </div>
+    </>
   );
 }
 
@@ -366,34 +460,39 @@ function SortableCard({
         {item.featured && (
           <div
             aria-label="featured"
+            title="Featured — 매거진 큰 사진 슬롯 우선 배치"
             style={{
               position: 'absolute',
               top: 8,
               right: 8,
               width: 28,
               height: 28,
-              borderRadius: 999,
-              background: 'var(--primary)',
-              color: '#fff',
+              borderRadius: 6,
+              background: 'rgba(0,0,0,0.5)',
+              color: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Star size={14} fill="currentColor" />
+            <Star size={16} fill="currentColor" strokeWidth={1.5} />
           </div>
         )}
       </div>
 
       {/* 컨트롤 */}
       <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <Input
+        <input
           value={item.alt}
           placeholder="대체 텍스트 (alt)"
           maxLength={200}
           disabled={disabled}
           onChange={(e) => onAltChange(e.target.value)}
           onBlur={(e) => onAltCommit(e.target.value)}
+          style={{
+            ...ADMIN_INPUT_STYLE,
+            opacity: disabled ? 0.6 : 1,
+          }}
         />
         <div
           style={{
@@ -404,7 +503,14 @@ function SortableCard({
           }}
         >
           <Label
-            style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              fontSize: 13,
+              color: 'var(--foreground)',
+            }}
           >
             <Switch
               checked={item.featured}
@@ -414,7 +520,14 @@ function SortableCard({
             Featured
           </Label>
           <Label
-            style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              fontSize: 13,
+              color: 'var(--foreground)',
+            }}
           >
             <Switch
               checked={item.isActive}
@@ -424,16 +537,20 @@ function SortableCard({
             활성
           </Label>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
+          type="button"
           onClick={onDelete}
           disabled={disabled}
-          style={{ color: 'var(--destructive)', justifyContent: 'flex-start' }}
+          style={{
+            ...ADMIN_BTN_GHOST_DANGER,
+            justifyContent: 'flex-start',
+            opacity: disabled ? 0.5 : 1,
+            cursor: disabled ? 'not-allowed' : 'pointer',
+          }}
         >
-          <Trash2 size={14} style={{ marginRight: 6 }} />
+          <Trash2 size={14} />
           삭제
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -487,57 +604,92 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
         onOpenChange(o);
       }}
     >
-      <DialogContent>
+      {/* shadcn DialogContent 의 Tailwind p-6 가 admin 영역에서 적용되지 않는
+         케이스 관찰됨 — inline style 로 padding·gap 명시 강제. (B-180b) */}
+      <DialogContent style={{ padding: 24, gap: 16, maxWidth: 480 }}>
         <DialogHeader>
           <DialogTitle>이미지 업로드</DialogTitle>
           <DialogDescription>
             webp · avif · jpeg · png. 최대 5MB.
           </DialogDescription>
         </DialogHeader>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <Label htmlFor="gd-upload-file">파일</Label>
-            <Input
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Label
+              htmlFor="gd-upload-file"
+              style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--foreground)' }}
+            >
+              파일
+            </Label>
+            <input
               id="gd-upload-file"
               type="file"
               accept="image/webp,image/avif,image/jpeg,image/png"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               disabled={submitting}
+              style={ADMIN_FILE_INPUT_STYLE}
             />
           </div>
-          <div>
-            <Label htmlFor="gd-upload-alt">대체 텍스트 (alt)</Label>
-            <Input
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Label
+              htmlFor="gd-upload-alt"
+              style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--foreground)' }}
+            >
+              대체 텍스트 (alt)
+            </Label>
+            <input
               id="gd-upload-alt"
               value={alt}
               onChange={(e) => setAlt(e.target.value)}
               maxLength={200}
               placeholder="(선택) 스크린리더용 설명"
               disabled={submitting}
+              style={ADMIN_INPUT_STYLE}
             />
           </div>
           <Label
-            style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              cursor: 'pointer',
+              fontSize: 13,
+              color: 'var(--foreground)',
+            }}
           >
             <Switch
               checked={featured}
               onCheckedChange={setFeatured}
               disabled={submitting}
             />
-            Featured (매거진 span 슬롯 우선 배치)
+            Featured = 매거진 그리드 큰 사진 슬롯에 우선 배치
           </Label>
         </div>
-        <DialogFooter>
-          <Button
-            variant="ghost"
+        <DialogFooter style={{ gap: 8 }}>
+          <button
+            type="button"
+            style={{
+              ...ADMIN_BTN_SECONDARY,
+              opacity: submitting ? 0.5 : 1,
+              cursor: submitting ? 'not-allowed' : 'pointer',
+            }}
             onClick={() => onOpenChange(false)}
             disabled={submitting}
           >
             취소
-          </Button>
-          <Button onClick={handleSubmit} disabled={!file || submitting}>
-            {submitting ? '업로드 중...' : '업로드'}
-          </Button>
+          </button>
+          <button
+            type="button"
+            style={{
+              ...ADMIN_BTN_PRIMARY,
+              opacity: !file || submitting ? 0.5 : 1,
+              cursor: !file || submitting ? 'not-allowed' : 'pointer',
+            }}
+            onClick={handleSubmit}
+            disabled={!file || submitting}
+          >
+            {submitting ? '업로드 중…' : '업로드'}
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
