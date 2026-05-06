@@ -3,10 +3,12 @@
    마이페이지 정기배송 관리용
    ══════════════════════════════════════════ */
 
-/** 배송 주기 옵션 — DB enum subscription_period 와 동일 (004_order_items.sql) */
-export type SubscriptionCycle = '2주' | '4주' | '6주' | '8주';
+/* SubscriptionCycle · SUBSCRIPTION_CYCLES 는 lib/subscription/cycles.ts 가 SoT (S165).
+   기존 import 호환을 위해 re-export. */
+export type { SubscriptionCycle } from '@/lib/subscription/cycles';
+export { SUBSCRIPTION_CYCLES } from '@/lib/subscription/cycles';
 
-export const SUBSCRIPTION_CYCLES: SubscriptionCycle[] = ['2주', '4주', '6주', '8주'];
+import type { SubscriptionCycle } from '@/lib/subscription/cycles';
 
 /** DB enum subscription_status (005_subscriptions.sql) */
 export type SubscriptionStatus = 'active' | 'paused' | 'cancelled' | 'expired';
