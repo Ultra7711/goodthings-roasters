@@ -1,4 +1,4 @@
-﻿/* ══════════════════════════════════════════
+/* ══════════════════════════════════════════
    CheckoutPage — /checkout
    프로토타입 #checkout-page 이식 (RP-7).
 
@@ -11,14 +11,14 @@
       - Toss 결제위젯 리다이렉트 성공 → /order-complete
       - 결제 실패 → /checkout?error=payment_failed 로 돌아와 안내 toast
    5. Daum 주소 검색: openPostcode() (동적 스크립트 로드)
+   6. PR-1 (S170): JSX 섹션 4개 + OrderSummary + MiniHeader + EmptyCart 추출
+      → 본 컴포넌트는 orchestrator 역할 (상태 hook 은 PR-2 에서 추출 예정).
    ══════════════════════════════════════════ */
 
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { useAtTop } from '@/hooks/useAtTop';
 import { useIsMounted } from '@/hooks/useIsMounted';
@@ -29,10 +29,7 @@ import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { useCartQuery } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useToast } from '@/hooks/useToast';
-import { extractKrName, formatPrice } from '@/lib/utils';
 import { shakeFields } from '@/lib/shakeFields';
-import { TextField } from '@/components/ui/TextField';
-import { SearchIcon } from '@/components/ui/InputIcons';
 import { GUEST_PASSWORD_MIN_LENGTH } from '@/lib/validation';
 import {
   buildOrderPayload,
@@ -40,46 +37,15 @@ import {
   OrderApiError,
   type CreateOrderResponse,
 } from '@/lib/api/orderClient';
+import { InfoCircleIcon } from '@/components/ui/Icons';
 import CheckoutPayment from './CheckoutPayment';
-
-/* ── 배송 메시지 옵션 ── */
-const DELIVERY_OPTIONS = [
-  { value: '경비실', label: '부재 시 경비실에 맡겨 주세요.' },
-  { value: '문앞', label: '부재 시 문 앞에 놓아 주세요.' },
-  { value: '택배함', label: '부재 시 택배함에 넣어 주세요.' },
-  { value: '직접수령', label: '직접 받겠습니다. 배송 전 연락 부탁드립니다.' },
-  { value: '파손주의', label: '파손 위험 상품입니다. 취급에 주의해 주세요.' },
-  { value: 'direct', label: '직접 입력' },
-] as const;
-
-import { ChevronRight, InfoCircleIcon } from '@/components/ui/Icons';
-import * as Select from '@radix-ui/react-select';
-
-/* ── SVG 아이콘 ── */
-function ChevronDown({ size = 24 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6,9l6,6,6-6" />
-    </svg>
-  );
-}
-
-function CartIcon() {
-  return (
-    <svg className="hi" viewBox="0 1 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}>
-      <circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" />
-      <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-    </svg>
-  );
-}
-
-function CheckboxIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M5,12l5,5,9-9" />
-    </svg>
-  );
-}
+import MiniHeader from './MiniHeader';
+import EmptyCart from './EmptyCart';
+import OrderSummary from './OrderSummary';
+import ContactSection from './sections/ContactSection';
+import AddressSection from './sections/AddressSection';
+import GuestPasswordSection from './sections/GuestPasswordSection';
+import AgreementSection from './sections/AgreementSection';
 
 /* ══════════════════════════════════════════ */
 export default function CheckoutPage() {
@@ -413,77 +379,24 @@ export default function CheckoutPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submitting, clearErrors, validate, isLoggedIn, form, items, agreements, toast]);
 
-  /* backdrop-filter는 Lightning CSS가 CSS 파일에서 드롭하므로 inline style 유지 (web/lessons.md §6) */
-  const headerBlurStyle = {
-    backdropFilter: atTop ? 'none' : 'blur(16px)',
-    WebkitBackdropFilter: atTop ? 'none' : 'blur(16px)',
-  };
-
   /* ── 하이드레이션 대기 스켈레톤 ──
      ['cart'] 최초 로드 중엔 items 판정 불가. 미니 헤더만 그린다. */
   if (!mounted || cartLoading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-        <div
-          className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
-          style={headerBlurStyle}
-        >
-          <div className="chp-hdr-inner">
-            <Link href="/">
-              <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={150} height={30} className="chp-logo-img" />
-            </Link>
-          </div>
-        </div>
+        <MiniHeader atTop={atTop} />
       </div>
     );
   }
 
   /* ── 빈 장바구니 보호 ── */
   if (items.length === 0) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-        <div
-          className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
-          style={headerBlurStyle}
-        >
-          <div className="chp-hdr-inner">
-            <Link href="/">
-              <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={150} height={30} className="chp-logo-img" />
-            </Link>
-          </div>
-        </div>
-        <div className="chp-empty">
-          <Image src="/images/icons/cart_big.svg" alt="" aria-hidden="true" width={64} height={64} className="chp-empty-icon" />
-          <p className="chp-empty-msg">장바구니가 비어 있습니다.</p>
-          <Link href="/shop" className="chp-empty-cta" data-gtr-tap>쇼핑 계속하기</Link>
-        </div>
-      </div>
-    );
+    return <EmptyCart atTop={atTop} />;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-      {/* ── 미니 헤더 ── */}
-      <div
-          className={`chp-hdr-wrap${atTop ? ' hdr-at-top' : ''}`}
-          style={headerBlurStyle}
-        >
-        <div className="chp-hdr-inner">
-          <Link href="/">
-            <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={150} height={30} className="chp-logo-img" />
-          </Link>
-          <button
-            type="button"
-            className="hdr-icon-btn"
-            style={{ position: 'relative' }}
-            aria-label="장바구니"
-            onClick={openDrawer}
-          >
-            <CartIcon />
-            {totalQty > 0 && <span className="cart-badge visible">{totalQty}</span>}
-          </button>
-        </div>
-      </div>
+      <MiniHeader atTop={atTop} cartCount={totalQty} onCartClick={openDrawer} />
 
       {/* ── 2열 바디 ── */}
       <div className="chp-body">
@@ -491,234 +404,85 @@ export default function CheckoutPage() {
         <div className="chp-left" ref={chpFormRef}>
         {step === 'form' && (
           <>
-          {/* 연락처 */}
-          <div className="chp-section">
-            <div className="chp-section-header">
-              <h2 className="chp-section-title">연락처</h2>
-            </div>
-            <TextField
-              type="email"
-              label="이메일 주소"
-              value={form.email}
-              onChange={(v) => setField('email', v)}
-              onClear={() => setField('email', '')}
-              onBlur={blurEmail}
+            <ContactSection
+              email={form.email}
+              emailError={errors.email}
+              isFormRevealed={isFormRevealed}
+              isLoggedIn={isLoggedIn}
+              sessionLoading={sessionLoading}
+              onChangeEmail={(v) => setField('email', v)}
+              onClearEmail={() => setField('email', '')}
+              onBlurEmail={blurEmail}
               onKeyDown={chpNav}
-              error={errors.email}
-              helper="이메일 주소를 입력하세요."
+              onGuestContinue={handleGuestContinue}
             />
-            {!isFormRevealed && !isLoggedIn && !sessionLoading && (
+
+            {/* 배송지 이하 — 이메일 확인 후 표시 */}
+            {isFormRevealed && (
               <>
-                <Link href="/login?from=checkout" className="chp-login-primary-btn" data-gtr-tap>
-                  로그인하고 주문하기
-                </Link>
-                <p className="chp-login-benefit">로그인하면 배송지 정보가 자동으로 채워집니다.</p>
-                <div className="chp-guest-link-wrap">
-                  <button className="chp-guest-link" type="button" onClick={handleGuestContinue}>
-                    비회원으로 주문하기
-                  </button>
+                <AddressSection
+                  form={form}
+                  errors={errors}
+                  onChange={setField}
+                  onPhoneChange={handlePhoneChange}
+                  onBlurPhone={blurPhone}
+                  onKeyDown={chpNav}
+                  onAddressSearch={handleAddressSearch}
+                />
+
+                {!isLoggedIn && (
+                  <GuestPasswordSection
+                    pw={form.guestPw}
+                    pw2={form.guestPw2}
+                    pwError={errors.guestPw}
+                    pw2Error={errors.guestPw2}
+                    showPw2={showPw2}
+                    onChangePw={(v) => setField('guestPw', v)}
+                    onClearPw={() => setField('guestPw', '')}
+                    onChangePw2={(v) => setField('guestPw2', v)}
+                    onClearPw2={() => setField('guestPw2', '')}
+                    onKeyDown={chpNav}
+                  />
+                )}
+
+                <AgreementSection
+                  agreements={agreements}
+                  allAgreed={allAgreed}
+                  agreementError={errors.agreement}
+                  onToggle={toggleAgreement}
+                  onToggleAll={toggleAllAgreements}
+                />
+
+                {/* 결제하기 버튼 */}
+                <button
+                  className="chp-submit-btn"
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  aria-busy={submitting}
+                  data-gtr-tap
+                >
+                  {submitting ? '주문 처리 중…' : '결제하기'}
+                </button>
+
+                {/* 정기배송 안내 */}
+                {hasSubscription && (
+                  <div className="chp-legal-note">
+                    <InfoCircleIcon size={18} />
+                    <span>정기배송 상품이 포함되어 있습니다. 결제 후 설정된 주기에 따라 자동으로 결제되며, 정기배송은 마이페이지에서 언제든지 일시정지하거나 재개 또는 취소하실 수 있습니다.</span>
+                  </div>
+                )}
+
+                {/* 법적 링크 */}
+                <div className="chp-legal-links">
+                  <span className="chp-legal-link">배송 안내</span>
+                  <span className="chp-legal-link">개인정보처리방침</span>
+                  <span className="chp-legal-link">이용약관</span>
+                  <span className="chp-legal-link">전자상거래 법률 고지</span>
+                  <span className="chp-legal-link">취소·반품 안내</span>
                 </div>
               </>
             )}
-          </div>
-
-          {/* 배송지 이하 — 이메일 확인 후 표시 */}
-          {isFormRevealed && (
-            <>
-              {/* 배송지 */}
-              <div className="chp-section chp-section--no-border">
-                <h2 className="chp-section-title">배송지</h2>
-                {/* 받는 분 */}
-                <TextField
-                  label="받는 분"
-                  value={form.firstname}
-                  onChange={(v) => setField('firstname', v)}
-                  onClear={() => setField('firstname', '')}
-                  onKeyDown={chpNav}
-                  error={errors.firstname}
-                  helper="받는 분의 이름을 입력하세요."
-                />
-                {/* 전화번호 */}
-                <TextField
-                  type="tel"
-                  label="전화번호"
-                  value={form.phone}
-                  onChange={handlePhoneChange}
-                  onClear={() => setField('phone', '')}
-                  onBlur={blurPhone}
-                  onKeyDown={chpNav}
-                  error={errors.phone}
-                  helper="하이픈이 자동으로 입력됩니다."
-                />
-                {/* 주소 */}
-                <div className="chp-addr-inline">
-                  <TextField
-                    label="주소 검색"
-                    readOnly
-                    autoComplete="off"
-                    style={{ cursor: 'pointer', paddingRight: 36 }}
-                    value={form.addr1}
-                    onChange={() => { /* readOnly */ }}
-                    onClick={handleAddressSearch}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddressSearch(); } }}
-                    wrapperClass={form.addr1 ? 'has-value' : ''}
-                    customAction={
-                      <button className="chp-addr-search-btn" type="button" title="주소 검색" onClick={handleAddressSearch}>
-                        <SearchIcon />
-                      </button>
-                    }
-                    error={errors.addr1}
-                    helper="주소를 검색해 주세요."
-                  />
-                  <TextField
-                    label="우편번호"
-                    maxLength={5}
-                    inputMode="numeric"
-                    autoComplete="off"
-                    value={form.zipcode}
-                    onChange={(v) => setField('zipcode', v.replace(/\D/g, ''))}
-                    onKeyDown={chpNav}
-                    hideClear
-                    helper="주소 검색 시 자동 입력됩니다."
-                  />
-                </div>
-                {/* 상세주소 — 주소 입력 후 표시 */}
-                {form.addr1 && (
-                  <TextField
-                    label="상세주소"
-                    value={form.addr2}
-                    onChange={(v) => setField('addr2', v)}
-                    onClear={() => setField('addr2', '')}
-                    onKeyDown={chpNav}
-                    helper="동·호수 등 상세주소를 입력하세요."
-                  />
-                )}
-                {/* 배송 메시지 드롭다운 — Radix Select (키보드 ↑↓ · Enter 지원) */}
-                <div className={`chp-field chp-dropdown-field${form.deliveryMessage ? ' has-value' : ''}`}>
-                  <Select.Root
-                    value={form.deliveryMessage}
-                    onValueChange={(v) => setField('deliveryMessage', v)}
-                  >
-                    <Select.Trigger className="chp-dropdown-trigger" aria-label="배송 메시지 선택">
-                      <Select.Value />
-                      <Select.Icon asChild>
-                        <span className="chp-dropdown-arrow" aria-hidden="true"><ChevronDown /></span>
-                      </Select.Icon>
-                    </Select.Trigger>
-                    <label className="chp-floating-label">배송 메시지 (선택사항)</label>
-                    <Select.Portal>
-                      <Select.Content className="chp-select-content" position="popper" sideOffset={0}>
-                        <div className="chp-dropdown-title">배송 메시지 선택</div>
-                        <Select.Viewport>
-                          {DELIVERY_OPTIONS.map((opt) => (
-                            <Select.Item key={opt.value} value={opt.value} className="chp-select-item">
-                              <Select.ItemText>{opt.label}</Select.ItemText>
-                            </Select.Item>
-                          ))}
-                        </Select.Viewport>
-                      </Select.Content>
-                    </Select.Portal>
-                  </Select.Root>
-                </div>
-                {/* 직접 입력 */}
-                {form.deliveryMessage === 'direct' && (
-                  <TextField
-                    label="배송 메시지를 입력해 주세요."
-                    value={form.deliveryCustom}
-                    onChange={(v) => setField('deliveryCustom', v)}
-                    onClear={() => setField('deliveryCustom', '')}
-                    onKeyDown={chpNav}
-                  />
-                )}
-              </div>
-
-              {/* 비회원 주문조회 비밀번호 */}
-              {!isLoggedIn && (
-                <div className="chp-section chp-section--no-border chp-section--guest">
-                  <h2 className="chp-section-title">비회원 주문조회 비밀번호</h2>
-                  <p className="chp-section-desc">비회원 주문 조회 시 주문번호와 입력하신 비밀번호가 필요합니다.</p>
-                  <TextField
-                    type="password"
-                    label="비밀번호"
-                    value={form.guestPw}
-                    onChange={(v) => setField('guestPw', v)}
-                    onClear={() => setField('guestPw', '')}
-                    onKeyDown={chpNav}
-                    showPasswordToggle
-                    autoComplete="new-password"
-                    error={errors.guestPw}
-                    helper={`${GUEST_PASSWORD_MIN_LENGTH}자 이상 입력해 주세요.`}
-                  />
-                  <TextField
-                    type="password"
-                    label="비밀번호 확인"
-                    disabled={!showPw2}
-                    value={form.guestPw2}
-                    onChange={(v) => setField('guestPw2', v)}
-                    onClear={() => setField('guestPw2', '')}
-                    onKeyDown={chpNav}
-                    showPasswordToggle
-                    autoComplete="new-password"
-                    error={errors.guestPw2}
-                    helper="비밀번호를 한 번 더 입력하세요."
-                    wrapperClass={`pw2-field${showPw2 ? ' pw2-visible' : ''}`}
-                  />
-                </div>
-              )}
-
-              {/* 약관 동의 */}
-              <div className={`chp-section chp-section--no-border chp-agree-section${errors.agreement ? ' error' : ''}`}>
-                <label className="chp-agree-all-row" onClick={(e) => { e.preventDefault(); toggleAllAgreements(); }}>
-                  <input type="checkbox" checked={allAgreed} readOnly />
-                  <span className={`chp-check-icon${allAgreed ? ' checked' : ''}`}>
-                    <CheckboxIcon />
-                  </span>
-                  <span className="chp-agree-all-label">모든 약관 동의</span>
-                </label>
-                <div className="chp-agree-items">
-                  {['[필수] 쇼핑몰 이용약관 동의', '[필수] 개인정보 수집 및 이용 동의'].map((label, idx) => (
-                    <label key={idx} className="chp-agree-item" onClick={(e) => { e.preventDefault(); toggleAgreement(idx); }}>
-                      <input type="checkbox" checked={agreements[idx]} readOnly />
-                      <span className={`chp-check-icon${agreements[idx] ? ' checked' : ''}`}>
-                        <CheckboxIcon />
-                      </span>
-                      <span className="chp-agree-item-label">{label}</span>
-                      <span className="chp-agree-arrow" aria-hidden="true"><ChevronRight size={20} /></span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* 결제하기 버튼 */}
-              <button
-                className="chp-submit-btn"
-                type="button"
-                onClick={handleSubmit}
-                disabled={submitting}
-                aria-busy={submitting}
-                data-gtr-tap
-              >
-                {submitting ? '주문 처리 중…' : '결제하기'}
-              </button>
-
-              {/* 정기배송 안내 */}
-              {hasSubscription && (
-                <div className="chp-legal-note">
-                  <InfoCircleIcon size={18} />
-                  <span>정기배송 상품이 포함되어 있습니다. 결제 후 설정된 주기에 따라 자동으로 결제되며, 정기배송은 마이페이지에서 언제든지 일시정지하거나 재개 또는 취소하실 수 있습니다.</span>
-                </div>
-              )}
-
-              {/* 법적 링크 */}
-              <div className="chp-legal-links">
-                <span className="chp-legal-link">배송 안내</span>
-                <span className="chp-legal-link">개인정보처리방침</span>
-                <span className="chp-legal-link">이용약관</span>
-                <span className="chp-legal-link">전자상거래 법률 고지</span>
-                <span className="chp-legal-link">취소·반품 안내</span>
-              </div>
-            </>
-          )}
           </>
         )}
 
@@ -739,54 +503,14 @@ export default function CheckoutPage() {
         )}
         </div>
 
-        {/* ── 우측 주문 요약 ── */}
-        <div className="chp-right">
-          <div className="chp-right-title">주문 요약</div>
-          <div>
-            {items.map((item) => (
-              <div key={item.id} className="chp-sum-item">
-                <div className="chp-sum-item-img-wrap">
-                  <div className="chp-sum-item-img" style={{ background: item.color }}>
-                    {item.image && (
-                      <Image src={item.image} alt={item.name} width={56} height={56} style={{ objectFit: 'contain' }} />
-                    )}
-                  </div>
-                </div>
-                <div className="chp-sum-item-info">
-                  <div className="chp-sum-item-name">{extractKrName(item.name)}</div>
-                  <span className="chp-sum-item-meta">
-                    {[item.volume, item.type === 'subscription' && item.period ? `정기배송 ${item.period}` : null, `${item.qty}개`].filter(Boolean).join(' · ')}
-                  </span>
-                </div>
-                <div className="chp-sum-item-price">{formatPrice(item.priceNum * item.qty)}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="chp-summary-totals">
-            <div className="chp-sum-row">
-              <span>상품 금액 · 총 {totalQty}개 상품</span>
-              <span>{formatPrice(subtotal)}</span>
-            </div>
-            <div className="chp-sum-row">
-              <span>배송비</span>
-              <span>{shippingFee === 0 ? '무료' : formatPrice(shippingFee)}</span>
-            </div>
-            <div className="chp-sum-total-row">
-              <span>결제예정금액</span>
-              <span>{formatPrice(totalPrice)}</span>
-            </div>
-            <div className="chp-tax-note">부가세 포함</div>
-            {hasSubscription && (
-              <div className="chp-sum-sub-block">
-                <span>정기배송 금액</span>
-                <span>
-                  {formatPrice(items.filter((i) => i.type === 'subscription').reduce((s, i) => s + i.priceNum * i.qty, 0))}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+        <OrderSummary
+          items={items}
+          totalQty={totalQty}
+          subtotal={subtotal}
+          shippingFee={shippingFee}
+          totalPrice={totalPrice}
+          hasSubscription={hasSubscription}
+        />
       </div>
     </div>
   );
