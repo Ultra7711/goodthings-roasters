@@ -975,6 +975,18 @@ React state flush: schedule 순서대로 적용
 
 ----
 
+### BUG-180 — /admin/gooddays 폴리싱 3건 🟢
+
+- **발견:** 2026-05-06 / S167 J-4 dev 검증
+- **상태:** 미해결 (별 sprint carry-over)
+- **항목:**
+  - **B-180a — 업로드 버튼 위치 변경:** 현재 헤더 우측 상단. 그리드 스크롤 시 가려짐. **상단 sticky 타이틀 영역**으로 이동 (cafe-events 패턴 답습 검토).
+  - **B-180b — 업로드 모달 레이아웃 패딩 미적용:** `DialogContent` 내부 요소 (file input · alt input · featured switch) 좌우 패딩 누락 → 모서리 붙음. shadcn `DialogContent` 기본 padding 부재 또는 inline style 추가 필요.
+  - **B-180c — featured 가시성·안내 보강:** ① 타이틀 아래 description 에 "Featured = 매거진 그리드 큰 사진 슬롯 우선 배치" 한 줄 안내 추가. ② 별 아이콘 카드 우상단 (28x28 primary 배경) 가독성 약함. 드래그 핸들 (검은 배경 + 흰 아이콘) 패턴 답습 또는 **검은 배경 + 오렌지 별 (primary fill)** 로 대비 강화.
+- **참조:** `next/src/app/admin/(authed)/gooddays/AdminGoodDaysClient.tsx`
+
+---
+
 ### BUG-130 — ✅ 헤더 다크↔라이트 모드 전환 깜빡임
 
 - **발견:** 2026-04-24 / S72 (가칭 등록)
