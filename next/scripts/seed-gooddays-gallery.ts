@@ -2,13 +2,13 @@
    seed-gooddays-gallery.ts — gooddays_gallery 테이블 seed (S167 J-2)
 
    목적:
-     lib/gooddays.ts 의 hardcoded GD_IMAGES 42장 (featured 6장 포함) 을
+     lib/gooddays.ts 의 hardcoded SEED_IMAGES 42장 (featured 6장 포함) 을
      DB 테이블 + Storage 버킷으로 이관.
 
    처리 흐름:
      1. service_role 클라이언트 생성 (SUPABASE_SERVICE_ROLE_KEY 필수)
      2. 기존 row 존재 시 abort — idempotent 보호
-     3. GD_IMAGES 42장 순서대로:
+     3. SEED_IMAGES 42장 순서대로:
         a. public/images/gallery/{filename} 읽기
         b. plaiceholder → blur_data_url + width + height 추출
         c. Storage gooddays-images 버킷 upsert (filename 보존)
@@ -31,7 +31,55 @@ import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import { getPlaiceholder } from 'plaiceholder';
 import { config as loadEnv } from 'dotenv';
-import { GD_IMAGES } from '../src/lib/gooddays';
+
+/* 42장 hardcoded — 프로토타입 그대로. lib/gooddays.ts 의존 X (S167 J-3 에서 SEED_IMAGES 삭제됨).
+   재실행 시 truncate 후 다시 사용 가능하도록 스크립트 자체 데이터 보유. */
+type SeedImage = { src: string; featured?: boolean };
+const SEED_IMAGES: SeedImage[] = [
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_01.webp', featured: true },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_02.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_03.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_04.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_05.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_06.webp', featured: true },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_07.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_08.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_09.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_10.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_11.webp', featured: true },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_12.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_13.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_14.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_15.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_16.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_17.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_18.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_19.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_20.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_21.webp', featured: true },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_22.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_23.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_24.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_25.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_26.webp', featured: true },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_27.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_28.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_29.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_02.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_04.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_05.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_06.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_07.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_08.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_09.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_10.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_11.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_12.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_13.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_14.webp' },
+  { src: '/images/gallery/KakaoTalk_20260328_162007174_15.webp' },
+];
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const NEXT_ROOT = path.join(__dirname, '..');
@@ -73,7 +121,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`[seed] processing ${GD_IMAGES.length} images...`);
+  console.log(`[seed] processing ${SEED_IMAGES.length} images...`);
 
   /* 2. 이미지별 처리 */
   const rows: Array<{
@@ -87,8 +135,8 @@ async function main(): Promise<void> {
     height: number;
   }> = [];
 
-  for (let i = 0; i < GD_IMAGES.length; i++) {
-    const img = GD_IMAGES[i];
+  for (let i = 0; i < SEED_IMAGES.length; i++) {
+    const img = SEED_IMAGES[i];
     const filename = path.basename(img.src);
     const filePath = path.join(GALLERY_DIR, filename);
 

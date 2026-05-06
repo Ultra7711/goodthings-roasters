@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════
    Good Days Route — /gooddays
    - Server component: searchParams.img 을 prop 으로 받아 GoodDaysPage 에 전달.
+   - DB fetch (S167 J-3): fetchGoodDaysGallery() — is_active=true 만, sort_order asc.
    - Suspense fallback 은 cream 본문과 동일 톤(투명 + min-height) — 메뉴 드로어 등 ?img= 없는
      진입 시 검정 fallback → cream 본문 플래시 차단. ?img= 진입 시는 메인 GoodDaysSection 의
      body.gd-route-transition 오버레이 가 cream 단절 차단 (이 fallback 위에 검정 풀로 깔림).
@@ -9,6 +10,7 @@
 
 import { Suspense } from 'react';
 import GoodDaysPage from '@/components/gooddays/GoodDaysPage';
+import { fetchGoodDaysGallery } from '@/lib/gooddaysServer';
 
 export const metadata = { title: '좋은 순간들 — good things' };
 
@@ -17,8 +19,8 @@ type Props = {
 };
 
 async function GoodDaysContent({ searchParams }: Props) {
-  const params = await searchParams;
-  return <GoodDaysPage initialImgSrc={params.img ?? null} />;
+  const [params, gallery] = await Promise.all([searchParams, fetchGoodDaysGallery()]);
+  return <GoodDaysPage initialImgSrc={params.img ?? null} gallery={gallery} />;
 }
 
 export default function GoodDaysRoute({ searchParams }: Props) {

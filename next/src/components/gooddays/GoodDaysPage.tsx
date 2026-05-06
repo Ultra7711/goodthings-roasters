@@ -29,7 +29,7 @@ import Lightbox, { type SlideImage } from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
 import { ZoomIn, ZoomOut } from 'lucide-react';
-import { buildGoodDaysGrid } from '@/lib/gooddays';
+import { buildGoodDaysGrid, type GdGalleryItem } from '@/lib/gooddays';
 import LightboxNextJsImage from './LightboxNextJsImage';
 import MobileZoneTap from './MobileZoneTap';
 import GdCloseButton from './GdCloseButton';
@@ -40,14 +40,16 @@ type Props = {
   /** 서버 측에서 searchParams.img 으로 결정된 초기 이미지 src (없으면 null).
       page.tsx (server component) 가 prop 으로 전달 → 첫 paint 부터 라이트박스 open. */
   initialImgSrc: string | null;
+  /** 서버 fetch 결과 (lib/gooddaysServer.ts:fetchGoodDaysGallery). is_active=true 만, sort_order asc. */
+  gallery: readonly GdGalleryItem[];
 };
 
-export default function GoodDaysPage({ initialImgSrc }: Props) {
+export default function GoodDaysPage({ initialImgSrc, gallery }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   /* 그리드 데이터는 렌더링 순수 함수 — useMemo 로 한 번만 계산 */
-  const grid = useMemo(() => buildGoodDaysGrid(), []);
+  const grid = useMemo(() => buildGoodDaysGrid(gallery), [gallery]);
   const { rows, ordered } = grid;
 
   const rootRef = useRef<HTMLDivElement>(null);

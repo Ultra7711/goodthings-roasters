@@ -1,7 +1,5 @@
 /* ══════════════════════════════════════════
-   Good Days 갤러리 데이터
-   프로토타입 GD_IMAGES / GD_PATTERNS / GD_PLACEHOLDER_COLORS
-   (L10628~10733) 그대로 이식.
+   Good Days 갤러리 — 매거진 그리드 빌더 (S167 J-3 DB 전환)
 
    매거진 레이아웃:
      A(5장) — 2x 320px, 첫 셀을 2fr span
@@ -9,38 +7,27 @@
      C(5장) — 2x 320px, 5번째 셀을 2fr span
      D(2x1) — 480px 단일 행
      E(1x1) — 560px full-bleed
-   16장 1사이클 → 42장 = 2사이클 + 일부
 
-   LQIP (S121): GD_BLUR_MAP 은 빌드 타임 prebuild (plaiceholder).
-   재생성: npx tsx scripts/generate-gallery-blur.ts
+   데이터 소스:
+   - DB `gooddays_gallery` (036 마이그레이션, S167)
+   - lib/gooddaysServer.ts:fetchGoodDaysGallery() 가 SSR 단계에서 fetch
+   - buildGoodDaysGrid(gallery) 가 인자로 받아 row 구조 생성
+   - featured 플래그 = row 의 span 슬롯 우선 배치
+
+   pattern 5종은 hardcoded 유지 (다음 sprint 후보).
    ══════════════════════════════════════════ */
-
-import { GD_BLUR_MAP, type GdBlurEntry } from './gooddaysBlur';
-
-/** GD_BLUR_MAP 누락 시 fallback — 1x1 sandy beige (--color-background-secondary).
-    width/height 는 일반적 사진 비율 fallback. */
-const FALLBACK_BLUR_ENTRY: GdBlurEntry = {
-  blurDataURL:
-    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGPgaAAAAIIAgB8U1XwAAAAASUVORK5CYII=',
-  width: 1920,
-  height: 1280,
-};
-
-function entryOf(src: string): GdBlurEntry {
-  return GD_BLUR_MAP[src] ?? FALLBACK_BLUR_ENTRY;
-}
-
-export type GdImage = {
-  src: string;
-  featured?: boolean;
-};
 
 export type GdImageWithBlur = {
   src: string;
   blurDataURL: string;
-  /** 빌드 타임 sharp 추출 — yet-another-react-lightbox Zoom plugin 활성화 조건 */
+  /** sharp 추출 — yet-another-react-lightbox Zoom plugin 활성화 조건 */
   width: number;
   height: number;
+};
+
+/** featured 플래그 포함 — buildGoodDaysGrid 가 span 슬롯 배치에 사용. */
+export type GdGalleryItem = GdImageWithBlur & {
+  featured?: boolean;
 };
 
 export type GdPattern = {
@@ -49,53 +36,6 @@ export type GdPattern = {
   /** -1 = featured 슬롯 없음 */
   spanIdx: number;
 };
-
-/* 갤러리 이미지 원본 — 42장 (프로토타입 그대로) */
-export const GD_IMAGES: GdImage[] = [
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_01.webp', featured: true },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_02.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_03.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_04.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_05.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_06.webp', featured: true },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_07.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_08.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_09.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_10.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_11.webp', featured: true },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_12.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_13.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_14.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_15.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_16.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_17.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_18.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_19.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_20.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_21.webp', featured: true },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_22.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_23.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_24.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_25.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_26.webp', featured: true },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_27.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_28.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_29.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_02.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_04.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_05.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_06.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_07.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_08.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_09.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_10.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_11.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_12.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_13.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_14.webp' },
-  { src: '/images/gallery/KakaoTalk_20260328_162007174_15.webp' },
-];
 
 export const GD_PATTERNS: GdPattern[] = [
   { cls: 'gd-row--a', count: 5, spanIdx: 0 },
@@ -136,49 +76,63 @@ export type GoodDaysGrid = {
  * 1) featured 이미지를 pattern 의 span 슬롯에 우선 배치
  * 2) 나머지는 normal 풀에서 순차 배치
  * 3) 이미지가 다 떨어지면 플레이스홀더 컬러 셀 채움
+ *
+ * @param gallery DB fetch 결과 (lib/gooddaysServer.ts:fetchGoodDaysGallery)
  */
-export function buildGoodDaysGrid(): GoodDaysGrid {
-  const featuredPool = GD_IMAGES.filter((img) => img.featured).map((img) => img.src);
-  const normalPool = GD_IMAGES.filter((img) => !img.featured).map((img) => img.src);
+export function buildGoodDaysGrid(gallery: readonly GdGalleryItem[]): GoodDaysGrid {
+  const featuredPool = gallery.filter((img) => img.featured);
+  const normalPool = gallery.filter((img) => !img.featured);
 
   /* 배치 순서 결정: 패턴별 span 슬롯에 featured 우선 */
-  const orderedSrc: string[] = [];
+  const orderedItems: GdImageWithBlur[] = [];
   let fIdx = 0;
   let nIdx = 0;
   let patIdx = 0;
   let placed = 0;
-  const totalImages = GD_IMAGES.length;
+  const totalImages = gallery.length;
 
   while (placed < totalImages) {
     const pat = GD_PATTERNS[patIdx % GD_PATTERNS.length];
     for (let i = 0; i < pat.count && placed < totalImages; i++) {
       if (i === pat.spanIdx && fIdx < featuredPool.length) {
-        orderedSrc.push(featuredPool[fIdx++]);
+        orderedItems.push(featuredPool[fIdx++]);
       } else if (nIdx < normalPool.length) {
-        orderedSrc.push(normalPool[nIdx++]);
+        orderedItems.push(normalPool[nIdx++]);
       } else if (fIdx < featuredPool.length) {
-        orderedSrc.push(featuredPool[fIdx++]);
+        orderedItems.push(featuredPool[fIdx++]);
       }
       placed++;
     }
     patIdx++;
   }
 
-  const ordered: GdImageWithBlur[] = orderedSrc.map((src) => {
-    const entry = entryOf(src);
-    return {
-      src,
-      blurDataURL: entry.blurDataURL,
-      width: entry.width,
-      height: entry.height,
-    };
-  });
+  const ordered: GdImageWithBlur[] = orderedItems.map((item) => ({
+    src: item.src,
+    blurDataURL: item.blurDataURL,
+    width: item.width,
+    height: item.height,
+  }));
 
   /* 행 구조 생성 — 이미지가 떨어지면 플레이스홀더 셀 */
   const rows: GdRow[] = [];
   let idx = 0;
   let phIdx = 0;
   patIdx = 0;
+
+  /* 빈 갤러리 — 1개 row 만 placeholder 로 채움 (UX: 빈 페이지 방지) */
+  if (ordered.length === 0) {
+    const pat = GD_PATTERNS[0];
+    const cells: GdCell[] = [];
+    for (let i = 0; i < pat.count; i++) {
+      const span = i === pat.spanIdx;
+      const bg = GD_PLACEHOLDER_COLORS[phIdx % GD_PLACEHOLDER_COLORS.length];
+      cells.push({ kind: 'placeholder', bg, span });
+      phIdx++;
+    }
+    rows.push({ pattern: pat, cells });
+    return { rows, ordered };
+  }
+
   while (idx < ordered.length) {
     const pat = GD_PATTERNS[patIdx % GD_PATTERNS.length];
     const cells: GdCell[] = [];
