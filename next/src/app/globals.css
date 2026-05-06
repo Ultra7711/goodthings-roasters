@@ -8331,8 +8331,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-caption); background: var(--color-background-tertiary);
   line-height: 1; box-sizing: border-box;
 }
+.mp-order-status--prep { color: var(--color-text-inverse); background: var(--color-status-new); }
 .mp-order-status--shipping { color: var(--color-text-inverse); background: var(--color-status-live); }
 .mp-order-status--delivered { color: var(--color-text-inverse); background: var(--color-status-done); }
+.mp-order-status--refund-req { color: var(--color-text-inverse); background: var(--color-warning); }
+.mp-order-status--refund-proc { color: var(--color-text-inverse); background: var(--color-error); }
+.mp-order-status--refunded { color: var(--color-text-inverse); background: var(--color-text-caption); }
 .mp-order-content { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
 .mp-order-content-left { flex: 1; min-width: 0; }
 .mp-order-summary {

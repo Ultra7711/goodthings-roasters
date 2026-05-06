@@ -9,6 +9,17 @@ import { useSiteSettings } from '@/components/providers/SiteSettingsProvider';
 import { CopyIcon } from '@/components/ui/Icons';
 import { useOrdersQuery } from '@/hooks/useOrders';
 import { useMyPageOpenOrders, toggleOrder } from '@/lib/myPageUiStore';
+import type { OrderStatus } from '@/types/order';
+
+/* status → 뱃지 클래스 매핑 (S172: paid·refund_* 노출 추가) */
+const STATUS_CLASS: Record<OrderStatus, string> = {
+  '배송준비': 'mp-order-status--prep',
+  '배송중':   'mp-order-status--shipping',
+  '배송완료': 'mp-order-status--delivered',
+  '환불요청': 'mp-order-status--refund-req',
+  '환불중':   'mp-order-status--refund-proc',
+  '환불완료': 'mp-order-status--refunded',
+};
 
 export default function OrderHistory() {
   const router = useRouter();
@@ -96,7 +107,7 @@ export default function OrderHistory() {
                     </div>
                   </div>
                   <span
-                    className={`mp-order-status${order.status === '배송중' ? ' mp-order-status--shipping' : ' mp-order-status--delivered'}`}
+                    className={`mp-order-status ${STATUS_CLASS[order.status]}`}
                   >
                     {order.status}
                   </span>

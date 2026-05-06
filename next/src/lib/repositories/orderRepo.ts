@@ -231,7 +231,9 @@ const ORDER_SELECT = `
 /**
  * 회원 본인 주문 목록 (최신순).
  * RLS `orders_select_own` 에 의해 본인 주문만 반환.
- * pending 제외 (S171): 결제 미확정 row 는 사용자 재진입 경로 부재 → 노출 가치 없음.
+ * pending/cancelled 제외 (S171/S172):
+ * - pending: 결제 미확정 row 는 사용자 재진입 경로 부재 → 노출 가치 없음.
+ * - cancelled: Toss 이탈 abandoned 주문 (PR-B/PR-C 처리 결과) → 의도적 취소 아님, 노출 시 혼란.
  */
 export async function findOrdersForUser(limit = 20, offset = 0): Promise<OrderRow[]> {
   const supabase = await createRouteHandlerClient();
@@ -239,6 +241,7 @@ export async function findOrdersForUser(limit = 20, offset = 0): Promise<OrderRo
     .from('orders')
     .select(ORDER_SELECT)
     .neq('status', 'pending')
+    .neq('status', 'cancelled')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -249,7 +252,7 @@ export async function findOrdersForUser(limit = 20, offset = 0): Promise<OrderRo
 /**
  * 회원 본인 주문 조회.
  * RLS `orders_select_own` 에 의해 타인 주문은 자동 차단(= null 반환).
- * pending 제외 (S171): URL 조작으로도 결제 미확정 row 노출 차단.
+ * pending/cancelled 제외 (S171/S172): URL 조작으로도 결제 미확정·취소 row 노출 차단.
  */
 export async function findOrderForUser(
   orderNumber: string,
@@ -260,6 +263,7 @@ export async function findOrderForUser(
     .select(ORDER_SELECT)
     .eq('order_number', orderNumber)
     .neq('status', 'pending')
+    .neq('status', 'cancelled')
     .maybeSingle<OrderRow>();
 
   if (error) throw error;
@@ -290,6 +294,7 @@ export async function findGuestOrderWithHash(
     .eq('guest_email', email)
     .is('user_id', null)
     .neq('status', 'pending')
+    .neq('status', 'cancelled')
     .maybeSingle<OrderRow & { guest_lookup_pin_hash: string | null }>();
 
   if (error) throw error;
@@ -316,6 +321,7 @@ export async function findOrderForUserByToken(
     .select(ORDER_SELECT)
     .eq('public_token', publicToken)
     .neq('status', 'pending')
+    .neq('status', 'cancelled')
     .maybeSingle<OrderRow>();
 
   if (error) throw error;
@@ -341,6 +347,7 @@ export async function findGuestOrderByTokenWithHash(
     .eq('guest_email', email)
     .is('user_id', null)
     .neq('status', 'pending')
+    .neq('status', 'cancelled')
     .maybeSingle<OrderRow & { guest_lookup_pin_hash: string | null }>();
 
   if (error) throw error;
