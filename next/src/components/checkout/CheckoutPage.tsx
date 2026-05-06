@@ -27,6 +27,7 @@ import { openPostcode, preloadPostcode } from '@/lib/daumPostcode';
 import { useInputNav } from '@/hooks/useInputNav';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { useCartQuery } from '@/hooks/useCart';
+import { useDefaultAddressQuery } from '@/hooks/useDefaultAddress';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useToast } from '@/hooks/useToast';
 import { GUEST_PASSWORD_MIN_LENGTH } from '@/lib/validation';
@@ -98,14 +99,51 @@ export default function CheckoutPage() {
     reset: resetForm,
   } = useCheckoutForm();
 
-  /* ── 로그인 유저 자동 진입 (BUG-003) ── */
+  /* ── 기본 배송지 (S174): 로그인 사용자만 fetch. 게스트는 항상 null ── */
+  const { data: defaultAddress } = useDefaultAddressQuery();
+
+  /* ── 로그인 유저 자동 진입 (BUG-003) + 기본 배송지 pre-fill (S174)
+     - email: 빈 상태일 때만 채움 (사용자 수정 보존)
+     - address 5필드: 모두 빈 상태일 때만 일괄 채움 (덮어쓰기 가드).
+       사용자가 한 필드라도 수정한 후 재진입해도 덮어쓰지 않음. */
   useEffect(() => {
     if (sessionLoading) return;
     if (!isLoggedIn || !user) return;
     if (isFormRevealed) return;
+
     if (user.email && !form.email) setField('email', user.email);
+
+    if (
+      defaultAddress &&
+      !form.firstname &&
+      !form.phone &&
+      !form.zipcode &&
+      !form.addr1 &&
+      !form.addr2
+    ) {
+      setField('firstname', defaultAddress.name);
+      setField('phone', defaultAddress.phone);
+      setField('zipcode', defaultAddress.zipcode);
+      setField('addr1', defaultAddress.addr1);
+      setField('addr2', defaultAddress.addr2);
+    }
+
     revealForm();
-  }, [sessionLoading, isLoggedIn, user, isFormRevealed, form.email, setField, revealForm]);
+  }, [
+    sessionLoading,
+    isLoggedIn,
+    user,
+    isFormRevealed,
+    form.email,
+    form.firstname,
+    form.phone,
+    form.zipcode,
+    form.addr1,
+    form.addr2,
+    defaultAddress,
+    setField,
+    revealForm,
+  ]);
 
   /* ── 전화번호 ── */
   const { handleChangeValue: handlePhoneChange } = usePhoneFormat(
