@@ -48,6 +48,10 @@ export const BUSINESS_INFO = {
   address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS ?? '',
   phone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? '',
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? '',
+  /* 개인정보보호법 §31 의무 표기 (예: "홍길동 (대표) · 010-1234-5678"). */
+  privacyOfficer: process.env.NEXT_PUBLIC_BUSINESS_PRIVACY_OFFICER ?? '',
+  /* 전자상거래법 §13 표시 권고 (예: "Vercel Inc."). */
+  hostingProvider: process.env.NEXT_PUBLIC_BUSINESS_HOSTING_PROVIDER ?? '',
 } as const;
 
 /* ── 어나운스 바 ── */

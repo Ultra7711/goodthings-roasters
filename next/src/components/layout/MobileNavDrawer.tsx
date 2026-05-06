@@ -383,7 +383,9 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
             <span className="mn-f-biz-sep">·</span>
             주소 {BUSINESS_INFO.address}<span className="mn-f-biz-sep">·</span>
             전화번호 {process.env.NEXT_PUBLIC_CONTACT_PHONE ?? '—'}<span className="mn-f-biz-sep">·</span>
-            이메일 {process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? '—'}
+            이메일 {process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? '—'}<span className="mn-f-biz-sep">·</span>
+            개인정보관리책임자 {BUSINESS_INFO.privacyOfficer}<span className="mn-f-biz-sep">·</span>
+            호스팅 제공자 {BUSINESS_INFO.hostingProvider}
           </div>
         </footer>
 
