@@ -265,7 +265,15 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
                   type="button"
                   onClick={toggleAll}
                   aria-label={allSelected ? '전체 선택 해제' : '전체 선택'}
-                  style={{ all: 'unset', cursor: 'pointer', display: 'inline-flex' }}
+                  style={{
+                    all: 'unset',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    width: 16,
+                    height: 16,
+                    verticalAlign: 'middle',
+                    lineHeight: 0,
+                  }}
                   disabled={rows.length === 0}
                 >
                   <CheckBox checked={allSelected} indeterminate={indeterminate} />
@@ -305,7 +313,15 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
                         type="button"
                         onClick={() => toggleRow(o.id)}
                         aria-label={sel ? `${o.orderNumber} 선택 해제` : `${o.orderNumber} 선택`}
-                        style={{ all: 'unset', cursor: 'pointer', display: 'inline-flex' }}
+                        style={{
+                    all: 'unset',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    width: 16,
+                    height: 16,
+                    verticalAlign: 'middle',
+                    lineHeight: 0,
+                  }}
                       >
                         <CheckBox checked={sel} />
                       </button>
@@ -469,6 +485,10 @@ function CheckBox({ checked, indeterminate }: { checked: boolean; indeterminate?
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
+        verticalAlign: 'middle',
+        /* 체크 → SVG 삽입 시 inline-flex baseline 변경되어 같은 행
+           텍스트가 위로 밀리는 현상 차단. line-height 0 으로 baseline 의존 제거. */
+        lineHeight: 0,
         border: filled ? '1px solid var(--primary)' : '1px solid var(--border-strong)',
         background: filled ? 'var(--primary)' : 'var(--surface)',
       }}

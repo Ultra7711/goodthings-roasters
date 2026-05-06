@@ -250,7 +250,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
         )}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 880 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Section 1 — 무료 배송 정책 (정책 기준 → 공지 배너 auto_text 자동 합성) */}
         <SettingsCard
           title="무료 배송 정책"

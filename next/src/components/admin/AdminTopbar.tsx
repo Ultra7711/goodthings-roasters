@@ -28,6 +28,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/subscriptions': '정기배송',
   '/admin/products': '상품',
   '/admin/menu': '카페 메뉴',
+  '/admin/cafe-events': '카페 이벤트',
   '/admin/users': '고객',
   '/admin/gooddays': '굿데이즈',
   '/admin/analytics': '통계',

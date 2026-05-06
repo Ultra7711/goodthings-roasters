@@ -351,7 +351,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
               letterSpacing: '-0.02em',
             }}
           >
-            카페 이벤트
+            카페 이벤트 관리
           </h2>
           <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
             메인 §2.5 카페 메뉴 chapter 의 이벤트 row · 동시 활성 max 1
