@@ -8334,6 +8334,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .mp-order-status--prep { color: var(--color-text-inverse); background: var(--color-status-new); }
 .mp-order-status--shipping { color: var(--color-text-inverse); background: var(--color-status-live); }
 .mp-order-status--delivered { color: var(--color-text-inverse); background: var(--color-status-done); }
+.mp-order-status--cancelled { color: var(--color-text-inverse); background: var(--color-text-tertiary); }
 .mp-order-status--refund-req { color: var(--color-text-inverse); background: var(--color-warning); }
 .mp-order-status--refund-proc { color: var(--color-text-inverse); background: var(--color-error); }
 .mp-order-status--refunded { color: var(--color-text-inverse); background: var(--color-text-caption); }

@@ -5,20 +5,22 @@
 
 /** 주문 상태 (사용자 노출용 한글 라벨)
  *
- * DB enum 매핑 (S172):
+ * DB enum 매핑 (S172/S173):
  * - paid              → 배송준비
  * - shipping          → 배송중
  * - delivered         → 배송완료
+ * - cancelled         → 취소됨   (S173: 진짜 운영 취소만. abandoned 는 DELETE 처리)
  * - refund_requested  → 환불요청
  * - refund_processing → 환불중
  * - refunded          → 환불완료
  *
- * pending/cancelled 은 orderRepo 쿼리 단에서 제외되어 도달 불가.
+ * pending 은 orderRepo 쿼리 단에서 제외되어 도달 불가.
  */
 export type OrderStatus =
   | '배송준비'
   | '배송중'
   | '배송완료'
+  | '취소됨'
   | '환불요청'
   | '환불중'
   | '환불완료';

@@ -231,9 +231,8 @@ const ORDER_SELECT = `
 /**
  * 회원 본인 주문 목록 (최신순).
  * RLS `orders_select_own` 에 의해 본인 주문만 반환.
- * pending/cancelled 제외 (S171/S172):
- * - pending: 결제 미확정 row 는 사용자 재진입 경로 부재 → 노출 가치 없음.
- * - cancelled: Toss 이탈 abandoned 주문 (PR-B/PR-C 처리 결과) → 의도적 취소 아님, 노출 시 혼란.
+ * pending 제외 (S171): 결제 미확정 row 는 사용자 재진입 경로 부재 → 노출 가치 없음.
+ * (S173: abandoned 는 DELETE 정책으로 변경 → cancelled = 진짜 운영 취소만, 노출 OK)
  */
 export async function findOrdersForUser(limit = 20, offset = 0): Promise<OrderRow[]> {
   const supabase = await createRouteHandlerClient();
@@ -241,7 +240,6 @@ export async function findOrdersForUser(limit = 20, offset = 0): Promise<OrderRo
     .from('orders')
     .select(ORDER_SELECT)
     .neq('status', 'pending')
-    .neq('status', 'cancelled')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -252,7 +250,7 @@ export async function findOrdersForUser(limit = 20, offset = 0): Promise<OrderRo
 /**
  * 회원 본인 주문 조회.
  * RLS `orders_select_own` 에 의해 타인 주문은 자동 차단(= null 반환).
- * pending/cancelled 제외 (S171/S172): URL 조작으로도 결제 미확정·취소 row 노출 차단.
+ * pending 제외 (S171): URL 조작으로도 결제 미확정 row 노출 차단.
  */
 export async function findOrderForUser(
   orderNumber: string,
@@ -263,7 +261,6 @@ export async function findOrderForUser(
     .select(ORDER_SELECT)
     .eq('order_number', orderNumber)
     .neq('status', 'pending')
-    .neq('status', 'cancelled')
     .maybeSingle<OrderRow>();
 
   if (error) throw error;
@@ -294,7 +291,6 @@ export async function findGuestOrderWithHash(
     .eq('guest_email', email)
     .is('user_id', null)
     .neq('status', 'pending')
-    .neq('status', 'cancelled')
     .maybeSingle<OrderRow & { guest_lookup_pin_hash: string | null }>();
 
   if (error) throw error;
@@ -321,7 +317,6 @@ export async function findOrderForUserByToken(
     .select(ORDER_SELECT)
     .eq('public_token', publicToken)
     .neq('status', 'pending')
-    .neq('status', 'cancelled')
     .maybeSingle<OrderRow>();
 
   if (error) throw error;
@@ -347,34 +342,65 @@ export async function findGuestOrderByTokenWithHash(
     .eq('guest_email', email)
     .is('user_id', null)
     .neq('status', 'pending')
-    .neq('status', 'cancelled')
     .maybeSingle<OrderRow & { guest_lookup_pin_hash: string | null }>();
 
   if (error) throw error;
   return data ?? null;
 }
 
-/* ── CANCEL ───────────────────────────────────────────────────────────── */
+/* ── ABANDON (DELETE) ─────────────────────────────────────────────────────
+
+   S173: pending 주문은 결제 미완료 흔적 → row 보존 가치 없음.
+   "Toss 위젯에서 이전" 은 사용자 취소가 아니라 UX 네비게이션이므로
+   cancelled status 로 남기지 않고 DELETE.
+
+   순서:
+   1) 026 RPC 가 pending 시점에 subscriptions 도 active 로 INSERT 하므로
+      먼저 관련 subscription DELETE (initial_order_id 매칭).
+   2) orders DELETE (order_items 는 ON DELETE CASCADE 로 자동 삭제).
+   - payments / payment_transactions 는 결제 confirm 후 생성이라
+     pending 시점에 row 가 없음 → RESTRICT FK 무관.
+*/
 
 /**
- * 로그인 사용자의 pending 주문을 cancelled 로 전환.
- * - 이미 pending 이 아닌 주문은 건드리지 않는다 (graceful no-op).
- * - service_role 사용 + user_id 명시 필터 → 타인 주문 보호.
- * @returns 실제로 cancelled 된 경우 true, no-op 이면 false.
+ * 로그인 사용자의 pending 주문을 DELETE.
+ * - 이미 pending 이 아니면 no-op (paid 이상은 환불 흐름으로).
+ * - service_role + user_id 명시 필터로 타인 주문 보호.
+ * - 관련 subscription 도 함께 DELETE (dead active subscription 방지).
+ * @returns 실제 DELETE 발생 시 true, no-op 이면 false.
  */
-export async function cancelPendingOrderForUser(
+export async function deletePendingOrderForUser(
   orderNumber: string,
   userId: string,
 ): Promise<boolean> {
   const admin = getSupabaseAdmin();
-  const { data, error } = await admin
+
+  /* 1) 대상 order id 확인 + pending 가드 */
+  const { data: target, error: lookupError } = await admin
     .from('orders')
-    .update({ status: 'cancelled' })
+    .select('id')
     .eq('order_number', orderNumber)
     .eq('user_id', userId)
     .eq('status', 'pending')
-    .select('id');
+    .maybeSingle<{ id: string }>();
 
-  if (error) throw error;
-  return (data?.length ?? 0) > 0;
+  if (lookupError) throw lookupError;
+  if (!target) return false;
+
+  /* 2) 연관 subscription 먼저 DELETE — FK initial_order_id ON DELETE SET NULL
+        로 dead row 가 남는 것을 방지. */
+  const { error: subError } = await admin
+    .from('subscriptions')
+    .delete()
+    .eq('initial_order_id', target.id);
+  if (subError) throw subError;
+
+  /* 3) order DELETE — order_items 는 CASCADE 로 자동 삭제 */
+  const { error: orderError } = await admin
+    .from('orders')
+    .delete()
+    .eq('id', target.id);
+  if (orderError) throw orderError;
+
+  return true;
 }

@@ -38,19 +38,19 @@ import type { Order, OrderItem, OrderStatus } from '@/types/order';
 import { formatDateKST, formatPrice } from '@/lib/utils';
 
 /* ── DB status → UI 한글 상태 매핑 ───────────────────────────────
-   pending/cancelled 은 orderRepo 쿼리 단에서 제외 (S172) → 도달 불가.
-   도달 시 타입 단계에서 컴파일 실패 (exhaustive switch). */
+   S173: cancelled 노출 추가 (운영 명시 취소 케이스).
+   pending 은 orderRepo 쿼리 단에서 제외 → 도달 불가. */
 function mapDbStatus(status: DbOrderStatus): OrderStatus {
   switch (status) {
     case 'paid':              return '배송준비';
     case 'shipping':          return '배송중';
     case 'delivered':         return '배송완료';
+    case 'cancelled':         return '취소됨';
     case 'refund_requested':  return '환불요청';
     case 'refund_processing': return '환불중';
     case 'refunded':          return '환불완료';
     case 'pending':
-    case 'cancelled':
-      throw new Error(`mapDbStatus: 도달 불가 status='${status}' — orderRepo 쿼리 필터 누락`);
+      throw new Error(`mapDbStatus: 도달 불가 status='${status}' — orderRepo pending 필터 누락`);
   }
 }
 
