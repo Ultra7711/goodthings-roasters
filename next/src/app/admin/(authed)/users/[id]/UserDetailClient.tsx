@@ -1,20 +1,32 @@
 'use client';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   UserDetailClient — /admin/users/[id] 인터랙티브 본체 (S169 PR-2 Group C-2)
+   UserDetailClient — /admin/users/[id] 인터랙티브 본체 (S169 PR-2 → PR-3)
 
-   책임 (PR-2 read-only):
+   PR-2 read-only:
    - 헤더 (← 목록 + 사용자 이름 + 역할 badge)
    - 프로필 카드 (id · email · 이름 · phone · 가입일 · 마지막 업데이트)
    - 주문 카드 (최근 N개 테이블, 행 클릭 → /admin/orders/[orderNumber])
    - 역할 변경 이력 카드 (admin_audit)
 
-   carry-over (PR-3):
-   - "역할 변경" 버튼 + 다이얼로그
-   - grantAdminAction / revokeAdminAction 호출
+   PR-3 추가:
+   - 헤더 우측 "역할 변경" 버튼 (self → disabled)
+   - Dialog (사유 입력 textarea optional · max 500자 · 확인/취소)
+   - grantAdminAction / revokeAdminAction 호출 + toast + router.refresh
    ══════════════════════════════════════════════════════════════════════════ */
 
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/admin/ui/dialog';
 import {
   describeRole,
   formatAuditTimestamp,
@@ -30,6 +42,11 @@ import {
   formatKstDateTime,
   type StatusTone,
 } from '@/lib/admin/orders';
+import {
+  grantAdminAction,
+  revokeAdminAction,
+  type UserRoleActionResult,
+} from '../actions';
 
 type Props = {
   profile: UserDetailProfile;
@@ -66,6 +83,55 @@ const TD_STYLE: React.CSSProperties = {
   verticalAlign: 'middle',
 };
 
+/* admin 표준 inline-style — gooddays/cafe-events 답습 */
+const ADMIN_BTN_BASE: React.CSSProperties = {
+  padding: '6px 14px',
+  fontSize: 13,
+  height: 32,
+  borderRadius: 6,
+  fontWeight: 500,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 6,
+  whiteSpace: 'nowrap',
+  letterSpacing: '-0.005em',
+  fontFamily: 'inherit',
+  cursor: 'pointer',
+};
+const ADMIN_BTN_PRIMARY: React.CSSProperties = {
+  ...ADMIN_BTN_BASE,
+  background: 'var(--primary)',
+  color: '#fff',
+  border: '1px solid var(--primary)',
+};
+const ADMIN_BTN_SECONDARY: React.CSSProperties = {
+  ...ADMIN_BTN_BASE,
+  background: 'var(--surface)',
+  color: 'var(--foreground)',
+  border: '1px solid var(--border)',
+};
+const ADMIN_BTN_DESTRUCTIVE: React.CSSProperties = {
+  ...ADMIN_BTN_BASE,
+  background: 'var(--danger)',
+  color: '#fff',
+  border: '1px solid var(--danger)',
+};
+const ADMIN_TEXTAREA_STYLE: React.CSSProperties = {
+  width: '100%',
+  minHeight: 80,
+  padding: '8px 10px',
+  background: 'var(--surface)',
+  border: '1px solid var(--input)',
+  borderRadius: 6,
+  fontSize: 13,
+  color: 'var(--foreground)',
+  outline: 'none',
+  fontFamily: 'inherit',
+  letterSpacing: '-0.005em',
+  resize: 'vertical',
+};
+
 const CARD_STYLE: React.CSSProperties = {
   background: 'var(--surface)',
   border: '1px solid var(--border)',
@@ -89,57 +155,122 @@ export default function UserDetailClient({
   profile,
   orders,
   audit,
-  currentAdminId: _currentAdminId,
+  currentAdminId,
 }: Props) {
   const role = describeRole(profile.role);
   const name = resolveUserName(profile);
+  const isSelf = currentAdminId !== null && currentAdminId === profile.id;
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
+  const intent: 'grant' | 'revoke' = profile.role === 'admin' ? 'revoke' : 'grant';
+
+  function openDialog() {
+    setReason('');
+    setDialogOpen(true);
+  }
+
+  function closeDialog() {
+    if (isPending) return;
+    setDialogOpen(false);
+  }
+
+  function submit() {
+    const trimmed = reason.trim();
+    const payload = {
+      targetId: profile.id,
+      ...(trimmed.length > 0 ? { reason: trimmed } : {}),
+    };
+    startTransition(async () => {
+      const result: UserRoleActionResult =
+        intent === 'grant'
+          ? await grantAdminAction(payload)
+          : await revokeAdminAction(payload);
+      if (!result.ok) {
+        toast.error(`역할 변경 실패 (${result.detail ?? result.error})`);
+        return;
+      }
+      toast.success(intent === 'grant' ? '운영자 승격 완료' : '운영자 강등 완료');
+      setDialogOpen(false);
+      router.refresh();
+    });
+  }
 
   return (
     <>
       {/* 헤더 */}
-      <div style={{ marginBottom: 18 }}>
-        <Link
-          href="/admin/users"
-          style={{
-            fontSize: 12,
-            color: 'var(--foreground-muted)',
-            textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-            marginBottom: 6,
-          }}
-        >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-          고객 목록
-        </Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <h2
+      <div
+        style={{
+          marginBottom: 18,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          gap: 12,
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <Link
+            href="/admin/users"
             style={{
-              margin: 0,
-              fontSize: 24,
-              fontWeight: 500,
-              letterSpacing: '-0.02em',
+              fontSize: 12,
+              color: 'var(--foreground-muted)',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              marginBottom: 6,
             }}
           >
-            {name}
-          </h2>
-          <RoleBadge tone={role.tone}>{role.label}</RoleBadge>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            고객 목록
+          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 24,
+                fontWeight: 500,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {name}
+            </h2>
+            <RoleBadge tone={role.tone}>{role.label}</RoleBadge>
+          </div>
+          <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
+            {profile.email}
+          </div>
         </div>
-        <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
-          {profile.email}
-        </div>
+
+        {/* 역할 변경 버튼 — self 면 disabled + tooltip */}
+        <button
+          type="button"
+          onClick={openDialog}
+          disabled={isSelf}
+          title={isSelf ? '본인 계정은 SQL 로 직접 변경하세요' : undefined}
+          style={{
+            ...(intent === 'grant' ? ADMIN_BTN_PRIMARY : ADMIN_BTN_SECONDARY),
+            ...(isSelf
+              ? { opacity: 0.5, cursor: 'not-allowed' }
+              : null),
+          }}
+        >
+          {intent === 'grant' ? '운영자로 승격' : '운영자 강등'}
+        </button>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -262,6 +393,73 @@ export default function UserDetailClient({
             </table>
           )}
         </section>
+
+        {/* 역할 변경 다이얼로그 */}
+        <Dialog open={dialogOpen} onOpenChange={(o) => (o ? setDialogOpen(true) : closeDialog())}>
+          <DialogContent style={{ padding: 24, maxWidth: 480 }}>
+            <DialogHeader>
+              <DialogTitle>
+                {intent === 'grant' ? '운영자 승격' : '운영자 강등'}
+              </DialogTitle>
+              <DialogDescription>
+                {intent === 'grant'
+                  ? `${profile.email} 을(를) 운영자로 승격합니다. 사유는 admin_audit 에 기록됩니다.`
+                  : `${profile.email} 의 운영자 권한을 회수합니다. 사유는 admin_audit 에 기록됩니다.`}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label
+                htmlFor="role-change-reason"
+                style={{ fontSize: 12, color: 'var(--foreground-muted)' }}
+              >
+                사유 <span style={{ color: 'var(--foreground-subtle)' }}>(선택, 최대 500자)</span>
+              </label>
+              <textarea
+                id="role-change-reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value.slice(0, 500))}
+                disabled={isPending}
+                placeholder={intent === 'grant' ? '예: 신규 운영자 합류' : '예: 권한 회수 요청'}
+                style={ADMIN_TEXTAREA_STYLE}
+              />
+              <div
+                style={{
+                  fontSize: 11,
+                  color: 'var(--foreground-subtle)',
+                  textAlign: 'right',
+                }}
+              >
+                {reason.length} / 500
+              </div>
+            </div>
+
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={closeDialog}
+                disabled={isPending}
+                style={{
+                  ...ADMIN_BTN_SECONDARY,
+                  ...(isPending ? { opacity: 0.5, cursor: 'not-allowed' } : null),
+                }}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={submit}
+                disabled={isPending}
+                style={{
+                  ...(intent === 'grant' ? ADMIN_BTN_PRIMARY : ADMIN_BTN_DESTRUCTIVE),
+                  ...(isPending ? { opacity: 0.6, cursor: 'wait' } : null),
+                }}
+              >
+                {isPending ? '처리 중…' : intent === 'grant' ? '운영자로 승격' : '운영자 강등'}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* 카드 3: 역할 변경 이력 (admin_audit) */}
         <section style={CARD_STYLE}>
