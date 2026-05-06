@@ -15,6 +15,7 @@
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import type { DbSubscriptionStatus } from '@/types/db';
 import type { Subscription, SubscriptionCycle } from '@/types/subscription';
+import { CYCLE_DAYS } from '@/lib/subscription/cycles';
 import { formatDateKST } from '@/lib/utils';
 
 /* ── Row 타입 ────────────────────────────────────────────────────────── */
@@ -44,14 +45,6 @@ const SUB_SELECT = `
 ` as const;
 
 /* ── 공통 유틸 ──────────────────────────────────────────────────────── */
-
-/** 주기별 배송 간격(일) — DB enum subscription_period 와 동일 */
-export const CYCLE_DAYS: Record<SubscriptionCycle, number> = {
-  '2주': 14,
-  '4주': 28,
-  '6주': 42,
-  '8주': 56,
-};
 
 /** base 날짜에서 cycle 만큼 더한 다음 배송일 계산 */
 export function calculateNextDeliveryDate(base: Date, cycle: string): Date {

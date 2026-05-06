@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/useToast';
 import { extractKrName } from '@/lib/utils';
 import type { SubscriptionCycle } from '@/types/subscription';
 import { SUBSCRIPTION_CYCLES } from '@/types/subscription';
+import { CYCLE_DAYS } from '@/lib/subscription/cycles';
 import { InfoCircleIcon } from '@/components/ui/Icons';
 import {
   useSubscriptionsQuery,
@@ -29,13 +30,6 @@ import {
   setCancelConfirmSubId,
   setPauseConfirmSubId,
 } from '@/lib/myPageUiStore';
-
-const CYCLE_DAYS: Record<SubscriptionCycle, number> = {
-  '2주': 14,
-  '4주': 28,
-  '6주': 42,
-  '8주': 56,
-};
 
 export default function SubscriptionEditor() {
   const { show: toast } = useToast();

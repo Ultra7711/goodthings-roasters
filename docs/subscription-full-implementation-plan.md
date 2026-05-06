@@ -30,7 +30,7 @@
 ### 0-2. 검증 결과 (2026-04-27 기준)
 
 - ✅ DB enum `public.subscription_period`: `'2주'·'4주'·'6주'·'8주'` (3주 없음 — `004_order_items.sql` L18~23)
-- ⚠️ UI 타입 `SubscriptionCycle`: `'2주'·'3주'·'4주'·'6주'·'8주'` (3주 있음 — `next/src/types/subscription.ts`) → **DB 와 불일치**
+- ✅ UI 타입 `SubscriptionCycle`: `'2주'·'4주'·'6주'·'8주'` — DB enum 과 정합 (S165 정합 작업 후 SoT = `next/src/lib/subscription/cycles.ts`)
 - ✅ `create_order` RPC (`010_create_order_rpc.sql`) 는 `order_items.item_type='subscription'` 까지만 기록. `subscriptions` 테이블 INSERT 코드 없음
 - ✅ `POST /api/orders` (P2-A-2) 만 존재. `GET /api/orders` (사용자별 목록) 미구현
 - ✅ `/api/subscriptions` 디렉토리 자체 미존재
@@ -54,7 +54,7 @@
 | # | 작업 | 추정 | 비고 |
 |---|------|------|------|
 | **A-1** | production Supabase 마이그레이션 005·019~024 적용 여부 검증·동기화 | 30~60m | S91 사고 재발 방지. SQL Editor 또는 supabase CLI 사용 |
-| **A-2** | `subscription_period` enum 불일치 해소 — UI 타입 (`'2주'·'3주'·'4주'·'6주'·'8주'`) ≠ DB enum (`'2주'·'4주'·'6주'·'8주'`) | 30m | 정책 결정 필요 — UI 에서 3주 제거 OR DB enum 확장 |
+| **A-2** ✅ | `subscription_period` enum 정합 (S165 완료) — `lib/subscription/cycles.ts` 단일 SoT 도입 + `CYCLE_DAYS` 매핑 통합 + `SUBSCRIPTION_PERIODS` deprecated re-export | — | UI/DB 모두 `'2주'·'4주'·'6주'·'8주'` 4값 |
 | **A-3** | (선택) ADR-005 결정 — cycle 을 lookup 테이블로 이관할지 enum 유지할지 | 1~2h | 어드민 편집 필요시 후보 B (lookup 테이블) 채택. `memory/project_adr005_subscription_cycles_queue.md` 참조 |
 
 ### 🟠 Group B — 결제 흐름 → 정기배송 INSERT (단절된 흐름 복구)

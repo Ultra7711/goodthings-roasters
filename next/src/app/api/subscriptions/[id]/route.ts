@@ -14,9 +14,10 @@ import {
   toSubscription,
   type SubscriptionRow,
 } from '@/lib/repositories/subscriptionRepo';
+import { SUBSCRIPTION_CYCLES } from '@/lib/subscription/cycles';
 
 const PatchSchema = z.object({
-  cycle: z.enum(['2주', '4주', '6주', '8주']),
+  cycle: z.enum(SUBSCRIPTION_CYCLES),
 });
 
 type Ctx = { params: Promise<{ id: string }> };
