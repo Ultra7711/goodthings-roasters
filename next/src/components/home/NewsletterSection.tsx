@@ -57,7 +57,7 @@ export default function NewsletterSection() {
             aria-invalid={!!error}
           />
           <button type="submit" className="newsletter-btn" data-gtr-tap>
-            받아보기 →
+            구독
           </button>
         </form>
         {error && (

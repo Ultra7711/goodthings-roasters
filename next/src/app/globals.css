@@ -1625,19 +1625,25 @@ footer.blk {
 }
 
 /* PR-D (S158) — 키보드 포커스 가시화 글로벌 룰 (WCAG 2.4.7).
-   기존 7곳 개별 정의 spec 동일 → 글로벌 selector list 로 일괄 커버.
-   기존 명시 룰은 안전 위해 유지 (중복 무해, spec 일치). [role="button"] 으로
-   <div role="button"> (예: #pd-cart-btn) 도 자동 포함. */
+   S164 후속 정정: input/select/textarea 폐기 (시각 어색 / 일반 커머스 패턴).
+   button/link/[role=button]/summary/[tabindex] 만 유지 (네비게이션 가시화). */
 button:focus-visible,
 [role="button"]:focus-visible,
 a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
 summary:focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid var(--color-accent-gold);
   outline-offset: 2px;
+}
+/* input/select/textarea — focus outline 완전 폐기 (브라우저 default 포함)
+   추적관찰 carry-over (S164 D안) */
+input:focus,
+input:focus-visible,
+select:focus,
+select:focus-visible,
+textarea:focus,
+textarea:focus-visible {
+  outline: none;
 }
 
 /* ════════════════════════════════════════════
@@ -2247,6 +2253,12 @@ summary:focus-visible,
     height: 85%;
   }
 }
+/* 모바일 desc — \n 무시 자연 wrap (S164 후속) — pre-line + 좁은 폭 + clamp 2 → 짧은 텍스트도 ellipsis 발생 회피 */
+@media (max-width: 767px) {
+  .cmsplit-desc {
+    white-space: normal;
+  }
+}
 
 @media (max-width: 1023px) and (min-width: 768px) {
   .cafe-menu-split { padding: 0 48px; }
@@ -2516,6 +2528,12 @@ summary:focus-visible,
   font-size: var(--type-body-s-size);
   font-family: var(--font-kr);
   min-width: 0;
+}
+/* iOS Safari 자동 zoom in 회피 — input font-size 16px+ 시 zoom 발생 X (S164 후속) */
+@media (max-width: 767px) {
+  .newsletter-input {
+    font-size: 16px;
+  }
 }
 .newsletter-input::placeholder {
   color: var(--on-dark-tertiary);
