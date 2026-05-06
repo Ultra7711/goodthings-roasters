@@ -193,7 +193,7 @@ export default function UserDetailClient({
         toast.error(`역할 변경 실패 (${result.detail ?? result.error})`);
         return;
       }
-      toast.success(intent === 'grant' ? '운영자 승격 완료' : '운영자 강등 완료');
+      toast.success(intent === 'grant' ? '운영자 승격 완료' : '운영자 해제 완료');
       setDialogOpen(false);
       router.refresh();
     });
@@ -269,7 +269,7 @@ export default function UserDetailClient({
               : null),
           }}
         >
-          {intent === 'grant' ? '운영자로 승격' : '운영자 강등'}
+          {intent === 'grant' ? '운영자로 승격' : '운영자 해제'}
         </button>
       </div>
 
@@ -399,12 +399,12 @@ export default function UserDetailClient({
           <DialogContent style={{ padding: 24, maxWidth: 480 }}>
             <DialogHeader>
               <DialogTitle>
-                {intent === 'grant' ? '운영자 승격' : '운영자 강등'}
+                {intent === 'grant' ? '운영자 승격' : '운영자 해제'}
               </DialogTitle>
               <DialogDescription>
                 {intent === 'grant'
                   ? `${profile.email} 을(를) 운영자로 승격합니다. 사유는 admin_audit 에 기록됩니다.`
-                  : `${profile.email} 의 운영자 권한을 회수합니다. 사유는 admin_audit 에 기록됩니다.`}
+                  : `${profile.email} 의 운영자 권한을 해제합니다. 사유는 admin_audit 에 기록됩니다.`}
               </DialogDescription>
             </DialogHeader>
 
@@ -420,7 +420,7 @@ export default function UserDetailClient({
                 value={reason}
                 onChange={(e) => setReason(e.target.value.slice(0, 500))}
                 disabled={isPending}
-                placeholder={intent === 'grant' ? '예: 신규 운영자 합류' : '예: 권한 회수 요청'}
+                placeholder={intent === 'grant' ? '예: 신규 운영자 합류' : '예: 권한 해제 요청'}
                 style={ADMIN_TEXTAREA_STYLE}
               />
               <div
@@ -455,7 +455,7 @@ export default function UserDetailClient({
                   ...(isPending ? { opacity: 0.6, cursor: 'wait' } : null),
                 }}
               >
-                {isPending ? '처리 중…' : intent === 'grant' ? '운영자로 승격' : '운영자 강등'}
+                {isPending ? '처리 중…' : intent === 'grant' ? '운영자로 승격' : '운영자 해제'}
               </button>
             </DialogFooter>
           </DialogContent>
@@ -624,7 +624,7 @@ function ActionBadge({ action }: { action: 'grant_admin' | 'revoke_admin' }) {
         whiteSpace: 'nowrap',
       }}
     >
-      {isGrant ? '운영자 승격' : '운영자 강등'}
+      {isGrant ? '운영자 승격' : '운영자 해제'}
     </span>
   );
 }
