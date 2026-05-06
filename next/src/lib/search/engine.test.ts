@@ -19,6 +19,8 @@ const mkProduct = (overrides: Partial<Product>): Product => ({
   specs: '',
   note: { sweet: 0, body: 0, aftertaste: 0, aroma: 0, acidity: 0 },
   noteTags: '',
+  noteTagsEn: '',
+  flavorDesc: '',
   noteColor: '',
   roastStage: 'medium',
   recipe: [],

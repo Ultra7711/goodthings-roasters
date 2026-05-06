@@ -173,6 +173,8 @@ describe('matchEntry — 여러 필드 중 최고 스코어 매치 선택', () =
     specs: 'Espresso Blend',
     note: { sweet: 0, body: 0, aftertaste: 0, aroma: 0, acidity: 0 },
     noteTags: 'Nutty',
+    noteTagsEn: 'Nutty',
+    flavorDesc: '',
     noteColor: '#000',
     roastStage: 'medium',
     recipe: [],

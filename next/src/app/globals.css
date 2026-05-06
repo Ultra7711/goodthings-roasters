@@ -91,6 +91,14 @@
   /* ── 컬러: Accent & Feedback ── */
   --color-accent-gold: #A5693A;
   --color-accent-gold-on-dark: #D9A36A;
+  --color-flavor-marker: #8C5A2E;          /* 레이더 마커 + polygon — 로스팅 미디엄 색 통일 (S164 후속) */
+  /* 로스팅 게이지 gradient 도달 지점 색 (S164 후속) — track #C9A678→#8C5A2E→#2D1F12 보간
+     5단계 위치 10/30/50/70/90% (italian = dark 와 동일) */
+  --color-roast-light: #BD9769;            /* gradient 10% */
+  --color-roast-medium-light: #A4784C;     /* gradient 30% */
+  --color-roast-medium: #8C5A2E;           /* gradient 50% */
+  --color-roast-medium-dark: #664223;      /* gradient 70% */
+  --color-roast-dark: #402B18;             /* gradient 90% */
   --color-accent-gold-on-image: #F0C89C;   /* 복잡한 이미지 배경 위 eyebrow 전용 (TwoCol) */
   --color-label-on-white: #9A7E54;
   --color-label-on-warm: #857052;
@@ -214,6 +222,9 @@
   --type-h1-size: 32px;             --type-h1-weight: 300;
   --type-h2-size: 24px;             --type-h2-weight: 300;
   --type-h3-size: 20px;             --type-h3-weight: 400;
+  /* PDP chapter sub-title (S164 PR-3 후속) — 맛과 향 / 내리는 법
+     20 → 24 → 28 분기 (h2 와 h1 사이) */
+  --type-chapter-sub-size: 20px;    --type-chapter-sub-weight: 300;
   --type-heading-m-size: 16px;      --type-heading-m-weight: 500;
   --type-heading-s-size: 16px;      --type-heading-s-weight: 500;
   --type-body-l-size: 16px;         --type-body-l-weight: 500;
@@ -262,6 +273,7 @@
   --lh-h1: 40px;            /* mobile 32 × 1.25 / tablet 36 × 1.22 / desktop 40 × 1.30 */
   --lh-h2: 32px;            /* mobile 24 × 1.33 / tablet 28 × 1.43 / desktop 28 × 1.43 */
   --lh-h3: 24px;            /* mobile 20 × 1.20 / tablet 20 × 1.20 / desktop 24 × 1.33 (S145 PR-7) */
+  --lh-chapter-sub: 24px;   /* mobile 20 × 1.20 / tablet 24 × 1.33 / desktop 28 × 1.29 */
   --lh-h1-editorial: 40px;  /* mobile 32 × 1.25 / tablet 44 × 1.18 / desktop 52 × 1.23 */
   --lh-h2-editorial: 32px;  /* mobile 28 × 1.14 / tablet 36 × 1.22 / desktop 44 × 1.18 */
 
@@ -498,6 +510,7 @@
     --type-display-size: 56px;
     --type-h1-size: 36px;
     --type-h2-size: 28px;
+    --type-chapter-sub-size: 24px;
     --type-heading-m-size: 18px;
     --type-body-l-size: 17px;
     --type-price-l-size: 28px;
@@ -508,6 +521,7 @@
     --lh-display: 64px;
     --lh-h1: 44px;
     --lh-h2: 40px;
+    --lh-chapter-sub: 32px;
     --lh-h1-editorial: 52px;
     --lh-h2-editorial: 44px;
     /* 헤딩 letter-spacing 분기 (S142 PR-3) */
@@ -531,6 +545,7 @@
     --type-display-size: 72px;
     --type-h1-size: 40px;
     --type-h3-size: 24px;
+    --type-chapter-sub-size: 28px;
     --type-price-l-size: 32px;
     --type-price-m-size: 20px;
     --type-hero-editorial-size: 112px;
@@ -540,6 +555,7 @@
     --lh-display: 80px;
     --lh-h1: 52px;
     --lh-h3: 32px;
+    --lh-chapter-sub: 36px;
     --lh-h1-editorial: 64px;
     --lh-h2-editorial: 52px;
     /* 헤딩 letter-spacing 분기 (S142 PR-3) */
@@ -4149,24 +4165,32 @@ summary:focus-visible,
 }
 .pd-chapter-h2 {
   font-family: var(--font-kr);
-  font-size: var(--type-h1-size);
-  font-weight: var(--type-h1-weight);
+  font-size: var(--type-chapter-sub-size);
+  font-weight: var(--type-chapter-sub-weight);
   letter-spacing: var(--ls-heading);
-  line-height: var(--lh-h1);
+  line-height: var(--lh-chapter-sub);
   color: var(--color-text-primary);
   margin: 0;
 }
-@media (max-width: 767px) {
-  .pd-chapter-h2 {
-    font-size: var(--type-h2-size);
-    line-height: var(--lh-h2);
-  }
+
+/* Tasting / Brewing chapter 진입 애니메이션 (S164 PR-3 후속) — IO 1회 reveal */
+.pd-chapter-tasting,
+.pd-chapter-brewing {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 600ms ease-out, transform 600ms ease-out;
+}
+.pd-chapter-tasting.pd-chapter--in,
+.pd-chapter-brewing.pd-chapter--in {
+  opacity: 1;
+  transform: none;
 }
 
 /* ② Tasting chapter — sand 패널 풀폭 + 2-col split (Advisory C §1.1~1.3)
    heading: grid-column 1/-1 풀폭 row 1
-   Roasting: col 1 row 2 / Flavor: col 2 row 2-3 / 면책: col 1 row 3 (Advisory C §1.3 5/12+7/12)
-   column-gap 80 (Advisory C 96 → 균형 절충) · row-gap 48 */
+   Roasting: col 1 row 2 / Flavor: col 2 row 2 (S164 PR-3 후속: 면책 폐기)
+   grid 1fr 1fr (Hero #pd-content 1:1 매칭) · column-gap 40 (Hero col padding 20+20 매칭)
+   → Flavor col left edge = 50% + 20px = Hero #pd-info text start 일치 */
 .pd-chapter-tasting {
   background: var(--brand-sand);
   color: var(--ink-on-sand);
@@ -4175,13 +4199,20 @@ summary:focus-visible,
   margin-right: calc(50% - 50vw);
   padding: 96px calc(50vw - 50% + 60px);
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  column-gap: 80px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 60px;
   row-gap: 48px;
 }
-/* heading — 풀폭 row 1 */
-.pd-chapter-tasting .pd-chapter-header {
-  grid-column: 1 / -1;
+/* 1024+ : grid 1:1, heading + Roasting + Flavor + 면책(inline) 모두 좌측 col 안 */
+@media (min-width: 1024px) {
+  .pd-tasting-info {
+    grid-column: 1;
+  }
+  .pd-tasting-radar {
+    grid-column: 2;
+  }
+  /* 1024+ 면책 분기: inline 표시, after 숨김 */
+  .pd-tasting-disclaimer--after { display: none; }
 }
 /* sand 위에서 .pd-info-section 의 hairline·상단 padding 제거 */
 .pd-chapter-tasting .pd-info-section {
@@ -4189,27 +4220,31 @@ summary:focus-visible,
   box-shadow: none;
   margin-bottom: 0;
 }
-/* chapter grid placement — heading row 1 이후: Roasting row 2 / Flavor col 2 row 2-3 / 면책 col 1 row 3 */
-@media (min-width: 1024px) {
-  #pd-note-section {
-    grid-column: 2;
-    grid-row: 2 / span 2;
-  }
-  .pd-tasting-disclaimer {
-    grid-column: 1;
-    grid-row: 3;
-    align-self: end;
-  }
+/* heading row 1 풀폭 / 좌 col (Roasting+Flavor) row 2 / 우 col (레이더) row 2 / 면책 row 3 풀폭 */
+.pd-tasting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
 }
-/* 면책 — 우측 컬럼 끝 (S157 후속 옵션 C) · 1024+ margin-top: auto 로 chapter 끝 baseline */
+/* 옵션 B: heading↔Roasting 64 = info gap 48 + header margin-bottom 16 */
+.pd-tasting-info > .pd-chapter-header {
+  margin-bottom: 16px;
+}
+.pd-tasting-radar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 1024+ 전체: 레이더 하단 = 면책 하단 baseline 정렬 (좌측 info 끝과 매칭) */
+  align-self: end;
+}
 .pd-tasting-disclaimer {
+  /* .pd-tasting-info 안 마지막 자식 — info gap 48 자연 적용 (Flavor desc ↔ 면책 = 48) */
   font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: 400;
-  color: var(--ink-on-sand);
-  line-height: 1.7;
-  max-width: 560px;
-  margin: 32px 0 0;
+  font-size: var(--type-body-s-size);
+  color: var(--color-text-tertiary);
+  line-height: var(--lh-kr-body-13);
+  margin: 0;
+  text-align: left;
 }
 @media (max-width: 1023px) {
   .pd-chapter-tasting {
@@ -4219,8 +4254,10 @@ summary:focus-visible,
     column-gap: 0;
     row-gap: 48px;
   }
-  .pd-tasting-disclaimer {
-    margin-top: -16px;
+  /* 1023↓ 면책 분기: inline 숨김, after (radar 다음) 표시 + 중앙 정렬 */
+  .pd-tasting-disclaimer--inline { display: none; }
+  .pd-tasting-disclaimer--after {
+    text-align: center;
   }
 }
 /* ④ Detail chapter — 페이지 끝 spacing.
@@ -4960,16 +4997,17 @@ summary:focus-visible,
   font-weight: var(--cta-btn-font-weight);
 }
 
-/* BUG-360 — 좁은 모바일 (< 375) 컨트롤 정보 단축
-   - CTA 라벨 "장바구니에 담기" → "담기" (호흡 약 100px 확보)
-   - chip sub 가격 숨김 (가격은 위 #pd-price + CTA 우측에 이미 표시 → 중복 제거)
-   data-short 없는 품절/disabled CTA 는 풀 라벨 유지. */
+/* 좁은 모바일 (< 460) 컨트롤 정보 단축 — S164 후속 분기점 확장 (BUG-360 → 460)
+   - CTA 라벨 "장바구니에 담기" → "담기" (< 375 만)
+   - chip sub 가격 숨김 (< 460 — 가격은 위 #pd-price + CTA 우측에 이미 표시 → 중복 제거) */
 @media (max-width: 374.98px) {
   .pd-cart-btn-label[data-short] { font-size: 0; }
   .pd-cart-btn-label[data-short]::before {
     content: attr(data-short);
     font-size: var(--cta-btn-font-size);
   }
+}
+@media (max-width: 459.98px) {
   .option-chip-sub { display: none; }
 }
 
@@ -5037,12 +5075,15 @@ summary:focus-visible,
   height: 14px;
   border-radius: 50%;
   background: var(--color-background-primary);
-  border: 2px solid var(--color-text-primary);
+  /* 레이더 마커와 통일 — 커피색 (S164 후속 옵션 A 정정) */
+  border: 2px solid var(--color-flavor-marker);
+  /* 진입 애니: 0% → pinPct 슬라이드 · easeBack 톤 */
+  transition: left 800ms cubic-bezier(0.4, 1.3, 0.5, 1);
 }
 .pd-roast-ticks {
   position: relative;
   height: 20px;
-  margin-bottom: 32px;
+  margin-bottom: 16px;
 }
 .pd-roast-tick {
   position: absolute;
@@ -5054,27 +5095,10 @@ summary:focus-visible,
   letter-spacing: var(--ls-kr-body);
   color: var(--ink-on-sand);
 }
-.pd-roast-ko-en {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: baseline;
-  margin-bottom: 16px;
-}
-.pd-roast-ko {
-  font-family: var(--font-kr);
-  font-size: var(--type-h3-size);
-  font-weight: var(--type-h3-weight);
-  letter-spacing: var(--ls-kr-heading);
+.pd-roast-tick--active {
+  /* 활성 단계 tick — KO/EN 큰 라벨 폐기 후 단계 인지 hook (S164 PR-3 후속) */
+  font-weight: 500;
   color: var(--color-text-primary);
-}
-.pd-roast-en {
-  font-family: var(--font-en);
-  font-size: var(--type-label-size);
-  font-weight: var(--type-label-weight);
-  letter-spacing: var(--ls-editorial);
-  color: var(--ink-on-sand);
-  text-transform: uppercase;
-  text-align: right;
 }
 .pd-roast-desc {
   font-family: var(--font-kr);
@@ -5082,62 +5106,69 @@ summary:focus-visible,
   color: var(--ink-on-sand);
   line-height: var(--lh-kr-body-15);
   margin: 0;
-  max-width: 380px;
 }
 
-/* ── Flavor Note: 레이더 차트(센터) + 태그 pill(하단) ── */
-#pd-note-layout {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--gap-xs);
-  /* S157 후속: 차트 영역 위로 -36 (intro 와 차트 사이 호흡 ↓ → 우측 면적 축소) */
-  margin-top: -36px;
-}
-#pd-radar-wrap {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 0;
-}
-#pd-radar-canvas {
-  max-width: 500px;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  display: block;
-  /* backing store 는 JS setupCanvas 에서 CSS 크기 × DPR 로 동적 설정.
-     내부 fillText 폰트가 BP 전환 시 축소되지 않고 CSS px 그대로 렌더된다. */
+/* ── Flavor Note: outlined chips (Advisory C §3 · S164 PR-3) ──
+   ProductRoastStage 와 대칭: pd-flavor-section-label "Flavor" + chips
+   chip 표시 spec = .sig-chips span 매칭 (메인 시그니처 통일):
+     white bg / 4·12 padding / body-s 13 / lh 16 / ls 0 / weight 400 / gap 6
+   영문 sub 만 PDP 추가 분 (advisory C §3.3 outlined + 영문 부제) */
+.pd-flavor-section-label {
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--ls-label);
+  color: var(--ink-on-sand);
+  text-transform: uppercase;
+  margin: 0 0 16px;
 }
 #pd-note-tags {
-  /* 레이더 캔버스 하단 여백을 보정 — 태그와 이하 섹션을 위로 끌어올려 Flavor Note 덩어리를 타이트하게.
-     S157 후속: 차트 위 -36 자연 이동 + chip 추가 -10 침투 = 절대 위치 -46 */
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-top: -50px;
+  gap: 6px;
 }
 .pd-note-tag {
-  /* 사각형 chip 통일 spec (S157 후속): font-kr · body-s · lh 16 · padding 4 12 ·
-     white bg + outline 1px #C9BBA3 · radius 0. .sig-chips span 와 동일 패턴. */
+  background: var(--color-background-primary);
+  padding: 4px 12px;
+  border: 1px solid #C9BBA3;
+  border-radius: 0;
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
   font-weight: 400;
   letter-spacing: 0;
-  color: var(--color-text-primary);
-  background: #FFFFFF;
-  padding: 4px 12px;
-  border: 1px solid #C9BBA3;
-  border-radius: 0;
   line-height: 16px;
-  white-space: nowrap;
-  transition: color var(--duration-hover) ease,
-              border-color var(--duration-hover) ease,
-              background var(--duration-hover) ease;
-}
-.pd-note-tag:hover {
   color: var(--color-text-primary);
-  border-color: var(--color-accent-gold);
+}
+.pd-note-tag-en {
+  margin-left: 6px;
+  font-family: var(--font-en);
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--ls-editorial);
+  line-height: 16px;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+}
+/* Flavor desc — chips 아래 (좌측 Roasting desc 시각 매칭) · 동일 spec */
+.pd-flavor-desc {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  color: var(--ink-on-sand);
+  line-height: var(--lh-kr-body-15);
+  margin: 16px 0 0;
+}
+
+/* ── Flavor Radar (S164 PR-3 후속): 동적 5축 레이더 — GTR 차별화 시각 hook ── */
+.pd-radar-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.pd-radar-canvas {
+  max-width: 480px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: block;
 }
 
 /* ── 섹션 intro (Roasting/Flavor/Recipe 공통) ── */
@@ -5760,11 +5791,6 @@ summary:focus-visible,
     /* S136: 모바일 padding — top 12 / 좌우 16 (카드 padding 16 일치) / bottom 0
        데스크탑 패턴 (12 20 0) 과 동일. bottom 0 으로 section margin-bottom 48 만 효력 */
     padding: 12px 16px 0;
-  }
-  /* Flavor Note: 캔버스 크기 유지(자동 축소), 태그 gap 만 살짝 조정
-     (사이즈는 데스크탑과 동일 — Roasting pill 과 동일 스펙) */
-  #pd-note-tags {
-    gap: var(--gap-xs);
   }
   /* SpecTable: 4-col → 2-col 그리드 */
   .spec-table-grid {
@@ -9770,17 +9796,31 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 
 .sig-chips span {
-  /* 사각형 chip 통일 spec (S157 후속): white bg + outline 1px #C9BBA3.
-     .pd-note-tag 와 동일 패턴. */
+  /* 사각형 chip 통일 spec — .pd-note-tag 와 동일 (한글 main + 영문 sub) */
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
   font-weight: 400;
   line-height: 16px;
   letter-spacing: 0;
   color: var(--color-text-primary);
-  background: #FFFFFF;
+  background: var(--color-background-primary);
   border: 1px solid #C9BBA3;
   padding: 4px 12px;
+}
+/* 영문 sub mono inline — PDP .pd-note-tag-en 동일 spec
+   specificity: .sig-chips span (0,1,1) → .sig-chips span.sig-chip-en (0,2,1) override */
+.sig-chips span.sig-chip-en {
+  margin-left: 6px;
+  font-family: var(--font-en);
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--ls-editorial);
+  line-height: 16px;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 /* CTA row — mobile column / desktop row */

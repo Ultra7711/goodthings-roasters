@@ -39,10 +39,9 @@ export default function SignatureChapterView({
   /* 빈 상태 4~5 — fallback 으로 처리, chapter 는 표시 */
   const title = signature.title || product.name;
   const subtitle = signature.subtitle || product.desc.split('\n')[0];
-  const chips =
-    signature.flavor_chips.length > 0
-      ? signature.flavor_chips.slice(0, 3)
-      : product.noteTags.split(' | ').slice(0, 3);
+  /* PDP chip 과 동일 데이터/스타일 — product.noteTags + noteTagsEn positional zip */
+  const chipKo = product.noteTags.split(/\s*\|\s*/).filter(Boolean);
+  const chipEn = product.noteTagsEn.split(/\s*\|\s*/).filter(Boolean);
   const href = `/shop/${product.slug}`;
 
   return (
@@ -61,10 +60,13 @@ export default function SignatureChapterView({
           </span>
           <h2 className="sig-h2 sr-txt sr-txt--d2">{title}</h2>
           <p className="sig-body sr-txt sr-txt--d3">{subtitle}</p>
-          {chips.length > 0 && (
+          {chipKo.length > 0 && (
             <div className="sig-chips sr-txt sr-txt--d4">
-              {chips.map((c) => (
-                <span key={c}>{c}</span>
+              {chipKo.map((ko, i) => (
+                <span key={`${ko}-${i}`}>
+                  {ko}
+                  {chipEn[i] ? <span className="sig-chip-en">{chipEn[i]}</span> : null}
+                </span>
               ))}
             </div>
           )}

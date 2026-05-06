@@ -22,6 +22,7 @@ import ProductGallery from './ProductGallery';
 import PurchaseRow from './PurchaseRow';
 import ProductRoastStage from './ProductRoastStage';
 import ProductFlavorNote from './ProductFlavorNote';
+import ProductFlavorRadar from './ProductFlavorRadar';
 import ProductRecipeGuide from './ProductRecipeGuide';
 import DripBagSteps from './DripBagSteps';
 import ProductAccordions from './ProductAccordions';
@@ -44,6 +45,29 @@ export default function ProductDetailPage({ product }: Props) {
     el.classList.remove('pd-anim');
     void el.offsetHeight;
     el.classList.add('pd-anim');
+  }, [product.slug]);
+
+  /* Tasting / Brewing chapter 진입 애니메이션 — IO 1회 reveal (S164 PR-3 후속) */
+  useEffect(() => {
+    const root = pageRef.current;
+    if (!root) return;
+    const targets = root.querySelectorAll<HTMLElement>(
+      '.pd-chapter-tasting, .pd-chapter-brewing',
+    );
+    targets.forEach((t) => t.classList.remove('pd-chapter--in'));
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('pd-chapter--in');
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.15 },
+    );
+    targets.forEach((t) => io.observe(t));
+    return () => io.disconnect();
   }, [product.slug]);
 
   /* 상품 변경 시 용량 선택 초기화 — 첫 번째 가용(품절 아닌) 볼륨을 선택.
@@ -106,21 +130,31 @@ export default function ProductDetailPage({ product }: Props) {
           </div>
         </div>
 
-        {/* ② Tasting — sand 패널 + 2-col split (Advisory C §1~3)
-            1024+: heading 풀폭 row 1 / Roasting col 1 row 2 / Flavor col 2 row 2-3 / 면책 col 1 row 3
-            1023↓: 1-col stacking — heading → Roasting → Flavor → 면책 */}
+        {/* ② Tasting — sand 패널 + 2-col split (Advisory C §1~3 + S164 PR-3 후속)
+            구조: heading 풀폭 → 좌측 (Roasting + Flavor 통합 stack) | 우측 (동적 레이더) → 면책 풀폭
+            GTR 차별화: specialty editorial 톤 + 동적 5축 레이더 (Onyx 의 과한 wheel 시각화 분기) */}
         <section className="pd-chapter pd-chapter-tasting">
-          <header className="pd-chapter-header">
-            <p className="pd-chapter-eyebrow">Tasting</p>
-            <h2 className="pd-chapter-h2">맛 노트</h2>
-          </header>
-          <ProductRoastStage roastStage={product.roastStage} />
-          <ProductFlavorNote
-            note={product.note}
-            noteTags={product.noteTags}
-            noteColor={product.noteColor}
-          />
-          <p className="pd-tasting-disclaimer">
+          <div className="pd-tasting-info">
+            <header className="pd-chapter-header">
+              <p className="pd-chapter-eyebrow">Tasting</p>
+              <h2 className="pd-chapter-h2">맛과 향</h2>
+            </header>
+            <ProductRoastStage roastStage={product.roastStage} />
+            <ProductFlavorNote
+              noteTags={product.noteTags}
+              noteTagsEn={product.noteTagsEn}
+              flavorDesc={product.flavorDesc}
+            />
+            {/* 1024+ 면책: info 안 마지막 (좌측 col 끝 = radar 끝 baseline) */}
+            <p className="pd-tasting-disclaimer pd-tasting-disclaimer--inline">
+              큐그레이더 평가가 아닌 시음 메모로, 상대 비교 참고용입니다.
+            </p>
+          </div>
+          <div className="pd-tasting-radar">
+            <ProductFlavorRadar note={product.note} />
+          </div>
+          {/* 1023↓ 면책: chapter 마지막 (radar 다음) */}
+          <p className="pd-tasting-disclaimer pd-tasting-disclaimer--after">
             큐그레이더 평가가 아닌 시음 메모로, 상대 비교 참고용입니다.
           </p>
         </section>
@@ -129,7 +163,7 @@ export default function ProductDetailPage({ product }: Props) {
         <section className="pd-chapter pd-chapter-brewing">
           <header className="pd-chapter-header">
             <p className="pd-chapter-eyebrow">Brewing</p>
-            <h2 className="pd-chapter-h2">추출</h2>
+            <h2 className="pd-chapter-h2">내리는 법</h2>
           </header>
           {product.category === 'Drip Bag' ? <DripBagSteps /> : <ProductRecipeGuide product={product} />}
         </section>

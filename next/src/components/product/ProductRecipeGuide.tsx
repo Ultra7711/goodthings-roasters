@@ -1,9 +1,9 @@
 /* ══════════════════════════════════════════
-   ProductRecipeGuide — Coffee Bean 전용 (S136 분리)
+   ProductRecipeGuide — Coffee Bean 전용 (S164 PR-3 후속)
    ──────────────────────────────────────────
    - product.recipe[] 로 에어로프레스/에스프레소/모카포트/드립 카드
    - 카드 헤더 = 196×196 컬러 일러스트, 본문 = 메서드명 + 추출 데이터 표
-   - Drip Bag 3단계는 DripBagSteps.tsx 로 분리 (V2 §6.12 · S136)
+   - h3 "Recipe Guide" + intro 폐기 + hairline 분할선 제거 — chapter heading 직하 카드만
    ══════════════════════════════════════════ */
 
 import { type Product } from '@/lib/products';
@@ -14,7 +14,6 @@ type Props = {
 
 const ILLUST_SIZE = 196;
 
-/** Coffee Bean 메서드 → 일러스트 파일 슬러그 (slug 'brewing' 은 SVG 파일명 호환 유지) */
 const COFFEE_METHOD_SLUG: Record<string, string> = {
   '에어로프레스': 'aeropress',
   '에스프레소': 'espresso',
@@ -26,9 +25,7 @@ export default function ProductRecipeGuide({ product }: Props) {
   if (!product.recipe || product.recipe.length === 0) return null;
 
   return (
-    <div id="pd-recipe-section" className="pd-info-section">
-      <h3 className="pd-section-title">Recipe Guide</h3>
-      <p className="pd-section-intro">이 원두를 더 맛있게 즐기는 방법입니다.</p>
+    <div id="pd-recipe-section">
       <div id="pd-recipe-cards">
         {product.recipe.map((r) => {
           const slug = COFFEE_METHOD_SLUG[r.method];
@@ -37,7 +34,6 @@ export default function ProductRecipeGuide({ product }: Props) {
               <div className="pd-recipe-body">
                 {slug && (
                   <div className="pd-recipe-illust">
-                    {/* SVG 일러스트 — 정적 width/height + lazy 로딩, next/image 의 추가 최적화 불필요 */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`/images/icons/recipe_${slug}_large.svg`}

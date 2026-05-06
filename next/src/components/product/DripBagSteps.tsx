@@ -27,9 +27,7 @@ const STEPS: Step[] = [
 
 export default function DripBagSteps() {
   return (
-    <div id="pd-recipe-section" className="pd-info-section">
-      <h3 className="pd-section-title">Recipe Guide</h3>
-      <p className="pd-section-intro">이 드립백을 더 맛있게 즐기는 방법입니다.</p>
+    <div id="pd-recipe-section">
       <div id="pd-recipe-cards" className="is-drip">
         {STEPS.map((s) => (
           <div key={s.num} className="pd-recipe-card">

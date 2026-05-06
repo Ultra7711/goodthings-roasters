@@ -60,6 +60,8 @@ export type Product = {
   specs: string;
   note: FlavorNote;
   noteTags: string;
+  noteTagsEn: string;
+  flavorDesc: string;
   noteColor: string;
   roastStage: RoastStage;
   recipe: RecipeItem[];
@@ -92,6 +94,8 @@ export const PRODUCTS: Product[] = [
     specs: '블렌드: Espresso Blend · 원산지: Brazil, Colombia, Ethiopia, India · 로스팅 포인트: Medium Dark',
     note: { sweet: 3.5, body: 3.5, aftertaste: 4, aroma: 3.5, acidity: 3 },
     noteTags: '견과 | 캐러멜 | 중간 | 긴 여운',
+    noteTagsEn: 'Nutty | Caramel | Medium | Long After',
+    flavorDesc: '낮은 산미와 구수한 단맛이 묵직하게 어우러집니다.',
     noteColor: '#A47146',
     roastStage: 'medium-dark',
     recipe: [
@@ -119,6 +123,8 @@ export const PRODUCTS: Product[] = [
     specs: '블렌드: Espresso Blend · 원산지: Colombia, Guatemala, Kenya · 로스팅 포인트: Medium',
     note: { sweet: 3, body: 2, aftertaste: 2, aroma: 4, acidity: 4 },
     noteTags: '과일향 | 복숭아 살구 | 시럽 | 깔끔한 여운',
+    noteTagsEn: 'Fruit | Stonefruit | Syrup | Clean After',
+    flavorDesc: '밝은 산미와 가벼운 단맛이 하모니를 이루는 청량한 한 잔.',
     noteColor: '#A47146',
     roastStage: 'medium',
     recipe: [
@@ -149,6 +155,8 @@ export const PRODUCTS: Product[] = [
     specs: '블렌드: Espresso Blend · 원산지: Guatemala · 로스팅 포인트: Medium',
     note: { sweet: 4, body: 2, aftertaste: 2, aroma: 3, acidity: 2 },
     noteTags: '과일향 | 바닐라 | 시럽감 | 깔끔한 여운',
+    noteTagsEn: 'Fruity | Vanilla | Syrupy | Clean After',
+    flavorDesc: '과일과 바닐라의 향미가 부드러운 질감과 어우러집니다.',
     noteColor: '#A47146',
     roastStage: 'medium-light',
     recipe: [],
@@ -175,6 +183,8 @@ export const PRODUCTS: Product[] = [
     specs: '블렌드: Espresso Blend · 원산지: Ethiopia · 로스팅 포인트: Light',
     note: { sweet: 3.5, body: 2.5, aftertaste: 2, aroma: 4.5, acidity: 3.5 },
     noteTags: '라즈베리 | 자두 | 살구 | 크리미 | 차 같은',
+    noteTagsEn: 'Rasberry | Plum | Apricot | Creamy | Tea Like',
+    flavorDesc: '싱그러운 살구와 꽃향기, 풍부한 바디감이 입안을 채웁니다.',
     noteColor: '#A47146',
     roastStage: 'light',
     recipe: [],
@@ -200,6 +210,8 @@ export const PRODUCTS: Product[] = [
     specs: '블렌드: Espresso Blend · 원산지: Peru · 로스팅 포인트: Medium',
     note: { sweet: 4, body: 3.5, aftertaste: 3.5, aroma: 3, acidity: 3 },
     noteTags: '아카시아꿀 | 부드러운 | 둥근 | 깔끔한',
+    noteTagsEn: 'Acacia Honey | Mellow | Round | Clean',
+    flavorDesc: '아카시아 꿀의 단맛과 몽글한 질감, 묵직한 여운이 함께합니다.',
     noteColor: '#A47146',
     roastStage: 'medium',
     recipe: [],
@@ -225,6 +237,8 @@ export const PRODUCTS: Product[] = [
     specs: '블렌드: Espresso Blend · 원산지: Kenya · 로스팅 포인트: Light',
     note: { sweet: 4, body: 3.5, aftertaste: 4, aroma: 4, acidity: 3.5 },
     noteTags: '붉은 자두 | 블랙체리 | 포도 | 자몽 | 카카오',
+    noteTagsEn: 'Redplum | Blackcherry | Grape | Grape Fruit | Cacao',
+    flavorDesc: '은은한 과일향과 부드러운 단맛이 가볍게 다가옵니다.',
     noteColor: '#A47146',
     roastStage: 'light',
     recipe: [],
