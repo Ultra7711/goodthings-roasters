@@ -115,7 +115,7 @@ export type OrderDetail = {
 export type AdminOrdersResult = {
   rows: ListedOrder[];
   total: number;
-  counts: Record<StatusTabKey, number> & { pending: number };
+  counts: Record<StatusTabKey, number>;
   filters: AdminOrdersSearchParams;
 };
 
@@ -168,7 +168,6 @@ export async function fetchAdminOrders(
     shipping:  Number(countsRaw.shipping  ?? 0),
     delivered: Number(countsRaw.delivered ?? 0),
     cancelled: Number(countsRaw.cancelled ?? 0),
-    pending:   Number(countsRaw.pending   ?? 0),
   };
 
   /* 2) orders + items 쿼리 */
@@ -188,6 +187,7 @@ export async function fetchAdminOrders(
   else if (filters.status === 'shipping')   query = query.eq('status', 'shipping');
   else if (filters.status === 'delivered')  query = query.eq('status', 'delivered');
   else if (filters.status === 'cancelled')  query = query.in('status', CANCELLED_GROUP);
+  else                                      query = query.neq('status', 'pending'); /* 'all' 탭: pending 제외 (S171) */
 
   const sinceIso = periodToSinceIso(filters.period);
   if (sinceIso) query = query.gte('created_at', sinceIso);

@@ -35,7 +35,7 @@ import {
   type StatusTone,
 } from '@/lib/admin/orders';
 
-type CountsShape = Record<StatusTabKey, number> & { pending: number };
+type CountsShape = Record<StatusTabKey, number>;
 
 type Props = {
   rows: ListedOrder[];
@@ -144,7 +144,6 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
           <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
             총 {counts.all.toLocaleString()}건의 주문
             {counts.new > 0 ? ` · ${counts.new.toLocaleString()}건 처리 대기` : ''}
-            {counts.pending > 0 ? ` · 결제대기 ${counts.pending.toLocaleString()}건` : ''}
           </div>
         </div>
       </div>
