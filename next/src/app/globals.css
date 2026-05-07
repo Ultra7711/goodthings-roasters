@@ -7443,59 +7443,17 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 
 /* ══════════════════════════════════════════
-   ORDER COMPLETE PAGE — RP-7
-   프로토타입 #order-complete-page (L2890~2986) 이식
+   ORDER COMPLETE — 공유 자산 (.ocp-item*)
+   라우트 단독 자산 (.ocp-hdr-wrap / .ocp-body / .ocp-inner /
+   .ocp-title / .ocp-order-num / .ocp-subtitle / .ocp-copy-btn /
+   .ocp-summary / .ocp-actions / .ocp-btn-* / .ocp-enter) 은
+   components/checkout/OrderCompletePage.css 로 분리 (S180 Pilot).
+
+   여기 잔류한 .ocp-item 시리즈는 마이페이지 OrderHistory.tsx 도
+   차용하므로 globals.css 에 보존. 후속 carry-over =
+   OrderItemCard 컴포넌트 추출 후 colocate 또는 mp-item 으로 rename.
    ══════════════════════════════════════════ */
 
-.ocp-hdr-wrap {
-  position: sticky; top: 0; z-index: var(--z-sticky);
-  background: color-mix(in oklab, var(--color-background-primary) 72%, transparent);
-  flex-shrink: 0;
-}
-.ocp-body {
-  flex: 1; display: flex; align-items: flex-start; justify-content: center;
-  padding: 100px 60px 120px; min-height: 0;
-}
-.ocp-inner {
-  width: 100%; max-width: 440px;
-  display: flex; flex-direction: column; align-items: center;
-}
-/* 타이틀 */
-.ocp-title {
-  font-family: var(--font-kr); font-size: var(--type-h2-size); font-weight: var(--type-h2-weight);
-  letter-spacing: var(--ls-display); text-align: center; line-height: var(--lh-h2);
-}
-/* 주문번호 */
-.ocp-order-num {
-  margin-top: 32px;
-  font-family: var(--font-kr); font-size: var(--type-body-l-size); font-weight: 400;
-  color: var(--color-text-secondary);
-  display: flex; align-items: baseline; gap: 6px;
-}
-.ocp-order-num strong {
-  font-family: var(--font-en); font-size: var(--type-body-l-size); font-weight: 500;
-  color: var(--color-text-primary); cursor: pointer;
-}
-/* 안내 */
-.ocp-subtitle {
-  font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
-  color: var(--color-text-caption); text-align: center;
-  margin-top: 12px;
-}
-.ocp-copy-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  align-self: center;
-  width: 24px; height: 24px; border: none; background: transparent;
-  color: var(--color-text-caption); cursor: pointer; flex-shrink: 0;
-  transition: color var(--duration-hover) linear;
-}
-.ocp-copy-btn:hover { color: var(--color-icon-default); }
-
-/* 주문 요약 리스트 */
-.ocp-summary {
-  width: 100%; margin-top: 48px; min-height: 264px;
-  display: flex; flex-direction: column; gap: 0;
-}
 .ocp-item {
   display: flex; align-items: center; position: relative;
   width: 100%; min-width: 440px; height: 176px; padding: 0; box-sizing: border-box;
@@ -7524,52 +7482,13 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .ocp-item-qty { font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 400; color: var(--color-text-caption); }
 .ocp-item-price { font-family: var(--font-en); font-size: var(--type-body-m-size); font-weight: 400; color: var(--color-text-caption); margin-left: auto; flex-shrink: 0; }
 
-/* CTA */
-.ocp-actions { width: 100%; margin-top: 48px; display: flex; flex-direction: column; align-items: center; gap: var(--gap-xl); }
-.ocp-btn-primary {
-  width: 100%; height: 48px; background: var(--color-btn-primary-bg); color: var(--color-text-inverse); border: none;
-  font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
-  letter-spacing: var(--btn-letter-spacing); cursor: pointer;
-  transition: background 200ms ease;
-}
-.ocp-btn-primary:not(:disabled):hover {
-  background: var(--color-btn-primary-bg-hover);
-}
-.ocp-btn-primary:not(:disabled):active {
-  background: var(--color-btn-primary-bg-active);
-}
-.ocp-btn-secondary {
-  background: transparent; border: none; padding: 0;
-  font-family: var(--font-kr); font-size: var(--link-cta-font-size); font-weight: var(--link-cta-font-weight);
-  color: var(--link-cta-color); cursor: pointer;
-  letter-spacing: var(--link-cta-letter-spacing);
-  text-decoration: underline;
-  text-decoration-color: var(--color-border-primary);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
-}
-.ocp-btn-secondary:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
-
-/* 진입 연출 — stagger */
-.ocp-enter .ocp-title { animation: staggerUp .5s var(--ease-spring) .1s both; }
-.ocp-enter .ocp-order-num { animation: staggerUp .5s var(--ease-spring) .2s both; }
-.ocp-enter .ocp-subtitle { animation: staggerUp .5s var(--ease-spring) .25s both; }
-.ocp-enter .ocp-summary { animation: staggerUp .5s var(--ease-spring) .35s both; }
-.ocp-enter .ocp-actions { animation: staggerUp .5s var(--ease-spring) .45s both; }
-
-/* ══ OrderComplete — Mobile (≤767) 정규화 ══
+/* ══ OrderComplete 공유 — Mobile (≤767) ══
    - ocp-item min-width:440px·height:176px 제거 → 360px 가로 스크롤 방지
-   - ocp-body 상/하 패딩 축소 · ocp-inner max-width 해제
    - ocp-item-img 80×80 · ocp-item-badges flex-wrap 허용 */
 @media (max-width: 767px) {
-  .ocp-body { padding-top: 60px; padding-bottom: 80px; }
-  .ocp-inner { max-width: 100%; }
-  .ocp-summary { min-height: 0; }
   .ocp-item { min-width: 0; height: auto; padding: 20px 0; }
   .ocp-item-img { width: 80px; height: 80px; margin-right: 16px; }
   .ocp-item-badges { flex-wrap: wrap; }
-  .ocp-order-num { flex-wrap: wrap; }
 }
 
 /* ══════════════════════════════════════════
