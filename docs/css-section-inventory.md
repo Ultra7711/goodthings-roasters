@@ -1,12 +1,12 @@
 # globals.css 섹션 인벤토리
 
 > **작성:** S179 (2026-05-07)
-> **갱신:** S191 (2026-05-08) — Cafe Menu Page Pilot 10 분리 (-570 LOC)
+> **갱신:** S191 (2026-05-08) — ProductDetailPage Pilot 11 분리 (-1611 LOC)
 > **목적:** 9985 LOC 단일 globals.css 분할 작업의 진단 베이스 + Pilot 검증.
 
 ## 현황
 
-- 단일 파일 라인 수: 9985 → 9796 (S179 Pilot 1) → 9715 (S180 Pilot 2) → 9596 (S181 OrderItemCard) → 9408 (S182 Pilot 3) → 9176 (S183 Pilot 4) → 8810 (S184 Pilot 5) → 8436 (S185 Pilot 6) → 8155 (S186 Pilot 7) → 7594 (S187 Pilot 8) → 7346 (S189 Pilot 9) → 6778 (S191 Pilot 10)
+- 단일 파일 라인 수: 9985 → 9796 (S179 Pilot 1) → 9715 (S180 Pilot 2) → 9596 (S181 OrderItemCard) → 9408 (S182 Pilot 3) → 9176 (S183 Pilot 4) → 8810 (S184 Pilot 5) → 8436 (S185 Pilot 6) → 8155 (S186 Pilot 7) → 7594 (S187 Pilot 8) → 7346 (S189 Pilot 9) → 6778 (S191 Pilot 10) → 5167 (S191 Pilot 11)
 - 메이저 섹션 마커 (`/* ══...═ */`) 21개
 - Tailwind v4 + Lightning CSS + Turbopack HMR 환경 (lessons.md §6 backdrop-filter 누락 사례 보유 → 분할 시 production CSS chunk grep 검증 필수)
 
@@ -18,9 +18,9 @@
 | 2 | 1649 | 홈 P-2 | 1000 | `/` | ⭐ | 큼 |
 | 3 | 2649 | 공통 페이지 타이틀 (Shop/Menu/GoodDays) | 340 | 공유 | ⭐⭐ | 공유 클래스 |
 | 4 | 2989 | ~~CAFE MENU PAGE (RP-5)~~ | ~~1541~~ → ~570 (cm-*/cns-* 분리) | `/menu` | ⭐ | **S191 Pilot 10 완료** — components/cafe/CafeMenuPage.css |
-| 5 | 4530 | Purchase Options (RP-4c) | 516 | `/shop/[slug]` | ⭐ | PDP 의존 |
-| 6 | 5046 | 로스팅/노트/레시피/아코디언 | 158 | `/shop/[slug]` | ⭐⭐ | PDP 의존 |
-| 7 | 5204 | Container Queries (illust) | 633 | 공유 | ⭐ | 공유 |
+| 5 | 4530 | ~~Purchase Options (RP-4c)~~ | ~~516~~ → ~2 (stub) | `/shop/[slug]` | ⭐ | **S191 Pilot 11 완료** — components/product/ProductDetailPage.css |
+| 6 | 5046 | ~~로스팅/노트/레시피/아코디언~~ | ~~158~~ → ~2 (stub) | `/shop/[slug]` | ⭐⭐ | **S191 Pilot 11 완료** — components/product/ProductDetailPage.css |
+| 7 | 5204 | ~~Container Queries (illust)~~ | ~~633~~ → ~2 (stub) | `/shop/[slug]` | ⭐ | **S191 Pilot 11 완료** — components/product/ProductDetailPage.css |
 | 8 | 5837 | **STORY PAGE (RP-6a)** | 377 → ~5 (keyframes 잔류) | `/story` | ⭐⭐⭐ | **S184 Pilot 5 채택 → 옵션 A 분리 완료** |
 | 9 | 5848 | **BIZ INQUIRY PAGE** | 383 → ~5 (cross-route 3종 잔류) | `/biz-inquiry` | ⭐⭐⭐ | **S185 Pilot 6 채택 → 옵션 A 분리 완료** |
 | 10 | 6597 | GLOBAL TOAST | 31 | 글로벌 | ❌ | 작음, 글로벌 |
@@ -89,10 +89,10 @@ ORDER COMPLETE 섹션 130 LOC 중 ~30 LOC 가 마이페이지 OrderHistory.tsx �
 7. ✅ **MY PAGE** (S187 Pilot 8 분리 완료 — 옵션 A: 라우트 단독 ~571 + cross-route 4종 잔류 — chp-input 결합 / hover 정책 2 / 모바일 패딩 그룹)
 8. ✅ **Signature chapter** (S189 Pilot 9 분리 완료 — .sig-* + .cta-btn-secondary ~248 LOC)
 9. ✅ **Cafe Menu Page** (S191 Pilot 10 분리 완료 — cm-*/cns-* ~570 LOC → components/cafe/CafeMenuPage.css. Cart Drawer/PDP는 globals 잔류)
+10. ✅ **Product Detail Page** (S191 Pilot 11 분리 완료 — pd-*/yarl-*/option-chip/spec-table 등 1611 LOC → components/product/ProductDetailPage.css. 잔류: .close-btn/.arrow-btn cross-route / .pd-accordion* cross-route)
 
-### 차기 후보 (Pilot 11~)
+### 차기 후보 (Pilot 12~)
 
-- **Product Detail Page (pd-* / #pd-body)** (~497 LOC, `/shop/[slug]`) — Cart Drawer 제외 후 분리 가능
 - **홈 P-2** (~1000 LOC, `/`) — 큰 섹션, 분리 시 home 컴포넌트 colocate
 - **SHOP PAGE (sp-*)** (~293 LOC, `/shop`) — 공통 page-title 섹션 내 포함
 
