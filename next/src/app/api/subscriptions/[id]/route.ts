@@ -10,11 +10,14 @@ import {
   findSubscriptionForUser,
   updateSubscriptionCycle,
   cancelSubscription,
-  calculateNextDeliveryDate,
   toSubscription,
   type SubscriptionRow,
 } from '@/lib/repositories/subscriptionRepo';
-import { SUBSCRIPTION_CYCLES } from '@/lib/subscription/cycles';
+import {
+  SUBSCRIPTION_CYCLES,
+  recalculateNextDeliveryOnCycleChange,
+  type SubscriptionCycle,
+} from '@/lib/subscription/cycles';
 
 const PatchSchema = z.object({
   cycle: z.enum(SUBSCRIPTION_CYCLES),
@@ -46,9 +49,14 @@ export async function PATCH(request: Request, ctx: Ctx): Promise<Response> {
     return apiError('conflict', { detail: 'subscription_not_active' });
   }
 
-  /* 다음 배송일 재계산: 현재 next_delivery_at 기준 + 새 주기 */
+  /* 다음 배송일 재계산: 직전 배송일(next_delivery_at − oldCycle) + newCycle.
+     클라이언트 미리보기 (useSubscriptionActions.previewNextDate) 와 동일 결과 보장. */
   const newCycle = parsed.data.cycle;
-  const nextDeliveryAt = calculateNextDeliveryDate(new Date(sub.next_delivery_at), newCycle);
+  const nextDeliveryAt = recalculateNextDeliveryOnCycleChange(
+    new Date(sub.next_delivery_at),
+    sub.cycle as SubscriptionCycle,
+    newCycle,
+  );
 
   try {
     const updated = await updateSubscriptionCycle(id, newCycle, nextDeliveryAt);

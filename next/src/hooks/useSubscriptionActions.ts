@@ -14,7 +14,7 @@
 import { useCallback } from 'react';
 import { useToast } from '@/hooks/useToast';
 import type { SubscriptionCycle } from '@/types/subscription';
-import { CYCLE_DAYS } from '@/lib/subscription/cycles';
+import { recalculateNextDeliveryOnCycleChange } from '@/lib/subscription/cycles';
 import {
   useSubscriptionsQuery,
   useUpdateSubscriptionCycle,
@@ -53,15 +53,14 @@ export function useSubscriptionActions() {
     [],
   );
 
-  /* 배송 주기 변경 시 다음 배송일 미리보기 — 직전 배송일 = nextDate - oldCycle 로
-     역산하여 newCycle 적용. 서버 정책과 동일 가정 (단순 cycleDays 가산). */
+  /* 배송 주기 변경 시 다음 배송일 미리보기 — 서버 PATCH 와 동일 헬퍼 사용 */
   const previewNextDate = useCallback(
     (nextDate: string, oldCycle: SubscriptionCycle, newCycle: SubscriptionCycle): string => {
       if (oldCycle === newCycle) return nextDate;
       const [y, m, d] = nextDate.split('.').map(Number);
       const base = new Date(y, m - 1, d);
-      base.setDate(base.getDate() - CYCLE_DAYS[oldCycle] + CYCLE_DAYS[newCycle]);
-      return `${base.getFullYear()}.${String(base.getMonth() + 1).padStart(2, '0')}.${String(base.getDate()).padStart(2, '0')}`;
+      const result = recalculateNextDeliveryOnCycleChange(base, oldCycle, newCycle);
+      return `${result.getFullYear()}.${String(result.getMonth() + 1).padStart(2, '0')}.${String(result.getDate()).padStart(2, '0')}`;
     },
     [],
   );

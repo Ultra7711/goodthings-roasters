@@ -70,3 +70,26 @@ export const CYCLE_DAYS = {
 export function getCycleDays(cycle: SubscriptionCycle): number {
   return CYCLE_DAYS[cycle];
 }
+
+/**
+ * Cycle 변경 시 다음 배송일 재계산.
+ *
+ * 정책 — 직전 배송일 (= currentNextDelivery − oldCycle) 기준으로 newCycle 적용.
+ * 즉 `lastDelivery + newCycle = currentNextDelivery − oldCycle + newCycle`.
+ *
+ * 클라이언트 미리보기 (`useSubscriptionActions.previewNextDate`) 와
+ * 서버 PATCH (`/api/subscriptions/[id]`) 가 동일 결과를 보장하기 위한 SoT 헬퍼.
+ *
+ * 예: nextDelivery=2026.11.28, oldCycle='8주', newCycle='2주'
+ *     → 2026.11.28 − 56일 + 14일 = 2026.10.17
+ */
+export function recalculateNextDeliveryOnCycleChange(
+  currentNextDelivery: Date,
+  oldCycle: SubscriptionCycle,
+  newCycle: SubscriptionCycle,
+): Date {
+  if (oldCycle === newCycle) return new Date(currentNextDelivery);
+  const result = new Date(currentNextDelivery);
+  result.setDate(result.getDate() - CYCLE_DAYS[oldCycle] + CYCLE_DAYS[newCycle]);
+  return result;
+}
