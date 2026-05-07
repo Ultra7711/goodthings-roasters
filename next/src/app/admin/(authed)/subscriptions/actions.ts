@@ -37,6 +37,22 @@ import {
   type SubscriptionCycle,
 } from '@/lib/subscription/cycles';
 
+/* ── Audit Log 타입 ──────────────────────────────────────────────────── */
+
+export type AuditLogAction = 'update_next_delivery' | 'update_cycle' | 'update_status';
+
+export type AuditLogEntry = {
+  id: string;
+  action: AuditLogAction;
+  oldValue: Record<string, unknown> | null;
+  newValue: Record<string, unknown> | null;
+  createdAt: string;
+};
+
+export type FetchAuditLogResult =
+  | { ok: true; entries: AuditLogEntry[] }
+  | { ok: false; error: 'unauthorized' | 'server_error' };
+
 /* ── Schemas ──────────────────────────────────────────────────────────── */
 
 const UuidSchema = z
@@ -106,6 +122,36 @@ function flattenZodError(err: z.ZodError): string {
     .slice(0, 200);
 }
 
+/* ── Audit Log 헬퍼 ──────────────────────────────────────────────────── */
+
+type SupabaseClient = Awaited<ReturnType<typeof createRouteHandlerClient>>;
+
+/** 구독 변경 이력 삽입 — best-effort (실패 시 로깅만, 주 액션은 중단하지 않음). */
+async function insertAuditLog(
+  supabase: SupabaseClient,
+  params: {
+    subscriptionId: string;
+    adminUserId: string;
+    action: AuditLogAction;
+    oldValue: Record<string, unknown>;
+    newValue: Record<string, unknown>;
+  },
+): Promise<void> {
+  const { error } = await supabase.from('subscription_audit_log').insert({
+    subscription_id: params.subscriptionId,
+    admin_user_id: params.adminUserId,
+    action: params.action,
+    old_value: params.oldValue,
+    new_value: params.newValue,
+  });
+  if (error) {
+    console.error('[insertAuditLog] failed', {
+      code: error.code,
+      message: error.message?.slice(0, 200),
+    });
+  }
+}
+
 /* ── Actions ──────────────────────────────────────────────────────────── */
 
 /**
@@ -140,6 +186,25 @@ export async function updateSubscriptionNextDeliveryAction(
   }
 
   const supabase = await createRouteHandlerClient();
+
+  /* audit 용 old value 조회 */
+  const { data: current, error: fetchErr } = await supabase
+    .from('subscriptions')
+    .select('id, next_delivery_at')
+    .eq('id', parsed.data.subscriptionId)
+    .maybeSingle();
+
+  if (fetchErr) {
+    console.error('[updateSubscriptionNextDeliveryAction] fetch failed', {
+      code: fetchErr.code,
+      message: fetchErr.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+  if (!current) return { ok: false, error: 'not_found' };
+
+  const oldNextDelivery = current.next_delivery_at as string;
+
   const { data, error } = await supabase
     .from('subscriptions')
     .update({ next_delivery_at: isoNext })
@@ -162,6 +227,14 @@ export async function updateSubscriptionNextDeliveryAction(
   if (!data) {
     return { ok: false, error: 'not_found' };
   }
+
+  await insertAuditLog(supabase, {
+    subscriptionId: data.id,
+    adminUserId: claims.userId,
+    action: 'update_next_delivery',
+    oldValue: { next_delivery_at: oldNextDelivery },
+    newValue: { next_delivery_at: data.next_delivery_at as string },
+  });
 
   revalidatePath('/admin/subscriptions');
   return {
@@ -237,6 +310,14 @@ export async function updateSubscriptionCycleAction(
     return { ok: false, error: 'server_error' };
   }
   if (!data) return { ok: false, error: 'not_found' };
+
+  await insertAuditLog(supabase, {
+    subscriptionId: data.id as string,
+    adminUserId: claims.userId,
+    action: 'update_cycle',
+    oldValue: { cycle: oldCycle, next_delivery_at: current.next_delivery_at as string },
+    newValue: { cycle: newCycle, next_delivery_at: data.next_delivery_at as string },
+  });
 
   revalidatePath('/admin/subscriptions');
   return {
@@ -345,6 +426,58 @@ export async function updateSubscriptionStatusAction(
   }
   if (!data) return { ok: false, error: 'not_found' };
 
+  const newValue: Record<string, unknown> = { status: data.status as string };
+  if (action === 'cancel' && parsed.data.cancelReason) {
+    newValue.cancel_reason = parsed.data.cancelReason;
+  }
+  await insertAuditLog(supabase, {
+    subscriptionId: data.id as string,
+    adminUserId: claims.userId,
+    action: 'update_status',
+    oldValue: { status: currentStatus },
+    newValue,
+  });
+
   revalidatePath('/admin/subscriptions');
   return { ok: true, subscriptionId: data.id as string, status: data.status as string };
+}
+
+/**
+ * 특정 구독의 변경 이력을 최신순으로 최대 10건 조회한다.
+ * 045 마이그 후 유효. 테이블 없으면 server_error 반환.
+ */
+export async function fetchSubscriptionAuditLogAction(
+  subscriptionId: string,
+): Promise<FetchAuditLogResult> {
+  const claims = await getAdminClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const validId = UuidSchema.safeParse(subscriptionId);
+  if (!validId.success) return { ok: false, error: 'unauthorized' };
+
+  const supabase = await createRouteHandlerClient();
+  const { data, error } = await supabase
+    .from('subscription_audit_log')
+    .select('id, action, old_value, new_value, created_at')
+    .eq('subscription_id', validId.data)
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  if (error) {
+    console.error('[fetchSubscriptionAuditLogAction] failed', {
+      code: error.code,
+      message: error.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+
+  const entries: AuditLogEntry[] = (data ?? []).map((row) => ({
+    id: row.id as string,
+    action: row.action as AuditLogAction,
+    oldValue: (row.old_value as Record<string, unknown>) ?? null,
+    newValue: (row.new_value as Record<string, unknown>) ?? null,
+    createdAt: row.created_at as string,
+  }));
+
+  return { ok: true, entries };
 }

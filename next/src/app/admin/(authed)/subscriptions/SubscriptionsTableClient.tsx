@@ -31,6 +31,8 @@ import {
   isoToDateInput,
   resolveUserName,
   type AdminSubscriptionsSearchParams,
+  type DbSubscriptionPeriod,
+  type DbSubscriptionStatus,
   type ListedSubscription,
   type StatusTabKey,
   type StatusTone,
@@ -40,6 +42,8 @@ import {
   updateSubscriptionNextDeliveryAction,
   updateSubscriptionCycleAction,
   updateSubscriptionStatusAction,
+  fetchSubscriptionAuditLogAction,
+  type AuditLogEntry,
 } from './actions';
 
 type CountsShape = Record<StatusTabKey, number>;
@@ -346,7 +350,7 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
    3) 상태 변경 (pause / resume / cancel)
    ══════════════════════════════════════════════════════════════════════════ */
 
-type SectionKey = 'delivery' | 'cycle' | 'status';
+type SectionKey = 'delivery' | 'cycle' | 'status' | 'history';
 
 type DialogProps = {
   row: ListedSubscription;
@@ -406,6 +410,7 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
               { key: 'delivery', label: '배송일' },
               { key: 'cycle', label: '주기' },
               { key: 'status', label: '상태 변경' },
+              { key: 'history', label: '변경 이력' },
             ] as { key: SectionKey; label: string }[]).map((tab) => {
               const active = tab.key === activeSection;
               return (
@@ -455,6 +460,9 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
               onClose={onClose}
               onSaved={onSaved}
             />
+          )}
+          {activeSection === 'history' && (
+            <HistorySection subscriptionId={row.id} />
           )}
         </div>
       </div>
@@ -850,6 +858,111 @@ function StatusSection({
       <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
         <CancelButton onClick={onClose} disabled={isPending} label="닫기" />
       </div>
+    </div>
+  );
+}
+
+/* ── 섹션 4: 변경 이력 ────────────────────────────────────────────────── */
+
+const ACTION_LABELS: Record<string, string> = {
+  update_next_delivery: '배송일 변경',
+  update_cycle: '주기 변경',
+  update_status: '상태 변경',
+};
+
+function formatAuditChange(entry: AuditLogEntry): string {
+  const old = entry.oldValue ?? {};
+  const next = entry.newValue ?? {};
+
+  if (entry.action === 'update_next_delivery') {
+    const oldDate = old.next_delivery_at ? formatDeliveryDate(old.next_delivery_at as string) : '—';
+    const newDate = next.next_delivery_at ? formatDeliveryDate(next.next_delivery_at as string) : '—';
+    return `${oldDate} → ${newDate}`;
+  }
+  if (entry.action === 'update_cycle') {
+    const oldCycle = describeCycle(old.cycle as DbSubscriptionPeriod);
+    const newCycle = describeCycle(next.cycle as DbSubscriptionPeriod);
+    const newDate = next.next_delivery_at ? formatDeliveryDate(next.next_delivery_at as string) : '—';
+    return `${oldCycle} → ${newCycle} (다음 배송: ${newDate})`;
+  }
+  if (entry.action === 'update_status') {
+    const oldStatus = describeStatus(old.status as DbSubscriptionStatus).label;
+    const newStatus = describeStatus(next.status as DbSubscriptionStatus).label;
+    const reason = next.cancel_reason ? ` · ${next.cancel_reason}` : '';
+    return `${oldStatus} → ${newStatus}${reason}`;
+  }
+  return '';
+}
+
+function formatAuditTimestamp(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function HistorySection({ subscriptionId }: { subscriptionId: string }) {
+  const [entries, setEntries] = useState<AuditLogEntry[] | null>(null);
+  const [loadError, setLoadError] = useState(false);
+
+  useEffect(() => {
+    setEntries(null);
+    setLoadError(false);
+    fetchSubscriptionAuditLogAction(subscriptionId).then((result) => {
+      if (result.ok) {
+        setEntries(result.entries);
+      } else {
+        setLoadError(true);
+      }
+    });
+  }, [subscriptionId]);
+
+  if (entries === null && !loadError) {
+    return (
+      <div style={{ padding: '24px 0', textAlign: 'center', fontSize: 13, color: 'var(--foreground-muted)' }}>
+        불러오는 중…
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div style={{ padding: '12px 0', fontSize: 13, color: 'var(--destructive)' }}>
+        이력을 불러오지 못했습니다.
+      </div>
+    );
+  }
+
+  if (!entries || entries.length === 0) {
+    return (
+      <div style={{ padding: '24px 0', textAlign: 'center', fontSize: 13, color: 'var(--foreground-muted)' }}>
+        변경 이력이 없습니다.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {entries.map((entry, i) => (
+        <div
+          key={entry.id}
+          style={{
+            padding: '10px 0',
+            borderBottom: i < entries.length - 1 ? '1px solid var(--border)' : 'none',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3 }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--foreground)' }}>
+              {ACTION_LABELS[entry.action] ?? entry.action}
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--foreground-muted)', fontVariantNumeric: 'tabular-nums' }}>
+              {formatAuditTimestamp(entry.createdAt)}
+            </span>
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--foreground-muted)' }}>
+            {formatAuditChange(entry)}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
