@@ -12,6 +12,7 @@
 
 'use client';
 
+import './CafeMenuPage.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import CafeFilterTabs from './CafeFilterTabs';
