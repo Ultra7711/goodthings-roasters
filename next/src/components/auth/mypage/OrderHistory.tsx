@@ -2,14 +2,14 @@
 
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { useToast } from '@/hooks/useToast';
-import { extractKrName, formatPrice } from '@/lib/utils';
+import { extractKrName } from '@/lib/utils';
 import { useSiteSettings } from '@/components/providers/SiteSettingsProvider';
 import { CopyIcon } from '@/components/ui/Icons';
 import { useOrdersQuery } from '@/hooks/useOrders';
 import { useMyPageOpenOrders, toggleOrder } from '@/lib/myPageUiStore';
 import type { OrderStatus } from '@/types/order';
+import OrderItemCard from '@/components/order/OrderItemCard';
 
 /* status → 뱃지 클래스 매핑 (S172: paid·refund_* 노출 추가, S173: cancelled 추가) */
 const STATUS_CLASS: Record<OrderStatus, string> = {
@@ -116,46 +116,12 @@ export default function OrderHistory() {
                 <div className="mp-order-items">
                   <div className="mp-order-items-inner">
                     {order.items.map((item, idx) => (
-                      <div key={idx} className="ocp-item">
-                        <div
-                          className="ocp-item-img"
-                          style={{ background: item.image.bg, position: 'relative' }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/shop/${item.slug}`);
-                          }}
-                        >
-                          <Image
-                            src={item.image.src}
-                            alt={item.name}
-                            fill
-                            style={{ objectFit: 'cover' }}
-                            sizes="80px"
-                          />
-                        </div>
-                        <div className="ocp-item-info">
-                          <div className="ocp-item-category">{item.category}</div>
-                          <div className="ocp-item-name">
-                            <span className="ocp-item-name-kr">
-                              {extractKrName(item.name)}
-                              <span className="ocp-item-meta-inline"> · {item.volume}</span>
-                            </span>
-                          </div>
-                          <div className="ocp-item-badges">
-                            <span className="ocp-item-qty">
-                              {[
-                                item.type === 'subscription' && item.period
-                                  ? `정기배송 ${item.period}`
-                                  : null,
-                                `수량 ${item.qty}개`,
-                              ]
-                                .filter(Boolean)
-                                .join(' · ')}
-                            </span>
-                            <span className="ocp-item-price">{formatPrice(item.priceNum)}</span>
-                          </div>
-                        </div>
-                      </div>
+                      <OrderItemCard
+                        key={idx}
+                        item={item}
+                        variant="detailed"
+                        onImageClick={(slug) => router.push(`/shop/${slug}`)}
+                      />
                     ))}
                   </div>
                 </div>

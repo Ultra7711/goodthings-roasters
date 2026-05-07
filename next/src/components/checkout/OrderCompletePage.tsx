@@ -23,9 +23,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/useToast';
-import { formatPrice } from '@/lib/utils';
 import { useClearCart } from '@/hooks/useCart';
 import { CopyIcon } from '@/components/ui/Icons';
+import OrderItemCard from '@/components/order/OrderItemCard';
 
 /* H-1 폴백 UX — 게스트 이메일 불일치 재입력 허용 한도.
    3회 초과 시 주문조회(B-6) 분기로 안내. */
@@ -58,12 +58,6 @@ type LastOrder = {
   subscriptionCount?: number;
   items: OrderItemData[];
 };
-
-/* ── 한글명 추출 ── */
-function extractKrName(name: string): string {
-  const m = name.match(/^(.*[\uAC00-\uD7AF](?:\s+[A-Z0-9]+)*)\s+([A-Z][a-z].*)$/);
-  return m ? m[1].trim() : name;
-}
 
 /* ── confirm 상태 ── */
 type ConfirmState =
@@ -564,23 +558,7 @@ export default function OrderCompletePage() {
 
           <div className="ocp-summary">
             {order.items.map((item, idx) => (
-              <div key={idx} className="ocp-item">
-                <div className="ocp-item-img" style={{ background: item.image?.bg ?? 'transparent' }}>
-                  {item.image?.src && (
-                    <Image src={item.image.src} alt={item.name} width={100} height={100} style={{ objectFit: 'contain' }} />
-                  )}
-                </div>
-                <div className="ocp-item-info">
-                  <div className="ocp-item-category">{item.category}</div>
-                  <div className="ocp-item-name">{extractKrName(item.name)}</div>
-                  <div className="ocp-item-badges">
-                    <span className="ocp-item-qty">
-                      {[item.volume, item.type === 'subscription' && item.period ? `정기배송 ${item.period}` : null, `수량 ${item.qty}개`].filter(Boolean).join(' · ')}
-                    </span>
-                    <span className="ocp-item-price">{formatPrice(item.priceNum * item.qty)}</span>
-                  </div>
-                </div>
-              </div>
+              <OrderItemCard key={idx} item={item} variant="compact" />
             ))}
           </div>
 
