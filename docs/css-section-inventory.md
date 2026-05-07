@@ -1,11 +1,12 @@
 # globals.css 섹션 인벤토리
 
 > **작성:** S179 (2026-05-07)
+> **갱신:** S180 (2026-05-07) — ORDER COMPLETE 섹션 분리 완료 (Pilot 2)
 > **목적:** 9985 LOC 단일 globals.css 분할 작업의 진단 베이스 + Pilot 검증.
 
 ## 현황
 
-- 단일 파일 라인 수: 9985 → 9796 (Pilot 1 섹션 분리 후)
+- 단일 파일 라인 수: 9985 → 9796 (S179 Pilot 1) → 9715 (S180 Pilot 2)
 - 메이저 섹션 마커 (`/* ══...═ */`) 21개
 - Tailwind v4 + Lightning CSS + Turbopack HMR 환경 (lessons.md §6 backdrop-filter 누락 사례 보유 → 분할 시 production CSS chunk grep 검증 필수)
 
@@ -25,7 +26,7 @@
 | 10 | 6597 | GLOBAL TOAST | 31 | 글로벌 | ❌ | 작음, 글로벌 |
 | 11 | 6628 | GOOD DAYS PAGE | 259 | `/gooddays` | ⭐⭐⭐ | 적합 |
 | 12 | 6887 | CHECKOUT PAGE (RP-7) | 558 | `/checkout` | ❌ | 결제 critical, 보류 |
-| 13 | 7445 | ORDER COMPLETE PAGE | 130 | `/order-complete` | ⭐⭐⭐ | 적합 |
+| 13 | 7445 | ORDER COMPLETE PAGE | 130 (라우트 단독 ~100 + 공유 .ocp-item* ~30 잔류) | `/order-complete` | ⭐⭐⭐ | **S180 Pilot 채택 → 분리 완료** |
 | 14 | 7575 | LOGIN PAGE | 409 | `/login` | ⭐⭐ | 적합 |
 | 15 | 7984 | MY PAGE | 647 | `/mypage` | ⭐⭐ | 적합, 다소 큼 |
 | 16 | 8631 | Search Result Page | 192 | `/search` | ⭐⭐⭐ | 적합 |
@@ -66,12 +67,21 @@ components/legal/
 4. ✅ `next build` — exit 0, `/legal/[slug]` 5종 약관 SSG 정상
 5. ✅ production CSS chunk grep — 7개 selector (legal-page / legal-shell / legal-side-link / legal-def-row / legal-accordion-list / pd-accordion-body / legal-section-heading) 모두 정상 포함. Lightning CSS 누락 없음
 
+## Pilot 2 추가 발견 — "라우트 단독" 가정 검증 필요 (S180)
+
+ORDER COMPLETE 섹션 130 LOC 중 ~30 LOC 가 마이페이지 OrderHistory.tsx 차용 사용 (`.ocp-item*` 7종). CSS 마커 (`/* ══...═ */`) 만 보고 "라우트 단독" 가정 진입 위험. **의존성 grep 단계에서 셀렉터 단위 차용 여부 반드시 확인.**
+
+대응 패턴 — **옵션 A 채택:**
+- 라우트 단독 셀렉터만 분리 (~100 LOC)
+- 공유 셀렉터는 globals.css 잔류 (후속 carry-over: 공통 컴포넌트 추출 / rename)
+- cross-route 글로벌 정책 (`@media (hover: none)` hover 차단 / 모바일 패딩 일괄) 도 globals 잔류 의도
+
 ## 후속 분리 권장 순서 (carry-over)
 
 다음 세션 진입 시 위험도 ⭐⭐⭐⭐~⭐⭐⭐ 우선:
 
-1. **ORDER COMPLETE** (130 LOC, line 7445) — 라우트 단독, 작음
-2. **Search Result** (192 LOC, line 8631) — 라우트 단독
+1. ✅ **ORDER COMPLETE** (S180 분리 완료)
+2. **Search Result** (192 LOC, line 8631) — 라우트 단독 → 다음 Pilot 후보
 3. **GOOD DAYS** (259 LOC, line 6628) — 라우트 단독
 4. **STORY** (377 LOC, line 5837) — 라우트 단독
 5. **BIZ INQUIRY** (383 LOC, line 6214) — 라우트 단독
