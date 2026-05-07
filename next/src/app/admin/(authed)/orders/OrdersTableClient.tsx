@@ -353,18 +353,27 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
                       <div style={{ fontWeight: 500 }}>{o.customerName}</div>
                       <div style={{ fontSize: 11.5, color: 'var(--foreground-subtle)' }}>{o.contactEmail}</div>
                     </td>
-                    <td
-                      style={{
-                        ...TD_STYLE,
-                        color: 'var(--foreground-muted)',
-                        maxWidth: 280,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                      title={o.itemsLabel}
-                    >
-                      {o.itemsLabel || <span style={{ opacity: 0.5 }}>—</span>}
+                    <td style={{ ...TD_STYLE, maxWidth: 240 }} title={o.itemsLabel}>
+                      {o.itemsStructured.length === 0 ? (
+                        <span style={{ opacity: 0.5 }}>—</span>
+                      ) : (() => {
+                        const first = o.itemsStructured[0];
+                        const rest = o.itemsStructured.length - 1;
+                        const detail = [
+                          first.detail,
+                          rest > 0 ? `+${rest}건` : '',
+                        ].filter(Boolean).join(' · ');
+                        return (
+                          <div>
+                            <div style={{ fontWeight: 500 }}>{first.name}</div>
+                            {detail && (
+                              <div style={{ fontSize: 11, color: 'var(--foreground-muted)', marginTop: 2 }}>
+                                {detail}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td
                       style={{
