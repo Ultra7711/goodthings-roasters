@@ -1,0 +1,1625 @@
+/* ══════════════════════════════════════════
+   ProductDetailPage (RP-4a/4c/4d) — Pilot 11
+   S191 globals.css 분리. 이 파일은 PDP 전용.
+   globals.css 잔류: .close-btn/.arrow-btn (cross-route GdCloseButton)
+               + .pd-accordion* (cross-route Accordion.tsx → LegalPage)
+   ══════════════════════════════════════════ */
+/* ══ PRODUCT DETAIL PAGE — RP-4a 뼈대 ══
+   프로토타입 #product-detail-page 블록에서 position:fixed / display:none 은
+   Next.js 라우팅 컨테이너에 불필요하므로 제거.
+   나머지 레이아웃·진입 애니메이션은 프로토타입과 1:1 이식. */
+#pd-body {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+#pd-inner {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 100px 0 0;
+  flex: 1;
+}
+
+/* 메인 2단 그리드
+   PR 3: 아코디언이 우측 #pd-info 안 마지막으로 이동 → 좌측은 image 만.
+   align-items default(stretch) → #pd-img-col 이 row height 따라 stretch
+   → sticky 자식(#pd-img-wrap) 의 stick range 가 #pd-info 끝까지 확장. */
+#pd-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+/* #pd-img-col: 이미지 grid 래퍼 (좌측 컬럼). sticky 자식의 컨테이닝 블록 역할. */
+#pd-img-col {
+  grid-column: 1;
+}
+/* #pd-img-wrap: sticky 이미지 영역.
+   top = ann-bar + header (총 88~96px). 헤더 글래스 바로 아래 고정. */
+#pd-img-wrap {
+  position: sticky;
+  top: var(--sticky-offset);
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity var(--duration-slide) ease-out,
+              transform var(--duration-slide) ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+  padding: 0 20px 0 60px;
+}
+#pd-info {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity var(--duration-slide) ease-out,
+              transform var(--duration-slide) ease-out;
+  transition-delay: .15s;
+  display: flex;
+  flex-direction: column;
+  /* PR-1 (S155): padding-bottom 80 → 0 — ② Tasting chapter 가 이어지므로
+     #pd-info 자체 하단 spacing 제거. 페이지 끝 spacing 은 ④ Detail chapter 가 담당. */
+  padding: 0 60px 0 20px;
+  grid-column: 2;
+}
+#pd-body.pd-anim #pd-img-wrap {
+  opacity: 1;
+  transform: translateY(0);
+}
+#pd-body.pd-anim #pd-info {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (max-width: 1023px) {
+  #pd-content { grid-template-columns: minmax(0, 1fr); }
+  #pd-img-wrap {
+    position: static;
+    padding: 0 var(--layout-padding-x);
+  }
+  #pd-info {
+    grid-column: 1;
+    /* PR-1: padding-bottom 80 → 0 (chapter 가 이어짐) */
+    padding: 48px var(--layout-padding-x) 0;
+  }
+}
+
+/* PR-2a (S156 D안): 데스크탑 우측 정보 컨트롤 영역 baseline = 메인 이미지 하단(=100cqw).
+   #pd-info 에 padding-bottom = 좌 yarl 썸네일 트랙 height (--pd-thumbs-h) 부여 →
+   margin-top: auto 로 column 끝까지 푸시된 PurchaseRow 가 padding-bottom 만큼 위로 빠짐 →
+   CTA 끝 = 좌측 wrap 끝 - 썸네일 height = 메인 이미지 하단 ✅
+   썸네일 없는 상품(--pd-thumbs-h=0) 은 자연스럽게 좌 wrap 끝 = 메인 끝 = baseline 일치.
+   --pd-thumbs-h 는 ProductDetailPage 가 #pd-content 에 inline style 로 set (96px | 0px).
+   모바일은 1-col 이라 padding-bottom 영향 없음 (자연 흐름). */
+@media (min-width: 1024px) {
+  #pd-info {
+    padding-bottom: var(--pd-thumbs-h, 0);
+  }
+  #pd-info .pd-purchase {
+    margin-top: auto;
+  }
+}
+
+/* ══ PDP 4-chapter — V2 §5.1 (PR-1 S155) ══
+   ② Tasting · ③ Brewing · ④ Detail 풀폭 chapter 컨테이너.
+   ① Hero (#pd-content) 끝 후 풀폭으로 이어짐 — 좌측 sticky 이미지는
+   #pd-content 안에서만 동작하고 chapter 위로는 따라오지 않음.
+
+   PR-1 범위: 구조 분리만. sand 패널·Roasting/Flavor 묶음 디자인·
+   모바일 sticky CTA bar 는 PR-2/3 carry-over.
+
+   각 chapter 는 #pd-inner (max-width 1440) 안에서 좌우 padding 60 (데스크탑) /
+   --layout-padding-x (모바일) 로 콘텐츠 정렬. */
+.pd-chapter {
+  padding: 0 60px;
+}
+@media (max-width: 1023px) {
+  .pd-chapter {
+    padding: 0 var(--layout-padding-x);
+  }
+}
+/* chapter 첫 자식이 .pd-info-section 인 경우 (Roasting · RecipeGuide · DripBagSteps):
+   상단 hairline + padding-top 48 제거 — chapter 시작점에 hairline 그어지면 어색.
+   chapter 자체 spacing (#pd-info padding-bottom 0 → ② chapter 첫 컴포넌트 사이 자연 호흡 부족) 보정 위해
+   chapter 자체 padding-top 48 부여. */
+.pd-chapter > .pd-info-section:first-child {
+  padding-top: 0;
+  box-shadow: none;
+}
+/* ③ Brewing chapter — Advisory C §7.1 heading + 콘텐츠 */
+.pd-chapter-brewing {
+  padding-top: 80px;
+}
+.pd-chapter-brewing .pd-chapter-header {
+  margin-bottom: 48px;
+}
+@media (max-width: 1023px) {
+  .pd-chapter-brewing {
+    padding-top: 56px;
+  }
+  .pd-chapter-brewing .pd-chapter-header {
+    margin-bottom: 36px;
+  }
+}
+/* PDP chapter 헤딩 — Advisory C §1.2 (eyebrow + H2 editorial)
+   blk-label 시스템 폰트 스펙 통일 · 배경별 색 토큰 분리.
+   default = cream bg (Brewing) / sand override = Tasting */
+.pd-chapter-eyebrow {
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--color-label-on-white);
+  margin: 0 0 14px;
+}
+.pd-chapter-tasting .pd-chapter-eyebrow {
+  color: var(--color-accent-gold);
+}
+.pd-chapter-h2 {
+  font-family: var(--font-kr);
+  font-size: var(--type-chapter-sub-size);
+  font-weight: var(--type-chapter-sub-weight);
+  letter-spacing: var(--ls-heading);
+  line-height: var(--lh-chapter-sub);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* Tasting / Brewing chapter 진입 애니메이션 (S164 PR-3 후속) — IO 1회 reveal */
+.pd-chapter-tasting,
+.pd-chapter-brewing {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 600ms ease-out, transform 600ms ease-out;
+}
+.pd-chapter-tasting.pd-chapter--in,
+.pd-chapter-brewing.pd-chapter--in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ② Tasting chapter — sand 패널 풀폭 + 2-col split (Advisory C §1.1~1.3)
+   heading: grid-column 1/-1 풀폭 row 1
+   Roasting: col 1 row 2 / Flavor: col 2 row 2 (S164 PR-3 후속: 면책 폐기)
+   grid 1fr 1fr (Hero #pd-content 1:1 매칭) · column-gap 40 (Hero col padding 20+20 매칭)
+   → Flavor col left edge = 50% + 20px = Hero #pd-info text start 일치 */
+.pd-chapter-tasting {
+  background: var(--brand-sand);
+  color: var(--ink-on-sand);
+  margin-top: 80px;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 96px calc(50vw - 50% + 60px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 60px;
+  row-gap: 48px;
+}
+/* 1024+ : grid 1:1, heading + Roasting + Flavor + 면책(inline) 모두 좌측 col 안 */
+@media (min-width: 1024px) {
+  .pd-tasting-info {
+    grid-column: 1;
+  }
+  .pd-tasting-radar {
+    grid-column: 2;
+  }
+  /* 1024+ 면책 분기: inline 표시, after 숨김 */
+  .pd-tasting-disclaimer--after { display: none; }
+}
+/* sand 위에서 .pd-info-section 의 hairline·상단 padding 제거 */
+.pd-chapter-tasting .pd-info-section {
+  padding-top: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+/* heading row 1 풀폭 / 좌 col (Roasting+Flavor) row 2 / 우 col (레이더) row 2 / 면책 row 3 풀폭 */
+.pd-tasting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+/* 옵션 B: heading↔Roasting 64 = info gap 48 + header margin-bottom 16 */
+.pd-tasting-info > .pd-chapter-header {
+  margin-bottom: 16px;
+}
+.pd-tasting-radar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 1024+ 전체: 레이더 하단 = 면책 하단 baseline 정렬 (좌측 info 끝과 매칭) */
+  align-self: end;
+}
+.pd-tasting-disclaimer {
+  /* .pd-tasting-info 안 마지막 자식 — info gap 48 자연 적용 (Flavor desc ↔ 면책 = 48) */
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  color: var(--color-text-tertiary);
+  line-height: var(--lh-kr-body-13);
+  margin: 0;
+  text-align: left;
+}
+@media (max-width: 1023px) {
+  .pd-chapter-tasting {
+    margin-top: 56px;
+    padding: 72px calc(50vw - 50% + var(--layout-padding-x));
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 0;
+    row-gap: 48px;
+  }
+  /* 1023↓ 면책 분기: inline 숨김, after (radar 다음) 표시 + 중앙 정렬 */
+  .pd-tasting-disclaimer--inline { display: none; }
+  .pd-tasting-disclaimer--after {
+    text-align: center;
+  }
+}
+/* ④ Detail chapter — 페이지 끝 spacing.
+   #pd-accordions 자체는 padding/margin 0. 페이지 하단 80 (데스크탑) / 80 (모바일) 부여. */
+.pd-chapter-detail {
+  padding-top: 48px;
+  padding-bottom: 80px;
+}
+
+/* 좌: 이미지 */
+#pd-img-main-wrap {
+  position: relative;
+  width: 100%;
+}
+#pd-img {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--color-surface-warm);
+  overflow: hidden;
+}
+
+/* 우: 정보 상단 */
+#pd-category {
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--color-label-on-white);
+  margin-bottom: 12px;
+}
+#pd-name {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-family: var(--font-kr);
+  font-size: var(--type-h1-size);
+  font-weight: var(--type-h1-weight);
+  color: var(--color-text-primary);
+  letter-spacing: var(--ls-display);
+  line-height: var(--lh-h1);
+  margin-bottom: 48px;
+}
+.pd-name-en {
+  font-family: var(--font-en);
+  font-size: var(--type-h3-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-heading);
+  color: var(--color-text-secondary);
+}
+/* 상품 설명 — 이름 바로 아래 인라인 표시 (V2 §3.2 준용 · 가격 chip 으로 격하).
+   divider 폐기 후 desc → chip 직접 연결, 충분한 호흡 확보.
+   line-height 26px (정수) — 15px × 1.7 = 25.5px sub-pixel 누적 차단.
+   상품별 desc 줄 수 차이로 chip/체크박스/RoastStage 시작 위치가 1px 변동되던 문제 해결.
+   사이트 전반 8px grid 통일은 별도 sprint (project_typography_subpixel_8px_grid.md 참조). */
+#pd-desc {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  line-height: 26px;
+  margin-bottom: 72px;
+}
+#pd-desc p { margin: 0; }
+#pd-desc p + p { margin-top: 1em; }
+/* 상세 페이지 status 뱃지: Shop 카드와 동일하게 좌측 이미지 좌상단 floating.
+   화살표(z-index 2) 보다 위, #pd-img background 위로 노출. */
+#pd-img-main-wrap > .sp-card-badge { z-index: 3; }
+
+/* ══ PD 갤러리 — yet-another-react-lightbox 기반 (S135) ══
+   Inline plugin: 모달 X, 페이지 인라인 슬라이드.
+   Thumbnails plugin: 이미지 ≥ 2장일 때만 활성 (드래그/스와이프 빌트인).
+   기존 직접 구현 .pd-img-arrow / #pd-pagination 룰 일괄 폐기.
+   yarl 토큰은 .pd-yarl-wrap 안쪽으로만 한정 (굿데이즈 .gd-lightbox 와 영향 분리).
+
+   sizing 전략 (공식 docs 권고 패턴):
+   - LightboxRoot (Inline plugin) 의 size 는 ProductGallery 의 inline.style 로 직접 부여.
+   - 1장: { width: '100%', aspectRatio: '1 / 1' }
+   - 2장+: { width: '100%', height: 'calc(100cqw + var(--pd-yarl-thumbs-h))' }
+   - .pd-yarl-wrap 에 `container-type: inline-size` 부여하여 100cqw = wrap width 활성. */
+
+.pd-yarl-wrap {
+  position: relative;
+  width: 100%;
+  container-type: inline-size;
+  --pd-yarl-thumbs-h: 96px;  /* thumbs container outer: 12 padding-top + 80 thumb height + 4 ε */
+  /* 화살표 색상 — 굿데이즈 라이트박스와 동일 (white 80% / hover 100%).
+     bgTheme 분기 폐기 — 모든 슬라이드 위에 white 통일. */
+  --pd-yarl-arrow-color: hsla(0, 0%, 100%, .8);
+  --pd-yarl-arrow-color-hover: #fff;
+}
+
+/* yarl 내부 컨테이너 default 검정 backdrop → transparent (Inline 모드) */
+.pd-yarl-wrap .yarl__container,
+.pd-yarl-wrap .yarl__slide {
+  background: transparent;
+}
+/* 메인 carousel 영역 surface 배경 — 메인 영역에만 적용 (썸네일 컨테이너 X) */
+.pd-yarl-wrap:not(.pd-yarl--with-thumbs) .yarl__container,
+.pd-yarl-wrap.pd-yarl--with-thumbs .yarl__thumbnails_wrapper {
+  background: var(--color-surface-warm);
+}
+
+/* 슬라이드 배경 — bg 그라데이션 + src contain 합성 (custom render.slide) */
+.pd-yarl-slide-bg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+/* 호버 시 살짝 dim — 기존 #pd-img::after 패턴 보존 */
+.pd-yarl-slide-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  transition: background var(--duration-drawer) ease;
+  pointer-events: none;
+}
+.pd-yarl-wrap:not(.no-nav):hover .pd-yarl-slide-bg::after {
+  background: rgba(0,0,0,.06);
+}
+
+/* 화살표 — hover-only + bgTheme 색상 (기존 .pd-img-arrow 패턴 보존) */
+.pd-yarl-wrap .yarl__navigation_prev,
+.pd-yarl-wrap .yarl__navigation_next {
+  color: var(--pd-yarl-arrow-color);
+  opacity: 0;
+  transition: opacity var(--duration-hover) linear, color var(--duration-hover) linear;
+}
+.pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_prev:not(:disabled),
+.pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_next:not(:disabled) {
+  opacity: .5;
+}
+.pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_prev:disabled,
+.pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_next:disabled {
+  opacity: .15;
+}
+.pd-yarl-wrap .yarl__navigation_prev:not(:disabled):hover,
+.pd-yarl-wrap .yarl__navigation_next:not(:disabled):hover {
+  opacity: 1;
+  color: var(--pd-yarl-arrow-color-hover);
+}
+/* 모바일/터치 — 화살표 숨김 (yarl carousel swipe 빌트인 사용) */
+@media (pointer: coarse), (max-width: 767px) {
+  .pd-yarl-wrap .yarl__navigation_prev,
+  .pd-yarl-wrap .yarl__navigation_next {
+    display: none;
+  }
+}
+
+/* 썸네일 스트립 (Thumbnails plugin · position: bottom) */
+.pd-yarl-wrap .yarl__thumbnails_container {
+  background: transparent;
+  padding: 12px 0 0;
+}
+.pd-yarl-wrap .yarl__thumbnails_thumbnail {
+  background: transparent;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0;
+  transition: border-color var(--duration-hover) linear;
+}
+.pd-yarl-wrap .yarl__thumbnails_thumbnail_active {
+  border-color: var(--color-text-primary);
+}
+.pd-yarl-thumb-bg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ══════════════════════════════════════════
+   RP-4c — Purchase Options (2026-04-11 개편)
+   ──────────────────────────────────────────
+   박스 카드 레이아웃:
+     - 3필드 그리드 (품목 · 수량 · 배송주기), 1:1:2 비율, 간격 20px
+     - 각 필드는 라벨(위) + 입력 박스(아래)
+     - 입력 박스 = 48px 높이, #FFF bg, 1px #DEDEDD 보더
+   상위 상단 가격은 ProductDetailPage 의 #pd-price 가 담당.
+   라이브 토탈은 제거됨 (볼륨 선택 시에만 상단 가격 갱신).
+   ══════════════════════════════════════════ */
+
+/* ── PDP 입력 박스 공통 height + font-size — CTA 와 일치 ── */
+:root {
+  --pd-input-height: 48px;
+  --pd-input-font-size: var(--type-body-m-size); /* 15px — CTA 와 동일 위계 */
+}
+
+/* ── 전체 품절 시 구매 옵션 일괄 비활성 (PR 2 결정 — A안) ──
+   chip / 정기배송 박스 / 수량 stepper 모두 표시는 유지하되 인터랙션 차단.
+   CTA 는 자체 .disabled 가 더 강한 opacity 토큰 (.3) 로 처리.
+   S158: 영역 opacity + chip 시각 모두 .option-chip--disabled (개별 sold-out) 과 통일. */
+.pd-purchase--disabled .option-chip-group,
+.pd-purchase--disabled #pd-subscription-block,
+.pd-purchase--disabled #pd-qty-block {
+  opacity: var(--state-disabled-opacity-chip);
+  pointer-events: none;
+}
+/* 품절 시 chip 들 disabled 시각 통일 — selected 강조 해제 + caption border + line-through */
+.pd-purchase--disabled .option-chip,
+.pd-purchase--disabled .option-chip--selected {
+  border-color: var(--color-text-caption);
+  color: var(--color-text-caption);
+  background: transparent;
+  box-shadow: none;
+  text-decoration: line-through;
+  font-weight: 400;
+}
+.pd-purchase--disabled .option-chip-sub {
+  color: var(--color-text-caption);
+}
+/* 품절 시 stepper 박스 흰 배경 해제 — chip 일반 톤과 일치 */
+.pd-purchase--disabled #pd-qty-block .pd-input-box {
+  background: transparent;
+}
+/* sub-box · stepper 도 chip 과 동일 caption 톤 통일 (line-through 는 chip 만 — 라벨/숫자 가독성 보존) */
+.pd-purchase--disabled .pd-sub-box,
+.pd-purchase--disabled .pd-sub-box--checked,
+.pd-purchase--disabled #pd-qty-block .pd-input-box {
+  border-color: var(--color-text-caption);
+  box-shadow: none;
+}
+.pd-purchase--disabled .pd-sub-toggle,
+.pd-purchase--disabled .pd-sub-toggle-label,
+.pd-purchase--disabled .pd-sub-cycle-trigger,
+.pd-purchase--disabled #pd-qty-num,
+.pd-purchase--disabled .pd-qty-icon {
+  color: var(--color-text-caption);
+}
+
+/* ── OptionChipGroup (V2 §6.11) ── */
+.option-chip-group {
+  margin-bottom: 24px;
+}
+.option-chip-label {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  color: var(--color-text-caption);
+  margin-bottom: 10px;
+}
+/* chip 가로 stretch — grid 균등 분배 (3 옵션 기본 · 옵션 수 다르면 --chip-count 로 override).
+   #pd-qty-block 도 동일 분모로 첫 chip 폭과 일치.
+   minmax(0, 1fr) 필수 — 자식 min-content 무시하고 free-space 정확히 균등. */
+.option-chip-list {
+  display: grid;
+  grid-template-columns: repeat(var(--chip-count, 3), minmax(0, 1fr));
+  gap: 8px;
+}
+.option-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: var(--pd-input-height);
+  /* 모바일 한 줄 강제 — sublabel ("5개 · 10,000원") 까지 nowrap.
+     데스크탑은 grid 1fr 로 충분, 모바일은 좌우 패딩 줄여서라도 한 줄 유지. */
+  padding: 0 12px;
+  min-width: 0;
+  background: transparent;
+  border: 1px solid var(--color-control-border);
+  border-radius: 2px;
+  font-family: var(--font-kr);
+  font-size: var(--pd-input-font-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-hover) ease,
+    box-shadow var(--duration-hover) ease,
+    color var(--duration-hover) ease;
+}
+/* hover 효과 제거 — selected 만 강조하여 의도 분명 */
+.option-chip--selected {
+  border-color: transparent;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  background: var(--color-background-pure);
+  box-shadow: inset 0 0 0 2px var(--color-control-border-selected);
+}
+.option-chip--disabled {
+  color: var(--color-text-caption);
+  border-color: var(--color-text-caption);
+  text-decoration: line-through;
+  cursor: not-allowed;
+  opacity: var(--state-disabled-opacity-chip);
+}
+/* sub 자체 color 명시가 main 의 disabled color override → 같이 caption 으로 통일 */
+.option-chip--disabled .option-chip-sub {
+  color: var(--color-text-caption);
+}
+.option-chip-main {
+  white-space: nowrap;
+  /* 한글 line-height normal 보정 — line-box=글리프 → align-items:center 시각 정중앙 */
+  line-height: 1;
+}
+.option-chip-sub {
+  color: var(--color-text-tertiary);
+  font-weight: 400;
+}
+.option-chip-badge {
+  font-size: var(--type-label-size);
+  letter-spacing: var(--ls-button);
+  color: var(--color-text-caption);
+}
+
+/* ── 정기배송 박스 (V2 §5.2) — chip 과 동일 height + full width ──
+   체크 전: sand 배경 (옵션 강조) / 체크 후: transparent + ink border */
+#pd-subscription-block {
+  margin-bottom: 24px;
+}
+/* chip 과 동일 패턴 — 외곽선만 + selected 시 2px inset + #FFFFFF 배경 (layout shift 회피) */
+.pd-sub-box {
+  position: relative;
+  height: var(--pd-input-height);
+  padding: 0 18px;
+  border: 1px solid var(--color-control-border);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: transparent;
+  transition:
+    background-color var(--duration-hover) ease,
+    box-shadow var(--duration-hover) ease;
+}
+.pd-sub-box--checked {
+  border-color: transparent;
+  background: #FFFFFF;
+  box-shadow: inset 0 0 0 2px var(--color-control-border-selected);
+}
+.pd-sub-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--font-kr);
+  font-size: var(--pd-input-font-size);
+  color: var(--color-text-primary);
+  flex: 1;
+  min-width: 0;
+  /* 체크박스 + 라벨만 좌측으로 시프트 (박스 padding 유지) */
+  margin-left: -7px;
+}
+/* 체크 후 — 라벨 hit area 는 텍스트까지만, 나머지 영역은 dropdown trigger 가 차지.
+   사용자 의도: "정기배송으로 받기" 까지 = 체크 해제 영역, 박스 우측 빈 공간 = dropdown 열기 영역. */
+.pd-sub-box--checked .pd-sub-toggle {
+  flex: 0 0 auto;
+}
+.pd-sub-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+.pd-sub-checkbox-box {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--color-border-input);
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: transparent;
+  flex-shrink: 0;
+  transition:
+    background-color var(--duration-hover) ease,
+    border-color var(--duration-hover) ease,
+    color var(--duration-hover) ease;
+}
+.pd-sub-checkbox-box svg {
+  width: 16px;
+  height: 16px;
+}
+.pd-sub-toggle input:checked + .pd-sub-checkbox-box {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-text-inverse);
+}
+.pd-sub-toggle input:focus-visible + .pd-sub-checkbox-box {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
+}
+.pd-sub-toggle-label {
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* 한글 line-height normal 보정 — 시각 중앙 정렬 */
+  line-height: 1;
+}
+/* 활성 시 라벨 강조 — selected 패턴 (chip · sub-box) 과 동일 weight 500 */
+.pd-sub-box--checked .pd-sub-toggle-label {
+  font-weight: 500;
+}
+.pd-sub-cycle-preview {
+  font-family: var(--font-kr);
+  font-size: var(--pd-input-font-size);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pd-sub-cycle-trigger {
+  display: inline-flex;
+  align-items: center;
+  /* 좌측 빈 영역 흡수 → trigger 클릭 영역 확장. 컨텐츠는 우측 정렬. */
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--pd-input-font-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  padding: 0;
+  white-space: nowrap;
+  /* 한글 line-height normal 보정 — 시각 중앙 정렬 */
+  line-height: 1;
+  /* chevron 24x24 가 박스 우측 모서리에서 위/아래 12px 와 동일하게 보이도록 보정.
+     좌측 .pd-sub-toggle margin-left: -7px 와 대칭. */
+  margin-right: -7px;
+}
+/* chevron override 제거 — 글로벌 룰 (icon 24x24) 일치 */
+.pd-sub-box[data-open='true'] .pd-input-box-chevron {
+  transform: rotate(180deg);
+  color: var(--color-text-primary);
+}
+.pd-sub-cycle-panel {
+  position: absolute;
+  top: calc(100% - 1px);
+  right: -1px;
+  min-width: 200px;
+  z-index: 5;
+}
+
+/* ── CTA row: 수량 스텝퍼 + 장바구니 한 줄 ──
+   - 데스크탑: 수량 = chip 1개 폭 (1/3) · CTA = 나머지 (2/3)
+   - 모바일: 수량 stack-친화적으로 max-width 제한
+   - flex gap 8px = chip-list gap 과 동일 */
+#pd-cta-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  /* PR-2a (S156 D안): margin-bottom 24 → 0. PurchaseRow 의 마지막 자식이라
+     데스크탑 baseline 정렬 (= #pd-info padding-bottom: var(--pd-thumbs-h)) 와 redundant.
+     모바일도 ②③④ chapter padding-top 48 이 spacing 담당. */
+  margin-bottom: 0;
+}
+#pd-qty-block {
+  flex: 0 0 calc((100% - 8px * 2) / 3);
+}
+#pd-qty-block .pd-input-box {
+  height: var(--pd-input-height);
+  padding: 0;
+  background: var(--color-background-pure);
+}
+
+/* 입력 박스 (드롭다운 트리거 + 수량 스테퍼 공용)
+   flash 애니메이션은 PR 2 에서 제거 (사용자 결정 — UX 노이즈) */
+.pd-input-box {
+  position: relative;
+  height: var(--pd-input-height, 52px);
+  background: transparent;
+  border: 1px solid var(--color-control-border);
+  display: flex;
+  align-items: center;
+  transition: border-color var(--duration-hover) ease;
+}
+.pd-input-box:focus-within {
+  border-color: var(--color-control-border-selected);
+}
+
+/* 드롭다운 트리거 버튼 (용량 / 주기) */
+.pd-input-box-trigger {
+  width: 100%;
+  height: 100%;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-xs);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: left;
+}
+#pd-cycle-btn.pd-input-box-trigger {
+  font-family: var(--font-kr);
+}
+.pd-input-box-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.pd-input-box-chevron {
+  width: 24px;
+  height: 24px;
+  color: var(--color-icon-default);
+  transition:
+    color var(--duration-hover) ease,
+    transform var(--duration-hover) ease;
+  flex-shrink: 0;
+}
+.pd-input-box-chevron:hover { color: var(--color-icon-default); }
+.pd-input-box[data-open="true"] .pd-input-box-chevron {
+  transform: rotate(180deg);
+  color: var(--color-text-primary);
+}
+
+/* 드롭다운 패널 — 버튼 바로 아래, 동일 폭 (보더 겹침 처리) */
+.pd-dropdown-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% - 1px);
+  left: -1px;
+  right: -1px;
+  background: var(--color-input-box-bg);
+  border: 1px solid var(--color-input-box-border-hover);
+  box-shadow: var(--shadow-dropdown);
+  z-index: 10;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.pd-dropdown-panel.open { display: block; }
+.pd-dropdown-hint {
+  padding: 10px 16px;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  color: var(--color-text-caption);
+  border-bottom: 1px solid var(--color-input-box-border);
+}
+.pd-dropdown-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  transition: background .15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-sm);
+}
+#pd-cycle-dropdown .pd-dropdown-option {
+  font-family: var(--font-kr);
+}
+.pd-dropdown-option:hover { background: var(--color-background-secondary); }
+.pd-dropdown-option.active { font-weight: 500; }
+
+/* 품목별 품절 옵션 — 선택 불가, 본문 흐리게.
+   PR-C (S158): chip disabled 와 통일 (line-through + opacity 토큰). */
+.pd-dropdown-option.sold-out {
+  color: var(--color-text-caption);
+  text-decoration: line-through;
+  cursor: not-allowed;
+  opacity: var(--state-disabled-opacity-chip);
+}
+.pd-dropdown-option.sold-out:hover { background: transparent; }
+
+/* 품절 뱃지 — 드롭다운 옵션 우측 중앙정렬 */
+.pd-dropdown-option-soldout {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  color: var(--color-text-caption);
+  letter-spacing: var(--ls-body);
+  flex-shrink: 0;
+}
+
+/* 수량 스테퍼 — CartDrawer .cd-qty 패턴: 양쪽 정사각 버튼(W=H) + 가운데 num */
+.pd-qty-stepper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pd-qty-icon {
+  width: var(--pd-input-height);
+  height: var(--pd-input-height);
+  padding: 12px;
+  box-sizing: border-box;
+  cursor: pointer;
+  color: var(--color-icon-default);
+  transition: color var(--duration-hover) ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+.pd-qty-icon:hover { color: var(--color-text-primary); }
+/* PR-B (S158): 인라인 style → 클래스 + 토큰 (--state-disabled-opacity-icon).
+   pointer-events none 이 hover 도 차단하므로 :hover 룰 자동 무시. */
+.pd-qty-icon--disabled {
+  opacity: var(--state-disabled-opacity-icon);
+  pointer-events: none;
+}
+#pd-qty-num {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-en);
+  font-size: var(--pd-input-font-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+/* 장바구니 버튼 — #pd-cta-row 안에서 수량 옆 같은 라인.
+   라벨 · separator · 가격 합계 (separator 는 텍스트와 가격 혼동 방지로 흐리게) */
+#pd-cart-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-btn-primary-bg);
+  color: var(--color-text-inverse);
+  font-family: var(--font-kr);
+  font-size: var(--cta-btn-font-size);
+  font-weight: var(--cta-btn-font-weight);
+  letter-spacing: var(--cta-btn-letter-spacing);
+  height: 48px;
+  cursor: pointer;
+  flex: 1 1 auto;
+  min-width: 0;
+  transition: background 200ms ease;
+  margin-bottom: 0;
+}
+/* PR-1c-2 — Blue Bottle hover/active darken (.disabled 제외) */
+#pd-cart-btn:not(.disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+#pd-cart-btn:not(.disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
+#pd-cart-btn.disabled { opacity: var(--state-disabled-opacity-cta); pointer-events: none; }
+/* a11y: 키보드 포커스 가시화 — Session 51 */
+#pd-cart-btn:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
+}
+.pd-cart-btn-sep {
+  /* 양쪽 두 칸 스페이스 — margin 으로 일관 */
+  margin: 0 0.6em;
+  opacity: 0.4;
+  font-weight: 400;
+}
+.pd-cart-btn-price {
+  font-weight: var(--cta-btn-font-weight);
+}
+
+/* 좁은 모바일 (< 460) 컨트롤 정보 단축 — S164 후속 분기점 확장 (BUG-360 → 460)
+   - CTA 라벨 "장바구니에 담기" → "담기" (< 375 만)
+   - chip sub 가격 숨김 (< 460 — 가격은 위 #pd-price + CTA 우측에 이미 표시 → 중복 제거) */
+@media (max-width: 374.98px) {
+  .pd-cart-btn-label[data-short] { font-size: 0; }
+  .pd-cart-btn-label[data-short]::before {
+    content: attr(data-short);
+    font-size: var(--cta-btn-font-size);
+  }
+}
+@media (max-width: 459.98px) {
+  .option-chip-sub { display: none; }
+}
+
+/* 반응형 — 모바일도 chip 한 줄 강제 (사용자 요청).
+   grid repeat(N, 1fr) 유지 + 패딩 축소 (.option-chip 0 12px) 로 한 줄에 맞춤.
+   sublabel 까지 nowrap, 공간 부족 시 폰트 축약. */
+@media (max-width: 767px) {
+  .option-chip {
+    padding: 0 8px;
+    /* 공간 더 부족할 경우 sublabel 만 더 작게 */
+    gap: 4px;
+  }
+  .option-chip-sub {
+    font-size: 13px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   RP-4d: 로스팅 / 노트 / 레시피 / 아코디언
+   ──────────────────────────────────────────
+   상세 설명(#pd-detail-body)·spec 블록(#pd-detail-specs)은 PR 1 에서 제거.
+   설명은 #pd-name 아래 #pd-desc 로 이동, 블렌드/원산지 표기는 폐기.
+   ══════════════════════════════════════════ */
+
+/* ── 공통: 우측 섹션 구분선 (로스팅/노트/레시피 상단) ── */
+.pd-info-section {
+  margin-bottom: 48px;
+  padding-top: 48px;
+  box-shadow: inset 0 1px 0 0 var(--color-border-tertiary);
+}
+/* 상세 본문 바로 다음(#pd-roast-section)은 detail-body 하단 마진과 중복되므로
+   상단 border 는 유지하되 padding-top 만 동일하게 맞춤 */
+.pd-section-title {
+  font-family: var(--font-en);
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-heading);
+  color: var(--color-text-secondary);
+  margin-bottom: 18px;
+}
+
+/* ── 로스팅 게이지 (Advisory C §2.2 · S163 PR-2) ──
+   그라디언트 track + cream/ink 핀 · 5-tick · KO/EN 라벨 row · 설명
+   폰트는 자문 raw 값(9·11·13.5·22) 대신 프로젝트 type 토큰 매핑 */
+.pd-roast-section-label {
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--ls-label);
+  color: var(--ink-on-sand);
+  text-transform: uppercase;
+  margin: 0 0 16px;
+}
+.pd-roast-track {
+  position: relative;
+  height: 8px;
+  background: linear-gradient(90deg, #C9A678 0%, #8C5A2E 50%, #2D1F12 100%);
+  margin-bottom: 12px;
+}
+.pd-roast-pin {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-background-primary);
+  /* 레이더 마커와 통일 — 커피색 (S164 후속 옵션 A 정정) */
+  border: 2px solid var(--color-flavor-marker);
+  /* 진입 애니: 0% → pinPct 슬라이드 · easeBack 톤 */
+  transition: left 800ms cubic-bezier(0.4, 1.3, 0.5, 1);
+}
+.pd-roast-ticks {
+  position: relative;
+  height: 20px;
+  margin-bottom: 16px;
+}
+.pd-roast-tick {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: var(--type-body-m-weight);
+  letter-spacing: var(--ls-kr-body);
+  color: var(--ink-on-sand);
+}
+.pd-roast-tick--active {
+  /* 활성 단계 tick — KO/EN 큰 라벨 폐기 후 단계 인지 hook (S164 PR-3 후속) */
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+.pd-roast-desc {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  color: var(--ink-on-sand);
+  line-height: var(--lh-kr-body-15);
+  margin: 0;
+}
+
+/* ── Flavor Note: outlined chips (Advisory C §3 · S164 PR-3) ──
+   ProductRoastStage 와 대칭: pd-flavor-section-label "Flavor" + chips
+   chip 표시 spec = .sig-chips span 매칭 (메인 시그니처 통일):
+     white bg / 4·12 padding / body-s 13 / lh 16 / ls 0 / weight 400 / gap 6
+   영문 sub 만 PDP 추가 분 (advisory C §3.3 outlined + 영문 부제) */
+.pd-flavor-section-label {
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--ls-label);
+  color: var(--ink-on-sand);
+  text-transform: uppercase;
+  margin: 0 0 16px;
+}
+#pd-note-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pd-note-tag {
+  background: var(--color-background-primary);
+  padding: 4px 12px;
+  border: 1px solid #C9BBA3;
+  border-radius: 0;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 16px;
+  color: var(--color-text-primary);
+}
+.pd-note-tag-en {
+  margin-left: 6px;
+  font-family: var(--font-en);
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--ls-editorial);
+  line-height: 16px;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+}
+/* Flavor desc — chips 아래 (좌측 Roasting desc 시각 매칭) · 동일 spec */
+.pd-flavor-desc {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  color: var(--ink-on-sand);
+  line-height: var(--lh-kr-body-15);
+  margin: 16px 0 0;
+}
+
+/* ── Flavor Radar (S164 PR-3 후속): 동적 5축 레이더 — GTR 차별화 시각 hook ── */
+.pd-radar-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.pd-radar-canvas {
+  max-width: 480px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: block;
+}
+
+/* ── 섹션 intro (Roasting/Flavor/Recipe 공통) ── */
+.pd-section-intro {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  line-height: 24px;
+  margin: -6px 0 24px;
+  white-space: pre-line;
+}
+
+/* ── 레시피 가이드 (Coffee Bean) ── */
+/* ══════════════════════════════════════════════════════════════
+   설계: Container Queries (cqi 단위 illust 크기) + 뷰포트 MQ (레이아웃 방향)
+   ─ 레이아웃 방향: >=1024px 스택(상하) / <1024px 사이드바이사이드(좌우)
+   ─ illust 크기: clamp(100px, 35cqi, 150px) — 카드 폭 기준 연속 조정
+   ─ pd-recipe-table: max-content minmax(0,1fr) — dd 오버플로 원천 차단
+   ─ 실패 이력: transform:scale 금지, max-content max-content 금지,
+                MQ는 베이스 뒤 선언, flex:1 1 0 illust 금지
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 카드 그리드 컨테이너 ──
+   S159 PR-2c (V2 §5.4): 1280+ 에서 4-col (자문 §5.4 g4 와이어프레임 1440 baseline 부합).
+   - 1280+ 원두 4-col / 드립백 3-col
+   - 1024-1279 원두 2-col / 드립백 3-col (좁은 데스크탑 카드 폭 polish 우선)
+   - <1024 원두 1-col / 드립백 3-col
+   - <=480 모두 1-col */
+#pd-recipe-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gap-md);
+  /* CQ: 카드 폭 기준 illust 크기 조정을 위해 container 선언 */
+  container-type: inline-size;
+}
+
+/* 1280+: 원두 4-col (chapter 풀폭 활용 · 자문 §5.4 부합) */
+@media (min-width: 1280px) {
+  #pd-recipe-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ── 드립백 레시피: 3열 오버라이드 ── */
+#pd-recipe-cards.is-drip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* S136: column-gap 16 (카드 사이 가로) 유지, row-gap 만 8 (카드 ↔ TIP 세로 거리 축소) */
+  row-gap: 8px;
+}
+/* <768px: 1열 전환 (모바일 콘텐츠 폭 좁아 사이드바이사이드 카드도 1 col) —
+   S159 PR-2c: 기존 1023 분기 → 767 분기. 768-1023 사이드바이사이드 카드 2 cols 활용 */
+@media (max-width: 767px) {
+  #pd-recipe-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #pd-recipe-cards.is-drip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+/* <=480px: 드립백도 1열 (카드 너무 좁음) */
+@media (max-width: 480px) {
+  #pd-recipe-cards.is-drip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── 공통 카드 기반 (드립백 + 커피빈 공통)
+   S136: 폰트 축소 (15/13) 비례 padding/gap 축소
+   S159 PR-2c (V2 §5.4): 자문 spec 부합 — bg 제거 + border 1px line + R 0
+   (사이트 R 0 흐름 통일 — S157 chip · S158 yarl · specialty editorial 톤) */
+.pd-recipe-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  background: transparent;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0;
+  min-width: 0;
+}
+
+/* ── Coffee Bean split 카드 베이스 ── */
+.pd-recipe-card--split {
+  align-items: stretch;
+  gap: 12px;
+}
+
+/* ── split 카드 내부 body: grid로 illust|text 2열 ── */
+/* 기본(모바일, <1024px): 사이드바이사이드 — illust 좌(고정) + text 우(flex) */
+.pd-recipe-card--split .pd-recipe-body {
+  display: grid;
+  /* illust 컬럼: clamp(100px, 35cqi, 150px) — CQ 기준 카드 폭의 35%, 100-150px 사이 */
+  /* cqi = container inline-size 의 1% (#pd-recipe-cards 기준) */
+  grid-template-columns: clamp(130px, 40cqi, 150px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+/* ── illust 영역 ── */
+.pd-recipe-card--split .pd-recipe-illust {
+  /* grid 컬럼이 크기를 결정 — 공통 .pd-recipe-illust 의 196px 고정값을 해제 */
+  width: auto;
+  height: auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* illust img: 컨테이너 폭에 맞게 축소, aspect-ratio 유지 */
+.pd-recipe-card--split .pd-recipe-illust img {
+  /* grid 컬럼 폭과 일치 — clamp(100px, 35cqi, 150px) */
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  display: block;
+}
+
+/* ── text 영역 (모바일: 상단부터 시작) ── */
+.pd-recipe-card--split .pd-recipe-text {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  align-self: start;
+  padding-top: 2px;
+}
+
+/* 메서드명: 모바일에서 좌측 정렬 */
+.pd-recipe-card--split .pd-recipe-text .pd-recipe-method {
+  text-align: left;
+}
+
+/* 표: split 카드에서는 margin auto 해제 */
+.pd-recipe-card--split .pd-recipe-text .pd-recipe-table {
+  margin: 0;
+}
+.pd-recipe-card--split .pd-recipe-table {
+  margin: 0;
+  /* minmax(0,1fr) 가 작동하려면 테이블이 text 영역 풀폭 차지해야 함 */
+  width: 100%;
+}
+
+/* ── 태블릿 구간 (481~1023px): 카드 폭이 과도하게 넓으므로 body 중앙 정렬 ── */
+/* pd-content 1col + recipe 1col 이면 카드 폭 ~690px 까지 커지는데 */
+/* illust(150) + text 실사용(~250) 합쳐도 우측 공간이 과도하게 남음 */
+/* body max-width 제약으로 콘텐츠를 카드 중앙에 모아 시각 밸런스 확보 */
+@media (min-width: 481px) and (max-width: 1023px) {
+  .pd-recipe-card--split .pd-recipe-body {
+    max-width: 460px;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 20px;
+  }
+}
+
+/* ── 데스크탑 스택 레이아웃 (vp >= 1024px) ── */
+/* pd-content가 2col이므로 카드폭 208~312px — 스택(상하)이 자연스러움 */
+@media (min-width: 1024px) {
+  .pd-recipe-card--split .pd-recipe-body {
+    /* 스택: 단일 컬럼, illust 위 · text 아래 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* illust: 카드 풀폭, 최대 200px, 중앙 정렬 */
+  .pd-recipe-card--split .pd-recipe-illust {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .pd-recipe-card--split .pd-recipe-illust img {
+    /* S136: 200 → 160 (폰트 축소 비례 통일) */
+    width: min(160px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  /* text: 카드 풀폭, 중앙 정렬 */
+  .pd-recipe-card--split .pd-recipe-text {
+    width: 100%;
+    align-self: unset;
+    padding-top: 0;
+  }
+
+  /* dl table 박스: 데스크탑 stack 중앙 정렬 (S159 PR-2c · 드립백 톤 통일) —
+     모바일 사이드바이사이드는 좌측 정렬 유지, 데스크탑 stack 만 중앙. */
+  .pd-recipe-card--split .pd-recipe-text .pd-recipe-table,
+  .pd-recipe-card--split .pd-recipe-table {
+    margin: 0 auto;
+    width: fit-content;
+  }
+
+  /* 메서드명: 데스크탑에서 중앙 정렬 */
+  .pd-recipe-card--split .pd-recipe-text .pd-recipe-method {
+    text-align: center;
+  }
+}
+
+/* ── 공통 공유 룰 (드립백 포함) ── */
+/* Drip Bag 일러스트 컨테이너 */
+/* S136: illust max 196 → 160 (폰트 축소 비례 카드 시각 anchor 비중 축소) */
+.pd-recipe-illust {
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pd-recipe-illust img {
+  width: 160px;
+  height: 160px;
+  display: block;
+}
+
+/* ── Drip Bag illust 반응형 — S136 (오버플로우 fix + 160 통일) ──
+   3-col 카드 폭 < 244px 시 절대값이 카드 밖으로 비어져 나옴.
+   split 패턴 (.pd-recipe-card--split) 과 동일하게 카드 폭 비례 + max 160. */
+#pd-recipe-cards.is-drip .pd-recipe-illust {
+  width: 100%;
+  height: auto;
+}
+#pd-recipe-cards.is-drip .pd-recipe-illust img {
+  width: min(160px, 100%);
+  height: auto;
+  aspect-ratio: 1 / 1;
+}
+
+/* 메서드명 — S136: clamp 17.7 → 정수 15 (Coffee Bean + Drip Bag 통일) */
+.pd-recipe-method {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 16px;
+  text-align: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--color-border-tertiary);
+  align-self: stretch;
+}
+
+/* 드립백 카드 본문 — S136: Pretendard 13 secondary line-height 1.7
+   기존엔 토큰 미할당 → root inherit (16 Inter) 의도치 않은 상태였음 */
+.pd-drip-step-body {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  line-height: 24px;
+  text-align: center;
+  margin: 0;
+}
+
+/* 추출 데이터 표 ── */
+/* max-content minmax(0,1fr): dt는 자연 폭, dd는 남은 공간 전부 차지하며 오버플로 없음 */
+/* 기존 max-content max-content 는 긴 dd("2분 이내(뜸 30초)")가 카드 밖으로 넘치는 원인이었음 */
+/* S159 PR-2c: font-size body-m 15 → body-s 13 (드립백 step body 와 톤 통일) +
+   line-height 24 → 20 (body-s 13 비례 1.54 — 4 row 행간 압축 / 카드 컴팩트) */
+.pd-recipe-table {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  row-gap: 6px;
+  column-gap: var(--gap-sm);
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  line-height: 20px;
+  align-items: baseline;
+  /* split 카드에서는 margin:0 (위 .pd-recipe-card--split .pd-recipe-table 으로 덮임) */
+  /* 드립백 카드에서는 width:fit-content + margin:0 auto (중앙 정렬) */
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.pd-recipe-dt {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap-xs);
+  min-width: 3em;
+}
+.pd-recipe-dt > span {
+  display: inline-flex;
+  justify-content: space-between;
+  width: 100%;
+  text-align: justify;
+  text-align-last: justify;
+}
+
+.pd-recipe-dd {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  /* minmax(0,1fr) 와 함께 줄바꿈 허용, 오버플로 금지 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* ── 레시피 가이드 (Drip Bag) ── */
+.pd-drip-icons {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin-bottom: 44px;
+}
+.pd-drip-icon-item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.pd-drip-icon-item svg {
+  width: 80px;
+  height: 80px;
+  color: var(--color-text-secondary);
+}
+.pd-drip-sep {
+  color: #C4C0BA;
+  font-size: var(--type-body-l-size);
+  font-weight: 300;
+  align-self: center;
+  margin-bottom: 4px;
+  padding: 0 2px;
+}
+.pd-drip-step {
+  display: flex;
+  gap: var(--gap-lg);
+  margin-bottom: 8px;
+  align-items: baseline;
+}
+.pd-drip-step-num {
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-step);
+  white-space: nowrap;
+  color: var(--color-text-primary);
+  width: 5em;
+  flex-shrink: 0;
+}
+.pd-drip-step-text {
+  font-family: var(--font-kr);
+  font-size: var(--type-heading-s-size);
+  color: var(--color-text-secondary);
+  line-height: 28px;
+  font-weight: 400;
+}
+.pd-drip-tip {
+  /* 드립 카드 그리드의 4번째 셀 — 전체 폭 사용 */
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+  /* S136: baseline — 라벨/본문 텍스트 baseline 정렬 (line-height 차이 16.5 vs 23.39) */
+  align-items: baseline;
+  /* S136: 박스 자체 중앙 정렬 — width max-content + justify-self center 명시
+     (margin auto 가 grid item 에서 stretch default 와 충돌해 좌측 정렬되던 issue fix) */
+  width: max-content;
+  max-width: 100%;
+  justify-self: center;
+  margin: 0;
+  /* S136: padding 12 20 0 — top 12 (카드와 거리), bottom 0 (section margin 48 만 효력)
+     박스 배경 없어 비대칭 padding 시각 영향 0, 위/아래 거리 균등 (42 vs 48) */
+  padding: 12px 20px 0;
+}
+.pd-drip-tip-label {
+  /* V2 §6.12 (S136): 11px gold caption 톤 — eyebrow caps + accent-gold */
+  font-family: var(--font-en);
+  font-size: var(--type-label-size);
+  font-weight: 600;
+  letter-spacing: 1.8px;       /* S142 PR-3: 11 × 0.16 = 1.76 → 1.8 (eyebrow wider) */
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-accent-gold);
+  /* S136: 5em 고정 폭 → 자연 폭 (라벨 뒤 빈 공간 제거) */
+  flex-shrink: 0;
+}
+.pd-drip-tip-text {
+  font-family: var(--font-kr);
+  /* S136: heading-s (16) → body-s (13) — 부가 caption 톤 */
+  font-size: var(--type-body-s-size);
+  color: var(--color-text-secondary);
+  line-height: 28px;
+  font-weight: 400;
+}
+@media (max-width: 767px) {
+  .pd-drip-step-num,
+  .pd-drip-tip-label {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+}
+
+
+/* ── SpecTable — 4-col grid (label·value·label·value) ── */
+.spec-table {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  line-height: 24px;
+}
+.spec-table-grid {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px 1fr;
+  border-top: 1px solid var(--color-border-tertiary);
+  border-left: 1px solid var(--color-border-tertiary);
+  margin: 0;
+}
+.spec-row { display: contents; }
+.spec-label,
+.spec-value {
+  padding: 6px 10px;
+  border-right: 1px solid var(--color-border-tertiary);
+  border-bottom: 1px solid var(--color-border-tertiary);
+  vertical-align: top;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  margin: 0;
+}
+.spec-label {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+.spec-value {
+  color: var(--color-text-secondary);
+}
+.spec-row--full > .spec-label { grid-column: 1 / 2; }
+.spec-row--full > .spec-value { grid-column: 2 / -1; }
+
+/* footer 가 있으면 표의 마지막 행 border-bottom 을 footer 와 연결 */
+.spec-table-grid--has-footer .spec-row:last-child > .spec-label,
+.spec-table-grid--has-footer .spec-row:last-child > .spec-value {
+  border-bottom: 1px solid var(--color-border-tertiary);
+}
+
+/* ── footer: 좌(notices 2 행) / 우(cert 가로, 2 행 병합) ── */
+.spec-footer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  border-left: 1px solid var(--color-border-tertiary);
+  border-right: 1px solid var(--color-border-tertiary);
+  border-bottom: 1px solid var(--color-border-tertiary);
+}
+.spec-footer-notices {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border-tertiary);
+}
+.spec-footer-notice {
+  padding: 8px 10px;
+  margin: 0;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  line-height: 24px;
+  color: var(--color-text-tertiary);
+  border-bottom: 1px solid var(--color-border-tertiary);
+}
+.spec-footer-notice:last-child { border-bottom: none; }
+.spec-footer-cert {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  list-style: none;
+  padding: 14px 22px;
+  margin: 0;
+}
+.spec-footer-cert-item {
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+}
+.spec-footer-cert-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ── 반응형: 1024↓ 좌 스티키 해제 · 1열 스택 ── */
+@media (max-width: 1024px) {
+  #pd-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #pd-img-wrap {
+    position: static;
+    padding: 0 40px 40px;
+    grid-column: 1;
+    min-width: 0;
+  }
+  #pd-info {
+    /* S136: bottom 0 → 60 복원 (베이스 80 의 75%) — 푸터 간격 fix */
+    padding: 0 40px 60px;
+    grid-column: 1;
+    min-width: 0;
+  }
+}
+@media (max-width: 767px) {
+  #pd-img-wrap {
+    padding: 0 20px 32px;
+  }
+  #pd-info {
+    /* S136: bottom 0 → 40 복원 — 푸터 간격 fix */
+    padding: 0 20px 40px;
+  }
+  .pd-recipe-card {
+    /* S136: 모바일 padding 비례 축소 */
+    padding: 16px 16px 18px;
+  }
+  .pd-drip-tip {
+    /* S136: 모바일 padding — top 12 / 좌우 16 (카드 padding 16 일치) / bottom 0
+       데스크탑 패턴 (12 20 0) 과 동일. bottom 0 으로 section margin-bottom 48 만 효력 */
+    padding: 12px 16px 0;
+  }
+  /* SpecTable: 4-col → 2-col 그리드 */
+  .spec-table-grid {
+    grid-template-columns: 100px 1fr;
+  }
+  .spec-row--full > .spec-value { grid-column: 2 / -1; }
+  /* footer: 좌우 분할 → 위·아래 stack */
+  .spec-footer {
+    grid-template-columns: 1fr;
+  }
+  .spec-footer-notices {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+  }
+}
+
+/* 레시피 카드 — 360 구간 좌/우 padding 하이브리드 축소
+   767 블록(padding: 20px 20px 22px) 이후 선언되어 캐스케이드 우선 보장.
+   좌 20→8 (이미지 좌측 이동), 우 20→14 (텍스트 추가 확보). */
+@media (max-width: 480px) {
+  .pd-recipe-card {
+    padding: 20px 14px 22px 8px;
+  }
+}

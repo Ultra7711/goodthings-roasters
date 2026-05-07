@@ -16,6 +16,7 @@
 
 'use client';
 
+import './ProductDetailPage.css';
 import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { type Product, splitName } from '@/lib/products';
 import ProductGallery from './ProductGallery';
