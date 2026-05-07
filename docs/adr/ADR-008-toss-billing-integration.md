@@ -129,6 +129,9 @@ billing_methods
 - create_order 시점 = pending order만 INSERT (subscription 미생성, 사전 중복 검증만 수행)
 - 빌링 첫 회차 결제 성공 시점 = subscription INSERT (active)
 
+**S177 후속:** Phase 3-A 완료 후 dead code 정리.
+`subscription_count` 응답 필드는 항상 0 — 042 cutover 후 의미는 deprecated 이지만 RPC 응답 호환을 위해 type 만 유지 (`orderRepo.CreateOrderRpcResult`, `orderClient.CreateOrderResponse`). 정기배송 등록 안내 UI 는 Phase 3-B `/billing/success` 콜백에서 처리.
+
 ---
 
 ## 3. 설계
@@ -197,6 +200,11 @@ billing_methods
 ```
 
 ### 3.3 DB Schema 추가/변경
+
+> **RLS 정책 (S176 결정):**
+> `billing_methods` 는 **service-role only** 로 운영. 정책 0개 + `revoke all on table public.billing_methods from public, anon, authenticated`.
+> 이유: billing_key 는 평문 노출 시 즉시 결제 가능한 민감 자격증명 → 클라이언트 직접 SELECT/INSERT 차단. 모든 접근은 `/api/billing/*` 라우트에서 service-role 클라이언트로 검증된 경로만 허용.
+> 마이그레이션 040 본문 참조 (`supabase/migrations/040_billing_methods_schema.sql`).
 
 **신규:**
 
@@ -291,6 +299,7 @@ create table public.subscription_billing_failures (
 2. 빌링 실패 시 사용자 메일 + 마이페이지 배너
 3. 카드 재등록 유도 페이지
 4. 운영자 admin 빌링 실패 모니터링
+5. **계좌 빌링 결제 흐름** — Phase 3-A 는 카드만 처리 (`process_billing_charge_success` RPC method='card' 가드, billingService 카드 가정). 계좌 빌링 결제는 토스 transfer billing API 호출 + RPC 가드 완화 + billing_methods.account_number_masked 활용 흐름으로 별도 설계.
 
 ### Phase 3-E — 운영 전환
 

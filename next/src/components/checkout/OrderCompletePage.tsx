@@ -556,11 +556,10 @@ export default function OrderCompletePage() {
 
           <p className="ocp-subtitle">주문번호는 배송조회하실 때 필요합니다.</p>
 
-          {(order.subscriptionCount ?? 0) > 0 && (
-            <p className="ocp-subtitle" style={{ color: 'var(--color-success)', marginTop: 12 }}>
-              정기배송 {order.subscriptionCount}건이 등록되었습니다. 마이페이지에서 확인하세요.
-            </p>
-          )}
+          {/*
+            042 cutover 후 create_order 는 subscription INSERT 안 함 → subscriptionCount 항상 0.
+            정기배송 등록 안내는 /billing/success 콜백 (Phase 3-B) 에서 처리.
+          */}
 
           <div className="ocp-summary">
             {order.items.map((item, idx) => (

@@ -215,11 +215,9 @@ export function useCheckoutFlow({
             toast('필수 약관에 동의해 주세요.');
             break;
           case 'conflict':
-            if (err.detail?.includes('duplicate_subscription')) {
-              toast('이미 동일 상품을 정기배송 중입니다. 마이페이지에서 확인해 주세요.');
-            } else {
-              toast('상품 정보가 변경되었습니다. 장바구니를 확인해 주세요.');
-            }
+            // 042 cutover 후 /api/orders 는 duplicate_subscription 을 더 이상 throw 하지 않음.
+            // 정기배송 중복은 /api/billing/charge 단계에서 검출 → 빌링 success 페이지에서 처리.
+            toast('상품 정보가 변경되었습니다. 장바구니를 확인해 주세요.');
             break;
           case 'validation_failed':
             toast('입력 정보를 확인해 주세요.');

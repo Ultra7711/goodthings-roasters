@@ -78,9 +78,7 @@ export type OrderServiceErrorCode =
   | 'volume_sold_out'
   | 'subscription_not_allowed'
   | 'guest_pin_required'
-  | 'guest_email_required'
-  /** B-5 (026): 동일 user·product·cycle 의 active 구독이 이미 존재 */
-  | 'duplicate_subscription';
+  | 'guest_email_required';
 
 /* ══════════════════════════════════════════
    순수 계산 유틸 (테스트 대상)
@@ -243,9 +241,9 @@ export async function createOrderFromInput(
   const depositorName =
     input.payment.method === 'transfer' ? input.payment.depositorName : null;
 
-  /* 5) RPC 호출 */
-  try {
-    return await createOrderRpc({
+  /* 5) RPC 호출 — 042 cutover 후 create_order 는 subscription INSERT 안 함.
+        정기배송 등록은 빌링 결제 성공 시점 (process_billing_charge_success). */
+  return await createOrderRpc({
     userId: ctx.userId,
     guestEmail: ctx.userId == null ? ctx.guestEmail : null,
     guestPinHash,
@@ -271,12 +269,5 @@ export async function createOrderFromInput(
     totalAmount,
     termsVersion: input.termsVersion,
     items: rpcItems,
-    });
-  } catch (err) {
-    // B-5: orderRepo 가 23505 을 감지해 태깅한 에러 → OrderServiceError 로 승격
-    if (err instanceof Error && (err as { isDuplicateSubscription?: boolean }).isDuplicateSubscription) {
-      throw new OrderServiceError('duplicate_subscription');
-    }
-    throw err;
-  }
+  });
 }

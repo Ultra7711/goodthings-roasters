@@ -66,7 +66,11 @@ export type CreateOrderRpcResult = {
   totalAmount: number;
   /** 서버 기준 주문 생성 시각 (ISO-8601). 017 마이그레이션에서 RPC 반환값에 추가. */
   createdAt: string;
-  /** 이번 주문으로 생성된 정기배송 건수. 026 마이그레이션에서 추가. 게스트 주문은 0. */
+  /**
+   * @deprecated 042 cutover 후 항상 0. create_order RPC 가 더 이상 subscriptions INSERT 하지 않음.
+   * 정기배송 등록은 process_billing_charge_success RPC (Phase 3-A) 가 담당.
+   * RPC 응답 5번째 컬럼 호환을 위해 type 만 유지.
+   */
   subscriptionCount: number;
 };
 
@@ -184,18 +188,7 @@ export async function createOrder(
       subscription_count: number;
     }>();
 
-  if (error) {
-    // B-5: 중복 구독 unique constraint (subscriptions_active_unique) 감지 → 상위에서 처리
-    if (
-      (error as { code?: string }).code === '23505' &&
-      error.message?.includes('subscriptions_active_unique')
-    ) {
-      throw Object.assign(new Error('duplicate_subscription'), {
-        isDuplicateSubscription: true,
-      });
-    }
-    throw error;
-  }
+  if (error) throw error;
   if (!data) throw new Error('create_order_rpc_empty_result');
 
   return {
@@ -387,8 +380,10 @@ export async function deletePendingOrderForUser(
   if (lookupError) throw lookupError;
   if (!target) return false;
 
-  /* 2) 연관 subscription 먼저 DELETE — FK initial_order_id ON DELETE SET NULL
-        로 dead row 가 남는 것을 방지. */
+  /* 2) 연관 subscription 선제 DELETE.
+        042 cutover 후 create_order RPC 는 subscription INSERT 를 하지 않으므로
+        pending order 에는 항상 0 row 영향이지만, FK initial_order_id ON DELETE SET NULL
+        의 dead row 방지 + 사후 마이그레이션 호환을 위해 defensive 보존. */
   const { error: subError } = await admin
     .from('subscriptions')
     .delete()
