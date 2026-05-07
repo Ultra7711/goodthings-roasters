@@ -24,6 +24,7 @@
 
 'use client';
 
+import './BizInquiryPage.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { shakeFields } from '@/lib/shakeFields';
