@@ -23,6 +23,7 @@
 
 'use client';
 
+import './StoryPage.css';
 import { useEffect, useRef, useState } from 'react';
 import {
   STORY_HERO,
