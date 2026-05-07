@@ -20,6 +20,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { SignatureSettings } from '@/lib/siteSettings';
 import { PRODUCTS } from '@/lib/products';
+import './SignatureChapterView.css';
 
 interface SignatureChapterViewProps {
   signature: SignatureSettings;
