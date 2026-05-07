@@ -10,6 +10,7 @@
 
 'use client';
 
+import './MyPagePage.css';
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';

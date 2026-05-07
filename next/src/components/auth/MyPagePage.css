@@ -1,0 +1,583 @@
+/* ══════════════════════════════════════════
+   MY PAGE — /mypage (라우트 단독 자산)
+
+   S187 Pilot 8: globals.css 6606-7176 영역에서 라우트 단독 셀렉터만 colocate.
+   - mp-* 본문 (~570 LOC)
+   - @keyframes mp-modal-shake (MyPage 모달 단독)
+
+   잔류 cross-route 셀렉터 (옵션 A):
+   - .mp-save-btn:not(:disabled):hover, .mp-modal-confirm:not(:disabled):hover
+     → globals.css `@media (hover: none)` 모바일 hover 차단 정책 그룹에 잔류.
+
+   외부 클래스 의존:
+   - .pd-dropdown-panel — PDP 시스템 (globals 잔류)
+
+   사용처: components/auth/MyPagePage.tsx + components/auth/mypage/* (8 컴포넌트)
+   ══════════════════════════════════════════ */
+
+/* 본문: 좌우 2단 — 3:2 비대칭 */
+.mp-body {
+  flex: 1; display: grid;
+  grid-template-columns: 7fr 5fr;
+  max-width: 1440px; width: 100%; margin: 0 auto;
+  padding: 48px 60px 80px; gap: 80px;
+  align-items: start;
+}
+
+/* 좌측 */
+.mp-left { display: flex; flex-direction: column; gap: 0; padding-top: 8px; }
+.mp-page-title {
+  font-family: var(--font-kr); font-size: var(--type-h1-size); font-weight: var(--type-h1-weight);
+  color: var(--color-text-primary); letter-spacing: var(--ls-heading); line-height: var(--lh-h1);
+}
+.mp-welcome-wrap { display: flex; flex-direction: row; align-items: baseline; gap: var(--gap-md); flex-wrap: wrap; margin-top: 16px; }
+.mp-welcome-txt {
+  font-family: var(--font-kr); font-size: var(--type-body-reading-size); font-weight: var(--type-body-reading-weight);
+  color: var(--color-text-secondary);
+}
+.mp-logout-link {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  color: var(--text-link-color);
+  border: none;
+  line-height: 1;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: var(--text-link-font-weight);
+  letter-spacing: var(--text-link-letter-spacing);
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
+}
+.mp-logout-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
+
+/* 섹션 — #12: 컨텐츠(타이틀 제외)만 흰 박스 */
+.mp-section {
+  margin-top: 32px;
+  border-top: none;
+}
+.mp-section:first-of-type { margin-top: 24px; }
+.mp-section--no-border { border-top: none; }
+.mp-section-body {
+  background: var(--color-surface-subtle);
+  margin: -2px -20px;
+  padding: 2px 20px;
+  border-radius: 16px;
+  position: relative;
+}
+.mp-section-title {
+  font-family: var(--font-en); font-size: var(--type-body-l-size); font-weight: 500;
+  color: var(--color-text-primary); letter-spacing: var(--ls-heading);
+  margin-bottom: 24px;
+}
+
+/* 정보 행 — 정기배송/주문내역 (20px) 와 padding 통일 */
+.mp-info-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 20px 0;
+  box-shadow: inset 0 -1px 0 0 var(--color-border-hairline);
+}
+.mp-info-row:last-child { box-shadow: none; }
+/* 배송지: column stretch + 내부 chevron top:6 → baseline 정렬에서 약 6.2px 위로 확장.
+   다른 행과 시각 정렬을 위해 padding-top 8px 차감 (16→8 보정). */
+.mp-info-row--addr { flex-direction: column; align-items: stretch; border-bottom: none; padding-top: 12px; }
+.mp-addr-icon-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; padding: 0;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--color-icon-muted);
+  transition: color var(--duration-hover) ease;
+  flex-shrink: 0; position: relative; top: 6px;
+}
+.mp-addr-icon-btn:hover { color: var(--color-icon-default); }
+.mp-icon-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; padding: 0;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--color-icon-muted);
+  transition: color var(--duration-hover) ease;
+  flex-shrink: 0;
+}
+.mp-icon-btn:hover { color: var(--color-icon-default); }
+.mp-info-row-top { display: flex; align-items: baseline; justify-content: space-between; width: 100%; }
+.mp-info-addr-right { display: flex; align-items: baseline; gap: var(--gap-md); }
+.mp-info-row--action { align-items: center; box-shadow: inset 0 -1px 0 0 var(--color-border-hairline); }
+.mp-info-row--action:has(+ .mp-form-reveal.open) { border-bottom: none; }
+/* 회원 탈퇴: baseline 정렬 시 icon-btn top:6 + button display:flex baseline 차이로
+   label 텍스트가 hairline 에 가깝게 시프트됨 → align-items:center 로 통일하면
+   비밀번호 변경 행 (mp-info-row--action) 과 동일한 시각 정렬 확보. */
+.mp-info-row.mp-info-row--withdraw { margin-top: 0; border-bottom: none; align-items: center; }
+.mp-info-row--withdraw .mp-icon-btn { position: relative; top: 6px; }
+.mp-info-label {
+  font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 500;
+  color: var(--color-text-secondary); white-space: nowrap; min-width: 60px;
+}
+.mp-addr-empty { font-weight: var(--type-body-m-weight); }
+.mp-info-value {
+  font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: var(--type-body-m-weight);
+  color: var(--color-text-primary); text-align: right;
+}
+/* Android 데이터 디텍터 안전망 — 자동 생성된 mailto 링크 스타일 초기화 */
+.mp-info-value a[href^="mailto"] {
+  color: inherit; text-decoration: none; pointer-events: none; cursor: default;
+}
+.mp-info-addr-text {
+  text-align: right; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* 폼 reveal 패널 (실제 아코디언 아닌 인라인 편집 폼 컨테이너 — V2 §6.3) */
+.mp-form-reveal {
+  overflow: hidden;
+  transition: max-height var(--duration-drawer) ease, opacity var(--duration-transition) ease;
+  max-height: 0; opacity: 0;
+}
+.mp-form-reveal.open { max-height: 600px; opacity: 1; display: block !important; overflow: visible; }
+.mp-form-reveal-inner { padding: 24px 0 16px; }
+.mp-form-reveal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-sm); margin-top: 12px; }
+.mp-form-reveal-actions > .mp-save-btn,
+.mp-form-reveal-actions > .mp-cancel-btn { width: 100%; min-width: 0; padding: 0; }
+/* 일시정지 안내 */
+.mp-sub-paused-notice {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-kr); font-size: var(--type-body-ui-size); color: var(--color-text-tertiary);
+  padding: 10px 12px; margin-bottom: 8px;
+  background: var(--color-background-secondary);
+  border-left: 2px solid var(--color-border-primary);
+}
+/* 배송 주기 변경 — 한 줄 인라인 표시 (변경된 값에만 골드 강조) */
+.mp-sub-cycle-change {
+  font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: var(--type-body-m-weight);
+  color: var(--color-text-tertiary);
+}
+.mp-sub-cycle-divider {
+  margin: 0 8px; color: var(--color-border-secondary);
+}
+.mp-sub-accent {
+  color: var(--color-accent-gold);
+}
+.mp-sub-next-right {
+  display: inline-flex; align-items: baseline; gap: 12px;
+}
+.mp-sub-apply-link {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: var(--text-link-font-weight);
+  letter-spacing: var(--text-link-letter-spacing);
+  color: var(--color-text-tertiary);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-secondary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
+}
+.mp-sub-apply-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
+/* 구독 해지 text link — 정기배송 아이템 토글 좌측 인라인 (편집 모드 진입 시 노출).
+   mp-sub-controls 그룹으로 X 아이콘과 묶어 우측 정렬. */
+.mp-sub-controls {
+  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+}
+/* 텍스트 글자 visual center 를 X 아이콘 중심과 정렬:
+   line-height 1 로 line-box 를 글자 height 로 줄이고,
+   밑줄(text-underline-offset 4 + thickness 1)이 박스 아래에 위치하도록 하여
+   align-items:center 가 글자만의 박스를 정렬하게 함.
+   text-underline-offset 미세 조정으로 underline 이 X 박스 밖으로 나오게 함. */
+.mp-sub-cancel-inline {
+  flex-shrink: 0;
+  line-height: 1;
+  transform: translateY(2px);
+}
+/* 정기배송 토글: chevron `>` ↔ X 아이콘 cross-fade + rotate */
+.mp-sub-edit-btn svg { overflow: visible; }
+.mp-sub-toggle-chevron,
+.mp-sub-toggle-close {
+  transform-origin: center;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.mp-sub-toggle-chevron { opacity: 1; transform: rotate(0); }
+.mp-sub-toggle-close { opacity: 0; transform: rotate(-90deg); }
+.mp-sub-edit-btn.open .mp-sub-toggle-chevron { opacity: 0; transform: rotate(90deg); }
+.mp-sub-edit-btn.open .mp-sub-toggle-close { opacity: 1; transform: rotate(0); }
+.mp-cancel-link {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: var(--text-link-font-weight);
+  letter-spacing: var(--text-link-letter-spacing);
+  color: var(--color-text-tertiary);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-secondary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
+}
+.mp-cancel-link:hover { color: var(--color-error); text-decoration-color: var(--color-error); }
+.mp-form-reveal--sub .mp-info-row { border-bottom: none; box-shadow: none; flex-wrap: wrap; row-gap: 6px; }
+/* 정기배송 커스텀 드롭다운 — chp-field 인풋 + pd-dropdown-panel 메뉴 */
+.mp-cycle-dropdown-wrap { position: relative; }
+.mp-cycle-trigger {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; text-align: left; cursor: pointer; background: transparent;
+  padding-right: 40px !important;
+}
+.mp-chevron {
+  display: inline-flex;
+  transition: transform .2s ease;
+}
+.mp-chevron.open { transform: rotate(90deg); }
+
+.mp-cycle-chevron {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  width: 24px; height: 24px; color: var(--color-icon-default);
+  transition: transform .2s ease;
+  pointer-events: none;
+}
+.mp-cycle-chevron.open { transform: translateY(-50%) rotate(180deg); }
+.mp-cycle-dropdown-wrap .pd-dropdown-panel { top: 100%; left: -1px; right: -1px; }
+/* PR-1c-5 — primary filled (마이페이지 컨텍스트 height 44 / padding 0 32 / min-width 120) */
+.mp-save-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 44px; padding: 0 32px; min-width: 120px;
+  background: var(--color-btn-primary-bg); color: var(--color-text-inverse); border: none; cursor: pointer;
+  font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
+  letter-spacing: var(--btn-letter-spacing);
+  transition: background 200ms ease;
+}
+.mp-save-btn:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.mp-save-btn:not(:disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
+/* PR-1c-5 — secondary outline 마이그레이션 (bg pure white + box-shadow inset 1→2) */
+.mp-cancel-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 44px; padding: 0 32px; min-width: 120px;
+  background: var(--color-background-pure); color: var(--color-text-primary);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
+  cursor: pointer;
+  font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
+  letter-spacing: var(--btn-letter-spacing);
+  transition: box-shadow 200ms ease;
+}
+.mp-cancel-btn:not(:disabled):hover,
+.mp-cancel-btn:not(:disabled):active {
+  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+}
+.mp-cancel-btn:disabled {
+  color: var(--color-text-caption);
+  box-shadow: inset 0 0 0 1px var(--color-border-secondary);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 정기배송 아이템 */
+.mp-sub-item { padding: 20px 0; }
+.mp-sub-item + .mp-sub-item { box-shadow: inset 0 1px 0 0 var(--color-border-hairline); }
+/* align-items: flex-start — 상품명이 wrap 되어도 controls 는 첫 줄 우측 고정 */
+.mp-sub-item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--gap-md); cursor: pointer; }
+.mp-sub-item-info { display: flex; flex-direction: column; gap: var(--gap-xs); }
+.mp-sub-item-name {
+  font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 500;
+  color: var(--color-text-primary);
+}
+.mp-sub-item-vol {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-ui-size);
+  font-weight: var(--type-body-ui-weight);
+  color: var(--color-text-secondary);
+  /* piece 단위 wrap — 항목별 줄바꿈 ("정기배송 2주" 가 단어 단위 break 되지 않음) */
+  display: inline-block;
+  white-space: nowrap;
+}
+.mp-sub-item-status {
+  font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: var(--type-body-ui-weight);
+  color: var(--color-text-caption);
+}
+.mp-sub-item-status--paused {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--color-text-tertiary);
+}
+.mp-sub-item-status--paused svg { position: relative; top: -1px; }
+
+/* 빈 상태 */
+.mp-empty-state {
+  font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: var(--type-body-m-weight);
+  color: var(--color-text-caption); padding: 24px 0;
+}
+
+/* 우측: 주문 내역 — #12: 컨텐츠만 흰 박스 (타이틀 제외)
+   padding-top 119px: 좌측 첫 mp-section ("계정 정보") title 위치와 정렬.
+   참고: .mp-section:first-of-type{margin-top:24px} 가 mp-title-row/mp-welcome-wrap
+   div 들 때문에 :first-of-type 매칭 실패 → 32px 가 적용된 상태 기준 fine-tune. */
+.mp-right { padding-top: 119px; position: sticky; top: var(--sticky-offset); align-self: start; }
+.mp-right .mp-section-title { margin-bottom: 24px; }
+
+/* 주문 카드 — #14: 단일 박스 내 hairline 구분 */
+.mp-order-card {
+  border: none;
+  width: 100%; min-width: 280px; padding: 20px 0; margin-bottom: 0; box-sizing: border-box;
+  box-shadow: inset 0 -1px 0 0 var(--color-border-hairline);
+  cursor: pointer; overflow: hidden;
+}
+/* 마지막 카드는 mp-section-body 박스 경계가 구분 역할을 대체하므로 hairline 제거 */
+.mp-order-card:last-child { border-bottom: none; box-shadow: none; }
+@media (min-width: 1024px) {
+  .mp-order-card { min-width: 340px; }
+}
+.mp-order-meta { display: flex; align-items: flex-start; justify-content: space-between; }
+.mp-order-meta-left { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; overflow: hidden; }
+.mp-order-date {
+  font-family: var(--font-en); font-size: var(--type-body-s-size); font-weight: 400;
+  color: var(--color-text-primary); letter-spacing: var(--ls-body);
+}
+.mp-order-number-row { display: flex; align-items: center; gap: 4px; }
+.mp-order-number {
+  font-family: var(--font-en); font-size: var(--type-body-m-size); font-weight: 400;
+  color: var(--color-text-primary); letter-spacing: var(--ls-body);
+}
+.mp-order-copy-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; padding: 3px;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--color-icon-muted);
+  transition: color var(--duration-hover) ease;
+  transform: translateY(-1px);
+}
+.mp-order-copy-btn:hover { color: var(--color-icon-default); }
+.mp-order-copy-btn svg { width: 18px; min-width: 18px; height: 18px; flex-shrink: 0; display: block; }
+.mp-order-status {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 400;
+  letter-spacing: var(--ls-body);
+  height: 23px; min-width: 60px; padding: 0 10px; border-radius: 3px;
+  color: var(--color-text-caption); background: var(--color-background-tertiary);
+  line-height: 1; box-sizing: border-box;
+}
+.mp-order-status--prep { color: var(--color-text-inverse); background: var(--color-status-new); }
+.mp-order-status--shipping { color: var(--color-text-inverse); background: var(--color-status-live); }
+.mp-order-status--delivered { color: var(--color-text-inverse); background: var(--color-status-done); }
+.mp-order-status--cancelled { color: var(--color-text-inverse); background: var(--color-text-tertiary); }
+.mp-order-status--refund-req { color: var(--color-text-inverse); background: var(--color-warning); }
+.mp-order-status--refund-proc { color: var(--color-text-inverse); background: var(--color-error); }
+.mp-order-status--refunded { color: var(--color-text-inverse); background: var(--color-text-caption); }
+.mp-order-content { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.mp-order-content-left { flex: 1; min-width: 0; }
+.mp-order-summary {
+  font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 500;
+  color: var(--color-text-primary);
+}
+.mp-order-detail {
+  font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: var(--type-body-ui-weight);
+  color: var(--color-text-secondary);
+}
+.mp-order-price-row { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
+.mp-order-shipping-note {
+  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 400;
+  color: var(--color-text-caption); letter-spacing: var(--ls-body-s);
+}
+.mp-order-price {
+  font-family: var(--font-en); font-size: var(--type-body-ui-size); font-weight: 400;
+  color: var(--color-text-caption); letter-spacing: var(--ls-body-s);
+}
+.mp-order-toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; flex-shrink: 0;
+  color: var(--color-icon-muted);
+  transition: transform var(--duration-hover) ease, color var(--duration-hover) ease;
+}
+.mp-order-toggle svg { width: 24px; height: 24px; }
+.mp-order-card:hover .mp-order-toggle { color: var(--color-icon-default); }
+.mp-order-card.open .mp-order-toggle { transform: rotate(90deg); }
+.mp-order-items {
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height var(--duration-drawer) ease, opacity var(--duration-transition) ease;
+}
+.mp-order-card.open .mp-order-items { max-height: 1200px; opacity: 1; }
+.mp-order-items-inner { padding-top: 0; margin-top: 0; }
+
+/* 구독 해지 — subtle 밑줄 링크 토큰 */
+.mp-sub-unsubscribe {
+  margin-left: auto;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: var(--text-link-font-weight);
+  letter-spacing: var(--text-link-letter-spacing);
+  color: var(--text-link-subtle-color);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  height: auto; line-height: 1;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
+  white-space: nowrap;
+  align-self: center;
+}
+.mp-sub-unsubscribe:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
+
+/* 회원 탈퇴 확인 모달 */
+/* 회원 탈퇴 모달 오버레이 + 쉐이킹 */
+.mp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--overlay-dim-bg);
+}
+@keyframes mp-modal-shake {
+  0%, 100% { transform: translateX(0); }
+  12%      { transform: translateX(-6px); }
+  28%      { transform: translateX(5px); }
+  44%      { transform: translateX(-4px); }
+  60%      { transform: translateX(3px); }
+  76%      { transform: translateX(-1px); }
+}
+.mp-modal {
+  width: 360px;
+  max-width: calc(100vw - 48px);
+  padding: 36px 32px 28px;
+  background-color: var(--color-background-primary);
+  box-shadow: var(--shadow-overlay);
+  text-align: center;
+  animation: mp-modal-shake .45s cubic-bezier(.36, .07, .19, .97) both;
+}
+.mp-modal.mp-modal--calm { animation: none; }
+.mp-modal-title {
+  font-family: var(--font-kr); font-size: var(--type-h3-size); font-weight: 500;
+  color: var(--color-text-primary); margin: 0 0 12px;
+}
+.mp-modal-desc {
+  font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 400;
+  color: var(--color-text-secondary); line-height: 24px; margin: 0 0 28px;
+}
+.mp-modal-actions { display: flex; gap: var(--gap-sm); }
+/* PR-1c-5 — modal cancel: secondary outline 마이그레이션 */
+.mp-modal-cancel {
+  flex: 1;
+  height: 44px;
+  font-family: var(--btn-font-family);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+  letter-spacing: var(--btn-letter-spacing);
+  color: var(--color-text-primary);
+  background: var(--color-background-pure);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
+  cursor: pointer;
+  transition: box-shadow 200ms ease;
+}
+.mp-modal-cancel:not(:disabled):hover,
+.mp-modal-cancel:not(:disabled):active {
+  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+}
+/* PR-1c-5 — modal confirm: primary filled (background-inverse → btn-primary-bg 정합) */
+.mp-modal-confirm {
+  flex: 1; height: 44px;
+  font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
+  letter-spacing: var(--btn-letter-spacing);
+  color: var(--color-text-inverse); background-color: var(--color-btn-primary-bg);
+  border: none; cursor: pointer; transition: background 200ms ease;
+}
+.mp-modal-confirm:not(:disabled):hover {
+  background-color: var(--color-btn-primary-bg-hover);
+}
+.mp-modal-confirm:not(:disabled):active {
+  background-color: var(--color-btn-primary-bg-active);
+}
+/* danger modifier — error 색상 유지, 새 hover/active 룰 base 와 정합 */
+.mp-modal-confirm--danger { background-color: var(--color-error); }
+.mp-modal-confirm--danger:not(:disabled):hover,
+.mp-modal-confirm--danger:not(:disabled):active {
+  background-color: var(--color-error);
+  filter: brightness(0.9);
+}
+
+/* 비밀번호 펼침 시 회원 탈퇴 구분선 (버튼~구분선 간격 확보) */
+.mp-info-row.mp-info-row--withdraw.mp-withdraw-divider {
+  box-shadow: inset 0 1px 0 0 var(--color-border-hairline);
+  padding-top: 4px;
+  margin-top: 18px;
+}
+
+/* ══ MyPage — Mobile (≤767) 정규화 ══
+   데스크탑 2단(7fr 5fr) → 1단 스택 · 주문 내역 sticky 해제
+   · 타이틀 H1→H2 · 아코디언 액션 세로 · 주문 카드 min-width 해제 · 모달 폭 축소 */
+@media (max-width: 767px) {
+  /* P0 레이아웃: 1단 스택 + padding 축소 (gutter 24px 는 전역 블록 적용) */
+  .mp-body {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding-top: 32px;
+    padding-bottom: 64px;
+  }
+  .mp-left { padding-top: 0; }
+  .mp-right {
+    position: static;
+    top: auto;
+    padding-top: 0;
+  }
+
+  /* P0 타이포: H1 → H2 다운 · welcome gap 축소 */
+  .mp-page-title { font-size: var(--type-h2-size); }
+  .mp-welcome-wrap { gap: var(--gap-sm); margin-top: 12px; }
+
+  /* P1 섹션 · 흰 박스 bleed 를 page gutter(24px)와 동일하게 맞춰
+     viewport edge 까지 풀-bleed · 내부 content 는 24px 유지
+     → 박스 left/right 대칭 · 제목(24px) 과 내부 content(24px) 동일 indent */
+  .mp-section { margin-top: 24px; }
+  .mp-section-body {
+    margin-left: -24px;
+    margin-right: -24px;
+    padding-left: 24px;
+    padding-right: 24px;
+    border-radius: 0;
+  }
+
+  /* P1 인포 행 · 주소 값 2줄 허용 */
+  .mp-info-label { min-width: 0; }
+  .mp-info-addr-text {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  /* P1 폼 reveal 액션 — grid 1fr:1fr (데스크탑·모바일 통일) */
+  .mp-form-reveal-actions { gap: 12px; }
+  .mp-save-btn,
+  .mp-cancel-btn { width: auto; padding: 0; }
+  /* 정기배송 2버튼 — 모바일 폰트 축소 */
+  .mp-form-reveal-actions--sub > :nth-child(1),
+  .mp-form-reveal-actions--sub > :nth-child(2) { font-size: 13px; }
+
+  /* P1 주문 카드 · overflow 해제 */
+  .mp-order-card { min-width: 0; }
+
+  /* P2 모달 · 세로 스택 (confirm 위 · cancel 아래) */
+  .mp-modal {
+    width: calc(100% - 40px);
+    max-width: 360px;
+    padding: 28px 24px 24px;
+  }
+  .mp-modal-actions {
+    flex-direction: row;
+    gap: 12px;
+  }
+  .mp-modal-actions .mp-modal-cancel,
+  .mp-modal-actions .mp-modal-confirm {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 44px;
+  }
+}
