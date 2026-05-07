@@ -106,8 +106,11 @@ async function readJsonSafe(res: Response): Promise<unknown> {
  * - AbortController 로 10초 타임아웃.
  * - 5xx · 네트워크 에러 → 1회 재시도.
  * - 4xx → 즉시 TossApiError (재시도 금지 — 카드사 거부·금액 불일치 등).
+ *
+ * @internal 같은 토스 도메인 모듈 (tossClient · tossBillingClient) 외 import 금지.
+ *           추가 도메인이 생기면 별도 `tossHttp.ts` 로 추출 (Phase 3-A 후속).
  */
-async function tossFetch<T>(
+export async function tossFetch<T>(
   path: string,
   init: RequestInit,
 ): Promise<T> {
