@@ -22,6 +22,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { extractKrName } from '@/lib/products';
 import {
   PAGE_SIZE,
   STATUS_TABS,
@@ -241,7 +242,7 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
                       <div style={{ fontSize: 11, color: 'var(--foreground-muted)', marginTop: 2 }}>{s.userEmail}</div>
                     </td>
                     <td style={TD_STYLE}>
-                      <div>{s.productName}</div>
+                      <div>{extractKrName(s.productName)}</div>
                       {s.productVolume && (
                         <div style={{ fontSize: 11, color: 'var(--foreground-muted)', marginTop: 2 }}>{s.productVolume}</div>
                       )}
@@ -400,7 +401,7 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
             구독 편집
           </h3>
           <div style={{ fontSize: 12, color: 'var(--foreground-muted)', marginBottom: 16 }}>
-            {userName} · {row.productName}
+            {userName} · {extractKrName(row.productName)}
             {row.productVolume ? ` (${row.productVolume})` : ''} · 주기 {describeCycle(row.cycle)}
           </div>
 
@@ -941,7 +942,7 @@ function HistorySection({ subscriptionId }: { subscriptionId: string }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, maxHeight: 320, overflowY: 'auto' }}>
       {entries.map((entry, i) => (
         <div
           key={entry.id}
