@@ -178,7 +178,7 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
           type="text"
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
-          placeholder="상품명으로 검색…"
+          placeholder="상품명 또는 이메일로 검색…"
           style={{
             flex: 1,
             maxWidth: 360,

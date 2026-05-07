@@ -131,7 +131,20 @@ export async function fetchAdminSubscriptions(
 
   const qSafe = sanitizeSearchQuery(filters.q);
   if (qSafe.length > 0) {
-    query = query.ilike('product_name', `%${qSafe}%`);
+    /* 이메일 검색: profiles에서 email ilike → user_ids 수집 후 OR 조건 합산 */
+    const { data: emailMatches } = await supabase
+      .from('profiles')
+      .select('id')
+      .ilike('email', `%${qSafe}%`);
+    const emailMatchIds = (emailMatches ?? []).map((p: { id: string }) => p.id);
+
+    if (emailMatchIds.length > 0) {
+      query = query.or(
+        `product_name.ilike.%${qSafe}%,user_id.in.(${emailMatchIds.join(',')})`,
+      );
+    } else {
+      query = query.ilike('product_name', `%${qSafe}%`);
+    }
   }
 
   const { data, count, error } = await query;
