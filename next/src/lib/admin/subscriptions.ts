@@ -21,6 +21,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { z } from 'zod';
+import type { DbSubscriptionPeriod } from '@/types/db';
 
 /* ── 상수 ────────────────────────────────────────────────────────────── */
 
@@ -30,8 +31,7 @@ export const PAGE_SIZE = 10;
 /** subscription_status enum (005_subscriptions.sql) */
 export type DbSubscriptionStatus = 'active' | 'paused' | 'cancelled' | 'expired';
 
-/** subscription_period enum (004_order_items.sql) */
-export type DbSubscriptionPeriod = 'weekly' | 'biweekly' | 'monthly' | 'bimonthly';
+export type { DbSubscriptionPeriod };
 
 /** status 탭 정의 */
 export const STATUS_TABS = [
@@ -63,18 +63,9 @@ export function describeStatus(
   }
 }
 
-/** cycle enum → 한글 라벨 */
+/** cycle enum → 한글 라벨 (enum 자체가 이미 한글) */
 export function describeCycle(cycle: DbSubscriptionPeriod): string {
-  switch (cycle) {
-    case 'weekly':
-      return '1주';
-    case 'biweekly':
-      return '2주';
-    case 'monthly':
-      return '4주';
-    case 'bimonthly':
-      return '8주';
-  }
+  return cycle;
 }
 
 /* ── 검색 입력 sanitize ──────────────────────────────────────────────── */
