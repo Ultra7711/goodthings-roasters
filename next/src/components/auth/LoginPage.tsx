@@ -12,6 +12,7 @@
 
 'use client';
 
+import './LoginPage.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
