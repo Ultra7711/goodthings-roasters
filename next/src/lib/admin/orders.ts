@@ -21,6 +21,12 @@
 
 import { z } from 'zod';
 
+/** 상품명에서 한글 부분만 추출. 예) '가을의 밤 Autumn Night' → '가을의 밤' */
+function extractKrName(name: string): string {
+  const m = name.match(/^(.*[가-힯](?:\s+[A-Z0-9]+)*)\s+([A-Z][a-z].*)$/);
+  return m ? m[1] : name;
+}
+
 /* ── 상수 ────────────────────────────────────────────────────────────── */
 
 /** 페이지당 행 수 (시안 디자인 = 10) */
@@ -156,10 +162,26 @@ type OrderItemRow = {
 export function summarizeItems(items: OrderItemRow[]): string {
   return items
     .map((it) => {
-      const name = it.product_volume ? `${it.product_name} ${it.product_volume}` : it.product_name;
+      const kr = extractKrName(it.product_name);
+      const name = it.product_volume ? `${kr} ${it.product_volume}` : kr;
       return it.quantity > 1 ? `${name} × ${it.quantity}` : name;
     })
     .join(' · ');
+}
+
+export type ItemLine = {
+  name: string;   /* 한글 상품명 */
+  detail: string; /* "200g" | "200g × 2" | "" */
+};
+
+/** order_items 배열을 두 줄 렌더용 구조체 배열로 변환. */
+export function itemsToLines(items: OrderItemRow[]): ItemLine[] {
+  return items.map((it) => {
+    const name = extractKrName(it.product_name);
+    const vol = it.product_volume ?? '';
+    const qty = it.quantity > 1 ? ` × ${it.quantity}` : '';
+    return { name, detail: `${vol}${qty}`.trim() };
+  });
 }
 
 /* ── 검색 입력 sanitize ──────────────────────────────────────────────── */
@@ -225,7 +247,8 @@ export type ListedOrder = {
   createdAtIso: string;        /* DB 원본 timestamptz */
   customerName: string;        /* shipping_name */
   contactEmail: string;
-  itemsLabel: string;          /* summarizeItems 결과 */
+  itemsLabel: string;          /* summarizeItems 결과 (tooltip용) */
+  itemsStructured: ItemLine[]; /* itemsToLines 결과 (두 줄 렌더용) */
   totalAmount: number;
   paymentLabel: string;        /* describePayment */
   status: DbOrderStatus;       /* 원본 enum (badge 매핑은 클라에서) */
