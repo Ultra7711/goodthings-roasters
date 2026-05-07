@@ -13,6 +13,8 @@ import type { LegalDoc, LegalSection } from '@/app/(main)/legal/[slug]/content';
 import { LEGAL_NAV } from '@/app/(main)/legal/[slug]/content';
 import Accordion from '@/components/common/Accordion';
 
+import './LegalPage.css';
+
 type Props = {
   doc: LegalDoc;
 };
