@@ -7,6 +7,7 @@
 
 'use client';
 
+import './SearchPage.css';
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSearch } from '@/hooks/useSearch';
