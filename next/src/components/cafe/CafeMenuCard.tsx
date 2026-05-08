@@ -10,6 +10,8 @@ import type { CafeMenuItem, CafeMenuTemp } from '@/lib/cafeMenu';
 import MenuLikeButton from './MenuLikeButton';
 import MenuCardBadges from './MenuCardBadges';
 import GenericCard from '@/components/common/GenericCard';
+/* CafeMenuPage.css 의 .cm-card-* 정의 보장 — CafeMenuCard 사용처 어디서든 (S198 fix). */
+import '@/components/cafe/CafeMenuPage.css';
 
 /** 프로토타입 tMap — 온도 뱃지 (우하단 원형) */
 function getTempBadge(temp: CafeMenuTemp): { cls: string; txt: string } | null {
@@ -47,6 +49,16 @@ export default function CafeMenuCard({
 }: Props) {
   const tempBadge = getTempBadge(item.temp);
 
+  const imgStyle: React.CSSProperties = item.img
+    ? {
+        backgroundColor: item.bg || '#ECEAE6',
+        backgroundImage: `url('${item.img}')`,
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+      }
+    : { backgroundColor: '#ECEAE6' };
+
   const bottomRightSlot = tempBadge ? (
     <div className="cm-temp-badges">
       <span className={`cm-badge-temp ${tempBadge.cls}`}>{tempBadge.txt}</span>
@@ -58,9 +70,7 @@ export default function CafeMenuCard({
       variant="cafe"
       onClick={() => onOpenNutrition(item.id)}
       asButton
-      imgSrc={item.img}
-      imgAlt={item.name}
-      imgBg={item.bg || '#ECEAE6'}
+      imgStyle={imgStyle}
       badgeSlot={<MenuCardBadges menuId={item.id} status={item.status} />}
       topRightSlot={<MenuLikeButton menuId={item.id} menuName={item.name} />}
       bottomRightSlot={bottomRightSlot}

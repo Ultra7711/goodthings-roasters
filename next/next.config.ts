@@ -85,6 +85,9 @@ const nextConfig: NextConfig = {
         pathname: '/storage/v1/object/public/**',
       },
     ],
+    /* Dev only — next/image 변환 스킵 (원본 fetch). 변환 race / Turbopack 호환성 회피 (S198).
+       production 빌드에서는 false 가 되어 AVIF/WebP/responsive 정상 적용. */
+    unoptimized: process.env.NODE_ENV === 'development',
   },
 
   async headers() {

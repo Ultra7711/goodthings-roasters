@@ -9,7 +9,6 @@
 
 'use client';
 
-import Image from 'next/image';
 import {
   useEffect,
   useRef,
@@ -200,27 +199,9 @@ export default function GenericCard({
     >
       <div
         className={cls.thumb}
-        style={{
-          /* next/image fill 경고 해소 — CSS .sp/cm-card-thumb 의 position: relative 가
-             dev 환경에서 검출 안 되는 케이스 보강 (S198). */
-          position: 'relative',
-          ...(thumbAspect === '5:4' ? { aspectRatio: '5 / 4' } : undefined),
-          ...(imgBg ? { background: imgBg } : undefined),
-        }}
+        style={thumbAspect === '5:4' ? { aspectRatio: '5 / 4' } : undefined}
       >
-        {imgSrc ? (
-          <Image
-            src={imgSrc}
-            alt={imgAlt ?? ''}
-            fill
-            sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
-            className={cls.img}
-            style={{ objectFit: imgFit ?? (variant === 'cafe' ? 'cover' : 'contain') }}
-            priority={imgPriority}
-          />
-        ) : (
-          <div className={cls.img} style={imgStyle} />
-        )}
+        <div className={cls.img} style={imgStyle} />
         {badgeSlot}
         {topRightSlot}
         {bottomRightSlot}
