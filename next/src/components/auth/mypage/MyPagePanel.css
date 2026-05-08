@@ -1,0 +1,31 @@
+/* ══════════════════════════════════════════
+   MyPagePanel — V2 §3.2 우측 동적 패널 (S197 PR-1.2)
+   ══════════════════════════════════════════ */
+
+.mp-panel {
+  flex: 1;
+  min-width: 0;
+  padding-top: 8px;
+}
+
+.mp-panel-title {
+  font-family: var(--font-kr);
+  font-size: var(--type-h3-size);
+  font-weight: var(--type-h3-weight);
+  line-height: var(--lh-h3);
+  letter-spacing: var(--ls-heading);
+  color: var(--color-text-primary);
+  margin: 0 0 24px;
+}
+
+.mp-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-lg);
+}
+
+@media (max-width: 767px) {
+  .mp-panel {
+    padding-top: 24px;
+  }
+}

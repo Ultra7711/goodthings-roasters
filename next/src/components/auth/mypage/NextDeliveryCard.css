@@ -1,0 +1,203 @@
+/* ══════════════════════════════════════════
+   NextDeliveryCard — V2 §3.2 sand 패널 (S197 PR-1.2)
+   1fr / 1fr · gap 48 · sand bg + ink-on-sand
+   ══════════════════════════════════════════ */
+
+.mp-next-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap-2xl);
+  background: var(--brand-sand);
+  color: var(--ink-on-sand);
+  padding: 32px;
+  margin-top: 32px;
+  border-radius: 16px;
+  align-items: center;
+}
+
+.mp-next-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mp-next-eyebrow {
+  font-family: var(--font-en);
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--ls-heading);
+  color: var(--color-accent-gold);
+  text-transform: uppercase;
+}
+
+.mp-next-name {
+  font-family: var(--font-kr);
+  font-size: var(--type-h3-size);
+  font-weight: var(--type-h3-weight);
+  line-height: var(--lh-h3);
+  color: var(--ink-on-sand);
+  margin: 0;
+}
+
+.mp-next-meta {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-ui-size);
+  font-weight: var(--type-body-ui-weight);
+  color: var(--ink-on-sand);
+  opacity: 0.85;
+  margin: 0;
+}
+
+.mp-next-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+/* primary (solid ink) — 일시정지 */
+.mp-next-action--primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 24px;
+  min-width: 120px;
+  background: var(--color-btn-primary-bg);
+  color: var(--color-text-inverse);
+  border: none;
+  cursor: pointer;
+  font-family: var(--btn-font-family);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+  letter-spacing: var(--btn-letter-spacing);
+  transition: background 200ms ease;
+}
+.mp-next-action--primary:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.mp-next-action--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* outline — 건너뛰기 (sand 위 ink outline) */
+.mp-next-action--outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 24px;
+  min-width: 120px;
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-text-primary);
+  cursor: pointer;
+  font-family: var(--btn-font-family);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+  letter-spacing: var(--btn-letter-spacing);
+  transition: box-shadow 200ms ease;
+}
+.mp-next-action--outline:not(:disabled):hover {
+  box-shadow: inset 0 0 0 2px var(--color-text-primary);
+}
+.mp-next-action--outline:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* text link — 변경 */
+.mp-next-action--text {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: var(--text-link-font-weight);
+  letter-spacing: var(--text-link-letter-spacing);
+  color: var(--ink-on-sand);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
+}
+.mp-next-action--text:hover {
+  color: var(--color-accent-gold);
+  text-decoration-color: var(--color-accent-gold);
+}
+
+/* 사진 영역 — 5:4 비율 */
+.mp-next-image {
+  aspect-ratio: 5 / 4;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(28, 27, 25, 0.04);
+}
+.mp-next-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(28, 27, 25, 0.06), rgba(28, 27, 25, 0.02));
+}
+
+/* 빈 상태 */
+.mp-next-card--empty {
+  grid-template-columns: 1fr;
+  gap: var(--gap-md);
+  text-align: left;
+}
+.mp-next-empty-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mp-next-empty-title {
+  font-family: var(--font-kr);
+  font-size: var(--type-h3-size);
+  font-weight: var(--type-h3-weight);
+  line-height: var(--lh-h3);
+  color: var(--ink-on-sand);
+  margin: 0;
+}
+.mp-next-empty-desc {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: var(--type-body-m-weight);
+  color: var(--ink-on-sand);
+  opacity: 0.85;
+  margin: 0;
+}
+.mp-next-empty-cta {
+  align-self: flex-start;
+  margin-top: 12px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: var(--text-link-font-weight);
+  letter-spacing: var(--text-link-letter-spacing);
+  color: var(--color-accent-gold);
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent-gold);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+/* 모바일: 1단 stack */
+@media (max-width: 767px) {
+  .mp-next-card {
+    grid-template-columns: 1fr;
+    gap: var(--gap-xl);
+    padding: 24px;
+  }
+  .mp-next-image {
+    order: -1;
+  }
+}
