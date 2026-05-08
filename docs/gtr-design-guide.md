@@ -218,9 +218,15 @@
 
 | 토큰 | 값 | 용도 |
 |------|-----|------|
-| `--color-status-live` | `--color-accent-gold` | 진행중 |
-| `--color-status-done` | `#7A7068` | 완료 |
-| `--color-status-new` | `#B8563A` | 신규 |
+| `--color-status-live` | `--color-accent-gold` | 진행중 (`.badge-live`) |
+| `--color-status-done` | `#7A7068` | 완료 (`.badge-done`) |
+| `--color-status-new` | `#B8563A` | 신규 (`.badge-new`) |
+
+> 주문 status chip (`.mp-order-status--*`) 은 위 토큰을 직접 쓰지 않고, S197 PR-1 안 A (Solid + Outline 혼합) 로 semantic 위계 표현:
+> - 활성 진행: solid (sand · gold · error)
+> - 종결 neutral: ink outline (배송완료)
+> - muted: secondary outline (취소됨 · 환불완료)
+> - alert: warning outline (환불요청)
 
 ### Extended Palettes (양념용)
 
@@ -302,6 +308,23 @@ Inter(영문) + Pretendard(한글). 자간은 본문에서 기본값, 라벨·CT
 ### Spacing Scale (4px 기반)
 
 `4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 48 · 56 · 64 · 80 · 96 · 120`
+
+### Gap 토큰
+
+| 토큰 | 값 | 용도 |
+|------|-----|------|
+| `--gap-xs` | `8px` | 인라인 라벨/아이콘 |
+| `--gap-sm` | `12px` | 카드 내부 row |
+| `--gap-md` | `16px` | 본문 row |
+| `--gap-lg` | `20px` | 섹션 내 그룹 |
+| `--gap-xl` | `24px` | 섹션 간 |
+| `--gap-2xl` | `48px` | 패널 grid (My Page Next Subscription Card · S197 PR-1 V2 §3.2) |
+
+### My Page 전용 토큰 (S197 PR-1)
+
+| 토큰 | 값 | 용도 |
+|------|-----|------|
+| `--mp-nav-width` | `220px` | My Page 데스크탑 좌측 sub-nav 폭 (V2 §3.2) |
 
 ### Breakpoints
 

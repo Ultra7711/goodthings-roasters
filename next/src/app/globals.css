@@ -146,6 +146,9 @@
   --gap-md: 16px;
   --gap-lg: 20px;
   --gap-xl: 24px;
+  --gap-2xl: 48px; /* S197 PR-1: My Page Next Subscription Card 패널 grid gap (V2 §3.2) */
+  /* My Page side nav (S197 PR-1 V2 §3.2) — 220px 데스크탑 좌측 nav 폭 */
+  --mp-nav-width: 220px;
   /* sticky offset (S143 PR-5) — clamp() → 정수 분기 (mobile 88 / tablet+ 96).
      변경 시 sticky 의존 셀렉터 자동 보정 (R-1 도미노 차단). */
   --ann-bar-height: 32px;
