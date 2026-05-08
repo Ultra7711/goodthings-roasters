@@ -371,13 +371,13 @@
   display: contents;
 }
 #cart-drawer-panel .cd-shipping-item .shipping-gauge {
-  width: 200px;
+  width: 100px;
   flex-shrink: 0;
   order: 1;
 }
 #cart-drawer-panel .cd-si-label {
   font-family: var(--font-kr);
-  font-size: var(--type-body-ui-size);
+  font-size: var(--type-body-s-size);
   font-weight: 400;
   color: var(--color-text-secondary);
   flex-shrink: 0;
@@ -393,15 +393,14 @@
 }
 #cart-drawer-panel .cd-si-price {
   font-family: var(--font-kr);
-  font-size: var(--type-body-ui-size);
+  font-size: var(--type-body-s-size);
   font-weight: 400;
   color: var(--color-text-primary);
   flex-shrink: 0;
   margin-left: 28px;
   order: 2;
 }
-#cart-drawer-panel .cd-si-notice.free { color: var(--color-text-primary); }
-#cart-drawer-panel .cd-si-price.free { color: var(--color-success); font-weight: 500; }
+/* free / non-free 시각 구분 제거 (S196 폰트 통일) */
 
 /* 푸터 — flow 레이아웃 (cd-body 밖, 항상 하단 고정) */
 #cart-drawer-panel .cd-footer {
