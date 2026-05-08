@@ -3,6 +3,7 @@
    1) Hero · 2) Signature · 3) Lineup · 4) CafeMenu · 5) StoryChapter (cream→dark)
    ══════════════════════════════════════════ */
 
+import '@/components/home/HomePage.css';
 import HeroSection from '@/components/home/HeroSection';
 import OverscrollTop from '@/components/ui/OverscrollTop';
 import SignatureChapter from '@/components/home/SignatureChapter';
