@@ -1,0 +1,259 @@
+/* ══ 헤더 ══ */
+
+#site-hdr-wrap {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background: color-mix(in oklab, var(--color-background-primary) 72%, transparent);
+  /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 (Tailwind v4 Lightning CSS drop 이슈 회피) */
+  overflow: visible;
+  transition:
+    background var(--duration-slide) ease,
+    border-color var(--duration-slide) ease;
+}
+#site-hdr-wrap.hdr-dark {
+  background: rgba(28,27,25,.75);
+  /* backdrop-filter는 inline style에서 관리 (light/dark 모두 동일 blur 값) */
+  border-color: transparent;
+}
+/* 라이트→다크 라우트 전환 transient 시 specificity 보강.
+   NVG click handler 가 hdr-dark 를 추가해도 출발 라우트의 hdr-at-top 이
+   남아 있으면 line 588 후행 우선 규칙으로 cream background 가 hdr-dark 를
+   덮어써 light flash → fade 발생. 결합 selector 로 specificity (1,2,0)
+   확보하여 transient 시점에도 dark background 보장. */
+#site-hdr-wrap.hdr-dark.hdr-at-top {
+  background: rgba(28,27,25,.75);
+}
+/* 라이트 헤더가 secondary 배경 페이지 위에 올라갈 때 — Shop 등 */
+#site-hdr-wrap.hdr-on-secondary {
+  background: rgba(245,243,240,.72);
+}
+/* 페이지 최상단(scrollY=0) + 라이트 모드: solid bg1 으로 전환해 blur 아티팩트 제거.
+   스크롤 시작하면 클래스 해제 → 기존 글라스모피즘 복원 (카드 이미지 블러 유지). */
+#site-hdr-wrap.hdr-at-top {
+  background: var(--color-background-primary);
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+/* 라우트 변경 직후 한 프레임 동안만 부여되는 클래스 — 네비게이션 애니메이션과
+   겹쳐 보이는 테마 페이드를 제거하기 위해 transition 을 일시 비활성화.
+   스크롤 기반 light/dark 전환의 fade 는 그대로 유지됨. */
+#site-hdr-wrap.hdr-instant,
+#site-hdr-wrap.hdr-instant .nav-link,
+#site-hdr-wrap.hdr-instant .hi {
+  transition: none;
+}
+#site-hdr-wrap .nav-link {
+  transition: color var(--duration-slide) ease, opacity var(--duration-hover) linear;
+}
+#site-hdr-wrap.hdr-dark .nav-link {
+  color: var(--on-dark-secondary);
+  opacity: 1;
+}
+#site-hdr-wrap.hdr-dark .nav-link:hover {
+  color: var(--color-text-inverse);
+  opacity: 1;
+}
+#site-hdr-wrap .hi {
+  transition: color var(--duration-slide) ease;
+}
+#site-hdr-wrap.hdr-dark .hi {
+  color: var(--on-dark-secondary);
+}
+#site-hdr-wrap.hdr-dark .hdr-icon-btn .hi {
+  opacity: .80;
+}
+#site-hdr-wrap.hdr-dark .hdr-icon-btn:hover .hi {
+  opacity: 1;
+}
+#site-hdr-wrap.hdr-dark .cart-badge {
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+#site-hdr-wrap #logo-img {
+  color: var(--color-text-primary);
+  transition: color var(--duration-slide) ease;
+}
+#site-hdr-wrap.hdr-dark #logo-img {
+  color: var(--color-text-inverse);
+}
+
+.hdr {
+  display: flex;
+  align-items: center;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 60px;
+  height: var(--header-height); /* 60px */
+}
+@media (max-width: 767px) {
+  /* 모바일: 본문 24px + 아이콘 버튼 inner padding 8 = 시각 우측 24 에 맞춤 (비대칭 유지) */
+  .hdr { padding: 0 16px 0 24px; }
+}
+.hdr-left { flex: 1; display: flex; align-items: center; margin-left: -4px; }
+/* 모바일도 동일하게 로고는 -4px, 아이콘 버튼은 +4px 바깥으로 이동 */
+@media (max-width: 767px) {
+  .hdr-icons { margin-right: -4px; }
+}
+.hdr-nav { display: flex; gap: 36px; }
+/* 랩탑(≤1023): padding + gap 1차 축소 */
+@media (max-width: 1023px) {
+  .hdr { padding: 0 40px; }
+  .hdr-nav { gap: 24px; }
+}
+/* 태블릿 진입 직전(≤899px): 공간 압박 해소 */
+@media (max-width: 899px) {
+  .hdr { padding: 0 28px; }
+  .hdr-nav { gap: 16px; }
+}
+.hdr-icons {
+  flex: 1;
+  display: flex;
+  gap: 4px; /* Session 43 — icon-btn 40x40 화장 후 시각 간격 유지 (padding 8 * 2 + gap 4 = 20) */
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* .nav-link specific (transition/cursor 는 globals .nav-link, .hdr-icon-btn compound 에서 상속) */
+.nav-link {
+  opacity: .70;
+  font-family: var(--font-en);
+  font-size: var(--type-heading-s-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-nav);
+  color: var(--color-text-primary);
+  line-height: var(--lh-tight);
+  text-decoration: none;
+  /* Session 43 — tap-area 44h (19 + 12.5*2 padding, 시각 변경 없음) */
+  padding-block: 12.5px;
+  margin-block: -12.5px;
+  display: inline-flex;
+  align-items: center;
+}
+.nav-link:hover { opacity: 1; }
+/* 현재 페이지 표시 — opacity 1 강조만 */
+.nav-link[aria-current="page"] { opacity: 1; }
+
+/* ══ 햄버거 토글 — 데스크탑 숨김 · 모바일 표시 (hdr-icons 끝에 배치) ══ */
+.hdr-menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  box-sizing: border-box;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  transition: opacity var(--duration-hover) var(--ease-default);
+  opacity: .7;
+}
+.hdr-menu-toggle:hover { opacity: 1; }
+#site-hdr-wrap.hdr-dark .hdr-menu-toggle { color: var(--on-dark-secondary); }
+#site-hdr-wrap.hdr-dark .hdr-menu-toggle:hover { color: var(--color-text-inverse); }
+
+@media (max-width: 767px) {
+  .hdr-nav { display: none; }
+  .hdr-menu-toggle { display: flex; }
+  /* 로그인/마이페이지 아이콘은 햄버거 메뉴로 내장 */
+  .hdr-icons .hdr-icon-user { display: none; }
+}
+
+/* ══ 검색 드롭 패널 ══ */
+#search-drop {
+  position: fixed;
+  top: var(--search-drop-top, 96px);
+  left: 0;
+  right: var(--scrollbar-w, 0px);
+  background: var(--search-panel-bg);
+  /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 */
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 180ms cubic-bezier(.4,0,.2,1), opacity 150ms ease;
+  z-index: var(--z-modal);
+}
+#search-drop.open { max-height: 60px; opacity: 1; }
+#search-drop-inner {
+  height: var(--search-panel-height);
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 var(--search-panel-padding-x);
+  gap: var(--gap-sm);
+  box-sizing: border-box;
+}
+#search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-en);
+  font-size: var(--search-panel-input-font-size);
+  font-weight: var(--search-panel-input-font-weight);
+  color: var(--color-text-primary);
+  letter-spacing: var(--search-panel-input-letter-spacing);
+  caret-color: var(--color-text-primary);
+}
+/* 플레이스홀더: 전역 --color-text-placeholder 는 더 옅은 톤이라
+   검색 패널에서는 가독성을 위해 한 단계 진한 secondary 로 오버라이드. */
+#search-input::placeholder { color: var(--color-text-secondary); }
+#search-icon {
+  opacity: var(--search-panel-icon-opacity);
+  display: flex;
+  align-items: center;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+  pointer-events: none;
+}
+/* 검색 인풋 클리어 버튼 — 입력값이 있을 때만 렌더(React 조건부).
+   좌측 #search-icon 과 SVG 크기(24×24) 동일, 색상은 디자인 시스템의
+   아이콘 전용 토큰 --color-icon-default 사용 (인터랙티브 요소라
+   search-icon 의 .35 투명도보다 또렷하게 노출). */
+#search-clear {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-icon-default);
+  transition: color var(--duration-hover) var(--ease-default);
+}
+#search-clear:hover { color: var(--color-icon-default); }
+
+/* 모바일 — 좌측 검색 아이콘 숨김 + 본문·헤더 시각 라인(좌 24 / 우 24)에 정렬
+   헤더의 우측 16px 은 아이콘 버튼 outer padding 이고 시각 edge 는 24px 지점(16 + 내부 8) */
+@media (max-width: 767px) {
+  #search-drop-inner { padding: 0 24px; }
+  #search-icon { display: none; }
+}
+
+/* ══ 검색 딤 ══ */
+#search-dim {
+  position: fixed;
+  top: var(--dim-top, 60px);
+  left: 0;
+  right: var(--scrollbar-w, 0px);
+  bottom: 0;
+  background: var(--overlay-dim-bg);
+  /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 */
+  opacity: 0;
+  pointer-events: none;
+  /* S74 DB-03 2단계: iOS Safari 에서 body overflow:hidden 만으론 touch scroll 관통 차단 안 됨.
+     딤 영역에서 touchmove 자체를 차단해 background scroll 직접 방지. */
+  touch-action: none;
+  transition: opacity var(--duration-hover) ease;
+  z-index: 40;
+}
+#search-dim.open {
+  opacity: 1;
+  pointer-events: all;
+  transition: opacity 250ms ease 80ms;
+}

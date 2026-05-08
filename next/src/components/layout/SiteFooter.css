@@ -1,0 +1,193 @@
+/* ══ 푸터 ══ */
+footer.blk {
+  /* .blk의 overflow:hidden이 sr-txt translateY(20px)를 클리핑해
+     애니메이션이 보이지 않는 문제 방지 */
+  overflow: visible;
+}
+.footer {
+  background: var(--color-surface-stone);
+  padding: 0;
+}
+.f-inner {
+  padding: 80px var(--layout-padding-x) 0;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.f-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  margin-bottom: 8px;
+}
+.f-logo img {
+  height: 24px;
+  width: auto;
+  display: block;
+  filter: invert(1);
+}
+/* 푸터 로고 SVG 내부 좌측 여백 보정 — 본문 라인 시각 정렬 */
+.f-logo { margin-left: -3px; }
+.footer-sns-link {
+  opacity: var(--opacity-footer-sns-rest);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  top: -3px;
+  line-height: 1;
+  /* Session 43 — tap-area 40x40 (icon 24 + padding 8 * 2, 시각 변경 없음) */
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  margin: -8px -8px calc(-8px - 2px); /* 기존 margin-top: -2px 보존 */
+  box-sizing: border-box;
+  transition: opacity var(--duration-hover) linear;
+}
+.footer-sns-link:hover { opacity: var(--opacity-footer-sns-hover); }
+.f-sns-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--color-text-inverse);
+}
+.f-tagline {
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: 300;
+  color: var(--color-text-caption);
+  letter-spacing: var(--ls-body);
+}
+.f-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap-md);
+  padding-top: 40px;
+  box-shadow: inset 0 1px 0 0 var(--color-border-hairline-on-dark);
+  margin-top: 48px;
+}
+@media (max-width: 767px) {
+  .f-inner { padding-top: 56px; }
+  .f-cols {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-top: 40px;
+    padding-top: 40px;
+  }
+}
+.f-col-title {
+  font-family: var(--font-en);
+  font-size: var(--type-label-size);
+  font-weight: 600;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--color-text-caption);
+  margin-bottom: 14px;
+  line-height: 1;
+}
+.footer-col-link {
+  display: block;
+  font-family: var(--font-kr);
+  font-size: var(--type-caption-size);
+  font-weight: 300;
+  color: var(--on-dark-tertiary);
+  /* Session 43 — tap-area 44h (text 12 + padding 16 * 2 = 44, 시각 변경 최소화) */
+  padding: 16px 0;
+  margin: -11px 0; /* 기존 5px padding → 16px 으로 확장한 증가분(11) 상쇄 */
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--duration-hover) linear;
+  background: none;
+  border: none;
+  text-align: left;
+  text-decoration: none;
+}
+.footer-col-link:hover { color: var(--on-dark-primary); }
+.f-bottom-wrap {
+  padding: 32px 0 40px;
+  box-shadow: inset 0 1px 0 0 var(--color-border-hairline-on-dark);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 48px;
+}
+@media (max-width: 767px) {
+  .f-bottom-wrap {
+    margin-top: 32px;
+    padding-top: 40px;
+  }
+}
+.f-bottom-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+.f-copyright {
+  font-family: var(--font-en);
+  font-size: var(--type-caption-size);
+  color: rgba(250,250,248,.5);
+  letter-spacing: var(--ls-body);
+  white-space: nowrap;
+}
+.f-bottom-sep {
+  font-family: var(--font-kr);
+  font-size: var(--type-caption-size);
+  color: rgba(250,250,248,.5);
+  padding: 0 8px;
+}
+.f-biz-toggle {
+  font-family: var(--font-kr);
+  font-size: var(--type-caption-size);
+  color: rgba(250,250,248,.5);
+  cursor: pointer;
+  border: none;
+  background: none;
+  /* Session 43 — tap-area 44h (padding-block 13 * 2 + text 18 = 44) · inline 으로 배치되어 margin-block 으로 상쇄 */
+  padding: 13px 0;
+  margin-block: -13px;
+  transition: color var(--duration-hover) linear;
+}
+.f-biz-toggle:hover { color: var(--color-text-inverse); }
+.f-legal-link {
+  font-family: var(--font-kr);
+  font-size: var(--type-caption-size);
+  color: rgba(250,250,248,.5);
+  cursor: pointer;
+  text-decoration: none;
+  transition: color var(--duration-hover) linear;
+}
+.f-legal-link:hover { color: var(--color-text-inverse); }
+.f-biz-inline {
+  /* .f-bottom-wrap(flex column)의 직접 자식이며 .f-bottom-row 의 형제 */
+  font-family: var(--font-kr);
+  font-size: var(--type-caption-size);
+  color: rgba(250,250,248,.4);
+  line-height: 24px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height var(--duration-drawer) ease,
+    opacity var(--duration-transition) ease,
+    margin var(--duration-drawer) ease;
+  margin-top: 0;
+}
+.f-biz-inline.open { max-height: 240px; opacity: 1; margin-top: 8px; }
+
+/* 모바일: 1행 저작권 / 2행 사업자 정보·이용약관·개인정보 */
+@media (max-width: 767px) {
+  .f-bottom-row > .f-copyright { flex-basis: 100%; margin-bottom: 8px; }
+  .f-bottom-row > .f-copyright + .f-bottom-sep { display: none; }
+}
+.f-biz-sep { padding: 0 .3em; }
+.f-biz-lookup {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  /* Session 43 — tap-area 44h (text 15 + padding 14.5 * 2 = 44) · inline-block 로 size 적용 */
+  display: inline-block;
+  padding: 14.5px 0;
+  margin-block: -14.5px;
+  line-height: 1;
+  transition: color var(--duration-hover) linear;
+}
+.f-biz-lookup:hover { color: var(--color-text-inverse); }

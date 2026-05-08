@@ -9,6 +9,7 @@
    theme_idx 가 default(0) 가 아니면 inline 색상 override.
    ══════════════════════════════════════════ */
 
+import './AnnouncementBar.css';
 import Link from 'next/link';
 import {
   composeNoticeText,

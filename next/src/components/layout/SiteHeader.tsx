@@ -8,6 +8,8 @@
 
 'use client';
 
+import './SiteHeader.css';
+
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';

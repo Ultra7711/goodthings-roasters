@@ -1,0 +1,22 @@
+/* ══ 공지 바 ══ */
+.ann {
+  background: var(--color-background-inverse);
+  color: var(--color-text-inverse);
+  text-align: center;
+  height: var(--ann-bar-height);
+  line-height: var(--ann-bar-height);
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-button);
+  position: relative;
+  z-index: 100;
+}
+.ann-kr,
+.ann-en {
+  letter-spacing: var(--ls-body);
+}
+.ann-dot {
+  margin: 0 6px;
+  opacity: .5;
+}

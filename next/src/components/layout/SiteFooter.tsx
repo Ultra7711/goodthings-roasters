@@ -4,6 +4,7 @@
    FooterBottom: .f-bottom-wrap 전체를 담당하는 client component
    ══════════════════════════════════════════ */
 
+import './SiteFooter.css';
 import Link from 'next/link';
 import FooterBottom from './FooterBottom';
 import FooterWholesaleLink from './FooterWholesaleLink';
