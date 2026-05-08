@@ -6,18 +6,32 @@
    - 메타 라인 + 로그아웃 row 는 자체 mp-hero-meta-row 유지 (subtitle 패턴과 의미 다름)
    ══════════════════════════════════════════ */
 
-/* page-title-area 답습 — 외부에서 margin-bottom 처리. 자체 padding 은 0 */
+/* page-title-area 답습. 단 mp-hero 컨텍스트에서는 NextCard 와 한 묶음(상단)으로 묶기 위해
+   margin-bottom 을 16px 로 override (PageTitle.css 의 default 48 / 모바일 28). */
 .page-title-area.mp-hero {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px; /* page-title ↔ subtitle 간격 다른 sub-page 와 통일 (PageTitle.css .page-subtitle margin-top: 16) */
   padding: 0;
+  margin-bottom: 32px;
+}
+@media (max-width: 767px) {
+  .page-title-area.mp-hero {
+    margin-bottom: 24px;
+  }
 }
 
 /* page-title 의 SSR 초기 상태 → is-loaded 토글 시 즉시 활성 (트랜지션은 §2.11 에서 추가) */
 .mp-hero.is-loaded .page-title {
   opacity: 1;
   transform: none;
+}
+
+/* 인사말 / 이름 분리 wrap — 폭 부족 시 두 line 사이에서만 줄바꿈 (각 line 자체는 nowrap) */
+.mp-hero-greeting-line {
+  display: inline-block;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 .mp-hero-meta-row {
@@ -36,7 +50,40 @@
   font-weight: 400;
   letter-spacing: var(--ls-heading);
   color: var(--color-text-secondary);
+  /* line-height 28 명시 → Skeleton SkelBox H_BODY_L (28) 정합. row 높이 = 28 고정 */
+  line-height: 28px;
   margin: 0;
+}
+
+/* 메타 항목 nav 링크 (S197 PR-2 §2.13) — 클릭 시 사이드바 view 전환.
+   button reset + parent typography 상속 + hover 시 primary color 강조. */
+.mp-hero-meta-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
+}
+.mp-hero-meta-link:hover {
+  color: var(--color-text-primary);
+  text-decoration-color: var(--color-text-primary);
+}
+.mp-hero-meta-link:focus { outline: none; }
+.mp-hero-meta-link:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
+}
+
+.mp-hero-meta-sep {
+  color: var(--color-text-secondary);
+  pointer-events: none;
 }
 
 .mp-hero-logout {

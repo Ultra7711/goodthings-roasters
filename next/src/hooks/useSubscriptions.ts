@@ -36,11 +36,12 @@ export async function fetchSubscriptions(): Promise<Subscription[]> {
   return body.data ?? [];
 }
 
-export function useSubscriptionsQuery() {
+export function useSubscriptionsQuery(initialData?: Subscription[]) {
   const query = useQuery({
     queryKey: SUBSCRIPTIONS_QUERY_KEY,
     queryFn: fetchSubscriptions,
     staleTime: 30_000,
+    initialData,
   });
   return {
     subscriptions: query.data ?? [],

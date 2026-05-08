@@ -21,8 +21,8 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  /* 데스크탑: 좌측 vertical hairline (스크롤바 같은 baseline) */
-  box-shadow: inset 1px 0 0 0 var(--color-border-secondary);
+  /* 데스크탑: 좌측 vertical hairline 2px — indicator 두께 정합 (active 시 정확히 덮음) */
+  box-shadow: inset 2px 0 0 0 var(--color-border-secondary);
 }
 
 /* indicator — absolute, slide transition (Shop 답습).
@@ -105,8 +105,8 @@
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    /* 모바일 기준 — 하단 hairline (탭바 baseline) */
-    box-shadow: inset 0 -1px 0 0 var(--color-border-secondary);
+    /* 모바일: 하단 hairline 2px — indicator 두께 정합 (active 시 정확히 덮음) */
+    box-shadow: inset 0 -2px 0 0 var(--color-border-secondary);
     --mp-side-fade: 24px;
     mask-image: linear-gradient(to right, #000 0, #000 100%);
     -webkit-mask-image: linear-gradient(to right, #000 0, #000 100%);

@@ -20,11 +20,12 @@ export async function fetchOrders(): Promise<Order[]> {
   return body.data ?? [];
 }
 
-export function useOrdersQuery() {
+export function useOrdersQuery(initialData?: Order[]) {
   const query = useQuery({
     queryKey: ORDERS_QUERY_KEY,
     queryFn: fetchOrders,
     staleTime: 30_000,
+    initialData,
   });
   return {
     orders: query.data ?? [],

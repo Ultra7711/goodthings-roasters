@@ -35,7 +35,8 @@
   display: grid;
   grid-template-columns: var(--mp-nav-width) 1fr;
   gap: var(--gap-2xl);
-  margin-top: 32px;
+  /* 히어로 묶음 ↔ 사이드바+패널 분리 (PR-2 §2.4 사용자 결정) — 32 → 64. */
+  margin-top: 64px;
   align-items: start;
 }
 
@@ -333,13 +334,14 @@
 }
 /* S197 PR-1 안 A: Solid + Outline 혼합 (semantic 위계).
    진행 활성 = solid (sand/gold/error) · 종결 neutral = outline · muted = secondary outline · alert = warning outline */
-.mp-order-status--prep        { color: var(--ink-on-sand); background: var(--brand-sand); }
-.mp-order-status--shipping    { color: var(--color-text-inverse); background: var(--color-accent-gold); }
-.mp-order-status--delivered   { color: var(--color-text-primary); background: transparent; box-shadow: inset 0 0 0 1px var(--color-text-primary); }
-.mp-order-status--cancelled   { color: var(--color-text-caption); background: transparent; box-shadow: inset 0 0 0 1px var(--color-border-secondary); }
-.mp-order-status--refund-req  { color: var(--color-warning); background: transparent; box-shadow: inset 0 0 0 1px var(--color-warning); }
-.mp-order-status--refund-proc { color: var(--color-text-inverse); background: var(--color-error); }
-.mp-order-status--refunded    { color: var(--color-text-caption); background: transparent; box-shadow: inset 0 0 0 1px var(--color-border-secondary); }
+/* 진행 4 = solid bg + white + weight 500 / 종결 3 = text only + weight 400 (흐름 색 매핑 — S197 PR-2) */
+.mp-order-status--prep        { color: var(--color-text-inverse); background: var(--color-warning); font-weight: 500; }
+.mp-order-status--shipping    { color: var(--color-text-inverse); background: var(--color-accent-gold); font-weight: 500; }
+.mp-order-status--delivered   { color: #7E4E27; background: transparent; }
+.mp-order-status--cancelled   { color: var(--color-text-tertiary); background: transparent; }
+.mp-order-status--refund-req  { color: var(--color-text-inverse); background: #CB7068; font-weight: 500; }
+.mp-order-status--refund-proc { color: var(--color-text-inverse); background: var(--color-error); font-weight: 500; }
+.mp-order-status--refunded    { color: #A02828; background: transparent; }
 .mp-order-content { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
 .mp-order-content-left { flex: 1; min-width: 0; }
 .mp-order-summary {

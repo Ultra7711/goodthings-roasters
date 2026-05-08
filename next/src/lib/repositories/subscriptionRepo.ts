@@ -66,6 +66,7 @@ export function toSubscription(row: SubscriptionRow): Subscription {
     cycle,
     nextDate: formatDateKST(row.next_delivery_at),
     status: row.status,
+    imageUrl: row.product_image_src,
   };
 }
 

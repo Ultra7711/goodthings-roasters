@@ -28,4 +28,6 @@ export type Subscription = {
   nextDate: string;
   /** 구독 상태 */
   status: SubscriptionStatus;
+  /** 상품 대표 이미지 (S197 PR-2 §2.6) — NextDeliveryCard 노출 */
+  imageUrl: string | null;
 };

@@ -1,0 +1,18 @@
+/* ══════════════════════════════════════════
+   WelcomeCard — 상태 D 카드 추가 룰 (S197 PR-2 §2.3)
+   sand 패널 base + cta 는 NextDeliveryCard.css 의 .mp-next-card / .mp-hero-cta 재사용.
+   image 영역 폐기 + 카드 외곽 크기 통일 유지 (사용자 결정).
+   ══════════════════════════════════════════ */
+
+.mp-next-card--welcome {
+  grid-template-columns: 1fr;
+  /* image 240x240 + padding 48 = 288 → NextDelivery / RecentOrder 카드와 height 통일 */
+  min-height: 288px;
+}
+@media (max-width: 767px) {
+  .mp-next-card--welcome {
+    grid-template-columns: 1fr;
+    /* 모바일은 image stack 부재로 자연 height 사용 (auto) */
+    min-height: 0;
+  }
+}

@@ -15,16 +15,16 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { supabase } from '@/lib/supabase';
 import type { AuthClaims } from '@/lib/auth/getClaims';
+import type { Subscription } from '@/types/subscription';
+import type { Order } from '@/types/order';
 import { useToast } from '@/hooks/useToast';
 import { useSubscriptionsQuery } from '@/hooks/useSubscriptions';
 import { useOrdersQuery } from '@/hooks/useOrders';
-import {
-  setSkipConfirmSubId,
-  setPauseConfirmSubId,
-} from '@/lib/myPageUiStore';
 import OverscrollTop from '@/components/ui/OverscrollTop';
 import HeroGreeting from '@/components/auth/mypage/HeroGreeting';
 import NextDeliveryCard from '@/components/auth/mypage/NextDeliveryCard';
+import RecentOrderCard from '@/components/auth/mypage/RecentOrderCard';
+import WelcomeCard from '@/components/auth/mypage/WelcomeCard';
 import MyPageSideNav, { type MyPageNavId } from '@/components/auth/mypage/MyPageSideNav';
 import MyPagePanel from '@/components/auth/mypage/MyPagePanel';
 
@@ -41,9 +41,18 @@ import AccountView from '@/components/auth/mypage/views/AccountView';
 
 type MyPagePageProps = {
   initialClaims: AuthClaims;
+  /** SSR prefetch 데이터 — TanStack Query initialData 로 주입 (S197 PR-2 §2.6).
+     SSR HTML 이 정확한 카드(NextDelivery / RecentOrder / Welcome)로 즉시 렌더되어
+     hydration 후 점진 채워지는 flash 차단. */
+  initialSubscriptions: Subscription[];
+  initialOrders: Order[];
 };
 
-export default function MyPagePage({ initialClaims }: MyPagePageProps) {
+export default function MyPagePage({
+  initialClaims,
+  initialSubscriptions,
+  initialOrders,
+}: MyPagePageProps) {
   const router = useRouter();
   const { show: toast } = useToast();
   const { bypassRedirect } = useAuthGuard();
@@ -79,9 +88,22 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   /* ── Side nav 활성 항목 ── */
   const [activeNavId, setActiveNavId] = useState<MyPageNavId>('orders');
 
-  /* ── 데이터: 정기배송 + 주문 (counts + Next 카드) ── */
-  const { subscriptions } = useSubscriptionsQuery();
-  const { orders } = useOrdersQuery();
+  /* ── Hero 카드 수동 전환 (메타 항목 클릭 · S197 PR-2 §2.13).
+     null = 자동 분기 (정기 ≥1 → next / 주문 ≥1 → recent / 둘 다 0 → welcome).
+     사용자가 메타 클릭 시 override. */
+  type HeroCardType = 'next' | 'recent' | 'welcome';
+  const [manualHeroCard, setManualHeroCard] = useState<HeroCardType | null>(null);
+
+  const handleHeroNavigate = useCallback((id: MyPageNavId) => {
+    if (id === 'orders') setManualHeroCard('recent');
+    else if (id === 'subscription') setManualHeroCard('next');
+    else if (id === 'profile') setManualHeroCard('welcome');
+  }, []);
+
+  /* ── 데이터: 정기배송 + 주문 (counts + Next 카드)
+     initialData = SSR prefetch (page.tsx) → flash 차단 */
+  const { subscriptions } = useSubscriptionsQuery(initialSubscriptions);
+  const { orders } = useOrdersQuery(initialOrders);
 
   const activeSubsCount = useMemo(
     () => subscriptions.filter((s) => s.status === 'active').length,
@@ -122,17 +144,6 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
     router.replace('/');
   }, [bypassRedirect, router]);
 
-  /* ── NextCard 액션: SubscriptionEditor 의 confirm 모달 활용 ── */
-  const handleNextPause = useCallback(() => {
-    if (!nextSub) return;
-    setPauseConfirmSubId(nextSub.id);
-  }, [nextSub]);
-
-  const handleNextSkip = useCallback(() => {
-    if (!nextSub) return;
-    setSkipConfirmSubId(nextSub.id);
-  }, [nextSub]);
-
   /* ── 활성 view 렌더 ── */
   const renderActiveView = () => {
     switch (activeNavId) {
@@ -161,13 +172,31 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
           activeSubscriptionsCount={activeSubsCount}
           membershipText={membershipText}
           onLogout={() => void handleLogout()}
+          onNavigate={handleHeroNavigate}
         />
 
-        <NextDeliveryCard
-          sub={nextSub}
-          onPause={handleNextPause}
-          onSkip={handleNextSkip}
-        />
+        {/* PR-2 §2.3 + §2.13: Hero 카드 분기 — manual override (메타 클릭) ?? auto */}
+        {(() => {
+          const heroType: HeroCardType =
+            manualHeroCard ?? (nextSub ? 'next' : orders.length > 0 ? 'recent' : 'welcome');
+          if (heroType === 'next' && nextSub) {
+            return (
+              <NextDeliveryCard
+                sub={nextSub}
+                onManage={() => setActiveNavId('subscription')}
+              />
+            );
+          }
+          if (heroType === 'recent' && orders.length > 0) {
+            return (
+              <RecentOrderCard
+                order={orders[0]}
+                onViewOrders={() => setActiveNavId('orders')}
+              />
+            );
+          }
+          return <WelcomeCard userName={displayName} />;
+        })()}
 
         <div className="mp-grid">
           <MyPageSideNav

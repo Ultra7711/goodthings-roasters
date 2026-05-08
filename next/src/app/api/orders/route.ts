@@ -32,65 +32,9 @@ import {
   createOrderFromInput,
   OrderServiceError,
 } from '@/lib/services/orderService';
-import { findOrdersForUser, type OrderRow, type OrderItemRow } from '@/lib/repositories/orderRepo';
-import type { DbOrderStatus } from '@/types/db';
-import type { Order, OrderItem, OrderStatus } from '@/types/order';
-import { formatDateKST, formatPrice } from '@/lib/utils';
-
-/* ── DB status → UI 한글 상태 매핑 ───────────────────────────────
-   S173: cancelled 노출 추가 (운영 명시 취소 케이스).
-   pending 은 orderRepo 쿼리 단에서 제외 → 도달 불가. */
-function mapDbStatus(status: DbOrderStatus): OrderStatus {
-  switch (status) {
-    case 'paid':              return '배송준비';
-    case 'shipping':          return '배송중';
-    case 'delivered':         return '배송완료';
-    case 'cancelled':         return '취소됨';
-    case 'refund_requested':  return '환불요청';
-    case 'refund_processing': return '환불중';
-    case 'refunded':          return '환불완료';
-    case 'pending':
-      throw new Error(`mapDbStatus: 도달 불가 status='${status}' — orderRepo pending 필터 누락`);
-  }
-}
-
-/* ── OrderRow → Order 변환 ─────────────────────────────────────── */
-function toOrder(row: OrderRow): Order {
-  const items: OrderItem[] = (row.order_items ?? []).map((it: OrderItemRow) => ({
-    name: it.product_name,
-    slug: it.product_slug,
-    category: it.product_category,
-    volume: it.product_volume ?? '',
-    qty: it.quantity,
-    priceNum: it.unit_price,
-    image: {
-      src: it.product_image_src ?? '',
-      bg: it.product_image_bg ?? '#ECEAE6',
-    },
-    type: it.item_type,
-    period: it.subscription_period ?? null,
-  }));
-
-  const first = items[0];
-  const name = first?.name ?? '';
-  const detail =
-    items.length > 1
-      ? `${first?.volume ?? ''} 외 ${items.length - 1}건`
-      : (first?.volume ?? '');
-
-  const totalAmount = row.total_amount;
-
-  return {
-    number: row.order_number,
-    date: formatDateKST(row.created_at),
-    name,
-    detail,
-    price: formatPrice(totalAmount),
-    priceNum: totalAmount,
-    status: mapDbStatus(row.status),
-    items,
-  };
-}
+import { findOrdersForUser } from '@/lib/repositories/orderRepo';
+import type { Order } from '@/types/order';
+import { toOrder } from '@/lib/orders/toOrder';
 
 /* ── GET /api/orders — 회원 본인 주문 목록 ─────────────────────── */
 export async function GET(): Promise<Response> {

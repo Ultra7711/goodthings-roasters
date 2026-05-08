@@ -25,6 +25,7 @@ const STUB: Subscription[] = [
     cycle: '2주',
     status: 'active',
     nextDate: '2026.05.20',
+    imageUrl: null,
   },
 ];
 

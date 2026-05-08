@@ -103,6 +103,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
     cycle: '2주',
     nextDate: '2026.04.15',
     status: 'active',
+    imageUrl: null,
   },
   {
     id: 'sub-2',
@@ -112,6 +113,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
     cycle: '2주',
     nextDate: '2026.04.20',
     status: 'active',
+    imageUrl: null,
   },
   {
     id: 'sub-3',
@@ -121,6 +123,7 @@ export const MOCK_SUBSCRIPTIONS: Subscription[] = [
     cycle: '4주',
     nextDate: '2026.04.10',
     status: 'active',
+    imageUrl: null,
   },
 ];
 

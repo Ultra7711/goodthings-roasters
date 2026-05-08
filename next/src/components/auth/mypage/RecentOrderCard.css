@@ -1,0 +1,53 @@
+/* ══════════════════════════════════════════
+   RecentOrderCard — 상태 C 카드 추가 룰 (S197 PR-2 §2.3)
+   sand 패널 base + cta 는 NextDeliveryCard.css 의 .mp-next-card / .mp-hero-cta 재사용.
+   여기서는 status chip + meta-top row + 주문번호 만 정의.
+   ══════════════════════════════════════════ */
+
+/* 메타 라인 — 텍스트 + chip 한 row, chip 이 텍스트 바로 옆 inline (gap 12).
+   행간 안정: 텍스트 box-height 를 chip(23) 과 동일하게 → row line-box 통일 → 행간 흔들림 차단. */
+.mp-recent-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  line-height: 1;
+}
+
+.mp-recent-summary {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-ui-size);
+  font-weight: var(--type-body-ui-weight);
+  color: var(--ink-on-sand);
+  opacity: 0.85;
+  /* line-height 23 — NextDelivery mp-next-meta 와 동일 box-height → 자연 baseline 정합 */
+  line-height: 23px;
+}
+
+.mp-recent-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-body);
+  height: 23px;
+  min-width: 60px;
+  padding: 0 10px;
+  border-radius: 3px;
+  line-height: 1;
+  box-sizing: border-box;
+}
+
+/* mp-order-status--* 와 동일 컬러 (사용자 결정 — 시스템 통일).
+   진행 4 (prep/shipping/refund-req/refund-proc) = solid bg + white + weight 500 (강조).
+   종결 3 (delivered/cancelled/refunded) = text only + weight 400 (default) — 흐름 색 매핑 강화. */
+.mp-recent-status--prep        { color: var(--color-text-inverse); background: var(--color-warning); font-weight: 500; }
+.mp-recent-status--shipping    { color: var(--color-text-inverse); background: var(--color-accent-gold); font-weight: 500; }
+.mp-recent-status--delivered   { color: #7E4E27; background: transparent; }
+.mp-recent-status--cancelled   { color: var(--color-text-tertiary); background: transparent; }
+.mp-recent-status--refund-req  { color: var(--color-text-inverse); background: #CB7068; font-weight: 500; }
+.mp-recent-status--refund-proc { color: var(--color-text-inverse); background: var(--color-error); font-weight: 500; }
+.mp-recent-status--refunded    { color: #A02828; background: transparent; }
+
