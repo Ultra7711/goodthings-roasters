@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════
-   MyPagePanel — V2 §3.2 우측 동적 패널 wrapper (S197 PR-1.2 stub)
+   MyPagePanel — V2 §3.2 우측 동적 패널 wrapper (S197 PR-2)
    - SideNav 활성 항목에 따라 본문(children) 교체
-   - PR-1.3 에서 6 view 매핑: OrdersView / SubscriptionView / WishlistView (placeholder) / ProfileView / AddressesView / AccountView
+   - 4 view 매핑: OrdersView / SubscriptionView / ProfileView / AccountView (PR-2 §2.7)
    ══════════════════════════════════════════ */
 
 'use client';

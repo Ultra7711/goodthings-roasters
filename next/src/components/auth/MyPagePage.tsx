@@ -22,7 +22,7 @@ import {
   setSkipConfirmSubId,
   setPauseConfirmSubId,
 } from '@/lib/myPageUiStore';
-import SiteHeader from '@/components/layout/SiteHeader';
+import OverscrollTop from '@/components/ui/OverscrollTop';
 import HeroGreeting from '@/components/auth/mypage/HeroGreeting';
 import NextDeliveryCard from '@/components/auth/mypage/NextDeliveryCard';
 import MyPageSideNav, { type MyPageNavId } from '@/components/auth/mypage/MyPageSideNav';
@@ -30,7 +30,6 @@ import MyPagePanel from '@/components/auth/mypage/MyPagePanel';
 import OrdersView from '@/components/auth/mypage/views/OrdersView';
 import SubscriptionView from '@/components/auth/mypage/views/SubscriptionView';
 import ProfileView from '@/components/auth/mypage/views/ProfileView';
-import AddressesView from '@/components/auth/mypage/views/AddressesView';
 import AccountView from '@/components/auth/mypage/views/AccountView';
 
 type MyPagePageProps = {
@@ -136,16 +135,16 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
         return <SubscriptionView />;
       case 'profile':
         return <ProfileView name={metaName ?? emailHandle ?? ''} email={effectiveEmail} />;
-      case 'addresses':
-        return <AddressesView />;
       case 'account':
         return <AccountView onLoggedOut={handleLoggedOut} />;
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-      <SiteHeader />
+    <>
+      {/* BUG-165: 마이페이지 light bg (#FBF8F3) — (main) 셸의 OverscrollColor default(dark) 부조화 차단.
+         cleanup 시 resetColors → 다른 라우트로 navigate 시 default 색상 복귀. */}
+      <OverscrollTop top="#FBF8F3" bottom="#FBF8F3" />
 
       {/* ── V2 §3.2 재구조화 본문 ── */}
       <div className="mp-body">
@@ -172,6 +171,6 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
           <MyPagePanel>{renderActiveView()}</MyPagePanel>
         </div>
       </div>
-    </div>
+    </>
   );
 }

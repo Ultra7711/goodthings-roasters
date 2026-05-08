@@ -1,10 +1,11 @@
 /* ══════════════════════════════════════════
-   MyPageSideNav — V2 §3.2 데스크탑 좌측 sub-nav (S197 PR-1.2 stub)
-   - 6 항목: orders / subscription / wishlist / profile / addresses / account
+   MyPageSideNav — V2 §3.2 데스크탑 좌측 sub-nav (S197 PR-2)
+   PR-2 §2.7: nav 4 재구성 — 단일 주소 정책으로 '주소록' 제거 → 프로필 sub-section 으로 이관.
+   비밀번호 변경은 프로필 → 계정관리로 이관.
+   - 4 항목: orders / subscription / profile / account
    - 활성 indicator: 좌측 1px ink bar
    - 카운트 badge (선택적)
    - 폭: var(--mp-nav-width) = 220px
-   - 모바일: PR-1.3 에서 별도 라우트 분리 시 미사용
    ══════════════════════════════════════════ */
 
 'use client';
@@ -15,7 +16,6 @@ export type MyPageNavId =
   | 'orders'
   | 'subscription'
   | 'profile'
-  | 'addresses'
   | 'account';
 
 type Item = {
@@ -34,7 +34,6 @@ const ITEMS: Omit<Item, 'count'>[] = [
   { id: 'orders', label: '주문내역' },
   { id: 'subscription', label: '정기배송' },
   { id: 'profile', label: '프로필' },
-  { id: 'addresses', label: '주소록' },
   { id: 'account', label: '계정관리' },
 ];
 

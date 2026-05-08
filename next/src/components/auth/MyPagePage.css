@@ -15,26 +15,11 @@
    사용처: components/auth/MyPagePage.tsx + components/auth/mypage/* (8 컴포넌트)
    ══════════════════════════════════════════ */
 
-/* BUG-164: MyPage section-body 컨텍스트는 컨테이너 bg 가 #F5F1EA 라
-   기본 autofill 룰(#FBF8F3)이 컨테이너와 부조화. chp-input 기본 bg 와
-   autofill bg 를 모두 컨테이너 색상으로 덮어 시각적 일관성 유지. (S196 globals 이전) */
-.mp-section-body .chp-input { background: #F5F1EA; }
-.mp-section-body input:-webkit-autofill,
-.mp-section-body input:-webkit-autofill:hover,
-.mp-section-body input:-webkit-autofill:active,
-.mp-section-body textarea:-webkit-autofill,
-.mp-section-body textarea:-webkit-autofill:hover,
-.mp-section-body textarea:-webkit-autofill:active {
-  -webkit-box-shadow: 0 -1px 0 0 rgba(28,27,25,.12) inset, 0 0 0 1000px #F5F1EA inset !important;
-  box-shadow: 0 -1px 0 0 rgba(28,27,25,.12) inset, 0 0 0 1000px #F5F1EA inset !important;
-}
-.mp-section-body input:-webkit-autofill:focus,
-.mp-section-body textarea:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 -2px 0 0 #1C1B19 inset, 0 0 0 1000px #F5F1EA inset !important;
-  box-shadow: 0 -2px 0 0 #1C1B19 inset, 0 0 0 1000px #F5F1EA inset !important;
-}
+/* S197 PR-2 §2.2: 패널 박스 폐기 → BUG-164 (mp-section-body autofill bg #F5F1EA override) 제거.
+   페이지 bg (#FBF8F3) 와 정합하도록 일반 autofill 룰(forms.css)이 적용됨. */
 
-/* S197 PR-1.3: 본문 — Hero + NextCard + 2단 grid (sub-nav 220 + 동적 패널) */
+/* S197 PR-2 §2.1: 본문 padding — 다른 sub-page (Shop/Menu/GoodDays/BizInquiry) 와 정합.
+   sticky header(64) 아래 안전 여백 100 + bottom 120 통일. */
 .mp-body {
   flex: 1;
   display: flex;
@@ -42,7 +27,7 @@
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  padding: 48px 60px 80px;
+  padding: 100px 60px 120px;
 }
 
 /* 좌측 sub-nav + 우측 패널 grid */
@@ -54,7 +39,8 @@
   align-items: start;
 }
 
-/* 섹션 — #12: 컨텐츠(타이틀 제외)만 흰 박스 */
+/* S197 PR-2 §2.2: 패널 박스 폐기 — bg/radius/bleed 제거, 단순 아코디언 컨테이너로 단순화.
+   position: relative 만 유지 (자식 absolute pd-dropdown-panel 의존). */
 .mp-section {
   margin-top: 32px;
   border-top: none;
@@ -62,10 +48,6 @@
 .mp-section:first-of-type { margin-top: 24px; }
 .mp-section--no-border { border-top: none; }
 .mp-section-body {
-  background: var(--color-surface-subtle);
-  margin: -2px -20px;
-  padding: 2px 20px;
-  border-radius: 16px;
   position: relative;
 }
 .mp-section-title {
@@ -511,11 +493,7 @@
    데스크탑 2단(7fr 5fr) → 1단 스택 · 주문 내역 sticky 해제
    · 타이틀 H1→H2 · 아코디언 액션 세로 · 주문 카드 min-width 해제 · 모달 폭 축소 */
 @media (max-width: 767px) {
-  /* S197 PR-1.3: 1단 스택 (mp-body 가 flex column 이라 grid-template 변경 불필요) */
-  .mp-body {
-    padding-top: 32px;
-    padding-bottom: 64px;
-  }
+  /* S197 PR-2 §2.1: mp-body 모바일 padding override 폐기 — 다른 sub-page 답습 (100px 60px 120px 그대로 상속) */
   /* mp-grid: 1단 stack (sub-nav 가로 row + 패널) */
   .mp-grid {
     grid-template-columns: 1fr;
@@ -523,17 +501,8 @@
     margin-top: 24px;
   }
 
-  /* P1 섹션 · 흰 박스 bleed 를 page gutter(24px)와 동일하게 맞춰
-     viewport edge 까지 풀-bleed · 내부 content 는 24px 유지
-     → 박스 left/right 대칭 · 제목(24px) 과 내부 content(24px) 동일 indent */
+  /* S197 PR-2 §2.2: 패널 박스 폐기 → 모바일 bleed 제거 (margin/padding/radius 모두 제거) */
   .mp-section { margin-top: 24px; }
-  .mp-section-body {
-    margin-left: -24px;
-    margin-right: -24px;
-    padding-left: 24px;
-    padding-right: 24px;
-    border-radius: 0;
-  }
 
   /* P1 인포 행 · 주소 값 2줄 허용 */
   .mp-info-label { min-width: 0; }

@@ -1,10 +1,11 @@
 /* ══════════════════════════════════════════
-   AccountView — 계정관리 view (S197 PR-1.3.B)
-   회원 탈퇴 only (비밀번호 변경은 ProfileView 로 이전).
+   AccountView — 계정관리 view (S197 PR-2 §2.7)
+   PasswordChangeForm (ProfileView 에서 이관) + AccountDeleteSection.
    ══════════════════════════════════════════ */
 
 'use client';
 
+import PasswordChangeForm from '../PasswordChangeForm';
 import AccountDeleteSection from '../AccountDeleteSection';
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
 export default function AccountView({ onLoggedOut }: Props) {
   return (
     <div className="mp-section-body">
+      <PasswordChangeForm />
       <AccountDeleteSection onLoggedOut={onLoggedOut} />
     </div>
   );
