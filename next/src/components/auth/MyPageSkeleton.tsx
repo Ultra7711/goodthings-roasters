@@ -38,7 +38,7 @@ function SkelBox({ height, width = '100%' }: BoxProps) {
 
 export default function MyPageSkeleton() {
   return (
-    <div className="mp-body">
+    <div className="mp-body is-loaded">
       {/* Hero greeting placeholder — H1 line-height 48 · 메타 body-l 28 정합 */}
       <div className="page-title-area mp-hero">
         <SkelBox height={H_PAGE_TITLE} width={300} />

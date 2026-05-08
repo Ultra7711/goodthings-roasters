@@ -88,8 +88,10 @@ export default function SubscriptionItem({
         <div className="mp-sub-item-info">
           <span className="mp-sub-item-name">
             {extractKrName(sub.name)}
-            <span className="mp-sub-item-vol"> · {sub.volume}</span>
-            <span className="mp-sub-item-vol"> · 정기배송 {sub.cycle}</span>
+            {/* NBSP 로 좌측 공백 보존 — inline-block leading 공백 collapse 차단.
+                주문내역 ("산뜻한 오후 · 200g") 와 표기 정합. */}
+            <span className="mp-sub-item-vol">{' · '}{sub.volume}</span>
+            <span className="mp-sub-item-vol">{' · '}정기배송 {sub.cycle}</span>
           </span>
           {sub.status === 'paused' ? (
             <span className="mp-sub-item-status mp-sub-item-status--paused">

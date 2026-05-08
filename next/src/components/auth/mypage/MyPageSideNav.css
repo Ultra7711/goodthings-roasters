@@ -89,10 +89,16 @@
   color: var(--color-text-secondary);
 }
 
-/* 모바일: 가로 row + sticky + edge fade mask (Shop 답습) */
+/* 모바일: 가로 row + sticky + edge fade mask (Shop 답습).
+   mp-body padding 24 bleed (margin -24 + padding 24) → mp-side-nav 가 viewport 폭까지 차지하지만
+   padding 24 는 mp-side-nav 측에 두고 list 는 padding 0 → baseline / fade mask 가 padding 안쪽에만 적용. */
 @media (max-width: 767px) {
   .mp-side-nav {
-    width: 100%;
+    width: auto;
+    margin-left: -24px;
+    margin-right: -24px;
+    padding-left: 24px;
+    padding-right: 24px;
     position: sticky;
     top: var(--sticky-offset);
     z-index: 5;
@@ -105,7 +111,8 @@
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    /* 모바일: 하단 hairline 2px — indicator 두께 정합 (active 시 정확히 덮음) */
+    padding: 0;
+    /* 모바일: 하단 hairline 2px — list 박스 (padding 안쪽) 영역에만 그려짐 */
     box-shadow: inset 0 -2px 0 0 var(--color-border-secondary);
     --mp-side-fade: 24px;
     mask-image: linear-gradient(to right, #000 0, #000 100%);

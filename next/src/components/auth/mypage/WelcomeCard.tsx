@@ -26,6 +26,9 @@ export default function WelcomeCard({ userName }: Props) {
           원두 둘러보기 →
         </Link>
       </div>
+      {/* image 영역 빈 div 유지 — layout space 차지하여 NextDelivery/RecentOrder 와 동일 자연 height.
+          sand bg 와 동일 색상 (투명) 이라 시각적으로는 보이지 않음 (사용자 결정 PR-2). */}
+      <div className="mp-next-image mp-next-image--empty" aria-hidden="true" />
     </section>
   );
 }

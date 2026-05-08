@@ -85,6 +85,16 @@ export default function MyPagePage({
     return `가입 ${Math.max(months, 1)}개월`;
   }, [createdAtIso]);
 
+  /* ── Hero 진입 연출 (PR-2 §2.11) — callback ref 직접 처리.
+     매 element mount 시 ref 호출 → classList reset → reflow → add 로 transition 재발화.
+     useState + useEffect 패턴은 navigate 시 instance reuse 로 재실행 안 되는 케이스 차단. */
+  const setBodyEl = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return;
+    el.classList.remove('is-loaded');
+    void el.offsetHeight;
+    el.classList.add('is-loaded');
+  }, []);
+
   /* ── Side nav 활성 항목 ── */
   const [activeNavId, setActiveNavId] = useState<MyPageNavId>('orders');
 
@@ -165,7 +175,7 @@ export default function MyPagePage({
       <OverscrollTop top="#FBF8F3" bottom="#FBF8F3" />
 
       {/* ── V2 §3.2 재구조화 본문 ── */}
-      <div className="mp-body">
+      <div className="mp-body" ref={setBodyEl}>
         <HeroGreeting
           name={displayName}
           ordersCount={orders.length}

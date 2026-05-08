@@ -30,10 +30,50 @@
   padding: 100px 60px 120px;
 }
 
-/* 좌측 sub-nav + 우측 패널 grid */
+/* S197 PR-2 §2.11: Hero 진입 연출 — Shop/Menu/GoodDays 패턴 답습.
+   page-title 은 PageTitle.css 의 SSR 초기 상태 (opacity 0 + translateY 20) 활용.
+   meta-row / next-card / mp-grid 도 동일 초기 상태 + stagger delay. */
+.mp-body .page-title,
+.mp-body .mp-hero-meta-row,
+.mp-body .mp-next-card,
+.mp-body .mp-grid {
+  transition: opacity .6s ease-out, transform .6s ease-out;
+}
+.mp-body .mp-hero-meta-row,
+.mp-body .mp-next-card,
+.mp-body .mp-grid {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.mp-body.is-loaded .page-title,
+.mp-body.is-loaded .mp-hero-meta-row,
+.mp-body.is-loaded .mp-next-card,
+.mp-body.is-loaded .mp-grid {
+  opacity: 1;
+  transform: none;
+}
+.mp-body.is-loaded .mp-hero-meta-row { transition-delay: 80ms; }
+.mp-body.is-loaded .mp-next-card     { transition-delay: 160ms; }
+.mp-body.is-loaded .mp-grid          { transition-delay: 240ms; }
+
+/* reduced-motion 가드 — 즉시 노출, 트랜지션 0ms */
+@media (prefers-reduced-motion: reduce) {
+  .mp-body .page-title,
+  .mp-body .mp-hero-meta-row,
+  .mp-body .mp-next-card,
+  .mp-body .mp-grid {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 좌측 sub-nav + 우측 패널 grid.
+   minmax(0, 1fr) — grid item 이 content min-size (큰 image / nowrap 텍스트 등) 무시하고
+   부모 폭 강제. default 1fr (= minmax(auto, 1fr)) 은 자식 폭 따라 expand 되어 overflow. */
 .mp-grid {
   display: grid;
-  grid-template-columns: var(--mp-nav-width) 1fr;
+  grid-template-columns: var(--mp-nav-width) minmax(0, 1fr);
   gap: var(--gap-2xl);
   /* 히어로 묶음 ↔ 사이드바+패널 분리 (PR-2 §2.4 사용자 결정) — 32 → 64. */
   margin-top: 64px;
@@ -62,15 +102,8 @@
 /* 배송지: column stretch + 내부 chevron top:6 → baseline 정렬에서 약 6.2px 위로 확장.
    다른 행과 시각 정렬을 위해 padding-top 8px 차감 (16→8 보정). */
 .mp-info-row--addr { flex-direction: column; align-items: stretch; border-bottom: none; padding-top: 12px; }
-.mp-addr-icon-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 24px; height: 24px; padding: 0;
-  background: transparent; border: none; cursor: pointer;
-  color: var(--color-icon-muted);
-  transition: color var(--duration-hover) ease;
-  flex-shrink: 0; position: relative; top: 6px;
-}
-.mp-addr-icon-btn:hover { color: var(--color-icon-default); }
+/* 아코디언 chevron 통일 (S197 PR-2) — top offset 모두 폐기, parent flex align center 로 vertical 정합 */
+.mp-addr-icon-btn,
 .mp-icon-btn {
   display: flex; align-items: center; justify-content: center;
   width: 24px; height: 24px; padding: 0;
@@ -79,16 +112,16 @@
   transition: color var(--duration-hover) ease;
   flex-shrink: 0;
 }
+.mp-addr-icon-btn:hover,
 .mp-icon-btn:hover { color: var(--color-icon-default); }
-.mp-info-row-top { display: flex; align-items: baseline; justify-content: space-between; width: 100%; }
-.mp-info-addr-right { display: flex; align-items: baseline; gap: var(--gap-md); }
+.mp-info-row-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.mp-info-addr-right { display: flex; align-items: center; gap: var(--gap-md); }
 .mp-info-row--action { align-items: center; box-shadow: inset 0 -1px 0 0 var(--color-border-hairline); }
 .mp-info-row--action:has(+ .mp-form-reveal.open) { border-bottom: none; }
 /* 회원 탈퇴: baseline 정렬 시 icon-btn top:6 + button display:flex baseline 차이로
    label 텍스트가 hairline 에 가깝게 시프트됨 → align-items:center 로 통일하면
    비밀번호 변경 행 (mp-info-row--action) 과 동일한 시각 정렬 확보. */
 .mp-info-row.mp-info-row--withdraw { margin-top: 0; border-bottom: none; align-items: center; }
-.mp-info-row--withdraw .mp-icon-btn { position: relative; top: 6px; }
 .mp-info-label {
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 500;
   color: var(--color-text-secondary); white-space: nowrap; min-width: 60px;
@@ -268,8 +301,9 @@
   font-size: var(--type-body-ui-size);
   font-weight: var(--type-body-ui-weight);
   color: var(--color-text-secondary);
-  /* piece 단위 wrap — 항목별 줄바꿈 ("정기배송 2주" 가 단어 단위 break 되지 않음) */
-  display: inline-block;
+  /* white-space nowrap — 그룹 단위 wrap ("정기배송 2주" 가 단어 단위 break 되지 않음).
+     display inline (inline-block 폐기) — leading 공백 collapse 차단 → " · " 좌측 공백 보존. */
+  display: inline;
   white-space: nowrap;
 }
 .mp-sub-item-status {
@@ -361,9 +395,10 @@
   font-family: var(--font-en); font-size: var(--type-body-ui-size); font-weight: 400;
   color: var(--color-text-caption); letter-spacing: var(--ls-body-s);
 }
+/* mp-order-toggle box width 24 — mp-icon-btn / mp-addr-icon-btn 통일 (S197 PR-2 chevron 정합) */
 .mp-order-toggle {
   display: flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; flex-shrink: 0;
+  width: 24px; height: 24px; flex-shrink: 0;
   color: var(--color-icon-muted);
   transition: transform var(--duration-hover) ease, color var(--duration-hover) ease;
 }
@@ -490,10 +525,19 @@
    데스크탑 2단(7fr 5fr) → 1단 스택 · 주문 내역 sticky 해제
    · 타이틀 H1→H2 · 아코디언 액션 세로 · 주문 카드 min-width 해제 · 모달 폭 축소 */
 @media (max-width: 767px) {
-  /* S197 PR-2 §2.1: mp-body 모바일 padding override 폐기 — 다른 sub-page 답습 (100px 60px 120px 그대로 상속) */
-  /* mp-grid: 1단 stack (sub-nav 가로 row + 패널) */
+  /* S197 PR-2 모바일 padding override — 좌우만 24 로 축소 (60 → 24, 콘텐츠 폭 확보).
+     top 100 / bottom 120 은 데스크탑 정합 유지 (헤더↔타이틀 spacing 일관).
+     position: relative + overflow-x: hidden — 자식 absolute 의 containing block 을
+     mp-body 로 잡아 overflow-x 차단 효과 보장 (chevron / dropdown 탈출 + 가로 드래그 차단). */
+  .mp-body {
+    padding-left: 24px;
+    padding-right: 24px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  /* mp-grid: 1단 stack (sub-nav 가로 row + 패널). minmax(0, 1fr) overflow 차단 동일 적용. */
   .mp-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--gap-xl);
     margin-top: 24px;
   }

@@ -120,6 +120,10 @@ export function useSubscriptionActions() {
           setPauseConfirmSubId(null);
           toast('정기배송이 일시정지되었습니다.');
         },
+        onError: () => {
+          /* 에러 시에도 모달 close — 사용자 대기 상태 차단 (mutation hook 이 toast 처리). */
+          setPauseConfirmSubId(null);
+        },
       });
     },
     [pauseMutation, toast],

@@ -62,7 +62,7 @@ export default function PasswordChangeForm() {
         }}
       >
         <span className="mp-info-label">비밀번호 변경</span>
-        <span className="mp-icon-btn" aria-hidden="true" style={{ position: 'relative', top: 4 }}>
+        <span className="mp-icon-btn" aria-hidden="true">
           <span className={`mp-chevron${isPwOpen ? ' open' : ''}`}>
             <ChevronRight />
           </span>

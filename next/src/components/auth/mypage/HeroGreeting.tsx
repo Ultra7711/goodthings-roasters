@@ -6,7 +6,6 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
 import '@/components/ui/PageTitle.css';
 import './HeroGreeting.css';
 import type { MyPageNavId } from './MyPageSideNav';
@@ -35,11 +34,6 @@ export default function HeroGreeting({
   onLogout,
   onNavigate,
 }: Props) {
-  const [isLoaded, setIsLoaded] = useState(false);
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
-
   /* 메타 항목 순서 = 사이드바 nav 순서 (orders → subscription → profile) 고정.
      카운트 0 인 항목은 숨김. 가입 N 은 membershipText 있을 때 항상 표시 (마지막). */
   const metaParts: MetaPart[] = [];
@@ -66,7 +60,7 @@ export default function HeroGreeting({
   }
 
   return (
-    <header className={`page-title-area mp-hero${isLoaded ? ' is-loaded' : ''}`}>
+    <header className="page-title-area mp-hero">
       <h1 className="page-title">
         <span className="mp-hero-greeting-line">안녕하세요.</span>{' '}
         <span className="mp-hero-greeting-line">{name} 님</span>

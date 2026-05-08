@@ -86,12 +86,15 @@
   object-fit: cover;
 }
 
-/* 모바일: 1단 stack */
+/* 모바일: 1단 stack + 카드 풀블리드 (mp-body padding 24 bleed) — 메인 hero 패턴 답습.
+   카드 sand bg 가 viewport 좌우 끝까지. image / info / cta 는 카드 padding 안에 가운데 정렬. */
 @media (max-width: 767px) {
   .mp-next-card {
     grid-template-columns: 1fr;
     gap: var(--gap-xl);
-    padding: 20px;
+    margin-left: -24px;
+    margin-right: -24px;
+    padding: 24px;
   }
   .mp-next-image {
     order: -1;

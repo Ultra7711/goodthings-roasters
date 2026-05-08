@@ -1,18 +1,18 @@
 /* ══════════════════════════════════════════
    WelcomeCard — 상태 D 카드 추가 룰 (S197 PR-2 §2.3)
    sand 패널 base + cta 는 NextDeliveryCard.css 의 .mp-next-card / .mp-hero-cta 재사용.
-   image 영역 폐기 + 카드 외곽 크기 통일 유지 (사용자 결정).
+   image 영역 빈 div 유지 (mp-next-image--empty) — 다른 카드 (NextDelivery/RecentOrder) 와
+   동일 grid layout + 자연 height 자동 정합 (min-height magic number 폐기).
+   info 하단 정렬 (image bottom 과 baseline 정합).
    ══════════════════════════════════════════ */
 
 .mp-next-card--welcome {
-  grid-template-columns: 1fr;
-  /* image 240x240 + padding 48 = 288 → NextDelivery / RecentOrder 카드와 height 통일 */
-  min-height: 288px;
+  /* info 하단 정렬 — grid item 이 cell 의 vertical end 로. image bottom 과 baseline 정합. */
+  align-items: end;
 }
-@media (max-width: 767px) {
-  .mp-next-card--welcome {
-    grid-template-columns: 1fr;
-    /* 모바일은 image stack 부재로 자연 height 사용 (auto) */
-    min-height: 0;
-  }
+
+/* 빈 image 영역 — sand bg 와 동일 (transparent) → 시각 X. layout space 만 차지.
+   specificity 0,2,0 강화 — NextDeliveryCard.css 의 .mp-next-image 의 rgba bg override. */
+.mp-next-image.mp-next-image--empty {
+  background: transparent;
 }

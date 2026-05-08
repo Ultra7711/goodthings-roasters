@@ -21,11 +21,8 @@
   }
 }
 
-/* page-title 의 SSR 초기 상태 → is-loaded 토글 시 즉시 활성 (트랜지션은 §2.11 에서 추가) */
-.mp-hero.is-loaded .page-title {
-  opacity: 1;
-  transform: none;
-}
+/* page-title 의 SSR 초기 상태 (opacity 0 + translateY 20) → 진입 연출은 MyPagePage.css 의
+   .mp-body.is-loaded ... rule 에서 통합 처리 (mp-body 단일 클래스 트리거). */
 
 /* 인사말 / 이름 분리 wrap — 폭 부족 시 두 line 사이에서만 줄바꿈 (각 line 자체는 nowrap) */
 .mp-hero-greeting-line {
