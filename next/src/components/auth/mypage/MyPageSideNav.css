@@ -1,5 +1,9 @@
 /* ══════════════════════════════════════════
-   MyPageSideNav — V2 §3.2 좌측 sub-nav (S197 PR-1.2)
+   MyPageSideNav — V2 §3.2 좌측 sub-nav (S197 PR-2 §2.12)
+   Shop/Menu 페이지 탭바 정합:
+   - 폰트 body-l + ls-neutral + tab-color
+   - indicator 2px gold absolute slide (vertical / horizontal)
+   - 모바일 sticky + edge fade mask
    ══════════════════════════════════════════ */
 
 .mp-side-nav {
@@ -8,7 +12,6 @@
   position: sticky;
   top: var(--sticky-offset);
   align-self: start;
-  padding-top: 8px;
 }
 
 .mp-side-nav-list {
@@ -17,6 +20,26 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+  position: relative;
+  /* 데스크탑: 좌측 vertical hairline (스크롤바 같은 baseline) */
+  box-shadow: inset 1px 0 0 0 var(--color-border-secondary);
+}
+
+/* indicator — absolute, slide transition (Shop 답습).
+   데스크탑: 좌측 vertical 2px → top/height inline 으로 active 항목 추적
+   모바일: 하단 horizontal 2px → left/width inline 으로 active 항목 추적 */
+.mp-side-nav-indicator {
+  position: absolute;
+  background: var(--color-accent-gold);
+  z-index: 1;
+  pointer-events: none;
+  /* 데스크탑 기본값 — vertical 2px @ left:0 (top/height 는 JS inline) */
+  left: 0;
+  width: 2px;
+  transition: top var(--duration-transition) cubic-bezier(.4,0,.2,1),
+              height var(--duration-transition) cubic-bezier(.4,0,.2,1),
+              left var(--duration-transition) cubic-bezier(.4,0,.2,1),
+              width var(--duration-transition) cubic-bezier(.4,0,.2,1);
 }
 
 .mp-side-nav-item {
@@ -25,27 +48,33 @@
   justify-content: space-between;
   gap: var(--gap-sm);
   width: 100%;
-  padding: 12px 16px;
+  padding: 14px 20px;
   background: transparent;
   border: none;
-  border-left: 1px solid transparent;
   text-align: left;
   cursor: pointer;
   font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: 500;
-  letter-spacing: var(--ls-body);
-  color: var(--color-text-tertiary);
-  transition: color var(--duration-hover) ease, border-color var(--duration-hover) ease;
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-neutral);
+  color: var(--tab-color);
+  transition: color var(--duration-hover) ease;
+  white-space: nowrap;
 }
 
 .mp-side-nav-item:hover {
-  color: var(--color-text-primary);
+  color: var(--tab-color-active);
 }
 
 .mp-side-nav-item.is-active {
-  color: var(--color-text-primary);
-  border-left-color: var(--color-text-primary);
+  font-weight: 500;
+  color: var(--tab-color-active);
+}
+
+.mp-side-nav-item:focus { outline: none; }
+.mp-side-nav-item:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
 }
 
 .mp-side-nav-count {
@@ -60,32 +89,51 @@
   color: var(--color-text-secondary);
 }
 
-/* 모바일: PR-1.3 에서 별도 라우트로 분리 후 sub-nav 자체는 미노출 (대시보드 카드 + 6 link 로 대체).
-   여기서는 안전망으로 가로 row scroll 패턴 유지 (PR-3 에서 정리). */
+/* 모바일: 가로 row + sticky + edge fade mask (Shop 답습) */
 @media (max-width: 767px) {
   .mp-side-nav {
     width: 100%;
-    position: static;
-    top: auto;
-    padding-top: 0;
+    position: sticky;
+    top: var(--sticky-offset);
+    z-index: 5;
+    align-self: stretch;
+    background: var(--color-background-primary);
   }
   .mp-side-nav-list {
     flex-direction: row;
     overflow-x: auto;
-    gap: var(--gap-xs);
-    margin: 0 -24px;
-    padding: 0 24px;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    /* 모바일 기준 — 하단 hairline (탭바 baseline) */
+    box-shadow: inset 0 -1px 0 0 var(--color-border-secondary);
+    --mp-side-fade: 24px;
+    mask-image: linear-gradient(to right, #000 0, #000 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 100%);
+  }
+  .mp-side-nav-list[data-scroll="start"] {
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - var(--mp-side-fade)), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - var(--mp-side-fade)), transparent 100%);
+  }
+  .mp-side-nav-list[data-scroll="middle"] {
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--mp-side-fade), #000 calc(100% - var(--mp-side-fade)), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--mp-side-fade), #000 calc(100% - var(--mp-side-fade)), transparent 100%);
+  }
+  .mp-side-nav-list[data-scroll="end"] {
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--mp-side-fade), #000 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--mp-side-fade), #000 100%);
   }
   .mp-side-nav-list::-webkit-scrollbar { display: none; }
   .mp-side-nav-item {
     flex-shrink: 0;
-    padding: 10px 16px;
-    border-left: none;
-    border-bottom: 1px solid transparent;
+    padding: 12px 18px 10px;
   }
-  .mp-side-nav-item.is-active {
-    border-left: none;
-    border-bottom-color: var(--color-text-primary);
+  /* indicator — 모바일 horizontal 2px @ bottom:0 (left/width 는 JS inline) */
+  .mp-side-nav-indicator {
+    left: 0;
+    width: 0;
+    bottom: 0;
+    top: auto;
+    height: 2px;
   }
 }

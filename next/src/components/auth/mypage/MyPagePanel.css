@@ -1,11 +1,13 @@
 /* ══════════════════════════════════════════
-   MyPagePanel — V2 §3.2 우측 동적 패널 (S197 PR-1.2)
+   MyPagePanel — V2 §3.2 우측 동적 패널 (S197 PR-2 §2.13)
+   - mp-panel padding-top: 14 — 사이드바 첫 항목 padding-top 과 동일 → 시각 정렬
+   - mp-panel-title — h3 sub-title (카테고리명 노출)
    ══════════════════════════════════════════ */
 
 .mp-panel {
   flex: 1;
   min-width: 0;
-  padding-top: 8px;
+  padding-top: 14px;
 }
 
 .mp-panel-title {

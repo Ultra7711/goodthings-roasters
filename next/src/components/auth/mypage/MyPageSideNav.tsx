@@ -1,15 +1,14 @@
 /* ══════════════════════════════════════════
-   MyPageSideNav — V2 §3.2 데스크탑 좌측 sub-nav (S197 PR-2)
-   PR-2 §2.7: nav 4 재구성 — 단일 주소 정책으로 '주소록' 제거 → 프로필 sub-section 으로 이관.
-   비밀번호 변경은 프로필 → 계정관리로 이관.
+   MyPageSideNav — V2 §3.2 좌측 sub-nav (S197 PR-2 §2.12)
+   Shop/Menu 페이지 탭바 답습 — 2px gold absolute slide indicator + body-l 폰트.
    - 4 항목: orders / subscription / profile / account
-   - 활성 indicator: 좌측 1px ink bar
-   - 카운트 badge (선택적)
-   - 폭: var(--mp-nav-width) = 220px
+   - 데스크탑: vertical (top/height slide) · 사이드 폭 var(--mp-nav-width) sticky
+   - 모바일: horizontal (left/width slide) + sticky + edge fade mask + scrollIntoView
    ══════════════════════════════════════════ */
 
 'use client';
 
+import { useEffect, useRef } from 'react';
 import './MyPageSideNav.css';
 
 export type MyPageNavId =
@@ -37,10 +36,96 @@ const ITEMS: Omit<Item, 'count'>[] = [
   { id: 'account', label: '계정관리' },
 ];
 
+const MOBILE_QUERY = '(max-width: 767px)';
+
 export default function MyPageSideNav({ activeId, counts, onChange }: Props) {
+  const listRef = useRef<HTMLUListElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+  const isMounted = useRef(false);
+
+  function positionIndicator(animate: boolean) {
+    const list = listRef.current;
+    const indicator = indicatorRef.current;
+    if (!list || !indicator) return;
+
+    const activeBtn = list.querySelector<HTMLButtonElement>('.mp-side-nav-item.is-active');
+    if (!activeBtn) return;
+
+    const isMobile = window.matchMedia(MOBILE_QUERY).matches;
+
+    const apply = () => {
+      if (isMobile) {
+        indicator.style.left = `${activeBtn.offsetLeft}px`;
+        indicator.style.width = `${activeBtn.offsetWidth}px`;
+        indicator.style.top = '';
+        indicator.style.height = '';
+      } else {
+        indicator.style.top = `${activeBtn.offsetTop}px`;
+        indicator.style.height = `${activeBtn.offsetHeight}px`;
+        indicator.style.left = '';
+        indicator.style.width = '';
+      }
+    };
+
+    if (!animate) {
+      indicator.style.transition = 'none';
+      apply();
+      void indicator.offsetHeight;
+      indicator.style.transition = '';
+    } else {
+      apply();
+    }
+  }
+
+  /* 모바일 수평 스크롤 fade mask 상태 */
+  function updateScrollState() {
+    const list = listRef.current;
+    if (!list) return;
+    const { scrollLeft, scrollWidth, clientWidth } = list;
+    const maxScroll = scrollWidth - clientWidth;
+    if (maxScroll <= 1) list.dataset.scroll = 'none';
+    else if (scrollLeft <= 1) list.dataset.scroll = 'start';
+    else if (scrollLeft >= maxScroll - 1) list.dataset.scroll = 'end';
+    else list.dataset.scroll = 'middle';
+  }
+
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      positionIndicator(false);
+    } else {
+      positionIndicator(true);
+    }
+    /* 모바일에서 활성 탭이 화면 밖이면 가로 스크롤 진입 (Shop 답습) */
+    if (window.matchMedia(MOBILE_QUERY).matches) {
+      const list = listRef.current;
+      const activeBtn = list?.querySelector<HTMLButtonElement>('.mp-side-nav-item.is-active');
+      activeBtn?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    }
+    updateScrollState();
+  }, [activeId]);
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const onScroll = () => updateScrollState();
+    const onResize = () => {
+      positionIndicator(false);
+      updateScrollState();
+    };
+    list.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+    updateScrollState();
+    return () => {
+      list.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
+
   return (
     <nav className="mp-side-nav" aria-label="마이페이지 내비게이션">
-      <ul className="mp-side-nav-list">
+      <ul className="mp-side-nav-list" ref={listRef}>
+        <span className="mp-side-nav-indicator" ref={indicatorRef} aria-hidden="true" />
         {ITEMS.map((item) => {
           const count = counts?.[item.id];
           const isActive = activeId === item.id;

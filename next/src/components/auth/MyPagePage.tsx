@@ -27,6 +27,13 @@ import HeroGreeting from '@/components/auth/mypage/HeroGreeting';
 import NextDeliveryCard from '@/components/auth/mypage/NextDeliveryCard';
 import MyPageSideNav, { type MyPageNavId } from '@/components/auth/mypage/MyPageSideNav';
 import MyPagePanel from '@/components/auth/mypage/MyPagePanel';
+
+const NAV_LABELS: Record<MyPageNavId, string> = {
+  orders: '주문내역',
+  subscription: '정기배송',
+  profile: '프로필',
+  account: '계정관리',
+};
 import OrdersView from '@/components/auth/mypage/views/OrdersView';
 import SubscriptionView from '@/components/auth/mypage/views/SubscriptionView';
 import ProfileView from '@/components/auth/mypage/views/ProfileView';
@@ -168,7 +175,7 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
             counts={counts}
             onChange={setActiveNavId}
           />
-          <MyPagePanel>{renderActiveView()}</MyPagePanel>
+          <MyPagePanel title={NAV_LABELS[activeNavId]}>{renderActiveView()}</MyPagePanel>
         </div>
       </div>
     </>

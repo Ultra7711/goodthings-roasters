@@ -55,10 +55,8 @@ export default function SubscriptionEditor() {
 
   return (
     <>
-      <div className="mp-section mp-section--no-border">
-        <h2 className="mp-section-title">정기배송 관리</h2>
-        <div className="mp-section-body">
-          <div className="mp-sub-list">
+      <div className="mp-section-body">
+        <div className="mp-sub-list">
             {isLoading ? (
               <div className="mp-empty-state">불러오는 중…</div>
             ) : subscriptions.length === 0 ? (
@@ -89,7 +87,6 @@ export default function SubscriptionEditor() {
                 );
               })
             )}
-          </div>
         </div>
       </div>
 

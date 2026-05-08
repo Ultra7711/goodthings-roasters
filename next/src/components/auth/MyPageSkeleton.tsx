@@ -51,17 +51,20 @@ export default function MyPageSkeleton() {
 
       {/* mp-grid: side-nav + panel */}
       <div className="mp-grid">
-        {/* Side nav placeholder (4 항목) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 8 }}>
+        {/* Side nav placeholder (4 항목 · padding 14 20 · body-l) */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} style={{ padding: '12px 16px' }}>
+            <div key={i} style={{ padding: '14px 20px' }}>
               <SkelBox height={H_BODY_M} width="60%" />
             </div>
           ))}
         </div>
 
-        {/* Panel placeholder — 주문 1 카드 */}
+        {/* Panel placeholder — sub-title h2 + 주문 1 카드 */}
         <div className="mp-panel">
+          <div style={{ marginBottom: 24 }}>
+            <SkelBox height={28} width={120} />
+          </div>
           <div className="mp-section-body">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '20px 0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

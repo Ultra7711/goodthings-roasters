@@ -39,14 +39,9 @@
   align-items: start;
 }
 
-/* S197 PR-2 §2.2: 패널 박스 폐기 — bg/radius/bleed 제거, 단순 아코디언 컨테이너로 단순화.
+/* S197 PR-2 §2.2: 패널 박스 폐기 — bg/radius/bleed 제거, 단순 컨테이너로 단순화.
+   .mp-section / .mp-section--no-border wrapper 폐기 (PR-2 §2.13 통일).
    position: relative 만 유지 (자식 absolute pd-dropdown-panel 의존). */
-.mp-section {
-  margin-top: 32px;
-  border-top: none;
-}
-.mp-section:first-of-type { margin-top: 24px; }
-.mp-section--no-border { border-top: none; }
 .mp-section-body {
   position: relative;
 }
@@ -502,7 +497,6 @@
   }
 
   /* S197 PR-2 §2.2: 패널 박스 폐기 → 모바일 bleed 제거 (margin/padding/radius 모두 제거) */
-  .mp-section { margin-top: 24px; }
 
   /* P1 인포 행 · 주소 값 2줄 허용 */
   .mp-info-label { min-width: 0; }

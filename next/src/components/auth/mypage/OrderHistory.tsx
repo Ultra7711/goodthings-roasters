@@ -44,7 +44,6 @@ export default function OrderHistory() {
 
   return (
     <>
-      <h2 className="mp-section-title">주문 내역</h2>
       <div className="mp-section-body">
         <div className="mp-order-list">
           {isLoading ? (
