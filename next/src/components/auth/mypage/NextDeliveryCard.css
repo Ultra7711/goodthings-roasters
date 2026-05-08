@@ -20,26 +20,6 @@
   gap: 12px;
 }
 
-/* eyebrow — .blk-label 시스템 답습 (HeroGreeting 동일 패턴 · sand 위 gold scoped) */
-.mp-next-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--font-en);
-  font-size: var(--type-body-s-size);
-  font-weight: 500;
-  letter-spacing: var(--ls-label);
-  color: var(--color-accent-gold);
-  text-transform: uppercase;
-}
-.mp-next-eyebrow::before {
-  content: '';
-  display: inline-block;
-  width: 32px;
-  height: 2px;
-  background: var(--color-accent-gold);
-}
-
 .mp-next-name {
   font-family: var(--font-kr);
   font-size: var(--type-h3-size);
@@ -65,81 +45,8 @@
   margin-top: 16px;
   flex-wrap: wrap;
 }
-
-/* primary (solid ink) — 일시정지 */
-.mp-next-action--primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 44px;
-  padding: 0 24px;
-  min-width: 120px;
-  background: var(--color-btn-primary-bg);
-  color: var(--color-text-inverse);
-  border: none;
-  cursor: pointer;
-  font-family: var(--btn-font-family);
-  font-size: var(--btn-font-size);
-  font-weight: var(--btn-font-weight);
-  letter-spacing: var(--btn-letter-spacing);
-  transition: background 200ms ease;
-}
-.mp-next-action--primary:not(:disabled):hover {
-  background: var(--color-btn-primary-bg-hover);
-}
-.mp-next-action--primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* outline — 건너뛰기 (sand 위 ink outline) */
-.mp-next-action--outline {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 44px;
-  padding: 0 24px;
-  min-width: 120px;
-  background: transparent;
-  color: var(--color-text-primary);
-  border: 0;
-  box-shadow: inset 0 0 0 1px var(--color-text-primary);
-  cursor: pointer;
-  font-family: var(--btn-font-family);
-  font-size: var(--btn-font-size);
-  font-weight: var(--btn-font-weight);
-  letter-spacing: var(--btn-letter-spacing);
-  transition: box-shadow 200ms ease;
-}
-.mp-next-action--outline:not(:disabled):hover {
-  box-shadow: inset 0 0 0 2px var(--color-text-primary);
-}
-.mp-next-action--outline:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* text link — 변경 */
-.mp-next-action--text {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: var(--text-link-font-weight);
-  letter-spacing: var(--text-link-letter-spacing);
-  color: var(--ink-on-sand);
-  text-decoration: underline;
-  text-decoration-color: var(--color-border-primary);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
-}
-.mp-next-action--text:hover {
-  color: var(--color-accent-gold);
-  text-decoration-color: var(--color-accent-gold);
-}
+/* 액션 버튼은 정기배송 관리 view 의 secondary CTA (.mp-cancel-btn) 답습 — 사용자 결정 (S197 PR-1.3 fix-up).
+   sand 패널 위에서도 동일 outline 스타일이 정상 동작 (--color-background-pure bg + ink inset 1px). */
 
 /* 사진 영역 — 5:4 비율 */
 .mp-next-image {

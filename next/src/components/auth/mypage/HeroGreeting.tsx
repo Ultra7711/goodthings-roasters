@@ -13,7 +13,7 @@ type Props = {
   name: string;
   ordersCount: number;
   activeSubscriptionsCount: number;
-  membershipMonths: number | null;
+  membershipText: string | null;
   onLogout: () => void;
 };
 
@@ -21,15 +21,13 @@ export default function HeroGreeting({
   name,
   ordersCount,
   activeSubscriptionsCount,
-  membershipMonths,
+  membershipText,
   onLogout,
 }: Props) {
   const metaParts: string[] = [];
   metaParts.push(`최근 주문 ${ordersCount}`);
-  metaParts.push(`진행 중 정기배송 ${activeSubscriptionsCount}`);
-  if (typeof membershipMonths === 'number') {
-    metaParts.push(`가입 ${membershipMonths}개월`);
-  }
+  metaParts.push(`정기배송 ${activeSubscriptionsCount}`);
+  if (membershipText) metaParts.push(membershipText);
 
   return (
     <header className="mp-hero">

@@ -19,7 +19,6 @@ import { useToast } from '@/hooks/useToast';
 import { useSubscriptionsQuery } from '@/hooks/useSubscriptions';
 import { useOrdersQuery } from '@/hooks/useOrders';
 import {
-  setSubEditId,
   setSkipConfirmSubId,
   setPauseConfirmSubId,
 } from '@/lib/myPageUiStore';
@@ -38,18 +37,6 @@ type MyPagePageProps = {
   initialClaims: AuthClaims;
 };
 
-/** "YYYY.MM.DD" 형식 nextDate → 오늘 기준 D-N (음수면 null) */
-function calcDaysUntil(nextDate: string): number | null {
-  const [y, m, d] = nextDate.split('.').map(Number);
-  if (!y || !m || !d) return null;
-  const target = new Date(y, m - 1, d);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diffMs = target.getTime() - today.getTime();
-  const days = Math.round(diffMs / (1000 * 60 * 60 * 24));
-  return days >= 0 ? days : null;
-}
-
 export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const router = useRouter();
   const { show: toast } = useToast();
@@ -62,20 +49,25 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const emailHandle = effectiveEmail.split('@')[0];
   const displayName = metaName ?? emailHandle ?? '';
 
-  /* 가입 개월 수 — supabaseUser.created_at 또는 initialClaims 의 createdAt (있을 시) */
+  /* 가입 기간 — < 30일 이면 일 단위, 이상이면 개월 단위 */
   const createdAtIso =
     supabaseUser?.created_at ??
     (initialClaims as unknown as { createdAt?: string }).createdAt ??
     null;
-  const membershipMonths = useMemo(() => {
+  const membershipText = useMemo<string | null>(() => {
     if (!createdAtIso) return null;
     const created = new Date(createdAtIso);
     if (isNaN(created.getTime())) return null;
     const now = new Date();
+    const days = Math.floor(
+      (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    if (days < 0) return null;
+    if (days < 30) return `가입 ${days}일째`;
     const months =
       (now.getFullYear() - created.getFullYear()) * 12 +
       (now.getMonth() - created.getMonth());
-    return Math.max(months, 0);
+    return `가입 ${Math.max(months, 1)}개월`;
   }, [createdAtIso]);
 
   /* ── Side nav 활성 항목 ── */
@@ -108,11 +100,6 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
     return [...candidates].sort((a, b) => a.nextDate.localeCompare(b.nextDate))[0] ?? null;
   }, [subscriptions]);
 
-  const daysUntilNext = useMemo(() => {
-    if (!nextSub) return null;
-    return calcDaysUntil(nextSub.nextDate);
-  }, [nextSub]);
-
   /* ── 로그아웃 ── */
   const handleLogout = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
@@ -138,13 +125,6 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const handleNextSkip = useCallback(() => {
     if (!nextSub) return;
     setSkipConfirmSubId(nextSub.id);
-  }, [nextSub]);
-
-  const handleNextEdit = useCallback(() => {
-    if (!nextSub) return;
-    /* 정기배송 view 로 이동 + 해당 항목 편집 모드 진입 */
-    setActiveNavId('subscription');
-    setSubEditId(nextSub.id);
   }, [nextSub]);
 
   /* ── 활성 view 렌더 ── */
@@ -173,16 +153,14 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
           name={displayName}
           ordersCount={orders.length}
           activeSubscriptionsCount={activeSubsCount}
-          membershipMonths={membershipMonths}
+          membershipText={membershipText}
           onLogout={() => void handleLogout()}
         />
 
         <NextDeliveryCard
           sub={nextSub}
-          daysUntilNext={daysUntilNext}
           onPause={handleNextPause}
           onSkip={handleNextSkip}
-          onEdit={handleNextEdit}
         />
 
         <div className="mp-grid">

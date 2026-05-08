@@ -17,28 +17,21 @@ import type { Subscription } from '@/types/subscription';
 type Props = {
   /** 활성 정기배송 첫 항목 (다음 배송일 기준) */
   sub: Subscription | null;
-  /** 다음 배송일까지 남은 일수 (D-7 등 표기) */
-  daysUntilNext?: number | null;
   /** 일시정지 액션 (sub 의 status 가 active 일 때) */
   onPause: () => void;
   /** 배송 건너뛰기 */
   onSkip: () => void;
-  /** 변경 (편집 모드 진입) */
-  onEdit: () => void;
 };
 
 export default function NextDeliveryCard({
   sub,
-  daysUntilNext,
   onPause,
   onSkip,
-  onEdit,
 }: Props) {
   if (!sub) {
     return (
       <section className="mp-next-card mp-next-card--empty" aria-label="정기배송">
         <div className="mp-next-empty-text">
-          <span className="mp-next-eyebrow">SUBSCRIPTION</span>
           <p className="mp-next-empty-title">아직 정기배송이 없어요.</p>
           <p className="mp-next-empty-desc">
             좋아하는 원두를 정기적으로 받아보세요.
@@ -52,12 +45,6 @@ export default function NextDeliveryCard({
   }
 
   const isPaused = sub.status === 'paused';
-  const eyebrowText = isPaused
-    ? '일시정지 중'
-    : typeof daysUntilNext === 'number'
-      ? `NEXT SUBSCRIPTION · ${daysUntilNext}일 후`
-      : `NEXT SUBSCRIPTION`;
-
   const nameLine = sub.volume
     ? `${extractKrName(sub.name)} · ${sub.volume}`
     : extractKrName(sub.name);
@@ -66,35 +53,25 @@ export default function NextDeliveryCard({
   return (
     <section className="mp-next-card" aria-label="다음 정기배송">
       <div className="mp-next-info">
-        <span className="mp-next-eyebrow">{eyebrowText}</span>
         <h2 className="mp-next-name">{nameLine}</h2>
         <p className="mp-next-meta">{metaLine}</p>
         <div className="mp-next-actions">
           <button
             type="button"
-            className="mp-next-action mp-next-action--primary"
+            className="mp-cancel-btn"
             onClick={onPause}
-            disabled={isPaused}
             data-gtr-tap
           >
             {isPaused ? '배송 재개하기' : '배송 일시정지'}
           </button>
           <button
             type="button"
-            className="mp-next-action mp-next-action--outline"
+            className="mp-cancel-btn"
             onClick={onSkip}
             disabled={isPaused}
             data-gtr-tap
           >
             건너뛰기
-          </button>
-          <button
-            type="button"
-            className="mp-next-action mp-next-action--text"
-            onClick={onEdit}
-            data-gtr-tap
-          >
-            변경
           </button>
         </div>
       </div>
