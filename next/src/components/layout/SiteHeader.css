@@ -159,6 +159,8 @@
   .hdr-menu-toggle { display: flex; }
   /* 로그인/마이페이지 아이콘은 햄버거 메뉴로 내장 */
   .hdr-icons .hdr-icon-user { display: none; }
+  /* 햄버거 SVG (viewBox 24x24 path x:4-20) 의 우측 빈 4px 보정 → 좌측 로고와 시각 좌우 균형 (S198) */
+  .hdr-menu-toggle .hi { transform: translateX(4px); }
 }
 
 /* ══ 검색 드롭 패널 ══ */

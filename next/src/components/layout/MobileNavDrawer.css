@@ -67,6 +67,9 @@
   align-items: center;
   gap: 4px;
   margin-right: -4px; /* 아이콘 버튼 우측 광학 보정 — .hdr-icons 와 동일 */
+  /* X / cart SVG 우측 빈 공간 보정 — 햄버거 4px 이동 (SiteHeader.css) 과 시각 정렬 (S198).
+     그룹 자체 이동으로 SVG + cart-badge 자식 일괄 처리. */
+  transform: translateX(4px);
 }
 .mn-cart {
   position: relative;
