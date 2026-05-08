@@ -998,6 +998,12 @@ textarea:focus-visible {
   padding: 0 0 24px;
 }
 .pd-product-info-body { overflow-x: auto; }
+/* 드립백 "제품 안내" 아코디언 — SpecTable 콘텐츠 (10 rows + footer notices + cert) 가
+   base 600px 초과 → 모바일 wrap 시 footer (분쟁해결 텍스트 + cert 로고) 잘림.
+   .pd-product-info-body 만 별도 max-height 1500 (specificity 0,2,0 으로 base override · S198). */
+.pd-accordion.open .pd-accordion-body.pd-product-info-body {
+  max-height: 1500px;
+}
 
 
 
