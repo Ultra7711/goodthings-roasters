@@ -97,13 +97,13 @@ export default function MyPageSideNav({ activeId, counts, onChange }: Props) {
       positionIndicator(true);
     }
     /* 모바일에서 활성 탭이 화면 밖이면 가로 스크롤 진입.
-       inline: 'nearest' — 이미 보이면 scroll 안 함 (root viewport 가로 scroll 발동 차단).
-       Shop 의 'center' 는 root 까지 scroll 일으켜 chevron 등 우측 콘텐츠가 viewport 중앙으로
-       강제 이동되는 부작용이 있어 nearest 로 다운그레이드. */
+       inline: 'center' — Shop / Cafe / LegalSideNav 와 통일 (S198).
+       과거 root viewport 가로 scroll 부작용으로 'nearest' 다운그레이드 했으나,
+       이후 모바일 .root { overflow-x: hidden } 도입으로 부작용 차단 완료. */
     if (window.matchMedia(MOBILE_QUERY).matches) {
       const list = listRef.current;
       const activeBtn = list?.querySelector<HTMLButtonElement>('.mp-side-nav-item.is-active');
-      activeBtn?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
+      activeBtn?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
     }
     updateScrollState();
   }, [activeId]);
