@@ -1,12 +1,12 @@
 # globals.css 섹션 인벤토리
 
 > **작성:** S179 (2026-05-07)
-> **갱신:** S193 (2026-05-08) — HomePage Pilot 13 분리 (-932 LOC)
+> **갱신:** S194 (2026-05-08) — PageTitle Pilot 14 분리 (-45 LOC)
 > **목적:** 9985 LOC 단일 globals.css 분할 작업의 진단 베이스 + Pilot 검증.
 
 ## 현황
 
-- 단일 파일 라인 수: 9985 → 9796 (S179 Pilot 1) → 9715 (S180 Pilot 2) → 9596 (S181 OrderItemCard) → 9408 (S182 Pilot 3) → 9176 (S183 Pilot 4) → 8810 (S184 Pilot 5) → 8436 (S185 Pilot 6) → 8155 (S186 Pilot 7) → 7594 (S187 Pilot 8) → 7346 (S189 Pilot 9) → 6778 (S191 Pilot 10) → 5167 (S191 Pilot 11) → 4957 (S192 Pilot 12) → **4025 (S193 Pilot 13)**
+- 단일 파일 라인 수: 9985 → 9796 (S179 Pilot 1) → 9715 (S180 Pilot 2) → 9596 (S181 OrderItemCard) → 9408 (S182 Pilot 3) → 9176 (S183 Pilot 4) → 8810 (S184 Pilot 5) → 8436 (S185 Pilot 6) → 8155 (S186 Pilot 7) → 7594 (S187 Pilot 8) → 7346 (S189 Pilot 9) → 6778 (S191 Pilot 10) → 5167 (S191 Pilot 11) → 4957 (S192 Pilot 12) → 4025 (S193 Pilot 13) → **3980 (S194 Pilot 14)**
 - 메이저 섹션 마커 (`/* ══...═ */`) 21개
 - Tailwind v4 + Lightning CSS + Turbopack HMR 환경 (lessons.md §6 backdrop-filter 누락 사례 보유 → 분할 시 production CSS chunk grep 검증 필수)
 
