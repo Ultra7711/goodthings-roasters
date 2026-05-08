@@ -104,6 +104,18 @@
   align-items: flex-end;
   justify-content: space-between;
 }
+/* 모바일 좌우 padding 60 → 24 (S198) — base shorthand 가 globals.css 의 모바일 24 override 를
+   cascade 로 이기는 문제 명시 해소 (헤더↔타이틀 100→56 통일과 동일 패턴).
+   mouse 아이콘 SVG (viewBox 24, rect x:5-19) 의 우측 빈 공간 ≈8 보정 → slogan 좌우 균형. */
+@media (max-width: 767px) {
+  .hero-c {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .hero-scroll-mouse {
+    transform: translateX(8px);
+  }
+}
 .hero-slogan {
   font-family: var(--font-en);
   font-size: var(--type-hero-editorial-size);
