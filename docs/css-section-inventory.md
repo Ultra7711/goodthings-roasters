@@ -1,12 +1,12 @@
 # globals.css 섹션 인벤토리
 
 > **작성:** S179 (2026-05-07)
-> **갱신:** S196 (2026-05-08) — Pilot 19 Cart Drawer 분리 + dead code (close-btn/arrow-btn) 제거 + pd-dropdown 베이스 복원 (-575 LOC)
+> **갱신:** S196 (2026-05-08) — Pilot 19 Cart Drawer 분리 + Pilot 20 Section 1 잔류 4종 분리 (-715 LOC)
 > **목적:** 9985 LOC 단일 globals.css 분할 작업의 진단 베이스 + Pilot 검증.
 
 ## 현황
 
-- 단일 파일 라인 수: 9985 → 9796 (S179 Pilot 1) → 9715 (S180 Pilot 2) → 9596 (S181 OrderItemCard) → 9408 (S182 Pilot 3) → 9176 (S183 Pilot 4) → 8810 (S184 Pilot 5) → 8436 (S185 Pilot 6) → 8155 (S186 Pilot 7) → 7594 (S187 Pilot 8) → 7346 (S189 Pilot 9) → 6778 (S191 Pilot 10) → 5167 (S191 Pilot 11) → 4957 (S192 Pilot 12) → 4025 (S193 Pilot 13) → 3980 (S194 Pilot 14) → 3178 (S195 Pilots 15-18) → **2646 (S196 Pilot 19 + dead code)**
+- 단일 파일 라인 수: 9985 → 9796 (S179 Pilot 1) → 9715 (S180 Pilot 2) → 9596 (S181 OrderItemCard) → 9408 (S182 Pilot 3) → 9176 (S183 Pilot 4) → 8810 (S184 Pilot 5) → 8436 (S185 Pilot 6) → 8155 (S186 Pilot 7) → 7594 (S187 Pilot 8) → 7346 (S189 Pilot 9) → 6778 (S191 Pilot 10) → 5167 (S191 Pilot 11) → 4957 (S192 Pilot 12) → 4025 (S193 Pilot 13) → 3980 (S194 Pilot 14) → 3178 (S195 Pilots 15-18) → 2646 (S196 Pilot 19 + dead code) → **2506 (S196 Pilot 20 Section 1 잔류 4종)**
 - 메이저 섹션 마커 (`/* ══...═ */`) 21개
 - Tailwind v4 + Lightning CSS + Turbopack HMR 환경 (lessons.md §6 backdrop-filter 누락 사례 보유 → 분할 시 production CSS chunk grep 검증 필수)
 
@@ -132,6 +132,11 @@ globals.css에서 룰을 삭제하고 새 파일에 옮겼을 때, dev 서버 ch
 18. ✅ **Cart Drawer** (S196 Pilot 19 완료 — `#cart-drawer*`/`cd-*` 본문 + @media 1024/767/480 cart-drawer 전용 룰 ~474 LOC → components/cart/CartDrawer.css. 잔류: `.shipping-gauge`/`.shipping-gauge-fill` cross-route (CartClient 공유))
 19. ✅ **Dead code 제거** (S196 — `.close-btn`/`.arrow-btn` 미사용 ~81 LOC 삭제)
 20. ✅ **pd-dropdown 베이스 복원** (S196 — Pilot 11 분리 시 누락된 cross-route 룰 +43 LOC 복원, MyPage CycleDropdown 영향 수정)
+21. ✅ **Section 1 잔류 4종** (S196 Pilot 20 완료 — -140 LOC):
+    - (a) MyPage autofill `.mp-section-body` ~17 LOC → MyPagePage.css
+    - (b) Header icon utilities `.nav-link, .hdr-icon-btn / .hi / .cart-badge / focus-visible` ~58 LOC → components/layout/HeaderIcons.css (cross-route, layout.tsx import)
+    - (c) CTA 버튼 `.cta-btn / .cta-btn-light-filled / .cta-btn-light-outline` ~42 LOC → CartDrawer.css (단일 사용처, 신규 파일 불필요). 잔류: `@media (hover: none)` hover 차단 정책 (cross-route 정책 그룹)
+    - (d) 일반 input/textarea autofill `:-webkit-autofill` ~28 LOC → styles/forms.css (cross-route, layout.tsx import)
 
 ### 차기 후보
 
@@ -140,7 +145,7 @@ globals.css에서 룰을 삭제하고 새 파일에 옮겼을 때, dev 서버 ch
 ### 보류 항목
 
 - **CHECKOUT** (558) / **Cart Page** (674) — 결제 critical 영역. Phase 3-B 안정화 후 분리. (Cart Drawer는 S196 분리 완료)
-- **Section 1** (Design Tokens + 글로벌) — 분할 자체 불가. 단 내부 sub-section 정리는 별도 작업으로 검토 가능 (header / footer / search 등).
+- **Section 1** (Design Tokens + 글로벌) — 잔여 ~450 LOC 본질적으로 글로벌 (design tokens / html·body base / .root / .blk / 콘텐츠 max-width / 접근성). 추가 분할은 over-fragmentation 위험.
 - **공유 섹션** (3 / 7 / 18 / 19) — 라우트 한정 X. 분할 비용 대비 효과 낮음.
 
 ## 참고
