@@ -55,17 +55,20 @@ export default function NextDeliveryCard({
   const eyebrowText = isPaused
     ? '일시정지 중'
     : typeof daysUntilNext === 'number'
-      ? `NEXT · D-${daysUntilNext}`
-      : `NEXT · ${sub.nextDate}`;
+      ? `NEXT SUBSCRIPTION · ${daysUntilNext}일 후`
+      : `NEXT SUBSCRIPTION`;
+
+  const nameLine = sub.volume
+    ? `${extractKrName(sub.name)} · ${sub.volume}`
+    : extractKrName(sub.name);
+  const metaLine = `${sub.nextDate} · ${sub.cycle} 주기`;
 
   return (
     <section className="mp-next-card" aria-label="다음 정기배송">
       <div className="mp-next-info">
         <span className="mp-next-eyebrow">{eyebrowText}</span>
-        <h2 className="mp-next-name">{extractKrName(sub.name)}</h2>
-        <p className="mp-next-meta">
-          {sub.volume} · 정기배송 {sub.cycle}
-        </p>
+        <h2 className="mp-next-name">{nameLine}</h2>
+        <p className="mp-next-meta">{metaLine}</p>
         <div className="mp-next-actions">
           <button
             type="button"
@@ -74,7 +77,7 @@ export default function NextDeliveryCard({
             disabled={isPaused}
             data-gtr-tap
           >
-            {isPaused ? '재개하기' : '일시정지'}
+            {isPaused ? '배송 재개하기' : '배송 일시정지'}
           </button>
           <button
             type="button"

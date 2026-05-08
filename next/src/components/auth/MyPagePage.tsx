@@ -30,7 +30,6 @@ import MyPageSideNav, { type MyPageNavId } from '@/components/auth/mypage/MyPage
 import MyPagePanel from '@/components/auth/mypage/MyPagePanel';
 import OrdersView from '@/components/auth/mypage/views/OrdersView';
 import SubscriptionView from '@/components/auth/mypage/views/SubscriptionView';
-import WishlistView from '@/components/auth/mypage/views/WishlistView';
 import ProfileView from '@/components/auth/mypage/views/ProfileView';
 import AddressesView from '@/components/auth/mypage/views/AddressesView';
 import AccountView from '@/components/auth/mypage/views/AccountView';
@@ -63,6 +62,22 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const emailHandle = effectiveEmail.split('@')[0];
   const displayName = metaName ?? emailHandle ?? '';
 
+  /* 가입 개월 수 — supabaseUser.created_at 또는 initialClaims 의 createdAt (있을 시) */
+  const createdAtIso =
+    supabaseUser?.created_at ??
+    (initialClaims as unknown as { createdAt?: string }).createdAt ??
+    null;
+  const membershipMonths = useMemo(() => {
+    if (!createdAtIso) return null;
+    const created = new Date(createdAtIso);
+    if (isNaN(created.getTime())) return null;
+    const now = new Date();
+    const months =
+      (now.getFullYear() - created.getFullYear()) * 12 +
+      (now.getMonth() - created.getMonth());
+    return Math.max(months, 0);
+  }, [createdAtIso]);
+
   /* ── Side nav 활성 항목 ── */
   const [activeNavId, setActiveNavId] = useState<MyPageNavId>('orders');
 
@@ -70,11 +85,15 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
   const { subscriptions } = useSubscriptionsQuery();
   const { orders } = useOrdersQuery();
 
+  const activeSubsCount = useMemo(
+    () => subscriptions.filter((s) => s.status === 'active').length,
+    [subscriptions],
+  );
+
   const counts = useMemo<Partial<Record<MyPageNavId, number>>>(
     () => ({
       orders: orders.length,
       subscription: subscriptions.length,
-      /* wishlist 는 placeholder (도메인 미구현) */
     }),
     [orders.length, subscriptions.length],
   );
@@ -135,8 +154,6 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
         return <OrdersView />;
       case 'subscription':
         return <SubscriptionView />;
-      case 'wishlist':
-        return <WishlistView />;
       case 'profile':
         return <ProfileView name={metaName ?? emailHandle ?? ''} email={effectiveEmail} />;
       case 'addresses':
@@ -154,7 +171,9 @@ export default function MyPagePage({ initialClaims }: MyPagePageProps) {
       <div className="mp-body">
         <HeroGreeting
           name={displayName}
-          email={effectiveEmail}
+          ordersCount={orders.length}
+          activeSubscriptionsCount={activeSubsCount}
+          membershipMonths={membershipMonths}
           onLogout={() => void handleLogout()}
         />
 

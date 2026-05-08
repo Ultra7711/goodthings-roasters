@@ -14,7 +14,6 @@ import './MyPageSideNav.css';
 export type MyPageNavId =
   | 'orders'
   | 'subscription'
-  | 'wishlist'
   | 'profile'
   | 'addresses'
   | 'account';
@@ -34,7 +33,6 @@ type Props = {
 const ITEMS: Omit<Item, 'count'>[] = [
   { id: 'orders', label: '주문내역' },
   { id: 'subscription', label: '정기배송' },
-  { id: 'wishlist', label: '찜' },
   { id: 'profile', label: '프로필' },
   { id: 'addresses', label: '주소록' },
   { id: 'account', label: '계정관리' },
