@@ -1,6 +1,7 @@
 'use client';
 
 import './ShopPage.css';
+import '@/components/ui/PageTitle.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ShopFilterTabs from './ShopFilterTabs';

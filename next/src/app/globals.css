@@ -1714,52 +1714,7 @@ textarea:focus-visible {
 
 
 /* 홈 전용 CSS — 분리: components/home/HomePage.css (S193 Pilot 13) */
-/* ══════════════════════════════════════════
-   공통 페이지 타이틀 영역 — Shop / Menu / GoodDays 전용 (BUG-139)
-   font/color/margin 공통화로 드리프트 제거. ID selector 는 애니메이션만 담당.
-   외부 3페이지 (Login/MyPage/BizInquiry) 는 페이지 성격 차이로 공통화 제외 ·
-   `lp-*` / `mp-*` / `bi-*` prefix 격리 유지. (D-025 · 2026-04-25)
-   ══════════════════════════════════════════ */
-.page-title-area { margin-bottom: 48px; }
-@media (max-width: 767px) { .page-title-area { margin-bottom: 28px; } }
-.page-title {
-  font-family: var(--font-kr);
-  font-size: var(--type-h1-size);
-  font-weight: var(--type-h1-weight);
-  letter-spacing: var(--ls-display);
-  color: var(--color-text-primary);
-  line-height: var(--lh-h1);
-  margin: 0;
-  opacity: 0;
-  transform: translateY(20px);
-}
-.page-subtitle {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-l-size);
-  font-weight: 400;
-  letter-spacing: var(--ls-heading);
-  color: var(--color-text-secondary);
-  margin: 16px 0 0;
-  opacity: 0;
-  transform: translateY(20px);
-}
-.page-filter-wrap {
-  position: relative;
-  margin-bottom: 48px;
-  opacity: 0;
-  transform: translateY(16px);
-}
-@media (max-width: 767px) { .page-filter-wrap { margin-bottom: 32px; } }
-.page-filter-wrap::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--color-border-secondary);
-  z-index: 0;
-}
+/* 공통 페이지 타이틀 — 분리: components/ui/PageTitle.css (S194 Pilot 14) */
 
 /* ══ SHOP PAGE (sp-* / #sp-body / #sp-rows / .sp-card* / .sp-grid*)
    → components/shop/ShopPage.css
