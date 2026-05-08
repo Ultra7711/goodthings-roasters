@@ -9,6 +9,7 @@
 
 'use client';
 
+import Image from 'next/image';
 import {
   useEffect,
   useRef,
@@ -70,8 +71,17 @@ type Props = {
   asButton?: boolean;
   ariaLabel?: string;
 
-  /** 썸네일 inner div 의 inline style — backgroundColor·backgroundImage 등 호출자 책임 */
-  imgStyle: CSSProperties;
+  /** 썸네일 이미지 src — next/image 사용 (S198 migration) */
+  imgSrc?: string;
+  imgAlt?: string;
+  /** 썸네일 fallback bg color — 이미지 미로드 시 thumb 자체 배경 */
+  imgBg?: string;
+  /** 이미지 object-fit — variant default: shop=contain, cafe=cover. 명시 시 override */
+  imgFit?: 'contain' | 'cover';
+  /** legacy: imgSrc 미제공 시 inline style fallback (마이그레이션 호환) */
+  imgStyle?: CSSProperties;
+  /** next/image priority — viewport above-fold 카드에 true (LCP 개선) */
+  imgPriority?: boolean;
 
   /** 썸네일 가로:세로 비율 — V2 §2.3 원두 5:4 / 드립백 1:1. default 1:1 */
   thumbAspect?: ThumbAspect;
@@ -104,7 +114,12 @@ export default function GenericCard({
   onClick,
   asButton = false,
   ariaLabel,
+  imgSrc,
+  imgAlt,
+  imgBg,
+  imgFit,
   imgStyle,
+  imgPriority = false,
   thumbAspect = '1:1',
   badgeSlot,
   topRightSlot,
@@ -185,9 +200,24 @@ export default function GenericCard({
     >
       <div
         className={cls.thumb}
-        style={thumbAspect === '5:4' ? { aspectRatio: '5 / 4' } : undefined}
+        style={{
+          ...(thumbAspect === '5:4' ? { aspectRatio: '5 / 4' } : undefined),
+          ...(imgBg ? { background: imgBg } : undefined),
+        }}
       >
-        <div className={cls.img} style={imgStyle} />
+        {imgSrc ? (
+          <Image
+            src={imgSrc}
+            alt={imgAlt ?? ''}
+            fill
+            sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
+            className={cls.img}
+            style={{ objectFit: imgFit ?? (variant === 'cafe' ? 'cover' : 'contain') }}
+            priority={imgPriority}
+          />
+        ) : (
+          <div className={cls.img} style={imgStyle} />
+        )}
         {badgeSlot}
         {topRightSlot}
         {bottomRightSlot}

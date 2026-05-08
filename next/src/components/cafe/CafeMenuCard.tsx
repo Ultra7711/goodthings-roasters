@@ -47,16 +47,6 @@ export default function CafeMenuCard({
 }: Props) {
   const tempBadge = getTempBadge(item.temp);
 
-  const imgStyle: React.CSSProperties = item.img
-    ? {
-        backgroundColor: item.bg || '#ECEAE6',
-        backgroundImage: `url('${item.img}')`,
-        backgroundPosition: 'center',
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-      }
-    : { backgroundColor: '#ECEAE6' };
-
   const bottomRightSlot = tempBadge ? (
     <div className="cm-temp-badges">
       <span className={`cm-badge-temp ${tempBadge.cls}`}>{tempBadge.txt}</span>
@@ -68,7 +58,9 @@ export default function CafeMenuCard({
       variant="cafe"
       onClick={() => onOpenNutrition(item.id)}
       asButton
-      imgStyle={imgStyle}
+      imgSrc={item.img}
+      imgAlt={item.name}
+      imgBg={item.bg || '#ECEAE6'}
       badgeSlot={<MenuCardBadges menuId={item.id} status={item.status} />}
       topRightSlot={<MenuLikeButton menuId={item.id} menuName={item.name} />}
       bottomRightSlot={bottomRightSlot}
