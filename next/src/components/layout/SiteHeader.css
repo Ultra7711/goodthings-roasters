@@ -112,6 +112,10 @@
   gap: 4px; /* Session 43 — icon-btn 40x40 화장 후 시각 간격 유지 (padding 8 * 2 + gap 4 = 20) */
   align-items: center;
   justify-content: flex-end;
+  /* 데스크탑/랩탑 — 우측 시각 균형 보정 (S198): padding 60 대칭 환경에서 마지막 cart SVG
+     우측 빈 공간 ~2 + 버튼 padding 8 = 좌측 logo 대비 우측 10px 안쪽 → margin-right -14 보상.
+     모바일은 햄버거 SVG 자체 transform 4px 으로 처리 (아래 @media 767 override). */
+  margin-right: -14px;
 }
 
 /* .nav-link specific (transition/cursor 는 globals .nav-link, .hdr-icon-btn compound 에서 상속) */
