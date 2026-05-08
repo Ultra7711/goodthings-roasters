@@ -6,6 +6,7 @@
    - eyebrow = 카테고리 영문명 (D-26 SKU 카운트 폐기 — specialty coffee editorial 톤 부합).
    ══════════════════════════════════════════ */
 
+import { preload } from 'react-dom';
 import { PRODUCTS, type Product } from '@/lib/products';
 import ShopCard from '@/components/shop/ShopCard';
 
@@ -43,6 +44,15 @@ function LineupRow({ kind, eyebrow, heading, products, aspect }: RowProps) {
 }
 
 export default function LineupSection() {
+  /* 메인 페이지 LineupSection 카드 이미지 사전 fetch (S198).
+     ShopCard 가 CSS background-image 로 렌더해 next/image priority/fetchpriority 적용 안 됨 →
+     SSR 시 <link rel="preload" as="image"> head 등록으로 브라우저 이른 fetch 보장 → 첫 페인트
+     시 카드 이미지 미로드 상태 차단. React 가 동일 src 자동 dedupe. */
+  for (const p of [...BEANS, ...DRIPS]) {
+    const src = p.images[0]?.src;
+    if (src) preload(src, { as: 'image' });
+  }
+
   return (
     <section className="lineup-blk" data-header-theme="light">
       <LineupRow
