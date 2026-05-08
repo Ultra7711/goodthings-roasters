@@ -9,7 +9,7 @@
 'use client';
 
 import './MyPagePage.css';
-import { useCallback, useRef, useState, useMemo } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
@@ -98,15 +98,25 @@ export default function MyPagePage({
   /* ── Side nav 활성 항목 ── */
   const [activeNavId, setActiveNavId] = useState<MyPageNavId>('orders');
 
-  /* ── Hero CTA (바로가기 버튼) → 탭 전환 + 모바일 스크롤 (S198).
-     데스크탑은 grid layout 으로 한 화면에 보여 스크롤 불필요. 모바일만 mp-grid 시작점으로 스크롤 (sticky 탭바 가시성 확보). */
-  const gridRef = useRef<HTMLDivElement>(null);
-  const handleHeroCtaNavigate = useCallback((target: MyPageNavId) => {
+  /* ── 탭 전환 공통 핸들러 (Hero CTA + SideNav 탭바) — 모바일 스크롤 포함 (S198).
+     데스크탑은 grid layout 으로 한 화면에 보여 스크롤 불필요.
+     모바일은 hero sand bg 의 bottom 이 sticky 헤더의 bottom 에 정확히 정렬되는 위치로 이동 —
+     "히어로 sand 배경 끝단과 헤더가 맞닿는 순간". querySelector(.mp-next-card) 로 hero card
+     element 의 viewport bottom 좌표 계산 후 window.scrollTo. */
+  const handleNavWithScroll = useCallback((target: MyPageNavId) => {
     setActiveNavId(target);
     if (typeof window === 'undefined') return;
     if (!window.matchMedia('(max-width: 767px)').matches) return;
     requestAnimationFrame(() => {
-      gridRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      const card = document.querySelector<HTMLElement>('.mp-body .mp-next-card');
+      if (!card) return;
+      const headerHeight =
+        parseInt(
+          getComputedStyle(document.documentElement).getPropertyValue('--header-height'),
+          10,
+        ) || 56;
+      const top = window.scrollY + card.getBoundingClientRect().bottom - headerHeight;
+      window.scrollTo({ top, behavior: 'smooth' });
     });
   }, []);
 
@@ -205,7 +215,7 @@ export default function MyPagePage({
             return (
               <NextDeliveryCard
                 sub={nextSub}
-                onManage={() => handleHeroCtaNavigate('subscription')}
+                onManage={() => handleNavWithScroll('subscription')}
               />
             );
           }
@@ -213,18 +223,18 @@ export default function MyPagePage({
             return (
               <RecentOrderCard
                 order={orders[0]}
-                onViewOrders={() => handleHeroCtaNavigate('orders')}
+                onViewOrders={() => handleNavWithScroll('orders')}
               />
             );
           }
           return <WelcomeCard userName={displayName} />;
         })()}
 
-        <div className="mp-grid" ref={gridRef}>
+        <div className="mp-grid">
           <MyPageSideNav
             activeId={activeNavId}
             counts={counts}
-            onChange={setActiveNavId}
+            onChange={handleNavWithScroll}
           />
           <MyPagePanel title={NAV_LABELS[activeNavId]}>{renderActiveView()}</MyPagePanel>
         </div>

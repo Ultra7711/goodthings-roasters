@@ -534,15 +534,16 @@
     padding-left: 24px;
     padding-right: 24px;
     position: relative;
-    overflow-x: hidden;
+    /* overflow-x: clip — hidden 은 scroll container 형성 → 자식 mp-side-nav sticky 차단.
+       clip 은 자식 clip 효과 동일하지만 scroll container 미형성 → sticky 정상 동작 (S198). */
+    overflow-x: clip;
   }
   /* mp-grid: 1단 stack (sub-nav 가로 row + 패널). minmax(0, 1fr) overflow 차단 동일 적용.
-     scroll-margin-top: Hero 바로가기 클릭 시 scrollIntoView 로 sticky 헤더 + 공지 바 아래에 정확히 정렬 (S198). */
+     scrollIntoView 가 아닌 hero bottom 기준 직접 scrollTo 방식으로 변경 (S198) → scroll-margin-top 폐기. */
   .mp-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--gap-xl);
     margin-top: 24px;
-    scroll-margin-top: var(--sticky-offset);
   }
 
   /* S197 PR-2 §2.2: 패널 박스 폐기 → 모바일 bleed 제거 (margin/padding/radius 모두 제거) */

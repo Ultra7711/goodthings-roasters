@@ -100,7 +100,10 @@
     padding-left: 24px;
     padding-right: 24px;
     position: sticky;
-    top: var(--sticky-offset);
+    /* 헤더 바로 아래 sticky — 공지바는 자연 흐름이라 스크롤 시 사라지므로
+       sticky-offset(헤더+공지바) 사용 시 공지바 사라진 후 탭바와 헤더 사이 빈 영역
+       발생 → 본문 비침 (S198 fix · LegalSideNav 와 동일). */
+    top: var(--header-height);
     z-index: 5;
     align-self: stretch;
     background: var(--color-background-primary);
