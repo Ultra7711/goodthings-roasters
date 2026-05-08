@@ -197,7 +197,7 @@ export default function SubscriptionItem({
               onClick={onSkipRequest}
               data-gtr-tap
             >
-              배송 건너뛰기
+              건너뛰기
             </button>
             {sub.status === 'paused' ? (
               <button
@@ -206,7 +206,7 @@ export default function SubscriptionItem({
                 onClick={onResume}
                 data-gtr-tap
               >
-                배송 재개하기
+                재개하기
               </button>
             ) : (
               <button
@@ -215,7 +215,7 @@ export default function SubscriptionItem({
                 onClick={onPauseRequest}
                 data-gtr-tap
               >
-                배송 일시정지
+                일시정지
               </button>
             )}
           </div>

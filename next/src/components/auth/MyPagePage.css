@@ -560,9 +560,6 @@
   .mp-form-reveal-actions { gap: 12px; }
   .mp-save-btn,
   .mp-cancel-btn { width: auto; padding: 0; }
-  /* 정기배송 2버튼 — 모바일 폰트 축소 */
-  .mp-form-reveal-actions--sub > :nth-child(1),
-  .mp-form-reveal-actions--sub > :nth-child(2) { font-size: 13px; }
 
   /* P1 주문 카드 · overflow 해제 */
   .mp-order-card { min-width: 0; }
