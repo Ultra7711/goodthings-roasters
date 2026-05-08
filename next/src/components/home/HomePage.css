@@ -111,6 +111,8 @@
   .hero-c {
     padding-left: 24px;
     padding-right: 24px;
+    /* S199 — 모바일 전체 80 → 72 통일 */
+    padding-bottom: 72px;
   }
   .hero-scroll-mouse {
     transform: translateX(8px);
@@ -421,7 +423,9 @@
   .cafe-menu-head {
     padding: 72px 24px 40px;
   }
-  .cafe-menu-blk { padding-bottom: 80px; }
+  /* S199 — padding-bot 40 = 72 - 32 (cafe-menu-split__items padding-bot 32 흡수).
+     cmsplit-desc → Story story-stage__inner 시각 = 32 + 40 + 72 = 144 (다른 섹션 정합). */
+  .cafe-menu-blk { padding-bottom: 40px; }
   .ev-banner-bleed { margin-bottom: 40px; }
   .ev-banner {
     grid-template-columns: 1fr;
@@ -777,9 +781,13 @@
   .story-gd__grid { grid-template-columns: 1fr 1fr; }
 }
 
-/* <768 — 모바일 padding 축소 */
+/* <768 — 모바일 padding 축소 (S199 — 80 → 72 통일) */
 @media (max-width: 767px) {
-  .story-stage__inner { padding: 80px 24px; }
+  .story-stage__inner { padding: 72px 24px; }
+  /* S199 — Story Stage 2 (dark) ↔ Newsletter (dark) 같은 다크 배경 인접 묶음.
+     padding-bot 36 + newsletter padding-top 72 = 시각 합 108 (다른 섹션 144 보다 36 좁음).
+     다크 묶음 안 sub-섹션 인식. */
+  .story-stage--dark .story-stage__inner { padding-bottom: 36px; }
 }
 
 /* ══ V2 §2.7 — Newsletter CTA (Footer 직전 dark 종결 섹션) ══
@@ -886,7 +894,8 @@
   .newsletter-inner { padding: 80px 48px; }
 }
 @media (max-width: 767px) {
-  .newsletter-inner { padding: 80px 24px; }
+  /* S199 — 모바일 전체 80 → 72 통일 */
+  .newsletter-inner { padding: 72px 24px; }
 }
 
 /* ══ Lineup (V2 §2.3 전체 라인업 — 원두 2 + 드립백 4 2행 그리드) ══ */
@@ -897,7 +906,10 @@
   gap: 80px;
 }
 @media (max-width: 767px) {
-  .lineup-blk { padding: 120px 0 80px; gap: 60px; }
+  /* S199 — 모바일 전체 80 → 72 통일 (사용자 결정 — top 120 도 72 로).
+     padding-bot 44 = 72 - 28 (sp-card-info padding-bot 흡수).
+     가격 텍스트 → Cafe Menu eyebrow 시각 = 28 + 44 + 72 = 144 (다른 섹션 정합). */
+  .lineup-blk { padding: 72px 0 44px; gap: 60px; }
 }
 
 .lineup-row {

@@ -37,7 +37,9 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 32px 24px 36px;            /* mobile */
+  /* S199 — 하단 padding 36 → 0. sig-section padding-bot 72 와 합산 시각 = 72 (다른 섹션 정합).
+     상단 32 = sig-img 와 본문 간 간격, 콘텐츠 내부 spacing 이라 유지. */
+  padding: 32px 24px 0;               /* mobile */
 }
 
 /* Image — Link wrap, 5:4 모든 brk, hover scale 1.02 */
