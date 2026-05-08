@@ -12,6 +12,8 @@ import OverscrollColor from '@/components/ui/OverscrollColor';
 import TouchHoverGuard from '@/components/ui/TouchHoverGuard';
 import { fetchSiteSettings } from '@/lib/siteSettingsServer';
 import './globals.css';
+import '@/styles/forms.css';
+import '@/components/layout/HeaderIcons.css';
 
 const inter = Inter({
   variable: '--font-inter',

@@ -605,53 +605,9 @@ body {
   word-break: keep-all;
 }
 
-/* Chrome 자동완성 파란 배경 제거 — 2-레이어 방어:
-   ① inset box-shadow(!important) 로 배경색 덮기 (hex 직접 지정, iOS CSS변수 미지원 대응)
-      두 번째 shadow 값에 하단 라인(--color-border-secondary = rgba(28,27,25,.12)) 복원
-      — autofill !important 가 .chp-input box-shadow(하단 라인) 전체를 덮는 문제 대응
-   ② transition: step-end + 사실상 무한 duration 으로 UA !important 스타일을 시간축 차단
-      (noahliebman.net/2024/08 기법: transitions take precedence over !important UA styles) */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:active,
-textarea:-webkit-autofill,
-textarea:-webkit-autofill:hover,
-textarea:-webkit-autofill:active {
-  /* 라인 shadow 를 첫 번째(맨 위)로 — 두 번째 1000px 배경 shadow 에 가려지지 않도록 */
-  -webkit-box-shadow: 0 -1px 0 0 rgba(28,27,25,.12) inset, 0 0 0 1000px #FBF8F3 inset !important;
-  box-shadow: 0 -1px 0 0 rgba(28,27,25,.12) inset, 0 0 0 1000px #FBF8F3 inset !important;
-  -webkit-text-fill-color: #1C1B19 !important;
-  caret-color: #1C1B19;
-  /* calc(infinity * 1s) 는 iOS 16.4 미만 미지원 → 99999s 로 교체 (BUG-106) */
-  transition:
-    background-color 99999s step-end,
-    color 99999s step-end;
-}
-/* focus 시 하단 라인 2px + 다크 컬러 (--color-text-primary = #1C1B19) */
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 -2px 0 0 #1C1B19 inset, 0 0 0 1000px #FBF8F3 inset !important;
-  box-shadow: 0 -2px 0 0 #1C1B19 inset, 0 0 0 1000px #FBF8F3 inset !important;
-}
+/* input/textarea -webkit-autofill 글로벌 룰 → styles/forms.css (S196 Pilot 20-d, layout.tsx import) */
 
-/* BUG-164: MyPage section-body 컨텍스트는 컨테이너 bg 가 #F5F1EA 라
-   기본 autofill 룰(#FBF8F3)이 컨테이너와 부조화. chp-input 기본 bg 와
-   autofill bg 를 모두 컨테이너 색상으로 덮어 시각적 일관성 유지. */
-.mp-section-body .chp-input { background: #F5F1EA; }
-.mp-section-body input:-webkit-autofill,
-.mp-section-body input:-webkit-autofill:hover,
-.mp-section-body input:-webkit-autofill:active,
-.mp-section-body textarea:-webkit-autofill,
-.mp-section-body textarea:-webkit-autofill:hover,
-.mp-section-body textarea:-webkit-autofill:active {
-  -webkit-box-shadow: 0 -1px 0 0 rgba(28,27,25,.12) inset, 0 0 0 1000px #F5F1EA inset !important;
-  box-shadow: 0 -1px 0 0 rgba(28,27,25,.12) inset, 0 0 0 1000px #F5F1EA inset !important;
-}
-.mp-section-body input:-webkit-autofill:focus,
-.mp-section-body textarea:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 -2px 0 0 #1C1B19 inset, 0 0 0 1000px #F5F1EA inset !important;
-  box-shadow: 0 -2px 0 0 #1C1B19 inset, 0 0 0 1000px #F5F1EA inset !important;
-}
+/* MyPage autofill 오버라이드 → components/auth/MyPagePage.css (S196 Pilot 20-a) */
 
 .root {
   font-family: var(--font-en);
@@ -700,65 +656,8 @@ textarea:-webkit-autofill:focus {
 
 /* 헤더 → components/layout/SiteHeader.css (S195 Pilot 18) */
 
-/* ══ nav / icon 공통 ══ */
-.nav-link, .hdr-icon-btn {
-  transition: opacity var(--duration-hover) linear;
-  cursor: pointer;
-}
-
-button.hdr-icon-btn { background: none; border: none; }
-.hdr-icon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  text-decoration: none;
-  /* Session 43 — tap-area 40x40 (icon 24 + padding 8 * 2). .hdr-icons gap 4px 로 시각 간격 20 유지 */
-  width: 40px;
-  height: 40px;
-  padding: 8px;
-  box-sizing: border-box;
-}
-.hi {
-  width: 24px;
-  height: 24px;
-  display: block;
-  color: var(--color-text-primary);
-}
-.hdr-icon-btn .hi { opacity: .5; transition: opacity var(--duration-hover) var(--ease-default); }
-.hdr-icon-btn:hover .hi { opacity: 1; }
-/* a11y: 키보드 포커스 가시화 (WCAG 2.4.7) — Session 51 */
-.hdr-icon-btn:focus-visible,
-.hdr-menu-toggle:focus-visible {
-  outline: 2px solid var(--color-accent-gold);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* 장바구니 배지 */
-.cart-badge {
-  opacity: 1 !important;
-  position: absolute;
-  /* Session 43 — hdr-icon-btn 40x40 화장 (padding 8) 후 시각 위치 보정: top -6 → 2, right -7 → 1 */
-  top: 2px;
-  right: 1px;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 5px;
-  border-radius: 10px;
-  background: var(--color-surface-stone);
-  color: var(--color-text-inverse);
-  font-family: var(--font-en);
-  font-size: var(--type-caption-size);
-  font-weight: 600;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  pointer-events: none;
-  box-sizing: border-box;
-}
-.cart-badge.visible { display: flex; }
+/* Header icon utilities (.nav-link, .hdr-icon-btn / .hi / .cart-badge / focus-visible)
+   → components/layout/HeaderIcons.css (S196 Pilot 20-b, layout.tsx import) */
 
 /* 모바일 네비 드로어 → components/layout/MobileNavDrawer.css (S195 Pilot 17) */
 
@@ -766,48 +665,9 @@ button.hdr-icon-btn { background: none; border: none; }
 
 /* 푸터 → components/layout/SiteFooter.css (S195 Pilot 15) */
 
-/* ══ CTA 버튼 ══ */
-.cta-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  align-self: flex-start;
-  height: 48px;
-  padding: 0 var(--cta-btn-padding-x-primary);
-  font-family: var(--font-kr);
-  font-size: var(--cta-btn-font-size);
-  font-weight: var(--cta-btn-font-weight);
-  line-height: 1;
-  letter-spacing: var(--cta-btn-letter-spacing);
-  cursor: pointer;
-  border: none;
-  white-space: nowrap;
-}
-/* PR-1c — 시스템 변형 2종: light-filled (primary) + light-outline (secondary).
-   dark-filled / dark-outline 폐기 (S147 grep 사용처 0 확인) */
-.cta-btn-light-filled {
-  background: var(--color-btn-primary-bg);
-  color: var(--color-text-inverse);
-  transition: background 200ms ease;
-}
-.cta-btn-light-filled:not(:disabled):hover {
-  background: var(--color-btn-primary-bg-hover);
-}
-.cta-btn-light-filled:not(:disabled):active {
-  background: var(--color-btn-primary-bg-active);
-}
-/* secondary outline 마이그레이션 — bg pure white + box-shadow inset 1px → 2px */
-.cta-btn-light-outline {
-  background: var(--color-background-pure);
-  color: var(--color-text-primary);
-  border: 0;
-  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
-  transition: box-shadow 200ms ease;
-}
-.cta-btn-light-outline:not(:disabled):hover,
-.cta-btn-light-outline:not(:disabled):active {
-  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
-}
+/* CTA 버튼 (.cta-btn / .cta-btn-light-filled / .cta-btn-light-outline)
+   → components/cart/CartDrawer.css (S196 Pilot 20-c, CartDrawer 단독 사용처).
+   잔류: @media (hover: none) hover 차단 정책 (cross-route 정책 그룹) */
 
 /* ══ 접근성 ══ */
 .sr-only {

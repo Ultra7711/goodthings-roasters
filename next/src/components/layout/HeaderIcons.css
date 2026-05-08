@@ -1,0 +1,71 @@
+/* ══════════════════════════════════════════
+   Header Icon Utilities — cross-route 공유
+   S196 Pilot 20-b: globals.css 에서 분리.
+
+   사용처:
+   - components/layout/SiteHeader.tsx
+   - components/layout/MobileNavDrawer.tsx
+   - components/checkout/MiniHeader.tsx (체크아웃 미니 헤더)
+
+   layout.tsx 에서 import — 모든 라우트에서 헤더 아이콘 일관성 보장.
+   ══════════════════════════════════════════ */
+
+/* ══ nav / icon 공통 ══ */
+.nav-link, .hdr-icon-btn {
+  transition: opacity var(--duration-hover) linear;
+  cursor: pointer;
+}
+
+button.hdr-icon-btn { background: none; border: none; }
+.hdr-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-decoration: none;
+  /* Session 43 — tap-area 40x40 (icon 24 + padding 8 * 2). .hdr-icons gap 4px 로 시각 간격 20 유지 */
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+.hi {
+  width: 24px;
+  height: 24px;
+  display: block;
+  color: var(--color-text-primary);
+}
+.hdr-icon-btn .hi { opacity: .5; transition: opacity var(--duration-hover) var(--ease-default); }
+.hdr-icon-btn:hover .hi { opacity: 1; }
+/* a11y: 키보드 포커스 가시화 (WCAG 2.4.7) — Session 51 */
+.hdr-icon-btn:focus-visible,
+.hdr-menu-toggle:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 장바구니 배지 */
+.cart-badge {
+  opacity: 1 !important;
+  position: absolute;
+  /* Session 43 — hdr-icon-btn 40x40 화장 (padding 8) 후 시각 위치 보정: top -6 → 2, right -7 → 1 */
+  top: 2px;
+  right: 1px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: var(--color-surface-stone);
+  color: var(--color-text-inverse);
+  font-family: var(--font-en);
+  font-size: var(--type-caption-size);
+  font-weight: 600;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+.cart-badge.visible { display: flex; }

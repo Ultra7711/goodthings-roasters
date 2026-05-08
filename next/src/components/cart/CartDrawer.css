@@ -3,7 +3,52 @@
    프로토타입 #cart-drawer 이식. 3레이어 패턴 (wrapper / bg / panel) + --drawer-* 토큰.
    backdrop-filter 는 inline style (lessons.md §6 Lightning CSS 누락 방지).
    .shipping-gauge / .shipping-gauge-fill — CartClient 공유 → globals.css 잔류.
+   .cta-btn / .cta-btn-light-filled / .cta-btn-light-outline — S196 Pilot 20-c 이전 (CartDrawer 단독 사용).
+     단 @media (hover: none) 의 hover 차단 정책 — globals.css 잔류 (cross-route 정책 그룹).
    ══════════════════════════════════════════ */
+
+/* ══ CTA 버튼 (CartDrawer 단독 사용) ══ */
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  height: 48px;
+  padding: 0 var(--cta-btn-padding-x-primary);
+  font-family: var(--font-kr);
+  font-size: var(--cta-btn-font-size);
+  font-weight: var(--cta-btn-font-weight);
+  line-height: 1;
+  letter-spacing: var(--cta-btn-letter-spacing);
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+/* PR-1c — 시스템 변형 2종: light-filled (primary) + light-outline (secondary).
+   dark-filled / dark-outline 폐기 (S147 grep 사용처 0 확인) */
+.cta-btn-light-filled {
+  background: var(--color-btn-primary-bg);
+  color: var(--color-text-inverse);
+  transition: background 200ms ease;
+}
+.cta-btn-light-filled:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.cta-btn-light-filled:not(:disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
+/* secondary outline 마이그레이션 — bg pure white + box-shadow inset 1px → 2px */
+.cta-btn-light-outline {
+  background: var(--color-background-pure);
+  color: var(--color-text-primary);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
+  transition: box-shadow 200ms ease;
+}
+.cta-btn-light-outline:not(:disabled):hover,
+.cta-btn-light-outline:not(:disabled):active {
+  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+}
 
 #cart-drawer {
   position: fixed;
