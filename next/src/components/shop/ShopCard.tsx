@@ -44,11 +44,6 @@ export default function ShopCard({
   const router = useRouter();
 
   const img = p.images[0];
-  const imgStyle: React.CSSProperties = {
-    background: `${img?.bg ?? '#f5f5f3'}${
-      img?.src ? ` url('${img.src}') center/contain no-repeat` : ''
-    }`,
-  };
 
   const badgeSlot = p.status ? (
     <span className={getStatusBadgeClass(p.status)}>
@@ -60,7 +55,10 @@ export default function ShopCard({
     <GenericCard
       variant="shop"
       onClick={() => router.push(`/shop/${p.slug}`)}
-      imgStyle={imgStyle}
+      imgSrc={img?.src}
+      imgAlt={extractKrName(p.name)}
+      imgBg={img?.bg ?? '#f5f5f3'}
+      imgPriority={imgPriority}
       thumbAspect={aspect}
       badgeSlot={badgeSlot}
       name={extractKrName(p.name)}

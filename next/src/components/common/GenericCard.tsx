@@ -9,6 +9,7 @@
 
 'use client';
 
+import Image from 'next/image';
 import {
   useEffect,
   useRef,
@@ -201,7 +202,28 @@ export default function GenericCard({
         className={cls.thumb}
         style={thumbAspect === '5:4' ? { aspectRatio: '5 / 4' } : undefined}
       >
-        <div className={cls.img} style={imgStyle} />
+        {imgSrc ? (
+          /* S198 재마이그레이션: fill 폐기 + width/height 명시 패턴 (cacheComponents
+             Suspense streaming 환경에서 fill 의 부모 layout 측정 race 회피).
+             AVIF/WebP 자동 변환 + responsive sizes 회복. */
+          <Image
+            src={imgSrc}
+            alt={imgAlt ?? ''}
+            width={400}
+            height={thumbAspect === '5:4' ? 320 : 400}
+            sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
+            className={cls.img}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: imgFit ?? (variant === 'cafe' ? 'cover' : 'contain'),
+              backgroundColor: imgBg ?? '#f5f5f3',
+            }}
+            priority={imgPriority}
+          />
+        ) : (
+          <div className={cls.img} style={imgStyle} />
+        )}
         {badgeSlot}
         {topRightSlot}
         {bottomRightSlot}
