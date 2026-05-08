@@ -137,6 +137,9 @@
   /* default visible — 필터 전환·재진입 시 즉시 노출.
      첫 진입에만 .sp-row-header--enter 로 fade-in (ShopPage 가 isInitRef 기준 부여) */
 }
+/* 진입 연출 — sp-anim 래퍼 의존 (첫 진입 + 동일 라우트 reset) + 기존 --enter 클래스 보존 (S198).
+   isInitRef 첫 렌더 ref 값 의존 패턴이 cacheComponents / Suspense 등으로 누락되는 케이스 보정. */
+#sp-body.sp-anim .sp-row-header,
 .sp-row-header--enter {
   animation: gtr-rise-16 var(--duration-fade) ease-out .42s both;
 }
