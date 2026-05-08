@@ -86,15 +86,7 @@
   padding: 0 60px;
   height: var(--header-height); /* 60px */
 }
-@media (max-width: 767px) {
-  /* 모바일: 본문 24px + 아이콘 버튼 inner padding 8 = 시각 우측 24 에 맞춤 (비대칭 유지) */
-  .hdr { padding: 0 16px 0 24px; }
-}
-.hdr-left { flex: 1; display: flex; align-items: center; margin-left: -4px; }
-/* 모바일도 동일하게 로고는 -4px, 아이콘 버튼은 +4px 바깥으로 이동 */
-@media (max-width: 767px) {
-  .hdr-icons { margin-right: -4px; }
-}
+.hdr-left { flex: 1; display: flex; align-items: center; }
 .hdr-nav { display: flex; gap: 36px; }
 /* 랩탑(≤1023): padding + gap 1차 축소 */
 @media (max-width: 1023px) {
@@ -105,6 +97,11 @@
 @media (max-width: 899px) {
   .hdr { padding: 0 28px; }
   .hdr-nav { gap: 16px; }
+}
+/* 모바일 (≤767px): 비대칭 padding — source order 마지막에 두어 ≤899 의 28 대칭 override.
+   본문 24px + 아이콘 버튼 inner padding 8 = 시각 우측 24 에 맞춤 (S198 source-order fix). */
+@media (max-width: 767px) {
+  .hdr { padding: 0 16px 0 24px; }
 }
 .hdr-icons {
   flex: 1;
@@ -163,8 +160,10 @@
   .hdr-menu-toggle { display: flex; }
   /* 로그인/마이페이지 아이콘은 햄버거 메뉴로 내장 */
   .hdr-icons .hdr-icon-user { display: none; }
-  /* 햄버거 SVG (viewBox 24x24 path x:4-20) 의 우측 빈 4px 보정 → 좌측 로고와 시각 좌우 균형 (S198) */
-  .hdr-menu-toggle .hi { transform: translateX(4px); }
+  /* base 의 margin-right: -14px (데스크탑 cart 보정) override — 모바일은 햄버거가 마지막이라
+     해당 보정 불필요. 0 으로 명시 → button outer right = viewport right - 16 (S198). */
+  .hdr-icons { margin-right: 0; }
+  /* 햄버거 SVG path 가운데 정렬 (M4,5h16 — viewBox 24 안 line x:4-20, 좌우 빈 4). */
 }
 
 /* ══ 검색 드롭 패널 ══ */

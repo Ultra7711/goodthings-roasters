@@ -49,7 +49,9 @@
   align-items: center;
   justify-content: space-between;
   height: var(--header-height);
-  padding: 0 28px; /* 일반 헤더 모바일 padding 과 동일 */
+  /* 좌 28 (logo + margin-left -4 = 시각 24) / 우 16 (X visual + transform 6 = 시각 19~20).
+     header (hdr-left margin 0, padding 24 → logo 시각 24) 와 logo 위치 정합 (S198). */
+  padding: 0 16px 0 28px;
 }
 .mn-logo {
   display: inline-flex;
@@ -66,10 +68,8 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-right: -4px; /* 아이콘 버튼 우측 광학 보정 — .hdr-icons 와 동일 */
-  /* X / cart SVG 우측 빈 공간 보정 — 햄버거 4px 이동 (SiteHeader.css) 과 시각 정렬 (S198).
-     그룹 자체 이동으로 SVG + cart-badge 자식 일괄 처리. */
-  transform: translateX(4px);
+  /* margin-right 0 + transform 없음 — 헤더 햄버거 (viewport right - 28) 와 시각 정합 (S198).
+     drawer X line right ≈ drawer right - 29 (1px 안쪽 차이만). */
 }
 .mn-cart {
   position: relative;

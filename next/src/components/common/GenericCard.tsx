@@ -201,6 +201,9 @@ export default function GenericCard({
       <div
         className={cls.thumb}
         style={{
+          /* next/image fill 경고 해소 — CSS .sp/cm-card-thumb 의 position: relative 가
+             dev 환경에서 검출 안 되는 케이스 보강 (S198). */
+          position: 'relative',
           ...(thumbAspect === '5:4' ? { aspectRatio: '5 / 4' } : undefined),
           ...(imgBg ? { background: imgBg } : undefined),
         }}
