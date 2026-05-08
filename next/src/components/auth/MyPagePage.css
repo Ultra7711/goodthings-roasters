@@ -526,10 +526,11 @@
    · 타이틀 H1→H2 · 아코디언 액션 세로 · 주문 카드 min-width 해제 · 모달 폭 축소 */
 @media (max-width: 767px) {
   /* S197 PR-2 모바일 padding override — 좌우만 24 로 축소 (60 → 24, 콘텐츠 폭 확보).
-     top 100 / bottom 120 은 데스크탑 정합 유지 (헤더↔타이틀 spacing 일관).
+     padding-top 56: BUG-134 / S96 정책 통일 (S198 — 다른 페이지와 헤더↔타이틀 간격 일관).
      position: relative + overflow-x: hidden — 자식 absolute 의 containing block 을
      mp-body 로 잡아 overflow-x 차단 효과 보장 (chevron / dropdown 탈출 + 가로 드래그 차단). */
   .mp-body {
+    padding-top: 56px;
     padding-left: 24px;
     padding-right: 24px;
     position: relative;

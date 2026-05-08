@@ -376,7 +376,9 @@
 }
 @media (max-width: 767px) {
   #bi-body {
-    /* 모바일 좌우 padding 60 → 24 (S197 PR-2 후속) — 콘텐츠 폭 확보 */
+    /* 모바일 좌우 padding 60 → 24 (S197 PR-2 후속) — 콘텐츠 폭 확보.
+       padding-top 56: BUG-134 / S96 정책 — 헤더↔타이틀 간격 축소 (S198 cascade fix). */
+    padding-top: 56px;
     padding-left: 24px;
     padding-right: 24px;
     padding-bottom: 80px;

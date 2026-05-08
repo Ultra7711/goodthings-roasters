@@ -138,9 +138,10 @@
 
 @media (max-width: 767px) {
   /* 모바일 좌우 padding 60 → 24 (sub-page 정합) — 콘텐츠 폭 확보.
+     padding-top 56: BUG-134 / S96 정책 통일 (S198 — 다른 페이지와 헤더↔타이틀 간격 일관).
      grid-template-areas 변경 — sidenav (top) → hero → body (H1↔탭바 중복 회피) */
   .legal-shell {
-    padding: 100px 24px 120px;
+    padding: 56px 24px 120px;
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       "sidenav"

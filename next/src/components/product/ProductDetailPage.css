@@ -21,6 +21,13 @@
   padding: 100px 0 0;
   flex: 1;
 }
+/* 모바일 padding-top 56 — BUG-134 / S96 정책 통일 (S198 cascade fix).
+   base shorthand `padding: 100px 0 0` 가 globals.css 의 56 override 를 cascade 로 이기는 문제 명시 해소. */
+@media (max-width: 767px) {
+  #pd-inner {
+    padding-top: 56px;
+  }
+}
 
 /* 메인 2단 그리드
    PR 3: 아코디언이 우측 #pd-info 안 마지막으로 이동 → 좌측은 image 만.
