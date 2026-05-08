@@ -623,10 +623,13 @@ body {
   min-height: 100dvh;
 }
 /* 모바일 가로 scroll 전역 차단 — .root 만 (html / body 는 sticky position reference 영향).
-   chevron / dropdown 등 자식 absolute 가 ancestor 까지 scroll 일으키는 케이스 fallback. */
+   chevron / dropdown 등 자식 absolute 가 ancestor 까지 scroll 일으키는 케이스 fallback.
+   overflow-x: clip — hidden 은 scroll container 형성 → #site-hdr-wrap sticky 차단.
+   clip 은 자식 clip 효과 동일하지만 scroll container 미형성 → sticky 의 nearest scroll
+   ancestor 가 viewport 까지 끌고 가서 정상 동작 (S198 모바일 헤더 sticky 회복). */
 @media (max-width: 767px) {
   .root {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 }
 
