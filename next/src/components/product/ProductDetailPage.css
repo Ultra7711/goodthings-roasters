@@ -248,15 +248,17 @@
 @media (max-width: 1023px) {
   .pd-chapter-tasting {
     margin-top: 56px;
-    padding: 72px calc(50vw - 50% + var(--layout-padding-x));
+    padding: 72px calc(50vw - 50% + var(--layout-padding-x)) 48px;
     grid-template-columns: minmax(0, 1fr);
     column-gap: 0;
     row-gap: 48px;
   }
-  /* 1023↓ 면책 분기: inline 숨김, after (radar 다음) 표시 + 중앙 정렬 */
+  /* 1023↓ 면책 분기: inline 숨김, after (radar 다음) 표시 + 중앙 정렬.
+     Radar ↔ Disclaimer 간격 0 (margin-top -48 으로 row-gap 48 보정) — S198. */
   .pd-tasting-disclaimer--inline { display: none; }
   .pd-tasting-disclaimer--after {
     text-align: center;
+    margin-top: -48px;
   }
 }
 /* ④ Detail chapter — 페이지 끝 spacing.
