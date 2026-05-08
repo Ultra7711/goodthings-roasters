@@ -1,11 +1,15 @@
 /* ══════════════════════════════════════════
    WelcomeCard — 신규 사용자 (주문·정기 모두 X) sand 패널 (V2 §3.2 · S197 PR-2 §2.3 상태 D)
    환영 카피 + "원두 둘러보기 →" CTA. sand 패널 layout 은 NextDeliveryCard.css 와 공유.
+   S198: 빈 image 영역 → PRODUCTS 풀에서 랜덤 상품 1종 푸시.
    ══════════════════════════════════════════ */
 
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { PRODUCTS, type Product } from '@/lib/products';
 import './NextDeliveryCard.css';
 import './WelcomeCard.css';
 
@@ -14,7 +18,22 @@ type Props = {
   userName: string;
 };
 
+const SHOWCASE_POOL: Product[] = PRODUCTS.filter(
+  (p) => p.status !== '품절' && p.images.length > 0,
+);
+
 export default function WelcomeCard({ userName }: Props) {
+  /* SSR/CSR hydration mismatch 회피 — 클라이언트 mount 후 랜덤 결정.
+     첫 frame 은 placeholder 노출 후 이미지로 swap. */
+  const [pick, setPick] = useState<Product | null>(null);
+
+  useEffect(() => {
+    if (SHOWCASE_POOL.length === 0) return;
+    const idx = Math.floor(Math.random() * SHOWCASE_POOL.length);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPick(SHOWCASE_POOL[idx]);
+  }, []);
+
   return (
     <section className="mp-next-card mp-next-card--welcome" aria-label="환영합니다">
       <div className="mp-next-info">
@@ -26,9 +45,19 @@ export default function WelcomeCard({ userName }: Props) {
           원두 둘러보기 →
         </Link>
       </div>
-      {/* image 영역 빈 div 유지 — layout space 차지하여 NextDelivery/RecentOrder 와 동일 자연 height.
-          sand bg 와 동일 색상 (투명) 이라 시각적으로는 보이지 않음 (사용자 결정 PR-2). */}
-      <div className="mp-next-image mp-next-image--empty" aria-hidden="true" />
+      <div className="mp-next-image" aria-hidden="true">
+        {pick ? (
+          <Image
+            src={pick.images[0].src}
+            alt=""
+            fill
+            sizes="240px"
+            className="mp-next-image-img"
+          />
+        ) : (
+          <div className="mp-next-image-placeholder" />
+        )}
+      </div>
     </section>
   );
 }

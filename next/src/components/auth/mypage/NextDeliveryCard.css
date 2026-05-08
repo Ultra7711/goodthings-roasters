@@ -94,10 +94,10 @@
     gap: var(--gap-xl);
     margin-left: -24px;
     margin-right: -24px;
-    padding: 24px;
+    padding: 24px 24px 40px;
   }
   .mp-next-image {
     order: -1;
-    max-height: 280px;
+    max-height: 240px;
   }
 }
