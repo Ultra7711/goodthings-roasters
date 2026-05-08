@@ -111,6 +111,9 @@
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    /* touch-action pan-x — root overflow-x: hidden 환경에서 가로 swipe 보장 */
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
     padding: 0;
     /* 모바일: 하단 hairline 2px — list 박스 (padding 안쪽) 영역에만 그려짐 */
     box-shadow: inset 0 -2px 0 0 var(--color-border-secondary);

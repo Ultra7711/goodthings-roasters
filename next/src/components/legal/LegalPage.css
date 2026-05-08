@@ -14,15 +14,29 @@
   background: var(--color-background-primary);
   min-height: 100vh;
 }
+/* 다른 sub-page (Shop / Menu / GoodDays / BizInquiry) 와 정합 — 1440 baseline + padding 100 60 120.
+   grid-template-areas — 데스크탑: hero (top 전체 폭) / sidenav (좌) + body (우)
+                        모바일: sidenav (top sticky) → hero → body (H1↔탭바 정보 중복 회피) */
 .legal-shell {
-  max-width: 1240px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 48px 24px 120px;
+  padding: 100px 60px 120px;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-areas:
+    "hero hero"
+    "sidenav body";
+  column-gap: 64px;
+  align-items: start;
 }
+.legal-hero { grid-area: hero; }
+.legal-side { grid-area: sidenav; }
+.legal-body { grid-area: body; }
 .legal-hero {
   border-bottom: 1px solid var(--color-border-secondary);
   padding-bottom: 32px;
   margin-bottom: 48px;
+  /* grid-area: hero 가 위에서 적용. */
 }
 .legal-title {
   font-family: var(--font-kr);
@@ -31,50 +45,18 @@
   line-height: 40px;
   color: var(--color-text-primary);
   letter-spacing: var(--ls-heading);
+  margin: 0;
 }
+/* 시행일 — hero 안 title 아래 메타 (S197 — 사용자 결정 기존 위치 복귀).
+   탭 선택과 무관하게 hero 안 위치 유지 (있고 없고 layout shift X). */
 .legal-effective {
-  margin-top: 12px;
+  margin: 12px 0 0;
   font-family: var(--font-kr);
   font-size: 13px;
   color: var(--color-text-tertiary);
 }
-.legal-layout {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 64px;
-  align-items: start;
-}
-.legal-side {
-  position: sticky;
-  top: var(--sticky-offset);
-}
-.legal-side-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.legal-side-link {
-  display: block;
-  padding: 10px 12px;
-  font-family: var(--font-kr);
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--color-text-tertiary);
-  border-left: 2px solid transparent;
-  text-decoration: none;
-  transition: color var(--duration-hover) ease, border-color var(--duration-hover) ease;
-}
-.legal-side-link:hover {
-  color: var(--color-text-primary);
-}
-.legal-side-link.active {
-  color: var(--color-accent-gold);
-  font-weight: 500;
-  border-left-color: var(--color-accent-gold);
-}
+/* legal-layout — legal-shell 이 grid container 로 직접 처리 (S197). 룰 dead. */
+/* legal-side / legal-side-list / legal-side-link 룰은 LegalSideNav.css 로 분리 (S197) */
 .legal-body {
   min-width: 0;
 }
@@ -154,36 +136,22 @@
 }
 .legal-footer p { margin-bottom: 4px; }
 
-@media (max-width: 768px) {
-  .legal-shell { padding: 56px 20px 80px; }
-  .legal-hero { padding-bottom: 24px; margin-bottom: 32px; }
+@media (max-width: 767px) {
+  /* 모바일 좌우 padding 60 → 24 (sub-page 정합) — 콘텐츠 폭 확보.
+     grid-template-areas 변경 — sidenav (top) → hero → body (H1↔탭바 중복 회피) */
+  .legal-shell {
+    padding: 100px 24px 120px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "sidenav"
+      "hero"
+      "body";
+    column-gap: 0;
+    row-gap: 24px;
+  }
+  .legal-hero { padding-bottom: 24px; margin-bottom: 0; }
   .legal-title { font-size: 26px; }
-  .legal-layout {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-  .legal-side {
-    position: static;
-    margin: 0 -20px;
-    padding: 0 20px;
-    overflow-x: auto;
-    border-bottom: 1px solid var(--color-border-hairline);
-  }
-  .legal-side-list {
-    flex-direction: row;
-    gap: 0;
-    min-width: max-content;
-  }
-  .legal-side-link {
-    padding: 12px 16px;
-    border-left: none;
-    border-bottom: 2px solid transparent;
-    white-space: nowrap;
-  }
-  .legal-side-link.active {
-    border-bottom-color: var(--color-accent-gold);
-    border-left-color: transparent;
-  }
+  /* legal-side 모바일 룰 LegalSideNav.css 로 분리 (S197) */
   .legal-section-heading { font-size: 16px; }
   .legal-paragraph,
   .legal-bullets,

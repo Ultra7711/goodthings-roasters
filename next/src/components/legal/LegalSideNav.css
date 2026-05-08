@@ -1,0 +1,119 @@
+/* ══════════════════════════════════════════
+   LegalSideNav — MyPageSideNav 패턴 답습 (S197)
+   데스크탑 vertical + 모바일 horizontal sticky tab + fade mask + indicator slide.
+   ══════════════════════════════════════════ */
+
+.legal-side {
+  position: sticky;
+  top: var(--sticky-offset);
+  align-self: start;
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.legal-side-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* 데스크탑 좌측 vertical hairline 2px (indicator 두께 정합) */
+  box-shadow: inset 2px 0 0 0 var(--color-border-secondary);
+}
+
+/* indicator — 데스크탑: 좌측 vertical 2px gold absolute slide */
+.legal-side-indicator {
+  position: absolute;
+  background: var(--color-accent-gold);
+  z-index: 1;
+  pointer-events: none;
+  left: 0;
+  width: 2px;
+  transition: top var(--duration-transition) cubic-bezier(.4,0,.2,1),
+              height var(--duration-transition) cubic-bezier(.4,0,.2,1),
+              left var(--duration-transition) cubic-bezier(.4,0,.2,1),
+              width var(--duration-transition) cubic-bezier(.4,0,.2,1);
+}
+
+.legal-side-link {
+  display: block;
+  padding: 14px 20px;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-neutral);
+  color: var(--tab-color);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--duration-hover) ease;
+}
+.legal-side-link:hover {
+  color: var(--tab-color-active);
+}
+.legal-side-link.active {
+  font-weight: 500;
+  color: var(--tab-color-active);
+}
+.legal-side-link:focus { outline: none; }
+.legal-side-link:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
+}
+
+/* 모바일: 가로 row + sticky + edge fade mask (legal-shell padding 24 bleed) */
+@media (max-width: 767px) {
+  .legal-side {
+    width: auto;
+    margin-left: -24px;
+    margin-right: -24px;
+    padding-left: 24px;
+    padding-right: 24px;
+    position: sticky;
+    top: var(--sticky-offset);
+    z-index: 5;
+    align-self: stretch;
+    background: var(--color-background-primary);
+  }
+  .legal-side-list {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* touch-action pan-x — root overflow-x: hidden 환경에서 가로 swipe 보장 */
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    padding: 0;
+    /* 모바일 하단 hairline 2px */
+    box-shadow: inset 0 -2px 0 0 var(--color-border-secondary);
+    --legal-side-fade: 24px;
+    mask-image: linear-gradient(to right, #000 0, #000 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 100%);
+  }
+  .legal-side-list[data-scroll="start"] {
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - var(--legal-side-fade)), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - var(--legal-side-fade)), transparent 100%);
+  }
+  .legal-side-list[data-scroll="middle"] {
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--legal-side-fade), #000 calc(100% - var(--legal-side-fade)), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--legal-side-fade), #000 calc(100% - var(--legal-side-fade)), transparent 100%);
+  }
+  .legal-side-list[data-scroll="end"] {
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--legal-side-fade), #000 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--legal-side-fade), #000 100%);
+  }
+  .legal-side-list::-webkit-scrollbar { display: none; }
+  .legal-side-link {
+    flex-shrink: 0;
+    padding: 12px 18px 10px;
+  }
+  /* indicator — 모바일 horizontal 2px @ bottom:0 (left/width JS inline) */
+  .legal-side-indicator {
+    left: 0;
+    width: 0;
+    bottom: 0;
+    top: auto;
+    height: 2px;
+  }
+}

@@ -65,6 +65,11 @@
 
 /* 모바일 반응형 — 탭 수평 스크롤 · 그리드 BP 분기 */
 @media (max-width: 767px) {
+  /* 모바일 좌우 padding 60 → 24 (S197 PR-2 후속) — 콘텐츠 폭 확보 */
+  #cm-body {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
   /* 베이스라인은 콘텐츠 컬럼(24px 인셋)과 정렬 — wrap 은 cm-body 패딩 안쪽 */
   #cm-filter-tabs {
     overflow-x: auto;

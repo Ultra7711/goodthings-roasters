@@ -164,6 +164,22 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
   }
 
   /**
+   * legal 링크 (이용약관 / 개인정보처리방침 / 결제 FAQ) 공통 핸들러.
+   * 다른 nav 링크와 동일하게 setSnapClose + onNavigate 패턴 사용.
+   * 직전까지 onClose (history.back) 호출 시 Link 의 router.push 와 race 발생 →
+   * "동작했다 안했다 함" 증상 (S198 진단).
+   */
+  function handleLegalClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+    if (pathname === href) {
+      e.preventDefault();
+      handleSamePathReset();
+      return;
+    }
+    setSnapClose(true);
+    onNavigate();
+  }
+
+  /**
    * mobile nav → cart 전환: nav marker 를 replaceState 로 조용히 제거 후
    * state 만 false → cart open (자체 marker pushState) → 새 단일 entry 구성.
    * history.back() 경로 사용 시 cart pushState 와 race 가 발생해 entry 꼬임.
@@ -350,7 +366,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
           <Link
             href="/legal/payment-faq"
             className="mn-account-link"
-            onClick={onClose}
+            onClick={(e) => handleLegalClick(e, '/legal/payment-faq')}
             data-gtr-tap
           >
             FAQ
@@ -377,9 +393,21 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
               <span style={{ display: 'inline-block', transform: bizOpen ? 'rotate(180deg)' : 'none', transition: 'transform 300ms ease' }}>▾</span>
             </button>
             <span className="mn-f-sep">·</span>
-            <Link href="/legal/terms" className="mn-f-legal" onClick={onClose}>이용약관</Link>
+            <Link
+              href="/legal/terms"
+              className="mn-f-legal"
+              onClick={(e) => handleLegalClick(e, '/legal/terms')}
+            >
+              이용약관
+            </Link>
             <span className="mn-f-sep">·</span>
-            <Link href="/legal/privacy" className="mn-f-legal" onClick={onClose}>개인정보처리방침</Link>
+            <Link
+              href="/legal/privacy"
+              className="mn-f-legal"
+              onClick={(e) => handleLegalClick(e, '/legal/privacy')}
+            >
+              개인정보처리방침
+            </Link>
           </div>
           <div
             className={`mn-f-biz-detail${bizOpen ? ' open' : ''}`}

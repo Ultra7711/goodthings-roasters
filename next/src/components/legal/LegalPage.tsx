@@ -1,16 +1,12 @@
 /* ══════════════════════════════════════════
    LegalPage — /legal/[slug]
    ──────────────────────────────────────────
-   정적 컨텐츠 페이지. 5종 (terms · privacy · business-info · shipping · returns).
-   - 좌측 사이드 내비 (데스크탑) / 모바일은 상단 가로 스크롤 chip
-   - 우측 본문 (heading · paragraphs · bullets · definitions)
-   - 헤더 light 테마 (headerThemeConfig 등록)
+   layout (legal-page / legal-shell / legal-hero / legal-side / LegalSideNav) 은
+   /legal/layout.tsx 가 처리. page 는 body 만 (S197 PR-2 후속).
    - useAccordion=true 인 정보 페이지 (shipping · returns) 는 heading 단위 아코디언
    ══════════════════════════════════════════ */
 
-import Link from 'next/link';
 import type { LegalDoc, LegalSection } from '@/app/(main)/legal/[slug]/content';
-import { LEGAL_NAV } from '@/app/(main)/legal/[slug]/content';
 import Accordion from '@/components/common/Accordion';
 
 import './LegalPage.css';
@@ -73,81 +69,56 @@ export default function LegalPage({ doc }: Props) {
   const groups = doc.useAccordion ? groupByHeading(doc.sections) : null;
 
   return (
-    <div className="legal-page" data-header-theme="light">
-      <div className="legal-shell">
-        <header className="legal-hero">
-          <h1 className="legal-title">{doc.title}</h1>
-          {doc.effectiveDate && (
-            <p className="legal-effective">{doc.effectiveDate}</p>
-          )}
-        </header>
+    <>
+      <header className="legal-hero">
+        <h1 className="legal-title">{doc.title}</h1>
+        {doc.effectiveDate && (
+          <p className="legal-effective">{doc.effectiveDate}</p>
+        )}
+      </header>
 
-        <div className="legal-layout">
-          <aside className="legal-side" aria-label="약관 메뉴">
-            <nav>
-              <ul className="legal-side-list">
-                {LEGAL_NAV.map((item) => {
-                  const active = item.slug === doc.slug;
-                  return (
-                    <li key={item.slug}>
-                      <Link
-                        href={`/legal/${item.slug}`}
-                        className={`legal-side-link${active ? ' active' : ''}`}
-                        aria-current={active ? 'page' : undefined}
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
-          </aside>
-
-          <article className="legal-body">
-            {doc.intro && doc.intro.length > 0 && (
-              <div className="legal-intro">
-                {doc.intro.map((line, i) => (
-                  <p key={i}>{line}</p>
-                ))}
-              </div>
-            )}
-
-            {groups ? (
-              <div className="legal-accordion-list">
-                {groups.map((group, idx) => (
-                  <Accordion
-                    key={`${group.heading}-${idx}`}
-                    label={group.heading}
-                    defaultOpen
-                  >
-                    {group.sections.map((section, i) => (
-                      <SectionContent key={i} section={section} />
-                    ))}
-                  </Accordion>
-                ))}
-              </div>
-            ) : (
-              doc.sections.map((section, idx) => (
-                <section key={idx} className="legal-section">
-                  {section.heading && (
-                    <h2 className="legal-section-heading">{section.heading}</h2>
-                  )}
-                  <SectionContent section={section} />
-                </section>
-              ))
-            )}
-
-            {doc.footer && doc.footer.length > 0 && (
-              <footer className="legal-footer">
-                {doc.footer.map((line, i) => (
-                  <p key={i}>{line}</p>
-                ))}
-              </footer>
-            )}
-          </article>
+      <article className="legal-body">
+        {doc.intro && doc.intro.length > 0 && (
+        <div className="legal-intro">
+          {doc.intro.map((line, i) => (
+            <p key={i}>{line}</p>
+          ))}
         </div>
-      </div>
-    </div>
+      )}
+
+      {groups ? (
+        <div className="legal-accordion-list">
+          {groups.map((group, idx) => (
+            <Accordion
+              key={`${group.heading}-${idx}`}
+              label={group.heading}
+              defaultOpen
+            >
+              {group.sections.map((section, i) => (
+                <SectionContent key={i} section={section} />
+              ))}
+            </Accordion>
+          ))}
+        </div>
+      ) : (
+        doc.sections.map((section, idx) => (
+          <section key={idx} className="legal-section">
+            {section.heading && (
+              <h2 className="legal-section-heading">{section.heading}</h2>
+            )}
+            <SectionContent section={section} />
+          </section>
+        ))
+      )}
+
+        {doc.footer && doc.footer.length > 0 && (
+          <footer className="legal-footer">
+            {doc.footer.map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </footer>
+        )}
+      </article>
+    </>
   );
 }

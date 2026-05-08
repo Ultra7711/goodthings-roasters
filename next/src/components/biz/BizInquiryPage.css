@@ -376,6 +376,9 @@
 }
 @media (max-width: 767px) {
   #bi-body {
+    /* 모바일 좌우 padding 60 → 24 (S197 PR-2 후속) — 콘텐츠 폭 확보 */
+    padding-left: 24px;
+    padding-right: 24px;
     padding-bottom: 80px;
     gap: 64px;
   }

@@ -622,12 +622,9 @@ body {
   flex-direction: column;
   min-height: 100dvh;
 }
-/* 모바일 가로 scroll 전역 차단 — chevron / dropdown 등 자식 absolute 가
-   ancestor 까지 scroll 일으키는 케이스 fallback. 데스크탑은 영향 X.
-   html / body 까지 적용 — .root 만으로 부족한 케이스 (브라우저 측 가로 scroll). */
+/* 모바일 가로 scroll 전역 차단 — .root 만 (html / body 는 sticky position reference 영향).
+   chevron / dropdown 등 자식 absolute 가 ancestor 까지 scroll 일으키는 케이스 fallback. */
 @media (max-width: 767px) {
-  html,
-  body,
   .root {
     overflow-x: hidden;
   }
