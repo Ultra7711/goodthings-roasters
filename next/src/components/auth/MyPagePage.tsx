@@ -9,7 +9,7 @@
 'use client';
 
 import './MyPagePage.css';
-import { useCallback, useState, useMemo } from 'react';
+import { useCallback, useRef, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
@@ -97,6 +97,18 @@ export default function MyPagePage({
 
   /* ── Side nav 활성 항목 ── */
   const [activeNavId, setActiveNavId] = useState<MyPageNavId>('orders');
+
+  /* ── Hero CTA (바로가기 버튼) → 탭 전환 + 모바일 스크롤 (S198).
+     데스크탑은 grid layout 으로 한 화면에 보여 스크롤 불필요. 모바일만 mp-grid 시작점으로 스크롤 (sticky 탭바 가시성 확보). */
+  const gridRef = useRef<HTMLDivElement>(null);
+  const handleHeroCtaNavigate = useCallback((target: MyPageNavId) => {
+    setActiveNavId(target);
+    if (typeof window === 'undefined') return;
+    if (!window.matchMedia('(max-width: 767px)').matches) return;
+    requestAnimationFrame(() => {
+      gridRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+  }, []);
 
   /* ── Hero 카드 수동 전환 (메타 항목 클릭 · S197 PR-2 §2.13).
      null = 자동 분기 (정기 ≥1 → next / 주문 ≥1 → recent / 둘 다 0 → welcome).
@@ -193,7 +205,7 @@ export default function MyPagePage({
             return (
               <NextDeliveryCard
                 sub={nextSub}
-                onManage={() => setActiveNavId('subscription')}
+                onManage={() => handleHeroCtaNavigate('subscription')}
               />
             );
           }
@@ -201,14 +213,14 @@ export default function MyPagePage({
             return (
               <RecentOrderCard
                 order={orders[0]}
-                onViewOrders={() => setActiveNavId('orders')}
+                onViewOrders={() => handleHeroCtaNavigate('orders')}
               />
             );
           }
           return <WelcomeCard userName={displayName} />;
         })()}
 
-        <div className="mp-grid">
+        <div className="mp-grid" ref={gridRef}>
           <MyPageSideNav
             activeId={activeNavId}
             counts={counts}

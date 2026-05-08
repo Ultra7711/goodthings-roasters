@@ -535,11 +535,13 @@
     position: relative;
     overflow-x: hidden;
   }
-  /* mp-grid: 1단 stack (sub-nav 가로 row + 패널). minmax(0, 1fr) overflow 차단 동일 적용. */
+  /* mp-grid: 1단 stack (sub-nav 가로 row + 패널). minmax(0, 1fr) overflow 차단 동일 적용.
+     scroll-margin-top: Hero 바로가기 클릭 시 scrollIntoView 로 sticky 헤더 + 공지 바 아래에 정확히 정렬 (S198). */
   .mp-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--gap-xl);
     margin-top: 24px;
+    scroll-margin-top: var(--sticky-offset);
   }
 
   /* S197 PR-2 §2.2: 패널 박스 폐기 → 모바일 bleed 제거 (margin/padding/radius 모두 제거) */
