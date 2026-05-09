@@ -26,6 +26,8 @@ import { useClearCart } from '@/hooks/useCart';
 import OrderCompleteHero from './OrderCompleteHero';
 import OrderItemsSection from './OrderItemsSection';
 import OrderShippingSection from './OrderShippingSection';
+import OrderEmailFooter from './OrderEmailFooter';
+import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 /* LastOrder 타입은 `@/types/order` StoredOrderSummary 로 통일 (S200 PR-A).
    useCheckoutFlow 가 저장하는 모델과 1:1 정합. */
 import type { StoredOrderSummary } from '@/types/order';
@@ -76,6 +78,8 @@ export default function OrderCompletePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { show: toast } = useToast();
+  /* PR-E: 인증 사용자 이메일 — guestEmail 없을 때 fallback (게스트는 order.guestEmail) */
+  const { user } = useSupabaseSession();
   const [entered, setEntered] = useState(false);
   const [confirmState, setConfirmState] = useState<ConfirmState>({ kind: 'idle' });
   /* H-1 폴백 UX — 게스트 이메일 재입력 상태 */
@@ -501,6 +505,9 @@ export default function OrderCompletePage() {
 
       {/* PR-D 배송 정보 + CTA row (자문 D §4·§5.1) */}
       <OrderShippingSection shipping={order.shipping} />
+
+      {/* PR-E 이메일 안내 (자문 D §5.4) — guestEmail 우선, 없으면 인증 user.email */}
+      <OrderEmailFooter email={order.guestEmail ?? user?.email ?? undefined} />
     </div>
   );
 }

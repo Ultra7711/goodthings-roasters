@@ -1,0 +1,42 @@
+/* ══════════════════════════════════════════
+   OrderEmailFooter — /order-complete §5.4 (PR-E)
+   - 컨테이너: max 1440 · padding 32V 60H · 상단 헤어라인 1px secondary
+   - 본문: kr / body-s / 400 / tertiary · center · line-height 1.6
+   - email 강조: en / primary (mono 자체 토큰 없음 → en 토큰 사용)
+   ══════════════════════════════════════════ */
+
+.oc-email {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 60px;
+  box-sizing: border-box;
+  border-top: 1px solid var(--color-border-secondary);
+}
+
+.oc-email__line {
+  margin: 0;
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.oc-email__addr {
+  font-family: var(--font-en);
+  color: var(--color-text-primary);
+  letter-spacing: var(--ls-display);
+  margin: 0 4px;
+}
+
+/* ══ 1024 (laptop) ══ */
+@media (max-width: 1024px) {
+  .oc-email { padding: 28px 40px; }
+}
+
+/* ══ 모바일 (≤767) ══ */
+@media (max-width: 767px) {
+  .oc-email { padding: 24px; }
+}
