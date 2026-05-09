@@ -181,6 +181,15 @@
   .oir { gap: var(--gap-lg); }
 }
 
+/* ══ Readonly variant — thumb 72×72 정사각 (모든 BP 공통).
+   editable(74×112)과 차등화: readonly 컨텍스트(주문 완료 / 체크아웃 사이드바)는
+   상품 확인용이라 좁은 컨테이너에서도 안정적인 정사각형이 적합.
+   specificity (0,2,0) > base (0,1,0) > 모바일 @media (0,1,0) — cascade 안전. */
+.oir[data-variant="readonly"] .oir__thumb {
+  width: 72px;
+  height: 72px;
+}
+
 /* ══ 모바일 (≤767) ══
    - thumb 64
    - 컨테이너 padding/gap 축소
