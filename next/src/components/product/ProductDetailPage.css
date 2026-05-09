@@ -807,7 +807,7 @@
   flex-shrink: 0;
 }
 
-/* 수량 스테퍼 — CartDrawer .cd-qty 패턴: 양쪽 정사각 버튼(W=H) + 가운데 num */
+/* 수량 스테퍼 — 양쪽 정사각 버튼(W=H) + 가운데 num (OrderItemRow .oir__stepper 와 시각 동일 톤) */
 .pd-qty-stepper {
   width: 100%;
   height: 100%;

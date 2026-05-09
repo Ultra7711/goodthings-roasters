@@ -1576,32 +1576,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-family: var(--font-en); font-size: var(--type-heading-m-size); font-weight: var(--type-heading-m-weight);
   letter-spacing: var(--ls-heading); color: var(--color-text-primary); margin-bottom: 20px;
 }
-.chp-sum-item {
-  display: flex; align-items: center; gap: var(--gap-md);
-  padding: 12px 0; box-shadow: inset 0 -1px 0 0 var(--color-border-tertiary);
-}
-.chp-sum-item:last-child { box-shadow: none; }
-.chp-sum-item-img-wrap { position: relative; flex-shrink: 0; }
-.chp-sum-item-img {
-  width: 56px; height: 56px; background: var(--color-background-secondary);
-  box-shadow: 0 0 0 1px var(--color-border-surface); position: relative; overflow: hidden;
-}
-.chp-sum-item-img img { width: 100%; height: 100%; object-fit: contain; }
-.chp-sum-item-info { flex: 1; }
-.chp-sum-item-name {
-  font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 500;
-  color: var(--color-text-primary); line-height: 20px; margin-bottom: 2px;
-}
-.chp-sum-item-meta {
-  display: block;
-  font-family: var(--font-kr);
-  font-size: var(--type-body-s-size); font-weight: 400;
-  color: var(--color-text-secondary);
-}
-.chp-sum-item-price {
-  font-family: var(--font-en); font-size: var(--type-body-ui-size); font-weight: 400;
-  color: var(--color-text-primary); white-space: nowrap;
-}
+/* S202: .chp-sum-item* 정의 제거. OrderSummary 는 OrderItemRow (.oir readonly) 로 마이그레이션 완료. */
+
 .chp-coupon-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 0; box-shadow: inset 0 -1px 0 0 var(--color-border-secondary);
@@ -1826,131 +1802,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   line-height: var(--lh-h1);
   margin: 0;
 }
-.cp-table-hdr {
-  display: flex;
-  align-items: center;
-  padding: 0 0 12px;
-  box-shadow: inset 0 -1px 0 0 var(--color-border-primary);
-  font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
-  font-weight: 400;
-  color: var(--color-text-tertiary);
-}
-.cp-th-product { flex: 1; }
-.cp-th-price, .cp-th-qty, .cp-th-total {
-  width: 128px; text-align: center; flex-shrink: 0;
-}
-.cp-th-price { margin-right: 48px; }
-.cp-th-qty   { margin-right: 48px; }
-.cp-th-total { margin-right: 10px; }
-.cp-th-delete { width: 26px; flex-shrink: 0; text-align: center; }
-
-.cp-item {
-  display: flex;
-  align-items: center;
-  height: 176px;
-  box-shadow: inset 0 -1px 0 0 var(--color-border-tertiary);
-  position: relative;
-}
-.cp-item:last-child { box-shadow: none; }
-.cp-item-product { flex: 1; display: flex; align-items: center; height: 100%; }
-.cp-item-thumb {
-  position: relative;
-  width: 100px; height: 100px;
-  flex-shrink: 0; margin-right: var(--gap-lg);
-}
-.cp-item-img {
-  width: 100%; height: 100%;
-  overflow: hidden;
-  background: var(--color-background-tertiary);
-  border: 1px solid var(--color-border-surface);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-}
-.cp-item-img img { width: 100%; height: 100%; object-fit: contain; }
-.cp-item-img img.cp-item-img-empty {
-  width: 24px; height: 24px; opacity: .3; object-fit: initial;
-}
-.cp-item-info { display: flex; flex-direction: column; gap: 6px; }
-.cp-item-category {
-  font-family: var(--font-en);
-  font-size: var(--type-body-ui-size);
-  font-weight: 400;
-  letter-spacing: var(--ls-uppercase);
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-}
-.cp-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; line-height: 20px; }
-.cp-item-name-kr {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-l-size);
-  font-weight: 500;
-  color: var(--color-text-primary);
-}
-.cp-item-badges { display: none; }
-.cp-item-meta-inline { display: inline; color: var(--color-text-secondary); font-size: var(--type-body-s-size); }
-.cp-item-badge {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: 400;
-  color: var(--color-text-secondary);
-}
-.cp-item-price {
-  width: 128px; flex-shrink: 0; margin-right: 48px;
-  font-family: var(--font-en);
-  font-size: var(--type-heading-s-size);
-  font-weight: 400;
-  color: var(--color-text-secondary);
-  letter-spacing: var(--ls-display);
-  text-align: center;
-}
-.cp-item-qty {
-  width: 128px; flex-shrink: 0; margin-right: 48px;
-  display: flex; align-items: center; justify-content: center;
-}
-.cp-qty {
-  display: inline-flex; align-items: center;
-  justify-content: space-between;
-  background: var(--color-background-pure);
-  border: 1px solid var(--color-control-border);
-  height: 36px;
-  width: 104px;
-}
-.cp-qty-btn {
-  width: 36px; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  background: transparent; border: none; cursor: pointer;
-  color: var(--color-icon-default);
-  transition: color var(--duration-hover) ease;
-}
-.cp-qty-btn:hover { color: var(--color-text-primary); }
-.cp-qty-btn:disabled,
-.cp-qty-btn.disabled { opacity: var(--state-disabled-opacity-icon); pointer-events: none; }
-.cp-qty-num {
-  min-width: 28px; text-align: center;
-  font-family: var(--font-en);
-  font-size: var(--type-body-ui-size);
-  font-weight: 500;
-  color: var(--color-text-primary);
-}
-.cp-item-total {
-  width: 128px; flex-shrink: 0; margin-right: 10px;
-  font-family: var(--font-en);
-  font-size: var(--type-heading-s-size);
-  font-weight: 500;
-  color: var(--color-text-primary);
-  letter-spacing: var(--ls-display);
-  text-align: center;
-}
-.cp-remove {
-  width: 26px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: transparent; border: none; cursor: pointer;
-  color: var(--color-icon-default); opacity: .7;
-  transition: opacity var(--duration-hover) ease;
-}
-.cp-remove:hover { opacity: 1; }
-.cp-remove svg { width: 16px; height: 16px; }
+/* S202: .cp-table-hdr / .cp-th-* / .cp-item-* / .cp-qty* / .cp-remove 정의 제거.
+   CartClient + CartSkeleton 모두 OrderItemRow (.oir) 로 마이그레이션 완료. */
 
 .cp-empty {
   flex: 1;
@@ -2081,91 +1934,10 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .cp-order-btn:disabled { opacity: var(--state-disabled-opacity-cta); cursor: not-allowed; }
 
-/* ══ Cart Page — Laptop (≤1200) 컬럼 폭 축소 ══ */
-@media (max-width: 1200px) {
-  .cp-th-price, .cp-th-qty, .cp-th-total { width: 100px; }
-  .cp-th-price { margin-right: 32px; }
-  .cp-th-qty   { margin-right: 32px; }
-  .cp-item-price { width: 100px; margin-right: 32px; }
-  .cp-item-qty   { width: 100px; margin-right: 32px; }
-  .cp-item-total { width: 100px; }
-}
+/* S202: Cart Page laptop(≤1200) / mobile(≤767) cp-item·cp-th override 제거.
+   OrderItemRow 자체가 반응형 처리 완료. 잔여 모바일 override 는 .cp-shipping-row 등만 유지. */
 
-/* ══ Cart Page — Mobile (≤767) 3-row 카드 레이아웃 ══
-   데스크탑 테이블 (상품/가격/수량/합계) → 모바일 카드 그리드로 전환.
-   Row1: 카테고리 + 닫기 · Row2: 상품명·용량·수량 inline · Row3: 스텝퍼 + 합계.
-   썸네일 96×96 (드로어 120 vs 데스크탑 100 사이 타협치). */
 @media (max-width: 767px) {
-  .cp-table-hdr { display: none; }
-
-  .cp-item {
-    display: grid;
-    grid-template-columns: 96px 1fr auto;
-    grid-template-rows: auto auto auto;
-    column-gap: 16px;
-    row-gap: 4px;
-    align-items: center;
-    height: auto;
-    padding: 20px 0;
-  }
-  .cp-item-product { display: contents; }
-  .cp-item-info { display: contents; }
-  .cp-item-thumb {
-    grid-row: 1 / 4;
-    grid-column: 1;
-    width: 96px; height: 96px;
-    margin-right: 0;
-    align-self: end;
-  }
-  .cp-item-category {
-    grid-row: 1;
-    grid-column: 2;
-    align-self: center;
-    font-size: 12px;
-    line-height: 1;
-  }
-  .cp-remove {
-    grid-row: 1;
-    grid-column: 3;
-    align-self: center;
-    justify-self: end;
-    height: 24px;
-  }
-  .cp-item-name {
-    grid-row: 2;
-    grid-column: 2 / 4;
-    min-width: 0;
-    overflow: hidden;
-    line-height: 20px;
-    margin-top: 2px;
-    margin-bottom: 8px;
-    align-self: center;
-  }
-  .cp-item-name-kr { font-size: 16px; }
-  .cp-item-meta-inline { white-space: nowrap; }
-  .cp-item-price { display: none; }
-  .cp-item-qty {
-    grid-row: 3;
-    grid-column: 2;
-    width: auto;
-    margin-right: 0;
-    justify-content: flex-start;
-    align-self: end;
-  }
-  .cp-qty-btn { height: 44px; }
-  .cp-item-total {
-    grid-row: 3;
-    grid-column: 3;
-    width: auto;
-    margin-right: 0;
-    text-align: right;
-    align-self: end;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-  }
-
   /* 배송비 행: 1행(라벨·가격) + 2행(안내문·게이지) 로 재배치
      sticky footer 가 하단 분할선 역할 → 배송비 행 하단선 제거 */
   .cp-shipping-row {
