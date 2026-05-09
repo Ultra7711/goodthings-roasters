@@ -19,13 +19,12 @@ import {
   useUpdateCartQty,
   useRemoveCartItem,
   SHIPPING_FEE,
-  MIN_QUANTITY,
 } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useDrawer } from '@/hooks/useDrawer';
 import { useNavigation } from '@/hooks/useNavigation';
-import { splitName, getSubscriptionBadge } from '@/lib/products';
 import { formatPrice } from '@/lib/utils';
+import OrderItemRow from '@/components/order/OrderItemRow';
 import { useEffect, useRef, useCallback } from 'react';
 
 export default function CartDrawer() {
@@ -149,104 +148,27 @@ export default function CartDrawer() {
           ) : (
             <>
               <div className="cd-items">
-                {items.map((item) => {
-                  const { kr: krName } = splitName(item.name);
-                  const subBadge = getSubscriptionBadge(item);
-                  const unitTotal = item.priceNum * item.qty;
-                  const minusDisabled = item.qty <= MIN_QUANTITY;
-                  return (
-                    <div key={item.id} className="cd-item">
-                      <div className="cd-item-thumb">
-                        <Link
-                          href={`/shop/${item.slug}`}
-                          className="cd-item-img"
-                          onClick={closeForNavigation}
-                          aria-label={`${item.name} 상세 보기`}
-                        >
-                          {item.image ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              style={{ background: item.color }}
-                            />
-                          ) : (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              className="cd-item-img-empty"
-                              src="/images/icons/image_empty.svg"
-                              alt=""
-                              aria-hidden="true"
-                            />
-                          )}
-                        </Link>
-                      </div>
-                      <div className="cd-item-category">{item.category}</div>
-                      <div className="cd-item-name">
-                        <span className="cd-item-name-kr">{krName}</span>
-                        {[item.volume, subBadge].filter(Boolean).length > 0 && (
-                          <span className="cd-item-meta-inline">
-                            {' · '}{[item.volume, subBadge].filter(Boolean).join(' · ')}
-                          </span>
-                        )}
-                      </div>
-                      <div className="cd-item-bottom">
-                        {item.volume && (
-                          <span className="cd-item-sub-badge">{item.volume}</span>
-                        )}
-                        {subBadge && (
-                          <span className="cd-item-sub-badge">{subBadge}</span>
-                        )}
-                        <span className="cd-item-unit-price">{item.price}</span>
-                        <div className="cd-qty">
-                          <button
-                            type="button"
-                            className={`cd-qty-btn${minusDisabled ? ' disabled' : ''}`}
-                            aria-label="수량 감소"
-                            disabled={minusDisabled}
-                            onClick={() =>
-                              updateQty.mutate({ id: item.id, delta: -1 })
-                            }
-                          >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M6.3,12h11.3" />
-                            </svg>
-                          </button>
-                          <span className="cd-qty-num">{item.qty}</span>
-                          <button
-                            type="button"
-                            className="cd-qty-btn"
-                            aria-label="수량 증가"
-                            onClick={() =>
-                              updateQty.mutate({ id: item.id, delta: 1 })
-                            }
-                          >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M12,6.3v11.3" />
-                              <path d="M6.3,12h11.3" />
-                            </svg>
-                          </button>
-                        </div>
-                        <span className="cd-item-price">{formatPrice(unitTotal)}</span>
-                      </div>
-                      <button
-                        type="button"
-                        className="cd-remove"
-                        aria-label={`${item.name} 삭제`}
-                        title="삭제"
-                        onClick={() => removeItem.mutate(item.id)}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M10,11v6" />
-                          <path d="M14,11v6" />
-                          <path d="M19,6v14c0,1.1-.9,2-2,2H7c-1.1,0-2-.9-2-2V6" />
-                          <path d="M3,6h18" />
-                          <path d="M8,6v-2c0-1.1.9-2,2-2h4c1.1,0,2,.9,2,2v2" />
-                        </svg>
-                      </button>
-                    </div>
-                  );
-                })}
+                {items.map((item) => (
+                  <OrderItemRow
+                    key={item.id}
+                    variant="editable"
+                    item={{
+                      name: item.name,
+                      category: item.category,
+                      volume: item.volume,
+                      type: item.type,
+                      period: item.period,
+                      qty: item.qty,
+                      priceNum: item.priceNum,
+                      image: { src: item.image, bg: item.color },
+                    }}
+                    thumbHref={`/shop/${item.slug}`}
+                    onThumbClick={closeForNavigation}
+                    onIncrement={() => updateQty.mutate({ id: item.id, delta: 1 })}
+                    onDecrement={() => updateQty.mutate({ id: item.id, delta: -1 })}
+                    onRemove={() => removeItem.mutate(item.id)}
+                  />
+                ))}
               </div>
 
               {/* 배송비 + 무료 배송 게이지 */}

@@ -1,0 +1,136 @@
+/* ══════════════════════════════════════════
+   OrderItemsSection — /order-complete §3
+   - 컨테이너: max 1440 (GTR baseline) · padding 0 60H 64B · 하단 헤어라인 ink
+   - 아이템 라인 = OrderItemRow 컴포넌트 (cart drawer/page 와 시각 정합)
+   - 합계: 자문 §3.3 spec (max 360 우측 · cp-subtotal-price grand · cp-tax-note 부가세)
+   ══════════════════════════════════════════ */
+
+.oc-section {
+  position: relative;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 60px 64px;
+  box-sizing: border-box;
+}
+/* 하단 헤어라인 — 패딩 안쪽(60px 인셋)으로 내부 헤어라인 폭과 통일 */
+.oc-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 60px;
+  right: 60px;
+  height: 1px;
+  background: var(--color-text-primary);
+}
+
+/* ══ 합계 표 — max-width 360 우측 정렬 (자문 §3.3) ══ */
+.oc-section__totals {
+  margin-top: 24px;
+  margin-left: auto;
+  max-width: 360px;
+}
+.oc-totals__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  font-family: var(--font-kr);
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+/* 정기배송 할인 — gold */
+.oc-totals__row--discount {
+  color: var(--color-accent-gold);
+}
+
+/* 결제 금액 행 — top border + cp-subtotal-label 스타일 라벨 */
+.oc-totals__row--grand {
+  border-top: 1px solid var(--color-border-primary);
+  margin-top: 12px;
+  padding-top: 16px;
+  align-items: baseline;
+}
+/* 결제 금액 라벨 — cp-subtotal-label */
+.oc-totals__row--grand > span {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-ui-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+/* 우측: 금액 + 부가세 포함 수직 스택 */
+.oc-totals__grand-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* 일반 행 금액 — cp-item-price 스타일 (font-en / heading-s / 400 / secondary) */
+.oc-totals__num {
+  font-family: var(--font-en);
+  font-size: var(--type-heading-s-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  letter-spacing: var(--ls-display);
+  text-align: right;
+}
+/* 할인 행 금액 — gold + 라벨과 동일 폰트 크기 (무료 패턴 동일) */
+.oc-totals__row--discount .oc-totals__num {
+  color: var(--color-accent-gold);
+  font-size: inherit;
+}
+/* 무료 배송 — 배송비 라벨과 동일 폰트 크기 */
+.oc-totals__num--free {
+  font-size: inherit;
+}
+/* 상품 금액 — 결제 금액 두께와 동일 (price-l-weight) */
+.oc-totals__num--subtotal {
+  font-weight: var(--type-price-l-weight);
+}
+/* 결제 금액 값 — cp-subtotal-price 스타일 */
+.oc-totals__row--grand .oc-totals__num {
+  font-family: var(--font-en);
+  font-size: var(--type-price-l-size);
+  font-weight: var(--type-price-l-weight);
+  color: var(--color-text-primary);
+  letter-spacing: var(--ls-display);
+  text-align: right;
+}
+/* 부가세 포함 — cp-tax-note 스타일 */
+.oc-totals__tax {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+  line-height: 1;
+}
+
+/* ══ 1024 (laptop) — section padding 약간 축소 ══ */
+@media (max-width: 1024px) {
+  .oc-section { padding: 0 40px 56px; }
+  .oc-section::after { left: 40px; right: 40px; }
+}
+
+/* ══ 768 (tablet) ══ */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .oc-section { padding: 0 40px 48px; }
+}
+
+/* ══ 모바일 (≤767) ══ */
+@media (max-width: 767px) {
+  .oc-section {
+    padding: 0 24px 40px;
+  }
+  .oc-section::after { left: 24px; right: 24px; }
+  .oc-section__totals {
+    max-width: none;
+    margin-top: 16px;
+  }
+  .oc-totals__row { font-size: 13px; padding: 8px 0; }
+  .oc-totals__row--grand {
+    margin-top: 8px;
+    padding-top: 14px;
+  }
+}

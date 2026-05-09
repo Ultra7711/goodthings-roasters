@@ -1,0 +1,150 @@
+/* ══════════════════════════════════════════
+   OrderShippingSection — /order-complete §4·§5.1
+   - 컨테이너: max 1440 · padding 64V·60H · 하단 헤어라인 ink (60px 인셋)
+   - 라벨 (받는 분 / 배송 주소): kr / body-s / 500 / tertiary
+   - 본문: kr / body-l / 1.6 / primary (이름 weight 500)
+   - 보조 (전화·우편·메모): mono(en) / body-m / secondary
+   - CTA: 사이트 --cta-btn-* 토큰 그대로. primary 우측 / secondary 좌측.
+   ══════════════════════════════════════════ */
+
+.oc-ship {
+  position: relative;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 64px 60px;
+  box-sizing: border-box;
+}
+/* NOTE: 하단 헤어라인은 PR-F 추천 상품 섹션 진입 시 복원 (현재는 마지막 섹션이라 불필요) */
+
+/* ══ 2-col grid: 받는 분 / 배송 주소 ══ */
+.oc-ship__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap-2xl);
+}
+.oc-ship__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+}
+
+/* 라벨 — 작은 회색 (섹션 헤더 없이 column 레벨에서 위계) */
+.oc-ship__label {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  line-height: 1;
+}
+
+/* 본문 wrapper */
+.oc-ship__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-family: var(--font-kr);
+  font-size: var(--type-body-l-size);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+/* 받는 분 이름 — weight 강조 */
+.oc-ship__name {
+  font-weight: 500;
+}
+/* 전화번호 — mono(en) / 보조 */
+.oc-ship__phone {
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--ls-display);
+}
+/* 우편번호 — mono(en) inline */
+.oc-ship__zip {
+  font-family: var(--font-en);
+  font-size: var(--type-body-m-size);
+  color: var(--color-text-secondary);
+}
+/* 배송 메모 — 따옴표 inline italic */
+.oc-ship__note {
+  font-size: var(--type-body-m-size);
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+/* ══ CTA row — primary(우측) / secondary(좌측) · 데스크탑/랩탑 1fr:1fr 스트레치 ══ */
+.oc-ship__cta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--cta-btn-pair-gap);
+  margin-top: var(--gap-2xl);
+}
+.oc-ship__cta .oc-cta {
+  width: 100%;
+}
+
+/* 사이트 표준 CTA — globals.css --cta-btn-* 토큰 직접 사용 */
+.oc-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  font-family: var(--font-kr);
+  font-size: var(--cta-btn-font-size);
+  font-weight: var(--cta-btn-font-weight);
+  letter-spacing: var(--cta-btn-letter-spacing);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+}
+.oc-cta--primary {
+  padding: 0 var(--cta-btn-padding-x-primary);
+  background: var(--color-btn-primary-bg);
+  color: var(--color-text-inverse);
+  transition: background 200ms ease;
+}
+.oc-cta--primary:hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.oc-cta--primary:active {
+  background: var(--color-btn-primary-bg-active);
+}
+.oc-cta--secondary {
+  padding: 0 var(--cta-btn-padding-x);
+  background: var(--color-background-pure);
+  color: var(--color-text-primary);
+  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
+  transition: box-shadow 200ms ease;
+}
+.oc-cta--secondary:hover,
+.oc-cta--secondary:active {
+  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+}
+
+/* ══ 1024 (laptop) ══ */
+@media (max-width: 1024px) {
+  .oc-ship { padding: 56px 40px; }
+}
+
+/* ══ 768 (tablet) ══ */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .oc-ship { padding: 48px 40px; }
+}
+
+/* ══ 모바일 (≤767) — 컬럼 stack + CTA primary 위 (column-reverse) ══ */
+@media (max-width: 767px) {
+  .oc-ship { padding: 40px 24px; }
+  .oc-ship__cols {
+    grid-template-columns: 1fr;
+    gap: var(--gap-xl);
+  }
+  .oc-ship__cta {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--gap-sm);
+    margin-top: var(--gap-xl);
+  }
+}

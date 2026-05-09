@@ -106,6 +106,8 @@ export type StoredOrderSummary = {
   subtotalAmount: number;
   /** 정기배송 할인 (정책 확정 전 옵션 — 미적용 시 row hide) */
   discountAmount?: number;
+  /** 할인 라벨 (예: "정기배송 할인 (10%)"). discountAmount 와 같이 옵션. */
+  discountLabel?: string;
   shippingFee: number;
   totalAmount: number;
   shipping?: StoredOrderShipping;

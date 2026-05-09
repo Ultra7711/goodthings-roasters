@@ -101,12 +101,6 @@
 }
 .ocp-copy-btn:hover { color: var(--color-icon-default); }
 
-/* 주문 요약 컨테이너 — 공유 .ocp-item* 은 globals.css 잔류 */
-.ocp-summary {
-  width: 100%; margin-top: 48px; min-height: 264px;
-  display: flex; flex-direction: column; gap: 0;
-}
-
 /* CTA */
 .ocp-actions { width: 100%; margin-top: 48px; display: flex; flex-direction: column; align-items: center; gap: var(--gap-xl); }
 .ocp-btn-primary {
@@ -145,7 +139,7 @@
 .ocp-enter .oc-hero-title { animation: staggerUp .5s var(--ease-spring) .15s both; }
 .ocp-enter .oc-hero-body { animation: staggerUp .5s var(--ease-spring) .25s both; }
 .ocp-enter .oc-hero-meta { animation: staggerUp .5s var(--ease-spring) .35s both; }
-.ocp-enter .ocp-summary { animation: staggerUp .5s var(--ease-spring) .4s both; }
+.ocp-enter .oc-section { animation: staggerUp .5s var(--ease-spring) .4s both; }
 .ocp-enter .ocp-actions { animation: staggerUp .5s var(--ease-spring) .5s both; }
 
 /* ══ OrderComplete — Mobile (≤767) 정규화 (라우트 단독) ══
@@ -157,6 +151,5 @@
 @media (max-width: 767px) {
   .ocp-body { padding-top: 60px; padding-bottom: 80px; }
   .ocp-inner { max-width: 100%; }
-  .ocp-summary { min-height: 0; }
   .ocp-order-num { flex-wrap: wrap; }
 }

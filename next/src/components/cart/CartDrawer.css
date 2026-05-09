@@ -151,6 +151,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  /* OrderItemRow 마이그레이션 후 — 기존 cd-item padding-x(28) 컨테이너로 이전.
+     푸터(.cd-footer padding: 0 28px ...)와 정합. */
+  padding: 0 28px;
 }
 
 /* 아이템 — 664 x 176 절대좌표 레이아웃 */

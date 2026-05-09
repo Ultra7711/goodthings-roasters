@@ -23,11 +23,12 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/useToast';
 import { useClearCart } from '@/hooks/useCart';
-import OrderItemCard from '@/components/order/OrderItemCard';
 import OrderCompleteHero from './OrderCompleteHero';
+import OrderItemsSection from './OrderItemsSection';
+import OrderShippingSection from './OrderShippingSection';
 /* LastOrder 타입은 `@/types/order` StoredOrderSummary 로 통일 (S200 PR-A).
    useCheckoutFlow 가 저장하는 모델과 1:1 정합. */
-import type { StoredOrderSummary, StoredOrderItem } from '@/types/order';
+import type { StoredOrderSummary } from '@/types/order';
 
 /* H-1 폴백 UX — 게스트 이메일 불일치 재입력 허용 한도.
    3회 초과 시 주문조회(B-6) 분기로 안내. */
@@ -40,7 +41,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
    현 MVP 는 placeholder 로 `/mypage` 사용 (로그인 게이트에서 게스트도 안내). */
 const ORDER_LOOKUP_PATH = '/mypage';
 
-type OrderItemData = StoredOrderItem;
 type LastOrder = StoredOrderSummary;
 
 /* ── confirm 상태 ── */
@@ -489,28 +489,18 @@ export default function OrderCompletePage() {
       {/* PR-B Hero zone — eyebrow + H1 + 본문 + 메타 inline (좌측 정렬 wider) */}
       <OrderCompleteHero orderNumber={order.number} onCopy={handleCopy} />
 
-      {/* PR-C/D/E 미진입 — 임시 fallback (현 구조 부분 유지, max-width 1440 + 좌측 정렬) */}
-      <div className="ocp-temp-fallback">
-        {/*
-          042 cutover 후 create_order 는 subscription INSERT 안 함 → subscriptionCount 항상 0.
-          정기배송 등록 안내는 /billing/success 콜백 (Phase 3-B) 에서 처리.
-        */}
+      {/* PR-C 주문 상품 + 합계 표 zone (자문 D §3) */}
+      <OrderItemsSection
+        items={order.items}
+        subtotalAmount={order.subtotalAmount}
+        discountAmount={order.discountAmount}
+        discountLabel={order.discountLabel}
+        shippingFee={order.shippingFee}
+        totalAmount={order.totalAmount}
+      />
 
-        <div className="ocp-summary">
-          {order.items.map((item, idx) => (
-            <OrderItemCard key={idx} item={item} variant="compact" />
-          ))}
-        </div>
-
-        <div className="ocp-actions">
-          <Link href="/shop" className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} data-gtr-tap>
-            쇼핑 계속하기
-          </Link>
-          <button className="ocp-btn-secondary" onClick={() => router.push('/mypage')}>
-            주문 내역 보기
-          </button>
-        </div>
-      </div>
+      {/* PR-D 배송 정보 + CTA row (자문 D §4·§5.1) */}
+      <OrderShippingSection shipping={order.shipping} />
     </div>
   );
 }

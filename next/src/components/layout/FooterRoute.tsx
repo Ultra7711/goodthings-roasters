@@ -13,7 +13,7 @@
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 
-const FOOTER_HIDDEN = ['/order-complete'];
+const FOOTER_HIDDEN = ['/order-complete', '/dev/order-complete'];
 
 type Props = { children: ReactNode };
 

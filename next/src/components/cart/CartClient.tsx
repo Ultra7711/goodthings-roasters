@@ -16,11 +16,10 @@ import {
   useUpdateCartQty,
   useRemoveCartItem,
   SHIPPING_FEE,
-  MIN_QUANTITY,
 } from '@/hooks/useCart';
 import type { CartItem } from '@/types/cart';
 import CartSkeleton from './CartSkeleton';
-import { splitName, getSubscriptionBadge } from '@/lib/products';
+import OrderItemRow from '@/components/order/OrderItemRow';
 import { formatPrice } from '@/lib/utils';
 
 type CartClientProps = {
@@ -79,120 +78,27 @@ export default function CartClient({ initialItems }: CartClientProps = {}) {
         </div>
       ) : (
         <>
-          <div className="cp-table-hdr">
-            <span className="cp-th-product">상품</span>
-            <span className="cp-th-price">가격</span>
-            <span className="cp-th-qty">수량</span>
-            <span className="cp-th-total">합계</span>
-            <span className="cp-th-delete">삭제</span>
-          </div>
-
           <div className="cp-items-list">
-            {items.map((item) => {
-              const { kr: krName } = splitName(item.name);
-              const subBadge = getSubscriptionBadge(item);
-              const unitTotal = item.priceNum * item.qty;
-              const minusDisabled = item.qty <= MIN_QUANTITY;
-              return (
-                <div key={item.id} className="cp-item">
-                  <div className="cp-item-product">
-                    <div className="cp-item-thumb">
-                      <Link
-                        href={`/shop/${item.slug}`}
-                        className="cp-item-img"
-                        aria-label={`${item.name} 상세 보기`}
-                      >
-                        {item.image ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            style={{ background: item.color }}
-                          />
-                        ) : (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            className="cp-item-img-empty"
-                            src="/images/icons/image_empty.svg"
-                            alt=""
-                            aria-hidden="true"
-                          />
-                        )}
-                      </Link>
-                    </div>
-                    <div className="cp-item-info">
-                      <div className="cp-item-category">{item.category}</div>
-                      <div className="cp-item-name">
-                        <span className="cp-item-name-kr">{krName}</span>
-                        {[item.volume, subBadge].some(Boolean) && (
-                          <span className="cp-item-meta-inline">
-                            {' · '}{[item.volume, subBadge].filter(Boolean).join(' · ')}
-                          </span>
-                        )}
-                      </div>
-                      {(item.volume || subBadge) && (
-                        <div className="cp-item-badges">
-                          {item.volume && (
-                            <span className="cp-item-badge">{item.volume}</span>
-                          )}
-                          {subBadge && (
-                            <span className="cp-item-badge">{subBadge}</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <span className="cp-item-price">{item.price}</span>
-                  <div className="cp-item-qty">
-                    <div className="cp-qty">
-                      <button
-                        type="button"
-                        className={`cp-qty-btn${minusDisabled ? ' disabled' : ''}`}
-                        aria-label="수량 감소"
-                        disabled={minusDisabled}
-                        onClick={() =>
-                          updateQty.mutate({ id: item.id, delta: -1 })
-                        }
-                      >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M6.3,12h11.3" />
-                        </svg>
-                      </button>
-                      <span className="cp-qty-num">{item.qty}</span>
-                      <button
-                        type="button"
-                        className="cp-qty-btn"
-                        aria-label="수량 증가"
-                        onClick={() =>
-                          updateQty.mutate({ id: item.id, delta: 1 })
-                        }
-                      >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12,6.3v11.3" />
-                          <path d="M6.3,12h11.3" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                  <span className="cp-item-total">{formatPrice(unitTotal)}</span>
-                  <button
-                    type="button"
-                    className="cp-remove"
-                    aria-label={`${item.name} 삭제`}
-                    title="삭제"
-                    onClick={() => removeItem.mutate(item.id)}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10,11v6" />
-                      <path d="M14,11v6" />
-                      <path d="M19,6v14c0,1.1-.9,2-2,2H7c-1.1,0-2-.9-2-2V6" />
-                      <path d="M3,6h18" />
-                      <path d="M8,6v-2c0-1.1.9-2,2-2h4c1.1,0,2,.9,2,2v2" />
-                    </svg>
-                  </button>
-                </div>
-              );
-            })}
+            {items.map((item) => (
+              <OrderItemRow
+                key={item.id}
+                variant="editable"
+                item={{
+                  name: item.name,
+                  category: item.category,
+                  volume: item.volume,
+                  type: item.type,
+                  period: item.period,
+                  qty: item.qty,
+                  priceNum: item.priceNum,
+                  image: { src: item.image, bg: item.color },
+                }}
+                thumbHref={`/shop/${item.slug}`}
+                onIncrement={() => updateQty.mutate({ id: item.id, delta: 1 })}
+                onDecrement={() => updateQty.mutate({ id: item.id, delta: -1 })}
+                onRemove={() => removeItem.mutate(item.id)}
+              />
+            ))}
           </div>
 
           <div className="cp-shipping-row">

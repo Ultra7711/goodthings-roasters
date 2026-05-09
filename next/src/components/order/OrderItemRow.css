@@ -1,0 +1,199 @@
+/* ══════════════════════════════════════════
+   OrderItemRow — 통합 아이템 라인 스타일 (S201).
+
+   레이아웃:
+     [thumb 80] · [info column flex:1] · [right column auto]
+   - 모든 해상도에서 1행 row 유지 (모바일도 grid 분해 없음)
+   - 텍스트 행간: --space-1 = 4px (info column gap)
+   - 컨테이너 padding/gap: token (--space-* / --gap-*) 만 사용
+   ══════════════════════════════════════════ */
+
+/* ── Container ── */
+.oir {
+  display: flex;
+  gap: var(--gap-xl);
+  padding: var(--space-5) 0;
+  box-shadow: inset 0 -1px 0 0 var(--color-border-tertiary);
+}
+.oir:last-child { box-shadow: none; }
+
+/* 통일 thumb 76×114 가 좌측 anchor — 양쪽 variant 수직 중앙 정렬로 안정감 */
+.oir { align-items: center; }
+
+/* ── Thumbnail — 데스크탑/랩탑 74×112 (2:3 vertical) + 고정 #eaeaea
+   (태블릿/모바일은 72×108 — 아래 미디어쿼리에서 축소) ── */
+.oir__thumb {
+  position: relative;
+  width: 74px;
+  height: 112px;
+  flex-shrink: 0;
+  background: #eaeaea;
+  box-shadow: 0 0 0 1px var(--color-border-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.oir__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.oir__thumb img.oir__thumb-empty {
+  width: 24px;
+  height: 24px;
+  opacity: 0.3;
+  object-fit: initial;
+}
+
+/* ── Info column ── */
+.oir__info {
+  flex: 1;
+  min-width: 0; /* ellipsis 활성화 필수 */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1); /* 4px 행간 (token) */
+}
+
+/* Category eyebrow — 위계: name > meta > category (라벨은 wayfinding 보조) */
+.oir__category {
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-uppercase);
+  text-transform: uppercase;
+  color: var(--color-text-caption);
+  line-height: 1;
+}
+
+/* Product name — 1줄 ellipsis */
+.oir__name {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-l-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Meta line (volume · 정기배송 · qty개) — 검증 핵심 정보라 라벨보다 무거움 */
+.oir__meta {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-ui-size);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* ── Stepper (editable only) — 단일 사이즈 104×36 ── */
+.oir__stepper {
+  margin-top: var(--space-2); /* 8px 간격 */
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-background-pure);
+  border: 1px solid var(--color-control-border);
+  height: 36px;
+  width: 104px;
+}
+.oir__stepper-btn {
+  position: relative; /* hit-area ::before 확장 기준 */
+  width: 36px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-icon-default);
+  transition: color var(--duration-hover) ease;
+}
+/* Hit-area 확장 — 시각 36×36 / 터치 44×44 (WCAG 2.5.5 AAA + iOS HIG 44pt 보전) */
+.oir__stepper-btn::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+.oir__stepper-btn:hover { color: var(--color-text-primary); }
+.oir__stepper-btn:disabled {
+  opacity: var(--state-disabled-opacity-icon);
+  pointer-events: none;
+}
+.oir__stepper-num {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-en);
+  font-size: var(--type-body-ui-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  min-width: 32px;
+}
+
+/* ── Right column ── */
+.oir__right {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+/* readonly: 가격만 단독 → 수직 중앙 */
+.oir[data-variant="readonly"] .oir__right {
+  justify-content: center;
+}
+/* editable: delete 위, price 아래 — 박스 내부 분리 배치 */
+.oir[data-variant="editable"] .oir__right {
+  justify-content: space-between;
+  min-height: 80px;
+}
+
+/* Delete button */
+.oir__delete {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-icon-default);
+  opacity: 0.7;
+  transition: opacity var(--duration-hover) ease;
+}
+.oir__delete:hover { opacity: 1; }
+
+/* Price (line total) */
+.oir__price {
+  font-family: var(--font-en);
+  font-size: var(--type-heading-s-size);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  letter-spacing: var(--ls-display);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* ══ 768 (tablet) — gap 축소 (thumb 74×112 유지) ══ */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .oir { gap: var(--gap-lg); }
+}
+
+/* ══ 모바일 (≤767) ══
+   - thumb 64
+   - 컨테이너 padding/gap 축소
+   - 스텝퍼 lg (44, touch-friendly) 강제 override
+   - 가격 폰트 축소 (body-l) */
+@media (max-width: 767px) {
+  .oir {
+    gap: var(--gap-sm);
+    padding: var(--space-4) 0;
+  }
+  /* 모바일은 thumb 살짝 축소 (72×108) — 데스크탑/태블릿 74×112 대비 -2/-4 */
+  .oir__thumb { width: 72px; height: 108px; }
+  .oir__name { font-size: 16px; line-height: 20px; }
+  .oir__price { font-size: var(--type-body-l-size); }
+  /* 스텝퍼 — 단일 사이즈 104×36 유지 (hit-area ::before 로 44×44 터치 보장) */
+}

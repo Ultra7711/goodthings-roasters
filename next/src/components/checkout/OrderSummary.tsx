@@ -1,13 +1,16 @@
 /* ══════════════════════════════════════════
    OrderSummary — /checkout 우측 주문 요약
    items list + 상품금액 / 배송비 / 결제예정금액 + 정기배송 합계.
+
+   S201 — items 라인을 통합 OrderItemRow (variant="readonly") 로 교체.
+   chp-sum-item* 패턴 폐기 → cart drawer / cart page / order complete 와 시각 정합.
    ══════════════════════════════════════════ */
 
 'use client';
 
-import Image from 'next/image';
+import OrderItemRow from '@/components/order/OrderItemRow';
 import type { CartItem } from '@/types/cart';
-import { extractKrName, formatPrice } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 
 type OrderSummaryProps = {
   items: CartItem[];
@@ -31,22 +34,20 @@ export default function OrderSummary({
       <div className="chp-right-title">주문 요약</div>
       <div>
         {items.map((item) => (
-          <div key={item.id} className="chp-sum-item">
-            <div className="chp-sum-item-img-wrap">
-              <div className="chp-sum-item-img" style={{ background: item.color }}>
-                {item.image && (
-                  <Image src={item.image} alt={item.name} width={56} height={56} style={{ objectFit: 'contain' }} />
-                )}
-              </div>
-            </div>
-            <div className="chp-sum-item-info">
-              <div className="chp-sum-item-name">{extractKrName(item.name)}</div>
-              <span className="chp-sum-item-meta">
-                {[item.volume, item.type === 'subscription' && item.period ? `정기배송 ${item.period}` : null, `${item.qty}개`].filter(Boolean).join(' · ')}
-              </span>
-            </div>
-            <div className="chp-sum-item-price">{formatPrice(item.priceNum * item.qty)}</div>
-          </div>
+          <OrderItemRow
+            key={item.id}
+            variant="readonly"
+            item={{
+              name: item.name,
+              category: item.category,
+              volume: item.volume,
+              type: item.type,
+              period: item.period,
+              qty: item.qty,
+              priceNum: item.priceNum,
+              image: { src: item.image, bg: item.color },
+            }}
+          />
         ))}
       </div>
 
