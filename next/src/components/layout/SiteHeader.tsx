@@ -93,8 +93,9 @@ export default function SiteHeader() {
   }, [pathname, closeSearch]);
 
   /* S74 DB-03: 검색 패널 scroll lock 을 useDrawer 훅으로 통일.
-     - body.overflow 단독 토글은 iOS Safari 에서 touch scroll 관통 발생 →
-       useDrawer 의 scrollbar-gutter + paddingRight + overflow 조합으로 강화
+     - body.overflow:hidden 으로 스크롤 잠금 (iOS Safari touch scroll 관통은
+       #search-dim touch-action:none + 풀 영역 딤 결합으로 차단)
+     - html scrollbar-gutter:stable 항시 거터 예약 → 잠금 토글 시 페이지 시프트 0
      - ESC 리스너도 훅 내부에서 처리 (중복 제거)
      - restoreFocus=false: openSearch 가 input 에 focus 를 이동시키므로 trigger 저장
        시점 activeElement=input → close 시 input 재-focus 로 가상 키보드 재호출 방지 */

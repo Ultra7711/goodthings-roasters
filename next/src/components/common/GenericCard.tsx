@@ -65,7 +65,7 @@ type ThumbAspect = '1:1' | '5:4';
 type Props = {
   variant: Variant;
 
-  /** 카드 클릭 핸들러 — 카드 전체 영역 한 번. info 영역 클릭도 동일 트리거 */
+  /** 카드 클릭 핸들러 — 썸네일 영역 한정. info(name/price) 영역은 클릭 비활성. */
   onClick: () => void;
   /** 키보드 접근성용 — true 면 role=button + Enter/Space */
   asButton?: boolean;
@@ -181,26 +181,29 @@ export default function GenericCard({
         transitionDelay: delay,
         [cls.delayVar]: delay,
       } as CSSProperties}
-      onClick={onClick}
-      role={asButton ? 'button' : undefined}
-      tabIndex={asButton ? 0 : undefined}
-      onKeyDown={
-        asButton
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onClick();
-              }
-            }
-          : undefined
-      }
-      aria-label={ariaLabel}
       data-slug={dataSlug}
       data-cm-id={dataCmId}
     >
+      {/* 클릭 영역은 썸네일만 — info(name/price) 영역은 cursor:default + 클릭 비활성.
+          thumb 자체에 cursor:pointer + aspect-ratio 가 이미 정의됨 (sp-card-thumb / cm-card-thumb).
+          aria-label/role/tabIndex 도 thumb 으로 이동 — 키보드/스크린 리더 타겟이 시각적 클릭 영역과 일치. */}
       <div
         className={cls.thumb}
         style={thumbAspect === '5:4' ? { aspectRatio: '5 / 4' } : undefined}
+        onClick={onClick}
+        role={asButton ? 'button' : undefined}
+        tabIndex={asButton ? 0 : undefined}
+        onKeyDown={
+          asButton
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onClick();
+                }
+              }
+            : undefined
+        }
+        aria-label={ariaLabel}
       >
         {imgSrc ? (
           /* S198 재마이그레이션: fill 폐기 + width/height 명시 패턴 (cacheComponents

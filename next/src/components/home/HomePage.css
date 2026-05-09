@@ -353,6 +353,11 @@
   overflow: hidden;
   flex-shrink: 0;
 }
+/* hover zoom 1.02 — 메인 이미지 hover 일관성. */
+.ev-banner__img img {
+  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
+}
+.ev-banner__img:hover img { transform: scale(1.02); }
 .ev-banner__body {
   display: flex;
   flex-direction: column;
@@ -458,6 +463,11 @@
   overflow: hidden;
   aspect-ratio: 4 / 5;
 }
+/* hover zoom 1.02 — shop/cafe/gooddays 카드 통일 (V2 §1.4). transition cafe·gooddays 동일. */
+.cafe-menu-split__photo img {
+  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
+}
+.cafe-menu-split__photo:hover img { transform: scale(1.02); }
 .cafe-menu-split__items {
   padding: 0 0 0 48px;
   display: flex;
@@ -483,6 +493,11 @@
   overflow: hidden;
   background: var(--color-background-secondary);
 }
+/* hover zoom 1.02 — row hover 시 썸네일 확대 (info 영역 hover 도 트리거). */
+.cmsplit-thumb img {
+  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
+}
+.cmsplit-row:hover .cmsplit-thumb img { transform: scale(1.02); }
 .cmsplit-info {
   display: flex;
   flex-direction: column;
@@ -700,7 +715,10 @@
   position: absolute;
   inset: 0;
   background: url('/images/sections/img_philosophy.webp') center/cover no-repeat;
+  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
 }
+/* hover zoom 1.02 — 메인 이미지 hover 일관성. */
+.story-img:hover .story-img__inner { transform: scale(1.02); }
 .story-txt {
   display: flex;
   flex-direction: column;
@@ -767,7 +785,10 @@
 .story-gd__img {
   width: 100%;
   height: 100%;
+  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
 }
+/* hover zoom 1.02 — story-gd 4컷 카드. /gooddays 의 .gd-cell:hover img 와 동일 정책. */
+.story-gd__card:hover .story-gd__img { transform: scale(1.02); }
 
 /* 1023 이하 (tablet + mobile) — column stack + 텍스트→이미지 order (자문 §2.7) */
 @media (max-width: 1023px) {

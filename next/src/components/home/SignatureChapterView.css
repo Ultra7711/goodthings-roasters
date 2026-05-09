@@ -52,7 +52,13 @@
   cursor: pointer;
 }
 
-/* S152 — hover scale 제거 (자문 §1.4/§1.5 권고지만 D-2 보류 → editorial 톤 채택) */
+/* hover zoom 1.02 — 메인 이미지 hover 일관성 (shop/cafe/gooddays/cafe-menu/story-gd 와 통일).
+   S152 D-2 보류(editorial 톤) 결정 번복: 사이트 전반이 zoom 을 사용하는 이상 시그니처만
+   비활성이면 인터랙션 단서 일관성 손해가 더 큼. V2 자문 §1.4 권고. */
+.sig-img img {
+  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
+}
+.sig-img:hover img { transform: scale(1.02); }
 
 /* H2 제품명 — Pretendard 26→28→32 + var(--lh-h2) (advisory §4.2 정합) */
 .sig-h2 {

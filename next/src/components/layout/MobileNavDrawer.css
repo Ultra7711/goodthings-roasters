@@ -21,7 +21,10 @@
 #mobile-nav-panel {
   position: fixed;
   top: 0;
-  right: 0;
+  /* scrollbar-gutter:stable 로 ICB 가 visible viewport 보다 sb-width 만큼 좁다.
+     visible viewport 우측에 도달하려면 right 를 음수 sb-width 만큼 보정.
+     SRInitializer 가 --scrollbar-w 를 주입 (모바일 overlay scrollbar 환경에선 0). */
+  right: calc(var(--scrollbar-w, 0px) * -1);
   height: 100dvh;
   width: var(--drawer-width);
   background: var(--drawer-bg);

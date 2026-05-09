@@ -196,8 +196,12 @@
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
+  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
 }
-/* S152 — hover scale 제거 (자문 §1.4/§1.5 권고지만 D-2 보류 → editorial 톤 채택) */
+/* hover zoom 1.02 — cafe(.cm-card-img) / gooddays(.gd-cell img) 와 통일.
+   S152 D-2 보류(editorial 톤) 결정을 번복: 같은 사이트 내 다른 카드 그룹이 모두 zoom 을
+   사용하는데 shop 만 비활성이면 인터랙션 단서 일관성 손해가 더 큼. V2 자문 §1.4 권고 1.02. */
+.sp-card-thumb:hover .sp-card-img { transform: scale(1.02); }
 
 /* ── highlight 플래시 (URL ?item= 진입 시) ──
    delay 0.6s — scrollIntoView smooth 완료 후 사용자가 카드 보고 있을 때 시작.

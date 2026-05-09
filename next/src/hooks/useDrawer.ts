@@ -71,44 +71,25 @@ export function useDrawer({ open, onClose, restoreFocus = true }: UseDrawerArgs)
     };
   }, [open, restoreFocus]);
 
-  // body scroll lock + scrollbar gutter 토글.
+  // body scroll lock.
   //
-  // 기본 상태: html { scrollbar-gutter: stable } 로 15px 예약 → ICB=1072.
-  //   이 상태로 드로어를 열면 fixed 패널이 ICB 에 페인트 클리핑되어 우측 15px 잘림.
+  // html { scrollbar-gutter: stable } 가 항상 거터를 예약하므로 body overflow 토글
+  // 만으로 ICB·페이지 콘텐츠 폭이 변하지 않는다. fixed 패널은 각 panel CSS 에서
+  // `right: calc(var(--scrollbar-w, 0px) * -1)` 로 visible viewport 우측까지 보정한다
+  // (--scrollbar-w 는 SRInitializer 가 마운트 1회 주입).
   //
-  // 드로어 오픈 동안:
-  //   1) html.scrollbarGutter='auto' → ICB 가 1087 로 확장 → 패널이 true viewport 에 도달
-  //   2) body.paddingRight=<measured> → body content-box 1072 유지 → sticky 헤더·
-  //      페이지 레이아웃이 시프트하지 않음 (UI-005 회귀 방지)
-  //   3) body.overflow='hidden' → 페이지 스크롤 잠금
+  // 이전 구현은 `html.scrollbarGutter='auto'` 로 ICB 를 +sb 만큼 확장했는데,
+  // 그 결과 viewport 기반(100vw·fixed·aspect-ratio under fixed) 요소가 함께 늘어나
+  // 페이지 이미지 height 가 점프하는 회귀가 있었다. body overflow 만 잠그는 방식으로 정리.
   //
   // useLayoutEffect: DOM 업데이트 직후·페인트 전 동기 실행.
   // useEffect 사용 시 첫 터치가 scroll lock 이전에 발생해 이벤트가 뚫리는 타이밍 버그 방지.
   useLayoutEffect(() => {
     if (!open) return;
-    const html = document.documentElement;
     const body = document.body;
-
-    // scrollbar-gutter: stable 이 활성화된 상태에서 clientWidth 는 innerWidth 와 동일하게
-    // 보고되므로, 100vw 기반 프로브로 ICB 폭을 측정해 gutter 를 역산한다.
-    const probe = document.createElement('div');
-    probe.style.cssText =
-      'position:fixed;top:0;left:0;width:100vw;visibility:hidden;pointer-events:none';
-    body.appendChild(probe);
-    const sbWidth = Math.max(0, window.innerWidth - probe.offsetWidth);
-    body.removeChild(probe);
-
-    const prevGutter = html.style.scrollbarGutter;
-    const prevPaddingRight = body.style.paddingRight;
     const prevOverflow = body.style.overflow;
-
-    html.style.scrollbarGutter = 'auto';
-    body.style.paddingRight = `${sbWidth}px`;
     body.style.overflow = 'hidden';
-
     return () => {
-      html.style.scrollbarGutter = prevGutter;
-      body.style.paddingRight = prevPaddingRight;
       body.style.overflow = prevOverflow;
     };
   }, [open]);

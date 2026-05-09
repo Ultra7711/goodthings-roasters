@@ -167,11 +167,14 @@
 }
 
 /* ══ 검색 드롭 패널 ══ */
+/* useDrawer 가 ICB 를 확장하지 않게 변경된 후, 검색 패널은 ICB(scrollbar-gutter:stable)
+   기준 right:0 → visible viewport 우측에서 sb-width 안쪽으로 정렬 (= 헤더 우측 라인과 일치).
+   이전 var(--scrollbar-w) 보정은 ICB +sb 확장을 가정한 코드라 제거. */
 #search-drop {
   position: fixed;
   top: var(--search-drop-top, 96px);
   left: 0;
-  right: var(--scrollbar-w, 0px);
+  right: 0;
   background: var(--search-panel-bg);
   /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 */
   overflow: hidden;
@@ -245,7 +248,7 @@
   position: fixed;
   top: var(--dim-top, 60px);
   left: 0;
-  right: var(--scrollbar-w, 0px);
+  right: 0;
   bottom: 0;
   background: var(--overlay-dim-bg);
   /* backdrop-filter는 SiteHeader.tsx의 inline style로 적용 */
