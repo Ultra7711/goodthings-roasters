@@ -15,6 +15,8 @@ import {
   type CafeMenuItem,
   type CafeMenuTemp,
 } from '@/lib/cafeMenu';
+import MenuCardBadges from './MenuCardBadges';
+import MenuLikeButton from './MenuLikeButton';
 
 type Props = {
   item: CafeMenuItem | null;
@@ -62,6 +64,8 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
     if (!open) return;
     const panel = document.getElementById('cns-panel');
     if (!panel) return;
+    /* thumb 도 panel 과 동기 — 드래그 시 같은 dy 로 함께 움직여 한 몸 유지. */
+    const thumb = document.getElementById('cns-bg-thumb');
 
     let startY = 0;
     let dragging = false;
@@ -92,8 +96,13 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
         e.preventDefault(); // Chrome: passive:false + preventDefault로 body scroll 차단
         panel!.style.transition = 'none';
         panel!.style.transform = `translateY(${dy}px)`;
+        if (thumb) {
+          thumb.style.transition = 'none';
+          thumb.style.transform = `translateY(${dy}px) scale(1)`;
+        }
       } else {
         panel!.style.transform = ''; // 반대 방향 → 패널 원위치
+        if (thumb) thumb.style.transform = '';
       }
     }
 
@@ -103,6 +112,7 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
       const y = e.changedTouches[0].clientY;
       const dy = y - startY;
       panel!.style.transition = '';
+      if (thumb) thumb.style.transition = '';
 
       /* velocity 계산 — 최근 윈도우의 oldest sample 부터 현재까지의 평균.
          윈도우가 너무 짧으면(터치 후 즉시 떼는 탭) 0 으로 간주. */
@@ -120,6 +130,7 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
         onClose();
       } else {
         panel!.style.transform = '';
+        if (thumb) thumb.style.transform = '';
       }
       samples = [];
     }
@@ -134,6 +145,10 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
       panel.removeEventListener('touchend', onEnd);
       panel.style.transition = '';
       panel.style.transform = '';
+      if (thumb) {
+        thumb.style.transition = '';
+        thumb.style.transform = '';
+      }
     };
   }, [open, onClose]);
 
@@ -146,6 +161,23 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
         id="cns-bg"
         onClick={onClose}
       />
+      {/* 모바일(≤479) 바텀시트 뒤 배경 상단 1:1 풀폭 썸네일 — 모든 뱃지 데스크탑 사이즈.
+          DOM 항상 마운트 — open/close transition 위해 (display 토글 X).
+          좌상단 메타뱃지 / 우상단 좋아요 / 우하단 온도뱃지. */}
+      <div
+        id="cns-bg-thumb"
+        style={item?.img ? {
+          backgroundImage: `url('${item.img}')`,
+          backgroundColor: item.bg || 'var(--color-background-secondary)',
+        } : undefined}
+      >
+        {item && (
+          <>
+            <MenuCardBadges menuId={item.id} status={item.status} />
+            <MenuLikeButton menuId={item.id} menuName={item.name} />
+          </>
+        )}
+      </div>
       <div id="cns-panel" role="dialog" aria-label="메뉴 영양정보">
         {/* 모바일 바텀시트 드래그 핸들 — 데스크탑에선 CSS 로 숨김.
             ::before 가상요소 대신 실제 DOM 으로 변환하여 핸들 자체를 hit

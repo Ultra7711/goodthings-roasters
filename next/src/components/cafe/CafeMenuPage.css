@@ -118,9 +118,7 @@
 @media (max-width: 1023px) {
   #cm-grid { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 479px) {
-  #cm-grid { grid-template-columns: 1fr; gap: 20px; }
-}
+/* S202: 모바일 1-col 폐기 — shop sp-grid 와 동일하게 ≤1023 일괄 2-col. */
 .cm-card {
   cursor: default;
   display: flex;
@@ -202,6 +200,62 @@
 .cm-temp-hot-only { background: var(--color-error); }
 .cm-temp-warm     { background: var(--color-warning); }
 
+/* S202: 모바일 2-col 카드 폭 좁아져 슬롯 축소.
+   - temp 뱃지 48 → 36
+   - 좌상단 메타 뱃지 cafe 한정 축소 (cm-card-badges 안 sp-card-badge — shop 영향 없음)
+   - like btn 시각 36 + 가로 확장 알약 + hit-area 48 (::before -6)
+
+   ⚠ specificity 보강 (.cm-card 컨텍스트, (0,2,0)) — 아래 base 룰 (line 259~ .cm-card-badges,
+   .cm-like-btn 등 (0,1,0))이 source order 후순위라 동일 specificity 룰을 이김.
+   .cm-card 추가로 (0,2,0) 만들어 base 이김 (lessons §4 cascade source order 함정 회피). */
+@media (max-width: 767px) {
+  .cm-card .cm-badge-temp {
+    width: 36px;
+    height: 36px;
+    font-size: 9px;
+    line-height: 11px;
+  }
+  .cm-card .cm-temp-badges { bottom: 8px; right: 8px; }
+
+  /* 좌상단 메타 뱃지 — cafe 한정 (-4px 더 바깥). */
+  .cm-card .cm-card-badges { top: 4px; left: 4px; gap: 3px; }
+  .cm-card .cm-card-badges .sp-card-badge {
+    height: 18px;
+    min-width: 0;
+    padding: 0 6px;
+    font-size: 11px;
+    border-radius: 2px;
+  }
+
+  /* 우상단 좋아요 — height 36 + 가로 확장 알약 형태 (count 표시).
+     내부 정합: 좌 padding 6 / icon 24 / gap 4 / count / 우 padding 8.
+     baseline = 6 + 24 + 4 + 8 = 42 → width = 42 + countWidth.
+     hit-area 48 (::before -6). */
+  .cm-card .cm-like-btn {
+    top: 4px;
+    right: 4px;
+    --like-baseline: 42px;
+    height: 36px;
+    width: 36px;
+    border-radius: 18px;
+  }
+  .cm-card .cm-like-btn::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+  }
+  .cm-card .cm-like-icon {
+    left: 6px;
+    top: 6px;
+    width: 24px;
+    height: 24px;
+  }
+  .cm-card .cm-like-count {
+    left: 34px; /* icon-end(30) + gap(4) */
+    font-size: 12px;
+  }
+}
+
 /* ── highlight 플래시 (URL ?item= 진입 시) ── */
 @keyframes cm-thumb-flash {
   0%, 100% { opacity: 1; }
@@ -238,6 +292,10 @@
   right: 12px;
   height: 48px;
   width: 48px;
+  /* MenuLikeButton 인라인 width 산정 baseline (count 노출 시 width = baseline + countWidth).
+     데스크탑/랩탑: 좌 12 + icon 24 + gap 4 + 우 12 = 52 (좌우 균등).
+     모바일 ≤767 에선 42 로 축소 override. */
+  --like-baseline: 52px;
   overflow: hidden;
   border-radius: 24px;
   border: none;
@@ -262,7 +320,7 @@
 }
 .cm-like-count {
   position: absolute;
-  left: 42px;
+  left: 40px; /* icon-end(36) + gap(4) */
   top: 0;
   bottom: 0;
   display: flex;
@@ -342,6 +400,26 @@
   opacity: 1;
   pointer-events: auto;
 }
+/* 모바일 바텀시트 뒤 배경 상단 1:1 풀폭 메뉴 썸네일 (≤479).
+   thumb 과 panel 이 한 몸처럼 슬라이드 — 동일 transition 적용 (duration/easing/delay 일치).
+   진행 중 항상 thumb_bottom ≥ panel_top (수학적으로 보장) → 사이 gap 노출 X.
+   panel min-height: calc(100vh - 100vw) 로 정착 시 정확히 닿음.
+   thumb 안 자식: 좌상단 메타뱃지 / 우상단 좋아요 / 우하단 온도뱃지 (데스크탑 base 사이즈). */
+#cns-bg-thumb {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-size: contain;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  z-index: 1;
+  pointer-events: none;
+}
+/* thumb 영역 클릭은 통과 (시트 dim 닫기 작동) — 좋아요 버튼만 auto */
+#cns-bg-thumb .cm-like-btn { pointer-events: auto; }
 #cns-panel {
   position: fixed;
   top: 0;
@@ -517,8 +595,11 @@
     bottom: 0;
     width: 100%;
     height: auto;
+    /* min-height = 정착 시 panel_top = thumb_bottom = 100vw (한 몸 정합).
+       콘텐츠 짧아도 시트가 thumb 과 닿아 배경 노출 방지. */
+    min-height: calc(100vh - 100vw);
     max-height: 85vh;
-    border-radius: 20px 20px 0 0;
+    border-radius: 0;
     transform: translateY(100%);
     padding-bottom: 0;
   }
@@ -552,6 +633,26 @@
   #cafe-nutrition-sheet.open #cns-panel { transform: translateY(0); }
   .cns-image-wrap { display: none; }
   #cns-close { display: none; }
+
+  /* thumb — panel 과 동일 transition 으로 한 몸 슬라이드 + 자체 micro-animation 시간차 효과.
+     transform translateY(100%) (자기 height = 100vw 만큼 다운) → translateY(0) 정착.
+     panel 도 동일 (translateY(100%) 자기 height = 100vh-100vw 다운) → 동일 progress 보장.
+     자체 강조: scale 0.92→1 + opacity 0→1 — 하단 고정으로 시트와 닿은 자리에서 자라는 시각.
+     transform-origin: bottom — scale 시 panel 과 닿는 하단부 고정 → 한 몸감 강조. */
+  #cns-bg-thumb {
+    display: block;
+    transform: translateY(100%) scale(0.92);
+    transform-origin: bottom center;
+    opacity: 0;
+    will-change: transform, opacity;
+    transition:
+      transform var(--drawer-transition-duration) var(--drawer-transition-easing),
+      opacity var(--drawer-transition-duration) var(--drawer-transition-easing);
+  }
+  #cafe-nutrition-sheet.open #cns-bg-thumb {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
   .cns-content { padding: 32px 24px calc(32px + env(safe-area-inset-bottom, 0px)); }
   .cns-head-top {
     flex-direction: row;
@@ -559,6 +660,7 @@
     gap: 12px;
   }
   .cns-title-col { flex: 1; }
+  /* 시트 헤더 인라인 온도뱃지 — 원래 자리 (S202 이전 spec). */
   .cns-title-badge {
     display: inline-flex;
     width: 44px;

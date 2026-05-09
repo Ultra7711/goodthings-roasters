@@ -76,14 +76,19 @@ export default function MenuLikeButton({ menuId, menuName }: Props) {
     const countEl = countRef.current;
     if (!btn) return;
 
+    /* baseline = CSS 변수 --like-baseline 으로 BP별 분기 (data: 56 / 모바일: 42).
+       fallback 56 — 데스크탑 base. */
+    const baselineRaw = getComputedStyle(btn).getPropertyValue('--like-baseline').trim();
+    const baseline = parseInt(baselineRaw, 10) || 56;
+
     if (!initRef.current && (count > 0 || isLiked)) {
       /* 초기 데이터 로드: transition 억제 후 즉시 적용 */
       initRef.current = true;
       btn.style.transition = 'none';
       if (countEl) countEl.style.transition = 'none';
-      // 12(좌) + 24(아이콘) + 6(gap) + textW + 14(우)
+      // (좌 padding) + (아이콘) + gap + textW + (우 padding) = baseline + textW
       if (count > 0 && countEl) {
-        btn.style.width = `${Math.ceil(56 + countEl.scrollWidth)}px`;
+        btn.style.width = `${Math.ceil(baseline + countEl.scrollWidth)}px`;
       }
       requestAnimationFrame(() => {
         btn.style.transition = '';
@@ -94,7 +99,7 @@ export default function MenuLikeButton({ menuId, menuName }: Props) {
 
     if (count > 0 && countEl) {
       /* like: 즉시 확장 */
-      btn.style.width = `${Math.ceil(56 + countEl.scrollWidth)}px`;
+      btn.style.width = `${Math.ceil(baseline + countEl.scrollWidth)}px`;
     } else {
       /* unlike: cm-like-count opacity transition(160ms) 완료 후 축소
          — 카운트가 사라지기 전에 버튼이 줄어드는 layout 점프 방지 */
