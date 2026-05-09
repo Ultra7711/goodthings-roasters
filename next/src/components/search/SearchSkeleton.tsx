@@ -1,33 +1,29 @@
 /* ══════════════════════════════════════════
-   SearchSkeleton — /search Suspense fallback (S94)
+   SearchSkeleton — /search Suspense fallback (S199 V2 §6.9 grid 정합)
 
-   실제 CSS 클래스 재사용 → 반응형 자동 적용:
-   - .search-page-wrap / .search-page-inner (패딩·레이아웃)
-   - .search-results-list (목록 구조)
-   - .search-result-item (height 176px 데스크탑 / auto 모바일 · 구분선 ::after)
-   - .search-result-thumb (100×100 고정 박스)
-   - .search-result-info (flex column · gap)
+   sp-card 디자인 spec 답습 — 카테고리 그룹 2개 × 카드 3개 placeholder.
+   - .sr-rows / .sr-row / .sr-row-header / .sr-grid (SearchPage layout 정합)
+   - .sp-card / .sp-card-thumb / .sp-card-info (ShopPage 정합)
+   - sp-visible 항상 부여 (Shop IO 의존 X)
    ══════════════════════════════════════════ */
 
-const RESULT_COUNT = 5;
+import './SearchPage.css';
+import '@/components/shop/ShopPage.css';
 
-function SearchSkeletonItem() {
+const SKELETON_GROUPS = 2;
+const CARDS_PER_GROUP = 3;
+
+function SkeletonCard() {
   return (
-    <li>
-      <div className="search-result-item" style={{ pointerEvents: 'none' }}>
-        <div className="search-result-thumb">
-          <div className="skel" style={{ width: '100%', height: '100%', borderRadius: 0 }} />
-        </div>
-        <div className="search-result-info">
-          {/* 카테고리: body-s ≈13px */}
-          <div className="skel" style={{ height: 14, width: 60 }} />
-          {/* 상품명: heading-m ≈20px */}
-          <div className="skel" style={{ height: 22, width: 200 }} />
-          {/* 가격: body-m ≈15px */}
-          <div className="skel" style={{ height: 16, width: 90 }} />
-        </div>
+    <div className="sp-card sp-visible" style={{ pointerEvents: 'none' }}>
+      <div className="sp-card-thumb">
+        <div className="skel" style={{ position: 'absolute', inset: 0, borderRadius: 0 }} />
       </div>
-    </li>
+      <div className="sp-card-info">
+        <div className="skel" style={{ height: 22, width: '60%', margin: '0 auto 6px' }} />
+        <div className="skel" style={{ height: 16, width: '40%', margin: '0 auto' }} />
+      </div>
+    </div>
   );
 }
 
@@ -35,15 +31,20 @@ export default function SearchSkeleton() {
   return (
     <div className="search-page-wrap">
       <div className="search-page-inner">
-        <ul
-          className="search-results-list"
-          role="list"
-          style={{ margin: 0, padding: 0, listStyle: 'none' }}
-        >
-          {Array.from({ length: RESULT_COUNT }).map((_, i) => (
-            <SearchSkeletonItem key={i} />
+        <div className="sr-rows">
+          {Array.from({ length: SKELETON_GROUPS }).map((_, i) => (
+            <section className="sr-row" key={i}>
+              <header className="sr-row-header">
+                <div className="skel" style={{ height: 14, width: 100 }} />
+              </header>
+              <div className="sr-grid">
+                {Array.from({ length: CARDS_PER_GROUP }).map((_, j) => (
+                  <SkeletonCard key={j} />
+                ))}
+              </div>
+            </section>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   );

@@ -1,13 +1,16 @@
 /* ══════════════════════════════════════════
-   Search Result Page — Phase 2-F-2
-   프로토타입 #srp-* 스타일 이식 (.search-* prefix 로 통일)
+   Search Result Page — Phase 2-F-2 → S199 V2 §6.9 grid 마이그레이션
 
-   S182 — globals.css 8431-8621 영역에서 colocate (Pilot 3, Legal 동일 패턴).
+   S199: list (.search-result-*) → grid (.sr-rows / .sr-row / .sr-grid + sp-card 답습).
+   카테고리별 그룹 (Cafe Menu → Coffee Beans → Drip Bag) 데스크탑 3-col / 모바일 2-col.
+
    라우트 단독 사용 (components/search/ 5 파일).
+   sp-card-* 디자인 spec 은 ShopPage.css 답습 (SearchResultCard / SearchSkeleton 에서 동시 import).
    ══════════════════════════════════════════ */
 
 .search-page-wrap {
-  padding: 80px 0 120px;
+  /* S199 — 다른 페이지 (sp-body / mp-body / legal-shell) padding-top 정합. */
+  padding: 100px 0 120px;
   min-height: calc(100vh - var(--header-h, 60px));
 }
 
@@ -56,7 +59,9 @@
   color: var(--color-text-secondary);
   letter-spacing: var(--ls-body);
   width: 100%;
-  padding: 48px 0 40px;
+  /* S199 — 위 padding 폐기 (wrap padding-top 100 이 헤더↔문구 spacing 처리).
+     아래 padding 48 — 문구↔첫 카테고리 헤더 적당 간격. */
+  padding: 0 0 48px;
   text-align: center;
   line-height: var(--lh-normal);
 }
@@ -65,63 +70,66 @@
   color: var(--color-text-primary);
 }
 
-.search-results-list {
-  min-height: 176px;
+/* ── S199 V2 §6.9 — 카테고리 그룹 grid (Shop sp-rows / sp-row 패턴 답습) ── */
+.sr-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+}
+@media (max-width: 1023px) { .sr-rows { gap: 64px; } }
+@media (max-width: 767px)  { .sr-rows { gap: 56px; } }
+
+.sr-row {
+  display: flex;
+  flex-direction: column;
 }
 
-.search-result-item {
-  display: flex; align-items: center; gap: 32px;
-  height: 176px;
-  padding-left: 20px;
-  position: relative;
-  box-sizing: border-box;
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  width: 100%;
-  text-align: left;
-  font: inherit;
+.sr-row-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 24px;
 }
-.search-result-item::after {
-  content: ''; position: absolute; bottom: 0;
-  left: 20px; right: 0; height: .5px;
-  background: var(--color-border-tertiary);
-}
-.search-results-list > li:last-child .search-result-item::after { display: none; }
-.search-result-item:hover .search-result-name { color: var(--color-accent-gold); }
+@media (max-width: 767px) { .sr-row-header { margin-bottom: 20px; } }
 
-.search-result-thumb {
-  width: 100px; height: 100px; flex-shrink: 0;
-  background: var(--color-background-secondary);
-  overflow: hidden;
-}
-.search-result-thumb-inner { width: 100%; height: 100%; }
-
-.search-result-info {
-  flex: 1;
-  display: flex; flex-direction: column; gap: var(--gap-xs);
-  min-width: 0;
-}
-.search-result-category {
+.sr-row-eyebrow {
   font-family: var(--font-en);
   font-size: var(--type-body-s-size);
-  letter-spacing: var(--ls-uppercase);
+  font-weight: 500;
+  color: var(--color-label-on-white);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
+}
+
+.sr-row-count {
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: 400;
   color: var(--color-text-tertiary);
+  letter-spacing: var(--ls-body-s);
 }
-.search-result-name {
-  font-family: var(--font-kr);
-  font-size: var(--type-heading-m-size);
-  font-weight: var(--type-heading-m-weight);
-  color: var(--color-text-primary);
-  line-height: var(--lh-snug);
-  transition: color var(--duration-hover) ease;
+.sr-row-count::before {
+  content: '·';
+  margin-right: 6px;
+  color: var(--color-border-secondary);
 }
-.search-result-price {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  color: var(--color-text-secondary);
+
+.sr-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
+@media (max-width: 1023px) { .sr-grid { gap: 16px; } }
+@media (max-width: 767px)  {
+  .sr-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+/* SearchResultCard — sp-card 답습 + 검색 도메인 보조 클래스. 디자인 spec ShopPage.css.
+   hover 색상 효과 X — 모바일 미작동 + HighlightText <mark> 골드 강조와 충돌 (S199 사용자 결정). */
+.sr-card { cursor: pointer; }
 
 /* 하이라이트 — <mark> */
 .search-highlight {
@@ -161,30 +169,16 @@
 
 /* 모바일 검색 결과 */
 @media (max-width: 767px) {
+  /* S199 — 데스크탑 100 → 모바일 56 (다른 페이지 정합) */
   .search-page-wrap {
+    padding-top: 56px;
     padding-bottom: 80px;
   }
   .search-page-inner {
     padding: 0 24px;
   }
   .search-query-label {
-    padding: 32px 0 24px;
-  }
-  .search-result-item {
-    height: auto;
-    min-height: 96px;
-    gap: 16px;
-    padding: 20px 0 20px 0;
-  }
-  .search-result-item::after {
-    left: 0;
-    height: 1px;
-  }
-  .search-result-thumb {
-    width: 72px;
-    height: 72px;
-  }
-  .search-result-name {
-    font-size: var(--type-body-m-size);
+    /* 모바일 문구↔첫 카테고리 헤더 32 */
+    padding: 0 0 32px;
   }
 }

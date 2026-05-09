@@ -8,13 +8,46 @@
 'use client';
 
 import './SearchPage.css';
-import { useState } from 'react';
+/* sp-card-* 디자인 spec 답습 — SearchResultCard 가 사용. ShopPage CSS 보장. */
+import '@/components/shop/ShopPage.css';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSearch } from '@/hooks/useSearch';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { SP_PER_PAGE, SP_PER_PAGE_MOBILE } from '@/lib/products';
 import SearchResultCard from './SearchResultCard';
 import SearchEmpty from './SearchEmpty';
+import type { SearchResult } from '@/lib/search/types';
+
+type Group = {
+  key: 'cafe' | 'bean' | 'drip';
+  eyebrow: string;
+  results: SearchResult[];
+};
+
+/* S199 V2 §6.9 — 결과를 카테고리별 그룹화. 메뉴 순서: Cafe Menu → Coffee Beans → Drip Bag.
+   각 그룹 내 점수 정렬은 useSearch 가 이미 처리 (그룹 내 순서 = 원본 results 순서). */
+function groupResults(items: SearchResult[]): Group[] {
+  const cafe: SearchResult[] = [];
+  const bean: SearchResult[] = [];
+  const drip: SearchResult[] = [];
+
+  for (const r of items) {
+    if (r.kind === 'cafe') {
+      cafe.push(r);
+    } else if (r.item.category === 'Coffee Bean') {
+      bean.push(r);
+    } else if (r.item.category === 'Drip Bag') {
+      drip.push(r);
+    }
+  }
+
+  return [
+    { key: 'cafe' as const, eyebrow: 'Cafe Menu', results: cafe },
+    { key: 'bean' as const, eyebrow: 'Coffee Beans', results: bean },
+    { key: 'drip' as const, eyebrow: 'Drip Bag', results: drip },
+  ].filter((g) => g.results.length > 0);
+}
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
@@ -29,6 +62,7 @@ export default function SearchPage() {
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * perPage;
   const pageItems = results.slice(start, start + perPage);
+  const groups = useMemo(() => groupResults(pageItems), [pageItems]);
 
   function handlePageChange(next: number) {
     setPage(next);
@@ -50,13 +84,24 @@ export default function SearchPage() {
           <SearchEmpty query={query} hasQuery={hasQuery} />
         ) : (
           <>
-            <ul className="search-results-list" role="list" style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-              {pageItems.map((r) => (
-                <li key={`${r.kind}-${r.kind === 'product' ? r.item.slug : r.item.id}`}>
-                  <SearchResultCard result={r} />
-                </li>
+            <div className="sr-rows">
+              {groups.map((g) => (
+                <section className="sr-row" key={g.key} aria-label={g.eyebrow}>
+                  <header className="sr-row-header">
+                    <span className="sr-row-eyebrow">{g.eyebrow}</span>
+                    <span className="sr-row-count">{g.results.length}</span>
+                  </header>
+                  <div className="sr-grid">
+                    {g.results.map((r) => (
+                      <SearchResultCard
+                        key={`${r.kind}-${r.kind === 'product' ? r.item.slug : r.item.id}`}
+                        result={r}
+                      />
+                    ))}
+                  </div>
+                </section>
               ))}
-            </ul>
+            </div>
 
             {totalPages > 1 && (
               <div id="srp-pagination">
