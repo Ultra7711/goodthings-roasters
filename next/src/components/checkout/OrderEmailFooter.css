@@ -6,12 +6,25 @@
    ══════════════════════════════════════════ */
 
 .oc-email {
+  position: relative;
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
   padding: 32px 60px;
   box-sizing: border-box;
-  border-top: 1px solid var(--color-border-secondary);
+}
+
+/* 상단 헤어라인 — 좌우 60px 인셋 secondary 1px (CTA 버튼 zone 분리)
+   풀폭 border-top → 60px 인셋 ::before 로 전환. OrderItemsSection 헤어라인 패턴 정합. */
+.oc-email::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 60px;
+  right: 60px;
+  height: 1px;
+  background: var(--color-border-secondary);
+  z-index: 1;
 }
 
 .oc-email__line {
@@ -34,9 +47,11 @@
 /* ══ 1024 (laptop) ══ */
 @media (max-width: 1024px) {
   .oc-email { padding: 28px 40px; }
+  .oc-email::before { left: 40px; right: 40px; }
 }
 
 /* ══ 모바일 (≤767) ══ */
 @media (max-width: 767px) {
   .oc-email { padding: 24px; }
+  .oc-email::before { left: 24px; right: 24px; }
 }

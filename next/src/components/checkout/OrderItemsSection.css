@@ -13,15 +13,33 @@
   padding: 0 60px 64px;
   box-sizing: border-box;
 }
-/* 하단 헤어라인 — 패딩 안쪽(60px 인셋)으로 내부 헤어라인 폭과 통일 */
+
+/* 상/하단 헤어라인 — 좌우 60px 인셋 1px
+   상단: secondary (Hero zone 과 분리)
+   하단: primary (zone 3 OrderShippingSection — 주문자 정보 시작 강조)
+   z-index 1 로 다음 zone stacking 충돌 방지. */
+.oc-section::before,
 .oc-section::after {
   content: '';
   position: absolute;
-  bottom: 0;
   left: 60px;
   right: 60px;
   height: 1px;
-  background: var(--color-text-primary);
+  z-index: 1;
+}
+.oc-section::before {
+  top: 0;
+  background: var(--color-border-secondary);
+}
+.oc-section::after {
+  bottom: 0;
+  background: var(--color-border-primary);
+}
+
+/* 마지막 .oir 하단 secondary 라인 (Items/합계 분리) — base .oir:last-child none 오버라이드.
+   specificity (0,3,0) > base (0,2,0). oir 폭 자체가 60px 인셋이라 자동 정합. */
+.oc-section .oir:last-child {
+  box-shadow: inset 0 -1px 0 0 var(--color-border-secondary);
 }
 
 /* ══ 합계 표 — max-width 360 우측 정렬 (자문 §3.3) ══ */
@@ -110,6 +128,7 @@
 /* ══ 1024 (laptop) — section padding 약간 축소 ══ */
 @media (max-width: 1024px) {
   .oc-section { padding: 0 40px 56px; }
+  .oc-section::before,
   .oc-section::after { left: 40px; right: 40px; }
 }
 
@@ -123,6 +142,7 @@
   .oc-section {
     padding: 0 24px 40px;
   }
+  .oc-section::before,
   .oc-section::after { left: 24px; right: 24px; }
   .oc-section__totals {
     max-width: none;
