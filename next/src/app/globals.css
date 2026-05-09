@@ -1656,11 +1656,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
      (@media hover:none mobile 차단 정책 그룹)
    ══════════════════════════════════════════ */
 
-/* ══ 스켈레톤 shimmer — BUG-159 (S94) ══ */
-@keyframes skel-shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
-}
+/* ══ 스켈레톤 — 정적 (S199 V2 자문 §1.5: shimmer 금지 정합).
+   BUG-159 (S94) shimmer animation 제거. 색상 gradient 는 디자인 시스템 일관성으로 유지.
+   다른 페이지 .skel 공유 (mypage / shop / cart / search) — 동일 회색 gradient. */
 .skel {
   background: linear-gradient(
     90deg,
@@ -1670,10 +1668,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   );
   background-size: 400% 100%;
   border-radius: 4px;
-  animation: skel-shimmer 2.4s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .skel { animation: none; background: rgba(0, 0, 0, .06); }
 }
 
 /* ── Shop skeleton ── */
