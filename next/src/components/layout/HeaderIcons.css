@@ -35,7 +35,9 @@ button.hdr-icon-btn { background: none; border: none; }
   display: block;
   color: var(--color-text-primary);
 }
-.hdr-icon-btn .hi { opacity: .5; transition: opacity var(--duration-hover) var(--ease-default); }
+/* opacity .7 — 헤더 아이콘 통일값. 햄버거(.hdr-menu-toggle)·드로어 헤더(.mn-cart/.mn-close)
+   모두 0.7 채택 → light 모드 헤더 아이콘 정합. dark 모드는 가독성 위해 0.8 별도 (SiteHeader.css). */
+.hdr-icon-btn .hi { opacity: .7; transition: opacity var(--duration-hover) var(--ease-default); }
 .hdr-icon-btn:hover .hi { opacity: 1; }
 /* a11y: 키보드 포커스 가시화 (WCAG 2.4.7) — Session 51 */
 .hdr-icon-btn:focus-visible,
