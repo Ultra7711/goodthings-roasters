@@ -59,10 +59,13 @@ export default function OrderItemCard({
 
   const periodToken =
     item.type === 'subscription' && item.period ? `정기배송 ${item.period}` : null;
-  const qtyParts = isDetailed
-    ? [periodToken, `수량 ${item.qty}개`]
-    : [item.volume, periodToken, `수량 ${item.qty}개`];
-  const qtyText = qtyParts.filter(Boolean).join(' · ');
+
+  /* compact (S200 cp-item 골격 차용): qty 는 우측 단독 "× N" 으로 분리, volume·정기배송은
+     name 아래 별도 meta 행으로. detailed (mypage) 는 기존 inline 패턴 유지. */
+  const compactMetaParts = [item.volume, periodToken];
+  const compactMetaText = compactMetaParts.filter(Boolean).join(' · ');
+  const detailedQtyParts = [periodToken, `수량 ${item.qty}개`];
+  const detailedQtyText = detailedQtyParts.filter(Boolean).join(' · ');
 
   const canImageClick = isDetailed && onImageClick && item.slug;
   const handleImageClick = canImageClick
@@ -112,11 +115,22 @@ export default function OrderItemCard({
             extractKrName(item.name)
           )}
         </div>
-        <div className="order-item-badges">
-          <span className="order-item-qty">{qtyText}</span>
-          <span className="order-item-price">{formatPrice(displayPrice)}</span>
-        </div>
+        {!isDetailed && compactMetaText && (
+          <div className="order-item-meta">{compactMetaText}</div>
+        )}
+        {isDetailed && (
+          <div className="order-item-badges">
+            <span className="order-item-qty">{detailedQtyText}</span>
+            <span className="order-item-price">{formatPrice(displayPrice)}</span>
+          </div>
+        )}
       </div>
+      {!isDetailed && (
+        <>
+          <span className="order-item-qty">{`× ${item.qty}`}</span>
+          <span className="order-item-price">{formatPrice(displayPrice)}</span>
+        </>
+      )}
     </div>
   );
 }

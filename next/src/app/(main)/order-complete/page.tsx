@@ -1,7 +1,7 @@
 ﻿/* ══════════════════════════════════════════
    Order Complete Route — /order-complete
-   RP-7: 주문완료 페이지 이식.
-   - 자체 미니 헤더 사용 (사이트 헤더 미표시)
+   RP-7: 주문완료 페이지 이식. S200 PR-B.5: (main) route group 으로 이동
+   (SiteHeader + AnnouncementBar 사용. SiteFooter 는 라우트별 분기로 비표시).
    - sessionStorage 에서 주문 정보 읽기
 
    Session 11 보안 #3-4b:
@@ -10,16 +10,25 @@
    - 고객 대면 URL 은 `?token={public_token UUID}` 만 허용.
    - dev/staging 에서는 레거시 링크 디버깅을 위해 유지.
 
+   Session 8 보안 #2 (docs/payments-security-hardening.md §3):
+   - referrer: 'same-origin' — order_number 가 Referer 로 3rd-party 스크립트에
+     누출되는 것을 차단. 기존 OrderCompleteLayout 의 metadata 를 page 로 이전.
+
    BUG-006 Stage C (D-011, 2026-04-24):
    - cacheComponents 활성화로 searchParams await 가 Suspense 경계 밖이면
      빌드 에러. 쿼리 검증을 inner async 컴포넌트로 이동.
    ══════════════════════════════════════════ */
 
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import OrderCompletePage from '@/components/checkout/OrderCompletePage';
+import OverscrollTop from '@/components/ui/OverscrollTop';
 
-export const metadata = { title: '주문 완료 — good things' };
+export const metadata: Metadata = {
+  title: '주문 완료 — good things',
+  referrer: 'same-origin',
+};
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -37,8 +46,13 @@ async function OrderCompleteInner({ searchParams }: PageProps) {
 
 export default function OrderCompleteRoute({ searchParams }: PageProps) {
   return (
-    <Suspense fallback={<div className="oc-page" style={{ minHeight: '100svh' }} />}>
-      <OrderCompleteInner searchParams={searchParams} />
-    </Suspense>
+    <>
+      {/* (main) layout 의 dark/stone overscroll 기본값을 cream 으로 override.
+          /order-complete 는 SiteFooter 비표시 + cream bg 라 stone bottom bar 노출 시 부조화. */}
+      <OverscrollTop top="#1E1B16" bottom="#FBF8F3" />
+      <Suspense fallback={<div className="oc-page" style={{ minHeight: '100svh' }} />}>
+        <OrderCompleteInner searchParams={searchParams} />
+      </Suspense>
+    </>
   );
 }

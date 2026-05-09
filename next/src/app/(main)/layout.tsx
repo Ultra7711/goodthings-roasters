@@ -8,6 +8,7 @@ import type { ReactNode } from 'react';
 import AnnouncementBar from '@/components/layout/AnnouncementBar';
 import SiteHeader from '@/components/layout/SiteHeader';
 import SiteFooter from '@/components/layout/SiteFooter';
+import FooterRoute from '@/components/layout/FooterRoute';
 import SRInitializer from '@/components/layout/SRInitializer';
 import NavigationScrollReset from '@/components/layout/NavigationScrollReset';
 import NavigationVisibilityGate from '@/components/layout/NavigationVisibilityGate';
@@ -47,8 +48,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      {/* 푸터 */}
-      <SiteFooter />
+      {/* 푸터 — 라우트별 분기 (FooterRoute children pattern). /order-complete 등 emotional moment 라우트는 비표시. */}
+      <FooterRoute>
+        <SiteFooter />
+      </FooterRoute>
 
       {/* Route 전환 시 scroll reset (BUG-006 H7 · push/replace 만 · traverse 보존) */}
       <NavigationScrollReset />

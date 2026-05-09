@@ -69,3 +69,44 @@ export type Order = {
   /** 주문 아이템 목록 */
   items: OrderItem[];
 };
+
+/* ══ sessionStorage 'gtr-last-order' 모델 ══
+   useCheckoutFlow 가 결제 직전에 저장 → OrderCompletePage 가 read.
+   자문 D editorial confirmation 의 5 zone (Hero / Items+합계 / 배송 / Recommend / Email) 데이터 모델.
+   discount 정책 (정기배송 할인 5% / 10%) 미확정 — 옵션 필드. 미적용 시 합계 row hide. */
+export type StoredOrderItem = {
+  name: string;
+  slug: string;
+  category: string;
+  volume: string | null;
+  qty: number;
+  priceNum: number;
+  image: { src: string; bg: string };
+  type: string;
+  period: string | null;
+};
+
+export type StoredOrderShipping = {
+  recipientName: string;
+  recipientPhone: string;
+  zipCode: string;
+  /** 도로명/지번 + 상세주소 결합 ("서울 종로구 종로 12, 5층") */
+  address: string;
+  /** "문 앞에 두고 가주세요" 등. 없으면 undefined. */
+  deliveryNote?: string;
+};
+
+export type StoredOrderSummary = {
+  number: string;
+  createdAt: string;
+  guestEmail?: string;
+  subscriptionCount: number;
+  items: StoredOrderItem[];
+  /** 상품 금액 합계 (할인·배송비 적용 전) */
+  subtotalAmount: number;
+  /** 정기배송 할인 (정책 확정 전 옵션 — 미적용 시 row hide) */
+  discountAmount?: number;
+  shippingFee: number;
+  totalAmount: number;
+  shipping?: StoredOrderShipping;
+};

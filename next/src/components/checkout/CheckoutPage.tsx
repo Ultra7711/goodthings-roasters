@@ -194,6 +194,9 @@ export default function CheckoutPage() {
     validate,
     resetForm,
     chpFormRef,
+    cartSubtotal: subtotal,
+    cartShippingFee: shippingFee,
+    cartTotalPrice: totalPrice,
   });
 
   /* ── 하이드레이션 대기 스켈레톤 ── */

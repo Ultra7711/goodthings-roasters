@@ -1,0 +1,141 @@
+/* ══════════════════════════════════════════
+   OrderCompleteHero — 자문 D §2 Hero zone (S200 PR-B)
+
+   좌측 정렬 wider editorial. 자문 1080 baseline → GTR 1440 baseline 환산.
+   GTR 토큰 매핑 (자문 자체 변수 → globals.css 토큰):
+   - cream    → --color-background-primary
+   - ink      → --color-text-primary
+   - ink-2    → --color-text-secondary
+   - ink-3    → --color-text-tertiary
+   - gold     → --color-accent-gold
+   ══════════════════════════════════════════ */
+
+.oc-hero {
+  /* padding-top 73 + eyebrow 13 + margin 14 = title 위치 100 line (다른 페이지 정합 정확).
+     라벨 ↔ 타이틀 간격 14 (사용자 결정). 좌우 padding 60 (1440 baseline). */
+  padding: 73px 60px 96px;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* eyebrow — GTR 라벨 표준 토큰 정합 (.blk-label 동일).
+   font-en 13/500 + --ls-label + uppercase + gold. margin-bottom 14 = 라벨 ↔ 타이틀 간격. */
+.oc-hero-eyebrow {
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--color-accent-gold);
+  margin: 0 0 14px;
+}
+
+/* 페이지 타이틀 — Shop/Menu/GoodDays `.page-title` (PageTitle.css) 와 동일 토큰.
+   --type-h1-size + --type-h1-weight + --ls-display + --lh-h1.
+   /order-complete 도 독립 페이지라 페이지 타이틀 위계로 정합. 한국어 반응형 wrap. */
+.oc-hero-title {
+  font-family: var(--font-kr);
+  font-size: var(--type-h1-size);
+  font-weight: var(--type-h1-weight);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--ls-display);
+  color: var(--color-text-primary);
+  margin: 0 0 24px;
+  max-width: 720px;
+  text-wrap: balance;
+}
+/* br 데스크탑 무효화 — wider 폭에서는 1줄 자연 wrap. 모바일에서만 br 강제 줄바꿈. */
+.oc-hero-title-br {
+  display: none;
+}
+
+/* 본문 — 자문 17 / 1.65 / max 540 */
+.oc-hero-body {
+  font-family: var(--font-kr);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  max-width: 540px;
+  margin: 0;
+}
+
+/* 메타 inline — 자문 gap 48 baseline align */
+.oc-hero-meta {
+  display: flex;
+  gap: 48px;
+  align-items: baseline;
+  margin-top: 48px;
+  flex-wrap: wrap;
+}
+.oc-hero-meta-block {
+  display: flex;
+  flex-direction: column;
+}
+/* 메타 라벨 — GTR 라벨 표준 토큰 정합 (.blk-label / .oc-hero-eyebrow 동일).
+   자문 10.5/0.16em mono 대신 사이트 일관성 — body-s 13/500/--ls-label tertiary. */
+.oc-hero-meta-lab {
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  display: block;
+  margin-bottom: 6px;
+}
+.oc-hero-meta-value-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+/* 메타 값 — GTR --type-body-l-size (16/17) + weight 500. 사이트 표준 Inter. */
+.oc-hero-meta-val {
+  font-family: var(--font-en);
+  font-size: var(--type-body-l-size);
+  font-weight: var(--type-body-l-weight);
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+/* 복사 버튼 — 자문엔 없으나 기존 기능 보존. 작은 24x24 아이콘 + tertiary → primary hover */
+.oc-hero-meta-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  transition: color var(--duration-hover) ease;
+  flex-shrink: 0;
+}
+.oc-hero-meta-copy:hover { color: var(--color-text-primary); }
+
+/* ══ Tablet ≤1023 — 데스크탑과 동일 73/13/14 = 100 ══ */
+@media (max-width: 1023px) {
+  .oc-hero { padding: 73px 48px 72px; }
+}
+
+/* ══ Mobile ≤767 — title 위치 56 정합 (29 + 13 + 14 = 56) ══ */
+@media (max-width: 767px) {
+  .oc-hero { padding: 29px 24px 48px; }
+  .oc-hero-title { max-width: 100%; }
+  /* 모바일에서 br 활성 → 두 줄 강제 */
+  .oc-hero-title-br { display: inline; }
+  .oc-hero-body {
+    font-size: 15px;
+  }
+  /* 메타 stacked column gap 16 — 자문 D §6 모바일 표 */
+  .oc-hero-meta {
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 32px;
+  }
+}

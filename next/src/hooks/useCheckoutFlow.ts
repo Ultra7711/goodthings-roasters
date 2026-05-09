@@ -20,7 +20,20 @@ import {
 } from '@/lib/api/orderClient';
 import { shakeFields } from '@/lib/shakeFields';
 import type { CheckoutFormData } from '@/types/checkout';
+import { DELIVERY_MESSAGES } from '@/types/checkout';
 import type { CartItem } from '@/types/cart';
+import type { StoredOrderSummary, StoredOrderShipping } from '@/types/order';
+
+/** deliveryMessage 옵션 키 → 표시 텍스트. 'custom' 이면 deliveryCustom trim. 없으면 undefined. */
+function resolveDeliveryNote(messageKey: string, customText: string): string | undefined {
+  if (!messageKey) return undefined;
+  if (messageKey === 'custom') {
+    const trimmed = customText.trim();
+    return trimmed || undefined;
+  }
+  const opt = DELIVERY_MESSAGES.find((m) => m.value === messageKey);
+  return opt?.label;
+}
 
 type Params = {
   cartSig: string;
@@ -36,6 +49,10 @@ type Params = {
   validate: (isLoggedIn: boolean) => boolean;
   resetForm: () => void;
   chpFormRef: React.RefObject<HTMLDivElement | null>;
+  /** 주문 완료 페이지 (자문 D §3.3) 합계 표 데이터. CheckoutPage useCartQuery 직접 read. */
+  cartSubtotal: number;
+  cartShippingFee: number;
+  cartTotalPrice: number;
 };
 
 type Return = {
@@ -60,6 +77,9 @@ export function useCheckoutFlow({
   validate,
   resetForm,
   chpFormRef,
+  cartSubtotal,
+  cartShippingFee,
+  cartTotalPrice,
 }: Params): Return {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -167,18 +187,15 @@ export function useCheckoutFlow({
       const payload = buildOrderPayload(form, items, isLoggedIn, agreements);
       const result = await createOrder(payload);
 
-      /* 주문 완료 페이지용 요약 저장 (sessionStorage — 탭 종료 시 자동 폐기) */
-      type StoredOrderSummary = {
-        number: string;
-        createdAt: string;
-        guestEmail?: string;
-        subscriptionCount: number;
-        items: Array<{
-          name: string; slug: string; category: string;
-          volume: string | null; qty: number; priceNum: number;
-          image: { src: string; bg: string };
-          type: string; period: string | null;
-        }>;
+      /* 주문 완료 페이지용 요약 저장 (sessionStorage — 탭 종료 시 자동 폐기).
+         자문 D §editorial confirmation 5 zone 데이터 모델 (`@/types/order` StoredOrderSummary). */
+      const deliveryNote = resolveDeliveryNote(form.deliveryMessage, form.deliveryCustom);
+      const shippingInfo: StoredOrderShipping = {
+        recipientName: form.firstname.trim(),
+        recipientPhone: form.phone.trim(),
+        zipCode: form.zipcode.trim(),
+        address: [form.addr1.trim(), form.addr2.trim()].filter(Boolean).join(', '),
+        ...(deliveryNote ? { deliveryNote } : {}),
       };
       const summary: StoredOrderSummary = {
         number: result.orderNumber,
@@ -196,6 +213,11 @@ export function useCheckoutFlow({
           type: i.type,
           period: i.period,
         })),
+        subtotalAmount: cartSubtotal,
+        shippingFee: cartShippingFee,
+        totalAmount: cartTotalPrice,
+        // discountAmount: 정기배송 할인 정책 확정 후 추가 (carry-over)
+        shipping: shippingInfo,
       };
       sessionStorage.setItem('gtr-last-order', JSON.stringify(summary));
 

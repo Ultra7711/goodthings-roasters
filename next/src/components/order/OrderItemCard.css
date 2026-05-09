@@ -7,11 +7,13 @@
    variant 분기는 [data-variant="detailed"] attribute selector 로 처리.
    ══════════════════════════════════════════ */
 
-/* ══ Compact baseline (OrderComplete · 데스크탑) ══
-   row 레이아웃 · min-width 440 · height 176 고정 */
+/* ══ Compact baseline (OrderComplete · S200 cp-item 골격 차용) ══
+   썸네일 100 + info (좌측 category/name/meta 별도 라인) + 우측 × N + 라인 합계 가격.
+   자문안 §editorial confirmation 의 "주문 상품" 패턴 = /cart 페이지 cp-item 5컬럼에서
+   단가/스텝퍼/삭제 컬럼 제거한 read-only 형태. */
 .order-item-card {
   display: flex; align-items: center; position: relative;
-  width: 100%; min-width: 440px; height: 176px; padding: 0; box-sizing: border-box;
+  width: 100%; padding: 24px 0; box-sizing: border-box; gap: 24px;
 }
 .order-item-card::after {
   content: ''; position: absolute; bottom: 0; left: 0; right: 0;
@@ -21,26 +23,44 @@
 
 .order-item-img {
   width: 100px; height: 100px; flex-shrink: 0; overflow: hidden;
-  display: flex; align-items: center; justify-content: center; margin-right: 20px;
+  display: flex; align-items: center; justify-content: center;
   border: 1px solid var(--color-border-surface);
 }
 .order-item-img img { width: 100%; height: 100%; object-fit: contain; }
 
+.order-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .order-item-category {
   font-family: var(--font-en); font-size: var(--type-body-ui-size); font-weight: 400;
   letter-spacing: var(--ls-uppercase); text-transform: uppercase; color: var(--color-text-caption);
 }
-.order-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
 .order-item-name {
   font-family: var(--font-kr); font-size: var(--type-body-l-size); font-weight: 500;
-  color: var(--color-text-primary); margin-top: 6px;
+  color: var(--color-text-primary);
 }
-.order-item-badges { display: flex; align-items: center; gap: var(--gap-xs); margin-top: 8px; }
-.order-item-qty {
+/* compact 전용 — 옵션 (volume · 정기배송) name 아래 별도 라인 */
+.order-item-meta {
+  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 400;
+  color: var(--color-text-secondary);
+}
+/* compact 직속 qty/price — info 우측 정렬 영역 (cp-item 5컬럼 중 qty/total 차용) */
+.order-item-card[data-variant="compact"] > .order-item-qty {
+  font-family: var(--font-en); font-size: var(--type-body-m-size); font-weight: 400;
+  color: var(--color-text-secondary); flex-shrink: 0; min-width: 48px; text-align: right;
+}
+.order-item-card[data-variant="compact"] > .order-item-price {
+  font-family: var(--font-en); font-size: var(--type-heading-s-size); font-weight: 500;
+  color: var(--color-text-primary); letter-spacing: var(--ls-display);
+  flex-shrink: 0; min-width: 100px; text-align: right;
+}
+/* detailed 자체 .order-item-badges 안 qty/price — 기존 톤 유지 */
+.order-item-card[data-variant="detailed"] .order-item-badges {
+  display: flex; align-items: center; gap: var(--gap-xs); margin-top: 8px;
+}
+.order-item-card[data-variant="detailed"] .order-item-badges .order-item-qty {
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 400;
   color: var(--color-text-caption);
 }
-.order-item-price {
+.order-item-card[data-variant="detailed"] .order-item-badges .order-item-price {
   font-family: var(--font-en); font-size: var(--type-body-m-size); font-weight: 400;
   color: var(--color-text-caption); margin-left: auto; flex-shrink: 0;
 }
@@ -64,12 +84,21 @@
 .order-item-card[data-variant="detailed"] .order-item-badges { margin-top: 6px; }
 
 /* ══ Mobile (≤767) — Compact baseline 정규화 ══
-   - card min-width:440 / height:176 제거 → 360 가로 스크롤 방지
-   - img 80×80 · badges flex-wrap 허용 */
+   - card padding 24→20 · gap 24→16 · img 100→80 (cp-item 골격 유지, 폭만 축소)
+   - 우측 qty/price min-width 제거 + 폰트 축소
+   - name 단일 행 overflow ellipsis (info 영역 좁아짐 대응) */
 @media (max-width: 767px) {
-  .order-item-card { min-width: 0; height: auto; padding: 20px 0; }
-  .order-item-card .order-item-img { width: 80px; height: 80px; margin-right: 16px; }
-  .order-item-card .order-item-badges { flex-wrap: wrap; }
+  .order-item-card { padding: 20px 0; gap: 16px; }
+  .order-item-card .order-item-img { width: 80px; height: 80px; }
+  .order-item-card[data-variant="compact"] > .order-item-qty {
+    min-width: auto; font-size: var(--type-body-s-size);
+  }
+  .order-item-card[data-variant="compact"] > .order-item-price {
+    min-width: auto; font-size: var(--type-body-l-size);
+  }
+  .order-item-card[data-variant="compact"] .order-item-name {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
 
   /* ══ Detailed mobile — 장바구니 3-row 그리드와 동일 패턴 ══
      row1: category · row2: name + inline meta(volume) · row3: qty(좌) + price(우) */

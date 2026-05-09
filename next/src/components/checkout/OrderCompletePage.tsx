@@ -19,13 +19,15 @@
 
 import './OrderCompletePage.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/useToast';
 import { useClearCart } from '@/hooks/useCart';
-import { CopyIcon } from '@/components/ui/Icons';
 import OrderItemCard from '@/components/order/OrderItemCard';
+import OrderCompleteHero from './OrderCompleteHero';
+/* LastOrder 타입은 `@/types/order` StoredOrderSummary 로 통일 (S200 PR-A).
+   useCheckoutFlow 가 저장하는 모델과 1:1 정합. */
+import type { StoredOrderSummary, StoredOrderItem } from '@/types/order';
 
 /* H-1 폴백 UX — 게스트 이메일 불일치 재입력 허용 한도.
    3회 초과 시 주문조회(B-6) 분기로 안내. */
@@ -38,26 +40,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
    현 MVP 는 placeholder 로 `/mypage` 사용 (로그인 게이트에서 게스트도 안내). */
 const ORDER_LOOKUP_PATH = '/mypage';
 
-type OrderItemData = {
-  name: string;
-  slug: string;
-  category: string;
-  volume: string | null;
-  qty: number;
-  priceNum: number;
-  image: { src: string; bg: string };
-  type?: string;
-  period?: string | null;
-};
-
-type LastOrder = {
-  number: string;
-  /** 게스트 주문만 세팅. 로그인 사용자는 undefined — user_id 로 소유권 식별. */
-  guestEmail?: string;
-  /** 이번 주문으로 생성된 정기배송 건수 (026 마이그레이션). 게스트·없으면 0. */
-  subscriptionCount?: number;
-  items: OrderItemData[];
-};
+type OrderItemData = StoredOrderItem;
+type LastOrder = StoredOrderSummary;
 
 /* ── confirm 상태 ── */
 type ConfirmState =
@@ -336,29 +320,20 @@ export default function OrderCompletePage() {
   /* 주문 정보 없음 보호 */
   if (!order) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-        <div className="ocp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
-          <div className="chp-hdr-inner">
-            <Link href="/">
-              <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} style={{ cursor: 'pointer' }} />
-            </Link>
+      <div className="ocp-body" style={{ padding: '0 24px 120px', alignItems: 'stretch' }}>
+        <div className="ocp-inner" style={{ flex: 1 }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+            <p style={{ fontFamily: 'var(--font-kr)', fontSize: 'var(--type-body-l-size)', color: 'var(--color-text-secondary)', margin: 0, textAlign: 'center' }}>
+              주문 정보를 찾을 수 없습니다.
+            </p>
           </div>
-        </div>
-        <div className="ocp-body" style={{ padding: '0 24px 120px', alignItems: 'stretch' }}>
-          <div className="ocp-inner" style={{ flex: 1 }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-              <p style={{ fontFamily: 'var(--font-kr)', fontSize: 'var(--type-body-l-size)', color: 'var(--color-text-secondary)', margin: 0, textAlign: 'center' }}>
-                주문 정보를 찾을 수 없습니다.
-              </p>
-            </div>
-            <div className="ocp-actions">
-              <Link href={ORDER_LOOKUP_PATH} className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} data-gtr-tap>
-                주문 내역 확인
-              </Link>
-              <Link href="/" className="ocp-btn-secondary" data-gtr-tap>
-                홈으로 돌아가기
-              </Link>
-            </div>
+          <div className="ocp-actions">
+            <Link href={ORDER_LOOKUP_PATH} className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} data-gtr-tap>
+              주문 내역 확인
+            </Link>
+            <Link href="/" className="ocp-btn-secondary" data-gtr-tap>
+              홈으로 돌아가기
+            </Link>
           </div>
         </div>
       </div>
@@ -369,15 +344,7 @@ export default function OrderCompletePage() {
   if (confirmState.kind === 'email_mismatch') {
     const remaining = MAX_EMAIL_RETRIES - confirmState.attempts;
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-        <div className="ocp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
-          <div className="chp-hdr-inner">
-            <Link href="/">
-              <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} style={{ cursor: 'pointer' }} />
-            </Link>
-          </div>
-        </div>
-        <div className="ocp-body">
+      <div className="ocp-body">
           <div className={`ocp-inner${entered ? ' ocp-enter' : ''}`}>
             <h1 className="ocp-title">주문 확인을 위해<br />이메일을 입력해 주세요.</h1>
             <p className="ocp-subtitle" style={{ marginTop: 16 }}>
@@ -444,7 +411,6 @@ export default function OrderCompletePage() {
             </div>
           </div>
         </div>
-      </div>
     );
   }
 
@@ -452,15 +418,7 @@ export default function OrderCompletePage() {
   if (confirmState.kind === 'failed') {
     const isExceeded = confirmState.detail === 'guest_email_mismatch_exceeded';
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-        <div className="ocp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
-          <div className="chp-hdr-inner">
-            <Link href="/">
-              <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} style={{ cursor: 'pointer' }} />
-            </Link>
-          </div>
-        </div>
-        <div className="ocp-body">
+      <div className="ocp-body">
           <div className={`ocp-inner${entered ? ' ocp-enter' : ''}`}>
             <h1 className="ocp-title">
               {isExceeded ? (
@@ -520,56 +478,37 @@ export default function OrderCompletePage() {
               )}
             </div>
           </div>
-        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-      {/* ── 미니 헤더 ── */}
-      <div className="ocp-hdr-wrap" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
-        <div className="chp-hdr-inner">
-          <Link href="/">
-            <Image src="/images/icons/logo.svg" alt="GOOD THINGS" width={140} height={28} style={{ cursor: 'pointer' }} />
-          </Link>
+    /* ── 바디 — 자문 D 5 zone editorial confirmation (S200 PR-B~E) ──
+       (main) layout 의 SiteHeader + AnnouncementBar 위에 ocp-body 만 자리. */
+    <div className={`ocp-body ocp-body--editorial${entered ? ' ocp-enter' : ''}`}>
+      {/* PR-B Hero zone — eyebrow + H1 + 본문 + 메타 inline (좌측 정렬 wider) */}
+      <OrderCompleteHero orderNumber={order.number} onCopy={handleCopy} />
+
+      {/* PR-C/D/E 미진입 — 임시 fallback (현 구조 부분 유지, max-width 1440 + 좌측 정렬) */}
+      <div className="ocp-temp-fallback">
+        {/*
+          042 cutover 후 create_order 는 subscription INSERT 안 함 → subscriptionCount 항상 0.
+          정기배송 등록 안내는 /billing/success 콜백 (Phase 3-B) 에서 처리.
+        */}
+
+        <div className="ocp-summary">
+          {order.items.map((item, idx) => (
+            <OrderItemCard key={idx} item={item} variant="compact" />
+          ))}
         </div>
-      </div>
 
-      {/* ── 바디 ── */}
-      <div className="ocp-body">
-        <div className={`ocp-inner${entered ? ' ocp-enter' : ''}`}>
-          <h1 className="ocp-title">주문이 정상적으로<br />완료 되었습니다.</h1>
-
-          <div className="ocp-order-num">
-            <span>주문번호</span>
-            <strong onClick={handleCopy}>{order.number}</strong>
-            <button className="ocp-copy-btn" title="주문번호 복사" aria-label="주문번호 복사" onClick={handleCopy}>
-              <CopyIcon />
-            </button>
-          </div>
-
-          <p className="ocp-subtitle">주문번호는 배송조회하실 때 필요합니다.</p>
-
-          {/*
-            042 cutover 후 create_order 는 subscription INSERT 안 함 → subscriptionCount 항상 0.
-            정기배송 등록 안내는 /billing/success 콜백 (Phase 3-B) 에서 처리.
-          */}
-
-          <div className="ocp-summary">
-            {order.items.map((item, idx) => (
-              <OrderItemCard key={idx} item={item} variant="compact" />
-            ))}
-          </div>
-
-          <div className="ocp-actions">
-            <Link href="/shop" className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} data-gtr-tap>
-              쇼핑 계속하기
-            </Link>
-            <button className="ocp-btn-secondary" onClick={() => router.push('/mypage')}>
-              주문 내역 보기
-            </button>
-          </div>
+        <div className="ocp-actions">
+          <Link href="/shop" className="ocp-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} data-gtr-tap>
+            쇼핑 계속하기
+          </Link>
+          <button className="ocp-btn-secondary" onClick={() => router.push('/mypage')}>
+            주문 내역 보기
+          </button>
         </div>
       </div>
     </div>
