@@ -85,8 +85,10 @@
 }
 
 /* ── 공통 라벨 ── */
+/* S199 — display: block 제거. globals.css 공유 룰 (inline-flex + align-items: center + gap: 12px)
+   적용되어야 ::before 골드 라인이 글자 가운데로 정렬 (다른 페이지 .blk-label 과 정합).
+   block override 시 align-items 무효 → ::before inline-block baseline 정렬 → 라인이 글자 바닥에 붙는 버그. */
 .st-label {
-  display: block;
   font-family: var(--font-en);
   font-size: var(--type-body-s-size);
   font-weight: 500;
@@ -148,6 +150,11 @@
   .st-two-col--reverse .st-two-col-inner { direction: ltr; }
   .st-col-img { aspect-ratio: 3/2; }
   .st-col-txt { padding: 40px 24px; }
+  /* S199 — Two-Col 간 시각 spacing 144 = padding-bot 72 + (padding-top 32 + col-txt-top 40 = 72).
+     col-txt padding-top 40 그대로 (label/heading 위 안전 spacing) + st padding 32/72 분배. */
+  .st-two-col { padding: 32px 0 72px; }
+  /* 첫 Two-Col (Good Beans) 만 Hero ↔ first content 표준 144 = padding-top 104 + col-txt-top 40. */
+  .st-hero + .st-two-col { padding-top: 104px; }
 }
 .st-col-heading {
   font-family: var(--font-kr);
@@ -354,9 +361,10 @@
 }
 /* Mobile: 세로 스택 — 맵 4:3, 정보 자연 높이 */
 @media (max-width: 767px) {
+  /* S199 — 80 → 72 (메인 페이지 정합) */
   .st-location {
-    margin-top: 80px;
-    margin-bottom: 80px;
+    margin-top: 72px;
+    margin-bottom: 72px;
   }
   .st-location-inner {
     grid-template-columns: 1fr;
