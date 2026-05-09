@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════
-   Dev Preview — /dev/order-complete-preview
+   Dev Preview — /dev/order-complete
    주문 완료 페이지(/order-complete)를 결제 흐름 없이 미리 볼 수 있는 더미 라우트.
 
    - sessionStorage 'gtr-last-order' 에 mock LastOrder 를 useState lazy init 으로
