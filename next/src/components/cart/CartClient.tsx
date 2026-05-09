@@ -18,16 +18,23 @@ import {
   SHIPPING_FEE,
   MIN_QUANTITY,
 } from '@/hooks/useCart';
+import type { CartItem } from '@/types/cart';
 import CartSkeleton from './CartSkeleton';
 import { splitName, getSubscriptionBadge } from '@/lib/products';
 import { formatPrice } from '@/lib/utils';
 
-export default function CartClient() {
+type CartClientProps = {
+  /** S199 — server prefetch (인증 카트 page.tsx) 시 TanStack initialData 로 전달.
+     게스트는 undefined → 기존 client store 흐름. */
+  initialItems?: CartItem[];
+};
+
+export default function CartClient({ initialItems }: CartClientProps = {}) {
   const {
     items, subtotal, totalPrice,
     isFreeShipping, gaugePct, remainForFree,
     isLoading,
-  } = useCartQuery();
+  } = useCartQuery(initialItems);
   const updateQty = useUpdateCartQty();
   const removeItem = useRemoveCartItem();
   const router = useRouter();

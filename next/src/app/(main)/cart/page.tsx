@@ -1,13 +1,53 @@
 /* ══════════════════════════════════════════
-   Cart Route — /cart (Stage E / S67 / 2026-04-24)
-   BUG-006 Stage E: page 전체 'use client' → server component 로 전환.
-   - Client boundary 를 page 경계 → CartClient 단일 island 로 축소
-   - (main) route group 의 SiteHeader·SiteFooter 재사용 유지
-   - 상호작용 로직(items · qty · remove · modal)은 CartClient 에 전부 위임
+   Cart Route — /cart (S199 server prefetch)
+
+   인증 카트만 server prefetch — listCartItems() RLS 로 본인 행만 → mapRowToCartItem 변환
+   → CartClient initialItems prop → TanStack Query initialData 로 SSR HTML 즉시 정확 렌더.
+
+   게스트는 prefetch skip (claims 없음) → CartClient 내부 fetchCart 가 readGuestCart
+   로 분기 → localStorage 사용 (변경 없음).
+
+   prefetch 실패 시 빈 array fallback — UI 는 client fetch 로 복구 (자연 흐름).
+
+   BUG-006 Stage E (S67): page.tsx server component 유지. cookies() 접근은
+   inner async 컴포넌트로 분리 (cacheComponents Suspense 가드).
    ══════════════════════════════════════════ */
 
+import { Suspense } from 'react';
 import CartClient from '@/components/cart/CartClient';
+import CartSkeleton from '@/components/cart/CartSkeleton';
+import { getClaims } from '@/lib/auth/getClaims';
+import { listCartItems } from '@/lib/repositories/cartRepo';
+import { mapRowToCartItem } from '@/lib/cart/mapRow';
+import type { CartItem } from '@/types/cart';
+
+async function CartWithPrefetch() {
+  const claims = await getClaims();
+
+  if (!claims) {
+    /* 게스트 — server prefetch skip. CartClient 가 client store / localStorage 처리. */
+    return <CartClient />;
+  }
+
+  /* 인증 — server prefetch (실패 시 빈 array fallback) */
+  const initialItems: CartItem[] = await listCartItems()
+    .then((rows) =>
+      rows
+        .map((r) => mapRowToCartItem(r))
+        .filter((i): i is CartItem => i !== null),
+    )
+    .catch((err): CartItem[] => {
+      console.error('[cart.prefetch] failed', err);
+      return [];
+    });
+
+  return <CartClient initialItems={initialItems} />;
+}
 
 export default function CartPage() {
-  return <CartClient />;
+  return (
+    <Suspense fallback={<CartSkeleton />}>
+      <CartWithPrefetch />
+    </Suspense>
+  );
 }

@@ -35,6 +35,7 @@ import {
   writeGuestCart,
   clearGuestCart,
 } from '@/lib/guestCart';
+import { mapRowToCartItem, type ServerCartRow } from '@/lib/cart/mapRow';
 
 /* ── 배송비 기준 (DEPRECATED 상수 — site_settings.shipping 으로 대체됨, S129 H-5)
    useCart hook 내부에서는 useSiteSettings() 로 dynamic 값 사용.
@@ -50,19 +51,6 @@ export const CART_QUERY_KEY = ['cart'] as const;
    내부 유틸
    ══════════════════════════════════════════ */
 
-type ServerCartRow = {
-  id: string;
-  user_id: string;
-  product_slug: string;
-  product_volume: string;
-  quantity: number;
-  unit_price_snapshot: number;
-  item_type: CartItem['type'];
-  subscription_period: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
 type ApiEnvelope<T> = { data?: T; error?: { code?: string } };
 
 function toSubscriptionCycle(
@@ -71,30 +59,6 @@ function toSubscriptionCycle(
   if (v == null) return null;
   const result = z.enum(SUBSCRIPTION_CYCLES).safeParse(v);
   return result.success ? result.data : null;
-}
-
-function mapRowToCartItem(row: ServerCartRow): CartItem | null {
-  const product = PRODUCTS.find((p) => p.slug === row.product_slug);
-  if (!product) {
-    // eslint-disable-next-line no-console
-    console.warn('[cart] product not found: slug="%s"', row.product_slug);
-    return null;
-  }
-  const firstImage = product.images?.[0];
-  return {
-    id: row.id,
-    slug: row.product_slug,
-    name: product.name,
-    price: product.price,
-    priceNum: row.unit_price_snapshot ?? parsePrice(product.price),
-    qty: row.quantity,
-    color: firstImage?.bg ?? product.color ?? '#ECEAE6',
-    image: firstImage?.src ?? null,
-    type: row.item_type,
-    period: row.subscription_period,
-    category: product.category,
-    volume: row.product_volume,
-  };
 }
 
 function payloadToInput(payload: AddToCartPayload) {
@@ -164,7 +128,7 @@ async function fetchCart(): Promise<CartItem[]> {
   return rows.map(mapRowToCartItem).filter((i): i is CartItem => i !== null);
 }
 
-export function useCartQuery() {
+export function useCartQuery(initialItems?: CartItem[]) {
   const { shipping } = useSiteSettings();
   /* shipping.enabled = false → 무료배송 정책 자체 비활성 (모든 결제에 base_fee).
      true → free_threshold 이상 무료. */
@@ -178,6 +142,9 @@ export function useCartQuery() {
     /* 모바일 일시 단절 대응 — 카트만 retry:2 + 지수 백오프 (silent F-07). */
     retry: 2,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
+    /* S199 — server prefetch (인증 카트 page.tsx) 시 SSR HTML 즉시 정확 렌더 + flash 차단.
+       initialItems 제공 시 isLoading=false 즉시 진입 → skeleton skip. */
+    initialData: initialItems,
   });
 
   const items: CartItem[] = query.data ?? [];
