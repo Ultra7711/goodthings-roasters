@@ -122,11 +122,9 @@ function buildOverlayContent({
   const wrap = document.createElement('div');
   wrap.className = 'st-map-overlay';
   wrap.addEventListener('mousedown', (e) => {
-    console.log('[KakaoMap][diag] mousedown on overlay, t=', Date.now());
     e.stopPropagation(); onInteract();
   });
   wrap.addEventListener('touchstart', (e) => {
-    console.log('[KakaoMap][diag] touchstart on overlay, t=', Date.now());
     e.stopPropagation();
   }, { passive: false });
   wrap.addEventListener('click', (e) => e.stopPropagation());
@@ -151,7 +149,6 @@ function buildOverlayContent({
   toLink.rel = 'noopener noreferrer';
   toLink.textContent = '길찾기';
   toLink.addEventListener('click', (e) => {
-    console.log('[KakaoMap][diag] 길찾기 click, t=', Date.now());
     e.stopPropagation();
   });
 
@@ -162,7 +159,6 @@ function buildOverlayContent({
   detailLink.rel = 'noopener noreferrer';
   detailLink.textContent = '상세보기';
   detailLink.addEventListener('click', (e) => {
-    console.log('[KakaoMap][diag] 상세보기 click, t=', Date.now());
     e.stopPropagation();
   });
 
@@ -268,7 +264,6 @@ export default function KakaoMap({
             recenter(true);
           });
           kakao.event.addListener(map, 'click', () => {
-            console.log('[KakaoMap][diag] map click, overlayInteracted=', overlayInteracted, 't=', Date.now());
             if (overlayInteracted) { overlayInteracted = false; return; }
             if (popupOpen) {
               overlay.setMap(null);

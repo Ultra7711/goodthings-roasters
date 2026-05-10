@@ -48,12 +48,15 @@ export default function SearchResultCard({ result }: Props) {
       >
         <div className="sp-card-thumb" style={{ background: thumbBg }}>
           {firstImg?.src && (
+            /* S208: fill 폐기 + width/height 명시 (GenericCard S198 패턴 답습).
+               cacheComponents Suspense streaming 환경에서 fill 의 부모 layout 측정 race 회피. */
             <Image
               src={firstImg.src}
               alt=""
-              fill
+              width={400}
+              height={400}
               sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
-              style={{ objectFit: 'contain' }}
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               placeholder={productMeta ? 'blur' : 'empty'}
               blurDataURL={productMeta?.blurDataURL}
             />
@@ -94,12 +97,14 @@ export default function SearchResultCard({ result }: Props) {
         style={{ backgroundColor: c.bg || 'var(--color-background-secondary)' }}
       >
         {c.img && (
+          /* S208: fill 폐기 + width/height 명시 (GenericCard S198 패턴 답습). */
           <Image
             src={c.img}
             alt=""
-            fill
+            width={400}
+            height={400}
             sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
-            style={{ objectFit: 'cover' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             placeholder={cafeMeta ? 'blur' : 'empty'}
             blurDataURL={cafeMeta?.blurDataURL}
           />
