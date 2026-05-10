@@ -5,6 +5,24 @@
 
 ---
 
+## Agent skills
+
+mattpocock-skills 의 engineering skill (`diagnose`, `improve-codebase-architecture`, `tdd`, `zoom-out`, `grill-with-docs`) 사용 시 다음 docs 참조.
+
+### Issue tracker
+
+**미사용** — master 직 push 환경. issue 기반 workflow 대신 `memory/project_*_plan.md` (carry-over) 와 `project_session*_complete.md` (세션 스냅샷) 사용. `to-issues` / `to-prd` / `triage` 스킬 미도입.
+
+### Triage labels
+
+**미사용** — issue 자체 안 씀.
+
+### Domain docs
+
+**Single-context.** `CONTEXT.md` (root) + `docs/adr/` + GTR 특화로 `memory/feedback_*.md` / `memory/project_*.md`. 자세한 layout + 소비 규칙은 `docs/agents/domain.md` 참조.
+
+---
+
 ## 프로젝트 개요
 
 - **작업 디렉토리:** `next/` (Next.js App Router)
