@@ -1380,14 +1380,6 @@
   height: 80px;
   color: var(--color-text-secondary);
 }
-.pd-drip-sep {
-  color: #C4C0BA;
-  font-size: var(--type-body-l-size);
-  font-weight: 300;
-  align-self: center;
-  margin-bottom: 4px;
-  padding: 0 2px;
-}
 .pd-drip-step {
   display: flex;
   gap: var(--gap-lg);

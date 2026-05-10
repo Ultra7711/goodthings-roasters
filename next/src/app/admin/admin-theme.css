@@ -91,19 +91,22 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* base reset for the admin console — 시안 tokens.css 의 .gtr-admin 그대로 */
+/* base reset for the admin console — 시안 tokens.css 의 .gtr-admin 그대로.
+   S208: em / ratio → 정수 px 변환 (admin 도 정합 통일).
+   - letter-spacing -0.005em → 0 (16 × -0.005 ≈ -0.08, 사실상 무시 → 제거)
+   - line-height 1.5 → 24px (base 16 × 1.5)
+   - 헤딩 letter-spacing -0.015em → -0.4px (h1~h3 평균 24~32 절충) */
 .gtr-admin {
   font-family: var(--font-sans);
   color: var(--foreground);
   background: var(--background);
-  letter-spacing: -0.005em;
-  line-height: 1.5;
+  line-height: 24px;
   font-feature-settings: 'tnum' on, 'cv11' on;
   -webkit-font-smoothing: antialiased;
 }
 .gtr-admin h1, .gtr-admin h2, .gtr-admin h3 {
   font-weight: 500;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.4px;
 }
 .gtr-admin button, .gtr-admin input, .gtr-admin select, .gtr-admin textarea {
   font-family: inherit;

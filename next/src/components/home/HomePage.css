@@ -185,15 +185,10 @@
   margin-top: 2px;
 }
 
-/* ══ Editorial Heading Utilities (design-interaction-plan §4 ②) ══
-   기존 --type-h1/h2-size 보다 대형 스케일로 에디토리얼 임팩트 강화.
+/* ══ Editorial Heading Utility (design-interaction-plan §4 ②) ══
+   기존 --type-h2-size 보다 대형 스케일로 에디토리얼 임팩트 강화.
    .phil-h · .roastery-h · .season-h 등 기존 섹션 타이틀 클래스와 병용.
-   font-weight 은 기존 셀렉터 값 유지 (300). .ed-* 은 크기·간격만 책임. */
-.ed-h1 {
-  font-size: var(--type-h1-editorial-size);
-  letter-spacing: var(--ls-h1-editorial);
-  line-height: var(--lh-h1-editorial);
-}
+   font-weight 은 기존 셀렉터 값 유지 (300). .ed-h2 는 크기·간격만 책임. */
 .ed-h2 {
   font-family: var(--font-kr);
   font-size: var(--type-h2-editorial-size);
