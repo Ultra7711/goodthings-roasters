@@ -16,8 +16,11 @@ import Link from 'next/link';
 import { getActiveCafeEvent, getComingCafeEvent } from '@/lib/cafeEventsServer';
 import { composeEventEyebrow } from '@/lib/cafeEvents';
 import { CAFE_MENU } from '@/lib/cafeMenu';
+import galleryBlur from '@/lib/gallery-blur.json';
 import EventBanner from './EventBanner';
 import MenuTab from './MenuTab';
+
+const cafeWebpMeta = (galleryBlur as Record<string, { blurDataURL: string }>)['cafe.webp'];
 
 const FEATURED_ITEMS = CAFE_MENU.filter((i) => i.status === '시그니처').slice(0, 3);
 
@@ -60,6 +63,8 @@ export default async function CafeMenuSection() {
             fill
             sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 640px"
             style={{ objectFit: 'cover' }}
+            placeholder={cafeWebpMeta ? 'blur' : 'empty'}
+            blurDataURL={cafeWebpMeta?.blurDataURL}
           />
           {/* S152 — 사진 전체 클릭 시 /menu 이동 (태블릿/모바일 MenuTab 숨김 시 진입 보장) */}
           <Link

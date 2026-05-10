@@ -25,11 +25,13 @@
 
 import './StoryPage.css';
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import {
   STORY_HERO,
   STORY_LOCATION,
   STORY_PROMISE,
   STORY_TWO_COL,
+  getStoryImageMeta,
   type StoryTwoColItem,
 } from '@/lib/story';
 import KakaoMap from './KakaoMap';
@@ -126,10 +128,18 @@ export default function StoryPage() {
     <div id="st-body" ref={bodyRef}>
       {/* ── HERO ── */}
       <section className="st-hero" data-header-theme="dark">
-        <div
-          className="st-hero-bg"
-          style={{ backgroundImage: `url('${STORY_HERO.background}')` }}
-        />
+        <div className="st-hero-bg">
+          <Image
+            src={STORY_HERO.background}
+            alt=""
+            fill
+            sizes="100vw"
+            priority
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+            placeholder={getStoryImageMeta(STORY_HERO.background) ? 'blur' : 'empty'}
+            blurDataURL={getStoryImageMeta(STORY_HERO.background)?.blurDataURL}
+          />
+        </div>
         <div className="st-hero-content">
           <h1 ref={heroEnRef} className="st-hero-en">
             {STORY_HERO.en}
@@ -223,10 +233,17 @@ function StoryTwoColSection({ item, bgVariant }: { item: StoryTwoColItem; bgVari
           </p>
         </div>
         <div className="st-col-img">
-          <div
-            className="st-img-placeholder sr-img"
-            style={{ backgroundImage: `url('${item.image}')` }}
-          />
+          <div className="st-img-placeholder sr-img">
+            <Image
+              src={item.image}
+              alt={item.label}
+              fill
+              sizes="(max-width: 767px) 100vw, 50vw"
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
+              placeholder={getStoryImageMeta(item.image) ? 'blur' : 'empty'}
+              blurDataURL={getStoryImageMeta(item.image)?.blurDataURL}
+            />
+          </div>
         </div>
       </div>
     </section>

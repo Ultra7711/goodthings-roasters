@@ -28,10 +28,8 @@
 .st-hero-bg {
   position: absolute;
   inset: 0;
-  background-color: var(--color-background-inverse); /* 이미지 로드 전 다크 배경 유지 */
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
+  background-color: var(--color-background-inverse); /* 이미지 로드 전 다크 배경 유지 (fallback) */
+  overflow: hidden;
 }
 .st-hero-bg::after {
   content: '';
@@ -145,13 +143,8 @@
 .st-img-placeholder {
   position: absolute;
   inset: 0;
-  background-color: var(--color-background-secondary);
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background-color: var(--color-background-secondary); /* fallback */
+  overflow: hidden;
 }
 .st-col-txt {
   display: flex;

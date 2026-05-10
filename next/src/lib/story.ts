@@ -6,6 +6,19 @@
    - 영문 본문은 sentence case + 브랜드명만 영문 유지(`굳띵즈`)
    ══════════════════════════════════════════ */
 
+import storyBlurRaw from './story-blur.json';
+
+export type StoryImageMeta = { blurDataURL: string; width: number; height: number };
+
+const storyBlurMap: Record<string, StoryImageMeta> = storyBlurRaw as Record<string, StoryImageMeta>;
+
+/** img path 에서 filename 추출 후 story-blur.json lookup. 매치 없으면 undefined. */
+export function getStoryImageMeta(imgPath: string): StoryImageMeta | undefined {
+  const filename = imgPath.split('/').pop();
+  if (!filename) return undefined;
+  return storyBlurMap[filename];
+}
+
 export type StoryTwoColItem = {
   label: string;
   heading: string;

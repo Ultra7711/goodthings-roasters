@@ -38,6 +38,16 @@ const BUILDS = [
     srcDir: join(ROOT, 'public', 'images', 'products'),
     outFile: join(ROOT, 'src', 'lib', 'products-blur.json'),
   },
+  {
+    label: 'story',
+    srcDir: join(ROOT, 'public', 'images', 'story'),
+    outFile: join(ROOT, 'src', 'lib', 'story-blur.json'),
+  },
+  {
+    label: 'gallery-home',
+    srcDir: join(ROOT, 'public', 'images', 'gallery'),
+    outFile: join(ROOT, 'src', 'lib', 'gallery-blur.json'),
+  },
 ];
 
 /**
