@@ -25,6 +25,7 @@ import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
 import { BUSINESS_INFO } from '@/lib/constants';
+import { CloseIcon } from '@/components/ui/Icons';
 
 const FTC_BIZ_LOOKUP_URL = `https://www.ftc.go.kr/bizCommPop.do?wrkr_no=${BUSINESS_INFO.registrationNumber.replace(/-/g, '')}`;
 
@@ -263,10 +264,7 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
               aria-label="메뉴 닫기"
               onClick={onClose}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19,5l-14,14" />
-                <path d="M5,5l14,14" />
-              </svg>
+              <CloseIcon size={24} />
             </button>
           </div>
         </div>

@@ -35,6 +35,7 @@ import { buildGoodDaysGrid, type GdGalleryItem } from '@/lib/gooddays';
 import LightboxNextJsImage from './LightboxNextJsImage';
 import MobileZoneTap from './MobileZoneTap';
 import GdCloseButton from './GdCloseButton';
+import { CloseIcon } from '@/components/ui/Icons';
 
 type GdSlide = SlideImage & { blurDataURL?: string };
 
@@ -437,22 +438,7 @@ export default function GoodDaysPage({ initialImgSrc, gallery }: Props) {
           iconZoomIn: () => <ZoomIn size={28} strokeWidth={1.5} aria-hidden="true" />,
           iconZoomOut: () => <ZoomOut size={28} strokeWidth={1.5} aria-hidden="true" />,
           /* 닫기 X — GTR 표준 디자인 (CartDrawer · CafeNutritionSheet 동일) */
-          iconClose: () => (
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M19,5l-14,14" />
-              <path d="M5,5l14,14" />
-            </svg>
-          ),
+          iconClose: () => <CloseIcon size={28} strokeWidth={1.5} />,
           /* 모바일은 핀치 제스처로 줌 → +/- 버튼 hide. 데스크탑은 default 노출. */
           buttonZoom: isMobile ? () => null : undefined,
         }}

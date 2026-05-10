@@ -28,10 +28,28 @@ export function InfoCircleIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-export function CloseIcon({ size = 24 }: { size?: number }) {
+/* X close 아이콘 — 표준 spec.
+   - size 24 / strokeWidth 2: 시트·드로어·모달 close 기본
+   - size 28 / strokeWidth 1.5: lightbox·풀 오버레이 close
+   - path 14×14 (5,5 ~ 19,19) — 좌우 5px 인셋, 시각적으로 명확. */
+export function CloseIcon({
+  size = 24,
+  strokeWidth = 2,
+}: { size?: number; strokeWidth?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...SVG_DEFAULTS}>
-      <path d="M6 6l12 12M18 6L6 18" />
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M19,5l-14,14" />
+      <path d="M5,5l14,14" />
     </svg>
   );
 }

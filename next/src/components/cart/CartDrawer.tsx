@@ -25,6 +25,7 @@ import { useDrawer } from '@/hooks/useDrawer';
 import { useNavigation } from '@/hooks/useNavigation';
 import { formatPrice } from '@/lib/utils';
 import OrderItemRow from '@/components/order/OrderItemRow';
+import { CloseIcon } from '@/components/ui/Icons';
 import { useEffect, useRef, useCallback } from 'react';
 
 export default function CartDrawer() {
@@ -113,10 +114,7 @@ export default function CartDrawer() {
             aria-label="장바구니 닫기"
             onClick={() => closeWithoutAnimation(close)}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19,5l-14,14" />
-              <path d="M5,5l14,14" />
-            </svg>
+            <CloseIcon size={24} />
           </button>
         </div>
 
