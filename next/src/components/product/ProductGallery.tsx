@@ -10,13 +10,14 @@
 'use client';
 
 import { type CSSProperties, useEffect, useState } from 'react';
+import Image from 'next/image';
 import Lightbox, { type SlideImage } from 'yet-another-react-lightbox';
 import Inline from 'yet-another-react-lightbox/plugins/inline';
 import Thumbnails from 'yet-another-react-lightbox/plugins/thumbnails';
 import 'yet-another-react-lightbox/styles.css';
 import 'yet-another-react-lightbox/plugins/thumbnails.css';
-import type { ProductImage, ProductStatus } from '@/lib/products';
-import { getStatusBadgeClass } from '@/lib/products';
+import type { ProductImage, ProductImageMeta, ProductStatus } from '@/lib/products';
+import { getProductImageMeta, getStatusBadgeClass } from '@/lib/products';
 
 type Props = {
   images: ProductImage[];
@@ -25,7 +26,7 @@ type Props = {
 };
 
 /** yarl SlideImage 에 ProductImage 메타데이터 attach — render.slide / render.thumbnail 에서 사용 */
-type GallerySlide = SlideImage & { _img: ProductImage };
+type GallerySlide = SlideImage & { _img: ProductImage; _meta: ProductImageMeta | undefined };
 
 /** 이미지 한 장을 background 쇼트핸드로 변환 — bg 그라데이션 + src contain 합성 */
 function imageBg(img: ProductImage): string {
@@ -54,10 +55,11 @@ export default function ProductGallery({ images, status }: Props) {
     );
   }
 
-  /* yarl 슬라이드 객체 — _img 메타데이터로 ProductImage 보존 */
+  /* yarl 슬라이드 객체 — _img + _meta (LQIP blurDataURL) */
   const slides: GallerySlide[] = images.map((img, i) => ({
     src: img.src || `pd-slide-${i}`,
     _img: img,
+    _meta: img.src ? getProductImageMeta(img.src) : undefined,
   }));
 
   const multi = images.length > 1;
@@ -110,9 +112,24 @@ export default function ProductGallery({ images, status }: Props) {
             : undefined
         }
         render={{
-          slide: ({ slide }) => {
+          slide: ({ slide, offset }) => {
             const s = slide as GallerySlide;
-            return <div className="pd-yarl-slide-bg" style={{ background: imageBg(s._img) }} />;
+            return (
+              <div className="pd-yarl-slide-bg" style={{ background: s._img.bg }}>
+                {s._img.src && (
+                  <Image
+                    src={s._img.src}
+                    alt=""
+                    fill
+                    sizes="(max-width: 767px) 100vw, 50vw"
+                    style={{ objectFit: 'contain' }}
+                    placeholder={s._meta ? 'blur' : 'empty'}
+                    blurDataURL={s._meta?.blurDataURL}
+                    priority={offset === 0}
+                  />
+                )}
+              </div>
+            );
           },
           thumbnail: ({ slide }) => {
             const s = slide as GallerySlide;
