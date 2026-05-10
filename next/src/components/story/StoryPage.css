@@ -110,6 +110,12 @@
 }
 
 /* ── Two-column 섹션 (COFFEE / BREWING / BAKERY) ── */
+/* blk--bg-secondary 가 없는 짝수 섹션에 bg 명시.
+   root[data-dest-dark] 영구 유지(S203 fix 이후) 로 누락 bg 가 다크로 노출되는 현상 방지.
+   blk--bg-secondary 섹션은 globals.css .blk--bg-secondary 가 커버하므로 :not() 로 제외. */
+.st-two-col:not(.blk--bg-secondary) {
+  background: var(--color-background-primary);
+}
 .st-two-col {
   padding: 120px 0;
   overflow: hidden;
@@ -216,7 +222,9 @@
 }
 
 /* ── Location 섹션 (2fr:1fr 그리드, 560px) ── */
+/* bg 명시 — root[data-dest-dark] 영구 유지로 누락 bg 가 다크로 노출되는 현상 방지 (S203 동일 패턴). */
 .st-location {
+  background: var(--color-background-primary);
   margin-top: 120px;
   margin-bottom: 80px;
   overflow: hidden;
