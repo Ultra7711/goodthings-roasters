@@ -27,7 +27,7 @@ import {
 } from '@/lib/subscription/cycles';
 import { PRODUCTS } from '@/lib/products';
 import { parsePrice } from '@/lib/utils';
-import { getSessionSnapshot } from '@/hooks/useSupabaseSession';
+import { awaitSessionReady, getSessionSnapshot, useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { showToast } from '@/lib/toastStore';
 import { useSiteSettings } from '@/components/providers/SiteSettingsProvider';
 import {
@@ -111,6 +111,10 @@ function findDuplicateIdx(
    ══════════════════════════════════════════ */
 
 async function fetchCart(): Promise<CartItem[]> {
+  /* session init race 방어 — INITIAL_SESSION 이벤트 수신 전 isLoggedIn=false 로
+     잘못 분기하면 로그인 사용자가 빈 게스트 카트를 보게 되는 버그 (S203).
+     await 후 정확한 isLoggedIn 분기. */
+  await awaitSessionReady();
   const isLoggedIn = getSessionSnapshot().isLoggedIn;
   if (!isLoggedIn) {
     return readGuestCart();
@@ -130,6 +134,11 @@ async function fetchCart(): Promise<CartItem[]> {
 
 export function useCartQuery(initialItems?: CartItem[]) {
   const { shipping } = useSiteSettings();
+  /* session init 전 fetchCart 가 isLoggedIn=false 로 분기하여 빈 게스트 카트를
+     반환하면 로그인 사용자에게 cart=0 으로 잘못 표시 (S203 fix).
+     await awaitSessionReady() 가 fetchCart 안에 있어 이중 안전 — 추가로 enabled
+     플래그로 fetch 시작 자체를 session ready 까지 보류. */
+  const { isLoading: sessionLoading } = useSupabaseSession();
   /* shipping.enabled = false → 무료배송 정책 자체 비활성 (모든 결제에 base_fee).
      true → free_threshold 이상 무료. */
   const FREE_THRESHOLD = shipping.enabled ? shipping.free_threshold : Infinity;
@@ -138,6 +147,7 @@ export function useCartQuery(initialItems?: CartItem[]) {
   const query = useQuery({
     queryKey: CART_QUERY_KEY,
     queryFn: fetchCart,
+    enabled: !sessionLoading,
     staleTime: 30_000,
     /* 모바일 일시 단절 대응 — 카트만 retry:2 + 지수 백오프 (silent F-07). */
     retry: 2,
@@ -190,6 +200,7 @@ export function useAddCartItem() {
      사용자가 휴지통 클릭해도 server uuid 로 DELETE 호출되어 정상 삭제. */
   return useMutation<ServerCartRow | null, Error, AddToCartPayload, MutationCtx>({
     mutationFn: async (payload) => {
+      await awaitSessionReady();
       const isLoggedIn = getSessionSnapshot().isLoggedIn;
       if (!isLoggedIn) return null; /* 게스트: onMutate 에서 localStorage 반영 완료 */
       const input = payloadToInput(payload);
@@ -205,6 +216,7 @@ export function useAddCartItem() {
       return body.data?.item ?? null;
     },
     onMutate: async (payload) => {
+      await awaitSessionReady();
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
       const previous = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY);
       const wasLoggedIn = getSessionSnapshot().isLoggedIn;
@@ -268,6 +280,7 @@ export function useUpdateCartQty() {
     MutationCtx & { nextQty: number }
   >({
     mutationFn: async ({ id }) => {
+      await awaitSessionReady();
       const isLoggedIn = getSessionSnapshot().isLoggedIn;
       if (!isLoggedIn) return;
       /* delta 는 onMutate 에서 이미 nextQty 로 환산되어 캐시에 반영됨.
@@ -284,6 +297,7 @@ export function useUpdateCartQty() {
       if (!res.ok) throw new Error(`http_${res.status}`);
     },
     onMutate: async ({ id, delta }) => {
+      await awaitSessionReady();
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
       const previous = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY);
       const wasLoggedIn = getSessionSnapshot().isLoggedIn;
@@ -321,6 +335,7 @@ export function useRemoveCartItem() {
 
   return useMutation<void, Error, string, MutationCtx>({
     mutationFn: async (id) => {
+      await awaitSessionReady();
       const isLoggedIn = getSessionSnapshot().isLoggedIn;
       if (!isLoggedIn) return;
       const res = await fetch(`/api/cart/${id}`, {
@@ -330,6 +345,7 @@ export function useRemoveCartItem() {
       if (!res.ok) throw new Error(`http_${res.status}`);
     },
     onMutate: async (id) => {
+      await awaitSessionReady();
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
       const previous = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY);
       const wasLoggedIn = getSessionSnapshot().isLoggedIn;

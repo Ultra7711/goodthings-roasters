@@ -72,6 +72,25 @@ export function getSessionSnapshot() {
 }
 
 /**
+ * INITIAL_SESSION 이벤트 수신 완료까지 await.
+ * fetchCart / mutation fn 등이 session init 전 isLoggedIn=false 로 잘못 분기하여
+ * 게스트 모드로 떨어지는 race 방어.
+ */
+export function awaitSessionReady(): Promise<void> {
+  ensureSubscribed();
+  if (!currentSnapshot.isLoading) return Promise.resolve();
+  return new Promise<void>((resolve) => {
+    const listener = () => {
+      if (!currentSnapshot.isLoading) {
+        listeners.delete(listener);
+        resolve();
+      }
+    };
+    listeners.add(listener);
+  });
+}
+
+/**
  * Supabase session 구독 훅.
  * - `isLoggedIn`: `session` 유무
  * - `user`: session.user (없으면 null)
