@@ -14,6 +14,7 @@
 
 import { useEffect } from 'react';
 import { useDrawer } from '@/hooks/useDrawer';
+import { useHistoryDismiss } from '@/hooks/useHistoryDismiss';
 import {
   CAFE_CATEGORY_LABEL,
   type CafeMenuItem,
@@ -30,6 +31,9 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
 
   // ESC 닫기 + body scroll lock — 공통 드로어 훅
   useDrawer({ open, onClose });
+
+  // 브라우저 back 버튼 = 시트 닫기 + bfcache 복원 시 강제 닫기 (S204)
+  useHistoryDismiss({ open, onClose, scope: 'cafe-nutri-sheet' });
 
   // 배경 터치무브 차단 — iOS에서 body.overflow:hidden 우회 방지
   useEffect(() => {

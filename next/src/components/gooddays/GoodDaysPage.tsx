@@ -36,6 +36,7 @@ import LightboxNextJsImage from './LightboxNextJsImage';
 import MobileZoneTap from './MobileZoneTap';
 import GdCloseButton from './GdCloseButton';
 import { CloseIcon } from '@/components/ui/Icons';
+import { useHistoryDismiss } from '@/hooks/useHistoryDismiss';
 
 type GdSlide = SlideImage & { blurDataURL?: string };
 
@@ -261,12 +262,28 @@ export default function GoodDaysPage({ initialImgSrc, gallery }: Props) {
     setLbOpen(true);
   }, []);
 
-  /* 라이트박스 close — ?img= URL 정리.
-     URL 이 이미 /gooddays 면 router.replace no-op 처리됨. */
+  /* 라이트박스 close — setLbOpen(false) 만 호출.
+     - 셀 클릭으로 open 한 경우: useHistoryDismiss 가 transition 감지해서 history.back 발화 →
+       popstate → onClose (idempotent setLbOpen(false)).
+     - ?img= 진입 케이스의 URL 정리는 아래 별도 effect 가 lbOpen=false 감지 시 router.replace.
+     S204 백버튼 dismiss 통합. */
   const handleClose = useCallback(() => {
     setLbOpen(false);
-    router.replace('/gooddays', { scroll: false });
-  }, [router]);
+  }, []);
+
+  /* 브라우저 back 버튼 = 라이트박스 닫기 + bfcache 복원 시 강제 닫기 (S204).
+     ?img= 진입 시 마운트 시점 lbOpen=true 는 transition 으로 보지 않으므로 marker push 안 함 →
+     이전 페이지로의 back 동작 그대로 유지. 셀 클릭으로 open 시에만 marker push 발생. */
+  useHistoryDismiss({ open: lbOpen, onClose: handleClose, scope: 'gd-lightbox' });
+
+  /* lbOpen=false 진입 시 ?img= 가 URL 에 남아 있으면 정리.
+     기존 router.replace 호출을 별도 effect 로 분리 — useHistoryDismiss 의 history.back 와
+     동시 실행되는 race 회피. */
+  useEffect(() => {
+    if (!lbOpen && searchParams.get('img')) {
+      router.replace('/gooddays', { scroll: false });
+    }
+  }, [lbOpen, searchParams, router]);
 
   /* 라이트박스 open 시 body overflow:hidden — yarl noScroll 비활성 대신 직접 관리.
      자체 등록 리소스 (cleanup 패턴 안전 — feedback_useeffect_cleanup_self_destruct).

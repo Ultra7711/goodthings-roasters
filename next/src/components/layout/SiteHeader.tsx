@@ -20,6 +20,7 @@ import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { useCartQuery } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useDrawer } from '@/hooks/useDrawer';
+import { useHistoryDismiss } from '@/hooks/useHistoryDismiss';
 import { ClearIcon } from '@/components/ui/InputIcons';
 import MobileNavDrawer from '@/components/layout/MobileNavDrawer';
 
@@ -100,6 +101,10 @@ export default function SiteHeader() {
      - restoreFocus=false: openSearch 가 input 에 focus 를 이동시키므로 trigger 저장
        시점 activeElement=input → close 시 input 재-focus 로 가상 키보드 재호출 방지 */
   useDrawer({ open: isSearchOpen, onClose: closeSearch, restoreFocus: false });
+
+  /* S204: 브라우저 back 버튼 = 검색 패널 닫기 + bfcache 복원 시 강제 닫기.
+     mobileNav 와 scope 분리 ('search-panel' vs 'gtrMobileNav' 키 — 충돌 방지). */
+  useHistoryDismiss({ open: isSearchOpen, onClose: closeSearch, scope: 'search-panel' });
 
   /* BUG-006 Stage D-4 2단계 (2026-04-24): history API 기반 drawer close.
      모바일 네이티브 UX — drawer 열기 시 history entry 추가, 브라우저 back 으로
