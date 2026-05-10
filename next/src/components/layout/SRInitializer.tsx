@@ -17,16 +17,26 @@ export default function SRInitializer() {
   const pathname = usePathname();
   const isFirstRunRef = useRef(true);
 
-  /* 스크롤바 거터 폭을 CSS 변수로 설정 — 마운트 1회.
+  /* 스크롤바 거터 폭을 CSS 변수로 설정 — 마운트 + resize 마다 재측정.
      html { scrollbar-gutter: stable } 이 항상 거터 공간을 예약하므로
      overflow 유무와 무관하게 innerWidth - clientWidth = 거터 폭.
-     #search-drop / #search-dim 의 right 오프셋에 활용해
-     패널이 스크롤바 영역으로 삐져 나가지 않도록 한다. */
+     #search-drop / #search-dim · drawer panel.right 오프셋에 활용해
+     패널이 스크롤바 영역으로 삐져 나가지 않도록 한다.
+
+     resize 대응 (S203): 데스크탑→모바일 viewport 전환 시 stale 값(16px)
+     유지되면 모바일 drawer 가 우측 16px 음수 보정으로 좌측 끝까지 안 닿는
+     버그 발생. resize 마다 재측정 + sw≤0 시 명시적 0 설정으로 reset. */
   useEffect(() => {
-    const sw = window.innerWidth - document.documentElement.clientWidth;
-    if (sw > 0) {
-      document.documentElement.style.setProperty('--scrollbar-w', `${sw}px`);
-    }
+    const measure = () => {
+      const sw = window.innerWidth - document.documentElement.clientWidth;
+      document.documentElement.style.setProperty(
+        '--scrollbar-w',
+        `${sw > 0 ? sw : 0}px`,
+      );
+    };
+    measure();
+    window.addEventListener('resize', measure, { passive: true });
+    return () => window.removeEventListener('resize', measure);
   }, []);
 
   useEffect(() => {
