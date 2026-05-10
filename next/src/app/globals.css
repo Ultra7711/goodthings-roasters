@@ -279,16 +279,16 @@
   --lh-chapter-sub: 24px;   /* mobile 20 × 1.20 / tablet 24 × 1.33 / desktop 28 × 1.29 */
   --lh-h1-editorial: 40px;  /* mobile 32 × 1.25 / tablet 44 × 1.18 / desktop 52 × 1.23 */
   --lh-h2-editorial: 32px;  /* mobile 28 × 1.14 / tablet 36 × 1.22 / desktop 44 × 1.18 */
+  --lh-hero-editorial: 56px; /* mobile 48 / tablet 88 / desktop 120 — S208 8px grid 정합 (1.05 ratio → 정수 px) */
 
   /* ── Editorial Typography Scale (Session 60 · design-interaction-plan §4 ②) ──
      히어로·주요 섹션 헤딩의 매거진급 임팩트 스케일. 기존 --type-display/h1/h2 와 병존.
-     S140: clamp() → 미디어쿼리 분기 mobile base. tracking/leading 은 PR-3/PR-2 에서 변환. */
+     S140: clamp() → 미디어쿼리 분기 mobile base.
+     S208: tracking(em) / leading(ratio) → 정수 px + 8px grid 정합 (--ls-hero-editorial / --lh-hero-editorial). */
   --type-hero-editorial-size: 48px;                                  /* mobile · tablet 80 / desktop 112 */
   --type-hero-editorial-weight: 300;                                 /* 기본 (단일 라인용) */
   --type-hero-editorial-weight-soft: 200;                            /* A안: 1라인 (보조) */
   --type-hero-editorial-weight-strong: 500;                          /* A안: 2라인 (강조) */
-  --type-hero-editorial-tracking: -0.025em;
-  --type-hero-editorial-leading: 1.05;
   --type-h1-editorial-size: 32px;                                    /* mobile · tablet 44 / desktop 52 */
   --type-h2-editorial-size: 28px;                                    /* mobile · tablet 36 / desktop 44 */
 
@@ -409,6 +409,7 @@
   --ls-display: -0.7px;       /* mobile 36 × -0.02 / tablet 56 / desktop 72 분기 */
   --ls-heading: -0.3px;       /* mobile 32 × -0.01 (H1) / tablet 36 / desktop 40 분기 */
   --ls-h1-editorial: -0.5px;  /* mobile 32 × -0.015 / tablet 44 / desktop 52 분기 */
+  --ls-hero-editorial: -1px;  /* mobile 48 / tablet -2 / desktop -3 — S208 em → 정수 px */
   --ls-neutral: 0;
   --ls-body-s: 0.1px;         /* 13 × 0.01 = 0.13 → 0.1 */
   --ls-body: 0.3px;           /* 15 × 0.02 = 0.3 */
@@ -527,10 +528,12 @@
     --lh-chapter-sub: 32px;
     --lh-h1-editorial: 52px;
     --lh-h2-editorial: 44px;
+    --lh-hero-editorial: 88px;  /* 80 × 1.10 (S208 — 1.05 ratio 84 → 8px grid 88) */
     /* 헤딩 letter-spacing 분기 (S142 PR-3) */
     --ls-display: -1.1px;       /* 56 × -0.02 = -1.12 → -1.1 */
     --ls-heading: -0.4px;       /* 36 × -0.01 = -0.36 → -0.4 */
     --ls-h1-editorial: -0.7px;  /* 44 × -0.015 = -0.66 → -0.7 */
+    --ls-hero-editorial: -2px;  /* 80 × -0.025 = -2 (S208) */
     /* padding/section 분기 (S142 PR-3) */
     --space-20: 64px;
     --space-24: 80px;
@@ -561,10 +564,12 @@
     --lh-chapter-sub: 36px;
     --lh-h1-editorial: 64px;
     --lh-h2-editorial: 52px;
+    --lh-hero-editorial: 120px; /* 112 × 1.07 (S208 — 1.05 ratio 117.6 → 8px grid 120) */
     /* 헤딩 letter-spacing 분기 (S142 PR-3) */
     --ls-display: -1.4px;       /* 72 × -0.02 = -1.44 → -1.4 */
     --ls-heading: -0.4px;       /* 40 × -0.01 = -0.4 */
     --ls-h1-editorial: -0.8px;  /* 52 × -0.015 = -0.78 → -0.8 */
+    --ls-hero-editorial: -3px;  /* 112 × -0.025 = -2.8 → -3 (S208) */
     /* padding/section 분기 (S142 PR-3) */
     --space-20: 80px;
     --space-24: 96px;

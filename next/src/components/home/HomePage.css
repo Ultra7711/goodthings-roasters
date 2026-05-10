@@ -121,8 +121,8 @@
 .hero-slogan {
   font-family: var(--font-en);
   font-size: var(--type-hero-editorial-size);
-  letter-spacing: var(--type-hero-editorial-tracking);
-  line-height: var(--type-hero-editorial-leading);
+  letter-spacing: var(--ls-hero-editorial);
+  line-height: var(--lh-hero-editorial);
   display: flex;
   flex-direction: column;
   opacity: 0;
