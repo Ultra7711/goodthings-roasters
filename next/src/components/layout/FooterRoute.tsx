@@ -13,14 +13,20 @@
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 
-const FOOTER_HIDDEN = ['/order-complete', '/dev/order-complete'];
+/** 정확 일치 또는 하위 경로 매칭으로 footer 숨김 */
+const FOOTER_HIDDEN = ['/order-complete', '/dev/order-complete', '/cart'];
 
 type Props = { children: ReactNode };
 
 export default function FooterRoute({ children }: Props) {
   const pathname = usePathname();
-  if (pathname && FOOTER_HIDDEN.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
-    return null;
-  }
+  if (!pathname) return <>{children}</>;
+
+  // 정확 일치 / 하위 경로
+  if (FOOTER_HIDDEN.some((p) => pathname === p || pathname.startsWith(p + '/'))) return null;
+
+  // PDP: /shop/[slug] — /shop 목록은 유지, /shop/ 하위만 제거
+  if (pathname.startsWith('/shop/')) return null;
+
   return <>{children}</>;
 }
