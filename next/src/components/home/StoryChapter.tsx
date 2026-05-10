@@ -12,10 +12,19 @@ import Link from 'next/link';
 
 /* 메인 → 굿데이즈 ?img= 진입 시 cream→black 1단계 flash 차단.
    body.gd-route-transition → fixed 검정 오버레이 → Suspense fallback 검정 →
-   라이트박스 검정으로 자연 전환. GoodDaysPage 마운트 시 클래스 제거. */
+   라이트박스 검정으로 자연 전환. GoodDaysPage 마운트 시 클래스 제거.
+
+   S205 fix: 사용자가 GoodDaysPage 라이트박스 entered 발화 전에 백버튼을 누른 경우,
+   GoodDaysPage 의 safetyTimer cleanup 이 timer 만 clear 하고 body class 는 제거하지 않아
+   ::before 가 홈에 잔존하는 버그 (다크 빈 페이지). 클릭 시점에 fallback timer 등록 →
+   2000ms 후 어떤 경로로든 body class 강제 제거. 정상 flow 가 먼저 발화하면 idempotent. */
 function handleMomentClick() {
   if (typeof document !== 'undefined') {
     document.body.classList.add('gd-route-transition');
+    window.setTimeout(() => {
+      document.body.classList.remove('gd-route-transition');
+      document.body.classList.remove('gd-route-transition--fade');
+    }, 2000);
   }
 }
 
