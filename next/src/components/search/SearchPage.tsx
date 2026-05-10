@@ -3,6 +3,8 @@
    URL `?q=<query>` 읽어 검색 실행 → 결과 리스트 렌더.
    - 입력란은 별도로 두지 않음 — 쿼리 수정은 헤더 검색 버튼으로 패널을 열어 수행.
    - Next.js 16 `useSearchParams()` 는 Suspense 필요 → route page 에서 감쌈.
+   - 페이지네이션 없음: 카탈로그 규모상 검색 결과가 50건 미만으로 전체 표시.
+     페이지 단위 slice 후 그룹화 시 카테고리가 페이지 경계에서 분리되는 버그 원천 제거.
    ══════════════════════════════════════════ */
 
 'use client';
@@ -10,11 +12,9 @@
 import './SearchPage.css';
 /* sp-card-* 디자인 spec 답습 — SearchResultCard 가 사용. ShopPage CSS 보장. */
 import '@/components/shop/ShopPage.css';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSearch } from '@/hooks/useSearch';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { SP_PER_PAGE, SP_PER_PAGE_MOBILE } from '@/lib/products';
 import SearchResultCard from './SearchResultCard';
 import SearchEmpty from './SearchEmpty';
 import type { SearchResult } from '@/lib/search/types';
@@ -55,19 +55,7 @@ export default function SearchPage() {
   /* Committed-search: URL = 확정 쿼리. 재검색은 헤더 검색 버튼으로 패널을 열어 수행. */
   const { query, results, hasQuery, hasResults } = useSearch(initialQuery);
 
-  const [page, setPage] = useState(1);
-  const isMobile = useMediaQuery('(max-width: 479px)');
-  const perPage = isMobile ? SP_PER_PAGE_MOBILE : SP_PER_PAGE;
-  const totalPages = Math.max(1, Math.ceil(results.length / perPage));
-  const currentPage = Math.min(page, totalPages);
-  const start = (currentPage - 1) * perPage;
-  const pageItems = results.slice(start, start + perPage);
-  const groups = useMemo(() => groupResults(pageItems), [pageItems]);
-
-  function handlePageChange(next: number) {
-    setPage(next);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+  const groups = useMemo(() => groupResults(results), [results]);
 
   return (
     <div className="search-page-wrap">
@@ -83,65 +71,24 @@ export default function SearchPage() {
         {!hasQuery || !hasResults ? (
           <SearchEmpty query={query} hasQuery={hasQuery} />
         ) : (
-          <>
-            <div className="sr-rows">
-              {groups.map((g) => (
-                <section className="sr-row" key={g.key} aria-label={g.eyebrow}>
-                  <header className="sr-row-header">
-                    <span className="sr-row-eyebrow">{g.eyebrow}</span>
-                    <span className="sr-row-count">{g.results.length}</span>
-                  </header>
-                  <div className="sr-grid">
-                    {g.results.map((r) => (
-                      <SearchResultCard
-                        key={`${r.kind}-${r.kind === 'product' ? r.item.slug : r.item.id}`}
-                        result={r}
-                      />
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-
-            {totalPages > 1 && (
-              <div id="srp-pagination">
-                <button
-                  className="sp-pg-arrow"
-                  disabled={currentPage === 1}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  aria-label="이전 페이지"
-                  type="button"
-                >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                    <path d="M10 3L5 8l5 5" />
-                  </svg>
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    className={`sp-pg-btn${n === currentPage ? ' active' : ''}`}
-                    onClick={() => handlePageChange(n)}
-                    type="button"
-                  >
-                    {n}
-                  </button>
-                ))}
-
-                <button
-                  className="sp-pg-arrow"
-                  disabled={currentPage === totalPages}
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  aria-label="다음 페이지"
-                  type="button"
-                >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                    <path d="M6 3l5 5-5 5" />
-                  </svg>
-                </button>
-              </div>
-            )}
-          </>
+          <div className="sr-rows">
+            {groups.map((g) => (
+              <section className="sr-row" key={g.key} aria-label={g.eyebrow}>
+                <header className="sr-row-header">
+                  <span className="sr-row-eyebrow">{g.eyebrow}</span>
+                  <span className="sr-row-count">{g.results.length}</span>
+                </header>
+                <div className="sr-grid">
+                  {g.results.map((r) => (
+                    <SearchResultCard
+                      key={`${r.kind}-${r.kind === 'product' ? r.item.slug : r.item.id}`}
+                      result={r}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
         )}
       </div>
     </div>

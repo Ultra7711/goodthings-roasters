@@ -158,15 +158,6 @@
   color: var(--color-text-tertiary);
 }
 
-/* 검색 페이지네이션 */
-#srp-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 48px 0 0;
-}
-
 /* 모바일 검색 결과 */
 @media (max-width: 767px) {
   /* S199 — 데스크탑 100 → 모바일 56 (다른 페이지 정합) */
