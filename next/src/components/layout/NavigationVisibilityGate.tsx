@@ -171,14 +171,16 @@ export default function NavigationVisibilityGate() {
     prevPathRef.current = pathname;
   }, [pathname]);
 
-  /* pageEnter 완료(350ms) + 여유(50ms) 후 data-dest-dark 제거 — 다크 루트 진입 시만 */
-  useEffect(() => {
-    if (!DARK_ROUTES.has(pathname)) return;
-    const root = document.querySelector<HTMLElement>('.root');
-    if (!root || !root.hasAttribute('data-dest-dark')) return;
-    const timer = setTimeout(() => root.removeAttribute('data-dest-dark'), 400);
-    return () => clearTimeout(timer);
-  }, [pathname]);
+  /* S203 — setTimeout 폐기. console log 가 명확히 입증:
+     [101158ms] data-dest-dark = true (capture-phase set)
+     [101572ms] home-body fade animation start (opacity 0)
+     [101665ms] data-dest-dark = REMOVED  ← setTimeout 400ms 발화 시점
+                opacity = 0.835 (1 도달 못 함, 17% 부족 cover)
+                .root bg = light → main 영역 부분 light 노출 = 흰 plash
+     [101921ms] opacity = 1 (fade 완료, 256ms 더 걸림)
+
+     setTimeout race 자체 폐기. 다크 라우트 동안 attribute 영구 유지.
+     다음 비다크 라우트 이동 시 capture-phase 또는 useLayoutEffect 가 제거. */
 
   return null;
 }

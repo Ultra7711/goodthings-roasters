@@ -1691,10 +1691,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cp-skel-footer-btn { width: 100%; border-radius: 0; }
 }
 
-/* ══ 페이지 전환 로딩 셸 ══ */
+/* ══ 페이지 전환 로딩 셸 ══
+   S203 root cause fix — 흰 plash source 확정.
+   light bg fallback 이 page transition 시 다크 라우트 진입에도 light 로 cover →
+   화면 전체 #FBF8F3 light frame. transparent 로 .root data-dest-dark 따라 자동.
+   다크 라우트: .root dark → shell transparent → dark.
+   light 라우트: .root light → shell transparent → light (자기 색 일관). */
 .page-loading-shell {
   min-height: 100dvh;
-  background: var(--color-background-primary);
+  background: transparent;
 }
 .page-loading-shell--dark {
   background: var(--color-background-inverse);
