@@ -166,6 +166,8 @@ src/
 - `console.log` 디버깅 코드 커밋 금지
 - 환경변수는 `.env.local`에만, `.env.example`에 키 목록 유지
 - 매직 넘버 금지 — 상수로 선언
+- **신규 모달/드로어/시트 작성 시 `useHistoryDismiss` hook 사용 의무** (S204 도입). 풀스크린/풀높이 모달은 모바일 back 버튼 = 닫기 가 표준. ConfirmModal 류 (명시 선택 강제) 는 예외. 자세한 패턴: `memory/feedback_modal_history_dismiss_required.md`.
+- **신규 정적 이미지 추가 시 `npm run gen:image-blur` 재실행** (S205 도입). LQIP blurDataURL 자동 생성 → cafe-menu-blur.json / products-blur.json 갱신 → next/image placeholder=blur 자동 적용.
 
 ---
 

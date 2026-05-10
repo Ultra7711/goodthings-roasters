@@ -80,13 +80,14 @@ export default function SiteHeader() {
   }, []);
 
   /* BUG-006 Stage D-4 (2026-04-24): pathname 변경 시 모바일 네비 드로어 자동 close.
-     Activity stale 방어용 — history API 기반 close (아래) 와 중복이지만
-     라우트 전환 시 drawer 가 남는 edge case 방지. */
+     S206: useHistoryDismiss 통합 후에도 Activity stale 방어용으로 유지. */
   const closeSearch = useCallback(() => {
     searchInputRef.current?.blur();
     setIsSearchOpen(false);
     setSearchValue('');
   }, []);
+
+  const closeMobileNav = useCallback(() => setIsMobileNavOpen(false), []);
 
   useEffect(() => {
     setIsMobileNavOpen(false);
@@ -102,50 +103,45 @@ export default function SiteHeader() {
        시점 activeElement=input → close 시 input 재-focus 로 가상 키보드 재호출 방지 */
   useDrawer({ open: isSearchOpen, onClose: closeSearch, restoreFocus: false });
 
-  /* S204: 브라우저 back 버튼 = 검색 패널 닫기 + bfcache 복원 시 강제 닫기.
-     mobileNav 와 scope 분리 ('search-panel' vs 'gtrMobileNav' 키 — 충돌 방지). */
+  /* S204: 브라우저 back 버튼 = 검색 패널 닫기 + bfcache 복원 시 강제 닫기. */
   useHistoryDismiss({ open: isSearchOpen, onClose: closeSearch, scope: 'search-panel' });
 
-  /* BUG-006 Stage D-4 2단계 (2026-04-24): history API 기반 drawer close.
-     모바일 네이티브 UX — drawer 열기 시 history entry 추가, 브라우저 back 으로
-     drawer 만 닫고 페이지는 유지.
+  /* S206: 모바일 네비 드로어도 useHistoryDismiss 로 통합 (S67 BUG-006 Stage D-4 패턴 추출).
+     scope 'mobile-nav' (이전 gtrMobileNav 키 → gtrModal:'mobile-nav' 로 통합).
+     - openMobileNav: closeSearch + setState true → hook 이 marker push
+     - closeMobileNav: setState false → hook 이 history.back (marker 살아있을 때)
+     - closeMobileNavForNavigation: marker 정리 후 setState false (router.push race 회피) */
+  useHistoryDismiss({
+    open: isMobileNavOpen,
+    onClose: closeMobileNav,
+    scope: 'mobile-nav',
+  });
 
-     경로 구분:
-     - openMobileNav: pushState({gtrMobileNav:true}) → back 버튼으로 close 가능
-     - closeMobileNav: X/ESC/backdrop/same-path 용 — history.back() 으로 marker 제거
-     - closeMobileNavForNavigation: Link 클릭 전용 — state 만 false (Link 가 router.push 할 예정) */
   const openMobileNav = useCallback(() => {
-    closeSearch();
+    /* S206: 검색 패널 open 상태에서 햄버거 클릭 시 search-panel marker 를 replaceState 로
+       정리. closeSearch 의 setIsSearchOpen(false) → hook transition 감지 → history.back
+       호출이 새로 push 될 mobile-nav marker 와 race 하는 dirty marker 케이스 회피. */
     if (typeof window !== 'undefined') {
-      window.history.pushState({ gtrMobileNav: true }, '', window.location.href);
+      const state = window.history.state as { gtrModal?: string } | null;
+      if (state?.gtrModal === 'search-panel') {
+        window.history.replaceState(null, '', window.location.href);
+      }
     }
+    closeSearch();
     setIsMobileNavOpen(true);
   }, [closeSearch]);
 
-  const closeMobileNav = useCallback(() => {
-    const state = (typeof window !== 'undefined'
-      ? (window.history.state as { gtrMobileNav?: boolean } | null)
-      : null);
-    if (state?.gtrMobileNav) {
-      /* marker entry 가 있으면 back 으로 제거 → popstate 에서 state 업데이트 */
-      window.history.back();
-    } else {
-      setIsMobileNavOpen(false);
-    }
-  }, []);
-
   const closeMobileNavForNavigation = useCallback(() => {
-    setIsMobileNavOpen(false);
-  }, []);
-
-  /* popstate — 브라우저 back 버튼으로 drawer marker entry 벗어날 때 state 정리.
-     이미 false 여도 noop. */
-  useEffect(() => {
-    function onPopState() {
-      setIsMobileNavOpen(false);
+    /* navigate 동반 close — hook 의 transition 감지가 history.back 호출하기 전에
+       marker 를 replaceState 로 정리. router.push 와 race 회피. CartDrawerContext
+       의 closeForNavigation 과 동일 패턴. */
+    if (typeof window !== 'undefined') {
+      const state = window.history.state as { gtrModal?: string } | null;
+      if (state?.gtrModal === 'mobile-nav') {
+        window.history.replaceState(null, '', window.location.href);
+      }
     }
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
+    setIsMobileNavOpen(false);
   }, []);
 
   /* 클리어 버튼: 입력값 초기화 + 포커스 유지.

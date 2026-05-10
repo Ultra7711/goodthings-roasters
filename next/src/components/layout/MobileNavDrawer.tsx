@@ -96,10 +96,12 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
    * history.back() 사용 시 브라우저 native scroll restoration 이 pushState 시점 scroll 위치로
    * 복원 → 뒤따르는 scrollTo(0) 을 덮는 race 발생. history marker 는 replaceState 로 조용히
    * 정리하고 drawer 는 onNavigate(state false) 로 닫는다.
+   *
+   * S206: marker 키를 useHistoryDismiss 통합 형식 (gtrModal:'mobile-nav') 으로 변경.
    */
   function handleSamePathReset(resetEvent?: string) {
-    const state = window.history.state as { gtrMobileNav?: boolean } | null;
-    if (state?.gtrMobileNav) {
+    const state = window.history.state as { gtrModal?: string } | null;
+    if (state?.gtrModal === 'mobile-nav') {
       window.history.replaceState(null, '', window.location.href);
     }
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -185,11 +187,13 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
    * state 만 false → cart open (자체 marker pushState) → 새 단일 entry 구성.
    * history.back() 경로 사용 시 cart pushState 와 race 가 발생해 entry 꼬임.
    * BUG-133 (S74).
+   *
+   * S206: marker 키를 useHistoryDismiss 통합 형식 (gtrModal:'mobile-nav') 으로 변경.
    */
   function handleCartClick() {
     if (typeof window !== 'undefined') {
-      const state = window.history.state as { gtrMobileNav?: boolean } | null;
-      if (state?.gtrMobileNav) {
+      const state = window.history.state as { gtrModal?: string } | null;
+      if (state?.gtrModal === 'mobile-nav') {
         window.history.replaceState(null, '', window.location.href);
       }
     }
