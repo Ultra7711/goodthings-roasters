@@ -475,16 +475,19 @@
 .cns-image-wrap {
   position: relative;
   flex-shrink: 0;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  /* S205: next/image 'fill' positioning anchor (position:relative + 명시 크기).
+     background-color 는 inline style 로 item.bg 적용 (contain 시 빈 영역 채움). */
   /* sb 영역 위로 확장 → image.bg(item.bg) 가 panel 우측 끝까지 채워
      drawer-bg 흰띠 제거. 모바일은 --scrollbar-w=0 이라 영향 없음. */
   margin-right: calc(var(--scrollbar-w, 0px) * -1);
 }
+/* next/image fill 모드의 자동 absolute inset:0 위에 contain + bottom 정렬.
+   placeholder=blur 가 LQIP 표시 후 자동 fade-in (Next.js 내장). */
 .cns-image {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background-size: contain;
-  background-position: center bottom;
-  background-repeat: no-repeat;
+  object-fit: contain;
+  object-position: center bottom;
 }
 .cns-content {
   /* sb 영역 위로 확장 → cns-content.bg(#F5EFE0) 가 panel 우측 끝까지 채워

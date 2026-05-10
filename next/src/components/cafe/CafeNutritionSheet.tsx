@@ -13,10 +13,12 @@
 'use client';
 
 import { useEffect } from 'react';
+import Image from 'next/image';
 import { useDrawer } from '@/hooks/useDrawer';
 import { useHistoryDismiss } from '@/hooks/useHistoryDismiss';
 import {
   CAFE_CATEGORY_LABEL,
+  getCafeImageMeta,
   type CafeMenuItem,
 } from '@/lib/cafeMenu';
 import { CloseIcon } from '@/components/ui/Icons';
@@ -69,18 +71,24 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
 
         {item && (
           <>
-            <div className="cns-image-wrap">
-              {item.img ? (
-                <div
-                  className="cns-image"
-                  style={{
-                    backgroundImage: `url('${item.img}')`,
-                    backgroundColor: item.bg || 'var(--color-background-secondary)',
-                  }}
-                />
-              ) : (
-                <div className="cns-image" style={{ display: 'none' }} />
-              )}
+            <div
+              className="cns-image-wrap"
+              style={{ backgroundColor: item.bg || 'var(--color-background-secondary)' }}
+            >
+              {item.img && (() => {
+                const meta = getCafeImageMeta(item.img);
+                return (
+                  <Image
+                    src={item.img}
+                    alt=""
+                    fill
+                    sizes="(max-width: 479px) 100vw, 540px"
+                    className="cns-image"
+                    placeholder={meta ? 'blur' : 'empty'}
+                    blurDataURL={meta?.blurDataURL}
+                  />
+                );
+              })()}
             </div>
 
             <div className="cns-content">

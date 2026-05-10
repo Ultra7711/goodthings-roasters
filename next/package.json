@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "gen:cafe-blur": "node scripts/generate-cafe-blur.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

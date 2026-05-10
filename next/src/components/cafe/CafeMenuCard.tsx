@@ -7,6 +7,7 @@
 'use client';
 
 import type { CafeMenuItem, CafeMenuTemp } from '@/lib/cafeMenu';
+import { getCafeImageMeta } from '@/lib/cafeMenu';
 import MenuLikeButton from './MenuLikeButton';
 import MenuCardBadges from './MenuCardBadges';
 import GenericCard from '@/components/common/GenericCard';
@@ -48,6 +49,7 @@ export default function CafeMenuCard({
   onOpenNutrition,
 }: Props) {
   const tempBadge = getTempBadge(item.temp);
+  const imgMeta = getCafeImageMeta(item.img);
 
   const bottomRightSlot = tempBadge ? (
     <div className="cm-temp-badges">
@@ -63,6 +65,7 @@ export default function CafeMenuCard({
       imgSrc={item.img}
       imgAlt={item.name}
       imgBg={item.bg || '#ECEAE6'}
+      imgBlurDataURL={imgMeta?.blurDataURL}
       badgeSlot={<MenuCardBadges menuId={item.id} status={item.status} />}
       topRightSlot={<MenuLikeButton menuId={item.id} menuName={item.name} />}
       bottomRightSlot={bottomRightSlot}

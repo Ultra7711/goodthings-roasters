@@ -82,6 +82,8 @@ type Props = {
   imgStyle?: CSSProperties;
   /** next/image priority — viewport above-fold 카드에 true (LCP 개선) */
   imgPriority?: boolean;
+  /** S205: LQIP blurDataURL — 제공 시 placeholder='blur'. 미제공 시 placeholder='empty'. */
+  imgBlurDataURL?: string;
 
   /** 썸네일 가로:세로 비율 — V2 §2.3 원두 5:4 / 드립백 1:1. default 1:1 */
   thumbAspect?: ThumbAspect;
@@ -120,6 +122,7 @@ export default function GenericCard({
   imgFit,
   imgStyle,
   imgPriority = false,
+  imgBlurDataURL,
   thumbAspect = '1:1',
   badgeSlot,
   topRightSlot,
@@ -223,6 +226,8 @@ export default function GenericCard({
               backgroundColor: imgBg ?? '#f5f5f3',
             }}
             priority={imgPriority}
+            placeholder={imgBlurDataURL ? 'blur' : 'empty'}
+            blurDataURL={imgBlurDataURL}
           />
         ) : (
           <div className={cls.img} style={imgStyle} />

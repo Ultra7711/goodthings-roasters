@@ -3,7 +3,13 @@
    프로토타입 `CAFE_MENU` 배열 + 필터/페이지네이션 유틸 이식.
    - 카페 메뉴는 **매장 메뉴 표시 전용** — 장바구니 연결 없음.
    - 사업자/일반 모드 무관 단일 UI (도매가 없음).
+
+   S205: LQIP (blur placeholder) 통합. cafe-menu-blur.json 은 빌드 스크립트
+         (npm run gen:cafe-blur) 가 public/images/cafe-menu/*.webp 일괄 처리하여
+         생성. CafeNutritionSheet/CafeMenuGrid 가 getCafeImageMeta 로 조회.
    ══════════════════════════════════════════ */
+
+import cafeMenuBlur from './cafe-menu-blur.json';
 
 export type CafeCategory =
   | 'brewing'
@@ -40,6 +46,25 @@ export type CafeMenuItem = {
   caffeine: string;
   allergen: string;
 };
+
+/** 이미지 LQIP 메타데이터 — npm run gen:cafe-blur 가 생성한 cafe-menu-blur.json 에서 lookup */
+export type CafeImageMeta = {
+  blurDataURL: string;
+  width: number;
+  height: number;
+};
+
+const cafeBlurMap: Record<string, CafeImageMeta> = cafeMenuBlur as Record<
+  string,
+  CafeImageMeta
+>;
+
+/** img path 에서 filename 추출 후 cafe-menu-blur.json lookup. 매치 없으면 undefined. */
+export function getCafeImageMeta(imgPath: string): CafeImageMeta | undefined {
+  const filename = imgPath.split('/').pop();
+  if (!filename) return undefined;
+  return cafeBlurMap[filename];
+}
 
 /** 필터 키 — 'all' + 5개 카테고리 + 'signature' */
 export type CafeFilterKey =
