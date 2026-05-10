@@ -57,7 +57,7 @@
   font-family: var(--font-kr);
   font-size: 17px;
   font-weight: 400;
-  line-height: 1.65;
+  line-height: var(--lh-kr-body-17);
   color: var(--color-text-secondary);
   max-width: 540px;
   margin: 0;
@@ -97,7 +97,7 @@
   font-family: var(--font-en);
   font-size: var(--type-body-l-size);
   font-weight: var(--type-body-l-weight);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.6px;
   color: var(--color-text-primary);
   cursor: pointer;
 }

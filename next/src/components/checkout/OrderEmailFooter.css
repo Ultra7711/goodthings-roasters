@@ -34,7 +34,7 @@
   font-weight: 400;
   color: var(--color-text-tertiary);
   text-align: center;
-  line-height: 1.6;
+  line-height: var(--lh-kr-body-13);
 }
 
 .oc-email__addr {

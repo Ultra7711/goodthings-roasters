@@ -72,7 +72,7 @@
   font-size: var(--type-body-l-size);
   font-weight: 500;
   color: var(--color-text-primary);
-  line-height: 1.4;
+  line-height: 24px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -84,7 +84,7 @@
   font-size: var(--type-body-ui-size);
   font-weight: 400;
   color: var(--color-text-secondary);
-  line-height: 1.4;
+  line-height: 20px;
 }
 
 /* ── Stepper (editable only) — 단일 사이즈 104×36 ── */

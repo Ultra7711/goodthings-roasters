@@ -54,9 +54,9 @@
   align-items: baseline;
   padding: 10px 0;
   font-family: var(--font-kr);
-  font-size: 13.5px;
+  font-size: var(--type-body-s-size);
   color: var(--color-text-secondary);
-  line-height: 1.4;
+  line-height: var(--lh-kr-body-13);
 }
 /* 정기배송 할인 — gold */
 .oc-totals__row--discount {

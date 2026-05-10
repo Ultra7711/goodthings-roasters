@@ -892,7 +892,7 @@
   border: 0;
   color: var(--color-accent-gold-on-dark);
   font-size: var(--type-body-s-size);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--ls-uppercase);
   cursor: pointer;
   padding: 12px 0;
   font-family: var(--font-kr);
