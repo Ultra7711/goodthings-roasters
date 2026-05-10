@@ -215,10 +215,10 @@
     font-size: 9px;
     line-height: 11px;
   }
-  .cm-card .cm-temp-badges { bottom: 8px; right: 8px; }
+  .cm-card .cm-temp-badges { bottom: 6px; right: 6px; }
 
-  /* 좌상단 메타 뱃지 — cafe 한정 (-4px 더 바깥). */
-  .cm-card .cm-card-badges { top: 4px; left: 4px; gap: 3px; }
+  /* 좌상단 메타 뱃지 — cafe 한정. */
+  .cm-card .cm-card-badges { top: 6px; left: 6px; gap: 3px; }
   .cm-card .cm-card-badges .sp-card-badge {
     height: 18px;
     min-width: 0;
@@ -232,8 +232,8 @@
      baseline = 6 + 24 + 4 + 8 = 42 → width = 42 + countWidth.
      hit-area 48 (::before -6). */
   .cm-card .cm-like-btn {
-    top: 4px;
-    right: 4px;
+    top: 6px;
+    right: 6px;
     --like-baseline: 42px;
     height: 36px;
     width: 36px;
@@ -400,26 +400,6 @@
   opacity: 1;
   pointer-events: auto;
 }
-/* 모바일 바텀시트 뒤 배경 상단 1:1 풀폭 메뉴 썸네일 (≤479).
-   thumb 과 panel 이 한 몸처럼 슬라이드 — 동일 transition 적용 (duration/easing/delay 일치).
-   진행 중 항상 thumb_bottom ≥ panel_top (수학적으로 보장) → 사이 gap 노출 X.
-   panel min-height: calc(100vh - 100vw) 로 정착 시 정확히 닿음.
-   thumb 안 자식: 좌상단 메타뱃지 / 우상단 좋아요 / 우하단 온도뱃지 (데스크탑 base 사이즈). */
-#cns-bg-thumb {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background-size: contain;
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  z-index: 1;
-  pointer-events: none;
-}
-/* thumb 영역 클릭은 통과 (시트 dim 닫기 작동) — 좋아요 버튼만 auto */
-#cns-bg-thumb .cm-like-btn { pointer-events: auto; }
 #cns-panel {
   position: fixed;
   top: 0;
@@ -438,22 +418,46 @@
   transform: translateX(100%);
   transition: transform var(--drawer-transition-duration) var(--drawer-transition-easing);
   overflow-y: auto;
+  /* panel 자체 스크롤바 자리 항상 예약 → 콘텐츠 너비 일정 (스크롤 출현/소멸 시
+     image-wrap·콘텐츠 폭 변동 방지). */
+  scrollbar-gutter: stable;
+  /* thin + thumb 만 노출 — track transparent 로 image-wrap·content 의
+     negative margin 확장 영역이 그대로 노출. drawer-bg 흰띠 제거. */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(28, 27, 25, 0.25) transparent;
   overscroll-behavior: contain;
   touch-action: pan-y;
 }
+#cns-panel::-webkit-scrollbar { width: 6px; }
+#cns-panel::-webkit-scrollbar-track { background: transparent; }
+#cns-panel::-webkit-scrollbar-thumb {
+  background: rgba(28, 27, 25, 0.25);
+  border-radius: 3px;
+}
+#cns-panel::-webkit-scrollbar-thumb:hover { background: rgba(28, 27, 25, 0.4); }
 #cafe-nutrition-sheet.open #cns-panel { transform: translateX(0); }
-/* 드래그 핸들 — 데스크탑/태블릿 숨김 (≥480px). <480 미디어쿼리에서 활성화. */
-.cns-drag-handle { display: none; }
 /* 모바일: <768 풀스크린 (Session 38 Step C) */
 @media (max-width: 767px) {
   #cns-panel { width: 100vw; right: 0; }
 }
+/* close sticky wrapper — height:0 로 자리 차지 X, sticky top:0 → panel 스크롤
+   진행과 무관하게 panel 상단에 고정. close 는 그 안에서 absolute right. */
+.cns-sticky-actions {
+  position: sticky;
+  top: 0;
+  height: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+/* close 통일 — 모든 BP 동일 (우→좌 데스크탑 / 하→상 모바일 슬라이드 방향만 차이).
+   glassmorphism (어두운 반투명 + 흰색 X) → drawer-bg (밝은 배경) 위에서도
+   hero (item.bg 다양) 위에서도 시인성 확보. */
 #cns-close {
   position: absolute;
   top: 12px;
   right: 12px;
-  z-index: 2;
-  background: transparent;
+  pointer-events: auto;
+  background: rgba(28, 27, 25, 0.5);
   border: none;
   cursor: pointer;
   width: 40px;
@@ -461,13 +465,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--icon-on-dark-strong);
-  transition: color var(--duration-hover) ease;
+  color: #fff;
+  border-radius: 50%;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background var(--duration-hover) ease;
 }
-#cns-close:hover { color: var(--icon-on-dark-strong); }
+#cns-close:hover { background: rgba(28, 27, 25, 0.65); }
 .cns-image-wrap {
   position: relative;
   flex-shrink: 0;
+  /* sb 영역 위로 확장 → image.bg(item.bg) 가 panel 우측 끝까지 채워
+     drawer-bg 흰띠 제거. 모바일은 --scrollbar-w=0 이라 영향 없음. */
+  margin-right: calc(var(--scrollbar-w, 0px) * -1);
 }
 .cns-image {
   width: 100%;
@@ -476,18 +486,11 @@
   background-position: center bottom;
   background-repeat: no-repeat;
 }
-.cns-temp-badge {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  display: none;
-}
-.cns-temp-badge .cm-badge-temp {
-  width: 48px;
-  height: 48px;
-}
 .cns-content {
-  padding: 48px 60px 40px;
+  /* sb 영역 위로 확장 → cns-content.bg(#F5EFE0) 가 panel 우측 끝까지 채워
+     drawer-bg 흰띠 제거. padding-right 에 sb 만큼 추가하여 콘텐츠는 sb 안쪽에 유지. */
+  margin-right: calc(var(--scrollbar-w, 0px) * -1);
+  padding: 48px calc(60px + var(--scrollbar-w, 0px)) 40px 60px;
   flex: 1;
   background: #F5EFE0;
 }
@@ -586,7 +589,10 @@
 .cns-title-col { min-width: 0; }
 .cns-title-badge { display: none; }
 
-/* 모바일(<480) — 바텀시트 전환 + 이미지 제거 + 타이틀 행 인라인 뱃지 */
+/* 모바일(<480) — 풀스크린 시트 + collapsing hero 패턴 (S203).
+   height 100dvh (모바일 address bar 안정), 시트 자체 스크롤 → hero (1:1 풀폭) 가
+   콘텐츠 스크롤 시 위로 빠짐. 핸들 제거 + close sticky (panel 우상단 고정).
+   hero 위에는 close 만 표시 — 메타/좋아요/온도 뱃지는 카드에만. */
 @media (max-width: 479px) {
   #cns-panel {
     top: auto;
@@ -594,81 +600,20 @@
     left: 0;
     bottom: 0;
     width: 100%;
-    height: auto;
-    /* min-height = 정착 시 panel_top = thumb_bottom = 100vw (한 몸 정합).
-       콘텐츠 짧아도 시트가 thumb 과 닿아 배경 노출 방지. */
-    min-height: calc(100vh - 100vw);
-    max-height: 85vh;
+    height: 100dvh;
+    max-height: 100dvh;
     border-radius: 0;
     transform: translateY(100%);
     padding-bottom: 0;
   }
-  /* 모바일 바텀시트 드래그 핸들 (실제 DOM 요소).
-     - hit area 24px 로 충분히 크게 (시각 핸들 4px + 위아래 여유)
-     - touch-action:none → 핸들 위 모든 터치 제스처를 JS 로 가로채기
-       (브라우저 기본 스크롤 차단 → scrollTop 무관 드래그 허용)
-     - 핸들 바(.cns-drag-handle-bar) 는 시각만, pointer-events:none */
-  .cns-drag-handle {
-    display: flex;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 24px;
-    align-items: center;
-    justify-content: center;
-    z-index: 4;
-    background: transparent;
-    touch-action: none;
-    cursor: grab;
-  }
-  .cns-drag-handle:active { cursor: grabbing; }
-  .cns-drag-handle-bar {
-    width: 40px;
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(28, 27, 25, 0.2);
-    pointer-events: none;
-  }
   #cafe-nutrition-sheet.open #cns-panel { transform: translateY(0); }
-  .cns-image-wrap { display: none; }
-  #cns-close { display: none; }
 
-  /* thumb — panel 과 동일 transition 으로 한 몸 슬라이드 + 자체 micro-animation 시간차 효과.
-     transform translateY(100%) (자기 height = 100vw 만큼 다운) → translateY(0) 정착.
-     panel 도 동일 (translateY(100%) 자기 height = 100vh-100vw 다운) → 동일 progress 보장.
-     자체 강조: scale 0.92→1 + opacity 0→1 — 하단 고정으로 시트와 닿은 자리에서 자라는 시각.
-     transform-origin: bottom — scale 시 panel 과 닿는 하단부 고정 → 한 몸감 강조. */
-  #cns-bg-thumb {
-    display: block;
-    transform: translateY(100%) scale(0.92);
-    transform-origin: bottom center;
-    opacity: 0;
-    will-change: transform, opacity;
-    transition:
-      transform var(--drawer-transition-duration) var(--drawer-transition-easing),
-      opacity var(--drawer-transition-duration) var(--drawer-transition-easing);
-  }
-  #cafe-nutrition-sheet.open #cns-bg-thumb {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-  .cns-content { padding: 32px 24px calc(32px + env(safe-area-inset-bottom, 0px)); }
-  .cns-head-top {
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-  }
-  .cns-title-col { flex: 1; }
-  /* 시트 헤더 인라인 온도뱃지 — 원래 자리 (S202 이전 spec). */
-  .cns-title-badge {
-    display: inline-flex;
-    width: 44px;
-    height: 44px;
-    flex-shrink: 0;
-    margin-left: auto;
-    transform: translateY(-5px);
-  }
+  /* hero 다시 노출 — 1:1 풀폭. */
+  .cns-image-wrap { display: block; }
+
+  .cns-content { padding: 32px calc(24px + var(--scrollbar-w, 0px)) calc(32px + env(safe-area-inset-bottom, 0px)) 24px; }
+  /* 모바일 헤더 인라인 온도뱃지 폐기 — 시트는 영양 정보에 집중. */
+  .cns-title-badge { display: none; }
 }
 
 /* 페이지네이션 — shop 의 .sp-pg-* 재사용 (프로토타입 동일 패턴) */

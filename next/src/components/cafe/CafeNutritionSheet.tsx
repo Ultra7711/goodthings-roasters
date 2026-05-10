@@ -4,6 +4,10 @@
    - 카드 클릭 시 우측 슬라이드인 드로어로 영양정보 표시 (540px).
    - cart-drawer 와 동일한 슬라이드인 패턴 (bg + panel).
    - ESC/배경 클릭으로 닫기.
+
+   S203: 모바일 collapsing hero 패턴 — 시트 max-height 90vh, 시트 자체 스크롤,
+         hero 위 메타/좋아요/온도 뱃지 (카드와 동일 위치),
+         핸들 제거 + close sticky (시트 우상단 fixed-feeling).
    ══════════════════════════════════════════ */
 
 'use client';
@@ -13,29 +17,13 @@ import { useDrawer } from '@/hooks/useDrawer';
 import {
   CAFE_CATEGORY_LABEL,
   type CafeMenuItem,
-  type CafeMenuTemp,
 } from '@/lib/cafeMenu';
-import MenuCardBadges from './MenuCardBadges';
-import MenuLikeButton from './MenuLikeButton';
+import { CloseIcon } from '@/components/ui/Icons';
 
 type Props = {
   item: CafeMenuItem | null;
   onClose: () => void;
 };
-
-function getTempBadge(temp: CafeMenuTemp): { cls: string; txt: string } | null {
-  if (!temp || temp === 'both') return null;
-  switch (temp) {
-    case 'ice-only':
-      return { cls: 'cm-temp-ice-only', txt: 'ICE\nONLY' };
-    case 'hot-only':
-      return { cls: 'cm-temp-hot-only', txt: 'HOT\nONLY' };
-    case 'warm':
-      return { cls: 'cm-temp-warm', txt: 'WARM' };
-    default:
-      return null;
-  }
-}
 
 export default function CafeNutritionSheet({ item, onClose }: Props) {
   const open = item !== null;
@@ -53,106 +41,6 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
     return () => bg.removeEventListener('touchmove', prevent);
   }, [open]);
 
-  // 모바일 바텀시트 드래그-닫기 (≤479px)
-  // 트리거 2종:
-  // 1) 거리: 아래로 80px 이상 스와이프
-  // 2) 속도(fling): 최근 100ms 평균 0.5px/ms (=500px/s) 이상 + 최소 30px 이동
-  // 시작 위치 2종:
-  // - 패널 본체: 컨텐츠 scrollTop=0 일 때만 (스크롤 우선)
-  // - 드래그 핸들(.cns-drag-handle): scrollTop 무관하게 항상 허용
-  useEffect(() => {
-    if (!open) return;
-    const panel = document.getElementById('cns-panel');
-    if (!panel) return;
-    /* thumb 도 panel 과 동기 — 드래그 시 같은 dy 로 함께 움직여 한 몸 유지. */
-    const thumb = document.getElementById('cns-bg-thumb');
-
-    let startY = 0;
-    let dragging = false;
-    /* 최근 100ms 위치 샘플 — fling velocity 계산용 */
-    let samples: { y: number; t: number }[] = [];
-
-    function onStart(e: TouchEvent) {
-      if (window.innerWidth > 479) return;
-      /* 핸들에서 시작한 터치는 scrollTop 무관하게 허용. 그 외는 컨텐츠
-         스크롤 우선 (scrollTop>0 이면 드래그-닫기 비활성). */
-      const target = e.target as HTMLElement | null;
-      const fromHandle = target?.closest('#cns-drag-handle') !== null;
-      if (!fromHandle && panel!.scrollTop > 0) return;
-      startY = e.touches[0].clientY;
-      samples = [{ y: startY, t: Date.now() }];
-      dragging = true;
-    }
-
-    function onMove(e: TouchEvent) {
-      if (!dragging) return;
-      const y = e.touches[0].clientY;
-      const t = Date.now();
-      const dy = y - startY;
-      samples.push({ y, t });
-      /* 최근 100ms 만 유지 — fling 판정 윈도우 */
-      samples = samples.filter((s) => t - s.t <= 100);
-      if (dy > 0) {
-        e.preventDefault(); // Chrome: passive:false + preventDefault로 body scroll 차단
-        panel!.style.transition = 'none';
-        panel!.style.transform = `translateY(${dy}px)`;
-        if (thumb) {
-          thumb.style.transition = 'none';
-          thumb.style.transform = `translateY(${dy}px) scale(1)`;
-        }
-      } else {
-        panel!.style.transform = ''; // 반대 방향 → 패널 원위치
-        if (thumb) thumb.style.transform = '';
-      }
-    }
-
-    function onEnd(e: TouchEvent) {
-      if (!dragging) return;
-      dragging = false;
-      const y = e.changedTouches[0].clientY;
-      const dy = y - startY;
-      panel!.style.transition = '';
-      if (thumb) thumb.style.transition = '';
-
-      /* velocity 계산 — 최근 윈도우의 oldest sample 부터 현재까지의 평균.
-         윈도우가 너무 짧으면(터치 후 즉시 떼는 탭) 0 으로 간주. */
-      let velocity = 0;
-      const oldest = samples[0];
-      if (oldest && samples.length > 1) {
-        const dt = Date.now() - oldest.t;
-        if (dt > 0) velocity = (y - oldest.y) / dt;
-      }
-
-      const distanceTrigger = dy > 80;
-      const flingTrigger = dy > 30 && velocity > 0.5;
-
-      if (distanceTrigger || flingTrigger) {
-        onClose();
-      } else {
-        panel!.style.transform = '';
-        if (thumb) thumb.style.transform = '';
-      }
-      samples = [];
-    }
-
-    panel.addEventListener('touchstart', onStart, { passive: true });
-    panel.addEventListener('touchmove', onMove, { passive: false });
-    panel.addEventListener('touchend', onEnd, { passive: true });
-
-    return () => {
-      panel.removeEventListener('touchstart', onStart);
-      panel.removeEventListener('touchmove', onMove);
-      panel.removeEventListener('touchend', onEnd);
-      panel.style.transition = '';
-      panel.style.transform = '';
-      if (thumb) {
-        thumb.style.transition = '';
-        thumb.style.transform = '';
-      }
-    };
-  }, [open, onClose]);
-
-  const tempBadge = item ? getTempBadge(item.temp) : null;
   const categoryLabel = item ? CAFE_CATEGORY_LABEL[item.cat] ?? item.cat.toUpperCase() : '';
 
   return (
@@ -161,41 +49,19 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
         id="cns-bg"
         onClick={onClose}
       />
-      {/* 모바일(≤479) 바텀시트 뒤 배경 상단 1:1 풀폭 썸네일 — 모든 뱃지 데스크탑 사이즈.
-          DOM 항상 마운트 — open/close transition 위해 (display 토글 X).
-          좌상단 메타뱃지 / 우상단 좋아요 / 우하단 온도뱃지. */}
-      <div
-        id="cns-bg-thumb"
-        style={item?.img ? {
-          backgroundImage: `url('${item.img}')`,
-          backgroundColor: item.bg || 'var(--color-background-secondary)',
-        } : undefined}
-      >
-        {item && (
-          <>
-            <MenuCardBadges menuId={item.id} status={item.status} />
-            <MenuLikeButton menuId={item.id} menuName={item.name} />
-          </>
-        )}
-      </div>
       <div id="cns-panel" role="dialog" aria-label="메뉴 영양정보">
-        {/* 모바일 바텀시트 드래그 핸들 — 데스크탑에선 CSS 로 숨김.
-            ::before 가상요소 대신 실제 DOM 으로 변환하여 핸들 자체를 hit
-            target 으로 사용 (scrollTop 무관 드래그 허용). */}
-        <div id="cns-drag-handle" className="cns-drag-handle" aria-hidden="true">
-          <div className="cns-drag-handle-bar" />
+        {/* close sticky wrapper — height:0 로 자리 차지 X, sticky top:0 → 시트 스크롤
+            진행과 무관하게 panel 상단에 고정. close 버튼은 그 안에서 absolute right. */}
+        <div className="cns-sticky-actions">
+          <button
+            id="cns-close"
+            type="button"
+            aria-label="닫기"
+            onClick={onClose}
+          >
+            <CloseIcon size={24} />
+          </button>
         </div>
-        <button
-          id="cns-close"
-          type="button"
-          aria-label="닫기"
-          onClick={onClose}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19,5l-14,14" />
-            <path d="M5,5l14,14" />
-          </svg>
-        </button>
 
         {item && (
           <>
@@ -211,11 +77,6 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
               ) : (
                 <div className="cns-image" style={{ display: 'none' }} />
               )}
-              {tempBadge && (
-                <div className="cns-temp-badge" style={{ display: 'block' }}>
-                  <span className={`cm-badge-temp ${tempBadge.cls}`}>{tempBadge.txt}</span>
-                </div>
-              )}
             </div>
 
             <div className="cns-content">
@@ -225,11 +86,6 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
                     <p className="cns-category-label">{categoryLabel}</p>
                     <h2 className="cns-item-name">{item.name}</h2>
                   </div>
-                  {tempBadge && (
-                    <span className={`cns-title-badge cm-badge-temp ${tempBadge.cls}`}>
-                      {tempBadge.txt}
-                    </span>
-                  )}
                 </div>
                 {item.menuDesc && (
                   <p className="cns-item-desc">{item.menuDesc}</p>

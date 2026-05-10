@@ -78,36 +78,42 @@ export default function MenuLikeButton({ menuId, menuName }: Props) {
 
     /* baseline = CSS 변수 --like-baseline 으로 BP별 분기 (data: 56 / 모바일: 42).
        fallback 56 — 데스크탑 base. */
-    const baselineRaw = getComputedStyle(btn).getPropertyValue('--like-baseline').trim();
-    const baseline = parseInt(baselineRaw, 10) || 56;
+    function getBaseline(el: HTMLButtonElement): number {
+      const raw = getComputedStyle(el).getPropertyValue('--like-baseline').trim();
+      return parseInt(raw, 10) || 56;
+    }
 
     if (!initRef.current && (count > 0 || isLiked)) {
-      /* 초기 데이터 로드: transition 억제 후 즉시 적용 */
       initRef.current = true;
       btn.style.transition = 'none';
       if (countEl) countEl.style.transition = 'none';
-      // (좌 padding) + (아이콘) + gap + textW + (우 padding) = baseline + textW
       if (count > 0 && countEl) {
-        btn.style.width = `${Math.ceil(baseline + countEl.scrollWidth)}px`;
+        btn.style.width = `${Math.ceil(getBaseline(btn) + countEl.scrollWidth)}px`;
       }
       requestAnimationFrame(() => {
         btn.style.transition = '';
         if (countEl) countEl.style.transition = '';
       });
-      return;
-    }
-
-    if (count > 0 && countEl) {
-      /* like: 즉시 확장 */
-      btn.style.width = `${Math.ceil(baseline + countEl.scrollWidth)}px`;
+    } else if (count > 0 && countEl) {
+      btn.style.width = `${Math.ceil(getBaseline(btn) + countEl.scrollWidth)}px`;
     } else {
-      /* unlike: cm-like-count opacity transition(160ms) 완료 후 축소
-         — 카운트가 사라지기 전에 버튼이 줄어드는 layout 점프 방지 */
-      const timer = window.setTimeout(() => {
-        btn.style.width = '';
-      }, 200);
+      /* unlike: cm-like-count opacity transition(160ms) 완료 후 축소 */
+      const timer = window.setTimeout(() => { btn.style.width = ''; }, 200);
       return () => window.clearTimeout(timer);
     }
+
+    /* resize 대응 — BP 전환 시 baseline 변경(52↔42) 즉시 반영.
+       transition 억제 후 적용 → 바운스 회피. */
+    const onResize = () => {
+      if (count > 0 && countEl) {
+        const prev = btn.style.transition;
+        btn.style.transition = 'none';
+        btn.style.width = `${Math.ceil(getBaseline(btn) + countEl.scrollWidth)}px`;
+        requestAnimationFrame(() => { btn.style.transition = prev; });
+      }
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, [count, isLiked]);
 
   const handleClick = (e: React.MouseEvent | React.KeyboardEvent) => {
