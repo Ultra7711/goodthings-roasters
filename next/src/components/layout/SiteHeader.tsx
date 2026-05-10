@@ -154,10 +154,19 @@ export default function SiteHeader() {
 
   /* Enter 제출 → /search?q=<encoded> 네비게이션.
      - 빈 쿼리는 무시 (prototype 동작 일치).
-     - closeSearch() 선제 호출로 패널·딤·body.overflow 정리 후 이동. */
+     - navigate 동반 close: search-panel marker 먼저 replaceState 로 정리 →
+       useHistoryDismiss 가 open:true→false 전환 시 history.back 을 호출하지 않도록.
+       marker 정리 없이 closeSearch() 호출 시 hook 의 back() 이 router.push 와 race 하여
+       /search 진입이 취소되는 버그 발생. closeMobileNavForNavigation 과 동일 패턴. */
   function handleSearchSubmit() {
     const q = searchValue.trim();
     if (!q) return;
+    if (typeof window !== 'undefined') {
+      const state = window.history.state as { gtrModal?: string } | null;
+      if (state?.gtrModal === 'search-panel') {
+        window.history.replaceState(null, '', window.location.href);
+      }
+    }
     closeSearch();
     router.push(`/search?q=${encodeURIComponent(q)}`);
   }
