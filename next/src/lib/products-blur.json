@@ -1,0 +1,52 @@
+{
+  "pd_img_autumn_night.webp": {
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAkElEQVR4nGN4hBcwECX99OnTb9++vXnz6vGTh4+fPLx37x667nv37h05cmTbtm2TJk26cuUKuu5J3W35GXFRwZ6leZlnz55Fl071UtBnYDDjZUj3lj516hS6dHaQsj4Dg7UwSHrbtm1nz569ffs2Qvr86SPrls9duXjG+lVLZs+efeXKladPn2L32FMYIOBvAMJH7DvbRFDRAAAAAElFTkSuQmCC",
+    "width": 900,
+    "height": 900
+  },
+  "pd_img_buku_hurufa_02.webp": {
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAbElEQVR4nGN4hxcwUCz9/v374xdvrN566ODxC9+/f//79+/79+9RdIu5pDIwaMSEJD569Oj40UNPnjxBkS7TNjNnYCj19z979uz27duPHDmCIv3+/ftTp049evTo7du3L168ePToEbVcjkcaAHlqBiV3/h0GAAAAAElFTkSuQmCC",
+    "width": 900,
+    "height": 900
+  },
+  "pd_img_buku_hurufa.webp": {
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAf0lEQVR4nGP4jhcwECX95fP3Nx++ffry88fPf7///v/0BUM6IH8Cg20yg1G0bVLTuw8fUaQ/ffmuGVTGIObIwKbnZ2T/9t17dN2T3QNdmBQNGRhiNXXQpT9/+rZt2owJUXE9oWFrp8xAN/zzp2/v3n+BoE/ff7//+JUUj+GSBgAiDwDYQSkPOwAAAABJRU5ErkJggg==",
+    "width": 900,
+    "height": 900
+  },
+  "pd_img_keyna_kaganda_02.webp": {
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAbElEQVR4nGN4hBcwUCz99OnT9XvPNk1bs2jtzo8fP/7+/fvp06couhnYrBkYGBiUHc+dOzd/zuwLFy6gSPfPnpKVpNjZWbF69eq2trY5c+agSD99+nTZsmXnzp27f//+jRs3zp07Ry2X45EGAHcO91U7F6TlAAAAAElFTkSuQmCC",
+    "width": 900,
+    "height": 900
+  },
+  "pd_img_keyna_kaganda.webp": {
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAhUlEQVR4nGP4ghcwECX9/t3nZ68+vPvw9eu337/+/H//7jOK9LsPn03TpjLoZzGoJYlHdr949RpdmsGjnoHbh4GBgUE/7tmLl+iG57TNziqJSo03y8hNQpd+9/bD+/ePjh+Yu2d95c+fLzAMf/vh+Yt3T5+9ef7i3YdP31+9eU+Kx3BJAwBFggJsc7o/IgAAAABJRU5ErkJggg==",
+    "width": 900,
+    "height": 900
+  },
+  "pd_img_peru_de_caffein_02.webp": {
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAbElEQVR4nGN4ihcwUCz9/PnzT8+OPLi4eP/u9Z8/f/7z58/z589RdJ9aqGQgx8DAqXzp0qXlSxdfvXoVRbq+hIuBgUHWUm3Tpk0TJ05cunQpivTz58/XrVt36dKlx48f3759+9KlS9RyOR5pANlE+pdqbiHEAAAAAElFTkSuQmCC",
+    "width": 900,
+    "height": 900
+  },
+  "pd_img_peru_de_caffein.webp": {
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAg0lEQVR4nGP4ghcwECX94f3nZ68+vPvw9eu337/+/H/34TOK9LsPnx8dzr+3Tq42Q8w70PvFq9fouu/v9L2zmIGBjYGBTfPZi5fo0ne2uCXEMICAjgy69Lu3H9dummwebKPrY9I6vwfd8HdvP754+e7Z8zcvXr778On7qzfvSfEYLmkAcg0AExuz+ssAAAAASUVORK5CYII=",
+    "width": 900,
+    "height": 900
+  },
+  "pd_img_quatemala_waykan_02.webp": {
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAaklEQVR4nGO4gRcwUCx9586dU7efbjh4qruu7u3bt79//75z5w6KbsGCiSrSygwMDHv37q2vrT5w4ACK9OrFwaWxwkoMDP39/QkJCbW1tSjSd+7c6ezs3Lt379WrV0+fPr13715quRyPNABYmurQtLYSHAAAAABJRU5ErkJggg==",
+    "width": 900,
+    "height": 900
+  },
+  "pd_img_quatemala_waykan.webp": {
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAhElEQVR4nGP4ghcwECX9/t2npy/fv3v/5eu3379+/3//7hOK9Nv3n5r33olZe72uvttNXPL5y1fo0hnrrxrPPj4/zF2PgeHp8xfohl851zx3bdn6AhcDTOm3bz48v7f5wMbCnauyXt/fgmH4mw/PX7x98vTV8xdv33/89vL1O1I8hksaAGdqB7Ty63XYAAAAAElFTkSuQmCC",
+    "width": 900,
+    "height": 900
+  },
+  "pd_img_refreshing_afternoon.webp": {
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAk0lEQVR4nGN4gRcwECX96tWrHz9+vH//7uWr5y9fPX/69Cm67qdPn54/f/7IkSPLly+/c+cOuu4Zc+eV1zakZuc1trZdv34dXdoqNIyBg5NBVNwoMPDKlSvo0nZR0Qz8AgxSMqYhIUeOHLl+/fqjR48Q0qcvXFq+bt3i1as3bt+xbt26O3fuvHr1CrvHXsEAAX8DAHvI8/LnCvVCAAAAAElFTkSuQmCC",
+    "width": 900,
+    "height": 900
+  }
+}

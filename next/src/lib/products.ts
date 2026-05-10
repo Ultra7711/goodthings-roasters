@@ -1,13 +1,38 @@
 /* ══════════════════════════════════════════
    Products
    프로토타입 PRODUCTS 배열 + DRIP_BAG_RECIPE 이식
+
+   S205: LQIP (blur placeholder) 통합. products-blur.json 은 빌드 스크립트
+         (npm run gen:image-blur) 가 public/images/products/*.webp 일괄 처리하여
+         생성. ShopCard / 검색결과 / LineupSection 이 getProductImageMeta 로 조회.
    ══════════════════════════════════════════ */
+
+import productsBlur from './products-blur.json';
 
 export type ProductImage = {
   bg: string;
   bgTheme: 'light' | 'dark';
   src: string;
 };
+
+/** 이미지 LQIP 메타데이터 — npm run gen:image-blur 가 생성한 products-blur.json 에서 lookup */
+export type ProductImageMeta = {
+  blurDataURL: string;
+  width: number;
+  height: number;
+};
+
+const productsBlurMap: Record<string, ProductImageMeta> = productsBlur as Record<
+  string,
+  ProductImageMeta
+>;
+
+/** img path 에서 filename 추출 후 products-blur.json lookup. 매치 없으면 undefined. */
+export function getProductImageMeta(imgPath: string): ProductImageMeta | undefined {
+  const filename = imgPath.split('/').pop();
+  if (!filename) return undefined;
+  return productsBlurMap[filename];
+}
 
 export type ProductVolume = {
   label: string;

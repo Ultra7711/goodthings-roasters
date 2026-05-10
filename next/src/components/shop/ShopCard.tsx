@@ -11,6 +11,7 @@ import {
   type Product,
   extractKrName,
   formatStartPrice,
+  getProductImageMeta,
   getStatusBadgeClass,
 } from '@/lib/products';
 import GenericCard from '@/components/common/GenericCard';
@@ -44,6 +45,7 @@ export default function ShopCard({
   const router = useRouter();
 
   const img = p.images[0];
+  const imgMeta = img ? getProductImageMeta(img.src) : undefined;
 
   const badgeSlot = p.status ? (
     <span className={getStatusBadgeClass(p.status)}>
@@ -58,6 +60,7 @@ export default function ShopCard({
       imgSrc={img?.src}
       imgAlt={extractKrName(p.name)}
       imgBg={img?.bg ?? '#f5f5f3'}
+      imgBlurDataURL={imgMeta?.blurDataURL}
       imgPriority={imgPriority}
       thumbAspect={aspect}
       badgeSlot={badgeSlot}

@@ -12,6 +12,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import HighlightText from './HighlightText';
 import { extractKrName } from '@/lib/utils';
+import { getProductImageMeta } from '@/lib/products';
+import { getCafeImageMeta } from '@/lib/cafeMenu';
 import type { SearchResult } from '@/lib/search/types';
 
 type Props = {
@@ -25,6 +27,7 @@ export default function SearchResultCard({ result }: Props) {
     const p = result.item;
     const firstImg = p.images[0];
     const thumbBg = firstImg?.bg ?? 'var(--color-background-secondary)';
+    const productMeta = firstImg ? getProductImageMeta(firstImg.src) : undefined;
 
     // V2 §6.2 — PDP 직행이 아닌 /shop 페이지의 해당 카드로 shortcut.
     const onClick = () => router.push(`/shop?item=${encodeURIComponent(p.slug)}`);
@@ -51,6 +54,8 @@ export default function SearchResultCard({ result }: Props) {
               fill
               sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
               style={{ objectFit: 'contain' }}
+              placeholder={productMeta ? 'blur' : 'empty'}
+              blurDataURL={productMeta?.blurDataURL}
             />
           )}
         </div>
@@ -74,19 +79,7 @@ export default function SearchResultCard({ result }: Props) {
     }
   };
   const priceLabel = c.price > 0 ? `${c.price.toLocaleString('ko-KR')}원` : '';
-  /* 배경 url 인젝션 가드 — 동적 데이터(향후 Supabase) 대비 encodeURI + " 치환 */
-  const safeBgUrl = c.img
-    ? `url("${encodeURI(c.img).replace(/"/g, '%22')}")`
-    : undefined;
-  const thumbStyle: React.CSSProperties = {
-    backgroundColor: c.bg || 'var(--color-background-secondary)',
-    ...(safeBgUrl && {
-      backgroundImage: safeBgUrl,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-    }),
-  };
+  const cafeMeta = c.img ? getCafeImageMeta(c.img) : undefined;
 
   return (
     <button
@@ -96,7 +89,22 @@ export default function SearchResultCard({ result }: Props) {
       onKeyDown={onKey}
       aria-label={`${c.name} 카페 메뉴로 이동`}
     >
-      <div className="sp-card-thumb" style={thumbStyle} />
+      <div
+        className="sp-card-thumb"
+        style={{ backgroundColor: c.bg || 'var(--color-background-secondary)' }}
+      >
+        {c.img && (
+          <Image
+            src={c.img}
+            alt=""
+            fill
+            sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
+            style={{ objectFit: 'cover' }}
+            placeholder={cafeMeta ? 'blur' : 'empty'}
+            blurDataURL={cafeMeta?.blurDataURL}
+          />
+        )}
+      </div>
       <div className="sp-card-info">
         <p className="sp-card-name">
           <HighlightText text={c.name} spans={result.spans} field="name" />
