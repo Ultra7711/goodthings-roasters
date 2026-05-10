@@ -56,7 +56,11 @@ function SectionContent({ section }: { section: LegalSection }) {
           {section.definitions.map((d, i) => (
             <div key={i} className="legal-def-row">
               <dt>{d.label}</dt>
-              <dd>{d.value}</dd>
+              <dd>
+                {d.link ? (
+                  <a href={d.link} className="legal-link" target="_blank" rel="noopener noreferrer">{d.value}</a>
+                ) : d.value}
+              </dd>
             </div>
           ))}
         </dl>

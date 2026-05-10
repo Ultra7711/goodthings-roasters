@@ -15,8 +15,8 @@ export type LegalSection = {
   paragraphs?: string[];
   /** 들여쓰기 1단계 — 항목 리스트 */
   bullets?: string[];
-  /** 들여쓰기 2단계 — 정의 리스트 (라벨 · 값) */
-  definitions?: { label: string; value: string }[];
+  /** 들여쓰기 2단계 — 정의 리스트 (라벨 · 값 · 선택적 외부 링크) */
+  definitions?: { label: string; value: string; link?: string }[];
 };
 
 export type LegalDoc = {
@@ -344,7 +344,7 @@ const PRIVACY: LegalDoc = {
         '[결제 처리]',
       ],
       definitions: [
-        { label: '제공받는 자', value: '토스페이먼츠(주)' },
+        { label: '제공받는 자', value: '토스페이먼츠(주)', link: 'https://www.tosspayments.com' },
         { label: '제공 항목', value: '결제에 필요한 최소한의 정보(결제 수단 정보)' },
         { label: '이용 목적', value: '결제 처리 및 결제 취소' },
         { label: '보유 기간', value: '관련 법령이 정한 기간' },
@@ -357,7 +357,7 @@ const PRIVACY: LegalDoc = {
         '[결제 처리 위탁]',
       ],
       definitions: [
-        { label: '수탁자', value: '토스페이먼츠(주)' },
+        { label: '수탁자', value: '토스페이먼츠(주)', link: 'https://www.tosspayments.com' },
         { label: '위탁 업무 내용', value: '신용카드·간편결제 처리' },
       ],
     },
@@ -425,10 +425,10 @@ const PRIVACY: LegalDoc = {
         '정보주체는 개인정보침해로 인한 구제를 받기 위하여 개인정보분쟁조정위원회, 한국인터넷진흥원 개인정보침해신고센터 등에 분쟁 해결이나 상담 등을 신청할 수 있습니다.',
       ],
       definitions: [
-        { label: '개인정보분쟁조정위원회', value: '(국번없이) 1833-6972 (www.kopico.go.kr)' },
-        { label: '개인정보침해신고센터', value: '(국번없이) 118 (privacy.kisa.or.kr)' },
-        { label: '대검찰청', value: '(국번없이) 1301 (www.spo.go.kr)' },
-        { label: '경찰청', value: '(국번없이) 182 (ecrm.cyber.go.kr)' },
+        { label: '개인정보분쟁조정위원회', value: '(국번없이) 1833-6972', link: 'https://www.kopico.go.kr' },
+        { label: '개인정보침해신고센터', value: '(국번없이) 118', link: 'https://privacy.kisa.or.kr' },
+        { label: '대검찰청', value: '(국번없이) 1301', link: 'https://www.spo.go.kr' },
+        { label: '경찰청', value: '(국번없이) 182', link: 'https://ecrm.cyber.go.kr' },
       ],
     },
     {
@@ -463,9 +463,7 @@ const BUSINESS_INFO: LegalDoc = {
         { label: '주소', value: '경북 구미시 인동21길 22-11' },
         { label: '전화', value: '010-9062-9910' },
         { label: '이메일', value: 'jung6419@naver.com' },
-      ],
-      paragraphs: [
-        '※ 사업자 정보 공정거래위원회 조회: https://www.ftc.go.kr/bizCommPop.do?wrkr_no=5108130238',
+        { label: '공정거래위원회 조회', value: '통신판매사업자 정보 확인', link: 'https://www.ftc.go.kr/bizCommPop.do?wrkr_no=5108130238' },
       ],
     },
     {
@@ -490,10 +488,10 @@ const BUSINESS_INFO: LegalDoc = {
       heading: '분쟁 해결 및 소비자 피해 구제',
       paragraphs: ['상품 거래와 관련한 분쟁이 발생하는 경우 아래 기관에 도움을 요청할 수 있습니다.'],
       definitions: [
-        { label: '공정거래위원회 소비자상담센터', value: '1372 (www.ccn.go.kr)' },
-        { label: '한국소비자원', value: '1372 (www.kca.go.kr)' },
-        { label: '전자거래분쟁조정위원회', value: '1661-5714 (www.ecmc.or.kr)' },
-        { label: '개인정보분쟁조정위원회', value: '1833-6972 (www.kopico.go.kr)' },
+        { label: '공정거래위원회 소비자상담센터', value: '1372', link: 'https://www.ccn.go.kr' },
+        { label: '한국소비자원', value: '1372', link: 'https://www.kca.go.kr' },
+        { label: '전자거래분쟁조정위원회', value: '1661-5714', link: 'https://www.ecmc.or.kr' },
+        { label: '개인정보분쟁조정위원회', value: '1833-6972', link: 'https://www.kopico.go.kr' },
       ],
     },
     {

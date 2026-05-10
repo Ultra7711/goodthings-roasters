@@ -67,9 +67,10 @@
   line-height: 28px;
   color: var(--color-text-secondary);
 }
-.legal-intro p { margin-bottom: 8px; }
+.legal-intro p { margin-bottom: 8px; overflow-wrap: break-word; }
 .legal-section { margin-bottom: 32px; }
-/* 정보 페이지 (shipping / returns) — heading 단위 Accordion 묶음 */
+/* 정보 페이지 (shipping / returns) — heading 단위 Accordion 묶음.
+   max-height 600px 기본값으로는 장문 섹션이 잘릴 수 있어 legal 전용 override. */
 .legal-accordion-list { display: block; }
 .legal-accordion-list .pd-accordion-body p { padding-left: 0; }
 .legal-accordion-list .legal-paragraph,
@@ -80,6 +81,7 @@
 }
 .legal-accordion-list .legal-bullets { padding-left: 20px; }
 .legal-accordion-list .legal-defs { margin-top: 12px; }
+.legal-accordion-list .pd-accordion.open .pd-accordion-body { max-height: 2000px; }
 .legal-section-heading {
   font-family: var(--font-kr);
   font-size: 17px;
@@ -94,6 +96,7 @@
   line-height: 28px;
   color: var(--color-text-secondary);
   margin-bottom: 8px;
+  overflow-wrap: break-word;
 }
 .legal-bullets {
   list-style: disc;
@@ -104,7 +107,10 @@
   line-height: 28px;
   color: var(--color-text-secondary);
 }
-.legal-bullets li { margin-bottom: 6px; }
+.legal-bullets li {
+  margin-bottom: 6px;
+  overflow-wrap: break-word;
+}
 .legal-defs {
   margin: 12px 0;
   display: grid;
@@ -121,11 +127,20 @@
 .legal-def-row dt {
   color: var(--color-text-tertiary);
   font-weight: 500;
+  overflow-wrap: break-word;
 }
 .legal-def-row dd {
   color: var(--color-text-secondary);
   margin: 0;
+  overflow-wrap: break-word;
 }
+/* 본문 내 인라인 링크 */
+.legal-link {
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.legal-link:hover { color: var(--color-text-primary); }
 .legal-footer {
   margin-top: 48px;
   padding-top: 24px;
@@ -157,8 +172,12 @@
   .legal-paragraph,
   .legal-bullets,
   .legal-defs { font-size: 14px; }
+  /* 모바일: 정의 행을 2컬럼 → 1컬럼 스택으로 전환.
+     110px 레이블 컬럼에 "개인정보분쟁조정위원회" 등 장문 레이블이 들어갈 수 없어
+     텍스트 겹침 발생 → dt(레이블) 위 / dd(값) 아래 단일 컬럼으로 변경. */
   .legal-def-row {
-    grid-template-columns: 110px 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
+  .legal-defs { gap: 12px; }
 }
