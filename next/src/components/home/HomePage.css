@@ -305,7 +305,12 @@
 .cat-grid .cat-card:nth-child(3) .cat-card-clip { transition-delay: 300ms; }
 
 /* 카페 메뉴 섹션 */
-.cafe-menu-blk { padding-bottom: 120px; }
+.cafe-menu-blk {
+  padding-bottom: 120px;
+  /* S203 후속 — .root[data-dest-dark="true"] 영구 dark fix 의 부작용 회피.
+     wrapper 자기 light bg 명시 → .root dark 노출 차단. */
+  background: var(--color-background-primary);
+}
 .cafe-menu-head {
   padding: 120px 60px 56px;
   max-width: 1440px;
@@ -687,6 +692,8 @@
 .story-chapter {
   display: flex;
   flex-direction: column;
+  /* S203 후속 — wrapper light bg 명시 (자식 stage cover 안 한 영역 fallback). */
+  background: var(--color-background-primary);
 }
 .story-stage--cream { background: var(--color-surface-warm); }
 .story-stage--dark  { background: var(--ink-section); }
@@ -925,6 +932,8 @@
   display: flex;
   flex-direction: column;
   gap: 80px;
+  /* S203 후속 — wrapper light bg 명시. */
+  background: var(--color-background-primary);
 }
 @media (max-width: 767px) {
   /* S199 — 모바일 전체 80 → 72 통일 (사용자 결정 — top 120 도 72 로).
