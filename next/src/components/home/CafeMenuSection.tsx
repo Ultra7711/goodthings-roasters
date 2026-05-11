@@ -15,21 +15,23 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getActiveCafeEvent, getComingCafeEvent } from '@/lib/cafeEventsServer';
 import { composeEventEyebrow } from '@/lib/cafeEvents';
-import { CAFE_MENU } from '@/lib/cafeMenu';
+import { fetchCafeMenu } from '@/lib/cafeMenuServer';
 import galleryBlur from '@/lib/gallery-blur.json';
 import EventBanner from './EventBanner';
 import MenuTab from './MenuTab';
 
 const cafeWebpMeta = (galleryBlur as Record<string, { blurDataURL: string }>)['cafe.webp'];
 
-const FEATURED_ITEMS = CAFE_MENU.filter((i) => i.status === '시그니처').slice(0, 3);
-
 export default async function CafeMenuSection() {
   /* PR-1d — 3 분기 렌더:
        Active   → DB eyebrow 그대로 (어드민 manual 입력 존중)
        Coming   → composeEventEyebrow 로 "Coming · MM/DD~" override
        비활성    → EventBanner 미렌더 */
-  const activeEvent = await getActiveCafeEvent();
+  const [activeEvent, cafeItems] = await Promise.all([
+    getActiveCafeEvent(),
+    fetchCafeMenu(),
+  ]);
+  const FEATURED_ITEMS = cafeItems.filter((i) => i.status === '시그니처').slice(0, 3);
   const comingEvent = activeEvent ? null : await getComingCafeEvent();
   const event = activeEvent ?? comingEvent;
   const isComing = !!comingEvent && !activeEvent;

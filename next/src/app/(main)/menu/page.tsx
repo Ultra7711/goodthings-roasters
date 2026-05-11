@@ -9,18 +9,20 @@
    ══════════════════════════════════════════ */
 
 import { Suspense } from 'react';
+import { fetchCafeMenu } from '@/lib/cafeMenuServer';
 import CafeMenuPage from '@/components/cafe/CafeMenuPage';
 import CafeMenuSkeleton from '@/components/cafe/CafeMenuSkeleton';
 
 export const metadata = { title: '카페 메뉴 — good things' };
 
-export default function CafeMenuRoute() {
+export default async function CafeMenuRoute() {
+  const items = await fetchCafeMenu();
   return (
     <>
       {/* likes API 를 HTML 파싱 즉시 프리페치 — 카드 진입 연출(420ms) 이전에 데이터 도착 */}
       <link rel="preload" href="/api/menu-likes" as="fetch" crossOrigin="use-credentials" />
       <Suspense fallback={<CafeMenuSkeleton />}>
-        <CafeMenuPage />
+        <CafeMenuPage items={items} />
       </Suspense>
     </>
   );

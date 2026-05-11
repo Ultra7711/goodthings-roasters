@@ -10,9 +10,6 @@ import { enforceSameOrigin } from '@/lib/api/csrf';
 import { checkRateLimit } from '@/lib/auth/rateLimit';
 import { getClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
-import { CAFE_MENU } from '@/lib/cafeMenu';
-
-const VALID_MENU_IDS = new Set(CAFE_MENU.map((m) => m.id));
 
 export async function POST(
   request: Request,
@@ -30,14 +27,24 @@ export async function POST(
   const claims = await getClaims();
   if (!claims) return apiError('unauthorized');
 
-  /* 4) menuId 검증 */
   const { menuId } = await params;
-  if (!VALID_MENU_IDS.has(menuId)) {
-    return apiError('not_found');
-  }
 
   try {
     const supabase = await createRouteHandlerClient();
+
+    /* 4) menuId DB 검증 — cafe_menu_items active row 확인 */
+    const { data: menuItem, error: menuErr } = await supabase
+      .from('cafe_menu_items')
+      .select('id')
+      .eq('id', menuId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (menuErr) {
+      console.error('[POST /api/menu-likes] menuId check error', { code: menuErr.code, message: menuErr.message });
+      return apiError('server_error');
+    }
+    if (!menuItem) return apiError('not_found');
 
     /* 5) 기존 좋아요 확인 */
     const { data: existing, error: selectErr } = await supabase

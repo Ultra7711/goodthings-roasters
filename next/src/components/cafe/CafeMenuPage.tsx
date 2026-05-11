@@ -20,7 +20,6 @@ import CafeFilterTabs from './CafeFilterTabs';
 import CafeMenuGrid from './CafeMenuGrid';
 import CafeNutritionSheet from './CafeNutritionSheet';
 import {
-  CAFE_MENU,
   CAFE_FILTER_TABS,
   CM_PER_PAGE,
   CM_PER_PAGE_MOBILE,
@@ -41,7 +40,9 @@ const HIGHLIGHT_MS = 1500;
 // ShopPage 와 동일 — 탭(0.3s) 등장 후 카드 시작, 진입 후엔 0
 const CARD_BASE_DELAY_INIT = 420;
 
-export default function CafeMenuPage() {
+type Props = { items: CafeMenuItem[] };
+
+export default function CafeMenuPage({ items }: Props) {
   const searchParams = useSearchParams();
 
   // URL `?cat=` 파싱 — searchParams 가 바뀔 때마다 재평가
@@ -99,7 +100,7 @@ export default function CafeMenuPage() {
     // 타겟 아이템 복구 — ?item=<id>
     const targetId = searchParams.get('item');
     if (targetId) {
-      const matched = CAFE_MENU.find((i) => i.id === targetId);
+      const matched = items.find((i) => i.id === targetId);
       if (matched) {
         /* useMediaQuery 는 초기값 false → 첫 렌더에서 perPage 가 항상 데스크탑 값.
            window.matchMedia 를 직접 읽어 실제 뷰포트 기준으로 페이지를 계산한다.
@@ -107,11 +108,11 @@ export default function CafeMenuPage() {
         const perPageNow = typeof window !== 'undefined' && window.matchMedia('(max-width: 479px)').matches
           ? CM_PER_PAGE_MOBILE
           : CM_PER_PAGE;
-        const listWithinFilter = sortCafeMenu(filterCafeMenu(CAFE_MENU, urlFilter));
+        const listWithinFilter = sortCafeMenu(filterCafeMenu(items, urlFilter));
         let idx = listWithinFilter.findIndex((i) => i.id === targetId);
         if (idx < 0) {
           // mismatch — all 로 fallback
-          const listAll = sortCafeMenu(filterCafeMenu(CAFE_MENU, 'all'));
+          const listAll = sortCafeMenu(filterCafeMenu(items, 'all'));
           idx = listAll.findIndex((i) => i.id === targetId);
           if (idx >= 0) {
             setFilter('all');
@@ -135,7 +136,7 @@ export default function CafeMenuPage() {
   // 탭 전환 시 새로 mount 되는 카드가 네트워크에서 이미지를 받느라 배경색만 잠깐
   // 보이는 깜빡임 방지. 브라우저 캐시에 올려두면 이후 탭 전환은 즉시 표시됨.
   useEffect(() => {
-    CAFE_MENU.forEach((item) => {
+    items.forEach((item) => {
       if (item.img) {
         const img = new Image();
         img.src = item.img;
@@ -219,14 +220,14 @@ export default function CafeMenuPage() {
   // 재진입 시 commitMenuRanksOnReentry → sortCommitted 변경 → 재정렬.
   const filtered: CafeMenuItem[] = useMemo(() => {
     const popularIds = new Set(Object.keys(sortCommitted));
-    return sortCafeMenu(filterCafeMenu(CAFE_MENU, filter), popularIds);
-  }, [filter, sortCommitted]);
+    return sortCafeMenu(filterCafeMenu(items, filter), popularIds);
+  }, [filter, sortCommitted, items]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * perPage;
-  const items = filtered.slice(start, start + perPage);
+  const pageItems = filtered.slice(start, start + perPage);
 
   const activeTab =
     CAFE_FILTER_TABS.find((t) => t.key === filter) ?? CAFE_FILTER_TABS[0];
@@ -259,8 +260,8 @@ export default function CafeMenuPage() {
   }, []);
 
   const nutriItem: CafeMenuItem | null = useMemo(
-    () => (nutriId ? CAFE_MENU.find((i) => i.id === nutriId) ?? null : null),
-    [nutriId],
+    () => (nutriId ? items.find((i) => i.id === nutriId) ?? null : null),
+    [nutriId, items],
   );
 
   return (
@@ -279,7 +280,7 @@ export default function CafeMenuPage() {
           흔들지 않도록 likes 는 store 로 격리됨 (S116). */}
       {/* eslint-disable react-hooks/refs */}
       <CafeMenuGrid
-        items={items}
+        items={pageItems}
         filterKey={filter}
         pageKey={currentPage}
         highlightId={highlightId}
