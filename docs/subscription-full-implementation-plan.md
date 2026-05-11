@@ -1,9 +1,51 @@
 # 정기배송 풀 구현 계획 (Subscription Full Implementation Plan)
 
 > **작성일:** 2026-04-27 (Session 92 진단 기준)
-> **갱신일:** 2026-04-27 (어드민 의존성 반영)
-> **상태:** 어드민 풀 구현 (`docs/admin-implementation-plan.md`) 후속 작업. 어드민 인프라·상품 도메인 DB 전환 완료 후 진입.
+> **갱신일:** 2026-05-11 (Session 209) — Phase 3-A 완료 반영 (마이그 040~045), Phase 3-B 결정 (재시도 자동화 출시 후 미도입)
+> **상태:** Phase 3-A 완료. Phase 3-B/C/D 미도출. Group A~D (사용자 흐름) 진행률 §0-4 참조.
 > **결정 배경:** 클라이언트(사업자) 정기배송 출시 시점 미확정 → 출시 전까지 "최대한 준비". 자동 결제 집행은 Phase 3 (출시 후) 보류.
+
+---
+
+## 0-4. 현재 진행률 (S209 audit 기준 2026-05-11)
+
+### Phase 3-A (완료)
+
+| 마이그 | 도입 |
+|--------|------|
+| `040_billing_methods_schema.sql` | billing_methods + subscriptions.billing_method_id + subscription_billing_failures + RLS (service-role only) |
+| `042_billing_charge_rpc.sql` | create_order RPC 재정의 + process_billing_charge_success + set_default_billing_method |
+| `044_admin_subscriptions_rls.sql` | 어드민 구독 조회/편집 RLS (subscriptions_select_admin · update_admin) |
+| `045_subscription_audit_log.sql` | 어드민 변경 이력 (update_next_delivery · update_cycle · update_status) |
+
+코드 자산:
+- `lib/services/billingService.ts` — Toss 빌링 비즈 (빌링키 발급, 첫 회차 결제, 카드 관리)
+- `lib/repositories/subscriptionRepo.ts` — 구독 CRUD (RLS 필터링)
+- `lib/admin/subscriptionsServer.ts` + `lib/admin/subscriptions.ts`
+- `lib/subscription/cycles.ts` — SUBSCRIPTION_CYCLES, CYCLE_DAYS SoT
+- `lib/payments/tossBillingClient.ts`
+- API: `/api/billing/charge`, `/api/billing/authorizations`, `/api/billing/methods`(GET/POST/DELETE), `/api/billing/methods/[id]/default`, `/api/subscriptions/[id]`(PATCH/DELETE)
+- 어드민: `/admin/(authed)/subscriptions/actions.ts`
+
+### Phase 3-B 결정 (S209 사용자)
+
+**재시도 자동화 출시 후 처리 — 사용자 재등록 흐름만 유지.**
+- `subscription_billing_failures.retry_at` 컬럼 존재하나 cron/Edge Function/retry RPC/실패 로그 UI 도입 안 함
+- 첫 회차 실패 시 사용자가 재등록 (현 `chargeFirstCycle` throw → 사용자 측 재시도)
+- 출시 후 운영 안정성 필요 시 별도 sprint 로 도입
+
+### Phase 3-C/D (미도출)
+
+| Phase | 미진행 항목 |
+|-------|------------|
+| 3-C | transfer(계좌이체) 빌링 미지원 — `process_billing_charge_success` RPC 가 method='card' 만 처리 |
+| 3-D | 수동 환불 / 카드 만료 알림 배치 / 카드 일시정지 / 예약 주문 건너뛰기 UI 전무 |
+| mixed cart | 정기+일반 혼합 결제 분기 미작성 (β/γ 안 결정 대기 — `memory/research_billing_mixed_cart.md`) |
+
+### Deferred (S208 sweep)
+
+- DB-S208-002: `subscription_billing_failures` RLS 마이그레이션 분리 (040→045 통합 분리)
+- DB-S208-003: `softDeleteBillingMethod()` atomic RPC 리팩토링
 
 ---
 
@@ -97,18 +139,19 @@
 | **D-3** | 마이페이지 주문 카드에서 일반 주문 vs 정기배송 주문 구분 UI | 30m |
 | **D-4** | E2E 테스트 — 정기배송 결제 → DB INSERT → 마이페이지 노출 흐름 | 2h |
 
-### ⏸ Group E — 자동 결제 집행 (Phase 3 — 출시 후)
+### ⏸ Group E — 자동 결제 집행 (Phase 3 진행 현황 — S209 갱신)
 
 > 005 마이그레이션 주석에 명시: "자동 결제 집행은 Phase 3"
+> **S209 결정:** Phase 3-A 완료 (E-1·E-2). Phase 3-B (재시도 자동화) **출시 후 처리** — 사용자 재등록 흐름만 유지.
 
-| # | 작업 |
-|---|------|
-| **E-1** | Toss 자동 결제 키 (빌링키) 발급 흐름 — 결제 위젯 정식 신청 시 옵션 추가 신청 필요 |
-| **E-2** | 빌링키 보관 — `payments.billing_key` 또는 별도 `user_billing_keys` 테이블 |
-| **E-3** | 정기배송 자동 결제 스케줄러 — Vercel Cron / Supabase pg_cron / 외부 큐 |
-| **E-4** | 자동 결제 실패 처리 — retry 정책·status `paused` 자동 전환·사용자 알림 |
-| **E-5** | 정기배송 자동 주문 생성 — `create_order` 변형 (사용자 인증·결제 인증 우회 + 빌링키 결제) |
-| **E-6** | 배송 발송 알림 (다음 배송 N일 전 미리 안내) |
+| # | 작업 | 상태 (S209) |
+|---|------|-----|
+| **E-1** | Toss 자동 결제 키 (빌링키) 발급 흐름 — 결제 위젯 정식 신청 시 옵션 추가 신청 필요 | ✅ 완료 (Phase 3-A · 040 마이그) |
+| **E-2** | 빌링키 보관 — `billing_methods` 테이블 + `subscriptions.billing_method_id` FK | ✅ 완료 (Phase 3-A · 040 마이그) |
+| **E-3** | 정기배송 자동 결제 스케줄러 — Vercel Cron / Supabase pg_cron / 외부 큐 | ⏸️ **출시 후 처리 확정** (Phase 3-B — 사용자 결정 S209) |
+| **E-4** | 자동 결제 실패 처리 — retry 정책·status `paused` 자동 전환·사용자 알림 | ⏸️ **출시 후 처리 확정** — 첫 회차 실패 시 사용자 재등록 흐름만 유지 |
+| **E-5** | 정기배송 자동 주문 생성 — `create_order` 변형 (사용자 인증·결제 인증 우회 + 빌링키 결제) | ✅ 부분 완료 — `process_billing_charge_success` RPC (042 마이그). 첫 회차만 작동. transfer 미지원 (Phase 3-C) |
+| **E-6** | 배송 발송 알림 (다음 배송 N일 전 미리 안내) | ⏸️ Phase 3-D 이후 |
 
 ### ⏸ Group F — 어드민 (별도 계획서로 이관)
 
@@ -197,3 +240,4 @@ S92~S95 진행 중·후에 클라이언트(사업자)에게 확정 받을 사항
 | 2026-04-27 | S92 | 초기 작성 (진단 + 작업 리스트 + 권장 순서) |
 | 2026-04-27 | S92 | 어드민 풀 구현 정책 변경 반영 — Group F (어드민) 를 `admin-implementation-plan.md` 로 이관, 진행 순서를 어드민 후속으로 재배치 |
 | 2026-04-29 | S99 | Group C UI 선행 완료 반영 — 구독 아코디언 3버튼(배송 건너뛰기·구독 해지·취소/저장) + 확인 모달 2종(S99 MOCK). C-5 배송 건너뛰기 API 항목 신규 추가. C-7→C-8(UI), C-6→C-7(pause/resume) 번호 재정렬. S-7-3·S-7-4 추정 시간 보정 |
+| 2026-05-11 | S209 | **§0-4 현재 진행률 신설.** Phase 3-A 완료 반영 (040~045 마이그 + billingService + admin 구독 CRUD + audit log). Group E 표에 상태 컬럼 추가 (E-1·E-2 완료, E-3·E-4 출시 후 확정). **Phase 3-B 재시도 자동화 출시 후 처리 확정** (사용자 결정 S209 — 첫 회차 실패 시 사용자 재등록 흐름만 유지). Phase 3-C (transfer) + 3-D (어드민 SOP) 미도출. mixed cart (β/γ) 결정 대기. Deferred DB-S208-002/003 표시. |

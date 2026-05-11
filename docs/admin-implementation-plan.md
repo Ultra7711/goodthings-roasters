@@ -1,9 +1,29 @@
 # 어드민 풀 구현 계획 (Admin Implementation Plan)
 
 > **작성일:** 2026-04-27 (Session 92)
-> **최종 업데이트:** 2026-05-02 (Session 124) — 신규 그룹 H·I·J 추가, Lucide 아이콘 확정
-> **상태:** 출시 전 구축 확정. 정기배송 풀 구현보다 선행.
+> **최종 업데이트:** 2026-05-11 (Session 209) — Group A·B·C·D·H·I·J 완료 반영, cafe-events 신규 등재, E/F 출시 전 처리 확정
+> **상태:** 출시 전 구축 확정. Group E/F (products·cafe_menu DB 전환) 미완 — 출시 전 처리.
 > **결정 배경:** 클라이언트 운영 가능성 확보 — Supabase 대시보드 운영 정책 폐기, 직접 구현으로 전환.
+
+---
+
+## 0. 현재 진행률 (S209 audit 기준 2026-05-11)
+
+| Group | 추정 | 현재 | 비고 |
+|-------|------|------|------|
+| **A** 인프라 | 7~9h | ✅ 100% | `/admin/login` + layout + Storage 버킷 + shadcn/ui |
+| **B** 주문 | 5~8h | ✅ 80%+ | 환불·취소·CSV는 외부 안내 또는 plan 외 |
+| **C** 사용자 | 4~6h | ✅ 100% | C-3 admin 승격·강등 + audit 자동 기록 |
+| **D** 정기배송 | 4~6h | ✅ 95% | D-3 자동 결제 모니터링 출시 후 보류 |
+| **E** 상품 | 20~29h | ⏸️ **0%** | placeholder 만 — 🔴 **출시 전 처리 확정 (S209)** |
+| **F** 카페 메뉴 | 12~17h | ⏸️ **0%** | placeholder 만 — 🔴 **출시 전 처리 확정 (S209)** |
+| **G** 운영·문서 | 4~5h | ⏸️ 0% | Phase 3-D 이후 |
+| **H** 설정 | 7~11h | ✅ 100% | 공지·배송·시즌·서명 |
+| **I** 통계 | 5~7h | ✅ 100% | 대시보드 + 매출 + 카페 좋아요 |
+| **J** 굿데이즈 | 6~8h | ✅ 100% | 50장 seed + 드래그 리오더 |
+| **K** cafe-events (plan 외) | — | ✅ 100% | S151 신규 — DB + Server Action + 4-bp 미리보기 |
+
+**잔여 출시 전 작업:** Group E (20~29h) + Group F (12~17h) + Group G (4~5h) ≈ **36~51h**
 
 ---
 
@@ -98,9 +118,10 @@
 
 → **합계 4~6h**
 
-### 🔵 Group E — 상품 도메인 어드민 (거대 작업)
+### 🔵 Group E — 상품 도메인 어드민 (거대 작업) — 🔴 출시 전 처리 확정 (S209)
 
-> **현재 상품은 `next/src/lib/products.ts` (295줄) 하드코딩.** DB 마이그레이션 + 데이터 이관 + fetch 전환이 어드민 UI 구현보다 큼.
+> **현재 상품은 `next/src/lib/products.ts` (339줄, S209 기준) 하드코딩.** DB 마이그레이션 + 데이터 이관 + fetch 전환이 어드민 UI 구현보다 큼.
+> **S209 audit:** 의존 파일 **44개** (상품 + 카페 메뉴 합산). E-4 fetch 전환 범위 §6-3 참조.
 
 | # | 작업 | 추정 |
 |---|------|------|
@@ -115,9 +136,10 @@
 
 → **합계 20~29h** (shadcn/ui 도입 가정)
 
-### 🟣 Group F — 카페 메뉴 도메인 어드민
+### 🟣 Group F — 카페 메뉴 도메인 어드민 — 🔴 출시 전 처리 확정 (S209)
 
-> 상품과 동일 구조. `next/src/lib/cafeMenu.ts` 하드코딩 → DB 전환.
+> 상품과 동일 구조. `next/src/lib/cafeMenu.ts` (180줄, S209 기준) 하드코딩 → DB 전환.
+> **S209 audit:** 메뉴 35개 (시그니처 8 + 브루잉 4 + 티 3 + 논커피 7 + 디저트 8 + 기타). 14개 필드. 의존 8곳 (`CafeMenuPage`, `CafeMenuCard`, `CafeMenuGrid`, `CafeNutritionSheet`, `CafeFilterTabs`, `MenuCardBadges`, `home/CafeMenuSection`, `search/SearchResultCard`). API `/api/menu-likes/[menuId]` 가 CAFE_MENU 배열로 id 검증 — DB 전환 시 함께 갱신 필요.
 
 | # | 작업 | 추정 |
 |---|------|------|
@@ -311,27 +333,24 @@ S-1 진입 전·중에 확정 받을 사항:
 
 ### 6-2. 도메인 전환 대상 (하드코딩 → DB)
 
-- `next/src/lib/products.ts` (295줄) — Group E
-- `next/src/lib/cafeMenu.ts` — Group F
+- `next/src/lib/products.ts` (339줄 · S209) — Group E
+- `next/src/lib/cafeMenu.ts` (180줄 · S209) — Group F
 
-### 6-3. fetch 전환 영향 파일
+### 6-3. fetch 전환 영향 파일 (S209 audit — 총 44개)
 
-상품 (E-4):
-- `next/src/components/shop/ShopPage.tsx`
-- `next/src/components/home/BeansScrollSection.tsx`
-- `next/src/app/(main)/shop/[slug]/page.tsx`
-- `next/src/lib/search/searchData.ts`
-- `next/src/lib/services/cartService.ts`
-- `next/src/lib/services/orderService.ts`
+**상품 (E-4 영향) — 약 36개:**
+- 페이지: `app/(main)/shop/[slug]/page.tsx`
+- 컴포넌트: `home/LineupSection.tsx`, `home/SignatureChapterView.tsx`, `home/CafeMenuSection.tsx`, `shop/ShopPage.tsx`, `shop/ShopCard.tsx`, `product/ProductDetailPage.tsx`, `product/ProductGallery.tsx`, `product/ProductRecipeGuide.tsx`, `product/ProductFlavorRadar.tsx`, `product/ProductRoastStage.tsx`, `product/DripBagSteps.tsx`, `product/ProductAccordions.tsx`, `product/PurchaseRow.tsx`, `order/OrderItemRow.tsx`, `auth/mypage/WelcomeCard.tsx`, `admin/subscriptions/SubscriptionsTableClient.tsx`, `admin/settings/SettingsForm.tsx`
+- 훅: `hooks/useCart.ts`, `hooks/useProductPurchase.ts`
+- 유틸/서비스: `lib/cart/mapRow.ts`, `lib/services/cartService.ts`, `lib/services/orderService.ts`, `lib/search/searchData.ts`, `lib/search/engine.ts`, `lib/search/types.ts`
+- 테스트: `cartService.test.ts`, `orderService.test.ts`, `search/matcher.test.ts`, `search/engine.test.ts`
 
-카페 메뉴 (F-3):
-- `next/src/components/cafe/CafeMenuPage.tsx`
-- `next/src/components/cafe/CafeMenuGrid.tsx`
-- `next/src/components/cafe/CafeMenuCard.tsx`
-- `next/src/components/cafe/CafeNutritionSheet.tsx`
-- `next/src/components/cafe/CafeFilterTabs.tsx`
-- `next/src/components/home/CafeMenuSection.tsx`
-- `next/src/lib/search/searchData.ts`
+**카페 메뉴 (F-3 영향) — 약 8개:**
+- 페이지·컴포넌트: `cafe/CafeMenuPage.tsx`, `cafe/CafeMenuCard.tsx`, `cafe/CafeMenuGrid.tsx`, `cafe/CafeNutritionSheet.tsx`, `cafe/CafeFilterTabs.tsx`, `cafe/MenuCardBadges.tsx`, `home/CafeMenuSection.tsx`, `search/SearchResultCard.tsx`
+- 유틸: `lib/search/searchData.ts` (상품과 공유)
+- API: `app/api/menu-likes/[menuId]/route.ts` — CAFE_MENU 배열로 id 검증
+
+> **출시 차단 평가 (S209):** 가격 변경 / 신메뉴 추가 / 신상품 등록 시 코드 수정 + 재배포 필요. 3개월 이내 운영 시 누적 차단 — 출시 전 처리 확정.
 
 ---
 
@@ -340,3 +359,5 @@ S-1 진입 전·중에 확정 받을 사항:
 | 날짜 | 세션 | 변경 내용 |
 |------|------|----------|
 | 2026-04-27 | S92 | 초기 작성 — 정책 변경 (Supabase 대시보드 → 직접 구현) 반영 + 풀 어드민 작업 그룹 7개 + 출시 전 9단계 진행 순서 |
+| 2026-05-02 | S124 | 신규 그룹 H·I·J 추가, Lucide 아이콘 확정 |
+| 2026-05-11 | S209 | **현재 진행률 §0 신설.** Group A·B·C·D·H·I·J 완료 반영 (cafe-events 신규 등재 = Group K, S151). Group E `lib/products.ts` 라인 수 295 → 339 갱신, fetch 영향 파일 6개 → **36개** 확장 (S209 audit). Group F `lib/cafeMenu.ts` 180줄 명시, 의존 8곳 명시. Group E/F **출시 전 처리 확정** (사용자 결정 S209). DB 마이그레이션 028~045 추가 사실 §0 표에서 추적. |
