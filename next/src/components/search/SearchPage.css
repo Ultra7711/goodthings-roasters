@@ -50,7 +50,7 @@
   align-items: center;
   flex-shrink: 0;
 }
-.search-clear-btn:hover { color: var(--color-icon-default); }
+@media (hover: hover) { .search-clear-btn:hover { color: var(--color-icon-default); } }
 
 .search-query-label {
   font-family: var(--font-kr);

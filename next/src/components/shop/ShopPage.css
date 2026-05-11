@@ -201,7 +201,9 @@
 /* hover zoom 1.02 — cafe(.cm-card-img) / gooddays(.gd-cell img) 와 통일.
    S152 D-2 보류(editorial 톤) 결정을 번복: 같은 사이트 내 다른 카드 그룹이 모두 zoom 을
    사용하는데 shop 만 비활성이면 인터랙션 단서 일관성 손해가 더 큼. V2 자문 §1.4 권고 1.02. */
-.sp-card-thumb:hover .sp-card-img { transform: scale(1.02); }
+@media (hover: hover) {
+  .sp-card-thumb:hover .sp-card-img { transform: scale(1.02); }
+}
 
 /* ── highlight 플래시 (URL ?item= 진입 시) ──
    delay 0.6s — scrollIntoView smooth 완료 후 사용자가 카드 보고 있을 때 시작.
@@ -234,4 +236,13 @@
   font-weight: 400;
   color: var(--color-text-primary);
   margin: 0;
+}
+
+/* 모바일 배지 슬롯 오프셋 — CafeMenuPage P2 와 동일 3단 BP.
+   globals.css 기본값 12px → 480~767: 10px → ≤480: 8px */
+@media (max-width: 767px) {
+  .sp-card-thumb .sp-card-badge { top: 10px; left: 10px; }
+}
+@media (max-width: 480px) {
+  .sp-card-thumb .sp-card-badge { top: 8px; left: 8px; }
 }

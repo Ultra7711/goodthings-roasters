@@ -152,8 +152,8 @@
   display: block;
   transition: transform 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
-.gd-cell:hover img {
-  transform: scale(1.02);
+@media (hover: hover) {
+  .gd-cell:hover img { transform: scale(1.02); }
 }
 .gd-cell::after {
   content: '';
@@ -163,8 +163,8 @@
   transition: background var(--duration-transition) ease;
   pointer-events: none;
 }
-.gd-cell:hover::after {
-  background: rgba(0, 0, 0, 0.06);
+@media (hover: hover) {
+  .gd-cell:hover::after { background: rgba(0, 0, 0, 0.06); }
 }
 .gd-cell--span {
   grid-row: 1 / 3;
@@ -172,8 +172,8 @@
 .gd-cell--placeholder::after {
   display: none;
 }
-.gd-cell--placeholder:hover img {
-  transform: none;
+@media (hover: hover) {
+  .gd-cell--placeholder:hover img { transform: none; }
 }
 
 /* 라이트박스 — yet-another-react-lightbox 라이브러리 사용 (S121 컨버전).

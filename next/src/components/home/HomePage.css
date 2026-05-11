@@ -357,7 +357,7 @@
 .ev-banner__img img {
   transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
 }
-.ev-banner__img:hover img { transform: scale(1.02); }
+@media (hover: hover) { .ev-banner__img:hover img { transform: scale(1.02); } }
 .ev-banner__body {
   display: flex;
   flex-direction: column;
@@ -467,7 +467,7 @@
 .cafe-menu-split__photo img {
   transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
 }
-.cafe-menu-split__photo:hover img { transform: scale(1.02); }
+@media (hover: hover) { .cafe-menu-split__photo:hover img { transform: scale(1.02); } }
 .cafe-menu-split__items {
   padding: 0 0 0 48px;
   display: flex;
@@ -497,7 +497,7 @@
 .cmsplit-thumb img {
   transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
 }
-.cmsplit-row:hover .cmsplit-thumb img { transform: scale(1.02); }
+@media (hover: hover) { .cmsplit-row:hover .cmsplit-thumb img { transform: scale(1.02); } }
 .cmsplit-info {
   display: flex;
   flex-direction: column;
@@ -555,7 +555,7 @@
   will-change: transform;
   transition: background-color var(--duration-hover) ease;
 }
-.menu-tab:hover { background: var(--color-btn-primary-bg-hover); }
+@media (hover: hover) { .menu-tab:hover { background: var(--color-btn-primary-bg-hover); } }
 .menu-tab span { display: block; line-height: 1; }
 
 /* S152 — 사진 전체 클릭 시 /menu 이동 (모든 brk · MenuTab z-index 2 보다 아래) */
@@ -720,7 +720,7 @@
   transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
 }
 /* hover zoom 1.02 — 메인 이미지 hover 일관성. */
-.story-img:hover .story-img__inner { transform: scale(1.02); }
+@media (hover: hover) { .story-img:hover .story-img__inner { transform: scale(1.02); } }
 .story-txt {
   display: flex;
   flex-direction: column;
@@ -790,7 +790,7 @@
   transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
 }
 /* hover zoom 1.02 — story-gd 4컷 카드. /gooddays 의 .gd-cell:hover img 와 동일 정책. */
-.story-gd__card:hover .story-gd__img { transform: scale(1.02); }
+@media (hover: hover) { .story-gd__card:hover .story-gd__img { transform: scale(1.02); } }
 
 /* 1023 이하 (tablet + mobile) — column stack + 텍스트→이미지 order (자문 §2.7) */
 @media (max-width: 1023px) {
@@ -902,7 +902,7 @@
   -webkit-tap-highlight-color: transparent;
   transition: opacity 200ms ease;
 }
-.newsletter-btn:hover { opacity: 0.8; }
+@media (hover: hover) { .newsletter-btn:hover { opacity: 0.8; } }
 .newsletter-msg {
   display: block;
   margin-top: 12px;

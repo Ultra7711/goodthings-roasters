@@ -50,9 +50,11 @@
   color: var(--on-dark-secondary);
   opacity: 1;
 }
-#site-hdr-wrap.hdr-dark .nav-link:hover {
-  color: var(--color-text-inverse);
-  opacity: 1;
+@media (hover: hover) {
+  #site-hdr-wrap.hdr-dark .nav-link:hover {
+    color: var(--color-text-inverse);
+    opacity: 1;
+  }
 }
 #site-hdr-wrap .hi {
   transition: color var(--duration-slide) ease;
@@ -63,8 +65,8 @@
 #site-hdr-wrap.hdr-dark .hdr-icon-btn .hi {
   opacity: .80;
 }
-#site-hdr-wrap.hdr-dark .hdr-icon-btn:hover .hi {
-  opacity: 1;
+@media (hover: hover) {
+  #site-hdr-wrap.hdr-dark .hdr-icon-btn:hover .hi { opacity: 1; }
 }
 #site-hdr-wrap.hdr-dark .cart-badge {
   background: var(--color-background-primary);
@@ -131,7 +133,7 @@
   display: inline-flex;
   align-items: center;
 }
-.nav-link:hover { opacity: 1; }
+@media (hover: hover) { .nav-link:hover { opacity: 1; } }
 /* 현재 페이지 표시 — opacity 1 강조만 */
 .nav-link[aria-current="page"] { opacity: 1; }
 
@@ -151,9 +153,9 @@
   transition: opacity var(--duration-hover) var(--ease-default);
   opacity: .7;
 }
-.hdr-menu-toggle:hover { opacity: 1; }
+@media (hover: hover) { .hdr-menu-toggle:hover { opacity: 1; } }
 #site-hdr-wrap.hdr-dark .hdr-menu-toggle { color: var(--on-dark-secondary); }
-#site-hdr-wrap.hdr-dark .hdr-menu-toggle:hover { color: var(--color-text-inverse); }
+@media (hover: hover) { #site-hdr-wrap.hdr-dark .hdr-menu-toggle:hover { color: var(--color-text-inverse); } }
 
 @media (max-width: 767px) {
   .hdr-nav { display: none; }
@@ -234,7 +236,7 @@
   color: var(--color-icon-default);
   transition: color var(--duration-hover) var(--ease-default);
 }
-#search-clear:hover { color: var(--color-icon-default); }
+@media (hover: hover) { #search-clear:hover { color: var(--color-icon-default); } }
 
 /* 모바일 — 좌측 검색 아이콘 숨김 + 본문·헤더 시각 라인(좌 24 / 우 24)에 정렬
    헤더의 우측 16px 은 아이콘 버튼 outer padding 이고 시각 edge 는 24px 지점(16 + 내부 8) */
