@@ -21,15 +21,16 @@ type Props = {
 };
 
 export default function NextDeliveryCard({ sub, onManage }: Props) {
-  const nameLine = sub.volume
-    ? `${extractKrName(sub.name)} · ${sub.volume}`
-    : extractKrName(sub.name);
+  const krName = extractKrName(sub.name);
   const metaLine = `${sub.nextDate} · ${sub.cycle} 주기`;
 
   return (
     <section className="mp-next-card" aria-label="다음 정기배송">
       <div className="mp-next-info">
-        <h2 className="mp-next-name">{nameLine}</h2>
+        <h2 className="mp-next-name">
+          {krName}
+          {sub.volume && <span className="mp-next-volume"> · {sub.volume}</span>}
+        </h2>
         <p className="mp-next-meta">{metaLine}</p>
         <button
           type="button"

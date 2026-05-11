@@ -30,6 +30,13 @@
   margin: 0;
 }
 
+/* 상품명 옆 메타 (· 용량) — h3 옆 보조 정보 위계 분리.
+   사이즈 h3→body-l + weight 500→400 만으로 충분한 시각 위계 (opacity 미사용). */
+.mp-next-volume {
+  font-size: var(--type-body-l-size);
+  font-weight: 400;
+}
+
 .mp-next-meta {
   font-family: var(--font-kr);
   font-size: var(--type-body-ui-size);

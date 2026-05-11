@@ -32,12 +32,9 @@ type Props = {
 export default function RecentOrderCard({ order, onViewOrders }: Props) {
   const item = order.items[0];
   const itemCount = order.items.length;
-  /* 정기배송(NextDeliveryCard) 동일 패턴 — h2 = "상품명 · 용량" */
-  const nameLine = item
-    ? item.volume
-      ? `${extractKrName(item.name)} · ${item.volume}`
-      : extractKrName(item.name)
-    : extractKrName(order.name);
+  /* 정기배송(NextDeliveryCard) 동일 패턴 — h2 = 상품명 + 메타(· 용량) 위계 분리 */
+  const krName = item ? extractKrName(item.name) : extractKrName(order.name);
+  const volume = item?.volume ?? null;
   /* 메타 = 날짜 (· 외 N건) + 칩 */
   const summaryParts: string[] = [order.date];
   if (itemCount > 1) summaryParts.push(`외 ${itemCount - 1}건`);
@@ -47,7 +44,10 @@ export default function RecentOrderCard({ order, onViewOrders }: Props) {
   return (
     <section className="mp-next-card mp-next-card--recent" aria-label="최근 주문">
       <div className="mp-next-info">
-        <h2 className="mp-next-name">{nameLine}</h2>
+        <h2 className="mp-next-name">
+          {krName}
+          {volume && <span className="mp-next-volume"> · {volume}</span>}
+        </h2>
         <div className="mp-recent-meta">
           <span className="mp-recent-summary">{summaryLine}</span>
           <span className={`mp-recent-status ${STATUS_TONE[order.status]}`}>
