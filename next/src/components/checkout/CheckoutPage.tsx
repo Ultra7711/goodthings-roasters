@@ -100,15 +100,23 @@ export default function CheckoutPage() {
   } = useCheckoutForm();
 
   /* ── 기본 배송지 (S174): 로그인 사용자만 fetch. 게스트는 항상 null ── */
-  const { data: defaultAddress } = useDefaultAddressQuery();
+  const { data: defaultAddress, isLoading: addressLoading } = useDefaultAddressQuery();
 
   /* ── 로그인 유저 자동 진입 (BUG-003) + 기본 배송지 pre-fill (S174)
      - email: 빈 상태일 때만 채움 (사용자 수정 보존)
      - address 5필드: 모두 빈 상태일 때만 일괄 채움 (덮어쓰기 가드).
-       사용자가 한 필드라도 수정한 후 재진입해도 덮어쓰지 않음. */
+       사용자가 한 필드라도 수정한 후 재진입해도 덮어쓰지 않음.
+
+     S210 회귀 fix — `addressLoading` 가드 추가:
+     기존 흐름은 session 완료 직후 useEffect 가 실행되면 defaultAddress 가
+     아직 fetch 중 (undefined) 이라 5필드 prefill skip → revealForm() 호출 →
+     isFormRevealed=true → defaultAddress 도착 후 useEffect 재실행하지만
+     `if (isFormRevealed) return` 가드에 막혀 prefill 영원히 skip.
+     → useDefaultAddressQuery 가 settle 할 때까지 revealForm 지연. */
   useEffect(() => {
     if (sessionLoading) return;
     if (!isLoggedIn || !user) return;
+    if (addressLoading) return;
     if (isFormRevealed) return;
 
     if (user.email && !form.email) setField('email', user.email);
@@ -133,6 +141,7 @@ export default function CheckoutPage() {
     sessionLoading,
     isLoggedIn,
     user,
+    addressLoading,
     isFormRevealed,
     form.email,
     form.firstname,
