@@ -7,6 +7,8 @@
 
 ---
 
+> **마이그레이션 운영 워크플로우:** `supabase/migrations/README.md` 참조 (Supabase 대시보드 SQL Editor 직접 적용 · CLI 미사용 · 번호 충돌 방지). Phase 3-A 040~045 production 적용 확인 완료 (S210 — `billing_methods` · `subscription_audit_log` · `process_billing_charge_success` RPC · `subscriptions.billing_method_id` FK 4종 존재 검증).
+
 ## 0-4. 현재 진행률 (S209 audit 기준 2026-05-11)
 
 ### Phase 3-A (완료)

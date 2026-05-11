@@ -1,8 +1,9 @@
 -- ═══════════════════════════════════════════════════════════════════════════
--- 035_admin_orders_pending_exclude.sql — /admin/orders pending 노출 정합 (S171 PR-A.5)
+-- 043_admin_orders_pending_exclude.sql — /admin/orders pending 노출 정합 (S171 PR-A.5)
+-- ※ S210 (2026-05-11) 파일명 정리: 035 → 043 (번호 충돌 해소). production 적용 완료된 상태.
 --
 -- 배경:
---   S171 PR-A (034) 가 매출 집계/대시보드에서 pending 을 제외했지만,
+--   S171 PR-A (041) 가 매출 집계/대시보드에서 pending 을 제외했지만,
 --   /admin/orders 의 030 RPC `admin_orders_status_counts.'all'` 은 여전히
 --   `count(*)` 로 전체를 카운트하여 pending row 를 포함.
 --

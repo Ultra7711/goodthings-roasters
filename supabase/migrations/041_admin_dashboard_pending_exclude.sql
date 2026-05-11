@@ -1,5 +1,6 @@
 -- ═══════════════════════════════════════════════════════════════════════════
--- 034_admin_dashboard_pending_exclude.sql — pending 주문 매출 정합성 hot fix (S171)
+-- 041_admin_dashboard_pending_exclude.sql — pending 주문 매출 정합성 hot fix (S171)
+-- ※ S210 (2026-05-11) 파일명 정리: 034 → 041 (번호 충돌 해소). production 적용 완료된 상태.
 --
 -- 문제:
 --   /checkout 에서 "결제하기" 클릭 시 createOrder API 가 status='pending' 으로
