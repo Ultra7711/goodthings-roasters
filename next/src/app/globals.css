@@ -1542,14 +1542,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 /* 법적 안내 */
 .chp-legal-note {
-  display: flex; align-items: flex-start; gap: 8px;
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
   color: var(--color-text-secondary); line-height: 24px; margin-top: 24px;
   padding: 16px 20px;
   background: var(--color-background-secondary);
-  border-left: 2px solid var(--color-border-primary);
 }
-.chp-legal-note > svg { margin-top: 2px; flex-shrink: 0; }
 .chp-legal-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 20px; margin-top: 40px; }
 .chp-legal-link {
   flex: 0 0 auto; font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
@@ -1622,6 +1619,18 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .chp-tax-note {
   text-align: right; font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 400;
   color: var(--color-text-tertiary); margin-top: 2px;
+}
+@media (max-width: 1023px) {
+  .chp-legal-note {
+    width: calc(100% + 2 * var(--layout-padding-x));
+    margin-left: calc(-1 * var(--layout-padding-x));
+    padding: 16px var(--layout-padding-x);
+  }
+  .chp-sum-sub-block {
+    width: calc(100% + 2 * var(--layout-padding-x));
+    margin-left: calc(-1 * var(--layout-padding-x));
+    padding: 12px var(--layout-padding-x);
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -2239,7 +2248,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   #bi-body,
   #gd-inner,
   .chp-hdr-inner,
-  .chp-body,
   .ocp-body,
   .mp-body,
   .cp-root {

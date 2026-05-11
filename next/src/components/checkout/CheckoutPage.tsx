@@ -31,7 +31,6 @@ import { useDefaultAddressQuery } from '@/hooks/useDefaultAddress';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useToast } from '@/hooks/useToast';
 import { GUEST_PASSWORD_MIN_LENGTH } from '@/lib/validation';
-import { InfoCircleIcon } from '@/components/ui/Icons';
 import CheckoutPayment from './CheckoutPayment';
 import MiniHeader from './MiniHeader';
 import EmptyCart from './EmptyCart';
@@ -301,8 +300,7 @@ export default function CheckoutPage() {
                 {/* 정기배송 안내 */}
                 {hasSubscription && (
                   <div className="chp-legal-note">
-                    <InfoCircleIcon size={18} />
-                    <span>정기배송 상품이 포함되어 있습니다. 결제 후 설정된 주기에 따라 자동으로 결제되며, 정기배송은 마이페이지에서 언제든지 일시정지하거나 재개 또는 취소하실 수 있습니다.</span>
+                    정기배송 상품이 포함되어 있습니다. 결제 후 설정된 주기에 따라 자동으로 결제되며, 정기배송은 마이페이지에서 언제든지 일시정지하거나 재개 또는 취소하실 수 있습니다.
                   </div>
                 )}
 

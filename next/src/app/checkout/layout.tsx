@@ -22,7 +22,7 @@ export default function CheckoutLayout({ children }: { children: ReactNode }) {
       {/* BUG-165 (S88): AnnouncementBar/SiteFooter 가 없는 독립 레이아웃이라
           기본 OverscrollTop 색(#1E1B16/#4A4845)이 light 페이지 bg 와 부조화.
           light(#FBF8F3) 로 오버라이드하여 자체 미니 헤더와 시각 통일. */}
-      <OverscrollTop top="#FBF8F3" bottom="#FBF8F3" />
+      <OverscrollTop top="#EFEAE0" bottom="#FBF8F3" />
       {children}
       <ToastContainer />
     </>
