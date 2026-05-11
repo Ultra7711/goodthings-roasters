@@ -79,6 +79,12 @@ export type SearchIndexEntry = {
   nameChosung: string;
 };
 
+/** 검색 인덱스 원본 데이터 (S215) — buildSearchIndex 입력 + SSR prefetch 직렬화용 */
+export type SearchIndexData = {
+  products: Product[];
+  cafeMenu: CafeMenuItem[];
+};
+
 /** 검색 결과 — 스코어 내림차순 정렬된 상태로 반환 */
 export type SearchResult =
   | {

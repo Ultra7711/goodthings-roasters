@@ -17,7 +17,12 @@ import { useSearchParams } from 'next/navigation';
 import { useSearch } from '@/hooks/useSearch';
 import SearchResultCard from './SearchResultCard';
 import SearchEmpty from './SearchEmpty';
-import type { SearchResult } from '@/lib/search/types';
+import type { SearchIndexData, SearchResult } from '@/lib/search/types';
+
+type Props = {
+  /* SSR prefetch — useSearch 의 TanStack Query initialData 로 위임 (S215). */
+  initialData: SearchIndexData;
+};
 
 type Group = {
   key: 'cafe' | 'bean' | 'drip';
@@ -49,11 +54,11 @@ function groupResults(items: SearchResult[]): Group[] {
   ].filter((g) => g.results.length > 0);
 }
 
-export default function SearchPage() {
+export default function SearchPage({ initialData }: Props) {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') ?? '';
   /* Committed-search: URL = 확정 쿼리. 재검색은 헤더 검색 버튼으로 패널을 열어 수행. */
-  const { query, results, hasQuery, hasResults } = useSearch(initialQuery);
+  const { query, results, hasQuery, hasResults } = useSearch(initialQuery, initialData);
 
   const groups = useMemo(() => groupResults(results), [results]);
 
