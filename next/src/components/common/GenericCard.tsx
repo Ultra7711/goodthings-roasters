@@ -160,10 +160,15 @@ export default function GenericCard({
   }, [scrollRoot, isVisible]);
 
   // highlight 시 카드 자체 scrollIntoView
+  // scrollTo(0) 먼저 — 다른 페이지에서 ?item= 진입 시 브라우저가 이전 스크롤 위치를
+  // 그대로 유지하는 경우(풋터 먼저 노출) 방지. 이미 0이면 no-op.
   useEffect(() => {
-    if (isHighlight && cardRef.current) {
-      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    if (!isHighlight || !cardRef.current) return;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    const el = cardRef.current;
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   }, [isHighlight]);
 
   const className = [

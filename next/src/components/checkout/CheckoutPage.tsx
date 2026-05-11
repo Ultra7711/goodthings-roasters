@@ -306,11 +306,11 @@ export default function CheckoutPage() {
 
                 {/* 법적 링크 */}
                 <div className="chp-legal-links">
-                  <span className="chp-legal-link">배송 안내</span>
-                  <span className="chp-legal-link">개인정보처리방침</span>
-                  <span className="chp-legal-link">이용약관</span>
-                  <span className="chp-legal-link">전자상거래 법률 고지</span>
-                  <span className="chp-legal-link">취소·반품 안내</span>
+                  <a className="chp-legal-link" href="/legal/shipping" target="_blank" rel="noopener noreferrer">배송 안내</a>
+                  <a className="chp-legal-link" href="/legal/privacy" target="_blank" rel="noopener noreferrer">개인정보처리방침</a>
+                  <a className="chp-legal-link" href="/legal/terms" target="_blank" rel="noopener noreferrer">이용약관</a>
+                  <a className="chp-legal-link" href="/legal/business-info" target="_blank" rel="noopener noreferrer">전자상거래 법률 고지</a>
+                  <a className="chp-legal-link" href="/legal/returns" target="_blank" rel="noopener noreferrer">취소·반품 안내</a>
                 </div>
               </>
             )}
