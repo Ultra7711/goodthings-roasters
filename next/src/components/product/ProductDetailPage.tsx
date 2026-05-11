@@ -27,6 +27,7 @@ import ProductFlavorRadar from './ProductFlavorRadar';
 import ProductRecipeGuide from './ProductRecipeGuide';
 import DripBagSteps from './DripBagSteps';
 import ProductAccordions from './ProductAccordions';
+import OverscrollTop from '@/components/ui/OverscrollTop';
 
 type Props = { product: Product };
 
@@ -91,6 +92,8 @@ export default function ProductDetailPage({ product }: Props) {
   const contentStyle = { '--pd-thumbs-h': hasThumbs ? '96px' : '0px' } as CSSProperties;
 
   return (
+    <>
+    <OverscrollTop top="#1E1B16" bottom="#FBF8F3" />
     <div id="pd-body" ref={pageRef}>
       <div id="pd-inner">
         {/* ① Hero — 좌: sticky 이미지 / 우: 정보 + 옵션 + CTA (V2 §5.2)
@@ -175,5 +178,6 @@ export default function ProductDetailPage({ product }: Props) {
         </section>
       </div>
     </div>
+    </>
   );
 }
