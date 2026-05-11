@@ -36,7 +36,10 @@ import {
   useMenuSortCommitted,
 } from '@/lib/menuLikesStore';
 
-const HIGHLIGHT_MS = 1500;
+// S216-D P5: 1500 → 3000. cm-thumb-flash animation 자체는 0.7s × 2 = 1.4s 로
+// iteration count 가 자체 종료 → 시각적 부조화 없음. likes fetch (~1.4~1.7s) 후
+// sortCommitted reorder 까지 scrollIntoView effect 가 추적 가능하도록 유지.
+const HIGHLIGHT_MS = 3000;
 // ShopPage 와 동일 — 탭(0.3s) 등장 후 카드 시작, 진입 후엔 0
 const CARD_BASE_DELAY_INIT = 420;
 
@@ -221,6 +224,18 @@ export default function CafeMenuPage({ items }: Props) {
     window.addEventListener('gtr:menu-reset', onReset);
     return () => window.removeEventListener('gtr:menu-reset', onReset);
   }, [bodyEl]);
+
+  // S216-D P5 (timing fix): likes fetch 완료 → sortCommitted 갱신 → 카드 reorder 시
+  // highlighted card 가 viewport 밖으로 밀려 footer 가 노출되는 케이스 보정.
+  // sortCommitted 변경마다 highlightId 카드 위치 재추적 + scrollIntoView 재실행.
+  // GenericCard 의 useEffect 는 [isHighlight] dep 이라 reorder 감지 못 함.
+  useEffect(() => {
+    if (!highlightId) return;
+    const el = document.querySelector<HTMLElement>(`[data-cm-id="${CSS.escape(highlightId)}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [highlightId, sortCommitted, page]);
 
   // highlight 자동 소거 — highlightId 가 새로 세팅될 때마다 이전 timer 초기화 후 재등록
   useEffect(() => {
