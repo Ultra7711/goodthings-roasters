@@ -224,3 +224,22 @@ src/
 - **결과 문서 포인터 원칙:** `NEXT_SESSION.md` 하나만 읽으면 모든 관련 문서 위치를 알 수 있어야 한다
 - **커밋 후 작성:** 커밋·푸시 → complete 메모리 → NEXT_SESSION.md 덮어쓰기 순서 준수
 - **MEMORY.md 인덱스 동시 등록** 필수
+
+### NEXT_SESSION.md 표준 슬롯 (의무)
+
+매 세션 종료 시 NEXT_SESSION.md 작성에 다음 7 슬롯 포함 (누락 시 다음 sprint 회귀 위험):
+
+1. **선행 액션** (해당 시) — 사용자가 새 세션 진입 전 수행할 액션 (DB 마이그·환경변수 등)
+2. **선행 로드** — `project_session{N}_complete.md` + 마일스톤 § 해당 Phase + 관련 spec/소스 파일
+3. **범위** — 1~3줄 scope (포함/제외 명시) + 시간 추정 + 추천 모델
+4. **세부 작업** — Step 별 분해 + 검증 기준
+5. **회귀 검증 체크리스트** — golden path + edge case 항목 list (사전 작성 의무. 구현 후 만들면 누락 위험)
+6. **상태 스냅샷** — 브랜치 / 최신 커밋 / push 상태 / 테스트·빌드 상태
+7. **검증 명령** — `tsc / test / build / lint` 명령
+
+회귀 체크리스트 (5번) 누락 시 sprint 진입 전 사용자 confirm 받아 보강.
+
+추가 권장:
+- 의사결정 잠금 (DEC-N · 변경 금지) — 해당 시
+- 다음 sprint 카탈로그 — 해당 시
+- 운영 규칙 reminder — 해당 시
