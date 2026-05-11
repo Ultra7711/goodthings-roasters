@@ -215,11 +215,14 @@
 }
 
 /* ── Location 섹션 (2fr:1fr 그리드, 560px) ── */
-/* bg 명시 — root[data-dest-dark] 영구 유지로 누락 bg 가 다크로 노출되는 현상 방지 (S203 동일 패턴). */
+/* bg 명시 — root[data-dest-dark] 영구 유지로 누락 bg 가 다크로 노출되는 현상 방지 (S203 동일 패턴).
+   margin 금지 (padding 사용) — S210 BUG-009 후속 fix: margin 영역은 background transparent →
+   다크 root 노출. padding 으로 변경하여 bg-primary 가 spacing 영역까지 cover.
+   .st-two-col / .st-promise 와 동일 패턴 (padding 만 사용). */
 .st-location {
   background: var(--color-background-primary);
-  margin-top: 120px;
-  margin-bottom: 80px;
+  padding-top: 120px;
+  padding-bottom: 80px;
   overflow: hidden;
   /* sticky 헤더 보정 (S143 PR-5: --sticky-offset 토큰화) — 푸터 `/story#location` 링크에서 자동 스크롤 시 */
   scroll-margin-top: var(--sticky-offset);
@@ -380,10 +383,10 @@
 }
 /* Mobile: 세로 스택 — 맵 4:3, 정보 자연 높이 */
 @media (max-width: 767px) {
-  /* S199 — 80 → 72 (메인 페이지 정합) */
+  /* S199 — 80 → 72 (메인 페이지 정합). S210 — margin → padding (bg 다크 노출 차단) */
   .st-location {
-    margin-top: 72px;
-    margin-bottom: 72px;
+    padding-top: 72px;
+    padding-bottom: 72px;
   }
   /* S199 — 모바일 마커 팝업 컴팩트화 (ZoomControl 우상단 영역 충돌 회피).
      btn padding 0 16 + min-width 90 → 두 btn 합 ≈ 200 (길찾기 90 + 상세보기 102 + gap 8).
