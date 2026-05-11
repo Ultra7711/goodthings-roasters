@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "gen:image-blur": "node scripts/generate-image-blur.mjs"
+    "gen:image-blur": "node scripts/generate-image-blur.mjs",
+    "seed:cafe-menu": "npx tsx scripts/seed-cafe-menu.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
