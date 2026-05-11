@@ -43,9 +43,10 @@ export const SYNONYM_CLASSES: readonly (readonly string[])[] = [
   ['milk', '우유', '밀크'],
   // 디저트
   ['dessert', '디저트'],
-  ['donut', 'donuts', 'doughnut', '도나쓰', '도너츠', '도나츠', '도너쓰'],
-  ['shake', '쉐이크'],
-  ['milkshake', '밀크쉐이크'],
+  ['donut', 'donuts', 'doughnut', '도넛', '도나쓰', '도너츠', '도나츠', '도너쓰'],
+  // shake/쉐이크/셰이크 통합 — '셰이크' 는 표준 표기, '쉐이크' 는 관용 (DB 사용).
+  ['shake', '쉐이크', '셰이크'],
+  ['milkshake', '밀크쉐이크', '밀크셰이크'],
   ['cake', '케이크'],
   ['chocolate', 'choco', '초코', '초콜릿', '초콜레이트'],
   // 카테고리 · 상태
@@ -54,15 +55,23 @@ export const SYNONYM_CLASSES: readonly (readonly string[])[] = [
   ['season', '시즌', '한정'],
   ['sparkling', '스파클링'],
   ['singleorigin', 'single origin', '싱글오리진'],
-  ['blend', '블렌드'],
+  // blend/블렌드 + blending/블렌딩/블랜딩 통합. "블랜딩" 은 표기 오류이지만
+  // 소비자 입력 빈도 높아 매칭 검색어로 등록. b01 "블렌딩" 메뉴 L1 직접 매칭
+  // 외에 L2 동의어 우회 매칭도 함께 보장.
+  ['blend', '블렌드', 'blending', '블렌딩', '블랜딩'],
   ['subscription', '정기배송'],
   // 계절 · 분위기
   ['autumn', '가을'],
   ['night', '밤'],
   ['spring', '봄'],
   ['garden', '정원'],
-  // 오타 · 변형
+  // 오타 · 변형 — 표준 표기 ↔ 관용/오타 양방향 매칭. DB 데이터가 관용 표기로
+  // 저장된 케이스(리프레쉬/트로피칼/로얄) 와 사용자 오타(에디오피아) 모두 보정.
   ['까페', '카페'],
+  ['리프레시', '리프레쉬'],
+  ['트로피컬', '트로피칼'],
+  ['로열', '로얄'],
+  ['에티오피아', '에디오피아'],
 ];
 
 /** 카테고리 → 한글 라벨 (프로토타입 CAT_LABEL) */

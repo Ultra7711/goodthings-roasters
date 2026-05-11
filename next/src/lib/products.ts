@@ -188,7 +188,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     category: 'Drip Bag',
-    name: '에디오피아 부쿠 후루파 Ethiopia Buku Hurupa',
+    name: '에티오피아 부쿠 후루파 Ethiopia Buku Hurupa',
     price: '2,000원',
     volumes: [
       { label: '1개', price: 2000 },
