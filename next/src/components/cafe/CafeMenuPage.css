@@ -215,10 +215,10 @@
     font-size: 9px;
     line-height: 11px;
   }
-  .cm-card .cm-temp-badges { bottom: 6px; right: 6px; }
+  .cm-card .cm-temp-badges { bottom: 10px; right: 10px; }
 
   /* 좌상단 메타 뱃지 — cafe 한정. */
-  .cm-card .cm-card-badges { top: 12px; left: 12px; gap: 3px; }
+  .cm-card .cm-card-badges { top: 10px; left: 10px; gap: 3px; }
   .cm-card .cm-card-badges .sp-card-badge {
     height: 18px;
     min-width: 0;
@@ -232,8 +232,8 @@
      baseline = 6 + 24 + 4 + 8 = 42 → width = 42 + countWidth.
      hit-area 48 (::before -6). */
   .cm-card .cm-like-btn {
-    top: 6px;
-    right: 6px;
+    top: 10px;
+    right: 10px;
     --like-baseline: 42px;
     height: 36px;
     width: 36px;
@@ -254,6 +254,13 @@
     left: 34px; /* icon-end(30) + gap(4) */
     font-size: 12px;
   }
+}
+
+/* 소형 모바일 (≤480px): 카드 폭 ~150-210px, 슬롯 오프셋 8px */
+@media (max-width: 480px) {
+  .cm-card .cm-temp-badges { bottom: 8px; right: 8px; }
+  .cm-card .cm-card-badges { top: 8px; left: 8px; }
+  .cm-card .cm-like-btn    { top: 8px; right: 8px; }
 }
 
 /* ── highlight 플래시 (URL ?item= 진입 시) ── */
