@@ -180,9 +180,18 @@ export default function CafeMenuPage({ items }: Props) {
     };
     // 초기 재생 — mount 시점에 이미 /menu 인 경우 (직접 진입)
     if (window.location.pathname === '/menu') triggerAnim();
-    // 재진입 감지
+    // 재진입 감지 — Activity preserve 로 unmount 안 되는 페이지의 effect 재실행
+    // 대용. gtr:route-change 는 NavigationVisibilityGate 발송.
     const onRouteChange = (e: Event) => {
-      if ((e as CustomEvent<string>).detail === '/menu') triggerAnim();
+      if ((e as CustomEvent<string>).detail !== '/menu') return;
+      // S216-D P5 (모바일 재진입 fix): ?item= 숏컷 재진입 시 NavigationScrollReset
+      // 후 잔존 scrollY 가 BFCache/Activity 로 복원되는 케이스 보정.
+      // window.location.search 로 stale closure 회피.
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('item') && window.scrollY > 0) {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+      triggerAnim();
     };
     window.addEventListener('gtr:route-change', onRouteChange);
     return () => window.removeEventListener('gtr:route-change', onRouteChange);
