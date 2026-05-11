@@ -7,11 +7,10 @@
    ══════════════════════════════════════════ */
 
 import { preload } from 'react-dom';
-import { PRODUCTS, type Product } from '@/lib/products';
+import type { Product } from '@/lib/products';
+import { fetchProducts } from '@/lib/productsServer';
 import ShopCard from '@/components/shop/ShopCard';
 
-const BEANS = PRODUCTS.filter((p) => p.category === 'Coffee Bean');
-const DRIPS = PRODUCTS.filter((p) => p.category === 'Drip Bag');
 
 type RowProps = {
   kind: 'bean' | 'drip';
@@ -46,8 +45,11 @@ function LineupRow({ kind, eyebrow, heading, products, aspect }: RowProps) {
   );
 }
 
-export default function LineupSection() {
+export default async function LineupSection() {
   /* preload 호출 임시 제거 (S198 진단) — image fetch 미발동 issue 검증용. */
+  const products = await fetchProducts();
+  const BEANS = products.filter((p) => p.category === 'Coffee Bean');
+  const DRIPS = products.filter((p) => p.category === 'Drip Bag');
 
   return (
     <section className="lineup-blk" data-header-theme="light">

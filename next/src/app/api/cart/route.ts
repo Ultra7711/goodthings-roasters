@@ -22,14 +22,20 @@ import { getClaims } from '@/lib/auth/getClaims';
 import { CartItemInputSchema } from '@/lib/schemas/cart';
 import { addCartItem } from '@/lib/services/cartService';
 import { listCartItems } from '@/lib/repositories/cartRepo';
+import { fetchProducts } from '@/lib/productsServer';
+import { mapRowToCartItem } from '@/lib/cart/mapRow';
 import { OrderServiceError } from '@/lib/services/orderService';
+import type { CartItem } from '@/types/cart';
 
 export async function GET(): Promise<Response> {
   const claims = await getClaims();
   if (!claims) return apiError('unauthorized');
 
   try {
-    const items = await listCartItems();
+    const [rows, products] = await Promise.all([listCartItems(), fetchProducts()]);
+    const items: CartItem[] = rows
+      .map((r) => mapRowToCartItem(r, products))
+      .filter((i): i is CartItem => i !== null);
     return apiSuccess({ items });
   } catch (err) {
     console.error('[GET /api/cart] unexpected error', err);

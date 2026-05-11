@@ -22,8 +22,10 @@ import {
 } from '@/lib/repositories/subscriptionRepo';
 import { findOrdersForUser } from '@/lib/repositories/orderRepo';
 import { toOrder } from '@/lib/orders/toOrder';
+import { fetchProducts } from '@/lib/productsServer';
 import type { Subscription } from '@/types/subscription';
 import type { Order } from '@/types/order';
+import type { Product } from '@/lib/products';
 import MyPagePage from '@/components/auth/MyPagePage';
 import MyPageSkeleton from '@/components/auth/MyPageSkeleton';
 
@@ -33,7 +35,7 @@ async function MyPageAuthed() {
   const claims = await requireAuth();
 
   /* server prefetch — Promise.all 로 병렬 fetch. 부분 실패 무시 (catch → 빈 array) */
-  const [subscriptions, orders] = await Promise.all([
+  const [subscriptions, orders, showcaseProducts] = await Promise.all([
     findSubscriptionsForUser()
       .then((rows) => rows.map(toSubscription))
       .catch((err): Subscription[] => {
@@ -46,6 +48,10 @@ async function MyPageAuthed() {
         console.error('[mypage.prefetch] orders failed', err);
         return [];
       }),
+    fetchProducts().catch((err): Product[] => {
+      console.error('[mypage.prefetch] products failed', err);
+      return [];
+    }),
   ]);
 
   return (
@@ -53,6 +59,7 @@ async function MyPageAuthed() {
       initialClaims={claims}
       initialSubscriptions={subscriptions}
       initialOrders={orders}
+      showcaseProducts={showcaseProducts}
     />
   );
 }

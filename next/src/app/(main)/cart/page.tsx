@@ -19,6 +19,7 @@ import CartSkeleton from '@/components/cart/CartSkeleton';
 import { getClaims } from '@/lib/auth/getClaims';
 import { listCartItems } from '@/lib/repositories/cartRepo';
 import { mapRowToCartItem } from '@/lib/cart/mapRow';
+import { fetchProducts } from '@/lib/productsServer';
 import type { CartItem } from '@/types/cart';
 
 async function CartWithPrefetch() {
@@ -30,16 +31,15 @@ async function CartWithPrefetch() {
   }
 
   /* 인증 — server prefetch (실패 시 빈 array fallback) */
-  const initialItems: CartItem[] = await listCartItems()
-    .then((rows) =>
-      rows
-        .map((r) => mapRowToCartItem(r))
-        .filter((i): i is CartItem => i !== null),
-    )
-    .catch((err): CartItem[] => {
-      console.error('[cart.prefetch] failed', err);
-      return [];
-    });
+  let initialItems: CartItem[] = [];
+  try {
+    const [rows, products] = await Promise.all([listCartItems(), fetchProducts()]);
+    initialItems = rows
+      .map((r) => mapRowToCartItem(r, products))
+      .filter((i): i is CartItem => i !== null);
+  } catch (err) {
+    console.error('[cart.prefetch] failed', err);
+  }
 
   return <CartClient initialItems={initialItems} />;
 }

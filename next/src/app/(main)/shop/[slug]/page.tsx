@@ -6,18 +6,20 @@
    ══════════════════════════════════════════ */
 
 import { notFound } from 'next/navigation';
-import { PRODUCTS, extractKrName } from '@/lib/products';
+import { extractKrName } from '@/lib/products';
+import { fetchProductBySlug, fetchProducts } from '@/lib/productsServer';
 import ProductDetailPage from '@/components/product/ProductDetailPage';
 
 type RouteParams = { slug: string };
 
-export function generateStaticParams(): RouteParams[] {
-  return PRODUCTS.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams(): Promise<RouteParams[]> {
+  const products = await fetchProducts();
+  return products.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<RouteParams> }) {
   const { slug } = await params;
-  const product = PRODUCTS.find((p) => p.slug === slug);
+  const product = await fetchProductBySlug(slug);
   if (!product) return { title: '상품을 찾을 수 없습니다 — good things' };
   return {
     title: `${extractKrName(product.name)} — good things`,
@@ -31,7 +33,7 @@ export default async function ProductDetailRoute({
   params: Promise<RouteParams>;
 }) {
   const { slug } = await params;
-  const product = PRODUCTS.find((p) => p.slug === slug);
+  const product = await fetchProductBySlug(slug);
   if (!product) notFound();
   return <ProductDetailPage product={product} />;
 }

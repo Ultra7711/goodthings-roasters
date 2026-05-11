@@ -8,31 +8,33 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
-import { PRODUCTS, type Product } from '@/lib/products';
+import { useEffect, useMemo, useState } from 'react';
+import type { Product } from '@/lib/products';
 import './NextDeliveryCard.css';
 import './WelcomeCard.css';
 
 type Props = {
   /** 사용자 표시명 (인사 카피 활용) */
   userName: string;
+  /** 장식용 랜덤 상품 이미지 풀 — server prefetch 에서 전달 */
+  products: Product[];
 };
 
-const SHOWCASE_POOL: Product[] = PRODUCTS.filter(
-  (p) => p.status !== '품절' && p.images.length > 0,
-);
-
-export default function WelcomeCard({ userName }: Props) {
+export default function WelcomeCard({ userName, products }: Props) {
+  const pool = useMemo(
+    () => products.filter((p) => p.status !== '품절' && p.images.length > 0),
+    [products],
+  );
   /* SSR/CSR hydration mismatch 회피 — 클라이언트 mount 후 랜덤 결정.
      첫 frame 은 placeholder 노출 후 이미지로 swap. */
   const [pick, setPick] = useState<Product | null>(null);
 
   useEffect(() => {
-    if (SHOWCASE_POOL.length === 0) return;
-    const idx = Math.floor(Math.random() * SHOWCASE_POOL.length);
+    if (pool.length === 0) return;
+    const idx = Math.floor(Math.random() * pool.length);
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPick(SHOWCASE_POOL[idx]);
-  }, []);
+    setPick(pool[idx]);
+  }, [pool]);
 
   return (
     <section className="mp-next-card mp-next-card--welcome" aria-label="환영합니다">

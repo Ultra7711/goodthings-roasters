@@ -7,12 +7,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import ShopFilterTabs from './ShopFilterTabs';
 import ShopCard from './ShopCard';
 import {
-  PRODUCTS,
   FILTER_TABS,
   filterProducts,
   SP_PER_PAGE,
   SP_PER_PAGE_MOBILE,
   type FilterKey,
+  type Product,
 } from '@/lib/products';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
@@ -22,14 +22,13 @@ const CARD_BASE_DELAY_INIT = 420; // 초기 로드: 탭(0.3s) 등장 후 카드 
 const HIGHLIGHT_MS = 2200;        // delay 0.6s + duration 0.7s × 2 = 2.0s + buffer
 const VALID_FILTERS: FilterKey[] = ['all', 'bean', 'drip'];
 
-const BEANS = PRODUCTS.filter((p) => p.category === 'Coffee Bean');
-const DRIPS = PRODUCTS.filter((p) => p.category === 'Drip Bag');
-
 function isValidFilter(v: string | null): v is FilterKey {
   return v !== null && (VALID_FILTERS as string[]).includes(v);
 }
 
-export default function ShopPage() {
+export default function ShopPage({ products }: { products: Product[] }) {
+  const BEANS = products.filter((p) => p.category === 'Coffee Bean');
+  const DRIPS = products.filter((p) => p.category === 'Drip Bag');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -69,7 +68,7 @@ export default function ShopPage() {
     setPrevSearchKey(searchKey);
     const targetSlug = searchParams.get('item');
     if (targetSlug) {
-      const matched = PRODUCTS.find((p) => p.slug === targetSlug);
+      const matched = products.find((p) => p.slug === targetSlug);
       if (matched) {
         // useMediaQuery 는 초기값 false → 첫 렌더에서 perPage 가 항상 데스크탑 값.
         // window.matchMedia 를 직접 읽어 실제 뷰포트 기준으로 페이지 계산.
@@ -77,11 +76,11 @@ export default function ShopPage() {
           typeof window !== 'undefined' && window.matchMedia('(max-width: 479px)').matches
             ? SP_PER_PAGE_MOBILE
             : SP_PER_PAGE;
-        const listWithinFilter = filterProducts(PRODUCTS, urlFilter);
+        const listWithinFilter = filterProducts(products, urlFilter);
         let idx = listWithinFilter.findIndex((p) => p.slug === targetSlug);
         if (idx < 0) {
           // mismatch — all 로 fallback
-          const listAll = filterProducts(PRODUCTS, 'all');
+          const listAll = filterProducts(products, 'all');
           idx = listAll.findIndex((p) => p.slug === targetSlug);
           if (idx >= 0) {
             setFilter('all');
@@ -107,7 +106,7 @@ export default function ShopPage() {
   // 전체 상품 이미지 프리로드 — 최초 마운트에 1회.
   // 탭 전환 시 새 카드 mount 로 인한 이미지 로드 깜빡임 방지.
   useEffect(() => {
-    PRODUCTS.forEach((p) => {
+    products.forEach((p) => {
       p.images.forEach((im) => {
         if (im.src) {
           const img = new Image();
@@ -195,7 +194,7 @@ export default function ShopPage() {
   /* V2 §4 — row 분리 후 카드는 row 안에서 모두 노출. 페이지네이션은 totalPages>1
      일 때만 등장 → SKU 6종 / perPage 20·10 에서 자연 비활성. SKU 확장 시 row × 페이지
      인터랙션 별도 PR 재설계 (carry-over). */
-  const filteredCount = filterProducts(PRODUCTS, filter).length;
+  const filteredCount = filterProducts(products, filter).length;
   const totalPages = Math.max(1, Math.ceil(filteredCount / perPage));
   const currentPage = Math.min(page, totalPages);
 

@@ -13,9 +13,13 @@
    ══════════════════════════════════════════ */
 
 import { fetchSiteSettings } from '@/lib/siteSettingsServer';
+import { fetchProductBySlug } from '@/lib/productsServer';
 import SignatureChapterView from './SignatureChapterView';
 
 export default async function SignatureChapter() {
   const { signature } = await fetchSiteSettings();
-  return <SignatureChapterView signature={signature} />;
+  const product = signature.product_slug
+    ? await fetchProductBySlug(signature.product_slug)
+    : null;
+  return <SignatureChapterView signature={signature} product={product} />;
 }

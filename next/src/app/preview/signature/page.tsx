@@ -19,6 +19,7 @@ import {
   SIGNATURE_DEFAULTS,
   SignatureSettingsSchema,
 } from '@/lib/siteSettings';
+import { fetchProductBySlug } from '@/lib/productsServer';
 import SignatureChapterView from '@/components/home/SignatureChapterView';
 
 interface PreviewSignaturePageProps {
@@ -56,6 +57,10 @@ export default async function PreviewSignaturePage({
   });
 
   const signature = parsed.success ? parsed.data : SIGNATURE_DEFAULTS;
+
+  const product = signature.product_slug
+    ? await fetchProductBySlug(signature.product_slug)
+    : null;
 
   /* 빈 상태 — chapter 가 hide 될 조건 (View 가 null 반환).
      어드민 시각 디버깅용 placeholder 표시. */
@@ -115,5 +120,5 @@ export default async function PreviewSignaturePage({
     );
   }
 
-  return <SignatureChapterView signature={signature} />;
+  return <SignatureChapterView signature={signature} product={product} />;
 }

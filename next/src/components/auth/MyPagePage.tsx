@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 import type { AuthClaims } from '@/lib/auth/getClaims';
 import type { Subscription } from '@/types/subscription';
 import type { Order } from '@/types/order';
+import type { Product } from '@/lib/products';
 import { useToast } from '@/hooks/useToast';
 import { useSubscriptionsQuery } from '@/hooks/useSubscriptions';
 import { useOrdersQuery } from '@/hooks/useOrders';
@@ -46,12 +47,15 @@ type MyPagePageProps = {
      hydration 후 점진 채워지는 flash 차단. */
   initialSubscriptions: Subscription[];
   initialOrders: Order[];
+  /** WelcomeCard 장식 이미지 풀 — server prefetch */
+  showcaseProducts: Product[];
 };
 
 export default function MyPagePage({
   initialClaims,
   initialSubscriptions,
   initialOrders,
+  showcaseProducts,
 }: MyPagePageProps) {
   const router = useRouter();
   const { show: toast } = useToast();
@@ -227,7 +231,7 @@ export default function MyPagePage({
               />
             );
           }
-          return <WelcomeCard userName={displayName} />;
+          return <WelcomeCard userName={displayName} products={showcaseProducts} />;
         })()}
 
         <div className="mp-grid">

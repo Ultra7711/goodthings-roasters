@@ -18,7 +18,8 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { hash as argon2Hash } from '@node-rs/argon2';
-import { PRODUCTS, type Product, type ProductVolume } from '@/lib/products';
+import type { Product, ProductVolume } from '@/lib/products';
+import { fetchProducts } from '@/lib/productsServer';
 import {
   createOrder as createOrderRpc,
   type CreateOrderRpcItem,
@@ -84,9 +85,9 @@ export type OrderServiceErrorCode =
    순수 계산 유틸 (테스트 대상)
    ══════════════════════════════════════════ */
 
-/** PRODUCTS 에서 slug 로 상품 1건 탐색. 없으면 throw. */
-export function resolveProduct(slug: string): Product {
-  const product = PRODUCTS.find((p) => p.slug === slug);
+/** products 배열에서 slug 로 상품 1건 탐색. 없으면 throw. */
+export function resolveProduct(slug: string, products: Product[]): Product {
+  const product = products.find((p) => p.slug === slug);
   if (!product) {
     throw new OrderServiceError('product_not_found', slug);
   }
@@ -115,8 +116,8 @@ export function resolveVolume(product: Product, volume: string): ProductVolume {
  * 클라 입력 1건 → 서버 권위 가격으로 재구성된 RPC 입력 아이템.
  * 정기배송 여부 · 가격 · 스냅샷 필드 세팅.
  */
-export function buildRpcItem(input: OrderItemInput): CreateOrderRpcItem {
-  const product = resolveProduct(input.productSlug);
+export function buildRpcItem(input: OrderItemInput, products: Product[]): CreateOrderRpcItem {
+  const product = resolveProduct(input.productSlug, products);
 
   if (input.itemType === 'subscription' && !product.subscription) {
     throw new OrderServiceError('subscription_not_allowed', product.slug);
@@ -152,11 +153,11 @@ export function buildRpcItem(input: OrderItemInput): CreateOrderRpcItem {
  * 아이템 배열 → 서버 권위 RPC 아이템 배열 + 소계.
  * 호출자 편의를 위해 두 값을 한번에 반환.
  */
-export function recomputeItems(items: OrderItemInput[]): {
+export function recomputeItems(items: OrderItemInput[], products: Product[]): {
   rpcItems: CreateOrderRpcItem[];
   subtotal: number;
 } {
-  const rpcItems = items.map(buildRpcItem);
+  const rpcItems = items.map((item) => buildRpcItem(item, products));
   const subtotal = rpcItems.reduce((sum, it) => sum + it.line_total, 0);
   return { rpcItems, subtotal };
 }
@@ -213,7 +214,8 @@ export async function createOrderFromInput(
   }
 
   /* 1) 서버 권위 재계산 */
-  const { rpcItems, subtotal } = recomputeItems(input.items);
+  const products = await fetchProducts();
+  const { rpcItems, subtotal } = recomputeItems(input.items, products);
 
   /* 2) 배송비 정책 — site_settings.shipping (어드민 동적 설정).
         실패 시 fetchSiteSettings 가 SITE_SETTINGS_DEFAULTS 반환 → ORDER_FREE_SHIPPING_THRESHOLD/FEE 와 동일.

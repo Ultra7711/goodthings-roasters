@@ -10,13 +10,15 @@
 import { Suspense } from 'react';
 import ShopPage from '@/components/shop/ShopPage';
 import ShopSkeleton from '@/components/shop/ShopSkeleton';
+import { fetchProducts } from '@/lib/productsServer';
 
 export const metadata = { title: '모든 상품 — good things' };
 
-export default function ShopRoute() {
+export default async function ShopRoute() {
+  const products = await fetchProducts();
   return (
     <Suspense fallback={<ShopSkeleton />}>
-      <ShopPage />
+      <ShopPage products={products} />
     </Suspense>
   );
 }

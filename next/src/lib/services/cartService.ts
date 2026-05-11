@@ -17,6 +17,8 @@ import {
   OrderServiceError,
 } from '@/lib/services/orderService';
 import type { CartItemInput, CartMergeInput } from '@/lib/schemas/cart';
+import type { Product } from '@/lib/products';
+import { fetchProducts } from '@/lib/productsServer';
 import {
   upsertCartItem,
   bulkMergeCartItems,
@@ -34,8 +36,9 @@ import {
 export function buildUpsertParams(
   userId: string,
   input: CartItemInput,
+  products: Product[],
 ): UpsertCartItemParams {
-  const product = resolveProduct(input.productSlug);
+  const product = resolveProduct(input.productSlug, products);
 
   if (input.itemType === 'subscription' && !product.subscription) {
     throw new OrderServiceError('subscription_not_allowed', product.slug);
@@ -62,7 +65,8 @@ export async function addCartItem(
   userId: string,
   input: CartItemInput,
 ): Promise<CartItemRow> {
-  const params = buildUpsertParams(userId, input);
+  const products = await fetchProducts();
+  const params = buildUpsertParams(userId, input, products);
   return upsertCartItem(params);
 }
 
@@ -85,12 +89,13 @@ export async function mergeGuestCart(
   userId: string,
   input: CartMergeInput,
 ): Promise<{ merged: number; skipped: number }> {
+  const products = await fetchProducts();
   let skipped = 0;
   const bulkItems: BulkMergeItem[] = [];
 
   for (const item of input.items) {
     try {
-      const params = buildUpsertParams(userId, item);
+      const params = buildUpsertParams(userId, item, products);
       bulkItems.push({
         productSlug: params.productSlug,
         productVolume: params.productVolume,

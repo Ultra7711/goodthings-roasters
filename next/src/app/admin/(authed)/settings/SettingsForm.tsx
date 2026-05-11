@@ -31,7 +31,7 @@ import {
 } from '@/lib/siteSettings';
 import { uploadSeasonBanner } from '@/lib/admin/uploadSeasonBanner';
 import { uploadSignatureImage } from '@/lib/admin/uploadSignatureImage';
-import { PRODUCTS } from '@/lib/products';
+import type { Product } from '@/lib/products';
 import {
   saveSiteSettingsAction,
   type SaveSettingsInput,
@@ -57,9 +57,10 @@ const PREVIEW_BRK_OPTIONS: ReadonlyArray<{
 
 interface SettingsFormProps {
   initialSettings: SiteSettings;
+  coffeeBeans: Product[];
 }
 
-export default function SettingsForm({ initialSettings }: SettingsFormProps) {
+export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsFormProps) {
   const router = useRouter();
   const [savedSettings, setSavedSettings] = useState<SiteSettings>(initialSettings);
   const [settings, setSettings] = useState<SiteSettings>(initialSettings);
@@ -799,7 +800,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
                   }}
                 >
                   <option value="">— 선택 —</option>
-                  {PRODUCTS.filter((p) => p.category === 'Coffee Bean').map((p) => (
+                  {coffeeBeans.map((p) => (
                     <option key={p.slug} value={p.slug}>
                       {p.name} ({p.slug})
                     </option>
@@ -927,7 +928,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
                     <button
                       type="button"
                       onClick={() => {
-                        const notes = extractTastingNotes(settings.signature.product_slug);
+                        const notes = extractTastingNotes(settings.signature.product_slug, coffeeBeans);
                         if (notes.length === 0) {
                           toast.info('제품을 먼저 선택해 주세요');
                           return;
@@ -1337,9 +1338,9 @@ function buildPreviewSrc(s: SignatureSettings): string {
   return `/preview/signature?${params.toString()}`;
 }
 
-/** PRODUCTS 의 noteTags ("a | b | c | d") → chip 배열. 최대 3개 권장 (advisory §5.1). */
-function extractTastingNotes(slug: string): string[] {
-  const product = PRODUCTS.find((p) => p.slug === slug);
+/** coffeeBeans 의 noteTags ("a | b | c | d") → chip 배열. 최대 3개 권장 (advisory §5.1). */
+function extractTastingNotes(slug: string, beansList: Product[]): string[] {
+  const product = beansList.find((p) => p.slug === slug);
   if (!product) return [];
   return product.noteTags
     .split(' | ')

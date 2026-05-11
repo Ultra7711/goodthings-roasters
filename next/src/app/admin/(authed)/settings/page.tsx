@@ -4,9 +4,14 @@
    ══════════════════════════════════════════ */
 
 import { fetchSiteSettings } from '@/lib/siteSettingsServer';
+import { listProductsAdmin } from '@/lib/productsServer';
 import SettingsForm from './SettingsForm';
 
 export default async function AdminSettingsPage() {
-  const initialSettings = await fetchSiteSettings();
-  return <SettingsForm initialSettings={initialSettings} />;
+  const [initialSettings, allProducts] = await Promise.all([
+    fetchSiteSettings(),
+    listProductsAdmin(),
+  ]);
+  const coffeeBeans = allProducts.filter((p) => p.category === 'Coffee Bean');
+  return <SettingsForm initialSettings={initialSettings} coffeeBeans={coffeeBeans} />;
 }

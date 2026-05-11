@@ -43,15 +43,15 @@ afterAll(() => {
 
 describe('resolveProduct — slug 로 카탈로그 탐색', () => {
   it('존재하는 slug 를 Product 로 반환한다', () => {
-    const p = resolveProduct(coffeeBean.slug);
+    const p = resolveProduct(coffeeBean.slug, PRODUCTS);
     expect(p.slug).toBe(coffeeBean.slug);
     expect(p.name).toBe(coffeeBean.name);
   });
 
   it('존재하지 않는 slug 는 product_not_found 에러', () => {
-    expect(() => resolveProduct('non-existent-slug')).toThrow(OrderServiceError);
+    expect(() => resolveProduct('non-existent-slug', PRODUCTS)).toThrow(OrderServiceError);
     try {
-      resolveProduct('non-existent-slug');
+      resolveProduct('non-existent-slug', PRODUCTS);
     } catch (e) {
       expect((e as OrderServiceError).code).toBe('product_not_found');
     }
@@ -117,7 +117,7 @@ describe('buildRpcItem — 서버 권위 단가 재계산', () => {
       quantity: 3,
       itemType: 'normal',
       subscriptionPeriod: null,
-    });
+    }, PRODUCTS);
     expect(item.unit_price).toBe(firstVolume.price);
     expect(item.original_unit_price).toBe(firstVolume.price);
     expect(item.line_total).toBe(firstVolume.price * 3);
@@ -130,7 +130,7 @@ describe('buildRpcItem — 서버 권위 단가 재계산', () => {
       quantity: 1,
       itemType: 'normal',
       subscriptionPeriod: null,
-    });
+    }, PRODUCTS);
     expect(item.product_name).toBe(coffeeBean.name);
     expect(item.product_category).toBe(coffeeBean.category);
     expect(item.product_slug).toBe(coffeeBean.slug);
@@ -146,7 +146,7 @@ describe('buildRpcItem — 서버 권위 단가 재계산', () => {
       quantity: 1,
       itemType: 'normal',
       subscriptionPeriod: null,
-    });
+    }, PRODUCTS);
     expect(item.item_type).toBe('normal');
     expect(item.subscription_period).toBeNull();
   });
@@ -158,7 +158,7 @@ describe('buildRpcItem — 서버 권위 단가 재계산', () => {
       quantity: 1,
       itemType: 'subscription',
       subscriptionPeriod: '4주',
-    });
+    }, PRODUCTS);
     expect(item.item_type).toBe('subscription');
     expect(item.subscription_period).toBe('4주');
   });
@@ -172,7 +172,7 @@ describe('buildRpcItem — 서버 권위 단가 재계산', () => {
         quantity: 1,
         itemType: 'subscription',
         subscriptionPeriod: '2주',
-      });
+      }, PRODUCTS);
       throw new Error('should throw');
     } catch (e) {
       expect(e).toBeInstanceOf(OrderServiceError);
@@ -183,7 +183,7 @@ describe('buildRpcItem — 서버 권위 단가 재계산', () => {
 
 describe('recomputeItems — 배열 + 소계', () => {
   it('빈 배열 → subtotal 0', () => {
-    const { rpcItems, subtotal } = recomputeItems([]);
+    const { rpcItems, subtotal } = recomputeItems([], PRODUCTS);
     expect(rpcItems).toEqual([]);
     expect(subtotal).toBe(0);
   });
@@ -207,7 +207,7 @@ describe('recomputeItems — 배열 + 소계', () => {
         itemType: 'normal',
         subscriptionPeriod: null,
       },
-    ]);
+    ], PRODUCTS);
 
     expect(rpcItems).toHaveLength(2);
     const expected = v0.price * 2 + v1.price * 1;
@@ -225,7 +225,7 @@ describe('recomputeItems — 배열 + 소계', () => {
           itemType: 'normal',
           subscriptionPeriod: null,
         },
-      ]);
+      ], PRODUCTS);
       throw new Error('should throw');
     } catch (e) {
       expect(e).toBeInstanceOf(OrderServiceError);
@@ -247,7 +247,7 @@ describe('통합: 소계 + 배송비 규칙 일관성', () => {
         itemType: 'normal',
         subscriptionPeriod: null,
       },
-    ]);
+    ], PRODUCTS);
     expect(subtotal).toBe(v.price);
     expect(calcShippingFee(subtotal)).toBe(0);
   });
@@ -263,7 +263,7 @@ describe('통합: 소계 + 배송비 규칙 일관성', () => {
         itemType: 'normal',
         subscriptionPeriod: null,
       },
-    ]);
+    ], PRODUCTS);
     expect(calcShippingFee(subtotal)).toBe(SHIPPING_FEE);
   });
 });

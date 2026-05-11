@@ -25,7 +25,6 @@ import {
   SUBSCRIPTION_CYCLES,
   type SubscriptionCycle,
 } from '@/lib/subscription/cycles';
-import { PRODUCTS } from '@/lib/products';
 import { parsePrice } from '@/lib/utils';
 import { awaitSessionReady, getSessionSnapshot, useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { showToast } from '@/lib/toastStore';
@@ -35,7 +34,7 @@ import {
   writeGuestCart,
   clearGuestCart,
 } from '@/lib/guestCart';
-import { mapRowToCartItem, type ServerCartRow } from '@/lib/cart/mapRow';
+import type { ServerCartRow } from '@/lib/cart/mapRow';
 
 /* ── 배송비 기준 (DEPRECATED 상수 — site_settings.shipping 으로 대체됨, S129 H-5)
    useCart hook 내부에서는 useSiteSettings() 로 dynamic 값 사용.
@@ -127,9 +126,8 @@ async function fetchCart(): Promise<CartItem[]> {
     /* silent-fail 방지: throw → useCartQuery.isError 활성, UI 에서 오류 표시 가능 */
     throw new Error(`cart_fetch_${res.status}`);
   }
-  const body = (await res.json()) as ApiEnvelope<{ items: ServerCartRow[] }>;
-  const rows = body.data?.items ?? [];
-  return rows.map(mapRowToCartItem).filter((i): i is CartItem => i !== null);
+  const body = (await res.json()) as ApiEnvelope<{ items: CartItem[] }>;
+  return body.data?.items ?? [];
 }
 
 export function useCartQuery(initialItems?: CartItem[]) {

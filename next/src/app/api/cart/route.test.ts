@@ -23,6 +23,12 @@ vi.mock('@/lib/services/cartService', () => ({
 vi.mock('@/lib/repositories/cartRepo', () => ({
   listCartItems: vi.fn(),
 }));
+vi.mock('@/lib/productsServer', () => ({
+  fetchProducts: vi.fn(),
+}));
+vi.mock('@/lib/cart/mapRow', () => ({
+  mapRowToCartItem: vi.fn((row: unknown) => row),
+}));
 
 import { GET, POST } from './route';
 import { enforceSameOrigin } from '@/lib/api/csrf';
@@ -31,6 +37,7 @@ import { parseBody } from '@/lib/api/validate';
 import { getClaims } from '@/lib/auth/getClaims';
 import { addCartItem } from '@/lib/services/cartService';
 import { listCartItems } from '@/lib/repositories/cartRepo';
+import { fetchProducts } from '@/lib/productsServer';
 import { OrderServiceError } from '@/lib/services/orderService';
 
 const enforceSameOriginMock = vi.mocked(enforceSameOrigin);
@@ -39,6 +46,7 @@ const parseBodyMock = vi.mocked(parseBody);
 const getClaimsMock = vi.mocked(getClaims);
 const addCartItemMock = vi.mocked(addCartItem);
 const listCartItemsMock = vi.mocked(listCartItems);
+const fetchProductsMock = vi.mocked(fetchProducts);
 
 const USER_ID = '11111111-1111-1111-1111-111111111111';
 const VALID_INPUT = {
@@ -64,6 +72,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   enforceSameOriginMock.mockReturnValue(null);
   checkRateLimitMock.mockResolvedValue(null);
+  fetchProductsMock.mockResolvedValue([]);
   parseBodyMock.mockResolvedValue({
     success: true,
     data: { ...VALID_INPUT },

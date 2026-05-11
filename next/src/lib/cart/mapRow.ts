@@ -8,7 +8,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import type { CartItem } from '@/types/cart';
-import { PRODUCTS } from '@/lib/products';
+import type { Product } from '@/lib/products';
 import { parsePrice } from '@/lib/utils';
 
 export type ServerCartRow = {
@@ -24,8 +24,8 @@ export type ServerCartRow = {
   updated_at: string;
 };
 
-export function mapRowToCartItem(row: ServerCartRow): CartItem | null {
-  const product = PRODUCTS.find((p) => p.slug === row.product_slug);
+export function mapRowToCartItem(row: ServerCartRow, products: Product[]): CartItem | null {
+  const product = products.find((p) => p.slug === row.product_slug);
   if (!product) {
     // eslint-disable-next-line no-console
     console.warn('[cart] product not found: slug="%s"', row.product_slug);

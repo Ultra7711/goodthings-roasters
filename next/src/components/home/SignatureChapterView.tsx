@@ -19,22 +19,22 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { SignatureSettings } from '@/lib/siteSettings';
-import { PRODUCTS } from '@/lib/products';
+import type { Product } from '@/lib/products';
 import './SignatureChapterView.css';
 
 interface SignatureChapterViewProps {
   signature: SignatureSettings;
+  product: Product | null;
 }
 
 export default function SignatureChapterView({
   signature,
+  product,
 }: SignatureChapterViewProps) {
   /* 빈 상태 1~3 — chapter 자체 hide */
   if (!signature.enabled) return null;
   if (!signature.image_path) return null;
   if (!signature.product_slug) return null;
-
-  const product = PRODUCTS.find((p) => p.slug === signature.product_slug);
   if (!product) return null;
 
   /* 빈 상태 4~5 — fallback 으로 처리, chapter 는 표시 */

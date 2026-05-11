@@ -15,6 +15,9 @@ vi.mock('@/lib/repositories/cartRepo', () => ({
   upsertCartItem: vi.fn(),
   bulkMergeCartItems: vi.fn(),
 }));
+vi.mock('@/lib/productsServer', () => ({
+  fetchProducts: vi.fn(),
+}));
 
 import {
   addCartItem,
@@ -25,6 +28,7 @@ import {
   upsertCartItem,
   bulkMergeCartItems,
 } from '@/lib/repositories/cartRepo';
+import { fetchProducts } from '@/lib/productsServer';
 import { OrderServiceError } from './orderService';
 import { PRODUCTS } from '@/lib/products';
 
@@ -50,6 +54,7 @@ afterAll(() => {
 beforeEach(() => {
   vi.mocked(upsertCartItem).mockReset();
   vi.mocked(bulkMergeCartItems).mockReset();
+  vi.mocked(fetchProducts).mockResolvedValue(PRODUCTS);
   vi.mocked(upsertCartItem).mockImplementation(async (params) => ({
     id: 'row-id',
     user_id: params.userId,
@@ -76,7 +81,7 @@ describe('buildUpsertParams — 입력 검증 및 단가 스냅샷', () => {
       quantity: 2,
       itemType: 'normal',
       subscriptionPeriod: null,
-    });
+    }, PRODUCTS);
     expect(params.unitPriceSnapshot).toBe(v0.price);
     expect(params.productSlug).toBe(coffeeBean.slug);
     expect(params.productVolume).toBe(v0.label);
@@ -93,7 +98,7 @@ describe('buildUpsertParams — 입력 검증 및 단가 스냅샷', () => {
         quantity: 1,
         itemType: 'subscription',
         subscriptionPeriod: '2주',
-      }),
+      }, PRODUCTS),
     ).toThrow(OrderServiceError);
   });
 
@@ -105,7 +110,7 @@ describe('buildUpsertParams — 입력 검증 및 단가 스냅샷', () => {
         quantity: 1,
         itemType: 'normal',
         subscriptionPeriod: null,
-      });
+      }, PRODUCTS);
       throw new Error('should throw');
     } catch (e) {
       expect(e).toBeInstanceOf(OrderServiceError);
@@ -121,7 +126,7 @@ describe('buildUpsertParams — 입력 검증 및 단가 스냅샷', () => {
         quantity: 1,
         itemType: 'normal',
         subscriptionPeriod: null,
-      });
+      }, PRODUCTS);
       throw new Error('should throw');
     } catch (e) {
       expect(e).toBeInstanceOf(OrderServiceError);
