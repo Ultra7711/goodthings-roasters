@@ -14,7 +14,7 @@
 
 import './CafeMenuPage.css';
 import '@/components/ui/PageTitle.css';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import CafeFilterTabs from './CafeFilterTabs';
 import CafeMenuGrid from './CafeMenuGrid';
@@ -130,6 +130,21 @@ export default function CafeMenuPage({ items }: Props) {
   // 마운트 시 likes 1회 fetch (store 내부에 fetched 가드 있음 → 중복 호출 안전)
   useEffect(() => {
     void fetchMenuLikes();
+  }, []);
+
+  // S216-D P5: home → /menu?item= 진입 시 풋터 먼저 노출 버그 fix.
+  // layout-level NavigationScrollReset 이 useLayoutEffect 로 scrollTo(0) 하지만
+  // home 처럼 출발 scrollY 가 큰 경우 race 발생 (CafeMenuPage Suspense 마운트
+  // 타이밍 + Activity preserve). 페이지 컨텍스트의 useLayoutEffect 로 paint 전
+  // 한 번 더 강제 보정. ?item= 시 GenericCard scrollIntoView 가 0 에서 시작.
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!searchParams.get('item')) return;
+    if (window.scrollY > 0) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    // 마운트 시 한 번만
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 전체 메뉴 이미지 프리로드 — 최초 마운트에 1회.
