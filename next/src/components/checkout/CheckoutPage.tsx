@@ -38,6 +38,7 @@ import EmptyCart from './EmptyCart';
 import OrderSummary from './OrderSummary';
 import ContactSection from './sections/ContactSection';
 import AddressSection from './sections/AddressSection';
+import AddressSectionSkeleton from './sections/AddressSectionSkeleton';
 import GuestPasswordSection from './sections/GuestPasswordSection';
 import AgreementSection from './sections/AgreementSection';
 
@@ -244,6 +245,10 @@ export default function CheckoutPage() {
               onKeyDown={chpNav}
               onGuestContinue={handleGuestContinue}
             />
+
+            {/* 로그인 사용자 기본 배송지 fetch 중 스켈레톤 (S210)
+                addressLoading 가드로 인한 reveal 지연 동안 form 골격 표시 → 체감 지연 완화. */}
+            {isLoggedIn && addressLoading && !isFormRevealed && <AddressSectionSkeleton />}
 
             {/* 배송지 이하 — 이메일 확인 후 표시 */}
             {isFormRevealed && (

@@ -1696,6 +1696,23 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cp-skel-footer-btn { width: 100%; border-radius: 0; }
 }
 
+/* ── Checkout AddressSection skeleton (S210) ──
+   로그인 사용자 기본 배송지 fetch 중 표시. .chp-* 토큰 정합 (height 56 / margin 24
+   / .chp-addr-inline grid 동일 — AddressSection 실제 구조와 1:1 매칭). */
+.chp-skel-field {
+  height: 56px;
+  margin-bottom: 24px;
+}
+.chp-skel-addr {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: var(--gap-md);
+  margin-bottom: 24px;
+}
+.chp-skel-addr .chp-skel-field {
+  margin-bottom: 0;
+}
+
 /* ══ 페이지 전환 로딩 셸 ══
    S203 root cause fix — 흰 plash source 확정.
    light bg fallback 이 page transition 시 다크 라우트 진입에도 light 로 cover →
