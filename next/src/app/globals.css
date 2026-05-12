@@ -873,7 +873,8 @@ textarea:focus-visible {
   transition: color var(--duration-hover) ease;
 }
 .sp-pg-arrow:hover { color: var(--color-icon-default); }
-.sp-pg-arrow:disabled { opacity: var(--state-disabled-opacity-cta); pointer-events: none; }
+/* P11 — disabled prev/next 는 흐리게가 아닌 완전 비표시. 공간은 유지 (페이지 번호 가운데 정렬 흔들림 방지). */
+.sp-pg-arrow:disabled { opacity: 0; pointer-events: none; }
 
 /* CAFE MENU PAGE (cm-* / #cm-body / cns-*) -> components/cafe/CafeMenuPage.css */
 
