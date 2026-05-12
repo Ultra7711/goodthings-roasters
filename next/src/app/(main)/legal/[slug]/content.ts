@@ -425,7 +425,7 @@ const PRIVACY: LegalDoc = {
         '정보주체는 개인정보침해로 인한 구제를 받기 위하여 개인정보분쟁조정위원회, 한국인터넷진흥원 개인정보침해신고센터 등에 분쟁 해결이나 상담 등을 신청할 수 있습니다.',
       ],
       definitions: [
-        { label: '개인정보분쟁조정위원회', value: '(국번없이) 1833-6972', link: 'https://www.kopico.go.kr' },
+        { label: '개인정보분쟁조정위원회', value: '(국번없이) 1833-6972', link: 'https://www.kopico.go.kr/main/main.do' },
         { label: '개인정보침해신고센터', value: '(국번없이) 118', link: 'https://privacy.kisa.or.kr' },
         { label: '대검찰청', value: '(국번없이) 1301', link: 'https://www.spo.go.kr' },
         { label: '경찰청', value: '(국번없이) 182', link: 'https://ecrm.cyber.go.kr' },
@@ -491,7 +491,7 @@ const BUSINESS_INFO: LegalDoc = {
         { label: '공정거래위원회 소비자상담센터', value: '1372', link: 'https://www.ccn.go.kr' },
         { label: '한국소비자원', value: '1372', link: 'https://www.kca.go.kr' },
         { label: '전자거래분쟁조정위원회', value: '1661-5714', link: 'https://www.ecmc.or.kr' },
-        { label: '개인정보분쟁조정위원회', value: '1833-6972', link: 'https://www.kopico.go.kr' },
+        { label: '개인정보분쟁조정위원회', value: '1833-6972', link: 'https://www.kopico.go.kr/main/main.do' },
       ],
     },
     {
