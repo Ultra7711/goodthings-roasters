@@ -580,7 +580,7 @@ export default function LoginPage() {
       {socialLoading !== null && (
         <div className="auth-overlay" role="status" aria-live="polite">
           <div className="auth-spinner" aria-hidden="true" />
-          <p className="auth-overlay-txt">{socialProviderLabel} 로그인 중...</p>
+          <p className="auth-overlay-txt">{socialProviderLabel} 로그인 중…</p>
         </div>
       )}
     </div>

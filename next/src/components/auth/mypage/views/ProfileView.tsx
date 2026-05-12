@@ -46,6 +46,7 @@ export default function ProfileView({ name, email }: Props) {
       <AddressSection
         initialAddress={addressData ?? null}
         isLoading={isAddressLoading}
+        isSaving={saveAddress.isPending}
         onSaved={handleSaveAddress}
       />
     </div>

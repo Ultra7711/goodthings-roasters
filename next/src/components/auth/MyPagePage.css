@@ -306,6 +306,10 @@
 .mp-save-btn:not(:disabled):active {
   background: var(--color-btn-primary-bg-active);
 }
+.mp-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 /* PR-1c-5 — secondary outline 마이그레이션 (bg pure white + box-shadow inset 1→2) */
 .mp-cancel-btn {
   display: inline-flex; align-items: center; justify-content: center;

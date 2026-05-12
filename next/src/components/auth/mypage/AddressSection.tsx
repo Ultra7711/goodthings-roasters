@@ -15,11 +15,18 @@ type Props = {
   initialAddress: UserAddress | null;
   /** Query 로딩 상태. true 면 "불러오는 중…" placeholder 로 깜빡임 차단. */
   isLoading?: boolean;
+  /** Mutation 진행 상태. true 면 저장 버튼이 "저장 중…" + disabled. */
+  isSaving?: boolean;
   /** 저장 시도 콜백. close/toast 는 호출자(MyPagePage)가 mutation 결과로 처리. */
   onSaved: (addr: UserAddress) => void;
 };
 
-export default function AddressSection({ initialAddress, isLoading = false, onSaved }: Props) {
+export default function AddressSection({
+  initialAddress,
+  isLoading = false,
+  isSaving = false,
+  onSaved,
+}: Props) {
   const isAddrOpen = useMyPageAddrOpen();
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -167,6 +174,7 @@ export default function AddressSection({ initialAddress, isLoading = false, onSa
             <button
               className="mp-cancel-btn"
               type="button"
+              disabled={isSaving}
               onClick={() => setAddrOpen(false)}
               data-gtr-tap
             >
@@ -175,13 +183,15 @@ export default function AddressSection({ initialAddress, isLoading = false, onSa
             <button
               className="mp-save-btn"
               type="button"
+              disabled={isSaving}
+              aria-busy={isSaving || undefined}
               onClick={() => {
                 addressForm.submit();
                 setTimeout(() => shakeFields(formRef.current), 0);
               }}
               data-gtr-tap
             >
-              저장
+              {isSaving ? '저장 중…' : '저장'}
             </button>
           </div>
         </div>
