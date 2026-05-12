@@ -40,17 +40,13 @@ export default function AddressSection({ initialAddress, isLoading = false, onSa
   }, [addressForm, initialAddress]);
 
   const hasAddress = !!initialAddress;
-  const addrDisplay = isLoading && !hasAddress
-    ? '불러오는 중…'
-    : initialAddress
-      ? `(${initialAddress.zipcode}) ${initialAddress.addr1}${initialAddress.addr2 ? ` ${initialAddress.addr2}` : ''}`
-      : '등록된 배송지 정보가 없습니다.';
+  const fallbackText = isLoading && !hasAddress ? '불러오는 중…' : '등록된 배송지 정보가 없습니다.';
   const isPlaceholderText = !hasAddress; /* 로딩·빈 상태 모두 회색 (#9C9890) */
 
   return (
     <div className="mp-info-row mp-info-row--addr">
       <div
-        className="mp-info-row-top"
+        className="mp-info-addr-action"
         role="button"
         tabIndex={0}
         aria-label={isAddrOpen ? '닫기' : hasAddress ? '주소 편집' : '새 주소 추가'}
@@ -64,20 +60,37 @@ export default function AddressSection({ initialAddress, isLoading = false, onSa
           }
         }}
       >
-        <span className="mp-info-label">배송지 정보</span>
-        <div className="mp-info-addr-right">
-          <span
-            className="mp-info-value mp-info-addr-text"
-            style={isPlaceholderText ? { color: '#9C9890' } : undefined}
-          >
-            {addrDisplay}
-          </span>
-          <span className="mp-addr-icon-btn" aria-hidden="true">
-            <span className={`mp-chevron${isAddrOpen ? ' open' : ''}`}>
-              <ChevronRight />
-            </span>
-          </span>
+        <div className="mp-info-row-top">
+          <span className="mp-info-label">배송지</span>
+          <div className="mp-info-addr-right">
+            {hasAddress ? (
+              <span className="mp-info-value mp-info-addr-road">
+                ({initialAddress!.zipcode}) {initialAddress!.addr1}
+              </span>
+            ) : (
+              <>
+                <span
+                  className="mp-info-value mp-info-addr-text"
+                  style={isPlaceholderText ? { color: '#9C9890' } : undefined}
+                >
+                  {fallbackText}
+                </span>
+                <span className="mp-addr-icon-btn" aria-hidden="true">
+                  <span className={`mp-chevron${isAddrOpen ? ' open' : ''}`}>
+                    <ChevronRight />
+                  </span>
+                </span>
+              </>
+            )}
+          </div>
         </div>
+        {hasAddress && initialAddress!.addr2 && (
+          <div className="mp-info-addr-lines">
+            <span className="mp-info-addr-line mp-info-addr-line--detail">
+              {initialAddress!.addr2}
+            </span>
+          </div>
+        )}
       </div>
       <div className={`mp-form-reveal${isAddrOpen ? ' open' : ''}`}>
         <div className="mp-form-reveal-inner" ref={formRef}>
