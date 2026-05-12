@@ -304,7 +304,8 @@ const PRIVACY: LegalDoc = {
       ],
       bullets: [
         '보유 근거: 회원 서비스 운영',
-        '보유 기간: 회원 탈퇴 후 즉시 파기 (단, 관련 법령에 의한 경우 아래 기간 보유)',
+        /* 개인정보보호법 제21조 — "지체 없이 파기" 가 표준 법적 표현. */
+        '보유 기간: 회원 탈퇴 후 지체 없이 파기 (단, 관련 법령에 의한 경우 아래 기간 보유)',
       ],
     },
     {
@@ -327,7 +328,17 @@ const PRIVACY: LegalDoc = {
         '① 필수 항목 (주문·결제 시)',
       ],
       bullets: [
-        '이름, 연락처(전화번호), 배송 주소, 이메일 주소, 결제 정보(카드사명, 결제 승인 번호)',
+        '이름, 연락처(전화번호), 배송 주소, 이메일 주소',
+        /* C4 — 실제 보유 데이터에 맞춰 정정. payments / orders / payment_transactions
+           컬럼: payment_method, easypay_provider, bank_name, depositor_name,
+           payment_key, approved_amount, approved_at, raw_response 등.
+           카드 번호·CVC 등 민감 정보는 토스 측 보관 (PCI-DSS). */
+        '결제 처리 정보(결제 수단 유형, 결제 식별자, 승인 금액, 승인 일시, 가상계좌 결제 시 입금 은행·입금자명 등)',
+      ],
+    },
+    {
+      paragraphs: [
+        '※ 카드 번호·CVC·유효기간 등 민감 결제 정보는 회사가 보관하지 않으며, 토스페이먼츠(주) 에서 PCI-DSS 표준에 따라 처리·보관합니다.',
       ],
     },
     {
@@ -335,7 +346,14 @@ const PRIVACY: LegalDoc = {
       bullets: ['이메일 주소, 비밀번호, 이름, 연락처'],
     },
     {
-      paragraphs: ['③ 자동 수집 항목 (서비스 이용 시)'],
+      /* C6 — 소셜 로그인(Kakao / Naver / Google 등) 수집 항목 신설. */
+      paragraphs: ['③ 소셜 로그인 회원가입 시'],
+      bullets: [
+        '소셜 계정에서 제공되는 이메일, 이름, 소셜 계정 식별자(Kakao / Naver / Google 등 제공자별 고유 ID)',
+      ],
+    },
+    {
+      paragraphs: ['④ 자동 수집 항목 (서비스 이용 시)'],
       bullets: ['접속 IP 주소, 쿠키, 서비스 이용 기록, 방문 기록'],
     },
     {
@@ -534,8 +552,11 @@ const SHIPPING: LegalDoc = {
     {
       heading: '배송비',
       bullets: [
-        '기본 배송비: 3,000원',
-        '무료 배송: 주문 금액 30,000원 이상',
+        /* {shipping.base_fee} / {shipping.free_threshold} placeholder —
+           page.tsx 에서 fetchSiteSettings() 후 applySiteSettings() 가 치환.
+           admin /settings 의 배송 정책 편집과 자동 연동. */
+        '기본 배송비: {shipping.base_fee}원',
+        '무료 배송: 주문 금액 {shipping.free_threshold}원 이상',
         '도서·산간 지역: 추가 배송비 발생 (제주도, 도서 지역, 산간 오지 등 배송사 기준에 따라 추가 비용이 청구됩니다.)',
       ],
     },
@@ -648,7 +669,8 @@ const RETURNS: LegalDoc = {
     {
       heading: '반품·교환 배송비 부담 기준',
       paragraphs: ['[고객 단순 변심]'],
-      bullets: ['반품 배송비: 고객 부담 (편도 3,000원 기준, 택배사 정책에 따라 변동 가능)'],
+      /* {shipping.base_fee} placeholder — admin /settings 와 자동 연동. */
+      bullets: ['반품 배송비: 고객 부담 (편도 {shipping.base_fee}원 기준, 택배사 정책에 따라 변동 가능)'],
     },
     {
       paragraphs: ['[회사 귀책 (불량·오배송·광고 상이)]'],
@@ -790,6 +812,57 @@ const DOCS: Record<LegalSlug, LegalDoc> = {
 
 export function getLegalDoc(slug: LegalSlug): LegalDoc {
   return DOCS[slug];
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   applySiteSettings — LegalDoc 의 placeholder 를 site_settings 값으로 치환.
+
+   SHIPPING / RETURNS 의 배송비 / 무료배송 임계값을 admin /settings 와 자동
+   동기화. {shipping.base_fee} / {shipping.free_threshold} 토큰을 치환.
+
+   site_settings.shipping.enabled=false 인 경우 — 무료배송 정책 자체가 꺼진
+   상태. legal 문서는 일반적 안내가 필요하므로 0 / 미적용 표현 대신 현재
+   설정 숫자 그대로 표시 (운영자가 일시 비활성화한 경우도 안내 텍스트는
+   유지되어야 정합).
+   ══════════════════════════════════════════════════════════════════════════ */
+
+type ShippingValues = { base_fee: number; free_threshold: number };
+
+function fmt(n: number): string {
+  return n.toLocaleString('ko-KR');
+}
+
+function replaceTokens(text: string, shipping: ShippingValues): string {
+  return text
+    .replaceAll('{shipping.base_fee}', fmt(shipping.base_fee))
+    .replaceAll('{shipping.free_threshold}', fmt(shipping.free_threshold));
+}
+
+function mapSection(s: LegalSection, shipping: ShippingValues): LegalSection {
+  return {
+    heading: s.heading,
+    paragraphs: s.paragraphs?.map((p) => replaceTokens(p, shipping)),
+    bullets: s.bullets?.map((b) => replaceTokens(b, shipping)),
+    definitions: s.definitions?.map((d) => ({
+      label: replaceTokens(d.label, shipping),
+      value: replaceTokens(d.value, shipping),
+      link: d.link,
+      linkOn: d.linkOn,
+    })),
+  };
+}
+
+export function applySiteSettings(
+  doc: LegalDoc,
+  shipping: ShippingValues,
+): LegalDoc {
+  return {
+    ...doc,
+    description: replaceTokens(doc.description, shipping),
+    intro: doc.intro?.map((p) => replaceTokens(p, shipping)),
+    sections: doc.sections.map((s) => mapSection(s, shipping)),
+    footer: doc.footer?.map((p) => replaceTokens(p, shipping)),
+  };
 }
 
 export const LEGAL_NAV = [

@@ -11,9 +11,11 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import {
   LEGAL_SLUGS,
+  applySiteSettings,
   getLegalDoc,
   isLegalSlug,
 } from './content';
+import { fetchSiteSettings } from '@/lib/siteSettingsServer';
 import LegalPage from '@/components/legal/LegalPage';
 
 type RouteParams = { slug: string };
@@ -50,8 +52,15 @@ export async function generateMetadata({
    Suspense 경계 안 inner async 컴포넌트로 분리하여 prerender / RSC 호환 보장. */
 async function LegalContent({ slug }: { slug: string }) {
   if (!isLegalSlug(slug)) notFound();
-  const doc = getLegalDoc(slug);
-  return <LegalPage doc={doc} />;
+  /* SHIPPING / RETURNS 의 {shipping.base_fee} / {shipping.free_threshold}
+     placeholder 를 admin /settings 의 현재 배송 정책으로 치환. 그 외 페이지
+     에는 placeholder 가 없어 무영향. fetchSiteSettings 는 'use cache' +
+     cacheTag('site-settings') 라 admin 변경 시 자동 무효화. */
+  const [doc, settings] = await Promise.all([
+    Promise.resolve(getLegalDoc(slug)),
+    fetchSiteSettings(),
+  ]);
+  return <LegalPage doc={applySiteSettings(doc, settings.shipping)} />;
 }
 
 export default async function LegalRoute({
