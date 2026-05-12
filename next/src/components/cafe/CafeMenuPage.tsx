@@ -127,6 +127,12 @@ export default function CafeMenuPage({ items }: Props) {
           setHighlightId(targetId);
         }
       }
+    } else if (highlightId !== null) {
+      // S217 회귀 fix — item 없는 재진입(매장 사진 전체보기 · SiteHeader Menu)
+      // 시 직전 ?item= 진입의 highlightId 잔존 방지. Activity preserve +
+      // useEffect cleanup 으로 HIGHLIGHT_MS timer 가 cancel 되어 자동 소거가
+      // 멈춤 → 진입 시점에 명시적으로 정리.
+      setHighlightId(null);
     }
   }
 
