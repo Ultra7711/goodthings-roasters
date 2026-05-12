@@ -1,31 +1,48 @@
 # 어드민 풀 구현 계획 (Admin Implementation Plan)
 
 > **작성일:** 2026-04-27 (Session 92)
-> **최종 업데이트:** 2026-05-11 (Session 209) — Group A·B·C·D·H·I·J 완료 반영, cafe-events 신규 등재, E/F 출시 전 처리 확정
-> **상태:** 출시 전 구축 확정. Group E/F (products·cafe_menu DB 전환) 미완 — 출시 전 처리.
+> **최종 업데이트:** 2026-05-13 (Session 217 audit) — S210~S216 결과 반영. Group E/F **DB 전환 ✅ / Admin UI ⏸️** 두 축 분리. 잔여 작업 재산정.
+> **상태:** DB 인프라 (046/047/048) 완료. **Admin UI 미구현** — 출시 가능 여부 = P0/P1 분류로 판단 (§0-1 참조).
 > **결정 배경:** 클라이언트 운영 가능성 확보 — Supabase 대시보드 운영 정책 폐기, 직접 구현으로 전환.
 
 ---
 
 > **마이그레이션 운영 워크플로우:** `supabase/migrations/README.md` 참조 (Supabase 대시보드 SQL Editor 직접 적용 · CLI 미사용 · 번호 충돌 방지 절차). S210 (2026-05-11) 에서 `034`·`035` 번호 충돌 2건 정리 (`041` · `043` 으로 rename) — production 영향 없음 (이미 적용 완료된 상태).
 
-## 0. 현재 진행률 (S209 audit 기준 2026-05-11)
+## 0. 현재 진행률 (S217 audit 기준 2026-05-13)
 
-| Group | 추정 | 현재 | 비고 |
-|-------|------|------|------|
-| **A** 인프라 | 7~9h | ✅ 100% | `/admin/login` + layout + Storage 버킷 + shadcn/ui |
-| **B** 주문 | 5~8h | ✅ 80%+ | 환불·취소·CSV는 외부 안내 또는 plan 외 |
-| **C** 사용자 | 4~6h | ✅ 100% | C-3 admin 승격·강등 + audit 자동 기록 |
-| **D** 정기배송 | 4~6h | ✅ 95% | D-3 자동 결제 모니터링 출시 후 보류 |
-| **E** 상품 | 20~29h | ⏸️ **0%** | placeholder 만 — 🔴 **출시 전 처리 확정 (S209)** |
-| **F** 카페 메뉴 | 12~17h | ⏸️ **0%** | placeholder 만 — 🔴 **출시 전 처리 확정 (S209)** |
-| **G** 운영·문서 | 4~5h | ⏸️ 0% | Phase 3-D 이후 |
-| **H** 설정 | 7~11h | ✅ 100% | 공지·배송·시즌·서명 |
-| **I** 통계 | 5~7h | ✅ 100% | 대시보드 + 매출 + 카페 좋아요 |
-| **J** 굿데이즈 | 6~8h | ✅ 100% | 50장 seed + 드래그 리오더 |
-| **K** cafe-events (plan 외) | — | ✅ 100% | S151 신규 — DB + Server Action + 4-bp 미리보기 |
+> Group E/F 는 **DB 전환** 과 **Admin UI 구현** 이 별개 작업. S211~S215 가 진행한 것은 DB 전환 (types + lib + seed + 의존 파일 마이그). Admin UI 페이지(`/admin/products`, `/admin/menu`)는 여전히 placeholder.
 
-**잔여 출시 전 작업:** Group E (20~29h) + Group F (12~17h) + Group G (4~5h) ≈ **36~51h**
+| Group | 추정 | DB 전환 | Admin UI | 비고 |
+|-------|------|---------|----------|------|
+| **A** 인프라 | 7~9h | — | ✅ 100% | `/admin/login` + (authed)/layout + Storage 버킷 + shadcn/ui |
+| **B** 주문 | 5~8h | — | ✅ 80%+ | 목록·상세·발송 dialog. 환불·취소·CSV 외부 안내 |
+| **C** 사용자 | 4~6h | — | ✅ 100% | 목록·상세·admin 승격·audit 자동 기록 |
+| **D** 정기배송 | 4~6h | — | 🟡 60% | 목록 page.tsx 만 (S188 minimal). 상세 페이지 미구현. 강제 해지·일시중지·next_delivery_at 수동 조정 미완 |
+| **E** 상품 | 20~29h | ✅ 100% (S211/S212) | ⏸️ **0%** | DB ✅ — types + productsServer.listProductsAdmin() 준비. UI 🔴 `/admin/products` = AdminPlaceholder · `/admin/products/new` = 시안 mock (실 저장 X · Storage 미연결) · `/admin/products/[id]/edit` 자체 없음 |
+| **F** 카페 메뉴 | 12~17h | ✅ 100% (S213/S214) | ⏸️ **0%** | DB ✅ — types + cafeMenuServer.listCafeMenuAdmin() 준비. UI 🔴 `/admin/menu` = AdminPlaceholder · new/edit 페이지 자체 없음 |
+| **G** 운영·문서 | 4~5h | — | ⏸️ 0% | SOP `docs/admin-operation-guide.md` 미작성 · E2E 미도입 |
+| **H** 설정 | 7~11h | ✅ (032/034) | ✅ 100% | 공지·배송·시즌·서명 |
+| **I** 통계 | 5~7h | ✅ (033) | ✅ 100% | 대시보드 + 매출 + 카페 좋아요 |
+| **J** 굿데이즈 | 6~8h | ✅ (036) | ✅ 100% | 50장 seed + 드래그 리오더 |
+| **K** cafe-events (plan 외) | — | ✅ (035) | ✅ 100% | S151 신규 — DB + Server Action + 4-bp 미리보기 |
+
+**잔여 작업 (Admin UI 위주):**
+- Group E (상품) Admin UI: 20~29h (DB 작업 8~12h 차감 — 이미 완료)
+- Group F (카페 메뉴) Admin UI: 8~12h (DB 작업 4~5h 차감 — 이미 완료)
+- Group D (정기배송) 상세 페이지: 2~3h
+- Group G (운영·문서·E2E): 4~5h
+- **합계 ≈ 34~49h**
+
+### 0-1. P0/P1/P2 출시 차단 분류 (S217)
+
+| 우선순위 | 기준 | 항목 |
+|---------|------|------|
+| **P0 출시 전 필수** | admin 부재 시 출시 직후 즉시 운영 차단 | 없음 (모든 데이터 SQL Editor 임시 대응 가능) |
+| **P1 출시 직후 1주 내** | admin 없으면 1주 내 운영 부담 누적 | E-Admin (상품 등록·수정·이미지) · F-Admin (메뉴 등록·수정) |
+| **P2 출시 후 V2** | 1~2개월 운영 가능 (코드 hot-patch / SQL editor 임시) | G (SOP·E2E) · D-2 정기배송 상세 · 상품 옵션 일괄 편집 등 |
+
+> **출시 차단 평가 결과 (S217):** 카탈로그 6종(상품)·35개(메뉴) 변경 빈도가 낮고, SQL Editor 로 가격·재고 임시 변경 가능 → **P0 = 없음.** 단 P1 admin UI 는 출시 후 1~2주 내 구축 필수. 자세한 sprint 분할: `memory/project_release_blocker_sprint.md` §S218~S221 참조.
 
 ---
 
@@ -363,3 +380,4 @@ S-1 진입 전·중에 확정 받을 사항:
 | 2026-04-27 | S92 | 초기 작성 — 정책 변경 (Supabase 대시보드 → 직접 구현) 반영 + 풀 어드민 작업 그룹 7개 + 출시 전 9단계 진행 순서 |
 | 2026-05-02 | S124 | 신규 그룹 H·I·J 추가, Lucide 아이콘 확정 |
 | 2026-05-11 | S209 | **현재 진행률 §0 신설.** Group A·B·C·D·H·I·J 완료 반영 (cafe-events 신규 등재 = Group K, S151). Group E `lib/products.ts` 라인 수 295 → 339 갱신, fetch 영향 파일 6개 → **36개** 확장 (S209 audit). Group F `lib/cafeMenu.ts` 180줄 명시, 의존 8곳 명시. Group E/F **출시 전 처리 확정** (사용자 결정 S209). DB 마이그레이션 028~045 추가 사실 §0 표에서 추적. |
+| 2026-05-13 | S217 | **§0 표를 DB 전환 / Admin UI 두 열로 분리.** S210~S216 DB 전환 완료 결과 반영. Group E/F DB 전환 ✅ (046/047 + types + productsServer/cafeMenuServer + seed + 44 파일 마이그), Admin UI 는 여전히 placeholder/mock 상태 명시. Group D 진행률 95% → 60% 정정 (상세 페이지 미구현 발견). §0-1 P0/P1/P2 분류 신설 — 출시 차단 항목 0 평가 (P0 = 없음, P1 = E/F Admin UI). 잔여 작업 36~51h → **34~49h** 재산정 (DB 작업 12~17h 차감). |
