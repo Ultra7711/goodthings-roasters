@@ -55,12 +55,14 @@ function SectionContent({ section }: { section: LegalSection }) {
         <dl className="legal-defs">
           {section.definitions.map((d, i) => (
             <div key={i} className="legal-def-row">
-              <dt>{d.label}</dt>
-              <dd>
+              {/* P10 — 외부 사이트 링크는 기관명(label)에. 전화번호(value)에 걸면
+                  사용자가 전화 걸기로 오인할 수 있어 분리. */}
+              <dt>
                 {d.link ? (
-                  <a href={d.link} className="legal-link" target="_blank" rel="noopener noreferrer">{d.value}</a>
-                ) : d.value}
-              </dd>
+                  <a href={d.link} className="legal-link" target="_blank" rel="noopener noreferrer">{d.label}</a>
+                ) : d.label}
+              </dt>
+              <dd>{d.value}</dd>
             </div>
           ))}
         </dl>
