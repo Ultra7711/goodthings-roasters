@@ -60,7 +60,7 @@ const TERMS: LegalDoc = {
     {
       heading: '제1조 (목적)',
       paragraphs: [
-        '이 약관은 주식회사 브이티이코프(이하 "회사")가 운영하는 굳띵즈 로스터스(www.goodthingsrosters.com, 이하 "쇼핑몰")에서 제공하는 인터넷 쇼핑 서비스(이하 "서비스")를 이용함에 있어 회사와 이용자의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.',
+        '이 약관은 주식회사 브이티이코프(이하 "회사")가 운영하는 굳띵즈 로스터스(www.goodthingsroasters.com, 이하 "쇼핑몰")에서 제공하는 인터넷 쇼핑 서비스(이하 "서비스")를 이용함에 있어 회사와 이용자의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.',
       ],
     },
     {
@@ -270,7 +270,7 @@ const TERMS: LegalDoc = {
   footer: [
     '주식회사 브이티이코프 | 굳띵즈 로스터스',
     '대표자: 김주호',
-    '이메일: jung6419@naver.com',
+    '이메일: hello@goodthingsroasters.com',
   ],
 };
 
@@ -431,7 +431,7 @@ const PRIVACY: LegalDoc = {
       definitions: [
         { label: '성명', value: '김주호' },
         { label: '직책', value: '대표' },
-        { label: '연락처', value: '010-9062-9910 / jung6419@naver.com' },
+        { label: '연락처', value: '010-9062-9910 / hello@goodthingsroasters.com' },
       ],
     },
     {
@@ -461,7 +461,7 @@ const PRIVACY: LegalDoc = {
   footer: [
     '주식회사 브이티이코프 | 굳띵즈 로스터스',
     '대표자: 김주호 | 개인정보보호책임자: 김주호',
-    '이메일: jung6419@naver.com | 전화: 010-9062-9910',
+    '이메일: hello@goodthingsroasters.com | 전화: 010-9062-9910',
   ],
 };
 
@@ -482,7 +482,7 @@ const BUSINESS_INFO: LegalDoc = {
         { label: '통신판매업', value: '신고번호 2023-경북구미-0508' },
         { label: '주소', value: '경북 구미시 인동21길 22-11' },
         { label: '전화', value: '010-9062-9910' },
-        { label: '이메일', value: 'jung6419@naver.com' },
+        { label: '이메일', value: 'hello@goodthingsroasters.com' },
         { label: '공정거래위원회 조회', value: '통신판매사업자 정보 확인', link: 'https://www.ftc.go.kr/bizCommPop.do?wrkr_no=5108130238' },
       ],
     },
@@ -533,7 +533,7 @@ const BUSINESS_INFO: LegalDoc = {
   footer: [
     '주식회사 브이티이코프 | 굳띵즈 로스터스',
     '대표자: 김주호',
-    '이메일: jung6419@naver.com | 전화: 010-9062-9910',
+    '이메일: hello@goodthingsroasters.com | 전화: 010-9062-9910',
   ],
 };
 
@@ -590,7 +590,7 @@ const SHIPPING: LegalDoc = {
     {
       heading: '고객센터',
       definitions: [
-        { label: '이메일', value: 'jung6419@naver.com' },
+        { label: '이메일', value: 'hello@goodthingsroasters.com' },
         { label: '전화', value: '010-9062-9910' },
       ],
     },
@@ -650,7 +650,7 @@ const RETURNS: LegalDoc = {
       heading: '반품·교환 신청 방법',
       paragraphs: ['1. 고객센터(이메일 또는 전화)로 반품·교환 의사를 알려주세요.'],
       definitions: [
-        { label: '이메일', value: 'jung6419@naver.com' },
+        { label: '이메일', value: 'hello@goodthingsroasters.com' },
         { label: '전화', value: '010-9062-9910' },
       ],
     },
@@ -698,7 +698,7 @@ const RETURNS: LegalDoc = {
     {
       heading: '고객센터',
       definitions: [
-        { label: '이메일', value: 'jung6419@naver.com' },
+        { label: '이메일', value: 'hello@goodthingsroasters.com' },
         { label: '전화', value: '010-9062-9910' },
       ],
     },
@@ -790,7 +790,7 @@ const PAYMENT_FAQ: LegalDoc = {
     {
       heading: '그 외 문의는 어디로?',
       definitions: [
-        { label: '이메일', value: 'jung6419@naver.com' },
+        { label: '이메일', value: 'hello@goodthingsroasters.com' },
         { label: '전화', value: '010-9062-9910' },
       ],
     },
