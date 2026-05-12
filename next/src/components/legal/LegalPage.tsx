@@ -53,18 +53,28 @@ function SectionContent({ section }: { section: LegalSection }) {
       )}
       {section.definitions && section.definitions.length > 0 && (
         <dl className="legal-defs">
-          {section.definitions.map((d, i) => (
-            <div key={i} className="legal-def-row">
-              {/* P10 — 외부 사이트 링크는 기관명(label)에. 전화번호(value)에 걸면
-                  사용자가 전화 걸기로 오인할 수 있어 분리. */}
-              <dt>
-                {d.link ? (
-                  <a href={d.link} className="legal-link" target="_blank" rel="noopener noreferrer">{d.label}</a>
-                ) : d.label}
-              </dt>
-              <dd>{d.value}</dd>
-            </div>
-          ))}
+          {section.definitions.map((d, i) => {
+            /* P10 — 외부 사이트 링크는 default 로 label(기관명) 에. 전화번호(value)
+               에 걸면 사용자가 전화 걸기로 오인. linkOn='value' 명시 시 회사명 등
+               value 자체에 link (예: 토스페이먼츠(주)). */
+            const linkOnValue = d.linkOn === 'value';
+            const linkedLabel = d.link && !linkOnValue;
+            const linkedValue = d.link && linkOnValue;
+            return (
+              <div key={i} className="legal-def-row">
+                <dt>
+                  {linkedLabel ? (
+                    <a href={d.link} className="legal-link" target="_blank" rel="noopener noreferrer">{d.label}</a>
+                  ) : d.label}
+                </dt>
+                <dd>
+                  {linkedValue ? (
+                    <a href={d.link} className="legal-link" target="_blank" rel="noopener noreferrer">{d.value}</a>
+                  ) : d.value}
+                </dd>
+              </div>
+            );
+          })}
         </dl>
       )}
     </>
