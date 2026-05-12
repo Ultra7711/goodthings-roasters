@@ -59,7 +59,6 @@ export default function ShopCard({
       onClick={() => router.push(`/shop/${p.slug}`)}
       imgSrc={img?.src}
       imgAlt={extractKrName(p.name)}
-      imgBg={img?.bg ?? '#f5f5f3'}
       imgBlurDataURL={imgMeta?.blurDataURL}
       imgPriority={imgPriority}
       thumbAspect={aspect}

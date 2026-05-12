@@ -92,10 +92,7 @@ export default function SearchResultCard({ result }: Props) {
       onKeyDown={onKey}
       aria-label={`${c.name} 카페 메뉴로 이동`}
     >
-      <div
-        className="sp-card-thumb"
-        style={{ backgroundColor: c.bg || 'var(--color-background-secondary)' }}
-      >
+      <div className="sp-card-thumb">
         {c.img && (
           /* S208: fill 폐기 + width/height 명시 (GenericCard S198 패턴 답습). */
           <Image

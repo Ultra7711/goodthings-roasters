@@ -71,10 +71,7 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
 
         {item && (
           <>
-            <div
-              className="cns-image-wrap"
-              style={{ backgroundColor: item.bg || 'var(--color-background-secondary)' }}
-            >
+            <div className="cns-image-wrap">
               {item.img && (() => {
                 const meta = getCafeImageMeta(item.img);
                 return (

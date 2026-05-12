@@ -74,8 +74,6 @@ type Props = {
   /** 썸네일 이미지 src — next/image 사용 (S198 migration) */
   imgSrc?: string;
   imgAlt?: string;
-  /** 썸네일 fallback bg color — 이미지 미로드 시 thumb 자체 배경 */
-  imgBg?: string;
   /** 이미지 object-fit — variant default: shop=contain, cafe=cover. 명시 시 override */
   imgFit?: 'contain' | 'cover';
   /** legacy: imgSrc 미제공 시 inline style fallback (마이그레이션 호환) */
@@ -118,7 +116,6 @@ export default function GenericCard({
   ariaLabel,
   imgSrc,
   imgAlt,
-  imgBg,
   imgFit,
   imgStyle,
   imgPriority = false,
@@ -228,7 +225,9 @@ export default function GenericCard({
               width: '100%',
               height: '100%',
               objectFit: imgFit ?? (variant === 'cafe' ? 'cover' : 'contain'),
-              backgroundColor: imgBg ?? '#f5f5f3',
+              /* P8 — inline backgroundColor 제거. CSS .sp-card-thumb / .cm-card-thumb
+                 컨테이너의 background (단일 토큰) 가 placeholder 로 자연스럽게 비침.
+                 DB bg 컬럼 의존 차단 → 사이트 placeholder 단일 색상 유지. */
             }}
             priority={imgPriority}
             placeholder={imgBlurDataURL ? 'blur' : 'empty'}

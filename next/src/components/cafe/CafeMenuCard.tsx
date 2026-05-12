@@ -64,7 +64,6 @@ export default function CafeMenuCard({
       asButton
       imgSrc={item.img}
       imgAlt={item.name}
-      imgBg={item.bg || '#ECEAE6'}
       imgBlurDataURL={imgMeta?.blurDataURL}
       badgeSlot={<MenuCardBadges menuId={item.id} status={item.status} />}
       topRightSlot={<MenuLikeButton menuId={item.id} menuName={item.name} />}
