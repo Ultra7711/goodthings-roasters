@@ -45,10 +45,11 @@ const TONES: Record<RoleTone, { bg: string; fg: string; dot: string }> = {
   neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: '#888' },
 };
 
+/* S223 토큰 정합 — Orders 패턴 답습. */
 const TH_STYLE: React.CSSProperties = {
   textAlign: 'left',
-  padding: '10px 14px',
-  fontSize: 11,
+  padding: '12px 16px',
+  fontSize: 12,
   fontWeight: 500,
   letterSpacing: '0.04em',
   textTransform: 'uppercase',
@@ -56,7 +57,7 @@ const TH_STYLE: React.CSSProperties = {
 };
 
 const TD_STYLE: React.CSSProperties = {
-  padding: '11px 14px',
+  padding: '12px 16px',
   verticalAlign: 'middle',
 };
 
@@ -101,27 +102,11 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
 
   return (
     <>
-      {/* 헤더 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          marginBottom: 18,
-        }}
-      >
+      {/* 헤더 — Orders 패턴 답습 */}
+      <div className="flex items-baseline justify-between mb-5">
         <div>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 24,
-              fontWeight: 500,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            고객 관리
-          </h2>
-          <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
+          <h2 className="m-0 text-2xl font-medium tracking-tight">고객 관리</h2>
+          <div className="mt-1 text-sm text-muted-foreground">
             총 {counts.all.toLocaleString()}명
             {counts.admin > 0 ? ` · 운영자 ${counts.admin.toLocaleString()}명` : ''}
           </div>
@@ -129,14 +114,7 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
       </div>
 
       {/* role 탭 */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 4,
-          borderBottom: '1px solid var(--border)',
-          marginBottom: 16,
-        }}
-      >
+      <div className="flex gap-1 border-b border-border mb-4">
         {ROLE_TABS.map((t) => {
           const active = t.id === filters.role;
           const cnt = counts[t.id] ?? 0;
@@ -145,43 +123,27 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
               key={t.id}
               href={buildHref({ role: t.id, page: 1 })}
               replace
-              style={{
-                padding: '8px 14px',
-                background: 'transparent',
-                cursor: 'pointer',
-                fontSize: 13,
-                fontWeight: active ? 500 : 400,
-                color: active ? 'var(--foreground)' : 'var(--foreground-muted)',
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                textDecoration: 'none',
-              }}
+              className={`px-3 py-2 bg-transparent cursor-pointer text-sm relative flex items-center gap-1.5 no-underline ${
+                active
+                  ? 'font-medium text-foreground'
+                  : 'font-normal text-muted-foreground'
+              }`}
             >
               {t.label}
               <span
-                style={{
-                  fontSize: 11,
-                  fontVariantNumeric: 'tabular-nums',
-                  color: active ? 'var(--foreground-muted)' : 'var(--foreground-subtle)',
-                  background: active ? 'var(--surface-muted)' : 'transparent',
-                  padding: '1px 6px',
-                  borderRadius: 4,
-                }}
+                className={`text-xs tabular-nums rounded-sm ${
+                  active
+                    ? 'text-muted-foreground bg-muted'
+                    : 'text-[var(--foreground-subtle)] bg-transparent'
+                }`}
+                style={{ padding: '1px 6px' }}
               >
                 {cnt.toLocaleString()}
               </span>
               {active && (
                 <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: -1,
-                    height: 2,
-                    background: 'var(--primary)',
-                  }}
+                  className="absolute left-0 right-0 h-0.5 bg-[var(--primary)]"
+                  style={{ bottom: -1 }}
                 />
               )}
             </Link>
@@ -190,7 +152,7 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
       </div>
 
       {/* 필터 바 — 검색만 */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+      <div className="flex gap-2 mb-3 items-center">
         <AdminSearchInput
           value={searchValue}
           onChange={setSearchValue}
@@ -208,7 +170,7 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
           overflow: 'hidden',
         }}
       >
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <table className="w-full border-collapse text-sm">
           <thead>
             <tr style={{ background: 'var(--surface-muted)', color: 'var(--foreground-muted)' }}>
               <th style={TH_STYLE}>이메일</th>
@@ -221,14 +183,7 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td
-                  colSpan={5}
-                  style={{
-                    padding: '48px 16px',
-                    textAlign: 'center',
-                    color: 'var(--foreground-muted)',
-                  }}
-                >
+                <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   표시할 사용자가 없습니다.
                 </td>
               </tr>
@@ -246,20 +201,15 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
                     <td style={TD_STYLE}>
                       <Link
                         href={`/admin/users/${u.id}`}
-                        style={{
-                          fontSize: 12.5,
-                          color: 'var(--primary)',
-                          fontWeight: 500,
-                          textDecoration: 'none',
-                        }}
+                        className="text-xs text-[var(--primary)] font-medium no-underline"
                       >
                         {u.email}
                       </Link>
                     </td>
-                    <td style={TD_STYLE}>
-                      <div style={{ fontWeight: 500 }}>{name}</div>
+                    <td style={TD_STYLE} className="text-sm">
+                      <div className="font-medium">{name}</div>
                       {u.fullName && u.displayName && u.displayName !== u.fullName && (
-                        <div style={{ fontSize: 11.5, color: 'var(--foreground-subtle)' }}>
+                        <div className="text-xs text-muted-foreground mt-0.5">
                           {u.fullName}
                         </div>
                       )}
@@ -270,22 +220,14 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
                       </Badge>
                     </td>
                     <td
-                      style={{
-                        ...TD_STYLE,
-                        color: 'var(--foreground-muted)',
-                        fontSize: 12,
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
+                      style={TD_STYLE}
+                      className="text-xs text-muted-foreground tabular-nums"
                     >
                       {formatJoinedDate(u.createdAtIso)}
                     </td>
                     <td
-                      style={{
-                        ...TD_STYLE,
-                        textAlign: 'right',
-                        fontVariantNumeric: 'tabular-nums',
-                        fontWeight: 500,
-                      }}
+                      style={{ ...TD_STYLE, textAlign: 'right' }}
+                      className="text-sm tabular-nums font-medium"
                     >
                       {u.orderCount.toLocaleString()}
                     </td>
@@ -297,19 +239,9 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
         </table>
 
         {/* 페이지네이션 */}
-        <div
-          style={{
-            padding: '12px 18px',
-            borderTop: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: 12.5,
-            color: 'var(--foreground-muted)',
-          }}
-        >
+        <div className="px-5 py-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
           <div>{describeRange(filters.page, total)}</div>
-          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <div className="flex gap-1 items-center">
             <PageNav href={buildHref({ page: 1 })} disabled={filters.page === 1}>
               ‹‹
             </PageNav>

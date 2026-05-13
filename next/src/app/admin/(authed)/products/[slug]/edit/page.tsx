@@ -46,17 +46,7 @@ async function EditInner({ params }: PageProps) {
       {/* 뒤로 가기 */}
       <Link
         href="/admin/products"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 4,
-          padding: '4px 8px 4px 4px',
-          marginLeft: -4,
-          marginBottom: 8,
-          color: 'var(--foreground-muted)',
-          fontSize: 12.5,
-          textDecoration: 'none',
-        }}
+        className="inline-flex items-center gap-1 px-2 py-1 -ml-1 mb-2 text-muted-foreground text-xs no-underline"
       >
         <svg
           width="14"
@@ -74,22 +64,12 @@ async function EditInner({ params }: PageProps) {
       </Link>
 
       {/* 헤더 */}
-      <div style={{ marginBottom: 22 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 24,
-              fontWeight: 500,
-              letterSpacing: '-0.02em',
-            }}
-          >
+      <div className="mb-6">
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <h2 className="m-0 text-2xl font-medium tracking-tight">
             {product.name}
           </h2>
-          <span
-            className="gtr-mono"
-            style={{ fontSize: 13, color: 'var(--foreground-muted)' }}
-          >
+          <span className="gtr-mono text-sm text-muted-foreground">
             {product.slug}
           </span>
           {!product.is_active && (
@@ -102,67 +82,28 @@ async function EditInner({ params }: PageProps) {
             </ShadcnBadge>
           )}
         </div>
-        <div
-          style={{
-            marginTop: 4,
-            fontSize: 13,
-            color: 'var(--foreground-muted)',
-          }}
-        >
+        <div className="mt-1 text-sm text-muted-foreground">
           {product.category === 'coffee_bean' ? 'Coffee Bean' : 'Drip Bag'} · {product.display_price}
         </div>
       </div>
 
       {/* 이미지 reorder 섹션 */}
-      <section
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-          padding: 20,
-          marginBottom: 20,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-          <h3
-            style={{
-              margin: 0,
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              color: 'var(--foreground-muted)',
-            }}
-          >
+      <section className="bg-card border border-border rounded-lg p-5 mb-5">
+        <div className="flex items-baseline gap-2 mb-1">
+          <h3 className="m-0 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             이미지 갤러리
           </h3>
-          <span style={{ fontSize: 11, color: 'var(--foreground-subtle)' }}>
+          <span className="text-xs text-[var(--foreground-subtle)]">
             {sortedImages.length}장
           </span>
         </div>
-        <div
-          style={{
-            fontSize: 12.5,
-            color: 'var(--foreground-muted)',
-            lineHeight: 1.6,
-            marginBottom: 16,
-          }}
-        >
-          1번 이미지가 <strong style={{ color: 'var(--foreground)' }}>카트 · 결제 · 상품 카드</strong>에 사용되는 대표 이미지입니다.
+        <div className="text-xs text-muted-foreground leading-relaxed mb-4">
+          1번 이미지가 <strong className="text-foreground">카트 · 결제 · 상품 카드</strong>에 사용되는 대표 이미지입니다.
           대표를 바꾸려면 해당 이미지를 1번으로 이동시키세요.
         </div>
 
         {sortedImages.length === 0 ? (
-          <div
-            style={{
-              padding: '48px 14px',
-              textAlign: 'center',
-              fontSize: 13,
-              color: 'var(--foreground-muted)',
-              background: 'var(--surface-muted)',
-              borderRadius: 'var(--radius-sm)',
-            }}
-          >
+          <div className="px-4 py-12 text-center text-sm text-muted-foreground bg-muted rounded-md">
             등록된 이미지가 없습니다. 이미지 업로드는 다음 단계에서 추가됩니다.
           </div>
         ) : (

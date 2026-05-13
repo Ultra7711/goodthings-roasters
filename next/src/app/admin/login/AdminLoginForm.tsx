@@ -53,18 +53,14 @@ export default function AdminLoginForm() {
 
   return (
     <div
+      className="relative w-[380px] bg-[var(--surface)] border border-border rounded-xl p-9"
       style={{
-        position: 'relative',
-        width: 380,
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 12,
-        padding: '36px 36px 28px',
+        paddingBottom: '28px',
         boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
       }}
     >
       {/* 브랜드 워드마크 — 메인 사이트 헤더와 동일한 SVG */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+      <div className="flex justify-center mb-6">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 680 142"
@@ -93,44 +89,23 @@ export default function AdminLoginForm() {
       </div>
 
       {/* 헤딩 */}
-      <div style={{ textAlign: 'center', marginBottom: 28 }}>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: 22,
-            fontWeight: 500,
-            letterSpacing: '-0.02em',
-            color: 'var(--foreground)',
-          }}
-        >
+      <div className="text-center mb-7">
+        <h1 className="m-0 text-xl font-medium text-foreground" style={{ letterSpacing: '-0.02em' }}>
           어드민 로그인
         </h1>
-        <div
-          style={{
-            marginTop: 6,
-            fontSize: 13,
-            color: 'var(--foreground-muted)',
-          }}
-        >
+        <div className="mt-1.5 text-sm text-muted-foreground">
           Good Things Roasters · 운영자 콘솔
         </div>
       </div>
 
       {/* 폼 */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* 이메일 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="flex flex-col gap-1.5">
           <label
             htmlFor="admin-email"
-            style={{
-              fontSize: 12.5,
-              fontWeight: 500,
-              color: 'var(--foreground)',
-              letterSpacing: '-0.005em',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
+            className="text-sm font-medium text-foreground flex items-center gap-1"
+            style={{ letterSpacing: '-0.005em' }}
           >
             이메일 <span style={{ color: 'var(--primary)' }}>*</span>
           </label>
@@ -147,23 +122,16 @@ export default function AdminLoginForm() {
         </div>
 
         {/* 비밀번호 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex justify-between items-center">
             <label
               htmlFor="admin-password"
-              style={{
-                fontSize: 12.5,
-                fontWeight: 500,
-                color: 'var(--foreground)',
-                letterSpacing: '-0.005em',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
+              className="text-sm font-medium text-foreground flex items-center gap-1"
+              style={{ letterSpacing: '-0.005em' }}
             >
               비밀번호 <span style={{ color: 'var(--primary)' }}>*</span>
             </label>
-            <span style={{ fontSize: 11.5, color: 'var(--foreground-muted)' }}>
+            <span className="text-xs text-muted-foreground">
               비밀번호 분실 시 운영자에게 문의
             </span>
           </div>
@@ -180,12 +148,8 @@ export default function AdminLoginForm() {
 
         {/* 로그인 유지 */}
         <label
+          className="flex items-center gap-2 text-sm text-muted-foreground"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            fontSize: 12.5,
-            color: 'var(--foreground-muted)',
             cursor: submitting ? 'not-allowed' : 'pointer',
           }}
         >
@@ -226,16 +190,8 @@ export default function AdminLoginForm() {
 
       {/* 푸터 */}
       <div
-        style={{
-          marginTop: 24,
-          paddingTop: 16,
-          borderTop: '1px solid var(--border)',
-          display: 'flex',
-          justifyContent: 'center',
-          fontSize: 11.5,
-          color: 'var(--foreground-subtle)',
-          letterSpacing: '0.02em',
-        }}
+        className="mt-6 pt-4 border-t border-border flex justify-center text-xs text-[var(--foreground-subtle)]"
+        style={{ letterSpacing: '0.02em' }}
       >
         Good Things Roasters · Admin Console
       </div>

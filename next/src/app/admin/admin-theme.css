@@ -16,10 +16,11 @@
   --foreground-muted: #6B6B6B;
   --foreground-subtle: #9A9A98;
 
-  /* hairline borders */
+  /* hairline borders — S223 Phase 2-e: --input 강화 (#E5E5E3 → #D4D4D2)
+     Button outline + Input + Checkbox 공통 외곽선 visibility 확보. */
   --border: #E5E5E3;
   --border-strong: #D4D4D2;
-  --input: #E5E5E3;
+  --input: #D4D4D2;
   --ring: rgba(201, 100, 66, 0.35);
 
   /* ── 액센트 (clay orange, 단일) ─────── */

@@ -1,0 +1,84 @@
+feat(admin): 검색 input 통일 + 5개 페이지 토큰화 + 색상 일관성 (S223 Phase 2-e)
+
+agent partial result 받아 (AdminLoginForm 변경 보존) 직접 batch 정정.
+
+신규 — AdminSearchInput 공통 컴포넌트 통일
+- Orders / Subscriptions / Products / Users — 모두 import 통일
+- 자체 SearchInput 로컬 정의 폐기
+
+cell color hierarchy 일관성 (모든 admin 테이블 동일)
+- email: text-xs text-[var(--foreground-subtle)] mt-0.5 (#9A9A98)
+- 보조 라벨: text-xs text-muted-foreground mt-0.5 (#6B6B6B)
+- 날짜 모든 종류: text-xs text-muted-foreground tabular-nums
+- primary 이름: text-sm font-medium
+- link/주문번호: text-xs text-[var(--primary)] font-medium
+
+SubscriptionsTableClient
+- 헤더 + 탭 + 검색 (AdminSearchInput) Orders 패턴 답습
+- cell hierarchy: userEmail #9A9A98 / productVolume muted / cycle text-sm /
+  next/last delivery text-xs muted tabular-nums
+- TH/TD inline 토큰 정합 (padding 12×16, fontSize 12)
+
+ProductsTableClient
+- 헤더 + 카테고리 탭 + 검색 (AdminSearchInput)
+- cell hierarchy: name text-sm font-medium / slug text-xs subtle /
+  CATEGORY label text-xs muted / sortOrder text-sm tabular-nums muted /
+  updatedAt text-xs muted tabular-nums
+- TH/TD inline 토큰 정합 + 빈 상태 className
+
+UsersTableClient
+- 헤더 + role 탭 (text-sm 통일)
+- cell hierarchy: email link text-xs primary / name text-sm font-medium /
+  fullName text-xs muted / joinedDate text-xs muted tabular-nums /
+  orderCount text-sm tabular-nums font-medium
+- TH/TD inline 토큰 정합 + 빈 상태 + 페이지네이션 정정
+
+ProductImageReorderClient
+- 대표 배지 / 순서 표시 inline → className (text-xs)
+
+products/[slug]/edit/page.tsx
+- 뒤로가기 + 헤더 + 이미지 reorder section 토큰화
+- h2 text-2xl + subtitle text-sm muted
+- section bg-card border border-border rounded-lg p-5
+
+ShippingDialog
+- DialogHeader / 택배사 dropdown / Field / notice / error / footer 모두 토큰화
+- text-xs / text-sm + Tailwind className
+- gtr-admin / 색 토큰 reference 유지
+
+AdminLoginForm (agent 결과 보존)
+- 카드 wrapper + 헤딩 + 폼 layout className 변환
+- 비즈니스 로직 (supabase signIn + admin 검증) 그대로
+
+admin-theme.css
+- --input #E5E5E3 → #D4D4D2 (Button outline + Input + Checkbox 공통 외곽선 visibility 확보)
+
+shadcn ui/checkbox.tsx
+- border-input 통일 (이전: foreground-subtle 강함)
+- indeterminate state 도 primary bg 추가
+- 사용자 보고: 헤더 전체 체크 visibility 회복
+
+native search input cancel button 숨김
+- [&::-webkit-search-cancel-button]:appearance-none — 이중 X 버그 fix
+
+shadcn ui (Button/Card/Dialog/DropdownMenu/Select)
+- Tailwind v4 default border-color 변경 대응 — border-input/border-border 명시
+- light mode 에서 black border 발생 fix
+
+검증
+- tsc 0 errors
+- 685/685 vitest green
+- npm run build PPR PASS
+
+agent broken 결과 revert
+- SettingsForm.tsx 가 agent 처리 중 syntax error 발생 → PR-5c (85dcffe7) 시점으로 revert
+- 다음 batch 에서 careful 재정정 진행
+
+남은 sweep (Batch 2)
+- OrderDetailClient (큰 · 1026 LOC)
+- SettingsForm (재정정 · 1640 LOC)
+- CafeEventsForm (큰 · 1304 LOC)
+- analytics page / ProductEditForm / UserDetailClient
+- Subscriptions Dialog 안
+
+Refs: 8c131d90 (Phase 2-d)

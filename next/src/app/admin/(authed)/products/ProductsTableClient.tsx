@@ -64,10 +64,11 @@ const TONES: Record<StatusTone, { bg: string; fg: string }> = {
   primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)' },
 };
 
+/* S223 토큰 정합 — Orders 패턴 답습 (TH 12 / TD className hierarchy). */
 const TH_STYLE: React.CSSProperties = {
   textAlign: 'left',
-  padding: '10px 14px',
-  fontSize: 11,
+  padding: '12px 16px',
+  fontSize: 12,
   fontWeight: 500,
   letterSpacing: '0.04em',
   textTransform: 'uppercase',
@@ -75,9 +76,8 @@ const TH_STYLE: React.CSSProperties = {
 };
 
 const TD_STYLE: React.CSSProperties = {
-  padding: '11px 14px',
+  padding: '12px 16px',
   verticalAlign: 'middle',
-  fontSize: 13,
 };
 
 /* S222 PR-4: SM_PRIMARY 폐기 (shadcn Button asChild + Link). */
@@ -221,15 +221,7 @@ export default function ProductsTableClient({ rows }: Props) {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td
-                  colSpan={9}
-                  style={{
-                    padding: '48px 14px',
-                    textAlign: 'center',
-                    fontSize: 13,
-                    color: 'var(--foreground-muted)',
-                  }}
-                >
+                <td colSpan={9} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   {rows.length === 0
                     ? '등록된 상품이 없습니다.'
                     : '필터 조건에 해당하는 상품이 없습니다.'}
@@ -248,14 +240,7 @@ export default function ProductsTableClient({ rows }: Props) {
         </table>
       </div>
 
-      <div
-        style={{
-          marginTop: 10,
-          fontSize: 11.5,
-          color: 'var(--foreground-subtle)',
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
+      <div className="mt-2.5 text-xs text-[var(--foreground-subtle)] tabular-nums">
         총 {filtered.length}건
         {filtered.length !== rows.length && ` (전체 ${rows.length}건)`}
       </div>
@@ -319,14 +304,8 @@ function ProductRow({
       <td style={TD_STYLE}>
         <Link
           href={editHref}
+          className="block w-10 h-10 rounded-md border border-border overflow-hidden relative"
           style={{
-            display: 'block',
-            width: 40,
-            height: 40,
-            borderRadius: 6,
-            border: '1px solid var(--border)',
-            overflow: 'hidden',
-            position: 'relative',
             background:
               'repeating-linear-gradient(135deg, #EEEDEB 0 5px, #F5F4F2 5px 10px)',
           }}
@@ -344,35 +323,16 @@ function ProductRow({
           )}
         </Link>
       </td>
-      <td style={TD_STYLE}>
-        <Link
-          href={editHref}
-          style={{ color: 'var(--foreground)', textDecoration: 'none' }}
-        >
-          <div style={{ fontSize: 13.5, fontWeight: 500 }}>{row.name}</div>
-          <div
-            className="gtr-mono"
-            style={{
-              fontSize: 11.5,
-              color: 'var(--foreground-subtle)',
-              marginTop: 2,
-            }}
-          >
+      <td style={TD_STYLE} className="text-sm">
+        <Link href={editHref} className="text-foreground no-underline">
+          <div className="font-medium">{row.name}</div>
+          <div className="gtr-mono text-xs text-[var(--foreground-subtle)] mt-0.5">
             {row.slug}
           </div>
         </Link>
       </td>
       <td style={TD_STYLE}>
-        <span
-          style={{
-            fontSize: 11.5,
-            color: 'var(--foreground-muted)',
-            padding: '2px 8px',
-            borderRadius: 999,
-            border: '1px solid var(--border)',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <span className="text-xs text-muted-foreground px-2 py-0.5 rounded-full border border-border whitespace-nowrap">
           {CATEGORY_LABEL[row.category]}
         </span>
       </td>
@@ -386,18 +346,12 @@ function ProductRow({
             {row.status}
           </ShadcnBadge>
         ) : (
-          <span style={{ color: 'var(--foreground-subtle)', fontSize: 11.5 }}>
-            —
-          </span>
+          <span className="text-xs text-[var(--foreground-subtle)]">—</span>
         )}
       </td>
       <td
-        style={{
-          ...TD_STYLE,
-          textAlign: 'right',
-          fontVariantNumeric: 'tabular-nums',
-          fontWeight: 500,
-        }}
+        style={{ ...TD_STYLE, textAlign: 'right' }}
+        className="text-sm tabular-nums font-medium"
       >
         {row.displayPrice}
       </td>
@@ -411,22 +365,14 @@ function ProductRow({
         />
       </td>
       <td
-        style={{
-          ...TD_STYLE,
-          textAlign: 'right',
-          fontVariantNumeric: 'tabular-nums',
-          color: 'var(--foreground-muted)',
-        }}
+        style={{ ...TD_STYLE, textAlign: 'right' }}
+        className="text-sm tabular-nums text-muted-foreground"
       >
         {row.sortOrder}
       </td>
       <td
-        style={{
-          ...TD_STYLE,
-          fontSize: 11.5,
-          color: 'var(--foreground-muted)',
-          fontVariantNumeric: 'tabular-nums',
-        }}
+        style={TD_STYLE}
+        className="text-xs text-muted-foreground tabular-nums"
       >
         {formatKstShort(row.updatedAt)}
       </td>
@@ -434,11 +380,7 @@ function ProductRow({
         <Link
           href={editHref}
           aria-label="편집"
-          style={{
-            color: 'var(--foreground-muted)',
-            display: 'inline-flex',
-            padding: 4,
-          }}
+          className="text-muted-foreground inline-flex p-1"
         >
           <ChevronRightIcon />
         </Link>

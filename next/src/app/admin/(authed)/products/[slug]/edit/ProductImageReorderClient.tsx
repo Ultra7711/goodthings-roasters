@@ -131,22 +131,8 @@ export default function ProductImageReorderClient({
               {/* 대표 배지 */}
               {isFeatured && (
                 <span
-                  style={{
-                    position: 'absolute',
-                    top: 6,
-                    left: 6,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    padding: '3px 8px',
-                    borderRadius: 999,
-                    background: 'var(--primary)',
-                    color: '#fff',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: '-0.005em',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
-                  }}
+                  className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--primary)] text-white text-xs font-semibold"
+                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }}
                 >
                   <StarIcon />
                   대표
@@ -154,23 +140,8 @@ export default function ProductImageReorderClient({
               )}
               {/* 순서 표시 */}
               <span
-                style={{
-                  position: 'absolute',
-                  top: 6,
-                  right: 6,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minWidth: 22,
-                  height: 22,
-                  padding: '0 6px',
-                  borderRadius: 999,
-                  background: 'rgba(0, 0, 0, 0.55)',
-                  color: '#fff',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  fontVariantNumeric: 'tabular-nums',
-                }}
+                className="absolute top-1.5 right-1.5 inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full text-white text-xs font-semibold tabular-nums"
+                style={{ background: 'rgba(0, 0, 0, 0.55)' }}
               >
                 {idx + 1}
               </span>

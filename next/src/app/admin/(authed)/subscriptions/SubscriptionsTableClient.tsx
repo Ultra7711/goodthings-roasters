@@ -74,10 +74,11 @@ const TONES: Record<StatusTone, { bg: string; fg: string }> = {
   info: { bg: 'var(--info-soft)', fg: 'var(--info)' },
 };
 
+/* S223 토큰 정합 — Orders 패턴 답습. */
 const TH_STYLE: React.CSSProperties = {
   textAlign: 'left',
-  padding: '10px 14px',
-  fontSize: 11,
+  padding: '12px 16px',
+  fontSize: 12,
   fontWeight: 500,
   letterSpacing: '0.04em',
   textTransform: 'uppercase',
@@ -85,9 +86,8 @@ const TH_STYLE: React.CSSProperties = {
 };
 
 const TD_STYLE: React.CSSProperties = {
-  padding: '11px 14px',
+  padding: '12px 16px',
   verticalAlign: 'middle',
-  fontSize: 13,
 };
 
 export default function SubscriptionsTableClient({ rows, total, counts, filters }: Props) {
@@ -206,7 +206,7 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--foreground-muted)', fontSize: 13 }}>
+                <td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   표시할 구독이 없습니다.
                 </td>
               </tr>
@@ -219,17 +219,17 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
                 const ended = isEnded(s);
                 return (
                   <tr key={s.id} style={{ borderBottom: lastBorder }}>
-                    <td style={TD_STYLE}>
-                      <div style={{ fontWeight: 500 }}>{userName}</div>
-                      <div style={{ fontSize: 11, color: 'var(--foreground-muted)', marginTop: 2 }}>{s.userEmail}</div>
+                    <td style={TD_STYLE} className="text-sm">
+                      <div className="font-medium">{userName}</div>
+                      <div className="text-xs text-[var(--foreground-subtle)] mt-0.5">{s.userEmail}</div>
                     </td>
-                    <td style={TD_STYLE}>
-                      <div>{extractKrName(s.productName)}</div>
+                    <td style={TD_STYLE} className="text-sm">
+                      <div className="font-medium">{extractKrName(s.productName)}</div>
                       {s.productVolume && (
-                        <div style={{ fontSize: 11, color: 'var(--foreground-muted)', marginTop: 2 }}>{s.productVolume}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{s.productVolume}</div>
                       )}
                     </td>
-                    <td style={TD_STYLE}>{describeCycle(s.cycle)}</td>
+                    <td style={TD_STYLE} className="text-sm">{describeCycle(s.cycle)}</td>
                     <td style={TD_STYLE}>
                       <ShadcnBadge
                         variant="outline"
@@ -239,10 +239,10 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
                         {desc.label}
                       </ShadcnBadge>
                     </td>
-                    <td style={{ ...TD_STYLE, fontVariantNumeric: 'tabular-nums' }}>
+                    <td style={TD_STYLE} className="text-xs text-muted-foreground tabular-nums">
                       {formatDeliveryDate(s.nextDeliveryAtIso)}
                     </td>
-                    <td style={{ ...TD_STYLE, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground-muted)' }}>
+                    <td style={TD_STYLE} className="text-xs text-muted-foreground tabular-nums">
                       {s.lastDeliveryAtIso ? formatDeliveryDate(s.lastDeliveryAtIso) : '—'}
                     </td>
                     <td style={{ ...TD_STYLE, textAlign: 'right' }}>

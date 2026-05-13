@@ -117,24 +117,12 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
         className="gtr-admin"
         style={{ padding: 0, gap: 0, maxWidth: 480 }}
       >
-        <DialogHeader style={{ padding: '18px 22px 14px' }}>
-          <DialogTitle style={{ fontSize: 17, letterSpacing: '-0.015em' }}>
-            발송 처리
-          </DialogTitle>
+        <DialogHeader className="px-5 pt-5 pb-3.5">
+          <DialogTitle className="text-lg tracking-tight">발송 처리</DialogTitle>
           <DialogDescription asChild>
-            <div
-              style={{
-                fontSize: 12.5,
-                color: 'var(--foreground-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <span className="gtr-mono" style={{ color: 'var(--primary)' }}>
-                {orderNumber}
-              </span>
-              <span style={{ color: 'var(--foreground-subtle)' }}>·</span>
+            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <span className="gtr-mono text-[var(--primary)]">{orderNumber}</span>
+              <span className="text-[var(--foreground-subtle)]">·</span>
               <span>{customerName}</span>
             </div>
           </DialogDescription>
@@ -142,30 +130,22 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
 
         {/* body */}
         <form onSubmit={handleSubmit}>
-          <div style={{ padding: '0 22px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="px-5 pb-5 flex flex-col gap-3.5">
             {/* 택배사 */}
             <Field label="택배사" required>
-              <div ref={carrierWrapRef} style={{ position: 'relative' }}>
+              <div ref={carrierWrapRef} className="relative">
                 <button
                   type="button"
                   onClick={() => setCarrierOpen((v) => !v)}
                   aria-haspopup="listbox"
                   aria-expanded={carrierOpen}
+                  className={`w-full h-9 px-3 rounded-md bg-card flex items-center justify-between text-sm text-foreground cursor-pointer text-left ${
+                    carrierOpen
+                      ? 'border border-[var(--primary)]'
+                      : 'border border-input'
+                  }`}
                   style={{
-                    width: '100%',
-                    height: 36,
-                    padding: '0 12px',
-                    border: '1px solid ' + (carrierOpen ? 'var(--primary)' : 'var(--input)'),
                     boxShadow: carrierOpen ? '0 0 0 3px rgba(201, 100, 66, 0.12)' : 'none',
-                    borderRadius: 6,
-                    background: 'var(--surface)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    fontSize: 13,
-                    color: 'var(--foreground)',
-                    cursor: 'pointer',
-                    textAlign: 'left',
                   }}
                 >
                   <span>{carrierSel}</span>
@@ -178,10 +158,9 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    className="text-muted-foreground transition-transform"
                     style={{
-                      color: 'var(--foreground-muted)',
                       transform: carrierOpen ? 'rotate(180deg)' : 'none',
-                      transition: 'transform .15s',
                     }}
                   >
                     <path d="m6 9 6 6 6-6" />
@@ -190,19 +169,10 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
                 {carrierOpen && (
                   <ul
                     role="listbox"
+                    className="absolute left-0 right-0 bg-card border border-border rounded-lg p-1 z-10 list-none m-0"
                     style={{
-                      position: 'absolute',
                       top: 'calc(100% + 4px)',
-                      left: 0,
-                      right: 0,
-                      background: 'var(--surface)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 8,
                       boxShadow: '0 8px 24px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
-                      padding: 4,
-                      zIndex: 10,
-                      listStyle: 'none',
-                      margin: 0,
                     }}
                   >
                     {PRESET_CARRIERS.map((c) => {
@@ -217,21 +187,11 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
                               setCarrierSel(c);
                               setCarrierOpen(false);
                             }}
-                            style={{
-                              width: '100%',
-                              padding: '7px 10px',
-                              fontSize: 13,
-                              borderRadius: 4,
-                              cursor: 'pointer',
-                              background: sel ? 'var(--primary-soft)' : 'transparent',
-                              color: sel ? 'var(--primary-soft-fg)' : 'var(--foreground)',
-                              fontWeight: sel ? 500 : 400,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              border: 'none',
-                              textAlign: 'left',
-                            }}
+                            className={`w-full px-2.5 py-1.5 text-sm rounded cursor-pointer flex items-center justify-between border-none text-left ${
+                              sel
+                                ? 'bg-[var(--primary-soft)] text-[var(--primary-soft-fg)] font-medium'
+                                : 'bg-transparent text-foreground font-normal'
+                            }`}
                           >
                             <span>{c}</span>
                             {sel && (
@@ -277,20 +237,13 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
 
             {/* notice */}
             <div
+              className="px-3 py-2.5 rounded-md flex gap-2 items-start text-xs text-[var(--info)] leading-normal"
               style={{
-                padding: '10px 12px',
-                borderRadius: 6,
                 background: 'var(--info-soft)',
                 border: '1px solid #C5DCF1',
-                display: 'flex',
-                gap: 8,
-                alignItems: 'flex-start',
-                fontSize: 12,
-                color: 'var(--info)',
-                lineHeight: 1.5,
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M12 16v-4" />
                 <path d="M12 8h.01" />
@@ -305,14 +258,10 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
             {errorMsg && (
               <div
                 role="alert"
+                className="px-3 py-2.5 rounded-md text-xs text-[var(--danger)] leading-normal"
                 style={{
-                  padding: '10px 12px',
-                  borderRadius: 6,
                   background: 'var(--danger-soft)',
                   border: '1px solid #EFC3C3',
-                  color: 'var(--danger)',
-                  fontSize: 12,
-                  lineHeight: 1.5,
                 }}
               >
                 {errorMsg}
@@ -322,13 +271,8 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
 
           {/* footer */}
           <DialogFooter
-            style={{
-              padding: '14px 22px',
-              borderTop: '1px solid var(--border)',
-              background: '#FAFAF9',
-              justifyContent: 'space-between',
-              gap: 10,
-            }}
+            className="px-5 py-3.5 border-t border-border justify-between gap-2.5"
+            style={{ background: '#FAFAF9' }}
           >
             <Button
               type="button"
@@ -363,23 +307,15 @@ function Field({
 }) {
   return (
     <div>
-      <label
-        style={{
-          display: 'block',
-          fontSize: 12,
-          fontWeight: 500,
-          color: 'var(--foreground-muted)',
-          marginBottom: 6,
-        }}
-      >
+      <label className="block text-xs font-medium text-muted-foreground mb-1.5">
         {label}
         {required && (
-          <span style={{ color: 'var(--primary)', marginLeft: 3 }}>*</span>
+          <span className="ml-0.5 text-[var(--primary)]">*</span>
         )}
       </label>
       {children}
       {hint && (
-        <div style={{ marginTop: 4, fontSize: 11.5, color: 'var(--foreground-subtle)' }}>{hint}</div>
+        <div className="mt-1 text-xs text-[var(--foreground-subtle)]">{hint}</div>
       )}
     </div>
   );
