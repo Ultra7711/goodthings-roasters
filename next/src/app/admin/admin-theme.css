@@ -140,8 +140,8 @@
      11   → text-xs    13   → text-sm    20   → text-xl
      11.5 → text-xs    13.5 → text-sm    22   → text-xl
      12   → text-xs    14   → text-sm    24   → text-2xl
-     12.5 → text-xs    15   → text-base  28   → text-3xl
-                       17   → text-lg
+     12.5 → text-xs    15   → text-base  28   → text-2xl  (작게 round · 정책 일관)
+                       17   → text-lg    30+  → text-3xl
 
    ═══ spacing whitelist (gap / padding / margin) ════════════════
 

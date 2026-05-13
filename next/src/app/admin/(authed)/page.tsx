@@ -6,7 +6,7 @@
    ══════════════════════════════════════════ */
 
 import Link from 'next/link';
-import { Suspense, type CSSProperties } from 'react';
+import { Suspense } from 'react';
 import { getAdminClaims } from '@/lib/auth/getClaims';
 import { fetchAdminDashboard } from '@/lib/admin/dashboardServer';
 import { bestsellerPercents } from '@/lib/admin/dashboard';
@@ -37,13 +37,9 @@ const TODAY_LABEL = new Intl.DateTimeFormat('ko-KR', {
   weekday: 'long',
 }).format(new Date());
 
-const CARD_STYLE: CSSProperties = {
-  background: 'var(--surface)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius)',
-};
+/* S223 Phase 2-b: CARD_STYLE 폐기 (Tailwind className bg-card border border-border rounded-lg). */
 
-/* S222 PR-2: shadcn Badge variant="outline" + tone soft 매트릭스 className override (DEC-2). */
+/* shadcn Badge variant="outline" + tone soft 매트릭스 style override (DEC-2). */
 function Badge({ tone, children }: { tone: keyof typeof TONE_BG; children: React.ReactNode }) {
   return (
     <ShadcnBadge
@@ -74,37 +70,17 @@ async function WelcomeHeadingInner() {
   const claims = await getAdminClaims();
   const name = claims?.displayName?.trim() || claims?.email.split('@')[0] || '운영자';
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-      <h2
-        style={{
-          margin: 0,
-          fontSize: 28,
-          fontWeight: 500,
-          letterSpacing: '-0.02em',
-        }}
-      >
-        안녕하세요, {name}님
-      </h2>
-      <span style={{ fontSize: 13, color: 'var(--foreground-muted)' }}>{TODAY_LABEL}</span>
-    </div>
+    <h2 className="m-0 text-2xl font-medium tracking-tight">
+      안녕하세요, {name}님
+    </h2>
   );
 }
 
 function WelcomeFallback() {
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-      <h2
-        style={{
-          margin: 0,
-          fontSize: 28,
-          fontWeight: 500,
-          letterSpacing: '-0.02em',
-        }}
-      >
-        안녕하세요
-      </h2>
-      <span style={{ fontSize: 13, color: 'var(--foreground-muted)' }}>{TODAY_LABEL}</span>
-    </div>
+    <h2 className="m-0 text-2xl font-medium tracking-tight">
+      안녕하세요
+    </h2>
   );
 }
 
@@ -118,86 +94,36 @@ export default async function AdminDashboardPage() {
       {/* Topbar actions slot */}
       <DashboardActions />
 
-      {/* 환영 헤더 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 22 }}>
+      {/* 환영 헤더 — 다른 admin 페이지 패턴 답습 (h2 + 한 줄 subtitle) */}
+      <div className="flex flex-col gap-1 mb-6">
         <WelcomeHeading />
-        <div style={{ fontSize: 13, color: 'var(--foreground-muted)' }}>
-          오늘 운영 현황을 한눈에 확인하세요.
+        <div className="text-sm text-muted-foreground">
+          {TODAY_LABEL} · 오늘 운영 현황을 한눈에 확인하세요.
         </div>
       </div>
 
       {/* stats grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 12,
-          marginBottom: 22,
-        }}
-      >
+      <div className="grid grid-cols-3 gap-3 mb-6">
         {stats.map((s) => (
           <div
             key={s.label}
-            style={{
-              ...CARD_STYLE,
-              padding: 18,
-              position: 'relative',
-              overflow: 'hidden',
-            }}
+            className="bg-card border border-border rounded-lg p-5 relative overflow-hidden"
           >
             {s.accent && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 2,
-                  background: 'var(--primary)',
-                }}
-              />
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-[var(--primary)]" />
             )}
             {s.warn && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 2,
-                  background: 'var(--warning)',
-                }}
-              />
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-[var(--warning)]" />
             )}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div style={{ fontSize: 12.5, color: 'var(--foreground-muted)' }}>{s.label}</div>
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-muted-foreground">{s.label}</div>
             </div>
             <div
-              className="gtr-tnum"
-              style={{
-                marginTop: 10,
-                fontSize: 28,
-                fontWeight: 500,
-                letterSpacing: '-0.02em',
-                color: 'var(--foreground)',
-                lineHeight: 1.1,
-              }}
+              className="gtr-tnum mt-2.5 text-2xl font-medium tracking-tight text-foreground leading-normal"
             >
               {s.value}
             </div>
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 11.5,
-                color: 'var(--foreground-subtle)',
-              }}
-            >
+            <div className="mt-2 text-xs text-[var(--foreground-subtle)]">
               {s.sub}
             </div>
           </div>
@@ -205,50 +131,20 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* main grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 16 }}>
+      <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 320px' }}>
         {/* recent orders */}
-        <div style={{ ...CARD_STYLE, padding: 0 }}>
-          <div
-            style={{
-              padding: '14px 18px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              borderBottom: '1px solid var(--border)',
-            }}
-          >
-            <h3
-              style={{
-                margin: 0,
-                fontSize: 15,
-                fontWeight: 500,
-              }}
-            >
-              최근 주문
-            </h3>
+        <div className="bg-card border border-border rounded-lg p-0">
+          <div className="px-5 py-3 flex items-center justify-between border-b border-border">
+            <h3 className="m-0 text-base font-medium">최근 주문</h3>
             <Link
               href="/admin/orders"
-              style={{
-                fontSize: 12,
-                color: 'var(--foreground-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                textDecoration: 'none',
-              }}
+              className="text-xs text-muted-foreground flex items-center gap-0.5 no-underline"
             >
               전체 보기 <ChevronRight />
             </Link>
           </div>
           {recentOrders.length === 0 ? (
-            <div
-              style={{
-                padding: '48px 18px',
-                textAlign: 'center',
-                fontSize: 13,
-                color: 'var(--foreground-muted)',
-              }}
-            >
+            <div className="px-5 py-12 text-center text-sm text-muted-foreground">
               아직 주문이 없습니다.
             </div>
           ) : (
@@ -257,45 +153,24 @@ export default async function AdminDashboardPage() {
                 <Link
                   key={o.id}
                   href={`/admin/orders/${o.orderNumber}`}
+                  className="grid gap-3 px-5 py-3 text-sm text-foreground no-underline items-center"
                   style={{
-                    display: 'grid',
                     gridTemplateColumns: '1fr auto auto',
-                    gap: 12,
-                    padding: '12px 18px',
                     borderTop: idx === 0 ? 'none' : '1px solid var(--border)',
-                    fontSize: 13,
-                    color: 'var(--foreground)',
-                    textDecoration: 'none',
-                    alignItems: 'center',
                   }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: 8,
-                        alignItems: 'baseline',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      <span
-                        className="gtr-tnum"
-                        style={{ fontSize: 12, color: 'var(--foreground-muted)' }}
-                      >
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <div className="flex gap-2 items-baseline whitespace-nowrap overflow-hidden text-ellipsis">
+                      <span className="gtr-tnum text-xs text-muted-foreground">
                         {o.orderNumber}
                       </span>
-                      <span style={{ fontWeight: 500 }}>{o.customerName}</span>
+                      <span className="font-medium">{o.customerName}</span>
                     </div>
-                    <div style={{ fontSize: 11.5, color: 'var(--foreground-subtle)' }}>
+                    <div className="text-xs text-[var(--foreground-subtle)]">
                       {o.createdAtLabel}
                     </div>
                   </div>
-                  <span
-                    className="gtr-tnum"
-                    style={{ fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}
-                  >
+                  <span className="gtr-tnum font-medium tabular-nums">
                     {o.totalAmountLabel}
                   </span>
                   <Badge tone={o.statusTone}>{o.statusLabel}</Badge>
@@ -306,49 +181,18 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* side widgets */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ ...CARD_STYLE, padding: 18 }}>
-            <h3
-              style={{
-                margin: 0,
-                fontSize: 15,
-                fontWeight: 500,
-              }}
-            >
-              오늘 할 일
-            </h3>
-            <div
-              style={{
-                marginTop: 12,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 10,
-              }}
-            >
+        <div className="flex flex-col gap-3">
+          <div className="bg-card border border-border rounded-lg p-5">
+            <h3 className="m-0 text-base font-medium">오늘 할 일</h3>
+            <div className="mt-3 flex flex-col gap-2.5">
               {tasks.map((t) => (
-                <div
-                  key={t.label}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    fontSize: 13,
-                  }}
-                >
+                <div key={t.label} className="flex items-center justify-between text-sm">
                   <span
-                    style={{
-                      color: t.pending ? 'var(--foreground-muted)' : 'var(--foreground)',
-                    }}
+                    className={t.pending ? 'text-muted-foreground' : 'text-foreground'}
                   >
                     {t.label}
                     {t.pending && (
-                      <span
-                        style={{
-                          marginLeft: 6,
-                          fontSize: 11,
-                          color: 'var(--foreground-subtle)',
-                        }}
-                      >
+                      <span className="ml-1.5 text-xs text-[var(--foreground-subtle)]">
                         (준비 중)
                       </span>
                     )}
@@ -359,77 +203,28 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
-          <div style={{ ...CARD_STYLE, padding: 18 }}>
-            <h3
-              style={{
-                margin: 0,
-                fontSize: 15,
-                fontWeight: 500,
-              }}
-            >
-              이번 주 베스트셀러
-            </h3>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <h3 className="m-0 text-base font-medium">이번 주 베스트셀러</h3>
             {bestsellers.length === 0 ? (
-              <div
-                style={{
-                  marginTop: 16,
-                  fontSize: 12.5,
-                  color: 'var(--foreground-muted)',
-                  lineHeight: 1.6,
-                }}
-              >
+              <div className="mt-4 text-xs text-muted-foreground leading-relaxed">
                 이번 주에 판매된 상품이 없습니다.
               </div>
             ) : (
-              <div
-                style={{
-                  marginTop: 12,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 10,
-                }}
-              >
+              <div className="mt-3 flex flex-col gap-2.5">
                 {bestsellers.map((b, idx) => (
-                  <div key={b.productSlug + idx} style={{ fontSize: 12.5 }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        marginBottom: 4,
-                      }}
-                    >
-                      <span
-                        style={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          marginRight: 8,
-                        }}
-                      >
+                  <div key={b.productSlug + idx} className="text-xs">
+                    <div className="flex justify-between mb-1">
+                      <span className="overflow-hidden text-ellipsis whitespace-nowrap mr-2">
                         {b.label}
                       </span>
-                      <span
-                        className="gtr-tnum"
-                        style={{ color: 'var(--foreground-muted)', flexShrink: 0 }}
-                      >
+                      <span className="gtr-tnum text-muted-foreground shrink-0">
                         {b.quantity}건
                       </span>
                     </div>
-                    <div
-                      style={{
-                        height: 4,
-                        borderRadius: 2,
-                        background: 'var(--surface-muted)',
-                        overflow: 'hidden',
-                      }}
-                    >
+                    <div className="h-1 rounded-sm bg-muted overflow-hidden">
                       <div
-                        style={{
-                          height: '100%',
-                          width: `${bestsellerPcts[idx]}%`,
-                          background: 'var(--primary)',
-                          opacity: 0.8,
-                        }}
+                        className="h-full bg-[var(--primary)] opacity-80"
+                        style={{ width: `${bestsellerPcts[idx]}%` }}
                       />
                     </div>
                   </div>

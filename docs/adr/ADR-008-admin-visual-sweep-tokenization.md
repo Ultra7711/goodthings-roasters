@@ -92,7 +92,8 @@ S222 의 PR-1 ~ PR-5c 가 8 commit 진행됐으나, **단추 0 (S125 결정) 이
 | 20 | `text-xl` (20) — 변화 없음 |
 | 22 | `text-xl` (20) |
 | 24 | `text-2xl` (24) — 변화 없음 |
-| 28 | `text-3xl` (30) |
+| 28 | `text-2xl` (24) — 작게 round (정책 일관성 · 2026-05-14 정정) |
+| 30+ | `text-3xl` (30) |
 
 ### 4. spacing whitelist (10종 — Tailwind spacing scale)
 
