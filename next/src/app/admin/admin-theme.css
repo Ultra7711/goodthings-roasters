@@ -113,6 +113,38 @@
   --shadow-popover: 0 8px 24px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
 }
 
+/* ─────────────────────────────────────────────────────────────
+   shadcn/ui className override 가이드 (S222 PR-1 · DEC-2)
+   ─────────────────────────────────────────────────────────────
+
+   admin 영역은 shadcn/ui 17 컴포넌트 (`@/components/admin/ui/*`) 를 직접
+   사용한다. 아래 @theme inline 블록이 shadcn 의 색상 토큰을 우리 커스텀
+   컬러로 매핑하므로 `<Button>` / `<Input>` / `<Card>` 등은 추가 작업 없이
+   admin 디자인을 자동 적용한다.
+
+   admin 가이드와 shadcn 기본이 충돌하는 4 지점은 callsite 의 className
+   override 로 강제한다 (Decision DEC-2 잠금 · 변경 금지).
+
+   1. Input h-sm (검색·필터 전용) — admin 28 vs shadcn 32
+        <Input className="!h-7" placeholder="검색" />
+
+   2. Switch OFF 색상 — admin #939291 vs shadcn bg-input #E5E5E3
+        <Switch className="data-[state=unchecked]:bg-[var(--switch-off-bg)]" />
+
+   3. Badge tone (soft 매트릭스 6 종) — admin soft bg+fg vs shadcn variant
+        <Badge variant="outline"
+               className="bg-[var(--success-soft)] text-[var(--success)] border-transparent">
+          NEW
+        </Badge>
+      (헬퍼 함수 권장 — 페이지 마이그 시 응축)
+
+   4. Button extra small (h28) — admin extra small vs shadcn sm (h32)
+        <Button size="sm" className="!h-7">저장</Button>
+
+   기본 form input (h36) / 일반 Button (h32/36/40) / Badge default
+   variant / Card padding 은 override 불필요 (shadcn 기본 = admin 토큰).
+   ───────────────────────────────────────────────────────────── */
+
 /* shadcn/ui 호환 매핑 (DropdownMenu, Button 등 일부 사용 중) */
 @theme inline {
   --color-background: var(--background);
