@@ -16,6 +16,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { fetchAdminProductRawBySlug } from '@/lib/productsServer';
+import ProductEditForm from './ProductEditForm';
 import ProductImageReorderClient from './ProductImageReorderClient';
 
 type PageProps = {
@@ -181,22 +182,8 @@ async function EditInner({ params }: PageProps) {
         )}
       </section>
 
-      {/* 5탭 폼 placeholder */}
-      <section
-        style={{
-          background: 'var(--surface)',
-          border: '1px dashed var(--border-strong)',
-          borderRadius: 'var(--radius)',
-          padding: 20,
-          color: 'var(--foreground-muted)',
-          fontSize: 13,
-        }}
-      >
-        <strong style={{ color: 'var(--foreground)' }}>편집 폼 준비 중</strong>
-        <div style={{ marginTop: 6 }}>
-          기본 정보 / 상세 설명 / 옵션·재고 / 배송 / SEO 5탭 편집 폼은 다음 단계에서 추가됩니다.
-        </div>
-      </section>
+      {/* 5탭 편집 폼 (basic 탭 작동, 나머지 carry-over) */}
+      <ProductEditForm product={product} />
     </div>
   );
 }

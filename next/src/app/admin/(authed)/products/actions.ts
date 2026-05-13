@@ -89,6 +89,107 @@ export async function toggleProductActiveAction(input: {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
+   updateProductMetaAction — products 단일 row 메타 UPDATE (S218 Phase 1 추가)
+
+   책임:
+   1) admin 가드
+   2) zod 검증 (basic 탭 필드)
+   3) UPDATE products SET ... WHERE id
+   4) revalidateTag('products') + revalidatePath (admin + 메인 사이트)
+
+   범위 (basic 탭): name / category / status / displayPrice / sortOrder /
+                    color / noteColor / subscription / popup
+
+   carry-over (detail/option/recipe 탭): description / specs / flavor_desc /
+   note_tags / note_tags_en / roast_stage / note_sweet/body/aftertaste/aroma/acidity
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const ProductStatusEnum = z
+  .enum(['NEW', '인기 NO.1', '인기 NO.2', '인기 NO.3', '수량 한정', '품절'])
+  .nullable();
+
+const HexColorSchema = z
+  .string()
+  .regex(/^#[0-9A-Fa-f]{6}$/, '#RRGGBB 형식이어야 합니다');
+
+const UpdateProductMetaSchema = z.object({
+  id: z.string().uuid(),
+  slug: z.string().min(1).max(80),
+  name: z.string().min(1).max(60),
+  category: z.enum(['coffee_bean', 'drip_bag']),
+  status: ProductStatusEnum,
+  displayPrice: z.string().min(1).max(30),
+  sortOrder: z.number().int().min(0).max(9999),
+  color: HexColorSchema,
+  subscription: z.boolean(),
+  popup: z.boolean(),
+});
+
+export type UpdateProductMetaInput = z.infer<typeof UpdateProductMetaSchema>;
+
+export type UpdateProductMetaResult =
+  | { ok: true; id: string }
+  | {
+      ok: false;
+      error: 'unauthorized' | 'validation_failed' | 'not_found' | 'server_error';
+      detail?: string;
+    };
+
+export async function updateProductMetaAction(
+  input: UpdateProductMetaInput,
+): Promise<UpdateProductMetaResult> {
+  const claims = await getAdminClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const parsed = UpdateProductMetaSchema.safeParse(input);
+  if (!parsed.success) {
+    const fields = parsed.error.flatten().fieldErrors;
+    return {
+      ok: false,
+      error: 'validation_failed',
+      detail: Object.entries(fields)
+        .map(([k, v]) => `${k}:${(v as string[])[0]}`)
+        .join('; ')
+        .slice(0, 200),
+    };
+  }
+  const v = parsed.data;
+  const admin = getSupabaseAdmin();
+  const { data, error } = await admin
+    .from('products')
+    .update({
+      name: v.name,
+      category: v.category,
+      status: v.status,
+      display_price: v.displayPrice,
+      sort_order: v.sortOrder,
+      color: v.color,
+      subscription: v.subscription,
+      popup: v.popup,
+    })
+    .eq('id', v.id)
+    .select('id')
+    .maybeSingle();
+
+  if (error) {
+    console.error('[updateProductMetaAction] update failed', {
+      code: error.code,
+      message: error.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+  if (!data) return { ok: false, error: 'not_found' };
+
+  revalidateTag(PRODUCTS_CACHE_TAG, 'max');
+  revalidatePath('/admin/products');
+  revalidatePath(`/admin/products/${v.slug}/edit`);
+  revalidatePath('/shop');
+  revalidatePath(`/shop/${v.slug}`);
+
+  return { ok: true, id: v.id };
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    reorderProductImagesAction — 이미지 갤러리 reorder (S218 Phase 1 추가)
 
    책임:
