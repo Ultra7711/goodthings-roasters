@@ -2,14 +2,18 @@
 
 /* ══════════════════════════════════════════
    AdminLoginForm — Claude Design 핸드오프 (S126).
-   시안 login.jsx inline style 100% 이식. shadcn 의존 0.
-   비즈니스 로직 (supabase signIn + admin 검증) 유지.
+   S222 PR-2: 입력 / 체크박스 / 제출 버튼 → shadcn 정정.
+   카드 wrapper / 로고 / 헤딩 / 푸터 = login 한정 레이아웃 inline 유지.
+   비즈니스 로직 (supabase signIn + admin 검증) 그대로.
    ══════════════════════════════════════════ */
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { Button } from '@/components/admin/ui/button';
+import { Input } from '@/components/admin/ui/input';
+import { Checkbox } from '@/components/admin/ui/checkbox';
 
 export default function AdminLoginForm() {
   const router = useRouter();
@@ -130,7 +134,7 @@ export default function AdminLoginForm() {
           >
             이메일 <span style={{ color: 'var(--primary)' }}>*</span>
           </label>
-          <AdminInput
+          <Input
             id="admin-email"
             type="email"
             autoComplete="email"
@@ -163,7 +167,7 @@ export default function AdminLoginForm() {
               비밀번호 분실 시 운영자에게 문의
             </span>
           </div>
-          <AdminInput
+          <Input
             id="admin-password"
             type="password"
             autoComplete="current-password"
@@ -185,67 +189,21 @@ export default function AdminLoginForm() {
             cursor: submitting ? 'not-allowed' : 'pointer',
           }}
         >
-          <input
-            type="checkbox"
+          <Checkbox
             checked={remember}
-            onChange={(e) => setRemember(e.target.checked)}
+            onCheckedChange={(v) => setRemember(v === true)}
             disabled={submitting}
             aria-label="로그인 상태 유지"
-            style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
           />
-          <span
-            aria-hidden
-            style={{
-              width: 16,
-              height: 16,
-              borderRadius: 4,
-              border: remember ? 'none' : '1px solid var(--border-strong)',
-              background: remember ? 'var(--primary)' : 'var(--surface)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            {remember && (
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-            )}
-          </span>
           로그인 상태 유지
         </label>
 
         {/* 제출 */}
-        <button
+        <Button
           type="submit"
+          size="lg"
+          className="mt-1 w-full"
           disabled={submitting}
-          style={{
-            marginTop: 4,
-            height: 38,
-            border: '1px solid var(--primary)',
-            background: submitting ? 'var(--primary-hover)' : 'var(--primary)',
-            color: '#fff',
-            borderRadius: 6,
-            fontSize: 13,
-            fontWeight: 500,
-            letterSpacing: '-0.005em',
-            cursor: submitting ? 'wait' : 'pointer',
-            opacity: submitting ? 0.85 : 1,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-          }}
         >
           {submitting && (
             <svg
@@ -263,7 +221,7 @@ export default function AdminLoginForm() {
             </svg>
           )}
           로그인
-        </button>
+        </Button>
       </form>
 
       {/* 푸터 */}
@@ -285,38 +243,3 @@ export default function AdminLoginForm() {
   );
 }
 
-/* 시안 GTRInput inline — 모듈 내 로컬 컴포넌트로 격리 */
-type AdminInputProps = React.InputHTMLAttributes<HTMLInputElement>;
-
-function AdminInput({ style, ...rest }: AdminInputProps) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '0 10px',
-        height: 34,
-        background: 'var(--surface)',
-        border: '1px solid var(--input)',
-        borderRadius: 6,
-      }}
-    >
-      <input
-        {...rest}
-        style={{
-          flex: 1,
-          minWidth: 0,
-          border: 'none',
-          outline: 'none',
-          background: 'transparent',
-          fontSize: 13,
-          color: 'var(--foreground)',
-          padding: 0,
-          height: '100%',
-          ...style,
-        }}
-      />
-    </div>
-  );
-}

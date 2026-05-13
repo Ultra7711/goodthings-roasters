@@ -10,6 +10,7 @@ import { Suspense, type CSSProperties } from 'react';
 import { getAdminClaims } from '@/lib/auth/getClaims';
 import { fetchAdminDashboard } from '@/lib/admin/dashboardServer';
 import { bestsellerPercents } from '@/lib/admin/dashboard';
+import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import DashboardActions from './DashboardActions';
 
 const TONE_BG: Record<string, string> = {
@@ -42,26 +43,16 @@ const CARD_STYLE: CSSProperties = {
   borderRadius: 'var(--radius)',
 };
 
+/* S222 PR-2: shadcn Badge variant="outline" + tone soft 매트릭스 className override (DEC-2). */
 function Badge({ tone, children }: { tone: keyof typeof TONE_BG; children: React.ReactNode }) {
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '2px 8px',
-        borderRadius: 999,
-        background: TONE_BG[tone],
-        color: TONE_FG[tone],
-        fontSize: 11.5,
-        fontWeight: 500,
-        letterSpacing: '-0.005em',
-        lineHeight: 1.5,
-        whiteSpace: 'nowrap',
-      }}
+    <ShadcnBadge
+      variant="outline"
+      className="border-transparent"
+      style={{ background: TONE_BG[tone], color: TONE_FG[tone] }}
     >
       {children}
-    </span>
+    </ShadcnBadge>
   );
 }
 

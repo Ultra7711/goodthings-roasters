@@ -6,34 +6,14 @@
    ══════════════════════════════════════════ */
 
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import { Button } from '@/components/admin/ui/button';
 
 export default function AnalyticsActions() {
   return (
     <AdminTopbarActions>
-      <button
-        type="button"
-        disabled
-        style={{
-          padding: '5px 10px',
-          fontSize: 12,
-          height: 28,
-          gap: 5,
-          borderRadius: 6,
-          fontWeight: 500,
-          background: 'var(--surface)',
-          color: 'var(--foreground)',
-          border: '1px solid var(--border)',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'not-allowed',
-          whiteSpace: 'nowrap',
-          letterSpacing: '-0.005em',
-          opacity: 0.5,
-        }}
-      >
+      <Button type="button" variant="outline" size="sm" className="!h-7" disabled>
         리포트 내보내기
-      </button>
+      </Button>
     </AdminTopbarActions>
   );
 }
