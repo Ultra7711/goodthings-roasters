@@ -19,6 +19,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import { Button } from '@/components/admin/ui/button';
+import { Input } from '@/components/admin/ui/input';
+import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
+import { Switch } from '@/components/admin/ui/switch';
 import type { AdminProductListItem } from '@/types/product';
 import type { ProductStatus } from '@/lib/products';
 import { toggleProductActiveAction } from './actions';
@@ -76,22 +80,7 @@ const TD_STYLE: React.CSSProperties = {
   fontSize: 13,
 };
 
-const SM_PRIMARY: React.CSSProperties = {
-  padding: '5px 10px',
-  fontSize: 12,
-  height: 28,
-  borderRadius: 6,
-  fontWeight: 500,
-  background: 'var(--primary)',
-  color: '#fff',
-  border: '1px solid var(--primary)',
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 5,
-  cursor: 'pointer',
-  textDecoration: 'none',
-  whiteSpace: 'nowrap',
-};
+/* S222 PR-4: SM_PRIMARY 폐기 (shadcn Button asChild + Link). */
 
 const KST_DATE = new Intl.DateTimeFormat('ko-KR', {
   year: '2-digit',
@@ -139,10 +128,12 @@ export default function ProductsTableClient({ rows }: Props) {
   return (
     <>
       <AdminTopbarActions>
-        <Link href="/admin/products/new" style={SM_PRIMARY}>
-          <PlusIcon />
-          신규 상품
-        </Link>
+        <Button asChild size="sm" className="!h-7">
+          <Link href="/admin/products/new">
+            <PlusIcon />
+            신규 상품
+          </Link>
+        </Button>
       </AdminTopbarActions>
 
       {/* 헤더 */}
@@ -245,22 +236,12 @@ export default function ProductsTableClient({ rows }: Props) {
           })}
         </div>
 
-        <input
+        <Input
           type="search"
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           placeholder="slug / 상품명 검색"
-          style={{
-            height: 32,
-            padding: '0 10px',
-            fontSize: 13,
-            border: '1px solid var(--input)',
-            borderRadius: 6,
-            background: 'var(--surface)',
-            color: 'var(--foreground)',
-            outline: 'none',
-            minWidth: 220,
-          }}
+          className="!h-8 min-w-[220px]"
         />
       </div>
 
@@ -453,20 +434,13 @@ function ProductRow({
       </td>
       <td style={TD_STYLE}>
         {tone && row.status ? (
-          <span
-            style={{
-              display: 'inline-flex',
-              padding: '2px 8px',
-              borderRadius: 999,
-              background: TONES[tone].bg,
-              color: TONES[tone].fg,
-              fontSize: 11.5,
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
-            }}
+          <ShadcnBadge
+            variant="outline"
+            className="border-transparent"
+            style={{ background: TONES[tone].bg, color: TONES[tone].fg }}
           >
             {row.status}
-          </span>
+          </ShadcnBadge>
         ) : (
           <span style={{ color: 'var(--foreground-subtle)', fontSize: 11.5 }}>
             —
@@ -484,40 +458,13 @@ function ProductRow({
         {row.displayPrice}
       </td>
       <td style={{ ...TD_STYLE, textAlign: 'center' }}>
-        <button
-          type="button"
-          onClick={handleToggle}
+        <Switch
+          checked={optimisticActive}
+          onCheckedChange={handleToggle}
           disabled={pending}
-          aria-pressed={optimisticActive}
           aria-label={optimisticActive ? '판매중 — 클릭하면 비공개' : '비공개 — 클릭하면 판매중'}
-          style={{
-            position: 'relative',
-            width: 36,
-            height: 20,
-            borderRadius: 999,
-            border: 'none',
-            background: optimisticActive ? 'var(--primary)' : 'var(--switch-off-bg)',
-            cursor: pending ? 'wait' : 'pointer',
-            transition: 'background 0.15s ease',
-            padding: 0,
-            opacity: pending ? 0.6 : 1,
-          }}
-        >
-          <span
-            aria-hidden
-            style={{
-              position: 'absolute',
-              top: 2,
-              left: optimisticActive ? 18 : 2,
-              width: 16,
-              height: 16,
-              borderRadius: 999,
-              background: '#fff',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
-              transition: 'left 0.15s ease',
-            }}
-          />
-        </button>
+          className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
+        />
       </td>
       <td
         style={{

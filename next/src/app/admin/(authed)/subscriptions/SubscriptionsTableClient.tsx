@@ -23,6 +23,16 @@ import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { extractKrName } from '@/lib/products';
+import { Button } from '@/components/admin/ui/button';
+import { Input } from '@/components/admin/ui/input';
+import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/admin/ui/dialog';
 import {
   PAGE_SIZE,
   STATUS_TABS,
@@ -179,23 +189,12 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
 
       {/* 검색 */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
-        <input
+        <Input
           type="text"
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           placeholder="상품명 또는 이메일로 검색…"
-          style={{
-            flex: 1,
-            maxWidth: 360,
-            height: 32,
-            padding: '0 12px',
-            fontSize: 13,
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius)',
-            background: 'var(--surface)',
-            color: 'var(--foreground)',
-            outline: 'none',
-          }}
+          className="!h-8 max-w-[360px]"
         />
       </div>
 
@@ -249,20 +248,13 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
                     </td>
                     <td style={TD_STYLE}>{describeCycle(s.cycle)}</td>
                     <td style={TD_STYLE}>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          padding: '2px 8px',
-                          borderRadius: 4,
-                          fontSize: 11,
-                          fontWeight: 500,
-                          background: tone.bg,
-                          color: tone.fg,
-                        }}
+                      <ShadcnBadge
+                        variant="outline"
+                        className="border-transparent rounded"
+                        style={{ background: tone.bg, color: tone.fg }}
                       >
                         {desc.label}
-                      </span>
+                      </ShadcnBadge>
                     </td>
                     <td style={{ ...TD_STYLE, fontVariantNumeric: 'tabular-nums' }}>
                       {formatDeliveryDate(s.nextDeliveryAtIso)}
@@ -271,23 +263,16 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
                       {s.lastDeliveryAtIso ? formatDeliveryDate(s.lastDeliveryAtIso) : '—'}
                     </td>
                     <td style={{ ...TD_STYLE, textAlign: 'right' }}>
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
+                        className="!h-7"
                         onClick={() => setEditingRow(s)}
                         disabled={ended}
-                        style={{
-                          padding: '4px 10px',
-                          fontSize: 12,
-                          background: 'var(--surface)',
-                          border: '1px solid var(--border)',
-                          borderRadius: 4,
-                          cursor: ended ? 'not-allowed' : 'pointer',
-                          color: 'var(--foreground)',
-                          opacity: ended ? 0.5 : 1,
-                        }}
                       >
                         편집
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 );
@@ -303,27 +288,17 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
           {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => {
             const active = p === filters.page;
             return (
-              <Link
+              <Button
                 key={p}
-                href={buildHref({ page: p })}
-                replace
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minWidth: 32,
-                  height: 32,
-                  padding: '0 8px',
-                  borderRadius: 4,
-                  fontSize: 13,
-                  fontWeight: active ? 500 : 400,
-                  background: active ? 'var(--primary)' : 'transparent',
-                  color: active ? 'var(--primary-fg)' : 'var(--foreground-muted)',
-                  textDecoration: 'none',
-                }}
+                asChild
+                variant={active ? 'default' : 'ghost'}
+                size="sm"
+                className="!h-8 min-w-8 !px-2"
               >
-                {p}
-              </Link>
+                <Link href={buildHref({ page: p })} replace aria-current={active ? 'page' : undefined}>
+                  {p}
+                </Link>
+              </Button>
             );
           })}
         </div>
@@ -368,42 +343,22 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
   const isPaused = row.status === 'paused';
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-subscription-title"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(0, 0, 0, 0.4)',
-      }}
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: 460,
-          maxWidth: 'calc(100vw - 48px)',
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.16)',
-          overflow: 'hidden',
-        }}
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      {/* gooddays B-180b 답습 — DialogContent 의 Tailwind p-6 가 admin Portal 안에서
+         적용 안 되는 케이스 회피용 inline padding/gap. */}
+      <DialogContent
+        className="gtr-admin"
+        style={{ padding: 0, gap: 0, maxWidth: 460 }}
       >
         {/* 다이얼로그 헤더 */}
-        <div style={{ padding: '20px 24px 0' }}>
-          <h3 id="edit-subscription-title" style={{ margin: '0 0 2px', fontSize: 16, fontWeight: 500 }}>
+        <DialogHeader style={{ padding: '20px 24px 0' }}>
+          <DialogTitle style={{ fontSize: 16, fontWeight: 500 }}>
             구독 편집
-          </h3>
-          <div style={{ fontSize: 12, color: 'var(--foreground-muted)', marginBottom: 16 }}>
+          </DialogTitle>
+          <DialogDescription style={{ fontSize: 12, marginBottom: 16 }}>
             {userName} · {extractKrName(row.productName)}
             {row.productVolume ? ` (${row.productVolume})` : ''} · 주기 {describeCycle(row.cycle)}
-          </div>
+          </DialogDescription>
 
           {/* 섹션 탭 */}
           <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)' }}>
@@ -436,7 +391,7 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
               );
             })}
           </div>
-        </div>
+        </DialogHeader>
 
         {/* 섹션 콘텐츠 */}
         <div style={{ padding: '20px 24px 24px' }}>
@@ -466,8 +421,8 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
             <HistorySection subscriptionId={row.id} />
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -514,24 +469,12 @@ function DeliverySection({
       <label style={{ display: 'block', fontSize: 12, color: 'var(--foreground-muted)', marginBottom: 6 }}>
         다음 배송일 (KST)
       </label>
-      <input
+      <Input
         type="date"
         value={dateValue}
         onChange={(e) => setDateValue(e.target.value)}
         disabled={isPending}
-        style={{
-          width: '100%',
-          height: 36,
-          padding: '0 12px',
-          fontSize: 14,
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-          background: 'var(--surface)',
-          color: 'var(--foreground)',
-          outline: 'none',
-          fontVariantNumeric: 'tabular-nums',
-          boxSizing: 'border-box',
-        }}
+        style={{ fontVariantNumeric: 'tabular-nums' }}
       />
       {submitError && (
         <div style={{ marginTop: 8, fontSize: 12, color: 'var(--destructive)' }}>{submitError}</div>
@@ -604,25 +547,16 @@ function CycleSection({
         {SUBSCRIPTION_CYCLES.map((c) => {
           const selected = c === newCycle;
           return (
-            <button
+            <Button
               key={c}
               type="button"
+              variant={selected ? 'default' : 'outline'}
               onClick={() => setNewCycle(c)}
               disabled={isPending}
-              style={{
-                flex: 1,
-                height: 36,
-                fontSize: 13,
-                fontWeight: selected ? 500 : 400,
-                background: selected ? 'var(--primary)' : 'var(--surface)',
-                color: selected ? 'var(--primary-fg)' : 'var(--foreground)',
-                border: selected ? 'none' : '1px solid var(--border)',
-                borderRadius: 'var(--radius)',
-                cursor: isPending ? 'not-allowed' : 'pointer',
-              }}
+              className="flex-1"
             >
               {c}
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -686,15 +620,10 @@ function StatusSection({
     });
   }
 
-  const btnBase: React.CSSProperties = {
-    padding: '8px 14px',
-    fontSize: 13,
-    fontWeight: 500,
-    border: 'none',
-    borderRadius: 'var(--radius)',
-    cursor: isPending ? 'not-allowed' : 'pointer',
-    opacity: isPending ? 0.5 : 1,
-  };
+  /* admin soft tone — shadcn Button variant 매핑 없음. inline style 강제 + size=sm. */
+  const softWarning: React.CSSProperties = { background: 'var(--warning-soft)', color: 'var(--warning)' };
+  const softDestructive: React.CSSProperties = { background: 'var(--destructive-soft, #fee2e2)', color: 'var(--destructive)' };
+  const softSuccess: React.CSSProperties = { background: 'var(--success-soft)', color: 'var(--success)' };
 
   return (
     <div>
@@ -704,68 +633,47 @@ function StatusSection({
             현재 상태: <strong style={{ color: 'var(--foreground)' }}>진행중</strong>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => handleAction('pause')}
               disabled={isPending}
-              style={{
-                ...btnBase,
-                background: 'var(--warning-soft)',
-                color: 'var(--warning)',
-              }}
+              style={softWarning}
             >
               일시정지
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setConfirmCancel((v) => !v)}
               disabled={isPending}
-              style={{
-                ...btnBase,
-                background: 'var(--destructive-soft, #fee2e2)',
-                color: 'var(--destructive)',
-              }}
+              style={softDestructive}
             >
               해지
-            </button>
+            </Button>
           </div>
           {confirmCancel && (
             <div style={{ background: 'var(--surface-muted)', borderRadius: 'var(--radius)', padding: 14 }}>
               <label style={{ display: 'block', fontSize: 12, color: 'var(--foreground-muted)', marginBottom: 6 }}>
                 해지 사유 (선택)
               </label>
-              <input
+              <Input
                 type="text"
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="해지 사유를 입력하세요…"
                 maxLength={200}
-                style={{
-                  width: '100%',
-                  height: 32,
-                  padding: '0 10px',
-                  fontSize: 13,
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)',
-                  background: 'var(--surface)',
-                  color: 'var(--foreground)',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
+                className="!h-8"
               />
-              <button
+              <Button
                 type="button"
+                variant="destructive"
                 onClick={() => handleAction('cancel')}
                 disabled={isPending}
-                style={{
-                  ...btnBase,
-                  marginTop: 10,
-                  background: 'var(--destructive)',
-                  color: '#fff',
-                }}
+                className="mt-2.5"
               >
                 {isPending ? '처리중…' : '해지 확정'}
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -780,68 +688,47 @@ function StatusSection({
             재개 시 다음 배송일 = 오늘 + 배송 주기로 설정됩니다.
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => handleAction('resume')}
               disabled={isPending}
-              style={{
-                ...btnBase,
-                background: 'var(--success-soft)',
-                color: 'var(--success)',
-              }}
+              style={softSuccess}
             >
               {isPending ? '처리중…' : '재개'}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setConfirmCancel((v) => !v)}
               disabled={isPending}
-              style={{
-                ...btnBase,
-                background: 'var(--destructive-soft, #fee2e2)',
-                color: 'var(--destructive)',
-              }}
+              style={softDestructive}
             >
               해지
-            </button>
+            </Button>
           </div>
           {confirmCancel && (
             <div style={{ background: 'var(--surface-muted)', borderRadius: 'var(--radius)', padding: 14 }}>
               <label style={{ display: 'block', fontSize: 12, color: 'var(--foreground-muted)', marginBottom: 6 }}>
                 해지 사유 (선택)
               </label>
-              <input
+              <Input
                 type="text"
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="해지 사유를 입력하세요…"
                 maxLength={200}
-                style={{
-                  width: '100%',
-                  height: 32,
-                  padding: '0 10px',
-                  fontSize: 13,
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)',
-                  background: 'var(--surface)',
-                  color: 'var(--foreground)',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
+                className="!h-8"
               />
-              <button
+              <Button
                 type="button"
+                variant="destructive"
                 onClick={() => handleAction('cancel')}
                 disabled={isPending}
-                style={{
-                  ...btnBase,
-                  marginTop: 10,
-                  background: 'var(--destructive)',
-                  color: '#fff',
-                }}
+                className="mt-2.5"
               >
                 {isPending ? '처리중…' : '해지 확정'}
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -988,22 +875,9 @@ function CancelButton({
   label?: string;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        padding: '8px 14px',
-        fontSize: 13,
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        color: 'var(--foreground)',
-      }}
-    >
+    <Button type="button" variant="outline" onClick={onClick} disabled={disabled}>
       {label}
-    </button>
+    </Button>
   );
 }
 
@@ -1017,23 +891,8 @@ function SaveButton({
   isPending: boolean;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        padding: '8px 14px',
-        fontSize: 13,
-        background: 'var(--primary)',
-        border: 'none',
-        borderRadius: 'var(--radius)',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        color: 'var(--primary-fg)',
-        fontWeight: 500,
-        opacity: disabled ? 0.5 : 1,
-      }}
-    >
+    <Button type="button" onClick={onClick} disabled={disabled}>
       {isPending ? '저장중…' : '저장'}
-    </button>
+    </Button>
   );
 }
