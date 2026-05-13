@@ -20,6 +20,8 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import { Button } from '@/components/admin/ui/button';
+import { Textarea } from '@/components/admin/ui/textarea';
 import {
   CAFE_EVENT_TYPES,
   composeEventEyebrow,
@@ -298,39 +300,36 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     <>
       <AdminTopbarActions>
         {draft && !isNew && (
-          <button
+          <Button
             type="button"
-            style={SM_GHOST_DANGER}
+            variant="ghost"
+            size="sm"
+            className="!h-7 !text-[var(--danger)] hover:!bg-[var(--danger-soft)]"
             disabled={isPending}
             onClick={handleDelete}
           >
             삭제
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           type="button"
-          style={{
-            ...SM_GHOST,
-            opacity: isDirty ? 1 : 0.4,
-            cursor: isDirty ? 'pointer' : 'not-allowed',
-          }}
+          variant="ghost"
+          size="sm"
+          className="!h-7"
           disabled={!isDirty || isPending}
           onClick={handleReset}
         >
           {isNew ? '취소' : '변경 취소'}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          style={{
-            ...SM_PRIMARY,
-            opacity: isDirty && !isPending ? 1 : 0.5,
-            cursor: isDirty && !isPending ? 'pointer' : 'not-allowed',
-          }}
+          size="sm"
+          className="!h-7"
           disabled={!isDirty || isPending}
           onClick={handleSave}
         >
           {isPending ? '저장 중…' : isNew ? '생성' : '변경사항 저장'}
-        </button>
+        </Button>
       </AdminTopbarActions>
 
       {/* 헤더 */}
@@ -391,9 +390,9 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
             <div style={{ flex: 1, fontSize: 12.5, fontWeight: 500 }}>
               이벤트 {events.length}개
             </div>
-            <button type="button" style={SM_SECONDARY} onClick={handleNew}>
+            <Button type="button" variant="outline" size="sm" className="!h-7" onClick={handleNew}>
               + 새 이벤트
-            </button>
+            </Button>
           </div>
           <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             {events.length === 0 && !draft && (
@@ -595,12 +594,12 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                       </span>
                     }
                   >
-                    <textarea
+                    <Textarea
                       value={draft.description}
                       maxLength={160}
                       onChange={(e) => updateDraft('description', e.target.value)}
-                      style={TEXTAREA_STYLE}
                       placeholder="예: 부모님과 아이가 함께 방문하시면 음료 한 잔을 무료로 드립니다."
+                      rows={3}
                     />
                   </FormField>
                 </div>
@@ -674,21 +673,16 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                       onChange={handleFileChange}
                       style={{ display: 'none' }}
                     />
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
+                      className="!h-7 w-full mt-2"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadState.status === 'uploading'}
-                      style={{
-                        ...SM_SECONDARY,
-                        width: '100%',
-                        marginTop: 8,
-                        opacity: uploadState.status === 'uploading' ? 0.6 : 1,
-                        cursor:
-                          uploadState.status === 'uploading' ? 'not-allowed' : 'pointer',
-                      }}
                     >
                       {uploadState.status === 'uploading' ? '업로드 중…' : '이미지 변경'}
-                    </button>
+                    </Button>
                     {uploadState.status === 'error' && (
                       <div
                         style={{
@@ -1245,60 +1239,5 @@ function FormInput({
   );
 }
 
-const TEXTAREA_STYLE: React.CSSProperties = {
-  width: '100%',
-  minHeight: 64,
-  resize: 'vertical',
-  padding: '10px 12px',
-  border: '1px solid var(--input)',
-  borderRadius: 6,
-  fontSize: 13,
-  lineHeight: 1.6,
-  fontFamily: 'inherit',
-  color: 'var(--foreground)',
-  outline: 'none',
-  background: 'var(--surface)',
-};
-
-const SM_BASE: React.CSSProperties = {
-  padding: '5px 10px',
-  fontSize: 12,
-  height: 28,
-  gap: 5,
-  borderRadius: 6,
-  fontWeight: 500,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-  letterSpacing: '-0.005em',
-};
-
-const SM_SECONDARY: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'var(--surface)',
-  color: 'var(--foreground)',
-  border: '1px solid var(--border)',
-};
-
-const SM_GHOST: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'transparent',
-  color: 'var(--foreground-muted)',
-  border: '1px solid transparent',
-};
-
-const SM_GHOST_DANGER: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'transparent',
-  color: 'var(--danger)',
-  border: '1px solid transparent',
-};
-
-const SM_PRIMARY: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'var(--primary)',
-  color: '#fff',
-  border: '1px solid var(--primary)',
-};
+/* S222 PR-5b: TEXTAREA_STYLE / SM_BASE/SECONDARY/GHOST/GHOST_DANGER/PRIMARY 폐기
+   (shadcn Button / Textarea 으로 대체). FormInput 로컬 wrapper 는 prefix/suffix 유지. */

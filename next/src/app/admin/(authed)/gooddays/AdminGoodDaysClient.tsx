@@ -38,6 +38,8 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Star, Trash2, Upload } from 'lucide-react';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import { Button } from '@/components/admin/ui/button';
+import { Input } from '@/components/admin/ui/input';
 import { Switch } from '@/components/admin/ui/switch';
 import { Label } from '@/components/admin/ui/label';
 import {
@@ -48,62 +50,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/admin/ui/dialog';
-/* admin 일관 패턴 — input/button 은 cafe-events 표준 답습:
-   native element + inline style + admin 디자인 토큰. shadcn 컴포넌트 미사용. */
-const ADMIN_INPUT_STYLE: React.CSSProperties = {
-  width: '100%',
-  height: 34,
-  padding: '0 10px',
-  background: 'var(--surface)',
-  border: '1px solid var(--input)',
-  borderRadius: 6,
-  fontSize: 13,
-  color: 'var(--foreground)',
-  outline: 'none',
-  fontFamily: 'inherit',
-  letterSpacing: '-0.005em',
-};
-const ADMIN_FILE_INPUT_STYLE: React.CSSProperties = {
-  ...ADMIN_INPUT_STYLE,
-  padding: '6px 10px',
-  lineHeight: '20px',
-};
-const ADMIN_BTN_BASE: React.CSSProperties = {
-  padding: '6px 14px',
-  fontSize: 13,
-  height: 32,
-  borderRadius: 6,
-  fontWeight: 500,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 6,
-  whiteSpace: 'nowrap',
-  letterSpacing: '-0.005em',
-  fontFamily: 'inherit',
-  cursor: 'pointer',
-};
-const ADMIN_BTN_PRIMARY: React.CSSProperties = {
-  ...ADMIN_BTN_BASE,
-  background: 'var(--primary)',
-  color: '#fff',
-  border: '1px solid var(--primary)',
-};
-const ADMIN_BTN_SECONDARY: React.CSSProperties = {
-  ...ADMIN_BTN_BASE,
-  background: 'var(--surface)',
-  color: 'var(--foreground)',
-  border: '1px solid var(--border)',
-};
-const ADMIN_BTN_GHOST_DANGER: React.CSSProperties = {
-  ...ADMIN_BTN_BASE,
-  height: 28,
-  padding: '4px 8px',
-  fontSize: 12,
-  background: 'transparent',
-  color: 'var(--danger)',
-  border: '1px solid transparent',
-};
+/* S222 PR-5b: ADMIN_INPUT_STYLE / ADMIN_FILE_INPUT_STYLE / ADMIN_BTN_*
+   상수 폐기 — shadcn Button / Input 직접 사용. */
 import type { GoodDaysGalleryRow } from '@/lib/gooddaysServer';
 import {
   deleteGoodDaysImageAction,
@@ -230,33 +178,16 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
       {/* 시안 Button(size=sm) inline style — dashboard/cafe-events 답습.
          sm: padding 5/10, fontSize 12, height 28, gap 5, primary BG. */}
       <AdminTopbarActions>
-        <button
+        <Button
           type="button"
-          style={{
-            padding: '5px 10px',
-            fontSize: 12,
-            height: 28,
-            gap: 5,
-            borderRadius: 6,
-            fontWeight: 500,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            whiteSpace: 'nowrap',
-            letterSpacing: '-0.005em',
-            background: 'var(--primary)',
-            color: '#fff',
-            border: '1px solid var(--primary)',
-            cursor: isPending ? 'not-allowed' : 'pointer',
-            opacity: isPending ? 0.6 : 1,
-            fontFamily: 'inherit',
-          }}
+          size="sm"
+          className="!h-7"
           onClick={() => setUploadOpen(true)}
           disabled={isPending}
         >
-          <Upload size={14} style={{ marginRight: 4 }} />
+          <Upload size={14} />
           이미지 업로드
-        </button>
+        </Button>
       </AdminTopbarActions>
 
       {/* ── 페이지 헤더 ─────────────────────────────────────────────── */}
@@ -482,17 +413,14 @@ function SortableCard({
 
       {/* 컨트롤 */}
       <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <input
+        <Input
           value={item.alt}
           placeholder="대체 텍스트 (alt)"
           maxLength={200}
           disabled={disabled}
           onChange={(e) => onAltChange(e.target.value)}
           onBlur={(e) => onAltCommit(e.target.value)}
-          style={{
-            ...ADMIN_INPUT_STYLE,
-            opacity: disabled ? 0.6 : 1,
-          }}
+          className="!h-8"
         />
         <div
           style={{
@@ -537,20 +465,17 @@ function SortableCard({
             활성
           </Label>
         </div>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
+          className="!h-7 self-start !text-[var(--danger)] hover:!bg-[var(--danger-soft)]"
           onClick={onDelete}
           disabled={disabled}
-          style={{
-            ...ADMIN_BTN_GHOST_DANGER,
-            justifyContent: 'flex-start',
-            opacity: disabled ? 0.5 : 1,
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          }}
         >
           <Trash2 size={14} />
           삭제
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -621,13 +546,13 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
             >
               파일
             </Label>
-            <input
+            <Input
               id="gd-upload-file"
               type="file"
               accept="image/webp,image/avif,image/jpeg,image/png"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               disabled={submitting}
-              style={ADMIN_FILE_INPUT_STYLE}
+              className="file:mr-2 file:rounded-md file:border-0 file:bg-[var(--surface-muted)] file:px-2 file:py-1 file:text-xs file:text-[var(--foreground-muted)]"
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -637,14 +562,13 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
             >
               대체 텍스트 (alt)
             </Label>
-            <input
+            <Input
               id="gd-upload-alt"
               value={alt}
               onChange={(e) => setAlt(e.target.value)}
               maxLength={200}
               placeholder="(선택) 스크린리더용 설명"
               disabled={submitting}
-              style={ADMIN_INPUT_STYLE}
             />
           </div>
           <Label
@@ -666,30 +590,21 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
           </Label>
         </div>
         <DialogFooter style={{ gap: 8 }}>
-          <button
+          <Button
             type="button"
-            style={{
-              ...ADMIN_BTN_SECONDARY,
-              opacity: submitting ? 0.5 : 1,
-              cursor: submitting ? 'not-allowed' : 'pointer',
-            }}
+            variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={submitting}
           >
             취소
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            style={{
-              ...ADMIN_BTN_PRIMARY,
-              opacity: !file || submitting ? 0.5 : 1,
-              cursor: !file || submitting ? 'not-allowed' : 'pointer',
-            }}
             onClick={handleSubmit}
             disabled={!file || submitting}
           >
             {submitting ? '업로드 중…' : '업로드'}
-          </button>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
