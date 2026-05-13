@@ -146,7 +146,8 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
       gap: 10,
       padding: '7px 10px',
       borderRadius: 6,
-      fontSize: 13,
+      fontSize: 14,
+      lineHeight: '18px',
       fontWeight: isActive ? 500 : 400,
       color: isActive ? 'var(--sidebar-active-fg)' : 'var(--sidebar-fg)',
       background: isActive ? 'var(--sidebar-active-bg)' : 'transparent',
@@ -204,7 +205,7 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
           </svg>
           <div
             style={{
-              fontSize: 10,
+              fontSize: 14,
               fontWeight: 500,
               color: 'var(--sidebar-fg-muted)',
               letterSpacing: '0.08em',
@@ -231,7 +232,7 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
           <div key={g.label}>
             <div
               style={{
-                fontSize: 10,
+                fontSize: 14,
                 fontWeight: 600,
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
@@ -261,12 +262,12 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
                         }}
                       />
                     )}
-                    <Icon style={{ opacity: isActive ? 1 : 0.75, flexShrink: 0 }} />
+                    <Icon style={{ opacity: isActive ? 1 : 0.75, flexShrink: 0, display: 'block' }} />
                     <span style={{ flex: 1 }}>{it.label}</span>
                     {it.badge != null && (
                       <span
                         style={{
-                          fontSize: 10,
+                          fontSize: 14,
                           fontWeight: 600,
                           padding: '2px 6px',
                           borderRadius: 999,
@@ -315,7 +316,7 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
               alignItems: 'center',
               justifyContent: 'center',
               color: '#fff',
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: 600,
               flexShrink: 0,
             }}
@@ -325,7 +326,7 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
           <div style={{ flex: 1, minWidth: 0, lineHeight: 1.2 }}>
             <div
               style={{
-                fontSize: 12,
+                fontSize: 14,
                 color: 'var(--sidebar-fg)',
                 fontWeight: 500,
                 overflow: 'hidden',
@@ -338,7 +339,7 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
             </div>
             <div
               style={{
-                fontSize: 10.5,
+                fontSize: 14,
                 color: 'var(--sidebar-fg-muted)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',

@@ -579,7 +579,12 @@
   }
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* S222 PR-5d fix: universal reset 을 @layer base 안으로 이동.
+   unlayered 일 때 Tailwind utility (@layer utilities) 보다 cascade 우선 — shadcn padding/height 무력화.
+   layer 순서: theme < base < components < utilities. base 안에 reset 두면 utility 가 정상 우선. */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+}
 
 /* 스크롤바 공간 항상 예약 → body overflow 토글 시 레이아웃 시프트 방지 */
 /* 데스크탑: 드로어/모달 열 때 body overflow 토글 시 레이아웃 시프트 방지용 예약.

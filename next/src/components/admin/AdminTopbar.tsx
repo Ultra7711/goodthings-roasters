@@ -132,7 +132,7 @@ export default function AdminTopbar({ email, displayName }: Props) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 11,
+            fontSize: 14,
             fontWeight: 600,
             color: 'var(--foreground)',
             marginLeft: 4,

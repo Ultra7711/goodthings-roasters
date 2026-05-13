@@ -191,37 +191,18 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
       </AdminTopbarActions>
 
       {/* ── 페이지 헤더 ─────────────────────────────────────────────── */}
-      <div style={{ marginBottom: 22 }}>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: 24,
-            fontWeight: 500,
-            letterSpacing: '-0.02em',
-          }}
-        >
+      <div className="mb-6">
+        <h2 className="m-0 text-2xl font-medium tracking-tight">
           굿데이즈 갤러리
         </h2>
-        <div
-          style={{
-            marginTop: 4,
-            fontSize: 13,
-            color: 'var(--foreground-muted)',
-            lineHeight: 1.6,
-          }}
-        >
+        <div className="mt-1 text-sm text-muted-foreground leading-relaxed">
           {items.length}장 · 드래그로 순서 변경 · 토글로 활성/비활성
           <br />
-          <span style={{ color: 'var(--foreground-subtle)' }}>
+          <span className="text-[var(--foreground-subtle)] inline-flex items-center gap-1">
             <Star
               size={11}
               fill="currentColor"
-              style={{
-                color: 'var(--primary)',
-                display: 'inline',
-                verticalAlign: '-1px',
-                marginRight: 4,
-              }}
+              className="text-[var(--primary)]"
             />
             Featured = 매거진 그리드 큰 사진 슬롯에 우선 배치
           </span>
@@ -230,28 +211,11 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
 
       {/* ── 그리드 ─────────────────────────────────────────────────────── */}
       {!mounted ? (
-        <div
-          aria-hidden
-          style={{
-            padding: '64px 24px',
-            textAlign: 'center',
-            color: 'var(--foreground-muted)',
-            fontSize: 14,
-          }}
-        >
+        <div aria-hidden className="px-6 py-16 text-center text-sm text-muted-foreground">
           로딩 중…
         </div>
       ) : items.length === 0 ? (
-        <div
-          style={{
-            border: '1px dashed var(--border)',
-            borderRadius: 'var(--radius)',
-            padding: '64px 24px',
-            textAlign: 'center',
-            color: 'var(--foreground-muted)',
-            fontSize: 14,
-          }}
-        >
+        <div className="border border-dashed border-border rounded-lg px-6 py-16 text-center text-sm text-muted-foreground">
           아직 등록된 이미지가 없습니다. 상단 "이미지 업로드" 로 시작하세요.
         </div>
       ) : (
@@ -265,11 +229,8 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
             strategy={rectSortingStrategy}
           >
             <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                gap: 16,
-              }}
+              className="grid gap-4"
+              style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}
             >
               {items.map((item) => (
                 <SortableCard
@@ -353,7 +314,7 @@ function SortableCard({
       }}
     >
       {/* 썸네일 */}
-      <div style={{ position: 'relative', aspectRatio: '1 / 1' }}>
+      <div className="relative aspect-square">
         <Image
           src={item.src}
           alt={item.alt}
@@ -363,28 +324,13 @@ function SortableCard({
           placeholder="blur"
           blurDataURL={item.blurDataURL}
         />
-        {/* 드래그 핸들 */}
+        {/* 드래그 핸들 — native button 이라 .gtr-admin reset 영향 받음 → !text-white 강제 */}
         <button
           type="button"
           {...attributes}
           {...listeners}
           aria-label="드래그하여 순서 변경"
-          style={{
-            position: 'absolute',
-            top: 8,
-            left: 8,
-            width: 28,
-            height: 28,
-            borderRadius: 6,
-            background: 'rgba(0,0,0,0.5)',
-            color: '#fff',
-            border: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'grab',
-            touchAction: 'none',
-          }}
+          className="absolute top-2 left-2 w-7 h-7 rounded-md bg-black/50 !text-white border-none flex items-center justify-center cursor-grab touch-none"
         >
           <GripVertical size={16} />
         </button>
@@ -392,19 +338,7 @@ function SortableCard({
           <div
             aria-label="featured"
             title="Featured — 매거진 큰 사진 슬롯 우선 배치"
-            style={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              background: 'rgba(0,0,0,0.5)',
-              color: 'var(--primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className="absolute top-2 right-2 w-7 h-7 rounded-md bg-black/50 text-[var(--primary)] flex items-center justify-center"
           >
             <Star size={16} fill="currentColor" strokeWidth={1.5} />
           </div>
@@ -412,7 +346,7 @@ function SortableCard({
       </div>
 
       {/* 컨트롤 */}
-      <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="p-3 flex flex-col gap-2">
         <Input
           value={item.alt}
           placeholder="대체 텍스트 (alt)"
@@ -422,45 +356,22 @@ function SortableCard({
           onBlur={(e) => onAltCommit(e.target.value)}
           className="!h-8"
         />
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: 13,
-          }}
-        >
-          <Label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              cursor: 'pointer',
-              fontSize: 13,
-              color: 'var(--foreground)',
-            }}
-          >
+        <div className="flex items-center justify-between text-sm">
+          <Label className="flex items-center gap-1.5 cursor-pointer text-sm text-foreground">
             <Switch
               checked={item.featured}
               onCheckedChange={onFeaturedToggle}
               disabled={disabled}
+              className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
             />
             Featured
           </Label>
-          <Label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              cursor: 'pointer',
-              fontSize: 13,
-              color: 'var(--foreground)',
-            }}
-          >
+          <Label className="flex items-center gap-1.5 cursor-pointer text-sm text-foreground">
             <Switch
               checked={item.isActive}
               onCheckedChange={onActiveToggle}
               disabled={disabled}
+              className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
             />
             활성
           </Label>
@@ -538,12 +449,9 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
             webp · avif · jpeg · png. 최대 5MB.
           </DialogDescription>
         </DialogHeader>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <Label
-              htmlFor="gd-upload-file"
-              style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--foreground)' }}
-            >
+        <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="gd-upload-file" className="text-xs font-medium text-foreground">
               파일
             </Label>
             <Input
@@ -552,14 +460,11 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
               accept="image/webp,image/avif,image/jpeg,image/png"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               disabled={submitting}
-              className="file:mr-2 file:rounded-md file:border-0 file:bg-[var(--surface-muted)] file:px-2 file:py-1 file:text-xs file:text-[var(--foreground-muted)]"
+              className="file:mr-2 file:rounded-md file:border-0 file:bg-[var(--surface-muted)] file:px-2 file:py-1 file:text-xs file:text-muted-foreground"
             />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <Label
-              htmlFor="gd-upload-alt"
-              style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--foreground)' }}
-            >
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="gd-upload-alt" className="text-xs font-medium text-foreground">
               대체 텍스트 (alt)
             </Label>
             <Input
@@ -571,25 +476,17 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
               disabled={submitting}
             />
           </div>
-          <Label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              cursor: 'pointer',
-              fontSize: 13,
-              color: 'var(--foreground)',
-            }}
-          >
+          <Label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
             <Switch
               checked={featured}
               onCheckedChange={setFeatured}
               disabled={submitting}
+              className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
             />
             Featured = 매거진 그리드 큰 사진 슬롯에 우선 배치
           </Label>
         </div>
-        <DialogFooter style={{ gap: 8 }}>
+        <DialogFooter className="gap-2">
           <Button
             type="button"
             variant="outline"
