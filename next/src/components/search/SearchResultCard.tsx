@@ -26,7 +26,6 @@ export default function SearchResultCard({ result }: Props) {
   if (result.kind === 'product') {
     const p = result.item;
     const firstImg = p.images[0];
-    const thumbBg = firstImg?.bg ?? 'var(--color-background-secondary)';
     const productMeta = firstImg ? getProductImageMeta(firstImg.src) : undefined;
 
     // V2 §6.2 — PDP 직행이 아닌 /shop 페이지의 해당 카드로 shortcut.
@@ -46,7 +45,7 @@ export default function SearchResultCard({ result }: Props) {
         onKeyDown={onKey}
         aria-label={`${p.name} 상품 페이지로 이동`}
       >
-        <div className="sp-card-thumb" style={{ background: thumbBg }}>
+        <div className="sp-card-thumb">
           {firstImg?.src && (
             /* S208: fill 폐기 + width/height 명시 (GenericCard S198 패턴 답습).
                cacheComponents Suspense streaming 환경에서 fill 의 부모 layout 측정 race 회피. */

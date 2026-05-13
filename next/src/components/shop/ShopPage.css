@@ -188,8 +188,9 @@
   aspect-ratio: 1 / 1;
   overflow: hidden;
   border: 1px solid var(--color-border-surface);
-  /* P8 — 사이트 placeholder 단일 토큰 (옅은 크림). cafe/PDP/order/NutritionSheet 동일. */
-  background: var(--color-background-secondary);
+  /* 샵 상품 placeholder 단일 회색 — object-fit: contain 의 letterbox/pillarbox
+     영역에 노출. 메인 LineupSection · /shop · /search 동일 (oir__thumb 와 정합). */
+  background: #eaeaea;
 }
 .sp-card-img {
   width: 100%;

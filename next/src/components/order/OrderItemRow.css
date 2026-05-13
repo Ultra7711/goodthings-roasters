@@ -27,8 +27,9 @@
   width: 74px;
   height: 112px;
   flex-shrink: 0;
-  /* P8 — 사이트 placeholder 단일 토큰 (옅은 크림). cafe/shop/PDP/NutritionSheet 동일. */
-  background: var(--color-background-secondary);
+  /* 샵 상품 placeholder 단일 회색 — object-fit: contain 의 letterbox 영역
+     (74×112 컨테이너 vs 상품 이미지 비율 차) 에 노출. .sp-card-thumb 정합. */
+  background: #eaeaea;
   box-shadow: 0 0 0 1px var(--color-border-surface);
   display: flex;
   align-items: center;
