@@ -19,8 +19,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
 import { Button } from '@/components/admin/ui/button';
-import { Input } from '@/components/admin/ui/input';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import { Switch } from '@/components/admin/ui/switch';
 import type { AdminProductListItem } from '@/types/product';
@@ -136,49 +136,17 @@ export default function ProductsTableClient({ rows }: Props) {
         </Button>
       </AdminTopbarActions>
 
-      {/* 헤더 */}
-      <div style={{ marginBottom: 22 }}>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: 24,
-            fontWeight: 500,
-            letterSpacing: '-0.02em',
-          }}
-        >
-          상품 관리
-        </h2>
-        <div
-          style={{
-            marginTop: 4,
-            fontSize: 13,
-            color: 'var(--foreground-muted)',
-          }}
-        >
+      {/* 헤더 — Orders 패턴 답습 */}
+      <div className="mb-5">
+        <h2 className="m-0 text-2xl font-medium tracking-tight">상품 관리</h2>
+        <div className="mt-1 text-sm text-muted-foreground">
           원두·드립백 상품 목록 · 활성/비활성 토글 + 편집 진입
         </div>
       </div>
 
       {/* 카테고리 탭 + 검색 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-          marginBottom: 14,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            gap: 4,
-            borderBottom: '1px solid var(--border)',
-            flex: 1,
-            minWidth: 0,
-          }}
-        >
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+        <div className="flex gap-1 border-b border-border flex-1 min-w-0">
           {CATEGORY_TABS.map((t) => {
             const active = t.id === category;
             const n =
@@ -192,43 +160,21 @@ export default function ProductsTableClient({ rows }: Props) {
                 key={t.id}
                 type="button"
                 onClick={() => setCategory(t.id)}
-                style={{
-                  padding: '8px 14px',
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  fontWeight: active ? 500 : 400,
-                  color: active
-                    ? 'var(--foreground)'
-                    : 'var(--foreground-muted)',
-                  position: 'relative',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
+                className={`px-3 py-2 border-none bg-transparent cursor-pointer text-sm relative inline-flex items-center gap-1.5 ${
+                  active
+                    ? 'font-medium text-foreground'
+                    : 'font-normal text-muted-foreground'
+                }`}
               >
                 {t.label}
-                <span
-                  style={{
-                    fontSize: 11,
-                    color: 'var(--foreground-subtle)',
-                    fontVariantNumeric: 'tabular-nums',
-                  }}
-                >
+                <span className="text-xs text-[var(--foreground-subtle)] tabular-nums">
                   {n}
                 </span>
                 {active && (
                   <span
                     aria-hidden
-                    style={{
-                      position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      bottom: -1,
-                      height: 2,
-                      background: 'var(--primary)',
-                    }}
+                    className="absolute left-0 right-0 h-0.5 bg-[var(--primary)]"
+                    style={{ bottom: -1 }}
                   />
                 )}
               </button>
@@ -236,12 +182,10 @@ export default function ProductsTableClient({ rows }: Props) {
           })}
         </div>
 
-        <Input
-          type="search"
+        <AdminSearchInput
           value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          onChange={setSearchValue}
           placeholder="slug / 상품명 검색"
-          className="!h-8 min-w-[220px]"
         />
       </div>
 

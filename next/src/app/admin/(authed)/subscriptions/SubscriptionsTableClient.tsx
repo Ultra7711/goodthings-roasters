@@ -23,6 +23,7 @@ import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { extractKrName } from '@/lib/products';
+import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
@@ -122,11 +123,11 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
 
   return (
     <>
-      {/* 헤더 */}
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 18 }}>
+      {/* 헤더 — Orders 패턴 답습 */}
+      <div className="flex items-baseline justify-between mb-5">
         <div>
-          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 500, letterSpacing: '-0.02em' }}>정기배송 관리</h2>
-          <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
+          <h2 className="m-0 text-2xl font-medium tracking-tight">정기배송 관리</h2>
+          <div className="mt-1 text-sm text-muted-foreground">
             총 {counts.all.toLocaleString()}건의 구독
             {counts.active > 0 ? ` · ${counts.active.toLocaleString()}건 진행중` : ''}
           </div>
@@ -134,7 +135,7 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
       </div>
 
       {/* 탭 */}
-      <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--border)', marginBottom: 16 }}>
+      <div className="flex gap-1 border-b border-border mb-4">
         {STATUS_TABS.map((t) => {
           const active = t.id === filters.status;
           const cnt = counts[t.id] ?? 0;
@@ -143,43 +144,27 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
               key={t.id}
               href={buildHref({ status: t.id, page: 1 })}
               replace
-              style={{
-                padding: '8px 14px',
-                background: 'transparent',
-                cursor: 'pointer',
-                fontSize: 13,
-                fontWeight: active ? 500 : 400,
-                color: active ? 'var(--foreground)' : 'var(--foreground-muted)',
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                textDecoration: 'none',
-              }}
+              className={`px-3 py-2 bg-transparent cursor-pointer text-sm relative flex items-center gap-1.5 no-underline ${
+                active
+                  ? 'font-medium text-foreground'
+                  : 'font-normal text-muted-foreground'
+              }`}
             >
               {t.label}
               <span
-                style={{
-                  fontSize: 11,
-                  fontVariantNumeric: 'tabular-nums',
-                  color: active ? 'var(--foreground-muted)' : 'var(--foreground-subtle)',
-                  background: active ? 'var(--surface-muted)' : 'transparent',
-                  padding: '1px 6px',
-                  borderRadius: 4,
-                }}
+                className={`text-xs tabular-nums rounded-sm ${
+                  active
+                    ? 'text-muted-foreground bg-muted'
+                    : 'text-[var(--foreground-subtle)] bg-transparent'
+                }`}
+                style={{ padding: '1px 6px' }}
               >
                 {cnt.toLocaleString()}
               </span>
               {active && (
                 <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: -1,
-                    height: 2,
-                    background: 'var(--primary)',
-                  }}
+                  className="absolute left-0 right-0 h-0.5 bg-[var(--primary)]"
+                  style={{ bottom: -1 }}
                 />
               )}
             </Link>
@@ -187,14 +172,12 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
         })}
       </div>
 
-      {/* 검색 */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
-        <Input
-          type="text"
+      {/* 검색 — admin 공통 AdminSearchInput */}
+      <div className="flex gap-2 mb-3 items-center">
+        <AdminSearchInput
           value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          onChange={setSearchValue}
           placeholder="상품명 또는 이메일로 검색…"
-          className="!h-8 max-w-[360px]"
         />
       </div>
 
