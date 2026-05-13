@@ -42,7 +42,7 @@ export default async function CafeMenuSection() {
   return (
     <section className="blk cafe-menu-blk" id="cafe-menu-blk" data-header-theme="light">
       {/* chapter head */}
-      <div className="cafe-menu-head" data-sr-toggle>
+      <div className="cafe-menu-head" data-sr>
         <span className="blk-label sr-txt sr-txt--d1" data-sr-eyebrow>
           CAFE MENU
         </span>

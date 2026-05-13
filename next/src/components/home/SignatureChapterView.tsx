@@ -4,7 +4,7 @@
    책임:
    - props 만 받아 시그니처 chapter 렌더 (DB fetch X)
    - 빈 상태 분기 (enabled · image · product · lookup) 자체 처리
-   - SR 마크업 (data-sr-toggle · sr-img · sr-txt) 보존 — IntersectionObserver 자연 토글
+   - SR 마크업 (data-sr · sr-img · sr-txt) 보존 — SRInitializer one-shot 처리 (P9 · S220)
 
    사용처:
    1. SignatureChapter (메인 페이지) — fetchSiteSettings 후 호출
@@ -49,7 +49,7 @@ export default function SignatureChapterView({
     <section
       className="blk sig-section"
       data-header-theme="light"
-      data-sr-toggle
+      data-sr
     >
       <div className="sig-card">
         <div className="sig-text">

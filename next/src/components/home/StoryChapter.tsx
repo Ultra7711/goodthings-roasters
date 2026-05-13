@@ -39,7 +39,7 @@ export default function StoryChapter() {
   return (
     <section className="blk story-chapter" data-header-theme="light">
       {/* Stage 1 — cream · 텍스트 + 이미지 */}
-      <div className="story-stage story-stage--cream" data-header-theme="light" data-sr-toggle>
+      <div className="story-stage story-stage--cream" data-header-theme="light" data-sr>
         <div className="story-stage__inner">
           <div className="story-img sr-img">
             <div className="story-img__inner" />
@@ -65,7 +65,7 @@ export default function StoryChapter() {
       </div>
 
       {/* Stage 2 — dark · GoodDays 4컷 */}
-      <div className="story-stage story-stage--dark" data-header-theme="dark" data-sr-toggle>
+      <div className="story-stage story-stage--dark" data-header-theme="dark" data-sr>
         <div className="story-stage__inner">
           <div className="story-gd__head">
             <span className="blk-label blk-label--on-dark sr-txt sr-txt--d1" data-sr-eyebrow>GOOD DAYS</span>

@@ -5,16 +5,14 @@
    설계 결정:
    1. 진입 연출
       - 히어로 EN/KR 순차 페이드: 200ms / 450ms (프로토타입 _initStoryAnimate)
-      - 본문 sr-txt/sr-img: 페이지 스코프 IO + threshold 0.3 + rootMargin '0px 0px -40px 0px'
-      - 토글 동작(viewport 이탈 시 클래스 제거) — 프로토타입 그대로
-      - 동일 라우트 헤더 재클릭 시 진입 연출 재트리거 (samepage_reentry_animation 패턴)
+      - 본문 sr-txt/sr-img: 레이아웃 SRInitializer 단일 IO 처리 (P9 · S220).
+        threshold 0.15 + rootMargin '0px 0px -20px 0px' + 1회 재생 (one-shot).
+      - 동일 라우트 헤더 재클릭 시 히어로 페이드 재트리거 (samepage_reentry_animation 패턴).
+        본문 sr 는 1회 재생 spec 상 same-page reentry 시 재발화하지 않음.
 
-   2. SR 시스템
-      - 레이아웃 SRInitializer 는 one-shot 이라 토글 동작과 충돌함 → Story 페이지는
-        [data-sr-story] 마커로 분리. SRInitializer 는 [data-sr]:not([data-sr-story])
-        만 잡고, Story 페이지 전용 IO 는 [data-sr-story] 만 잡는다(2026-04-12 충돌 수정).
-        프리뷰 검증 결과 두 IO 가 동일 요소를 동시에 보면 i=1 케이스에서 one-shot 의
-        add 가 토글의 remove 를 이기는 race 발생 — attribute 분리로 해소.
+   2. SR 시스템 (P9 · S220 단일화)
+      - 마커는 [data-sr] 로 통일. 별도 페이지 스코프 IO 제거.
+      - SRInitializer 가 모든 sr 동작을 단일 IO 로 처리.
 
    3. Location 해시(`/story#location`)
       - footer 링크 호환 — `<section id="location">` 로 노출.
@@ -43,7 +41,6 @@ function paragraphs(body: string) {
 }
 
 export default function StoryPage() {
-  const bodyRef = useRef<HTMLDivElement | null>(null);
   const heroEnRef = useRef<HTMLHeadingElement | null>(null);
   const heroKrRef = useRef<HTMLParagraphElement | null>(null);
   /* 재진입·same-path 재클릭마다 히어로 페이드 + IO 재구성을 재생하기 위한 카운터.
@@ -98,34 +95,8 @@ export default function StoryPage() {
     };
   }, [resetTick]);
 
-  /* 페이지 스코프 sr-txt/sr-img Intersection Observer.
-     - threshold 0.3 / rootMargin '0px 0px -40px 0px' (프로토타입 동일)
-     - 토글 동작: 화면을 벗어나면 sr--visible 제거 → 다시 볼 때 재생
-     - resetTick 변경 시 IO 재구성 + 모든 요소 클래스 reset
-  */
-  useEffect(() => {
-    const body = bodyRef.current;
-    if (!body) return;
-
-    const targets = body.querySelectorAll<HTMLElement>('[data-sr-story]');
-    /* reset: 이전 진입에서 남은 visibility 제거 */
-    targets.forEach((el) => el.classList.remove('sr--visible'));
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) e.target.classList.add('sr--visible');
-          else e.target.classList.remove('sr--visible');
-        });
-      },
-      { threshold: 0.3, rootMargin: '0px 0px -40px 0px' },
-    );
-    targets.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [resetTick]);
-
   return (
-    <div id="st-body" ref={bodyRef}>
+    <div id="st-body">
       {/* ── HERO ── */}
       <section className="st-hero" data-header-theme="dark">
         <div className="st-hero-bg">
@@ -156,7 +127,7 @@ export default function StoryPage() {
       ))}
 
       {/* ── PROMISE ── */}
-      <section className="st-promise blk--bg-tertiary" data-header-theme="light" data-sr-story>
+      <section className="st-promise blk--bg-tertiary" data-header-theme="light" data-sr>
         <div className="st-promise-inner">
           <span className="st-label sr-txt sr-txt--d1" data-sr-eyebrow>{STORY_PROMISE.label}</span>
           <h2 className="st-promise-heading sr-txt sr-txt--d2">{STORY_PROMISE.heading}</h2>
@@ -178,7 +149,7 @@ export default function StoryPage() {
         data-header-theme="light"
       >
         <div className="st-location-inner">
-          <div className="st-location-map" data-sr-story>
+          <div className="st-location-map" data-sr>
             <KakaoMap
               lat={STORY_LOCATION.lat}
               lng={STORY_LOCATION.lng}
@@ -188,7 +159,7 @@ export default function StoryPage() {
               placeId={STORY_LOCATION.kakaoPlaceId}
             />
           </div>
-          <div className="st-location-info" data-sr-story>
+          <div className="st-location-info" data-sr>
             <div>
               <span className="st-label sr-txt sr-txt--d1" data-sr-eyebrow>{STORY_LOCATION.label}</span>
               <p className="st-location-name sr-txt sr-txt--d2">{STORY_LOCATION.name}</p>
@@ -213,7 +184,7 @@ export default function StoryPage() {
 function StoryTwoColSection({ item, bgVariant }: { item: StoryTwoColItem; bgVariant?: 'secondary' | null }) {
   const cls = `st-two-col${item.reverse ? ' st-two-col--reverse' : ''}${bgVariant === 'secondary' ? ' blk--bg-secondary' : ''}`;
   return (
-    <section className={cls} data-header-theme="light" data-sr-story>
+    <section className={cls} data-header-theme="light" data-sr>
       <div className="st-two-col-inner">
         <div className="st-col-txt">
           <span className="st-label sr-txt sr-txt--d1" data-sr-eyebrow>{item.label}</span>

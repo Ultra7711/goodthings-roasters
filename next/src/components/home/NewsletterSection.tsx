@@ -37,7 +37,7 @@ export default function NewsletterSection() {
   }
 
   return (
-    <section className="blk newsletter-section" data-header-theme="dark" data-sr-toggle>
+    <section className="blk newsletter-section" data-header-theme="dark" data-sr>
       <div className="newsletter-inner">
         <span className="blk-label blk-label--on-dark sr-txt sr-txt--d1" data-sr-eyebrow>NEWSLETTER</span>
         <h2 className="newsletter-h sr-txt sr-txt--d2">계절이 바뀌면 알려드립니다</h2>
