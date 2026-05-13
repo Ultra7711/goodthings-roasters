@@ -64,18 +64,22 @@ const TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> = {
   primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)', dot: 'var(--primary)' },
 };
 
+/* S223 토큰 정합 — TH/TD inline 유지 (shadcn Table 도입은 carry-over).
+   값 정합: fontSize 11/13 → 12/14, padding 12×16 (py-3 px-4 · shadcn 표준 답습). */
 const TH_STYLE: React.CSSProperties = {
   textAlign: 'left',
-  padding: '10px 14px',
-  fontSize: 11,
+  padding: '12px 16px',
+  fontSize: 12,
   fontWeight: 500,
   letterSpacing: '0.04em',
   textTransform: 'uppercase',
   color: 'var(--foreground-muted)',
 };
 
+/* fontSize 는 inline 제거 — cell 별 className 으로 hierarchy 표현 (primary 14 / meta 12).
+   inline fontSize 가 className 보다 specificity 우선이라 override 안 됨 (S223 회귀 fix). */
 const TD_STYLE: React.CSSProperties = {
-  padding: '11px 14px',
+  padding: '12px 16px',
   verticalAlign: 'middle',
 };
 
@@ -161,12 +165,10 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
       </AdminTopbarActions>
 
       {/* 헤더 */}
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 18 }}>
+      <div className="flex items-baseline justify-between mb-5">
         <div>
-          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 500, letterSpacing: '-0.02em' }}>
-            주문 관리
-          </h2>
-          <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
+          <h2 className="m-0 text-2xl font-medium tracking-tight">주문 관리</h2>
+          <div className="mt-1 text-sm text-muted-foreground">
             총 {counts.all.toLocaleString()}건의 주문
             {counts.new > 0 ? ` · ${counts.new.toLocaleString()}건 처리 대기` : ''}
           </div>
@@ -174,7 +176,7 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
       </div>
 
       {/* 탭 */}
-      <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--border)', marginBottom: 16 }}>
+      <div className="flex gap-1 border-b border-border mb-4">
         {STATUS_TABS.map((t) => {
           const active = t.id === filters.status;
           const cnt = counts[t.id] ?? 0;
@@ -183,43 +185,27 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
               key={t.id}
               href={buildHref({ status: t.id, page: 1 })}
               replace
-              style={{
-                padding: '8px 14px',
-                background: 'transparent',
-                cursor: 'pointer',
-                fontSize: 13,
-                fontWeight: active ? 500 : 400,
-                color: active ? 'var(--foreground)' : 'var(--foreground-muted)',
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                textDecoration: 'none',
-              }}
+              className={`px-3 py-2 bg-transparent cursor-pointer text-sm relative flex items-center gap-1.5 no-underline ${
+                active
+                  ? 'font-medium text-foreground'
+                  : 'font-normal text-muted-foreground'
+              }`}
             >
               {t.label}
               <span
-                style={{
-                  fontSize: 11,
-                  fontVariantNumeric: 'tabular-nums',
-                  color: active ? 'var(--foreground-muted)' : 'var(--foreground-subtle)',
-                  background: active ? 'var(--surface-muted)' : 'transparent',
-                  padding: '1px 6px',
-                  borderRadius: 4,
-                }}
+                className={`text-xs tabular-nums px-1.5 rounded-sm ${
+                  active
+                    ? 'text-muted-foreground bg-muted'
+                    : 'text-[var(--foreground-subtle)] bg-transparent'
+                }`}
+                style={{ padding: '1px 6px' }}
               >
                 {cnt.toLocaleString()}
               </span>
               {active && (
                 <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: -1,
-                    height: 2,
-                    background: 'var(--primary)',
-                  }}
+                  className="absolute left-0 right-0 h-0.5 bg-[var(--primary)]"
+                  style={{ bottom: -1 }}
                 />
               )}
             </Link>
@@ -228,7 +214,7 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
       </div>
 
       {/* 필터 바 */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+      <div className="flex gap-2 mb-3 items-center">
         <SearchInput
           value={searchValue}
           onChange={setSearchValue}
@@ -247,31 +233,18 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
           activeId={filters.payment}
           onChange={(id) => router.replace(buildHref({ payment: id as PaymentFilterKey, page: 1 }))}
         />
-        <div style={{ flex: 1 }} />
+        <div className="flex-1" />
         {selected.length > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '0 10px',
-              height: 28,
-              borderRadius: 6,
-              background: 'var(--primary-soft)',
-              color: 'var(--primary-soft-fg)',
-              fontSize: 12,
-              fontWeight: 500,
-            }}
-          >
+          <div className="flex items-center gap-2 px-2.5 h-7 rounded-md bg-[var(--primary-soft)] text-[var(--primary-soft-fg)] text-xs font-medium">
             <span>{selected.length}건 선택됨</span>
-            <span aria-hidden style={{ width: 1, height: 14, background: 'currentColor', opacity: 0.2 }} />
-            <span style={{ cursor: 'not-allowed', opacity: 0.6 }} title="시안 단계 — carry-over">일괄 처리</span>
-            <span style={{ cursor: 'not-allowed', opacity: 0.6 }} title="시안 단계 — carry-over">송장 발급</span>
+            <span aria-hidden className="w-px h-3.5 bg-current opacity-20" />
+            <span className="cursor-not-allowed opacity-60" title="시안 단계 — carry-over">일괄 처리</span>
+            <span className="cursor-not-allowed opacity-60" title="시안 단계 — carry-over">송장 발급</span>
           </div>
         )}
       </div>
 
-      {/* 테이블 */}
+      {/* 테이블 — TH/TD inline 토큰 정합 (shadcn Table 마이그 carry-over) */}
       <div
         style={{
           background: 'var(--surface)',
@@ -281,7 +254,7 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
           overflow: 'hidden',
         }}
       >
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <table className="w-full border-collapse text-sm">
           <thead>
             <tr style={{ background: 'var(--surface-muted)', color: 'var(--foreground-muted)' }}>
               <th style={{ ...TH_STYLE, width: 36 }}>
@@ -298,15 +271,14 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
               <th style={TH_STYLE}>고객</th>
               <th style={TH_STYLE}>상품</th>
               <th style={{ ...TH_STYLE, textAlign: 'right' }}>금액</th>
-              <th style={TH_STYLE}>결제</th>
-              <th style={TH_STYLE}>상태</th>
-              <th style={{ ...TH_STYLE, width: 36 }} aria-label="actions" />
+              <th style={{ ...TH_STYLE, textAlign: 'right' }}>결제</th>
+              <th style={{ ...TH_STYLE, textAlign: 'right' }}>상태</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={9} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--foreground-muted)' }}>
+                <td colSpan={8} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   표시할 주문이 없습니다.
                 </td>
               </tr>
@@ -332,34 +304,24 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
                     <td style={TD_STYLE}>
                       <Link
                         href={`/admin/orders/${o.orderNumber}`}
-                        className="gtr-mono"
-                        style={{
-                          fontSize: 12,
-                          color: 'var(--primary)',
-                          fontWeight: 500,
-                          textDecoration: 'none',
-                        }}
+                        className="gtr-mono text-xs text-[var(--primary)] font-medium no-underline"
                       >
                         {o.orderNumber}
                       </Link>
                     </td>
                     <td
-                      style={{
-                        ...TD_STYLE,
-                        color: 'var(--foreground-muted)',
-                        fontSize: 12,
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
+                      style={TD_STYLE}
+                      className="text-xs text-muted-foreground tabular-nums"
                     >
                       {formatKstDateTime(o.createdAtIso)}
                     </td>
-                    <td style={TD_STYLE}>
-                      <div style={{ fontWeight: 500 }}>{o.customerName}</div>
-                      <div style={{ fontSize: 11.5, color: 'var(--foreground-subtle)' }}>{o.contactEmail}</div>
+                    <td style={TD_STYLE} className="text-sm">
+                      <div className="font-medium">{o.customerName}</div>
+                      <div className="text-xs text-[var(--foreground-subtle)]">{o.contactEmail}</div>
                     </td>
-                    <td style={{ ...TD_STYLE, maxWidth: 240 }} title={o.itemsLabel}>
+                    <td style={{ ...TD_STYLE, maxWidth: 240 }} className="text-sm" title={o.itemsLabel}>
                       {o.itemsStructured.length === 0 ? (
-                        <span style={{ opacity: 0.5 }}>—</span>
+                        <span className="opacity-50">—</span>
                       ) : (() => {
                         const first = o.itemsStructured[0];
                         const rest = o.itemsStructured.length - 1;
@@ -369,9 +331,9 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
                         ].filter(Boolean).join(' · ');
                         return (
                           <div>
-                            <div style={{ fontWeight: 500 }}>{first.name}</div>
+                            <div className="font-medium">{first.name}</div>
                             {detail && (
-                              <div style={{ fontSize: 11, color: 'var(--foreground-muted)', marginTop: 2 }}>
+                              <div className="text-xs text-muted-foreground mt-0.5">
                                 {detail}
                               </div>
                             )}
@@ -380,45 +342,18 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
                       })()}
                     </td>
                     <td
-                      style={{
-                        ...TD_STYLE,
-                        textAlign: 'right',
-                        fontVariantNumeric: 'tabular-nums',
-                        fontWeight: 500,
-                      }}
+                      style={TD_STYLE}
+                      className="text-sm text-right tabular-nums font-medium"
                     >
                       {o.totalAmount.toLocaleString()}원
                     </td>
-                    <td style={{ ...TD_STYLE, fontSize: 12, color: 'var(--foreground-muted)' }}>
+                    <td style={{ ...TD_STYLE, textAlign: 'right' }} className="text-xs text-muted-foreground">
                       {o.paymentLabel}
                     </td>
-                    <td style={TD_STYLE}>
+                    <td style={{ ...TD_STYLE, textAlign: 'right' }}>
                       <Badge tone={status.tone} dot>
                         {status.label}
                       </Badge>
-                    </td>
-                    <td style={TD_STYLE}>
-                      <button
-                        type="button"
-                        aria-label={`${o.orderNumber} 추가 작업`}
-                        title="시안 단계 — carry-over"
-                        disabled
-                        style={{
-                          width: 26,
-                          height: 26,
-                          border: 'none',
-                          background: 'transparent',
-                          borderRadius: 4,
-                          color: 'var(--foreground-muted)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'not-allowed',
-                          opacity: 0.5,
-                        }}
-                      >
-                        <MoreIcon />
-                      </button>
                     </td>
                   </tr>
                 );
@@ -428,19 +363,9 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
         </table>
 
         {/* 페이지네이션 */}
-        <div
-          style={{
-            padding: '12px 18px',
-            borderTop: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: 12.5,
-            color: 'var(--foreground-muted)',
-          }}
-        >
+        <div className="px-5 py-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
           <div>{describeRange(filters.page, total)}</div>
-          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <div className="flex gap-1 items-center">
             <PageNav href={buildHref({ page: 1 })} disabled={filters.page === 1}>‹‹</PageNav>
             <PageNav href={buildHref({ page: Math.max(1, filters.page - 1) })} disabled={filters.page === 1}>‹</PageNav>
             {pageWindow.map((p, idx) =>
@@ -486,7 +411,8 @@ function buildPageWindow(current: number, total: number): Array<number | 'ellips
 /* ── 로컬 컴포넌트 ─────────────────────────────────────────────────── */
 
 /* S222 PR-3: shadcn Checkbox 채택. indeterminate 상태는 Radix 의 'indeterminate' value 전달.
-   ON = bg-primary / border-primary · OFF = border-input. CheckIcon size-3.5 자동. */
+   ON = bg-primary / border-primary · OFF = border-input. CheckIcon size-3.5 자동.
+   S223: translate-y-[2px] — shadcn Table 표준 답습 (TH/TD baseline 정렬). */
 function CheckBox({
   checked,
   indeterminate,
@@ -506,6 +432,7 @@ function CheckBox({
       onCheckedChange={() => onChange?.()}
       aria-label={ariaLabel}
       disabled={disabled}
+      className="translate-y-[2px]"
     />
   );
 }
@@ -738,17 +665,11 @@ function DropdownFilter({
                     setOpen(false);
                     onChange(opt.id);
                   }}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '6px 10px',
-                    border: 'none',
-                    borderRadius: 4,
-                    background: active ? 'var(--primary-soft)' : 'transparent',
-                    color: active ? 'var(--primary-soft-fg)' : 'var(--foreground)',
-                    fontSize: 13,
-                    cursor: 'pointer',
-                  }}
+                  className={`w-full text-left px-2.5 py-1.5 border-none rounded text-sm cursor-pointer ${
+                    active
+                      ? 'bg-[var(--primary-soft)] text-[var(--primary-soft-fg)]'
+                      : 'bg-transparent text-foreground'
+                  }`}
                 >
                   {opt.label}
                 </button>
@@ -812,21 +733,5 @@ const ChevronDown = () => (
   </svg>
 );
 
-const MoreIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="1" />
-    <circle cx="12" cy="5" r="1" />
-    <circle cx="12" cy="19" r="1" />
-  </svg>
-);
-
-/* S222 PR-3: SM_BASE / SM_SECONDARY / SM_PRIMARY 폐기 (shadcn Button 으로 대체). */
+/* S222 PR-3: SM_BASE / SM_SECONDARY / SM_PRIMARY 폐기 (shadcn Button 으로 대체).
+   S223 Phase 2-c: MoreIcon 폐기 (⋯ actions 컬럼 mock + disabled 였음 · 제거). */
