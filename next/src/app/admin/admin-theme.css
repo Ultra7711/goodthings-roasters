@@ -48,6 +48,49 @@
      모든 admin toggle 은 이 토큰을 사용한다. */
   --switch-off-bg: #939291;
 
+  /* ── Typography 토큰 (S218 · shadcn 표준) ─────────────────────
+     모든 admin 텍스트는 이 7 size 중 하나만 사용한다.
+     px 값 = tailwind / shadcn 기본. font-weight 는 컴포넌트에서 결정. */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* ── Sizing 토큰 (S218 · shadcn 표준) ─────────────────────────
+     Button: sm 32 / md 36 (default) / lg 40
+     Input · Select: 36 (단일 — sm 28 은 검색·필터 전용 카탈로그) */
+  --btn-h-sm: 32px;
+  --btn-h-md: 36px;
+  --btn-h-lg: 40px;
+  --input-h: 36px;
+  --input-h-sm: 28px;
+
+  /* ── Spacing 8단계 (S218 · shadcn 4px grid 핵심값) ──────────────
+     --space-1 4 / 2 8 / 3 12 / 4 16 / 5 20 / 6 24 / 8 32 / 10 40
+     shadcn 명명 (space-1 = sp-1 = 4px) 답습. inline gap/padding 에서 사용. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* ── Font-weight (S218 · shadcn 표준) ───────────────────────── */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
   /* ── 사이드바 (Warm dark) ─────────────── */
   --sidebar-bg: #1A1A1A;
   --sidebar-bg-elevated: #232220;
@@ -97,22 +140,23 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* base reset for the admin console — 시안 tokens.css 의 .gtr-admin 그대로.
-   S208: em / ratio → 정수 px 변환 (admin 도 정합 통일).
-   - letter-spacing -0.005em → 0 (16 × -0.005 ≈ -0.08, 사실상 무시 → 제거)
-   - line-height 1.5 → 24px (base 16 × 1.5)
-   - 헤딩 letter-spacing -0.015em → -0.4px (h1~h3 평균 24~32 절충) */
+/* base reset for the admin console (S218 · shadcn 표준 통일).
+   - body: --text-sm (14px) / --leading-normal (1.5) — shadcn 기본
+   - heading: font-weight 600 (semibold) · letter-spacing -0.4px 유지
+   - inline style 의 fontSize 가 명시되지 않으면 14 가 default 가 됨 */
 .gtr-admin {
   font-family: var(--font-sans);
   color: var(--foreground);
   background: var(--background);
-  line-height: 24px;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
   font-feature-settings: 'tnum' on, 'cv11' on;
   -webkit-font-smoothing: antialiased;
 }
-.gtr-admin h1, .gtr-admin h2, .gtr-admin h3 {
-  font-weight: 500;
+.gtr-admin h1, .gtr-admin h2, .gtr-admin h3, .gtr-admin h4 {
+  font-weight: 600;
   letter-spacing: -0.4px;
+  line-height: var(--leading-tight);
 }
 .gtr-admin button, .gtr-admin input, .gtr-admin select, .gtr-admin textarea {
   font-family: inherit;
