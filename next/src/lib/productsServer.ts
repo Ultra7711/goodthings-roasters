@@ -206,3 +206,34 @@ export async function listAdminProductsLite(): Promise<AdminProductListItem[]> {
 
   return (data as ProductWithRelationsRow[]).map(mapAdminProductListItem);
 }
+
+/**
+ * /admin/products/[slug]/edit 상세 편집 페이지 전용 (S218).
+ * raw row (with relations) 반환 — id / is_active / sort_order / product_images.id
+ * 등 admin 편집에 필요한 메타 + 이미지 reorder UI 에서 image.id 사용.
+ *
+ * admin RLS 통과 → is_active=false 도 fetch. cache 미사용.
+ */
+export async function fetchAdminProductRawBySlug(
+  slug: string,
+): Promise<ProductWithRelationsRow | null> {
+  const { createRouteHandlerClient } = await import('@/lib/supabaseServer');
+  const client = await createRouteHandlerClient();
+  const { data, error } = await client
+    .from('products')
+    .select(PRODUCT_SELECT)
+    .eq('slug', slug)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[fetchAdminProductRawBySlug] query failed', {
+      slug,
+      code: error.code,
+      message: error.message?.slice(0, 200),
+    });
+    return null;
+  }
+  if (!data) return null;
+
+  return data as ProductWithRelationsRow;
+}

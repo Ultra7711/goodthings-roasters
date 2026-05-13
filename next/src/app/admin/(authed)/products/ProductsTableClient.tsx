@@ -358,7 +358,7 @@ function ProductRow({
   }, [row.isActive, pending]);
 
   const tone = row.status ? STATUS_TONE[row.status] : null;
-  const editHref = `/admin/products/${row.id}/edit`;
+  const editHref = `/admin/products/${row.slug}/edit`;
 
   function handleToggle() {
     const next = !optimisticActive;
