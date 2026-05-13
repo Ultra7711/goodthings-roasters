@@ -19,6 +19,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import { Button } from '@/components/admin/ui/button';
 import {
   composeNoticeText,
   countDirtyAreas,
@@ -202,22 +203,25 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
   return (
     <>
       <AdminTopbarActions>
-        <button
+        <Button
           type="button"
-          style={{ ...SM_GHOST, opacity: isDirty ? 1 : 0.4, cursor: isDirty ? 'pointer' : 'not-allowed' }}
+          variant="ghost"
+          size="sm"
+          className="!h-7"
           disabled={!isDirty || isPending}
           onClick={handleReset}
         >
           변경 취소
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          style={{ ...SM_PRIMARY, opacity: isDirty && !isPending ? 1 : 0.5, cursor: isDirty && !isPending ? 'pointer' : 'not-allowed' }}
+          size="sm"
+          className="!h-7"
           disabled={!isDirty || isPending}
           onClick={handleSave}
         >
           {isPending ? '저장 중…' : '변경사항 저장'}
-        </button>
+        </Button>
       </AdminTopbarActions>
 
       {/* 헤더 */}
@@ -638,20 +642,16 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
               />
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
+                className="!h-7 w-full mt-2"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadState.status === 'uploading'}
-                style={{
-                  ...SM_SECONDARY,
-                  width: '100%',
-                  marginTop: 8,
-                  opacity: uploadState.status === 'uploading' ? 0.6 : 1,
-                  cursor: uploadState.status === 'uploading' ? 'not-allowed' : 'pointer',
-                }}
               >
                 {uploadState.status === 'uploading' ? '업로드 중…' : '이미지 변경'}
-              </button>
+              </Button>
 
               {uploadState.status === 'uploading' && (
                 <div style={{ marginTop: 8 }}>
@@ -925,8 +925,11 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                         target.value = '';
                       }}
                     />
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
+                      className="!h-7 whitespace-nowrap"
                       onClick={() => {
                         const notes = extractTastingNotes(settings.signature.product_slug, coffeeBeans);
                         if (notes.length === 0) {
@@ -936,13 +939,9 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                         updateSignature({ flavor_chips: notes });
                         toast.success(`Tasting Notes ${notes.length}개를 가져왔습니다`);
                       }}
-                      style={{
-                        ...SM_SECONDARY,
-                        whiteSpace: 'nowrap',
-                      }}
                     >
                       Tasting Notes 가져오기
-                    </button>
+                    </Button>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--foreground-muted)' }}>
                     Enter 로 추가 · 현재 {settings.signature.flavor_chips.length}/4
@@ -1045,20 +1044,16 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 onChange={handleSigFileChange}
                 style={{ display: 'none' }}
               />
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
+                className="!h-7 w-full mt-2"
                 onClick={() => sigFileInputRef.current?.click()}
                 disabled={sigUploadState.status === 'uploading'}
-                style={{
-                  ...SM_SECONDARY,
-                  width: '100%',
-                  marginTop: 8,
-                  opacity: sigUploadState.status === 'uploading' ? 0.6 : 1,
-                  cursor: sigUploadState.status === 'uploading' ? 'not-allowed' : 'pointer',
-                }}
               >
                 {sigUploadState.status === 'uploading' ? '업로드 중…' : '이미지 변경'}
-              </button>
+              </Button>
 
               {sigUploadState.status === 'uploading' && (
                 <div style={{ marginTop: 8 }}>
@@ -1603,38 +1598,5 @@ function FormInput({
 
 /* ── 시안 Button(size=sm) inline style ─────────────────────────────────── */
 
-const SM_BASE: React.CSSProperties = {
-  padding: '5px 10px',
-  fontSize: 12,
-  height: 28,
-  gap: 5,
-  borderRadius: 6,
-  fontWeight: 500,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-  letterSpacing: '-0.005em',
-};
-
-const SM_SECONDARY: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'var(--surface)',
-  color: 'var(--foreground)',
-  border: '1px solid var(--border)',
-};
-
-const SM_GHOST: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'transparent',
-  color: 'var(--foreground-muted)',
-  border: '1px solid transparent',
-};
-
-const SM_PRIMARY: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'var(--primary)',
-  color: '#fff',
-  border: '1px solid var(--primary)',
-};
+/* S222 PR-5c: SM_BASE/SECONDARY/GHOST/PRIMARY 상수 폐기 (shadcn Button 으로 대체).
+   debounce + iframe postMessage 비-UI 로직은 유지 (debounceUpdate / signature preview). */

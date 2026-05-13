@@ -24,6 +24,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import { Button } from '@/components/admin/ui/button';
+import { Input } from '@/components/admin/ui/input';
+import { Switch } from '@/components/admin/ui/switch';
 import { updateProductMetaAction } from '../../actions';
 import type { ProductWithRelationsRow } from '@/types/product';
 
@@ -128,31 +131,26 @@ export default function ProductEditForm({ product }: Props) {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       {/* 상단 액션 바 — 취소 + 저장 (이미지 reorder 는 즉시 저장, 별개 흐름).
-          settings · orders 페이지와 동일 SM_GHOST / SM_PRIMARY 패턴. */}
+          settings · orders 페이지와 동일 ghost/primary 패턴. */}
       <AdminTopbarActions>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
+          className="!h-7"
           onClick={() => reset()}
           disabled={!isDirty || pending}
-          style={{
-            ...SM_GHOST,
-            opacity: isDirty ? 1 : 0.4,
-            cursor: isDirty && !pending ? 'pointer' : 'not-allowed',
-          }}
         >
           변경 취소
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
+          size="sm"
+          className="!h-7"
           disabled={!isDirty || pending}
-          style={{
-            ...SM_PRIMARY,
-            opacity: isDirty && !pending ? 1 : 0.5,
-            cursor: isDirty && !pending ? 'pointer' : 'not-allowed',
-          }}
         >
           {pending ? '저장 중…' : '변경사항 저장'}
-        </button>
+        </Button>
       </AdminTopbarActions>
 
       {/* 탭 */}
@@ -249,26 +247,15 @@ function BasicTab({
             hint="한글 + 영문 · 공백으로 구분 (최대 60자)"
             error={errors.name?.message}
           >
-            <input
+            <Input
               type="text"
               maxLength={60}
               placeholder="가을의 밤 Autumn Night"
               {...register('name')}
-              style={inputStyle}
             />
           </Field>
           <Field label="슬러그" hint="상품 상세 페이지 URL · 변경 불가 (신규 등록에서만 입력)">
-            <input
-              type="text"
-              {...register('slug')}
-              readOnly
-              style={{
-                ...inputStyle,
-                background: 'var(--surface-muted)',
-                color: 'var(--foreground-muted)',
-                cursor: 'not-allowed',
-              }}
-            />
+            <Input type="text" {...register('slug')} readOnly />
           </Field>
         </FieldGrid>
 
@@ -304,11 +291,10 @@ function BasicTab({
             />
           </Field>
           <Field label="정렬 순서" required error={errors.sortOrder?.message}>
-            <input
+            <Input
               type="number"
               min={0}
               {...register('sortOrder', { valueAsNumber: true })}
-              style={inputStyle}
             />
           </Field>
         </FieldGrid>
@@ -320,7 +306,7 @@ function BasicTab({
             error={errors.displayPrice?.message}
             hint="예: 18,000 또는 18,000원"
           >
-            <input type="text" {...register('displayPrice')} style={inputStyle} />
+            <Input type="text" {...register('displayPrice')} />
           </Field>
         </FieldGrid>
       </Card>
@@ -461,39 +447,12 @@ function ToggleRow({
               {hint}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => field.onChange(!field.value)}
-            aria-pressed={!!field.value}
+          <Switch
+            checked={!!field.value}
+            onCheckedChange={field.onChange}
             aria-label={field.value ? `${label} 켜짐` : `${label} 꺼짐`}
-            style={{
-              position: 'relative',
-              width: 36,
-              height: 20,
-              borderRadius: 999,
-              border: 'none',
-              background: field.value ? 'var(--primary)' : 'var(--switch-off-bg)',
-              cursor: 'pointer',
-              transition: 'background 0.15s ease',
-              padding: 0,
-              flexShrink: 0,
-            }}
-          >
-            <span
-              aria-hidden
-              style={{
-                position: 'absolute',
-                top: 2,
-                left: field.value ? 18 : 2,
-                width: 16,
-                height: 16,
-                borderRadius: 999,
-                background: '#fff',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
-                transition: 'left 0.15s ease',
-              }}
-            />
-          </button>
+            className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
+          />
         </div>
       )}
     />
@@ -637,33 +596,5 @@ const inputStyle: React.CSSProperties = {
   fontFamily: 'inherit',
 };
 
-/* ── 상단 액션 버튼 — settings · orders 패턴 답습 (admin 일관성) ───────── */
-
-const SM_BASE: React.CSSProperties = {
-  padding: '5px 10px',
-  fontSize: 12,
-  height: 28,
-  gap: 5,
-  borderRadius: 6,
-  fontWeight: 500,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-  letterSpacing: '-0.005em',
-};
-
-const SM_GHOST: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'transparent',
-  color: 'var(--foreground-muted)',
-  border: '1px solid transparent',
-};
-
-const SM_PRIMARY: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'var(--primary)',
-  color: '#fff',
-  border: '1px solid var(--primary)',
-};
+/* S222 PR-5c: SM_BASE/GHOST/PRIMARY 상수 폐기 (shadcn Button 으로 대체).
+   inputStyle = native select 의 fallback 유지 (DEC-5 native select 정책). */
