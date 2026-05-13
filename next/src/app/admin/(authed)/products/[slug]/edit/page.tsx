@@ -16,6 +16,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { fetchAdminProductRawBySlug } from '@/lib/productsServer';
+import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import ProductEditForm from './ProductEditForm';
 import ProductImageReorderClient from './ProductImageReorderClient';
 
@@ -92,19 +93,13 @@ async function EditInner({ params }: PageProps) {
             {product.slug}
           </span>
           {!product.is_active && (
-            <span
-              style={{
-                display: 'inline-flex',
-                padding: '2px 8px',
-                borderRadius: 999,
-                background: 'var(--neutral-soft)',
-                color: 'var(--neutral-soft-fg)',
-                fontSize: 11.5,
-                fontWeight: 500,
-              }}
+            <ShadcnBadge
+              variant="outline"
+              className="border-transparent"
+              style={{ background: 'var(--neutral-soft)', color: 'var(--neutral-soft-fg)' }}
             >
               비공개
-            </span>
+            </ShadcnBadge>
           )}
         </div>
         <div

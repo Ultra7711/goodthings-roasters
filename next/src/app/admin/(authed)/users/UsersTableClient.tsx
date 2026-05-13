@@ -17,6 +17,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Input } from '@/components/admin/ui/input';
+import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import {
   PAGE_SIZE,
   ROLE_TABS,
@@ -418,6 +420,7 @@ function PageNav({
   );
 }
 
+/* S222 PR-5: shadcn Badge variant=outline + tone soft style override (DEC-2). */
 function Badge({
   tone,
   children,
@@ -429,21 +432,10 @@ function Badge({
 }) {
   const t = TONES[tone];
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '2px 8px',
-        borderRadius: 999,
-        background: t.bg,
-        color: t.fg,
-        fontSize: 11.5,
-        fontWeight: 500,
-        letterSpacing: '-0.005em',
-        lineHeight: 1.5,
-        whiteSpace: 'nowrap',
-      }}
+    <ShadcnBadge
+      variant="outline"
+      className="border-transparent gap-1.5"
+      style={{ background: t.bg, color: t.fg }}
     >
       {dot && (
         <span
@@ -452,10 +444,11 @@ function Badge({
         />
       )}
       {children}
-    </span>
+    </ShadcnBadge>
   );
 }
 
+/* S222 PR-5: shadcn Input + 검색 아이콘 prefix + clear 버튼 (OrdersTableClient 패턴 답습). */
 function SearchInput({
   value,
   onChange,
@@ -466,21 +459,11 @@ function SearchInput({
   placeholder: string;
 }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '0 10px',
-        height: 34,
-        background: 'var(--surface)',
-        border: '1px solid var(--input)',
-        borderRadius: 6,
-        flex: 1,
-        maxWidth: 360,
-      }}
-    >
-      <span style={{ color: 'var(--foreground-subtle)', display: 'flex' }}>
+    <div className="relative flex flex-1 max-w-[360px] items-center">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-2.5 flex text-[var(--foreground-subtle)]"
+      >
         <svg
           width="14"
           height="14"
@@ -495,22 +478,12 @@ function SearchInput({
           <path d="m21 21-4.3-4.3" />
         </svg>
       </span>
-      <input
+      <Input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        style={{
-          flex: 1,
-          minWidth: 0,
-          border: 'none',
-          outline: 'none',
-          background: 'transparent',
-          fontSize: 13,
-          color: 'var(--foreground)',
-          padding: 0,
-          height: '100%',
-        }}
+        className="pl-8 pr-7"
       />
       {value.length > 0 && (
         <button
@@ -518,14 +491,8 @@ function SearchInput({
           onClick={() => onChange('')}
           aria-label="검색어 지우기"
           title="지우기"
-          style={{
-            all: 'unset',
-            cursor: 'pointer',
-            color: 'var(--foreground-subtle)',
-            display: 'flex',
-            padding: 2,
-            borderRadius: 4,
-          }}
+          className="absolute right-2 flex cursor-pointer rounded text-[var(--foreground-subtle)] hover:text-[var(--foreground)]"
+          style={{ padding: 2 }}
         >
           <svg
             width="12"

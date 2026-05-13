@@ -19,6 +19,9 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Button } from '@/components/admin/ui/button';
+import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
+import { Textarea } from '@/components/admin/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -83,54 +86,7 @@ const TD_STYLE: React.CSSProperties = {
   verticalAlign: 'middle',
 };
 
-/* admin 표준 inline-style — gooddays/cafe-events 답습 */
-const ADMIN_BTN_BASE: React.CSSProperties = {
-  padding: '6px 14px',
-  fontSize: 13,
-  height: 32,
-  borderRadius: 6,
-  fontWeight: 500,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 6,
-  whiteSpace: 'nowrap',
-  letterSpacing: '-0.005em',
-  fontFamily: 'inherit',
-  cursor: 'pointer',
-};
-const ADMIN_BTN_PRIMARY: React.CSSProperties = {
-  ...ADMIN_BTN_BASE,
-  background: 'var(--primary)',
-  color: '#fff',
-  border: '1px solid var(--primary)',
-};
-const ADMIN_BTN_SECONDARY: React.CSSProperties = {
-  ...ADMIN_BTN_BASE,
-  background: 'var(--surface)',
-  color: 'var(--foreground)',
-  border: '1px solid var(--border)',
-};
-const ADMIN_BTN_DESTRUCTIVE: React.CSSProperties = {
-  ...ADMIN_BTN_BASE,
-  background: 'var(--danger)',
-  color: '#fff',
-  border: '1px solid var(--danger)',
-};
-const ADMIN_TEXTAREA_STYLE: React.CSSProperties = {
-  width: '100%',
-  minHeight: 80,
-  padding: '8px 10px',
-  background: 'var(--surface)',
-  border: '1px solid var(--input)',
-  borderRadius: 6,
-  fontSize: 13,
-  color: 'var(--foreground)',
-  outline: 'none',
-  fontFamily: 'inherit',
-  letterSpacing: '-0.005em',
-  resize: 'vertical',
-};
+/* S222 PR-5: ADMIN_BTN_* + ADMIN_TEXTAREA_STYLE 폐기 (shadcn Button + Textarea 으로 대체). */
 
 const CARD_STYLE: React.CSSProperties = {
   background: 'var(--surface)',
@@ -257,20 +213,16 @@ export default function UserDetailClient({
         </div>
 
         {/* 역할 변경 버튼 — self 면 disabled + tooltip */}
-        <button
+        <Button
           type="button"
+          variant={intent === 'grant' ? 'default' : 'outline'}
+          size="sm"
           onClick={openDialog}
           disabled={isSelf}
           title={isSelf ? '본인 계정은 SQL 로 직접 변경하세요' : undefined}
-          style={{
-            ...(intent === 'grant' ? ADMIN_BTN_PRIMARY : ADMIN_BTN_SECONDARY),
-            ...(isSelf
-              ? { opacity: 0.5, cursor: 'not-allowed' }
-              : null),
-          }}
         >
           {intent === 'grant' ? '운영자로 승격' : '운영자 해제'}
-        </button>
+        </Button>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -415,13 +367,13 @@ export default function UserDetailClient({
               >
                 사유 <span style={{ color: 'var(--foreground-subtle)' }}>(선택, 최대 500자)</span>
               </label>
-              <textarea
+              <Textarea
                 id="role-change-reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value.slice(0, 500))}
                 disabled={isPending}
                 placeholder={intent === 'grant' ? '예: 신규 운영자 합류' : '예: 권한 해제 요청'}
-                style={ADMIN_TEXTAREA_STYLE}
+                rows={4}
               />
               <div
                 style={{
@@ -435,28 +387,22 @@ export default function UserDetailClient({
             </div>
 
             <DialogFooter>
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={closeDialog}
                 disabled={isPending}
-                style={{
-                  ...ADMIN_BTN_SECONDARY,
-                  ...(isPending ? { opacity: 0.5, cursor: 'not-allowed' } : null),
-                }}
               >
                 취소
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant={intent === 'grant' ? 'default' : 'destructive'}
                 onClick={submit}
                 disabled={isPending}
-                style={{
-                  ...(intent === 'grant' ? ADMIN_BTN_PRIMARY : ADMIN_BTN_DESTRUCTIVE),
-                  ...(isPending ? { opacity: 0.6, cursor: 'wait' } : null),
-                }}
               >
                 {isPending ? '처리 중…' : intent === 'grant' ? '운영자로 승격' : '운영자 해제'}
-              </button>
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -556,75 +502,47 @@ function Dim({ children }: { children: React.ReactNode }) {
   return <span style={{ color: 'var(--foreground-subtle)' }}>{children}</span>;
 }
 
+/* S222 PR-5: 3 Badge 변종 모두 shadcn Badge variant=outline + tone soft style override (DEC-2). */
 function RoleBadge({ tone, children }: { tone: RoleTone; children: React.ReactNode }) {
   const t = ROLE_TONES[tone];
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '3px 10px',
-        borderRadius: 999,
-        background: t.bg,
-        color: t.fg,
-        fontSize: 12,
-        fontWeight: 500,
-        letterSpacing: '-0.005em',
-        lineHeight: 1.4,
-      }}
+    <ShadcnBadge
+      variant="outline"
+      className="border-transparent gap-1.5"
+      style={{ background: t.bg, color: t.fg }}
     >
       <span aria-hidden style={{ width: 5, height: 5, borderRadius: 999, background: t.dot }} />
       {children}
-    </span>
+    </ShadcnBadge>
   );
 }
 
 function StatusBadge({ tone, children }: { tone: StatusTone; children: React.ReactNode }) {
   const t = STATUS_TONES[tone];
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '2px 8px',
-        borderRadius: 999,
-        background: t.bg,
-        color: t.fg,
-        fontSize: 11.5,
-        fontWeight: 500,
-        letterSpacing: '-0.005em',
-        lineHeight: 1.5,
-        whiteSpace: 'nowrap',
-      }}
+    <ShadcnBadge
+      variant="outline"
+      className="border-transparent gap-1.5"
+      style={{ background: t.bg, color: t.fg }}
     >
       <span aria-hidden style={{ width: 5, height: 5, borderRadius: 999, background: t.dot }} />
       {children}
-    </span>
+    </ShadcnBadge>
   );
 }
 
 function ActionBadge({ action }: { action: 'grant_admin' | 'revoke_admin' }) {
   const isGrant = action === 'grant_admin';
   return (
-    <span
+    <ShadcnBadge
+      variant="outline"
+      className="border-transparent"
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '2px 8px',
-        borderRadius: 999,
         background: isGrant ? 'var(--success-soft)' : 'var(--neutral-soft)',
         color: isGrant ? 'var(--success)' : 'var(--neutral-soft-fg)',
-        fontSize: 11.5,
-        fontWeight: 500,
-        letterSpacing: '-0.005em',
-        lineHeight: 1.5,
-        whiteSpace: 'nowrap',
       }}
     >
       {isGrant ? '운영자 승격' : '운영자 해제'}
-    </span>
+    </ShadcnBadge>
   );
 }

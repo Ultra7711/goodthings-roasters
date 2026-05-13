@@ -14,6 +14,7 @@
 import { useState, useTransition } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import { Button } from '@/components/admin/ui/button';
 import { reorderProductImagesAction } from '../../actions';
 
 type ImageItem = {
@@ -186,43 +187,41 @@ export default function ProductImageReorderClient({
             >
               {/* 이동 버튼 */}
               <div style={{ display: 'flex', gap: 4 }}>
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="icon-sm"
                   onClick={() => moveUp(idx)}
                   disabled={!canMoveUp || pending}
                   aria-label="앞으로 이동"
                   title="앞으로 이동"
-                  style={miniBtnStyle(!canMoveUp || pending)}
                 >
                   <ChevronLeftIcon />
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="icon-sm"
                   onClick={() => moveDown(idx)}
                   disabled={!canMoveDown || pending}
                   aria-label="뒤로 이동"
                   title="뒤로 이동"
-                  style={miniBtnStyle(!canMoveDown || pending)}
                 >
                   <ChevronRightIcon />
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => moveToFront(idx)}
                   disabled={isFeatured || pending}
                   aria-label="대표로 설정"
                   title="대표로 설정"
-                  style={{
-                    ...miniBtnStyle(isFeatured || pending),
-                    flex: 1,
-                    fontSize: 11.5,
-                    fontWeight: 500,
-                    gap: 3,
-                  }}
+                  className="flex-1"
                 >
                   <StarIcon />
                   대표로
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -232,21 +231,7 @@ export default function ProductImageReorderClient({
   );
 }
 
-function miniBtnStyle(disabled: boolean): React.CSSProperties {
-  return {
-    height: 28,
-    width: 28,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    border: '1px solid var(--border)',
-    background: disabled ? 'var(--surface-muted)' : 'var(--surface)',
-    color: disabled ? 'var(--foreground-subtle)' : 'var(--foreground)',
-    borderRadius: 6,
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    padding: 0,
-  };
-}
+/* S222 PR-5: miniBtnStyle 폐기 (shadcn Button variant=outline size=icon-sm/sm). */
 
 function StarIcon() {
   return (
