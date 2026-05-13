@@ -72,7 +72,7 @@ export default function CartClient({ initialItems }: CartClientProps = {}) {
             aria-hidden="true"
           />
           <p className="cp-empty-msg">장바구니가 비어 있습니다.</p>
-          <Link href="/shop" className="cp-continue-link">
+          <Link href="/shop" className="cta-btn cta-btn-light-outline" data-gtr-tap>
             쇼핑 계속하기
           </Link>
         </div>
@@ -107,7 +107,7 @@ export default function CartClient({ initialItems }: CartClientProps = {}) {
               <span className={`cp-shipping-notice${isFreeShipping ? ' free' : ''}`}>
                 {isFreeShipping
                   ? '무료 배송이 적용됩니다.'
-                  : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하시면 무료 배송됩니다.`}
+                  : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하면 무료 배송`}
               </span>
               <span className={`cp-shipping-price${isFreeShipping ? ' free' : ''}`}>
                 {isFreeShipping ? '무료' : formatPrice(SHIPPING_FEE)}
@@ -128,7 +128,7 @@ export default function CartClient({ initialItems }: CartClientProps = {}) {
             <span className="cp-subtotal-price">{formatPrice(totalPrice)}</span>
             <div className="cp-tax-note">부가세 포함</div>
             <div className="cp-cta-area">
-              <Link href="/shop" className="cp-continue-link">
+              <Link href="/shop" className="cta-btn cta-btn-light-outline cp-continue-cta" data-gtr-tap>
                 쇼핑 계속하기
               </Link>
               <button

@@ -132,7 +132,7 @@ export default function CartDrawer() {
                 />
                 <p className="cd-empty-msg">장바구니가 비어 있습니다.</p>
                 <button
-                  className="cd-shop-btn"
+                  className="cta-btn cta-btn-light-outline"
                   type="button"
                   onClick={handleContinueShopping}
                   disabled={navigatingTo === '/shop'}
@@ -176,7 +176,7 @@ export default function CartDrawer() {
                   <span className={`cd-si-notice${isFreeShipping ? ' free' : ''}`}>
                     {isFreeShipping
                       ? '무료 배송이 적용됩니다.'
-                      : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하시면 무료 배송됩니다.`}
+                      : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하면 무료 배송`}
                   </span>
                   <span className={`cd-si-price${isFreeShipping ? ' free' : ''}`}>
                     {isFreeShipping ? '무료' : formatPrice(SHIPPING_FEE)}

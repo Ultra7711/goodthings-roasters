@@ -20,7 +20,7 @@ export default function EmptyCart({ atTop }: EmptyCartProps) {
       <div className="chp-empty">
         <Image src="/images/icons/cart_big.svg" alt="" aria-hidden="true" width={64} height={64} className="chp-empty-icon" />
         <p className="chp-empty-msg">장바구니가 비어 있습니다.</p>
-        <Link href="/shop" className="chp-empty-cta" data-gtr-tap>쇼핑 계속하기</Link>
+        <Link href="/shop" className="cta-btn cta-btn-light-outline" data-gtr-tap>쇼핑 계속하기</Link>
       </div>
     </div>
   );

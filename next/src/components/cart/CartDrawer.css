@@ -3,52 +3,9 @@
    프로토타입 #cart-drawer 이식. 3레이어 패턴 (wrapper / bg / panel) + --drawer-* 토큰.
    backdrop-filter 는 inline style (lessons.md §6 Lightning CSS 누락 방지).
    .shipping-gauge / .shipping-gauge-fill — CartClient 공유 → globals.css 잔류.
-   .cta-btn / .cta-btn-light-filled / .cta-btn-light-outline — S196 Pilot 20-c 이전 (CartDrawer 단독 사용).
-     단 @media (hover: none) 의 hover 차단 정책 — globals.css 잔류 (cross-route 정책 그룹).
+   .cta-btn / .cta-btn-light-filled / .cta-btn-light-outline — S220 cart CTA 통일 시 globals.css 로 복귀.
+     (hover: none) hover 차단 정책 — globals.css 잔류 (cross-route 정책 그룹).
    ══════════════════════════════════════════ */
-
-/* ══ CTA 버튼 (CartDrawer 단독 사용) ══ */
-.cta-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  align-self: flex-start;
-  height: 48px;
-  padding: 0 var(--cta-btn-padding-x-primary);
-  font-family: var(--font-kr);
-  font-size: var(--cta-btn-font-size);
-  font-weight: var(--cta-btn-font-weight);
-  line-height: 1;
-  letter-spacing: var(--cta-btn-letter-spacing);
-  cursor: pointer;
-  border: none;
-  white-space: nowrap;
-}
-/* PR-1c — 시스템 변형 2종: light-filled (primary) + light-outline (secondary).
-   dark-filled / dark-outline 폐기 (S147 grep 사용처 0 확인) */
-.cta-btn-light-filled {
-  background: var(--color-btn-primary-bg);
-  color: var(--color-text-inverse);
-  transition: background 200ms ease;
-}
-.cta-btn-light-filled:not(:disabled):hover {
-  background: var(--color-btn-primary-bg-hover);
-}
-.cta-btn-light-filled:not(:disabled):active {
-  background: var(--color-btn-primary-bg-active);
-}
-/* secondary outline 마이그레이션 — bg pure white + box-shadow inset 1px → 2px */
-.cta-btn-light-outline {
-  background: var(--color-background-pure);
-  color: var(--color-text-primary);
-  border: 0;
-  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
-  transition: box-shadow 200ms ease;
-}
-.cta-btn-light-outline:not(:disabled):hover,
-.cta-btn-light-outline:not(:disabled):active {
-  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
-}
 
 #cart-drawer {
   position: fixed;
@@ -162,8 +119,8 @@
 
 /* ══ Cart Drawer — Mobile (≤767) — 헤더·리스트 패딩만 잔류 ══ */
 @media (max-width: 767px) {
-  #cart-drawer-panel .cd-header { padding-left: 20px; padding-right: 20px; }
-  #cart-drawer-panel .cd-items { padding: 0 20px; }
+  #cart-drawer-panel .cd-header { padding-left: 24px; padding-right: 24px; }
+  #cart-drawer-panel .cd-items { padding: 0 24px; }
 }
 
 /* 빈 상태 */
@@ -186,27 +143,7 @@
   color: var(--color-text-tertiary);
   margin: 0;
 }
-#cart-drawer-panel .cd-shop-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-kr);
-  font-size: var(--link-cta-font-size);
-  font-weight: var(--link-cta-font-weight);
-  color: var(--link-cta-color);
-  letter-spacing: var(--link-cta-letter-spacing);
-  text-decoration: underline;
-  text-decoration-color: var(--color-border-primary);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
-  /* Session 43 — tap-area 44h (text box 21 + padding 12 * 2 = 45) · margin-top 8 유지 */
-  display: inline-block;
-  padding: 12px 0;
-  margin-top: calc(8px - 12px);
-  margin-bottom: -12px;
-}
-#cart-drawer-panel .cd-shop-btn:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
+/* S220 — cd-shop-btn (텍스트 링크) 정의 제거. cta-btn cta-btn-light-outline 으로 통합. */
 
 /* 배송비 행 */
 #cart-drawer-panel .cd-shipping-item {
@@ -251,16 +188,22 @@
   flex: 1;
   line-height: 24px;
 }
+/* S220 — 768+ 에서 wrap 차단. 모바일 ≤767 은 grid 자연 wrap. */
+@media (min-width: 768px) {
+  #cart-drawer-panel .cd-si-notice { white-space: nowrap; }
+}
 #cart-drawer-panel .cd-si-price {
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
   font-weight: 400;
-  color: var(--color-text-primary);
+  color: var(--color-text-tertiary);
   flex-shrink: 0;
   margin-left: 28px;
   order: 2;
 }
-/* free / non-free 시각 구분 제거 (S196 폰트 통일) */
+/* S220 — 무료 배송 강조 (풀페이지 cp-shipping-* free 매칭). notice / price 모두 text-primary. */
+#cart-drawer-panel .cd-si-notice.free { color: var(--color-text-primary); }
+#cart-drawer-panel .cd-si-price.free { color: var(--color-text-primary); }
 
 /* 푸터 — flow 레이아웃 (cd-body 밖, 항상 하단 고정) */
 #cart-drawer-panel .cd-footer {
@@ -269,7 +212,8 @@
   box-shadow: inset 0 1px 0 0 var(--color-border-secondary);
 }
 @media (max-width: 767px) {
-  #cart-drawer-panel .cd-footer { padding: 0 20px 20px; }
+  /* S220 — max(16px, env(safe-area-inset-bottom)) — Android/PC 최소 16 보장, iOS 인디케이터 자동 회피. */
+  #cart-drawer-panel .cd-footer { padding: 0 24px max(16px, env(safe-area-inset-bottom)); }
 }
 #cart-drawer-panel .cd-total-row {
   display: flex;
@@ -334,7 +278,7 @@
     grid-template-columns: 1fr auto;
     grid-template-rows: auto auto;
     height: auto;
-    padding: 12px 20px;
+    padding: 12px 24px;
     row-gap: 6px;
     column-gap: 12px;
     align-items: center;

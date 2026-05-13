@@ -683,9 +683,49 @@ body {
 
 /* 푸터 → components/layout/SiteFooter.css (S195 Pilot 15) */
 
-/* CTA 버튼 (.cta-btn / .cta-btn-light-filled / .cta-btn-light-outline)
-   → components/cart/CartDrawer.css (S196 Pilot 20-c, CartDrawer 단독 사용처).
-   잔류: @media (hover: none) hover 차단 정책 (cross-route 정책 그룹) */
+/* ══ CTA 버튼 시스템 (.cta-btn / .cta-btn-light-filled / .cta-btn-light-outline) ══
+   S196 Pilot 20-c 에서 CartDrawer.css 로 분리됐다가, S220 cart CTA 통일 시 globals 로 복귀.
+   사용처: CartDrawer (cd-cta-secondary/primary) + CartClient (cp-empty-cta/cp-continue-cta) +
+   EmptyCart. height 48 / variant 2종: light-filled (primary) + light-outline (secondary).
+   (hover: none) hover 차단 정책은 아래 cross-route 정책 그룹에 잔류. */
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 var(--cta-btn-padding-x-primary);
+  font-family: var(--font-kr);
+  font-size: var(--cta-btn-font-size);
+  font-weight: var(--cta-btn-font-weight);
+  line-height: 1;
+  letter-spacing: var(--cta-btn-letter-spacing);
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.cta-btn-light-filled {
+  background: var(--color-btn-primary-bg);
+  color: var(--color-text-inverse);
+  transition: background 200ms ease;
+}
+.cta-btn-light-filled:not(:disabled):hover {
+  background: var(--color-btn-primary-bg-hover);
+}
+.cta-btn-light-filled:not(:disabled):active {
+  background: var(--color-btn-primary-bg-active);
+}
+.cta-btn-light-outline {
+  background: var(--color-background-pure);
+  color: var(--color-text-primary);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
+  transition: box-shadow 200ms ease;
+}
+.cta-btn-light-outline:not(:disabled):hover,
+.cta-btn-light-outline:not(:disabled):active {
+  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+}
 
 /* ══ 접근성 ══ */
 .sr-only {
@@ -1137,31 +1177,7 @@ body.gd-route-transition.gd-route-transition--fade::before {
   color: var(--color-text-tertiary);
   margin: 0;
 }
-/* PR-1c-3 — secondary outline 패턴 마이그레이션 (Aesop/Blue Bottle 1px → 2px inner) */
-.chp-empty-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  align-self: center;
-  height: 48px;
-  padding: 0 var(--cta-btn-padding-x);
-  font-family: var(--font-kr);
-  font-size: var(--cta-btn-font-size);
-  font-weight: var(--cta-btn-font-weight);
-  letter-spacing: var(--cta-btn-letter-spacing);
-  color: var(--color-text-primary);
-  background: var(--color-background-pure);
-  border: 0;
-  box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: box-shadow 200ms ease;
-}
-.chp-empty-cta:hover,
-.chp-empty-cta:active {
-  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
-}
+/* S220 — chp-empty-cta 정의 제거. cta-btn cta-btn-light-outline 으로 통합. */
 
 /* 2열 바디 */
 .chp-body {
@@ -1855,8 +1871,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   font-weight: 400;
   color: var(--color-text-tertiary);
 }
-.cp-empty .cp-continue-link { margin-top: 8px; }
-
 .cp-shipping-row {
   display: flex;
   align-items: center;
@@ -1883,24 +1897,30 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   .cp-shipping-row .shipping-gauge { width: 96px; }
 }
 /* cart-drawer @media (1024 / 767 grid 레이아웃 / 480) → components/cart/CartDrawer.css (S196) */
+/* S220 — 사이즈 body-s-size 통일 (드로어 cd-si-* 매칭) */
 .cp-shipping-label {
   font-family: var(--font-kr);
-  font-size: var(--type-body-ui-size);
+  font-size: var(--type-body-s-size);
   font-weight: 400; color: var(--color-text-secondary);
   flex-shrink: 0; margin-right: var(--gap-lg);
 }
 .cp-shipping-notice { flex: 1; font-weight: 400; color: var(--color-text-tertiary); line-height: 24px; }
+/* S220 — 무료 강조 = text-primary (success 보다 명확한 톤). notice / price 동일. */
 .cp-shipping-notice.free { color: var(--color-text-primary); }
+/* S220 — 768+ 에서 wrap 차단 (텍스트 단축 후 한 줄 유지). 모바일 ≤767 은 grid 자연 wrap. */
+@media (min-width: 768px) {
+  .cp-shipping-notice { white-space: nowrap; }
+}
 .cp-shipping-price {
   font-family: var(--font-kr);
-  font-size: var(--type-body-ui-size);
+  font-size: var(--type-body-s-size);
   font-weight: 400;
-  color: var(--color-text-primary);
+  color: var(--color-text-tertiary);
   flex-shrink: 0; text-align: right;
   margin-left: 32px;
   order: 2;
 }
-.cp-shipping-price.free { color: var(--color-success); }
+.cp-shipping-price.free { color: var(--color-text-primary); }
 
 .cp-footer { position: relative; height: 176px; }
 .cp-subtotal-label {
@@ -1927,29 +1947,35 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-tertiary);
   line-height: 1;
 }
+/* S220 — 768+ shipping-gauge 좌측 끝 = filled 좌측 정렬 (right: 299).
+   기존 layout (label - notice - gauge - price) 유지. gauge 만 absolute 로 좌측 끝 강제.
+   하단 CTA 1:1 매칭 (≥768) 과 동일 viewport 범위. */
+@media (min-width: 768px) {
+  .cp-shipping-row {
+    position: relative;
+  }
+  .cp-shipping-row .shipping-gauge {
+    position: absolute;
+    left: calc(100% - 299px);
+    right: 72px;
+    width: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 0;
+  }
+}
+/* S220 — 데스크탑 정상 상태 CTA: 우측 정렬 묶음 (좌 outline + 우 filled, gap 16). */
 .cp-cta-area {
-  position: absolute; left: 0; right: 0; bottom: 21px;
-  display: flex; align-items: center; justify-content: space-between;
+  position: absolute; right: 0; bottom: 21px;
+  display: flex; align-items: center; gap: 16px;
 }
-.cp-continue-link {
-  font-family: var(--font-kr);
-  font-size: var(--link-cta-font-size);
-  font-weight: var(--link-cta-font-weight);
-  color: var(--link-cta-color);
-  cursor: pointer;
-  background: transparent; border: none;
-  text-decoration: underline;
-  text-decoration-color: var(--color-border-primary);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  letter-spacing: var(--link-cta-letter-spacing);
-  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
-  /* Session 43 — tap-area 44h (text box 21 + padding 12 * 2 = 45) · display inline-block 로 padding 적용 */
-  display: inline-block;
-  padding: 12px 0;
-  margin-block: -12px;
+/* S220 — 정상 상태 좌측 outline width (filled 매칭). 모바일은 .cp-cta-area selector 가 flex:1 균등 처리. */
+@media (min-width: 768px) {
+  .cp-continue-cta {
+    width: 299px;
+  }
 }
-.cp-continue-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
+/* S220 — cp-continue-link (텍스트 링크) 정의 제거. cta-btn cta-btn-light-outline 으로 통합. */
 .cp-order-btn {
   width: 299px; height: 48px;
   background: var(--color-btn-primary-bg);
@@ -2016,6 +2042,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
      1행: 결제예정금액 라벨(좌) · 가격+부가세(우)  → grid 2열
      2행: 부가세 포함 (우)
      3행: CTA 버튼 풀폭 */
+  /* S220 — max(16px, env(safe-area-inset-bottom)) — Android/PC 최소 16 보장, iOS 인디케이터 자동 회피. */
   .cp-footer {
     position: sticky;
     bottom: 0;
@@ -2023,7 +2050,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     background: var(--color-background-primary);
     margin-left: -24px;
     margin-right: -24px;
-    padding: 16px 24px max(20px, env(safe-area-inset-bottom));
+    padding: 16px 24px max(16px, env(safe-area-inset-bottom));
     box-shadow: inset 0 1px 0 0 var(--color-border-secondary);
     display: grid;
     grid-template-columns: auto 1fr;
@@ -2052,20 +2079,23 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     text-align: right;
     margin-top: -12px;
   }
+  /* S220 — 모바일 좌우 1:1 (드로어 cd-cta-row 패턴 답습).
+     flex: 1 1 0 + width 0 + padding 0 으로 강제 균등 (cta-btn padding 으로 인한 outline 측 폭 부풀림 차단). */
   .cp-cta-area {
     position: static;
     grid-row: 3;
     grid-column: 1 / 3;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--gap-xs);
   }
-  .cp-order-btn {
-    order: 1;
-    width: 100%;
-  }
-  .cp-cta-area .cp-continue-link {
-    order: 2;
+  .cp-cta-area .cp-continue-cta,
+  .cp-cta-area .cp-order-btn {
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
@@ -2090,7 +2120,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
     background: var(--color-btn-primary-bg);
   }
   /* secondary outline: hover 2px 차단 → 1px 유지 */
-  .chp-empty-cta:hover,
   .mp-cancel-btn:not(:disabled):hover,
   .mp-modal-cancel:not(:disabled):hover,
   .cta-btn-light-outline:not(:disabled):hover,
