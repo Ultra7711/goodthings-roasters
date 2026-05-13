@@ -42,6 +42,12 @@
   --neutral-soft: #ECECEA;
   --neutral-soft-fg: #4A4A48;
 
+  /* ── 스위치 / 토글 (S218) ─────────────────
+     ON  = --primary (clay orange)
+     OFF = --switch-off-bg — 의미 있는 "꺼진" 색상 (disabled 와 명확히 구분)
+     모든 admin toggle 은 이 토큰을 사용한다. */
+  --switch-off-bg: #939291;
+
   /* ── 사이드바 (Warm dark) ─────────────── */
   --sidebar-bg: #1A1A1A;
   --sidebar-bg-elevated: #232220;

@@ -1454,7 +1454,7 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
         width: 36,
         height: 20,
         borderRadius: 999,
-        background: on ? 'var(--primary)' : '#D4D4D2',
+        background: on ? 'var(--primary)' : 'var(--switch-off-bg)',
         border: 'none',
         position: 'relative',
         cursor: 'pointer',

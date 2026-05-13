@@ -201,3 +201,45 @@ export function mapProductRow(row: ProductWithRelationsRow): Product {
 export function hasImageBlur(image: ProductImageRow): boolean {
   return image.blur_data_url !== null && image.width !== null && image.height !== null;
 }
+
+/**
+ * 어드민 목록 행 (S218) — DB raw 컬럼 + 썸네일 derived.
+ * UI 매핑 (Product) 를 거치지 않고 admin 표시에 필요한 필드만 노출.
+ * id / isActive / sortOrder / updatedAt 등 admin 전용 메타 포함.
+ */
+export type AdminProductListItem = {
+  id: string;
+  slug: string;
+  name: string;
+  category: ProductRow['category'];
+  status: ProductStatus;
+  displayPrice: string;
+  sortOrder: number;
+  isActive: boolean;
+  updatedAt: string;
+  thumbSrc: string | null;
+  thumbBlurDataUrl: string | null;
+};
+
+/** ProductWithRelationsRow → AdminProductListItem (admin 목록 매핑) */
+export function mapAdminProductListItem(
+  row: ProductWithRelationsRow,
+): AdminProductListItem {
+  const sortedImages = [...row.product_images].sort(
+    (a, b) => a.sort_order - b.sort_order,
+  );
+  const thumb = sortedImages[0] ?? null;
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    category: row.category,
+    status: row.status,
+    displayPrice: row.display_price,
+    sortOrder: row.sort_order,
+    isActive: row.is_active,
+    updatedAt: row.updated_at,
+    thumbSrc: thumb?.src ?? null,
+    thumbBlurDataUrl: thumb?.blur_data_url ?? null,
+  };
+}

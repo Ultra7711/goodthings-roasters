@@ -26,7 +26,9 @@ import 'server-only';
 import { cacheTag } from 'next/cache';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import {
+  mapAdminProductListItem,
   mapProductRow,
+  type AdminProductListItem,
   type ProductWithRelationsRow,
 } from '@/types/product';
 import type { Product } from './products';
@@ -149,8 +151,11 @@ export async function searchProducts(query: string): Promise<Product[]> {
 }
 
 /**
- * 어드민 전체 목록 (is_active 무관). cache 미사용 — 어드민 항상 최신.
- * 정렬: sort_order asc → updated_at desc.
+ * 어드민 전체 목록 (is_active 무관) — UI Product 매핑.
+ * cache 미사용 (어드민 항상 최신). 정렬: sort_order asc → updated_at desc.
+ *
+ * settings 페이지 등 기존 Product[] 형태가 필요한 곳에서 사용.
+ * /admin/products 목록 페이지는 listAdminProductsLite() 사용.
  */
 export async function listProductsAdmin(): Promise<Product[]> {
   const client = getAnonClient();
@@ -170,4 +175,34 @@ export async function listProductsAdmin(): Promise<Product[]> {
   if (!data) return [];
 
   return (data as ProductWithRelationsRow[]).map(mapProductRow);
+}
+
+/**
+ * /admin/products 목록 페이지 전용 (S218).
+ * AdminProductListItem 반환 — id / is_active / sort_order / updated_at +
+ * 썸네일 (product_images sort_order 가장 낮은 1건).
+ *
+ * products RLS (046) = `is_active=true OR is_admin(auth.uid())` 이므로
+ * is_active=false 행을 보려면 admin 세션 쿠키 필요 → createRouteHandlerClient
+ * 사용. ordersServer.fetchAdminOrders 동일 패턴.
+ */
+export async function listAdminProductsLite(): Promise<AdminProductListItem[]> {
+  const { createRouteHandlerClient } = await import('@/lib/supabaseServer');
+  const client = await createRouteHandlerClient();
+  const { data, error } = await client
+    .from('products')
+    .select(PRODUCT_SELECT)
+    .order('sort_order', { ascending: true })
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    console.error('[listAdminProductsLite] query failed', {
+      code: error.code,
+      message: error.message?.slice(0, 200),
+    });
+    return [];
+  }
+  if (!data) return [];
+
+  return (data as ProductWithRelationsRow[]).map(mapAdminProductListItem);
 }
