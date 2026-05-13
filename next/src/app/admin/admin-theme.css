@@ -190,7 +190,12 @@
   letter-spacing: -0.4px;
   line-height: var(--leading-tight);
 }
-.gtr-admin button, .gtr-admin input, .gtr-admin select, .gtr-admin textarea {
+/* S222 PR-2.1 fix: shadcn 컴포넌트 (data-slot 속성) 는 자체 className 으로 color 지정.
+   `:not([data-slot])` 로 inherit reset 을 admin native element 한정. */
+.gtr-admin button:not([data-slot]),
+.gtr-admin input:not([data-slot]),
+.gtr-admin select:not([data-slot]),
+.gtr-admin textarea:not([data-slot]) {
   font-family: inherit;
   font-size: inherit;
   color: inherit;
