@@ -14,6 +14,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import { Button } from '@/components/admin/ui/button';
+import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import {
   describePayment,
   describeShippingMessage,
@@ -70,28 +72,26 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
   return (
     <>
       <AdminTopbarActions>
-        <a
-          href={TOSS_REFUND_GUIDE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={SM_SECONDARY_LINK}
-        >
-          환불 안내
-        </a>
-        <button
+        <Button asChild variant="outline" size="sm" className="!h-7">
+          <a
+            href={TOSS_REFUND_GUIDE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            환불 안내
+          </a>
+        </Button>
+        <Button
           type="button"
+          size="sm"
+          className="!h-7"
           onClick={() => isPaid && setShipOpen(true)}
           disabled={!isPaid}
           title={isPaid ? '발송 처리' : '결제 완료(신규) 상태에서만 출고 가능합니다'}
-          style={{
-            ...SM_PRIMARY,
-            opacity: isPaid ? 1 : 0.5,
-            cursor: isPaid ? 'pointer' : 'not-allowed',
-          }}
         >
           <TruckIcon />
           발송 처리
-        </button>
+        </Button>
       </AdminTopbarActions>
 
       {/* page header */}
@@ -479,14 +479,15 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
                       </div>
                     </div>
                   </div>
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
+                    className="!h-7"
                     onClick={() => setShipOpen(true)}
-                    style={SM_PRIMARY}
                   >
                     <TruckIcon />
                     발송 처리
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <div style={{ fontSize: 12.5, color: 'var(--foreground-muted)' }}>
@@ -914,6 +915,7 @@ function Timeline({ events }: { events: TimelineEvent[] }) {
   );
 }
 
+/* S222 PR-3: shadcn Badge variant=outline + tone soft 매트릭스 style override (DEC-2). */
 function Badge({
   tone,
   children,
@@ -925,21 +927,10 @@ function Badge({
 }) {
   const t = TONES[tone];
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '2px 8px',
-        borderRadius: 999,
-        background: t.bg,
-        color: t.fg,
-        fontSize: 11.5,
-        fontWeight: 500,
-        letterSpacing: '-0.005em',
-        lineHeight: 1.5,
-        whiteSpace: 'nowrap',
-      }}
+    <ShadcnBadge
+      variant="outline"
+      className="border-transparent gap-1.5"
+      style={{ background: t.bg, color: t.fg }}
     >
       {dot && (
         <span
@@ -948,7 +939,7 @@ function Badge({
         />
       )}
       {children}
-    </span>
+    </ShadcnBadge>
   );
 }
 
@@ -982,7 +973,6 @@ function TruckIcon() {
       strokeWidth="1.7"
       strokeLinecap="round"
       strokeLinejoin="round"
-      style={{ marginRight: 4 }}
     >
       <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
       <path d="M15 18H9" />
@@ -993,34 +983,4 @@ function TruckIcon() {
   );
 }
 
-/* ── Topbar 버튼 inline style (size=sm, OrdersTableClient 와 정합) ── */
-
-const SM_BASE: React.CSSProperties = {
-  padding: '5px 10px',
-  fontSize: 12,
-  height: 28,
-  gap: 5,
-  borderRadius: 6,
-  fontWeight: 500,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-  letterSpacing: '-0.005em',
-};
-
-const SM_SECONDARY_LINK: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'var(--surface)',
-  color: 'var(--foreground)',
-  border: '1px solid var(--border)',
-  textDecoration: 'none',
-};
-
-const SM_PRIMARY: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'var(--primary)',
-  color: '#fff',
-  border: '1px solid var(--primary)',
-};
+/* S222 PR-3: SM_BASE / SM_SECONDARY_LINK / SM_PRIMARY 폐기 (shadcn Button 으로 대체). */

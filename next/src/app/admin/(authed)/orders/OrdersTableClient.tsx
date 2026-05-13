@@ -20,6 +20,18 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import { Button } from '@/components/admin/ui/button';
+import { Input } from '@/components/admin/ui/input';
+import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
+import { Checkbox } from '@/components/admin/ui/checkbox';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/admin/ui/table';
 import {
   PAGE_SIZE,
   PAYMENT_OPTIONS,
@@ -125,14 +137,27 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
   return (
     <>
       <AdminTopbarActions>
-        <button type="button" style={SM_SECONDARY} disabled title="시안 단계 — carry-over">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="!h-7"
+          disabled
+          title="시안 단계 — carry-over"
+        >
           <Download />
           CSV 내보내기
-        </button>
-        <button type="button" style={SM_PRIMARY} disabled title="시안 단계 — carry-over">
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          className="!h-7"
+          disabled
+          title="시안 단계 — carry-over"
+        >
           <Plus />
           주문 생성
-        </button>
+        </Button>
       </AdminTopbarActions>
 
       {/* 헤더 */}
@@ -260,23 +285,13 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
           <thead>
             <tr style={{ background: 'var(--surface-muted)', color: 'var(--foreground-muted)' }}>
               <th style={{ ...TH_STYLE, width: 36 }}>
-                <button
-                  type="button"
-                  onClick={toggleAll}
-                  aria-label={allSelected ? '전체 선택 해제' : '전체 선택'}
-                  style={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    width: 16,
-                    height: 16,
-                    verticalAlign: 'middle',
-                    lineHeight: 0,
-                  }}
+                <CheckBox
+                  checked={allSelected}
+                  indeterminate={indeterminate}
+                  onChange={toggleAll}
+                  ariaLabel={allSelected ? '전체 선택 해제' : '전체 선택'}
                   disabled={rows.length === 0}
-                >
-                  <CheckBox checked={allSelected} indeterminate={indeterminate} />
-                </button>
+                />
               </th>
               <th style={TH_STYLE}>주문번호</th>
               <th style={TH_STYLE}>주문일시</th>
@@ -308,22 +323,11 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
                     }}
                   >
                     <td style={TD_STYLE}>
-                      <button
-                        type="button"
-                        onClick={() => toggleRow(o.id)}
-                        aria-label={sel ? `${o.orderNumber} 선택 해제` : `${o.orderNumber} 선택`}
-                        style={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    width: 16,
-                    height: 16,
-                    verticalAlign: 'middle',
-                    lineHeight: 0,
-                  }}
-                      >
-                        <CheckBox checked={sel} />
-                      </button>
+                      <CheckBox
+                        checked={sel}
+                        onChange={() => toggleRow(o.id)}
+                        ariaLabel={sel ? `${o.orderNumber} 선택 해제` : `${o.orderNumber} 선택`}
+                      />
                     </td>
                     <td style={TD_STYLE}>
                       <Link
@@ -481,38 +485,33 @@ function buildPageWindow(current: number, total: number): Array<number | 'ellips
 
 /* ── 로컬 컴포넌트 ─────────────────────────────────────────────────── */
 
-function CheckBox({ checked, indeterminate }: { checked: boolean; indeterminate?: boolean }) {
-  const filled = checked || indeterminate;
+/* S222 PR-3: shadcn Checkbox 채택. indeterminate 상태는 Radix 의 'indeterminate' value 전달.
+   ON = bg-primary / border-primary · OFF = border-input. CheckIcon size-3.5 자동. */
+function CheckBox({
+  checked,
+  indeterminate,
+  onChange,
+  ariaLabel,
+  disabled,
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+  onChange?: () => void;
+  ariaLabel?: string;
+  disabled?: boolean;
+}) {
   return (
-    <span
-      aria-hidden
-      style={{
-        width: 16,
-        height: 16,
-        borderRadius: 4,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        verticalAlign: 'middle',
-        /* 체크 → SVG 삽입 시 inline-flex baseline 변경되어 같은 행
-           텍스트가 위로 밀리는 현상 차단. line-height 0 으로 baseline 의존 제거. */
-        lineHeight: 0,
-        border: filled ? '1px solid var(--primary)' : '1px solid var(--border-strong)',
-        background: filled ? 'var(--primary)' : 'var(--surface)',
-      }}
-    >
-      {checked && (
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20 6 9 17l-5-5" />
-        </svg>
-      )}
-      {indeterminate && !checked && (
-        <span style={{ width: 8, height: 1.6, background: '#fff' }} />
-      )}
-    </span>
+    <Checkbox
+      checked={indeterminate ? 'indeterminate' : checked}
+      onCheckedChange={() => onChange?.()}
+      aria-label={ariaLabel}
+      disabled={disabled}
+    />
   );
 }
 
+/* S222 PR-3: PageNav inline style 유지 (페이지네이션 버튼은 26×26 매우 특수 사이즈 ·
+   shadcn Button size 변종에 없음 · `!h-... !w-...` override 다수 발생 → inline 더 명료). */
 const PAGE_BUTTON_BASE: React.CSSProperties = {
   minWidth: 26,
   height: 26,
@@ -563,6 +562,7 @@ function PageNav({
   );
 }
 
+/* S222 PR-3: shadcn Badge variant=outline + tone soft 매트릭스 style override (DEC-2). */
 function Badge({
   tone,
   children,
@@ -574,28 +574,19 @@ function Badge({
 }) {
   const t = TONES[tone];
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '2px 8px',
-        borderRadius: 999,
-        background: t.bg,
-        color: t.fg,
-        fontSize: 11.5,
-        fontWeight: 500,
-        letterSpacing: '-0.005em',
-        lineHeight: 1.5,
-        whiteSpace: 'nowrap',
-      }}
+    <ShadcnBadge
+      variant="outline"
+      className="border-transparent gap-1.5"
+      style={{ background: t.bg, color: t.fg }}
     >
       {dot && <span aria-hidden style={{ width: 5, height: 5, borderRadius: 999, background: t.dot }} />}
       {children}
-    </span>
+    </ShadcnBadge>
   );
 }
 
+/* S222 PR-3: shadcn Input + 검색 아이콘 prefix + clear 버튼 wrapper.
+   shadcn Input 의 기본 h-9 (36) 를 사용 — admin SearchInput 의 h34 와 2px 차이 (허용). */
 function SearchInput({
   value,
   onChange,
@@ -606,42 +597,22 @@ function SearchInput({
   placeholder: string;
 }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '0 10px',
-        height: 34,
-        background: 'var(--surface)',
-        border: '1px solid var(--input)',
-        borderRadius: 6,
-        flex: 1,
-        maxWidth: 360,
-      }}
-    >
-      <span style={{ color: 'var(--foreground-subtle)', display: 'flex' }}>
+    <div className="relative flex flex-1 max-w-[360px] items-center">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-2.5 flex text-[var(--foreground-subtle)]"
+      >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.3-4.3" />
         </svg>
       </span>
-      <input
+      <Input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        style={{
-          flex: 1,
-          minWidth: 0,
-          border: 'none',
-          outline: 'none',
-          background: 'transparent',
-          fontSize: 13,
-          color: 'var(--foreground)',
-          padding: 0,
-          height: '100%',
-        }}
+        className="pl-8 pr-7"
       />
       {value.length > 0 && (
         <button
@@ -649,14 +620,8 @@ function SearchInput({
           onClick={() => onChange('')}
           aria-label="검색어 지우기"
           title="지우기"
-          style={{
-            all: 'unset',
-            cursor: 'pointer',
-            color: 'var(--foreground-subtle)',
-            display: 'flex',
-            padding: 2,
-            borderRadius: 4,
-          }}
+          className="absolute right-2 flex cursor-pointer rounded text-[var(--foreground-subtle)] hover:text-[var(--foreground)]"
+          style={{ padding: 2 }}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 6 6 18" />
@@ -706,22 +671,23 @@ function DropdownFilter({
 
   return (
     <div ref={wrapperRef} style={{ position: 'relative', display: 'inline-flex' }}>
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="sm"
+        className="!h-7"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        style={{
-          ...SM_SECONDARY,
-          /* 활성 필터(기본값 외) 시 시각적 강조 — primary 옅은 톤 */
-          ...(isDefault
-            ? null
+        style={
+          isDefault
+            ? undefined
             : {
                 borderColor: 'var(--primary)',
                 color: 'var(--primary-soft-fg)',
                 background: 'var(--primary-soft)',
-              }),
-        }}
+              }
+        }
       >
         {hasIcon && (
           <svg
@@ -733,7 +699,6 @@ function DropdownFilter({
             strokeWidth="1.7"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ marginRight: 6 }}
           >
             <path d="M3 6h18" />
             <path d="M7 12h10" />
@@ -742,7 +707,7 @@ function DropdownFilter({
         )}
         {isDefault ? label : `${label}: ${activeOpt.label}`}
         <ChevronDown />
-      </button>
+      </Button>
       {open && (
         <ul
           role="listbox"
@@ -808,7 +773,6 @@ const Plus = () => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    style={{ marginRight: 4 }}
   >
     <path d="M5 12h14" />
     <path d="M12 5v14" />
@@ -825,7 +789,6 @@ const Download = () => (
     strokeWidth="1.7"
     strokeLinecap="round"
     strokeLinejoin="round"
-    style={{ marginRight: 6 }}
   >
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
     <path d="M7 10l5 5 5-5" />
@@ -843,7 +806,7 @@ const ChevronDown = () => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    style={{ marginLeft: 6, opacity: 0.6 }}
+    style={{ opacity: 0.6 }}
   >
     <path d="m6 9 6 6 6-6" />
   </svg>
@@ -866,33 +829,4 @@ const MoreIcon = () => (
   </svg>
 );
 
-/* ── 시안 Button(size=sm) inline style ─────────────────────────────────── */
-
-const SM_BASE: React.CSSProperties = {
-  padding: '5px 10px',
-  fontSize: 12,
-  height: 28,
-  gap: 5,
-  borderRadius: 6,
-  fontWeight: 500,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-  letterSpacing: '-0.005em',
-};
-
-const SM_SECONDARY: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'var(--surface)',
-  color: 'var(--foreground)',
-  border: '1px solid var(--border)',
-};
-
-const SM_PRIMARY: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'var(--primary)',
-  color: '#fff',
-  border: '1px solid var(--primary)',
-};
+/* S222 PR-3: SM_BASE / SM_SECONDARY / SM_PRIMARY 폐기 (shadcn Button 으로 대체). */

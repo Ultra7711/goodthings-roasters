@@ -1,17 +1,26 @@
 'use client';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   ShippingDialog — 송장 입력 다이얼로그 (S128 B-3)
-   - 시안 inline style 100% 이식
-   - 택배사 커스텀 드롭다운 + "직접입력" 분기
-   - 송장번호 mono input · 12자 이상 권장 안내
+   ShippingDialog — 송장 입력 다이얼로그 (S128 B-3 · S222 PR-3 shadcn 정정)
+   - shadcn Dialog 외피 (Portal + Overlay + ESC + outside click + body lock 자동)
+   - 택배사 커스텀 드롭다운 + "직접입력" 분기 (custom 로직 유지 · shadcn Select 미사용 — DEC-5)
+   - 송장번호 shadcn Input · 12자 이상 권장 안내
    - 제출 → dispatchOrderAction → 결과 처리 (성공: 자동 닫힘 · 에러: inline 표시)
-   - ESC · 외부 클릭 닫기 · 포커스 트랩 (간단 버전 — 다이얼로그 첫 입력에 autofocus)
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { dispatchOrderAction, type DispatchActionResult } from './actions';
+import { Button } from '@/components/admin/ui/button';
+import { Input } from '@/components/admin/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/admin/ui/dialog';
 
 type Props = {
   open: boolean;
@@ -48,10 +57,9 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const trackingRef = useRef<HTMLInputElement | null>(null);
-  const dialogRef = useRef<HTMLDivElement | null>(null);
   const carrierWrapRef = useRef<HTMLDivElement | null>(null);
 
-  /* 다이얼로그 open 시 초기화 + 포커스 */
+  /* 다이얼로그 open 시 초기화 + 포커스 (shadcn Dialog ESC + outside click + body lock 자동) */
   useEffect(() => {
     if (!open) return;
     setCarrierSel('CJ대한통운');
@@ -63,22 +71,7 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
     requestAnimationFrame(() => trackingRef.current?.focus());
   }, [open]);
 
-  /* ESC 닫기 + body scroll lock */
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !pending) onClose();
-    }
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open, pending, onClose]);
-
-  /* carrier 드롭다운 외부 클릭 닫기 */
+  /* carrier 드롭다운 외부 클릭 닫기 (custom dropdown — shadcn Select 미사용 · DEC-5) */
   useEffect(() => {
     if (!carrierOpen) return;
     function onDocClick(e: MouseEvent) {
@@ -88,8 +81,6 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
     document.addEventListener('mousedown', onDocClick);
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [carrierOpen]);
-
-  if (!open) return null;
 
   const isCustomCarrier = carrierSel === '직접입력...';
   const effectiveCarrier = isCustomCarrier ? carrierCustom.trim() : carrierSel;
@@ -119,56 +110,20 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 100,
-        background: 'rgba(15, 12, 8, 0.42)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget && !pending) onClose();
-      }}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-labelledby="ship-dialog-title"
-        aria-modal="true"
+    <Dialog open={open} onOpenChange={(o) => !o && !pending && onClose()}>
+      {/* gooddays 답습 — DialogContent 의 Tailwind p-6 가 admin Portal 안에서
+         적용 안 되는 케이스 회피용 inline padding/gap. (B-180b) */}
+      <DialogContent
         className="gtr-admin"
-        style={{
-          width: 480,
-          maxWidth: 'calc(100vw - 32px)',
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 12,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08)',
-          overflow: 'hidden',
-        }}
+        style={{ padding: 0, gap: 0, maxWidth: 480 }}
       >
-        {/* header */}
-        <div
-          style={{
-            padding: '18px 22px 14px',
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            gap: 12,
-          }}
-        >
-          <div>
-            <h2
-              id="ship-dialog-title"
-              style={{ margin: 0, fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em' }}
-            >
-              발송 처리
-            </h2>
+        <DialogHeader style={{ padding: '18px 22px 14px' }}>
+          <DialogTitle style={{ fontSize: 17, letterSpacing: '-0.015em' }}>
+            발송 처리
+          </DialogTitle>
+          <DialogDescription asChild>
             <div
               style={{
-                marginTop: 4,
                 fontSize: 12.5,
                 color: 'var(--foreground-muted)',
                 display: 'flex',
@@ -182,33 +137,8 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
               <span style={{ color: 'var(--foreground-subtle)' }}>·</span>
               <span>{customerName}</span>
             </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={pending}
-            aria-label="닫기"
-            title="닫기"
-            style={{
-              width: 28,
-              height: 28,
-              border: 'none',
-              background: 'transparent',
-              borderRadius: 6,
-              color: 'var(--foreground-muted)',
-              cursor: pending ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: pending ? 0.5 : 1,
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-          </button>
-        </div>
+          </DialogDescription>
+        </DialogHeader>
 
         {/* body */}
         <form onSubmit={handleSubmit}>
@@ -317,48 +247,28 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
                 )}
               </div>
               {isCustomCarrier && (
-                <input
+                <Input
                   type="text"
                   value={carrierCustom}
                   onChange={(e) => setCarrierCustom(e.target.value)}
                   placeholder="택배사 이름 입력"
                   maxLength={60}
-                  style={{
-                    marginTop: 8,
-                    width: '100%',
-                    height: 36,
-                    padding: '0 12px',
-                    border: '1px solid var(--input)',
-                    borderRadius: 6,
-                    background: 'var(--surface)',
-                    fontSize: 13,
-                    color: 'var(--foreground)',
-                    outline: 'none',
-                  }}
+                  className="mt-2"
                 />
               )}
             </Field>
 
             {/* 송장번호 */}
             <Field label="송장번호" required hint="대시 없이 숫자만 입력 · 12자 이상 권장">
-              <input
+              <Input
                 ref={trackingRef}
                 type="text"
                 value={tracking}
                 onChange={(e) => setTracking(e.target.value)}
                 placeholder="예: 123456789012"
                 maxLength={60}
+                className="gtr-mono"
                 style={{
-                  width: '100%',
-                  height: 36,
-                  padding: '0 12px',
-                  border: '1px solid var(--input)',
-                  borderRadius: 6,
-                  background: 'var(--surface)',
-                  fontSize: 13,
-                  color: 'var(--foreground)',
-                  outline: 'none',
-                  fontFamily: "'SF Mono', ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace",
                   fontVariantNumeric: 'tabular-nums',
                   letterSpacing: '0.02em',
                 }}
@@ -411,44 +321,30 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
           </div>
 
           {/* footer */}
-          <div
+          <DialogFooter
             style={{
               padding: '14px 22px',
               borderTop: '1px solid var(--border)',
               background: '#FAFAF9',
-              display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center',
               gap: 10,
             }}
           >
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={onClose}
               disabled={pending}
-              style={{
-                ...BTN_GHOST,
-                cursor: pending ? 'not-allowed' : 'pointer',
-                opacity: pending ? 0.5 : 1,
-              }}
             >
               취소
-            </button>
-            <button
-              type="submit"
-              disabled={!isValid || pending}
-              style={{
-                ...BTN_PRIMARY,
-                opacity: !isValid || pending ? 0.5 : 1,
-                cursor: !isValid || pending ? 'not-allowed' : 'pointer',
-              }}
-            >
+            </Button>
+            <Button type="submit" disabled={!isValid || pending}>
               {pending ? '처리 중…' : '발송 처리'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -489,28 +385,4 @@ function Field({
   );
 }
 
-const BTN_BASE: React.CSSProperties = {
-  height: 36,
-  padding: '0 16px',
-  borderRadius: 6,
-  fontSize: 13,
-  fontWeight: 500,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  letterSpacing: '-0.005em',
-};
-
-const BTN_GHOST: React.CSSProperties = {
-  ...BTN_BASE,
-  background: 'transparent',
-  color: 'var(--foreground-muted)',
-  border: 'none',
-};
-
-const BTN_PRIMARY: React.CSSProperties = {
-  ...BTN_BASE,
-  background: 'var(--primary)',
-  color: '#fff',
-  border: '1px solid var(--primary)',
-};
+/* S222 PR-3: BTN_BASE / BTN_GHOST / BTN_PRIMARY 폐기 (shadcn Button 으로 대체). */
