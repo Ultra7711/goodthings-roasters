@@ -3,7 +3,7 @@
    listCafeEventsAdmin → <CafeEventsForm initialEvents={...} />.
    ══════════════════════════════════════════ */
 
-import { listCafeEventsAdmin } from '@/lib/cafeEventsServer';
+import { listCafeEventsAdmin } from '@/lib/admin/cafeEventsServer';
 import CafeEventsForm from './CafeEventsForm';
 
 export default async function AdminCafeEventsPage() {

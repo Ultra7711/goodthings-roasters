@@ -1,12 +1,14 @@
 import 'server-only';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   lib/cafeEventsServer.ts — cafe_events 서버 fetch (S149 V2 §2.5 PR-1a)
+   lib/cafeEventsServer.ts — cafe_events B2C 서버 fetch (S149 V2 §2.5 PR-1a)
 
    역할:
    - getActiveCafeEvent() — 현재 활성 1개 (자문 §5.3 우선순위)
    - getComingCafeEvent() — 7일 내 시작 이벤트 (자문 §5.3 예고)
-   - listCafeEventsAdmin() — 어드민 전체 (sort by start_date desc)
+   - CAFE_EVENTS_CACHE_TAG — admin actions 가 revalidateTag 용으로 import
+
+   admin variant (`listCafeEventsAdmin`) 는 lib/admin/cafeEventsServer.ts 로 분리 (S230-5 · DEC-16 답습).
 
    설계:
    - server-only 격리.
@@ -16,6 +18,7 @@ import 'server-only';
 
    참조:
    - lib/siteSettingsServer.ts (동일 패턴)
+   - lib/admin/cafeEventsServer.ts (admin variant · S230-5)
    - 035_cafe_events.sql
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -27,6 +30,8 @@ import {
   selectComingEvent,
   type CafeEvent,
 } from './cafeEvents';
+
+/* admin variant (`listCafeEventsAdmin`) 는 lib/admin/cafeEventsServer.ts 로 이동 (S230-5). */
 
 /** revalidateTag 로 무효화. 어드민 actions 와 일치. */
 export const CAFE_EVENTS_CACHE_TAG = 'cafe-events';
@@ -101,33 +106,3 @@ export async function getComingCafeEvent(): Promise<CafeEvent | null> {
   return selectComingEvent(events);
 }
 
-/**
- * 어드민 전체 목록 (enabled 무관). cache 미사용 — 어드민은 항상 최신.
- */
-export async function listCafeEventsAdmin(): Promise<CafeEvent[]> {
-  const client = getAnonClient();
-  const { data, error } = await client
-    .from('cafe_events')
-    .select(
-      'id, type, enabled, eyebrow, h4, meta, description, image_path, image_alt, ' +
-        'start_date, end_date, recurring, linked_menu_slug, season_label, partner_name, ' +
-        'cta_target, sort_order',
-    )
-    .order('start_date', { ascending: false, nullsFirst: false });
-
-  if (error) {
-    console.error('[listCafeEventsAdmin] query failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
-    return [];
-  }
-  if (!data) return [];
-
-  const parsed: CafeEvent[] = [];
-  for (const row of data) {
-    const ev = parseCafeEventRow(row);
-    if (ev) parsed.push(ev);
-  }
-  return parsed;
-}
