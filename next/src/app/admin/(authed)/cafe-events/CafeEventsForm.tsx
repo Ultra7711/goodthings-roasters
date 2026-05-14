@@ -349,7 +349,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden mb-4">
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
           <div className="flex-1 text-sm font-medium">
-            이벤트 {events.length}개
+            등록중인 이벤트
           </div>
           <Button type="button" variant="outline" size="sm" className="!h-7" onClick={handleNew}>
             + 새 이벤트
