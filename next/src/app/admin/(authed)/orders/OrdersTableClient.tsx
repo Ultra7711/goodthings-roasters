@@ -343,7 +343,7 @@ function describeRange(page: number, total: number): string {
   if (total === 0) return '0건';
   const start = (page - 1) * PAGE_SIZE + 1;
   const end = Math.min(page * PAGE_SIZE, total);
-  return `${start.toLocaleString()} — ${end.toLocaleString()} / ${total.toLocaleString()}건`;
+  return `총 ${total.toLocaleString()}건 · ${start.toLocaleString()}—${end.toLocaleString()}번째`;
 }
 
 /* ── 로컬 컴포넌트 ─────────────────────────────────────────────────── */
