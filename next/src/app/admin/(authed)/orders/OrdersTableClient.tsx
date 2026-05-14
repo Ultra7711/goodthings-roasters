@@ -239,20 +239,10 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
           size="sm"
           className="!h-7"
           disabled
-          title="시안 단계 — carry-over"
+          title="구현 예정 (S232 · CSV export)"
         >
           <Download />
           CSV 내보내기
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          className="!h-7"
-          disabled
-          title="시안 단계 — carry-over"
-        >
-          <Plus />
-          주문 생성
         </Button>
       </AdminTopbarActions>
 
@@ -302,8 +292,8 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
           <div className="flex items-center gap-2 px-2.5 h-7 rounded-md bg-[var(--primary-soft)] text-[var(--primary-soft-fg)] text-xs font-medium">
             <span>{selected.length}건 선택됨</span>
             <span aria-hidden className="w-px h-3.5 bg-current opacity-20" />
-            <span className="cursor-not-allowed opacity-60" title="시안 단계 — carry-over">일괄 처리</span>
-            <span className="cursor-not-allowed opacity-60" title="시안 단계 — carry-over">송장 발급</span>
+            <span className="cursor-not-allowed opacity-60" title="구현 예정 (출시 후)">일괄 처리</span>
+            <span className="cursor-not-allowed opacity-60" title="구현 예정 (출시 후)">송장 발급</span>
           </div>
         )}
       </div>
@@ -521,22 +511,6 @@ function DropdownFilter({
 }
 
 /* ── 인라인 SVG ─────────────────────────────────── */
-
-const Plus = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M5 12h14" />
-    <path d="M12 5v14" />
-  </svg>
-);
 
 const Download = () => (
   <svg

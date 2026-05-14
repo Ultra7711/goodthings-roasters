@@ -381,17 +381,18 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
 
           {/* F — 어드민 메모 (편집 carry-over) */}
           <Card>
-            <SectionHeader title="어드민 메모" meta="편집 준비 중" />
+            <SectionHeader title="어드민 메모" meta="편집 구현 예정 (출시 후)" />
             <div className="px-[18px] pt-3 pb-4">
               <textarea
                 value={detail.adminNotes ?? ''}
                 readOnly
                 placeholder="작성된 메모가 없습니다"
+                title="편집 구현 예정 (출시 후)"
                 className="w-full min-h-[76px] resize-y px-2.5 py-2 border border-input rounded-md text-xs leading-relaxed text-foreground outline-none bg-[var(--surface-muted)] cursor-not-allowed"
                 style={{ fontFamily: 'inherit' }}
               />
               <div className="mt-1.5 text-xs text-[var(--foreground-subtle)]">
-                메모 편집 기능은 다음 단계에서 추가됩니다
+                메모 편집 기능은 출시 후 추가됩니다
               </div>
             </div>
           </Card>

@@ -11,7 +11,6 @@ import { getAdminClaims } from '@/lib/auth/getClaims';
 import { fetchAdminDashboard } from '@/lib/admin/dashboardServer';
 import { bestsellerPercents } from '@/lib/admin/dashboard';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
-import DashboardActions from './DashboardActions';
 
 const TONE_BG: Record<string, string> = {
   primary: 'var(--primary-soft)',
@@ -91,9 +90,6 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      {/* Topbar actions slot */}
-      <DashboardActions />
-
       {/* 환영 헤더 — AdminPageHeader 패턴 답습 (WelcomeHeading = ReactNode 이므로 인라인) */}
       <div className="mb-5">
         <WelcomeHeading />

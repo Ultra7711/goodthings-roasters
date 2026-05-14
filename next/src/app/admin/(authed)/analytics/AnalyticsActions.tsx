@@ -11,7 +11,14 @@ import { Button } from '@/components/admin/ui/button';
 export default function AnalyticsActions() {
   return (
     <AdminTopbarActions>
-      <Button type="button" variant="outline" size="sm" className="!h-7" disabled>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="!h-7"
+        disabled
+        title="구현 예정 (S232 · CSV export)"
+      >
         리포트 내보내기
       </Button>
     </AdminTopbarActions>
