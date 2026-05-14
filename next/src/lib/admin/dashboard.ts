@@ -161,23 +161,13 @@ export function mapOverview(rpc: DashboardOverviewRpc): DashboardOverview {
     },
   ];
 
+  // S226: roasting_pending / inventory_alert 두 task 제거 — products/new mock 가정 잔재.
+  // 실 도메인 (재고·로스팅 일정 모델) 부재. RPC 응답 시그너처는 BC 위해 유지 (필드는 0 반환).
   const tasks: DashboardTask[] = [
     {
       label: '신규 주문 처리',
       n: rpc.tasks.new_orders,
       tone: 'primary',
-    },
-    {
-      label: '로스팅 일정 확정',
-      n: rpc.tasks.roasting_pending,
-      tone: 'warning',
-      pending: true,
-    },
-    {
-      label: '재고 알림',
-      n: rpc.tasks.inventory_alert,
-      tone: 'danger',
-      pending: true,
     },
     {
       label: '발송 미입력',
