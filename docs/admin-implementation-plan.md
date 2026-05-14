@@ -66,7 +66,7 @@
 | S228 | Phase 2 PR-A (테이블 4종 마이그) | ✅ | — | — |
 | S229 | Phase 2 PR-B/C + 칩 표준 + DEC-17 listHelpers | ✅ | — | — |
 | **S230 (현재)** | Phase 3 잘못 구현 fix (§7-3 hex + 잔여 6 항목) | 🟡 §7-3 완료 / 6 항목 잔여 | 5~9h | Sonnet 4.6 |
-| **S231** | products/new 재기획 (PDP 실 모델 기준) | 📋 | 12~16h | Sonnet 4.6 + mattpocock grill-with-docs |
+| **S231** | products/new 재기획 + **ProductEditForm detail/option 마무리** (β · S230 박음) | 📋 | **16~22h** | Sonnet 4.6 + mattpocock grill-with-docs |
 | **S232** | 출시 전 carry-over (Users 필터 + Export CSV) | 📋 | 8~14h | Sonnet 4.6 |
 | **S233** | **어드민 페이지 폴리싱** (마이크로 인터랙션 · A11y · 시각 다듬기) | 📋 | 6~10h | Sonnet 4.6 |
 | **S234** | **최종 리뷰어 검토 sprint** (4 reviewer 일괄) | 📋 | 4~6h + 수정 | Opus 4.7 |
@@ -84,17 +84,32 @@
 | **S230-6** | admin-theme.css base layer 보강 | 0.5h | 필요 시 |
 | **S230-7** | design.md §0 인덱스 갱신 | 0.5h | — |
 
-### 2-2. S231 — products/new 재기획 (12~16h)
+### 2-2. S231 — products/new 재기획 + ProductEditForm detail/option 마무리 (β · 16~22h)
 
 📄 spec: `memory/project_admin_product_new_replan.md`
+
+**Scope β 확장 (S230 결정 · 2026-05-14):** products/new 재기획만으로는 ProductEditForm 의 detail/option/shipping/seo 4 탭 mock 잔존. β 채택으로 detail/option 마무리 + shipping/seo 제거 (3탭 축소) 합류.
 
 | ID | 항목 | 추정 |
 |---|---|---|
 | S231-1 | 방향 결정 (옵션 A=ProductEditForm 답습+mode='create' / B=별 폼 / C=wizard) | 0.5h |
-| S231-2 | RHF + zod 실 PDP 모델 기반 폼 | 5~7h |
-| S231-3 | 이미지 업로드 (Storage + sharp+plaiceholder) | 3~4h |
+| S231-2 | RHF + zod 실 PDP 모델 기반 폼 (basic 답습) | 5~7h |
+| S231-3 | 이미지 업로드 (Storage + sharp+plaiceholder · DEC-7 β 채택 시) | 3~4h |
 | S231-4 | createProductAction Server Action | 2~3h |
-| S231-5 | volumes / recipe / 5축 노트 / images 동적 행 UI | 2~3h |
+| S231-5 | volumes / recipe / images 동적 행 UI | 2~3h |
+| **S231-6** | **ProductEditForm detail 탭 마무리** — 5축 + 로스팅 + 플레이버칩 + flavor_desc | 3~4h |
+| **S231-7** | **ProductEditForm option 탭 마무리** — product_volumes + product_recipes 동적 행 | 1~2h |
+| **S231-8** | **shipping / seo 탭 제거** (3탭 축소) | 0.3h |
+
+#### Detail 탭 UI 결정 (S230 박음)
+
+| 필드 | UI 형식 | 비고 |
+|---|---|---|
+| **5축 (note_sweet/body/aftertaste/aroma/acidity)** | slider + 우측 값 표시 (3.5 / 5) | NUMERIC(2,1) · 0.0~5.0 step 0.1 · PDP 레이더 차트 정합 |
+| **roast_stage** | 칩 라디오 §5-23 (`data-slot="chip-radio"`) | 5단계 노출 (light / medium-light / medium / medium-dark / dark) · **italian disable** (한국 시장 희귀 · DB 제약 유지) |
+| **note_tags + note_tags_en** | Tag input (Enter/쉼표 분리 · 라이브러리 없이 구현) | comma-separated text 로 저장 |
+| **flavor_desc** | single line text input | text not null |
+| **note_color** | **hidden** (form 노출 X) | 현재 UI 사용 0건 (dead column) · DB default `#A47146` 유지. 사용자 결정 = 베리에이션 없음 |
 
 ### 2-3. S232 — 출시 전 carry-over (8~14h)
 
@@ -158,7 +173,7 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | 항목 | sprint | 추정 |
 |---|---|---|
 | S230 잔여 6 항목 | S230 | 5~9h |
-| products/new 재기획 | S231 | 12~16h |
+| products/new 재기획 + ProductEditForm detail/option 마무리 (β) | S231 | 16~22h |
 | 어드민 페이지 폴리싱 | S233 | 6~10h |
 | Users 가입 채널 필터 (사용자 요청) | S232-1 | 2~3h |
 | Subscriptions CSV (사용자 요청) | S232-2 | 2~3h |
@@ -198,7 +213,7 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | ID | 항목 | 시점 | 옵션 |
 |---|---|---|---|
 | **DEC-7** | products 이미지 업로드 정책 | S231 진입 전 | α public 유지 / β Storage 도입 (권장) / γ 하이브리드 |
-| **S230-3** | ProductEditForm shipping/seo 탭 | S230 진행 중 | A 두 탭 제거 / B 도메인 추가 / C 유지 |
+| ~~S230-3~~ | ~~ProductEditForm shipping/seo 탭~~ | ✅ **β 채택 (S230 박음)** | shipping/seo 제거 (3탭 축소) + detail/option 마무리는 S231 합류 |
 | **DEC-export-4** | CSV PII 익명화 정책 | S232 진입 전 | 마스킹 / 평문 |
 | **DEC-G1** | SOP 문서 범위 | S233/출시 직전 | 사업자용 / 개발자용 / 양쪽 |
 
@@ -229,11 +244,11 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 
 | 단계 | 합계 | 비고 |
 |---|---|---|
-| 출시 전 P1 (S230~S234) | **~32~50h** | 1.5~2주 풀타임 |
+| 출시 전 P1 (S230~S234) | **~36~56h** | 1.5~2주 풀타임 (S231 β 확장 +4~6h) |
 | 출시 후 1~2주 P1 | ~22~30h | Group E·F 어드민 UI |
 | 출시 후 1개월 P2 | ~10~15h | D-2 + G-1/G-2 + Users/Products CSV |
 | 출시 후 V2+ P3 | ~14~18h | 필터 확장 + Excel + arch sweep |
-| **전체 잔여** | **~80~115h** | 출시 전 풀타임 1.5~2주 + 출시 후 3~4주 |
+| **전체 잔여** | **~82~119h** | 출시 전 풀타임 1.5~2주 + 출시 후 3~4주 |
 
 ---
 
