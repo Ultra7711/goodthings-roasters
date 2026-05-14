@@ -22,11 +22,30 @@ import { toast } from 'sonner';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
+import { Slider } from '@/components/admin/ui/slider';
 import { Switch } from '@/components/admin/ui/switch';
 import { Textarea } from '@/components/admin/ui/textarea';
 import { updateProductMetaAction } from '../../actions';
 import type { ProductWithRelationsRow } from '@/types/product';
 import { cn } from '@/lib/utils';
+
+/** PDP ProductRoastStage 의 한글 음차 라벨 답습 */
+const ROAST_STAGE_OPTIONS = [
+  { value: 'light', label: '라이트' },
+  { value: 'medium-light', label: '미디엄 라이트' },
+  { value: 'medium', label: '미디엄' },
+  { value: 'medium-dark', label: '미디엄 다크' },
+  { value: 'dark', label: '다크' },
+  { value: 'italian', label: '이탈리안', disabled: true, hint: '국내 시장 희귀 — 사용 안 함' },
+] as const;
+
+const FLAVOR_AXES = [
+  { key: 'noteSweet', label: 'Sweet (단맛)' },
+  { key: 'noteBody', label: 'Body (바디)' },
+  { key: 'noteAftertaste', label: 'Aftertaste (여운)' },
+  { key: 'noteAroma', label: 'Aroma (향)' },
+  { key: 'noteAcidity', label: 'Acidity (산미)' },
+] as const;
 
 /** 옵션 최소가 기반 display_price placeholder 동적 생성 */
 function buildPricePlaceholder(volumes: ProductWithRelationsRow['product_volumes']): string {
@@ -69,6 +88,17 @@ const HexColor = z
   .string()
   .regex(/^#[0-9A-Fa-f]{6}$/, '#RRGGBB 형식이어야 합니다');
 
+const RoastStageEnum = z.enum([
+  'light',
+  'medium-light',
+  'medium',
+  'medium-dark',
+  'dark',
+  'italian',
+]);
+
+const FlavorAxis = z.number().min(0).max(5);
+
 const FormSchema = z.object({
   id: z.string().uuid(),
   slug: z.string().min(1),
@@ -81,6 +111,16 @@ const FormSchema = z.object({
   subscription: z.boolean(),
   popup: z.boolean(),
   description: z.string().max(4000),
+  flavorDesc: z.string().max(200),
+  roastStage: RoastStageEnum,
+  noteTags: z.string().max(200),
+  noteTagsEn: z.string().max(200),
+  noteColor: HexColor,
+  noteSweet: FlavorAxis,
+  noteBody: FlavorAxis,
+  noteAftertaste: FlavorAxis,
+  noteAroma: FlavorAxis,
+  noteAcidity: FlavorAxis,
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -113,6 +153,16 @@ export default function ProductEditForm({ product }: Props) {
       subscription: product.subscription,
       popup: product.popup,
       description: product.description ?? '',
+      flavorDesc: product.flavor_desc ?? '',
+      roastStage: product.roast_stage,
+      noteTags: product.note_tags ?? '',
+      noteTagsEn: product.note_tags_en ?? '',
+      noteColor: product.note_color ?? '#A47146',
+      noteSweet: Number(product.note_sweet) || 0,
+      noteBody: Number(product.note_body) || 0,
+      noteAftertaste: Number(product.note_aftertaste) || 0,
+      noteAroma: Number(product.note_aroma) || 0,
+      noteAcidity: Number(product.note_acidity) || 0,
     },
   });
 
@@ -193,14 +243,18 @@ export default function ProductEditForm({ product }: Props) {
       </div>
 
       {/* 탭 본문 */}
-      {tab === 'basic' ? (
+      {tab === 'basic' && (
         <BasicTab
           register={register}
           control={control}
           errors={errors}
           pricePlaceholder={pricePlaceholder}
         />
-      ) : (
+      )}
+      {tab === 'detail' && (
+        <DetailTab register={register} control={control} errors={errors} />
+      )}
+      {tab === 'option' && (
         <ComingSoonPanel label={TABS.find((t) => t.id === tab)?.label ?? ''} />
       )}
 
@@ -425,6 +479,237 @@ function ToggleRow({
           />
         </div>
       )}
+    />
+  );
+}
+
+/* ── detail 탭 ───────────────────────────────────────────────────────── */
+
+function DetailTab({
+  register,
+  control,
+  errors,
+}: {
+  register: ReturnType<typeof useForm<FormValues>>['register'];
+  control: ReturnType<typeof useForm<FormValues>>['control'];
+  errors: ReturnType<typeof useForm<FormValues>>['formState']['errors'];
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      {/* 플레이버 한 줄 카드 */}
+      <Card title="플레이버">
+        <Field
+          label="한 줄 설명"
+          required
+          hint="PDP 헤더에 노출되는 짧은 플레이버 묘사 (최대 200자)"
+          error={errors.flavorDesc?.message}
+        >
+          <Input
+            type="text"
+            maxLength={200}
+            placeholder="예: 자몽의 산뜻한 산미와 설탕의 단맛"
+            {...register('flavorDesc')}
+          />
+        </Field>
+      </Card>
+
+      {/* 5축 노트 카드 */}
+      <Card title="플레이버 노트 (5축)">
+        <div className="flex flex-col gap-3">
+          {FLAVOR_AXES.map((axis) => (
+            <FlavorAxisSlider
+              key={axis.key}
+              name={axis.key}
+              label={axis.label}
+              control={control}
+            />
+          ))}
+        </div>
+      </Card>
+
+      {/* 로스팅 단계 카드 */}
+      <Card title="로스팅 단계">
+        <Field
+          label="단계 선택"
+          required
+          hint="PDP 로스팅 게이지에 반영됩니다. 이탈리안은 국내 시장 희귀로 사용 안 함."
+          error={errors.roastStage?.message}
+        >
+          <RoastStageChips control={control} />
+        </Field>
+      </Card>
+
+      {/* 노트 태그 카드 */}
+      <Card title="노트 태그">
+        <Field
+          label="한글 태그"
+          hint="Enter 또는 쉼표(,) 로 추가합니다. PDP 본문 노트 태그에 사용됩니다."
+          error={errors.noteTags?.message}
+        >
+          <TagInputField name="noteTags" control={control} placeholder="자몽, 설탕, 청량감" />
+        </Field>
+        <Field
+          label="영문 태그"
+          hint="Enter 또는 쉼표(,) 로 추가합니다."
+          error={errors.noteTagsEn?.message}
+        >
+          <TagInputField name="noteTagsEn" control={control} placeholder="Grapefruit, Sugar, Refreshing" />
+        </Field>
+      </Card>
+    </div>
+  );
+}
+
+/* ── 5축 슬라이더 (0~5 step 0.1) ──────────────────────────────────────── */
+
+function FlavorAxisSlider({
+  name,
+  label,
+  control,
+}: {
+  name: 'noteSweet' | 'noteBody' | 'noteAftertaste' | 'noteAroma' | 'noteAcidity';
+  label: string;
+  control: ReturnType<typeof useForm<FormValues>>['control'];
+}) {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => {
+        const value = typeof field.value === 'number' ? field.value : 0;
+        return (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between gap-3">
+              <label className="text-xs font-medium text-[var(--foreground)] tracking-[-0.005em]">
+                {label}
+              </label>
+              <span className="gtr-mono text-xs text-muted-foreground tabular-nums">
+                {value.toFixed(1)} / 5
+              </span>
+            </div>
+            <Slider
+              value={[value]}
+              min={0}
+              max={5}
+              step={0.1}
+              onValueChange={(next) => field.onChange(next[0] ?? 0)}
+              aria-label={`${label} 점수`}
+            />
+          </div>
+        );
+      }}
+    />
+  );
+}
+
+/* ── 로스팅 단계 칩 (§5-23 표준) ──────────────────────────────────────── */
+
+function RoastStageChips({
+  control,
+}: {
+  control: ReturnType<typeof useForm<FormValues>>['control'];
+}) {
+  return (
+    <Controller
+      name="roastStage"
+      control={control}
+      render={({ field }) => (
+        <div className="flex flex-wrap gap-2">
+          {ROAST_STAGE_OPTIONS.map((opt) => {
+            const active = field.value === opt.value;
+            const disabled = 'disabled' in opt && opt.disabled === true;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                data-slot="chip-radio"
+                disabled={disabled}
+                onClick={() => !disabled && field.onChange(opt.value)}
+                title={'hint' in opt ? opt.hint : undefined}
+                className={cn(
+                  'px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer transition-colors',
+                  active
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-transparent border-input text-foreground hover:bg-accent',
+                  disabled && 'opacity-50 cursor-not-allowed hover:bg-transparent',
+                )}
+                aria-pressed={active}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    />
+  );
+}
+
+/* ── Tag input (Enter / 쉼표 분리 · 라이브러리 미사용) ────────────────── */
+
+function parseTags(raw: string): string[] {
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+function TagInputField({
+  name,
+  control,
+  placeholder,
+}: {
+  name: 'noteTags' | 'noteTagsEn';
+  control: ReturnType<typeof useForm<FormValues>>['control'];
+  placeholder?: string;
+}) {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => {
+        const tags = parseTags(typeof field.value === 'string' ? field.value : '');
+        const [draft, setDraft] = useState('');
+        const commit = (next: string[]) => field.onChange(next.join(', '));
+        const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+          if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const value = draft.trim();
+            if (value && !tags.includes(value)) commit([...tags, value]);
+            setDraft('');
+          } else if (e.key === 'Backspace' && draft === '' && tags.length > 0) {
+            commit(tags.slice(0, -1));
+          }
+        };
+        return (
+          <div className="flex flex-wrap items-center gap-1.5 min-h-[34px] px-2 py-1 bg-[var(--surface)] border border-input rounded-md">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-accent text-foreground"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => commit(tags.filter((t) => t !== tag))}
+                  className="border-none bg-transparent cursor-pointer text-muted-foreground hover:text-foreground p-0 leading-none"
+                  aria-label={`${tag} 제거`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            <input
+              type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={tags.length === 0 ? placeholder : ''}
+              className="flex-1 min-w-[80px] border-none outline-none bg-transparent text-sm text-[var(--foreground)] p-0"
+            />
+          </div>
+        );
+      }}
     />
   );
 }

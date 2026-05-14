@@ -97,11 +97,12 @@ export async function toggleProductActiveAction(input: {
    3) UPDATE products SET ... WHERE id
    4) revalidateTag('products') + revalidatePath (admin + 메인 사이트)
 
-   범위 (basic 탭): name / category / status / displayPrice / sortOrder /
-                    color / subscription / popup / description
+   범위 (basic + detail 탭): name / category / status / displayPrice / sortOrder /
+                    color / subscription / popup / description /
+                    flavorDesc / roastStage / noteTags / noteTagsEn / noteColor /
+                    noteSweet / noteBody / noteAftertaste / noteAroma / noteAcidity
 
-   carry-over (detail/option/recipe 탭): specs / flavor_desc /
-   note_tags / note_tags_en / roast_stage / note_sweet/body/aftertaste/aroma/acidity
+   carry-over (option/recipe 탭): specs / product_volumes / product_recipes
    ══════════════════════════════════════════════════════════════════════════ */
 
 const ProductStatusEnum = z
@@ -111,6 +112,17 @@ const ProductStatusEnum = z
 const HexColorSchema = z
   .string()
   .regex(/^#[0-9A-Fa-f]{6}$/, '#RRGGBB 형식이어야 합니다');
+
+const RoastStageEnum = z.enum([
+  'light',
+  'medium-light',
+  'medium',
+  'medium-dark',
+  'dark',
+  'italian',
+]);
+
+const FlavorAxisSchema = z.number().min(0).max(5);
 
 const UpdateProductMetaSchema = z.object({
   id: z.string().uuid(),
@@ -124,6 +136,16 @@ const UpdateProductMetaSchema = z.object({
   subscription: z.boolean(),
   popup: z.boolean(),
   description: z.string().max(4000),
+  flavorDesc: z.string().max(200),
+  roastStage: RoastStageEnum,
+  noteTags: z.string().max(200),
+  noteTagsEn: z.string().max(200),
+  noteColor: HexColorSchema,
+  noteSweet: FlavorAxisSchema,
+  noteBody: FlavorAxisSchema,
+  noteAftertaste: FlavorAxisSchema,
+  noteAroma: FlavorAxisSchema,
+  noteAcidity: FlavorAxisSchema,
 });
 
 export type UpdateProductMetaInput = z.infer<typeof UpdateProductMetaSchema>;
@@ -168,6 +190,16 @@ export async function updateProductMetaAction(
       subscription: v.subscription,
       popup: v.popup,
       description: v.description,
+      flavor_desc: v.flavorDesc,
+      roast_stage: v.roastStage,
+      note_tags: v.noteTags,
+      note_tags_en: v.noteTagsEn,
+      note_color: v.noteColor,
+      note_sweet: v.noteSweet,
+      note_body: v.noteBody,
+      note_aftertaste: v.noteAftertaste,
+      note_aroma: v.noteAroma,
+      note_acidity: v.noteAcidity,
     })
     .eq('id', v.id)
     .select('id')
