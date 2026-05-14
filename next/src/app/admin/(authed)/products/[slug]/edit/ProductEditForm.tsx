@@ -1,21 +1,17 @@
 'use client';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   ProductEditForm — /admin/products/[slug]/edit 5탭 RHF 폼 (S218 Phase 1)
+   ProductEditForm — /admin/products/[slug]/edit 3탭 RHF 폼
 
-   범위 (이번 단계):
-   - 5탭 UI 구조 (basic 활성 / detail · option · shipping · seo 준비 중)
-   - basic 탭 필드: name / category / status / displayPrice / sortOrder /
-                    color / noteColor / subscription / popup
-   - slug 는 read-only (상품 상세 페이지 URL 변경 위험 — 신규 등록 시만 입력)
+   탭 구성 (S231 β · shipping/seo 제거 — 도메인 부재):
+   - basic   : name / category / status / displayPrice / sortOrder /
+               color / subscription / popup
+   - detail  : 5축 노트 + roast_stage + note_tags + flavor_desc
+   - option  : product_volumes (1:N) · product_recipes (Coffee Bean 만)
+
+   - slug 는 read-only (URL 변경 위험 — 신규 등록 시만 입력)
    - dirty 상태일 때만 저장 활성
    - onSubmit → updateProductMetaAction → sonner toast + revalidate
-
-   carry-over:
-   - detail (description / specs / note_tags / flavor_desc / roast_stage / flavor radar)
-   - option (product_volumes 1:N)
-   - recipe (product_recipes 1:N · Coffee Bean 만)
-   - shipping / seo
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { useState, useTransition } from 'react';
@@ -50,8 +46,6 @@ const TABS = [
   { id: 'basic', label: '기본 정보' },
   { id: 'detail', label: '상세 설명' },
   { id: 'option', label: '용량 / 옵션' },
-  { id: 'shipping', label: '배송' },
-  { id: 'seo', label: 'SEO' },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
