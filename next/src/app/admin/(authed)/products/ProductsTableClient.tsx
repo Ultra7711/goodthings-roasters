@@ -190,16 +190,9 @@ export default function ProductsTableClient({ rows }: Props) {
       </div>
 
       {/* 테이블 */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-          overflow: 'hidden',
-        }}
-      >
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead style={{ background: '#FAFAF9' }}>
+      <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
+        <table className="w-full border-collapse">
+          <thead style={{ background: 'var(--surface-muted)' }}>
             <tr>
               <th style={{ ...TH_STYLE, width: 56 }}>이미지</th>
               <th style={TH_STYLE}>상품</th>
@@ -296,11 +289,7 @@ function ProductRow({
   }
 
   return (
-    <tr
-      style={{
-        borderTop: isFirst ? 'none' : '1px solid var(--border)',
-      }}
-    >
+    <tr className={isFirst ? undefined : 'border-t border-border'}>
       <td style={TD_STYLE}>
         <Link
           href={editHref}

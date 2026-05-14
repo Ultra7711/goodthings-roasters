@@ -23,7 +23,8 @@
 | `(authed)/orders/[orderNumber]/ShippingDialog.tsx` | 🟢 완료 | Tailwind | S223 Phase 2-e |
 | `(authed)/users/UsersTableClient.tsx` | 🟢 완료 | Tailwind + TH/TD inline (carry) | S223 Phase 2-e |
 | `(authed)/users/[id]/UserDetailClient.tsx` | 🟢 완료 | Tailwind + TH/TD inline (carry) | S226 |
-| `(authed)/products/ProductsTableClient.tsx` | 🟢 완료 | Tailwind + TH/TD inline (carry) | S223 Phase 2-e |
+| `(authed)/products/ProductsTableClient.tsx` | 🟢 완료 | Tailwind + TH/TD inline (carry) | S223 Phase 2-e · S226 thead hex 정정 |
+| `(authed)/products/[slug]/edit/ProductImageReorderClient.tsx` | 🟢 완료 | Tailwind + thumb placeholder gradient inline (carry) | S226 |
 | `(authed)/products/new/page.tsx` | 📋 재기획 | AdminPlaceholder | S226 (mock UI ≠ 실 PDP 모델 — 재기획 carry-over) |
 | `(authed)/products/[slug]/edit/ProductEditForm.tsx` | 🟢 완료 | Tailwind + RHF carry (DEC-4) | S226 |
 | `(authed)/subscriptions/SubscriptionsTableClient.tsx` | 🟡 부분 | 테이블 정리됨 · Dialog 내부 미정리 | S225+ |
@@ -906,7 +907,8 @@ import { Trash2 } from 'lucide-react';
 ✅ CSS 변수 사용. 토큰 없으면 admin-theme.css에 먼저 추가.
 
 **잔존 위반 (정리 carry-over):**
-- `#FAFAF9` (Products thead bg) → `var(--surface-muted)`로 정리 필요
+- ~~`#FAFAF9` (Products thead bg)~~ → ✅ S226에 `var(--surface-muted)` 정정 완료
+- `#EEEDEB / #F5F4F2` (Products thumb placeholder gradient — admin 공통) → 토큰 신설 검토
 - `#FBF8F3` (Settings/CafeEvents iframe bg) → 토큰 신설 필요
 - `#fee2e2` (Subscriptions destructive-soft fallback) → `var(--danger-soft)`
 - `#888` (Badge dot neutral) → `var(--foreground-muted)` 권장

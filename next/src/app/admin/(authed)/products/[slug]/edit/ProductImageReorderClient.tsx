@@ -16,6 +16,7 @@ import Image from 'next/image';
 import { toast } from 'sonner';
 import { Button } from '@/components/admin/ui/button';
 import { reorderProductImagesAction } from '../../actions';
+import { cn } from '@/lib/utils';
 
 type ImageItem = {
   id: string;
@@ -84,13 +85,11 @@ export default function ProductImageReorderClient({
 
   return (
     <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-        gap: 12,
-        opacity: pending ? 0.7 : 1,
-        transition: 'opacity 0.15s ease',
-      }}
+      className={cn(
+        'grid gap-3 transition-opacity duration-150 ease',
+        pending ? 'opacity-70' : 'opacity-100',
+      )}
+      style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}
     >
       {images.map((img, idx) => {
         const isFeatured = idx === 0;
@@ -99,22 +98,15 @@ export default function ProductImageReorderClient({
         return (
           <div
             key={img.id}
-            style={{
-              border: isFeatured
-                ? '2px solid var(--primary)'
-                : '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              overflow: 'hidden',
-              background: 'var(--surface)',
-              position: 'relative',
-            }}
+            className={cn(
+              'rounded-[var(--radius-sm)] overflow-hidden bg-[var(--surface)] relative',
+              isFeatured ? 'border-2 border-[var(--primary)]' : 'border border-border',
+            )}
           >
             {/* 썸네일 */}
             <div
+              className="relative w-full aspect-square"
               style={{
-                position: 'relative',
-                width: '100%',
-                aspectRatio: '1 / 1',
                 background:
                   'repeating-linear-gradient(135deg, #EEEDEB 0 5px, #F5F4F2 5px 10px)',
               }}
@@ -131,7 +123,7 @@ export default function ProductImageReorderClient({
               {/* 대표 배지 */}
               {isFeatured && (
                 <span
-                  className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--primary)] text-white text-xs font-semibold"
+                  className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--primary)] !text-white text-xs font-semibold"
                   style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }}
                 >
                   <StarIcon />
@@ -139,25 +131,15 @@ export default function ProductImageReorderClient({
                 </span>
               )}
               {/* 순서 표시 */}
-              <span
-                className="absolute top-1.5 right-1.5 inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full text-white text-xs font-semibold tabular-nums"
-                style={{ background: 'rgba(0, 0, 0, 0.55)' }}
-              >
+              <span className="absolute top-1.5 right-1.5 inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-black/55 !text-white text-xs font-semibold tabular-nums">
                 {idx + 1}
               </span>
             </div>
 
             {/* 액션 영역 */}
-            <div
-              style={{
-                padding: 8,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6,
-              }}
-            >
+            <div className="p-2 flex flex-col gap-1.5">
               {/* 이동 버튼 */}
-              <div style={{ display: 'flex', gap: 4 }}>
+              <div className="flex gap-1">
                 <Button
                   type="button"
                   variant="outline"
