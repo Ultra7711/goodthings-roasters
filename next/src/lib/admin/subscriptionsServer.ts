@@ -22,6 +22,7 @@ import 'server-only';
 
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { summarizePgError } from './errors';
+import { type AdminListResult, applyRange } from './listHelpers';
 import {
   PAGE_SIZE,
   parseSearchParams,
@@ -53,12 +54,11 @@ type ProfileLookupRow = {
   display_name: string | null;
 };
 
-export type AdminSubscriptionsResult = {
-  rows: ListedSubscription[];
-  total: number;
-  counts: Record<StatusTabKey, number>;
-  filters: AdminSubscriptionsSearchParams;
-};
+export type AdminSubscriptionsResult = AdminListResult<
+  ListedSubscription,
+  StatusTabKey,
+  AdminSubscriptionsSearchParams
+>;
 
 /**
  * /admin/subscriptions 데이터 fetch.
@@ -104,15 +104,17 @@ export async function fetchAdminSubscriptions(
   };
 
   /* 2) 메인 쿼리 (status / q 필터 + 페이지네이션) */
-  const offset = (filters.page - 1) * PAGE_SIZE;
-  let query = supabase
-    .from('subscriptions')
-    .select(
-      'id, user_id, product_slug, product_name, product_volume, cycle, status, next_delivery_at, last_delivery_at, created_at',
-      { count: 'exact' },
-    )
-    .order('next_delivery_at', { ascending: true })
-    .range(offset, offset + PAGE_SIZE - 1);
+  let query = applyRange(
+    supabase
+      .from('subscriptions')
+      .select(
+        'id, user_id, product_slug, product_name, product_volume, cycle, status, next_delivery_at, last_delivery_at, created_at',
+        { count: 'exact' },
+      )
+      .order('next_delivery_at', { ascending: true }),
+    filters.page,
+    PAGE_SIZE,
+  );
 
   if (filters.status !== 'all') query = query.eq('status', filters.status);
 

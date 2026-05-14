@@ -16,6 +16,7 @@ import 'server-only';
 
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { summarizePgError } from './errors';
+import { type AdminListResult, applyRange, applyIlikeSearch } from './listHelpers';
 import {
   CANCELLED_GROUP,
   PAGE_SIZE,
@@ -88,12 +89,11 @@ export type OrderDetail = {
   adminNotes: string | null;
 };
 
-export type AdminOrdersResult = {
-  rows: ListedOrder[];
-  total: number;
-  counts: Record<StatusTabKey, number>;
-  filters: AdminOrdersSearchParams;
-};
+export type AdminOrdersResult = AdminListResult<
+  ListedOrder,
+  StatusTabKey,
+  AdminOrdersSearchParams
+>;
 
 type OrderItemRow = {
   product_name: string;
@@ -147,17 +147,19 @@ export async function fetchAdminOrders(
   };
 
   /* 2) orders + items 쿼리 */
-  const offset = (filters.page - 1) * PAGE_SIZE;
-  let query = supabase
-    .from('orders')
-    .select(
-      `id, order_number, created_at, contact_email, shipping_name,
-       total_amount, payment_method, status,
-       order_items ( product_name, product_volume, quantity )`,
-      { count: 'exact' },
-    )
-    .order('created_at', { ascending: false })
-    .range(offset, offset + PAGE_SIZE - 1);
+  let query = applyRange(
+    supabase
+      .from('orders')
+      .select(
+        `id, order_number, created_at, contact_email, shipping_name,
+         total_amount, payment_method, status,
+         order_items ( product_name, product_volume, quantity )`,
+        { count: 'exact' },
+      )
+      .order('created_at', { ascending: false }),
+    filters.page,
+    PAGE_SIZE,
+  );
 
   if (filters.status === 'new')             query = query.eq('status', 'paid');
   else if (filters.status === 'shipping')   query = query.eq('status', 'shipping');
@@ -170,12 +172,11 @@ export async function fetchAdminOrders(
 
   if (filters.payment !== 'all') query = query.eq('payment_method', filters.payment);
 
-  const qSafe = sanitizeSearchQuery(filters.q);
-  if (qSafe.length > 0) {
-    query = query.or(
-      `order_number.ilike.%${qSafe}%,contact_email.ilike.%${qSafe}%,shipping_name.ilike.%${qSafe}%`,
-    );
-  }
+  query = applyIlikeSearch(query, sanitizeSearchQuery(filters.q), [
+    'order_number',
+    'contact_email',
+    'shipping_name',
+  ]);
 
   const { data, count, error } = await query;
   if (error) {

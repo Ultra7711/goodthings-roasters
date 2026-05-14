@@ -17,6 +17,7 @@ import 'server-only';
 
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { summarizePgError } from './errors';
+import { type AdminListResult, applyRange, applyIlikeSearch } from './listHelpers';
 import {
   PAGE_SIZE,
   parseSearchParams,
@@ -42,12 +43,11 @@ type ProfileRow = {
   created_at: string;
 };
 
-export type AdminUsersResult = {
-  rows: ListedUser[];
-  total: number;
-  counts: Record<RoleTabKey, number>;
-  filters: AdminUsersSearchParams;
-};
+export type AdminUsersResult = AdminListResult<
+  ListedUser,
+  RoleTabKey,
+  AdminUsersSearchParams
+>;
 
 /**
  * /admin/users 데이터 fetch.
@@ -98,23 +98,24 @@ export async function fetchAdminUsers(
   };
 
   /* 2) 메인 쿼리 (role / q 필터 + 페이지네이션) */
-  const offset = (filters.page - 1) * PAGE_SIZE;
-  let query = supabase
-    .from('profiles')
-    .select('id, email, full_name, display_name, role, created_at', {
-      count: 'exact',
-    })
-    .order('created_at', { ascending: false })
-    .range(offset, offset + PAGE_SIZE - 1);
+  let query = applyRange(
+    supabase
+      .from('profiles')
+      .select('id, email, full_name, display_name, role, created_at', {
+        count: 'exact',
+      })
+      .order('created_at', { ascending: false }),
+    filters.page,
+    PAGE_SIZE,
+  );
 
   if (filters.role !== 'all') query = query.eq('role', filters.role);
 
-  const qSafe = sanitizeSearchQuery(filters.q);
-  if (qSafe.length > 0) {
-    query = query.or(
-      `email.ilike.%${qSafe}%,full_name.ilike.%${qSafe}%,display_name.ilike.%${qSafe}%`,
-    );
-  }
+  query = applyIlikeSearch(query, sanitizeSearchQuery(filters.q), [
+    'email',
+    'full_name',
+    'display_name',
+  ]);
 
   const { data, count, error } = await query;
   if (error) {
