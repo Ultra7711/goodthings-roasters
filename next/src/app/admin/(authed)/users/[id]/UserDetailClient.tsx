@@ -50,6 +50,7 @@ import {
   revokeAdminAction,
   type UserRoleActionResult,
 } from '../actions';
+import { cn } from '@/lib/utils';
 
 type Props = {
   profile: UserDetailProfile;
@@ -71,10 +72,11 @@ const STATUS_TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> 
   primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)', dot: 'var(--primary)' },
 };
 
+/* TH/TD inline — design.md §5-3 표준 (shadcn Table 마이그 carry-over) */
 const TH_STYLE: React.CSSProperties = {
   textAlign: 'left',
-  padding: '10px 14px',
-  fontSize: 11,
+  padding: '12px 16px',
+  fontSize: 12,
   fontWeight: 500,
   letterSpacing: '0.04em',
   textTransform: 'uppercase',
@@ -82,30 +84,15 @@ const TH_STYLE: React.CSSProperties = {
 };
 
 const TD_STYLE: React.CSSProperties = {
-  padding: '11px 14px',
+  padding: '12px 16px',
   verticalAlign: 'middle',
 };
 
-/* S222 PR-5: ADMIN_BTN_* + ADMIN_TEXTAREA_STYLE 폐기 (shadcn Button + Textarea 으로 대체). */
+const CARD_CLASS =
+  'bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden';
 
-const CARD_STYLE: React.CSSProperties = {
-  background: 'var(--surface)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius)',
-  padding: 0,
-  overflow: 'hidden',
-};
-
-const CARD_HEADER_STYLE: React.CSSProperties = {
-  padding: '14px 18px',
-  borderBottom: '1px solid var(--border)',
-  fontSize: 13,
-  fontWeight: 500,
-  color: 'var(--foreground)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-};
+const CARD_HEADER_CLASS =
+  'px-6 py-4 border-b border-border flex items-center justify-between text-sm font-medium text-foreground';
 
 export default function UserDetailClient({
   profile,
@@ -158,27 +145,11 @@ export default function UserDetailClient({
   return (
     <>
       {/* 헤더 */}
-      <div
-        style={{
-          marginBottom: 18,
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'space-between',
-          gap: 12,
-        }}
-      >
-        <div style={{ minWidth: 0 }}>
+      <div className="mb-4 flex items-end justify-between gap-3 min-w-0">
+        <div className="min-w-0">
           <Link
             href="/admin/users"
-            style={{
-              fontSize: 12,
-              color: 'var(--foreground-muted)',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              marginBottom: 6,
-            }}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground no-underline mb-1.5"
           >
             <svg
               width="12"
@@ -194,22 +165,11 @@ export default function UserDetailClient({
             </svg>
             고객 목록
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: 24,
-                fontWeight: 500,
-                letterSpacing: '-0.02em',
-              }}
-            >
-              {name}
-            </h2>
+          <div className="flex items-center gap-2.5">
+            <h2 className="m-0 text-2xl font-medium tracking-tight">{name}</h2>
             <RoleBadge tone={role.tone}>{role.label}</RoleBadge>
           </div>
-          <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
-            {profile.email}
-          </div>
+          <div className="mt-1 text-sm text-muted-foreground">{profile.email}</div>
         </div>
 
         {/* 역할 변경 버튼 — self 면 disabled + tooltip */}
@@ -217,6 +177,7 @@ export default function UserDetailClient({
           type="button"
           variant={intent === 'grant' ? 'default' : 'outline'}
           size="sm"
+          className="!h-7"
           onClick={openDialog}
           disabled={isSelf}
           title={isSelf ? '본인 계정은 SQL 로 직접 변경하세요' : undefined}
@@ -225,28 +186,18 @@ export default function UserDetailClient({
         </Button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="flex flex-col gap-4">
         {/* 카드 1: 프로필 */}
-        <section style={CARD_STYLE}>
-          <header style={CARD_HEADER_STYLE}>
+        <section className={CARD_CLASS}>
+          <header className={CARD_HEADER_CLASS}>
             <span>프로필</span>
           </header>
           <dl
-            style={{
-              margin: 0,
-              padding: '14px 18px',
-              display: 'grid',
-              gridTemplateColumns: '120px 1fr',
-              rowGap: 10,
-              columnGap: 16,
-              fontSize: 13,
-            }}
+            className="m-0 px-4 py-3 grid gap-y-2.5 gap-x-4 text-sm"
+            style={{ gridTemplateColumns: '120px 1fr' }}
           >
             <DefRow label="ID">
-              <span
-                className="gtr-mono"
-                style={{ fontSize: 12, color: 'var(--foreground-muted)' }}
-              >
+              <span className="gtr-mono text-xs text-muted-foreground">
                 {profile.id}
               </span>
             </DefRow>
@@ -260,33 +211,21 @@ export default function UserDetailClient({
         </section>
 
         {/* 카드 2: 주문 */}
-        <section style={CARD_STYLE}>
-          <header style={CARD_HEADER_STYLE}>
+        <section className={CARD_CLASS}>
+          <header className={CARD_HEADER_CLASS}>
             <span>주문 내역</span>
-            <span style={{ fontSize: 12, color: 'var(--foreground-muted)', fontWeight: 400 }}>
+            <span className="text-xs text-muted-foreground font-normal">
               최근 {orders.length}건
             </span>
           </header>
           {orders.length === 0 ? (
-            <div
-              style={{
-                padding: '32px 16px',
-                textAlign: 'center',
-                fontSize: 13,
-                color: 'var(--foreground-muted)',
-              }}
-            >
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
               주문 내역이 없습니다.
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <table className="w-full border-collapse text-sm">
               <thead>
-                <tr
-                  style={{
-                    background: 'var(--surface-muted)',
-                    color: 'var(--foreground-muted)',
-                  }}
-                >
+                <tr style={{ background: 'var(--surface-muted)', color: 'var(--foreground-muted)' }}>
                   <th style={TH_STYLE}>주문번호</th>
                   <th style={TH_STYLE}>주문일시</th>
                   <th style={TH_STYLE}>상태</th>
@@ -299,29 +238,19 @@ export default function UserDetailClient({
                   return (
                     <tr
                       key={o.id}
-                      style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)' }}
+                      className={cn(i !== 0 && 'border-t border-border')}
                     >
                       <td style={TD_STYLE}>
                         <Link
                           href={`/admin/orders/${o.orderNumber}`}
-                          className="gtr-mono"
-                          style={{
-                            fontSize: 12,
-                            color: 'var(--primary)',
-                            fontWeight: 500,
-                            textDecoration: 'none',
-                          }}
+                          className="gtr-mono text-xs text-[var(--primary)] font-medium no-underline"
                         >
                           {o.orderNumber}
                         </Link>
                       </td>
                       <td
-                        style={{
-                          ...TD_STYLE,
-                          color: 'var(--foreground-muted)',
-                          fontSize: 12,
-                          fontVariantNumeric: 'tabular-nums',
-                        }}
+                        style={TD_STYLE}
+                        className="text-xs text-muted-foreground tabular-nums"
                       >
                         {formatKstDateTime(o.createdAtIso)}
                       </td>
@@ -329,12 +258,8 @@ export default function UserDetailClient({
                         <StatusBadge tone={s.tone}>{s.label}</StatusBadge>
                       </td>
                       <td
-                        style={{
-                          ...TD_STYLE,
-                          textAlign: 'right',
-                          fontVariantNumeric: 'tabular-nums',
-                          fontWeight: 500,
-                        }}
+                        style={{ ...TD_STYLE, textAlign: 'right' }}
+                        className="text-sm font-medium tabular-nums"
                       >
                         {o.totalAmount.toLocaleString()}원
                       </td>
@@ -348,24 +273,24 @@ export default function UserDetailClient({
 
         {/* 역할 변경 다이얼로그 */}
         <Dialog open={dialogOpen} onOpenChange={(o) => (o ? setDialogOpen(true) : closeDialog())}>
-          <DialogContent style={{ padding: 24, maxWidth: 480 }}>
-            <DialogHeader>
-              <DialogTitle>
+          <DialogContent className="max-w-[480px] p-0 gap-0">
+            <DialogHeader className="px-6 pt-5 pb-0">
+              <DialogTitle className="text-base font-medium">
                 {intent === 'grant' ? '운영자 승격' : '운영자 해제'}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-xs mt-1">
                 {intent === 'grant'
                   ? `${profile.email} 을(를) 운영자로 승격합니다. 사유는 admin_audit 에 기록됩니다.`
                   : `${profile.email} 의 운영자 권한을 해제합니다. 사유는 admin_audit 에 기록됩니다.`}
               </DialogDescription>
             </DialogHeader>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className="px-6 py-5 flex flex-col gap-1.5">
               <label
                 htmlFor="role-change-reason"
-                style={{ fontSize: 12, color: 'var(--foreground-muted)' }}
+                className="text-xs text-muted-foreground"
               >
-                사유 <span style={{ color: 'var(--foreground-subtle)' }}>(선택, 최대 500자)</span>
+                사유 <span className="text-[var(--foreground-subtle)]">(선택, 최대 500자)</span>
               </label>
               <Textarea
                 id="role-change-reason"
@@ -375,21 +300,17 @@ export default function UserDetailClient({
                 placeholder={intent === 'grant' ? '예: 신규 운영자 합류' : '예: 권한 해제 요청'}
                 rows={4}
               />
-              <div
-                style={{
-                  fontSize: 11,
-                  color: 'var(--foreground-subtle)',
-                  textAlign: 'right',
-                }}
-              >
+              <div className="text-xs text-[var(--foreground-subtle)] text-right">
                 {reason.length} / 500
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="px-6 pb-5 gap-2">
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
+                className="!h-7"
                 onClick={closeDialog}
                 disabled={isPending}
               >
@@ -398,6 +319,8 @@ export default function UserDetailClient({
               <Button
                 type="button"
                 variant={intent === 'grant' ? 'default' : 'destructive'}
+                size="sm"
+                className="!h-7"
                 onClick={submit}
                 disabled={isPending}
               >
@@ -408,33 +331,21 @@ export default function UserDetailClient({
         </Dialog>
 
         {/* 카드 3: 역할 변경 이력 (admin_audit) */}
-        <section style={CARD_STYLE}>
-          <header style={CARD_HEADER_STYLE}>
+        <section className={CARD_CLASS}>
+          <header className={CARD_HEADER_CLASS}>
             <span>역할 변경 이력</span>
-            <span style={{ fontSize: 12, color: 'var(--foreground-muted)', fontWeight: 400 }}>
+            <span className="text-xs text-muted-foreground font-normal">
               {audit.length}건
             </span>
           </header>
           {audit.length === 0 ? (
-            <div
-              style={{
-                padding: '32px 16px',
-                textAlign: 'center',
-                fontSize: 13,
-                color: 'var(--foreground-muted)',
-              }}
-            >
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
               역할 변경 이력이 없습니다.
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <table className="w-full border-collapse text-sm">
               <thead>
-                <tr
-                  style={{
-                    background: 'var(--surface-muted)',
-                    color: 'var(--foreground-muted)',
-                  }}
-                >
+                <tr style={{ background: 'var(--surface-muted)', color: 'var(--foreground-muted)' }}>
                   <th style={TH_STYLE}>액션</th>
                   <th style={TH_STYLE}>실행자</th>
                   <th style={TH_STYLE}>사유</th>
@@ -445,34 +356,27 @@ export default function UserDetailClient({
                 {audit.map((a, i) => (
                   <tr
                     key={a.id}
-                    style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)' }}
+                    className={cn(i !== 0 && 'border-t border-border')}
                   >
                     <td style={TD_STYLE}>
                       <ActionBadge action={a.action} />
                     </td>
-                    <td style={{ ...TD_STYLE, color: 'var(--foreground-muted)' }}>
+                    <td style={TD_STYLE} className="text-sm text-muted-foreground">
                       {a.actorEmail ?? <Dim>—</Dim>}
                     </td>
                     <td
-                      style={{
-                        ...TD_STYLE,
-                        color: a.reason ? 'var(--foreground)' : 'var(--foreground-subtle)',
-                        maxWidth: 360,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
+                      style={{ ...TD_STYLE, maxWidth: 360 }}
+                      className={cn(
+                        'text-sm overflow-hidden text-ellipsis whitespace-nowrap',
+                        a.reason ? 'text-foreground' : 'text-[var(--foreground-subtle)]',
+                      )}
                       title={a.reason ?? undefined}
                     >
                       {a.reason ?? '—'}
                     </td>
                     <td
-                      style={{
-                        ...TD_STYLE,
-                        color: 'var(--foreground-muted)',
-                        fontSize: 12,
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
+                      style={TD_STYLE}
+                      className="text-xs text-muted-foreground tabular-nums"
                     >
                       {formatAuditTimestamp(a.createdAtIso)}
                     </td>
@@ -492,14 +396,14 @@ export default function UserDetailClient({
 function DefRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <>
-      <dt style={{ color: 'var(--foreground-muted)', fontSize: 12 }}>{label}</dt>
-      <dd style={{ margin: 0, color: 'var(--foreground)' }}>{children}</dd>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="m-0 text-foreground">{children}</dd>
     </>
   );
 }
 
 function Dim({ children }: { children: React.ReactNode }) {
-  return <span style={{ color: 'var(--foreground-subtle)' }}>{children}</span>;
+  return <span className="text-[var(--foreground-subtle)]">{children}</span>;
 }
 
 /* S222 PR-5: 3 Badge 변종 모두 shadcn Badge variant=outline + tone soft style override (DEC-2). */
