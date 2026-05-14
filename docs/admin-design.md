@@ -1283,22 +1283,16 @@ import { listProductsAdmin } from '@/lib/admin/productsServer';
 
 ---
 
-## 13. 다음 Sprint 카탈로그 (S228~S231)
+## 13. Sprint 카탈로그 + 진행 추적
 
-상세: `memory/project_admin_ui_unification_plan.md`
+> **SoT 이동:** sprint 카탈로그 + 진행 추적은 **`docs/admin-implementation-plan.md`** 가 마스터 (S230 통합).
+> 본 §13 = DEC 잠금 + ADR 참조 만 유지 (디자인/구조 결정 reference).
 
-| Sprint | 범위 | 추정 | Agent / Skill |
-|---|---|---|---|
-| ~~S227 (Phase 1)~~ | ✅ 완료 — Architecture audit + 6 컴포넌트 추출 + lib/admin/errors + productsServer 분리 | — | mattpocock `diagnose`/`improve-codebase-architecture`/`zoom-out` 적용 |
-| **S228~S229 (Phase 2)** | 페이지별 적용 (테이블 4종 PR-A / 상세 PR-B / 단일 PR-C) | 24~32h | `code-reviewer` + `tdd-guide` |
-| ~~별 PR (S228 carry-over)~~ | ✅ **S229 변경** — DEC-17 풀 factory 폐기 → `lib/admin/listHelpers.ts` (AdminListResult + applyRange + applyIlikeSearch) 추출 (`afbb82f4`) | 1~2h | `mattpocock/diagnose` 적용 (재진단) |
-| **S230 (Phase 3)** | 잘못 구현 fix 일괄 — §7-3 hex Type 1+2 / ProductEditForm 탭 결정 / Topbar 정책 / lib 누락 2종 (cafeEvents/settings) | 8~12h | `refactor-cleaner` + `type-design-analyzer` |
-| **S231 (Phase 4)** | products/new 재기획 (실 PDP 모델 + RHF + create mode) | 12~16h | `planner` + `code-architect` + mattpocock `grill-with-docs` |
-| **별 (Phase 5)** | improve-codebase-architecture 최종 refactor (ADR-009 sweep audit) | 8~10h | `code-architect` + `zoom-out` |
+📄 **마스터 plan:** [admin-implementation-plan.md](./admin-implementation-plan.md)
+📄 **architecture audit:** `memory/project_admin_architecture_audit.md`
+📄 **UI 통일 마스터:** `memory/project_admin_ui_unification_plan.md`
 
-**총 4 sprints + 2 별 PR · ~58~78h · 3 주 작업 단위 (S227 완료 후 잔여)**
-
-### Plan 잠금 (DEC-8~17)
+### Plan 잠금 (DEC-8~18)
 
 | DEC | 내용 | 상태 |
 |---|---|---|
