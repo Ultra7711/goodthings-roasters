@@ -359,10 +359,10 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
                   key={tab.key}
                   type="button"
                   onClick={() => setActiveSection(tab.key)}
-                  className={`px-3 py-2 text-sm bg-transparent cursor-pointer -mb-px border-b-2 ${
+                  className={`px-3 py-2 text-sm font-medium bg-transparent cursor-pointer -mb-px border-b-2 ${
                     active
-                      ? 'font-medium text-foreground border-[var(--primary)]'
-                      : 'font-normal text-muted-foreground border-transparent'
+                      ? 'text-foreground border-[var(--primary)]'
+                      : 'text-muted-foreground border-transparent'
                   }`}
                 >
                   {tab.label}
