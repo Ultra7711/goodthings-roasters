@@ -122,8 +122,17 @@ export const SignatureSettingsSchema = z.object({
   title: z.string().trim().max(40).default(''),
   /** 본문 1~2줄 호명 카피. advisory §4.3 max-width 340 한 줄 18~22자 */
   subtitle: z.string().trim().max(160).default(''),
-  /** 플레이버 chip 3~4개. advisory §5.1 최대 4 권장 3 */
-  flavor_chips: z.array(z.string().trim().max(20)).max(4).default([]),
+  /** 플레이버 chip 3~4개. advisory §5.1 최대 4 권장 3. {ko, en} 쌍 — en 생략 가능. */
+  flavor_chips: z
+    .array(
+      z.union([
+        z.object({ ko: z.string().trim().max(20), en: z.string().trim().max(30).default('') }),
+        /* 구버전 string[] 호환 */
+        z.string().trim().max(20).transform((s) => ({ ko: s, en: '' })),
+      ]),
+    )
+    .max(4)
+    .default([]),
   image_path: z.string().trim().max(500).default(''),
   image_alt: z.string().trim().max(120).default(''),
 });

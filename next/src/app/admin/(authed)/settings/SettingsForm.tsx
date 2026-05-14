@@ -648,7 +648,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
 
               <FormField
                 label="플레이버 chip"
-                hint="최대 4개 · 권장 3개 · Tasting Notes 자동 가져오기 사용 권장"
+                hint="최대 4개 · 권장 3개 · 영문 생략 가능 (예: 복숭아 / Peach)"
               >
                 <div className="flex flex-col gap-1.5">
                   <div className="flex gap-1.5 flex-wrap">
@@ -659,10 +659,13 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                     ) : (
                       settings.signature.flavor_chips.map((chip, i) => (
                         <span
-                          key={`${chip}-${i}`}
+                          key={`${chip.ko}-${i}`}
                           className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-[3px] text-xs bg-[var(--surface-muted)] border border-border rounded-full text-[var(--foreground)]"
                         >
-                          {chip}
+                          {chip.ko}
+                          {chip.en && (
+                            <span className="text-muted-foreground">{chip.en}</span>
+                          )}
                           <button
                             type="button"
                             onClick={() =>
@@ -672,7 +675,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                                 ),
                               })
                             }
-                            aria-label={`${chip} 삭제`}
+                            aria-label={`${chip.ko} 삭제`}
                             className="size-[18px] rounded-full border-0 bg-transparent text-muted-foreground cursor-pointer text-sm p-0 inline-flex items-center justify-center leading-none"
                           >
                             ×
@@ -683,18 +686,18 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   </div>
                   <div className="flex gap-1.5">
                     <FormInput
-                      placeholder="예: 복숭아 · 살구 · 시럽"
-                      maxLength={20}
+                      placeholder="예: 복숭아 / Peach  (영문 생략 가능)"
+                      maxLength={55}
                       onKeyDown={(e) => {
                         if (e.key !== 'Enter') return;
                         e.preventDefault();
                         const target = e.currentTarget;
-                        const value = target.value.trim();
-                        if (!value) return;
+                        const chip = parseChipInput(target.value);
+                        if (!chip) return;
                         if (settings.signature.flavor_chips.length >= 4) return;
-                        if (settings.signature.flavor_chips.includes(value)) return;
+                        if (settings.signature.flavor_chips.some((c) => c.ko === chip.ko)) return;
                         updateSignature({
-                          flavor_chips: [...settings.signature.flavor_chips, value],
+                          flavor_chips: [...settings.signature.flavor_chips, chip],
                         });
                         target.value = '';
                       }}
@@ -971,8 +974,8 @@ function composeEyebrow(season: QuarterLabel, year: number): string {
   return `Signature · ${year} ${season}`;
 }
 
-/** SignatureSettings → /preview/signature URL. URLSearchParams 가 자동 encode.
-    chips 는 '|' 구분 (chip 안에 '|' 들어가지 않는다 가정). */
+/** SignatureSettings → /preview/signature URL.
+    chips: 'ko:en|ko:en' 형식 — ':' 로 ko/en 분리, '|' 로 chip 분리. */
 function buildPreviewSrc(s: SignatureSettings): string {
   const params = new URLSearchParams({
     enabled: String(s.enabled),
@@ -980,22 +983,32 @@ function buildPreviewSrc(s: SignatureSettings): string {
     product_slug: s.product_slug,
     title: s.title,
     subtitle: s.subtitle,
-    chips: s.flavor_chips.join('|'),
+    chips: s.flavor_chips.map((c) => `${c.ko}:${c.en}`).join('|'),
     image_path: s.image_path,
     image_alt: s.image_alt,
   });
   return `/preview/signature?${params.toString()}`;
 }
 
-/** coffeeBeans 의 noteTags ("a | b | c | d") → chip 배열. 최대 3개 권장 (advisory §5.1). */
-function extractTastingNotes(slug: string, beansList: Product[]): string[] {
+/** "복숭아 / Peach" 또는 "복숭아" → {ko, en} 파싱. ko 없으면 null. */
+function parseChipInput(raw: string): { ko: string; en: string } | null {
+  const slashIdx = raw.indexOf('/');
+  if (slashIdx === -1) {
+    const ko = raw.trim();
+    return ko ? { ko, en: '' } : null;
+  }
+  const ko = raw.slice(0, slashIdx).trim();
+  const en = raw.slice(slashIdx + 1).trim();
+  return ko ? { ko, en } : null;
+}
+
+/** coffeeBeans 의 noteTags + noteTagsEn → {ko, en}[] 최대 3개 (advisory §5.1). */
+function extractTastingNotes(slug: string, beansList: Product[]): Array<{ ko: string; en: string }> {
   const product = beansList.find((p) => p.slug === slug);
   if (!product) return [];
-  return product.noteTags
-    .split(' | ')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 3);
+  const kos = product.noteTags.split(' | ').map((s) => s.trim()).filter(Boolean);
+  const ens = product.noteTagsEn.split(' | ').map((s) => s.trim());
+  return kos.slice(0, 3).map((ko, i) => ({ ko, en: ens[i] ?? '' }));
 }
 
 function describeUploadError(error: string, detail?: string): string {

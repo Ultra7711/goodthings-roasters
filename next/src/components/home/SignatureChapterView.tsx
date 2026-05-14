@@ -40,14 +40,13 @@ export default function SignatureChapterView({
   /* 빈 상태 4~5 — fallback 으로 처리, chapter 는 표시 */
   const title = signature.title || product.name;
   const subtitle = signature.subtitle || product.desc.split('\n')[0];
-  /* settings.flavor_chips 우선 · 비어 있으면 product.noteTags fallback.
-     커스텀 chip 은 한국어만 → En 레이블 없음. */
+  /* settings.flavor_chips 우선 · 비어 있으면 product.noteTags fallback. */
   const useCustomChips = signature.flavor_chips.length > 0;
   const chipKo = useCustomChips
-    ? signature.flavor_chips
+    ? signature.flavor_chips.map((c) => c.ko)
     : product.noteTags.split(/\s*\|\s*/).filter(Boolean);
   const chipEn = useCustomChips
-    ? []
+    ? signature.flavor_chips.map((c) => c.en)
     : product.noteTagsEn.split(/\s*\|\s*/).filter(Boolean);
   const href = `/shop/${product.slug}`;
 

@@ -41,7 +41,7 @@ export default async function PreviewSignaturePage({
   const params = await searchParams;
 
   /* URL 파라미터 → SignatureSettings 파싱.
-     chips 는 '|' 구분 문자열 (chip 안에 '|' 들어가지 않는다 가정). */
+     chips 는 'ko:en|ko:en' 형식 — ':' 로 ko/en 분리, '|' 로 chip 분리. */
   const chipsRaw = asString(params.chips);
   const parsed = SignatureSettingsSchema.safeParse({
     enabled: asString(params.enabled) === 'true',
@@ -50,7 +50,11 @@ export default async function PreviewSignaturePage({
     title: asString(params.title),
     subtitle: asString(params.subtitle),
     flavor_chips: chipsRaw
-      ? chipsRaw.split('|').map((s) => s.trim()).filter(Boolean)
+      ? chipsRaw.split('|').map((pair) => {
+          const idx = pair.indexOf(':');
+          if (idx === -1) return { ko: pair.trim(), en: '' };
+          return { ko: pair.slice(0, idx).trim(), en: pair.slice(idx + 1).trim() };
+        }).filter((c) => c.ko)
       : [],
     image_path: asString(params.image_path),
     image_alt: asString(params.image_alt),
