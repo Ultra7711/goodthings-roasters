@@ -401,13 +401,14 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                           <button
                             key={t}
                             type="button"
+                            data-slot="chip-radio"
                             onClick={() => handleTypeChange(t)}
                             aria-pressed={sel}
                             className={cn(
-                              'px-3 py-1.5 !text-xs rounded-md border cursor-pointer',
+                              'px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer',
                               sel
-                                ? 'bg-[var(--primary-soft)] !text-[var(--primary)] border-[var(--primary)] font-medium'
-                                : 'bg-[var(--surface)] text-foreground border-border font-normal',
+                                ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
+                                : 'bg-[var(--surface)] text-foreground border-border',
                             )}
                           >
                             {TYPE_LABELS[t]}
@@ -822,13 +823,14 @@ function PreviewPane({
               <button
                 key={opt.key}
                 type="button"
+                data-slot="chip-radio"
                 onClick={() => onSelectBrk(opt.key)}
                 aria-pressed={sel}
                 className={cn(
-                  'px-3 py-1.5 !text-xs rounded-md border cursor-pointer whitespace-nowrap',
+                  'px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer whitespace-nowrap',
                   sel
-                    ? 'bg-[var(--primary-soft)] !text-[var(--primary)] border-[var(--primary)] font-medium'
-                    : 'bg-[var(--surface)] text-foreground border-border font-normal',
+                    ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
+                    : 'bg-[var(--surface)] text-foreground border-border',
                 )}
               >
                 {opt.label}{' '}

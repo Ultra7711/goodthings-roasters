@@ -584,13 +584,14 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                       <button
                         key={q}
                         type="button"
+                        data-slot="chip-radio"
                         onClick={() => updateSignature({ eyebrow: composed })}
                         aria-pressed={sel}
                         className={cn(
-                          'px-3 py-1.5 !text-xs rounded-md border cursor-pointer',
+                          'px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer',
                           sel
-                            ? 'bg-[var(--primary-soft)] !text-[var(--primary)] border-[var(--primary)] font-medium'
-                            : 'bg-[var(--surface)] text-foreground border-border font-normal',
+                            ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
+                            : 'bg-[var(--surface)] text-foreground border-border',
                         )}
                       >
                         {q} · {year}
@@ -828,13 +829,14 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   <button
                     key={opt.key}
                     type="button"
+                    data-slot="chip-radio"
                     onClick={() => setPreviewBrk(opt.key)}
                     aria-pressed={sel}
                     className={cn(
-                      'px-3 py-1.5 !text-xs rounded-md border cursor-pointer whitespace-nowrap',
+                      'px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer whitespace-nowrap',
                       sel
-                        ? 'bg-[var(--primary-soft)] !text-[var(--primary)] border-[var(--primary)] font-medium'
-                        : 'bg-[var(--surface)] text-foreground border-border font-normal',
+                        ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
+                        : 'bg-[var(--surface)] text-foreground border-border',
                     )}
                   >
                     {opt.label}{' '}

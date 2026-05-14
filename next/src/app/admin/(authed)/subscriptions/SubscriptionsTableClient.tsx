@@ -542,20 +542,21 @@ function CycleSection({
       <div className="flex gap-2">
         {SUBSCRIPTION_CYCLES.map((c) => {
           const selected = c === newCycle;
-          /* 칩 울렁거림 fix — default 의 border 0 ↔ outline 의 border 1px 시각 변동 회피.
-             selected 시에도 transparent border + shadow-xs 강제로 height 통일. */
           return (
-            <Button
+            <button
               key={c}
               type="button"
-              variant={selected ? 'default' : 'outline'}
-              size="sm"
+              data-slot="chip-radio"
               onClick={() => setNewCycle(c)}
               disabled={isPending}
-              className={`flex-1 border shadow-xs ${selected ? 'border-transparent' : 'border-input'}`}
+              className={`flex-1 px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                selected
+                  ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
+                  : 'bg-[var(--surface)] text-foreground border-border'
+              }`}
             >
               {c}
-            </Button>
+            </button>
           );
         })}
       </div>
@@ -697,19 +698,21 @@ function StatusSection({
           <div className="flex gap-2">
             {availableActions.map((a) => {
               const selected = a.id === selectedAction;
-              /* 칩 울렁거림 fix — border + shadow-xs 양쪽 자리 확보. */
               return (
-                <Button
+                <button
                   key={a.id}
                   type="button"
-                  variant={selected ? 'default' : 'outline'}
-                  size="sm"
+                  data-slot="chip-radio"
                   onClick={() => setSelectedAction(a.id)}
                   disabled={isPending}
-                  className={`flex-1 border shadow-xs ${selected ? 'border-transparent' : 'border-input'}`}
+                  className={`flex-1 px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                    selected
+                      ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
+                      : 'bg-[var(--surface)] text-foreground border-border'
+                  }`}
                 >
                   {a.label}
-                </Button>
+                </button>
               );
             })}
           </div>
