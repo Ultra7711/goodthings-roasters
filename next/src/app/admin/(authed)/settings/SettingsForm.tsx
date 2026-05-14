@@ -32,16 +32,10 @@ import { uploadSeasonBanner } from '@/lib/admin/uploadSeasonBanner';
 import { uploadSignatureImage } from '@/lib/admin/uploadSignatureImage';
 import { FlavorChipInput } from '@/components/admin/FlavorChipInput';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/admin/ui/select';
+  ADMIN_SELECT_CLASS,
+  NativeSelectWrap,
+} from '@/components/admin/NativeSelectWrap';
 import type { Product } from '@/lib/products';
-
-/** Radix Select 는 SelectItem value="" 비허용 — 빈 슬러그 sentinel. */
-const PRODUCT_NONE_VALUE = '__none__';
 import {
   saveSiteSettingsAction,
   type SaveSettingsInput,
@@ -617,26 +611,21 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 label="제품 (Coffee Bean)"
                 hint="시그니처에 호명할 원두 1종 — 빈 값 시 chapter 자동 hide"
               >
-                <Select
-                  value={settings.signature.product_slug || PRODUCT_NONE_VALUE}
-                  onValueChange={(v) =>
-                    updateSignature({
-                      product_slug: v === PRODUCT_NONE_VALUE ? '' : v,
-                    })
-                  }
+                <NativeSelectWrap>
+                <select
+                  value={settings.signature.product_slug}
+                  onChange={(e) => updateSignature({ product_slug: e.target.value })}
+                  className={ADMIN_SELECT_CLASS}
+                  style={{ fontFamily: 'inherit' }}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="— 선택 —" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={PRODUCT_NONE_VALUE}>— 선택 —</SelectItem>
-                    {coffeeBeans.map((p) => (
-                      <SelectItem key={p.slug} value={p.slug}>
-                        {p.name} ({p.slug})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="">— 선택 —</option>
+                  {coffeeBeans.map((p) => (
+                    <option key={p.slug} value={p.slug}>
+                      {p.name} ({p.slug})
+                    </option>
+                  ))}
+                </select>
+                </NativeSelectWrap>
               </FormField>
 
               <FormField label="제목 (한국어 제품명)" hint="최대 40자">
