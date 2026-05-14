@@ -417,7 +417,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                             className={cn(
                               'px-3 py-[5px] text-xs font-medium rounded-full border cursor-pointer font-[inherit]',
                               sel
-                                ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                                ? 'bg-[var(--primary)] !text-white border-[var(--primary)]'
                                 : 'bg-[var(--surface)] text-[var(--foreground-muted)] border-border',
                             )}
                           >
@@ -815,7 +815,7 @@ function PreviewPane({
                 className={cn(
                   'px-[10px] py-1 text-[11.5px] font-medium rounded-md border cursor-pointer font-[inherit] whitespace-nowrap',
                   sel
-                    ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                    ? 'bg-[var(--primary)] !text-white border-[var(--primary)]'
                     : 'bg-[var(--surface)] text-[var(--foreground-muted)] border-border',
                 )}
               >
