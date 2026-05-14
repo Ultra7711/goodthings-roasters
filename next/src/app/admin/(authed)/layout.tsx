@@ -51,10 +51,10 @@ async function AdminAuthedInner({ children }: { children: ReactNode }) {
           }}
         >
           <AdminTopbar email={claims.email} displayName={claims.displayName} />
+          {/* main 의 overflow:auto 폐기 — body 스크롤 + sidebar sticky 답습 (S231 후속) */}
           <main
             style={{
               flex: 1,
-              overflow: 'auto',
               padding: '28px 32px',
             }}
           >

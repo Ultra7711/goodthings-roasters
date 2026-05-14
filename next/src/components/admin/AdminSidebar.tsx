@@ -1,87 +1,41 @@
 'use client';
 
 /* ══════════════════════════════════════════
-   AdminSidebar — S125: 시안 shell.jsx Sidebar 100% inline style 이식.
-   - 시안 SVG 아이콘 (lucide-flavor) 그대로 사용
+   AdminSidebar
+   - lucide-react 아이콘 답습 (S231 후속 — 시안 inline SVG 폐기)
    - usePathname 으로 active 결정
    - 사용자 카드: 클릭 시 supabase signOut → /admin/login
+   - collapse / expand (Claude 사이드바 답습) + localStorage 영구 저장
+   - sticky (top: 0 · height: 100vh)
    ══════════════════════════════════════════ */
 
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import type { CSSProperties } from 'react';
+import {
+  BarChart3,
+  Calendar,
+  ChevronDown,
+  Coffee,
+  Image as ImageIcon,
+  LayoutTemplate,
+  Megaphone,
+  Package2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings,
+  ShoppingBag,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-
-/* ── 시안 inline SVG 아이콘 ── */
-const Icons = {
-  dashboard: (p: React.SVGProps<SVGSVGElement> = {}) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" />
-      <rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" />
-    </svg>
-  ),
-  orders: (p: React.SVGProps<SVGSVGElement> = {}) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
-    </svg>
-  ),
-  product: (p: React.SVGProps<SVGSVGElement> = {}) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <path d="m7.5 4.27 9 5.15" /><path d="M21 8 12 13 3 8" />
-      <path d="M21 8v8a2 2 0 0 1-1 1.73l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8" />
-      <path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" />
-    </svg>
-  ),
-  subscription: (p: React.SVGProps<SVGSVGElement> = {}) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <path d="M21 12a9 9 0 1 1-3.5-7.1" /><path d="M21 4v5h-5" />
-    </svg>
-  ),
-  customers: (p: React.SVGProps<SVGSVGElement> = {}) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  ),
-  stats: (p: React.SVGProps<SVGSVGElement> = {}) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <path d="M3 3v18h18" /><path d="M7 14l4-4 4 4 6-6" />
-    </svg>
-  ),
-  settings: (p: React.SVGProps<SVGSVGElement> = {}) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  ),
-  cafeMenu: (p: React.SVGProps<SVGSVGElement> = {}) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <path d="M3 11h3a8 8 0 0 1 0 0v9" /><path d="M6 11V8a3 3 0 1 1 6 0v3" />
-      <path d="M2 11h12v3a8 8 0 0 1-8 8 8 8 0 0 1-4-1z" />
-    </svg>
-  ),
-  cafeEvent: (p: React.SVGProps<SVGSVGElement> = {}) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <path d="M3 11l18-5v12L3 14v-3z" /><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
-    </svg>
-  ),
-  gooddays: (p: React.SVGProps<SVGSVGElement> = {}) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" />
-      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-    </svg>
-  ),
-  chevronDown: (p: React.SVGProps<SVGSVGElement> = {}) => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  ),
-};
 
 type NavItem = {
   href: string;
   label: string;
-  icon: (p?: React.SVGProps<SVGSVGElement>) => React.ReactElement;
+  icon: LucideIcon;
   badge?: number;
 };
 type NavGroup = { label: string; items: NavItem[] };
@@ -90,30 +44,35 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: '운영',
     items: [
-      { href: '/admin', label: '대시보드', icon: Icons.dashboard },
-      { href: '/admin/orders', label: '주문', icon: Icons.orders },
-      { href: '/admin/subscriptions', label: '정기배송', icon: Icons.subscription },
+      { href: '/admin', label: '대시보드', icon: LayoutTemplate },
+      { href: '/admin/orders', label: '주문', icon: ShoppingBag },
+      { href: '/admin/subscriptions', label: '정기배송', icon: Calendar },
     ],
   },
   {
     label: '카탈로그',
     items: [
-      { href: '/admin/products', label: '상품', icon: Icons.product },
-      { href: '/admin/menu', label: '카페 메뉴', icon: Icons.cafeMenu },
-      { href: '/admin/cafe-events', label: '카페 이벤트', icon: Icons.cafeEvent },
-      { href: '/admin/users', label: '고객', icon: Icons.customers },
-      { href: '/admin/gooddays', label: '굿데이즈', icon: Icons.gooddays },
+      { href: '/admin/products', label: '상품', icon: Package2 },
+      { href: '/admin/menu', label: '카페 메뉴', icon: Coffee },
+      { href: '/admin/cafe-events', label: '카페 이벤트', icon: Megaphone },
+      { href: '/admin/users', label: '고객', icon: Users },
+      { href: '/admin/gooddays', label: '굿데이즈', icon: ImageIcon },
     ],
   },
   {
     label: '인사이트',
-    items: [{ href: '/admin/analytics', label: '통계', icon: Icons.stats }],
+    items: [{ href: '/admin/analytics', label: '통계', icon: BarChart3 }],
   },
   {
     label: '설정',
-    items: [{ href: '/admin/settings', label: '사이트 설정', icon: Icons.settings }],
+    items: [{ href: '/admin/settings', label: '사이트 설정', icon: Settings }],
   },
 ];
+
+/* collapse 영구 저장 — localStorage key. 운영자 선호 유지 (Claude 답습) */
+const COLLAPSED_STORAGE_KEY = 'admin-sidebar-collapsed';
+const SIDEBAR_WIDTH_EXPANDED = 240;
+const SIDEBAR_WIDTH_COLLAPSED = 64;
 
 type Props = {
   email: string;
@@ -128,6 +87,28 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
   const name = displayName?.trim() || email.split('@')[0] || 'Admin';
   const initial = name.charAt(0).toUpperCase();
   const subtitle = title?.trim() || '관리자';
+
+  /* collapse/expand 상태 — localStorage 영구 저장 (Claude 답습 · S231 후속).
+     SSR 시 false 초기값 → 첫 mount 후 localStorage 동기화. */
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(COLLAPSED_STORAGE_KEY);
+      if (saved === '1') setCollapsed(true);
+    } catch {
+      /* localStorage 접근 불가 (private mode 등) — 기본 false 유지 */
+    }
+  }, []);
+
+  function toggleCollapsed() {
+    const next = !collapsed;
+    setCollapsed(next);
+    try {
+      localStorage.setItem(COLLAPSED_STORAGE_KEY, next ? '1' : '0');
+    } catch {
+      /* 저장 실패해도 세션 안에서는 동작 */
+    }
+  }
 
   async function handleLogout() {
     const { error } = await supabase.auth.signOut();
@@ -144,12 +125,14 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
       display: 'flex',
       alignItems: 'center',
       gap: 10,
-      padding: '7px 10px',
+      padding: collapsed ? '8px 0' : '8px 10px',
+      justifyContent: collapsed ? 'center' : 'flex-start',
       borderRadius: 6,
-      fontSize: 14,
-      lineHeight: '18px',
+      fontSize: 16,
+      lineHeight: '20px',
       fontWeight: isActive ? 500 : 400,
-      color: isActive ? 'var(--sidebar-active-fg)' : 'var(--sidebar-fg)',
+      /* 활성 = 베이지 (워드마크와 통일) · 비활성 = dim 회색 (S231 후속) */
+      color: isActive ? 'var(--sidebar-fg)' : 'var(--sidebar-fg-dim)',
       background: isActive ? 'var(--sidebar-active-bg)' : 'transparent',
       cursor: 'pointer',
       position: 'relative',
@@ -158,35 +141,61 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
     };
   }
 
+  const sidebarWidth = collapsed
+    ? SIDEBAR_WIDTH_COLLAPSED
+    : SIDEBAR_WIDTH_EXPANDED;
+
   return (
     <aside
       style={{
-        width: 240,
+        width: sidebarWidth,
         flexShrink: 0,
         background: 'var(--sidebar-bg)',
         color: 'var(--sidebar-fg)',
         display: 'flex',
         flexDirection: 'column',
         borderRight: '1px solid var(--sidebar-border)',
+        /* sticky — body 스크롤 시 viewport 안 고정 (S231 후속) */
+        position: 'sticky',
+        top: 0,
+        height: '100vh',
+        overflow: 'auto',
+        /* collapse 부드러운 width 전환 (S231 후속) */
+        transition: 'width 200ms ease',
       }}
     >
-      {/* brand — 메인 사이트 헤더와 동일한 워드마크 SVG + Admin 캡션
-            좌측 라인은 nav padding 12px + item padding 10px = 22px 와 정렬. */}
-      <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid var(--sidebar-border)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
+      {/* brand — 워드마크 + Admin 캡션 + collapse 토글 (S231 후속)
+          padding: 우측 12 (nav 답습 — 토글 button 이 sidebar 우측 끝에 더 가깝게)
+                   좌측 22 (워드마크 'g' 글리프 시각 정렬 유지) */}
+      <div
+        style={{
+          padding: collapsed ? '14px 8px' : '18px 12px 14px 22px',
+          borderBottom: '1px solid var(--sidebar-border)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: collapsed ? 'center' : 'flex-start',
+            justifyContent: collapsed ? 'center' : 'space-between',
+            gap: 8,
+          }}
+        >
+          {!collapsed && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6, minWidth: 0 }}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 680 142"
             role="img"
             aria-label="Good Things"
             style={{
-              height: 20,
+              height: 23,
               width: 'auto',
               display: 'block',
               color: 'var(--sidebar-fg)',
               fill: 'currentColor',
-              /* SVG aspect=680/142, height 20 → width 95.77px.
-                 글리프 'g' minX≈20.6 → 95.77 환산 시 좌측 여백 ≈2.9px.
+              /* SVG aspect=680/142, height 23 → width 110.2px ≈ "ROASTERS · ADMIN" 폭.
+                 글리프 'g' minX≈20.6 → 110.2 환산 시 좌측 여백 ≈3.3px.
                  메뉴 라인 (padding 22px) 과 시각 정렬 위해 -3px 보정. */
               marginLeft: -3,
             }}
@@ -205,7 +214,7 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
           </svg>
           <div
             style={{
-              fontSize: 14,
+              fontSize: 10,
               fontWeight: 500,
               color: 'var(--sidebar-fg-muted)',
               letterSpacing: '0.08em',
@@ -214,13 +223,41 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
           >
             Roasters · Admin
           </div>
+            </div>
+          )}
+          {/* collapse / expand 토글 (Claude 답습) — 아이콘 크기 nav 답습 (20px) */}
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-label={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
+            title={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: 6,
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--sidebar-fg-muted)',
+              flexShrink: 0,
+            }}
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={20} />
+            ) : (
+              <PanelLeftClose size={20} />
+            )}
+          </button>
         </div>
       </div>
 
       {/* nav */}
       <nav
         style={{
-          padding: '14px 12px',
+          padding: collapsed ? '14px 8px' : '14px 12px',
           flex: 1,
           overflowY: 'auto',
           display: 'flex',
@@ -230,26 +267,35 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
       >
         {NAV_GROUPS.map((g) => (
           <div key={g.label}>
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 600,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                color: 'var(--sidebar-fg-subtle)',
-                padding: '0 10px 6px',
-              }}
-            >
-              {g.label}
-            </div>
+            {!collapsed && (
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: 'var(--sidebar-fg-subtle)',
+                  padding: '0 10px 6px',
+                }}
+              >
+                {g.label}
+              </div>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {g.items.map((it) => {
                 const isActive =
                   it.href === '/admin' ? pathname === '/admin' : pathname.startsWith(it.href);
                 const Icon = it.icon;
                 return (
-                  <a key={it.href} href={it.href} style={itemStyle(isActive)}>
-                    {isActive && (
+                  /* next/link — client-side navigation. <a href> 풀 리로드 시
+                     SSR collapsed=false 깜박임 회피 (S231 후속 버그 fix). */
+                  <Link
+                    key={it.href}
+                    href={it.href}
+                    style={itemStyle(isActive)}
+                    title={collapsed ? it.label : undefined}
+                  >
+                    {isActive && !collapsed && (
                       <div
                         style={{
                           position: 'absolute',
@@ -262,12 +308,14 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
                         }}
                       />
                     )}
-                    <Icon style={{ opacity: isActive ? 1 : 0.75, flexShrink: 0, display: 'block' }} />
-                    <span style={{ flex: 1 }}>{it.label}</span>
-                    {it.badge != null && (
+                    <Icon size={20} style={{ opacity: isActive ? 1 : 0.75, flexShrink: 0, display: 'block' }} />
+                    {!collapsed && (
+                      <span style={{ flex: 1 }}>{it.label}</span>
+                    )}
+                    {!collapsed && it.badge != null && (
                       <span
                         style={{
-                          fontSize: 14,
+                          fontSize: 12,
                           fontWeight: 600,
                           padding: '2px 6px',
                           borderRadius: 999,
@@ -279,7 +327,7 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
                         {it.badge}
                       </span>
                     )}
-                  </a>
+                  </Link>
                 );
               })}
             </div>
@@ -287,17 +335,24 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
         ))}
       </nav>
 
-      {/* user card → logout on click */}
-      <div style={{ padding: 12, borderTop: '1px solid var(--sidebar-border)' }}>
+      {/* user card → logout on click · collapsed 시 avatar 만 */}
+      <div
+        style={{
+          padding: collapsed ? 8 : 12,
+          borderTop: '1px solid var(--sidebar-border)',
+        }}
+      >
         <button
           type="button"
           onClick={handleLogout}
           aria-label="로그아웃"
+          title={collapsed ? `${name} (로그아웃)` : undefined}
           style={{
             display: 'flex',
             alignItems: 'center',
+            justifyContent: collapsed ? 'center' : 'flex-start',
             gap: 10,
-            padding: '8px 10px',
+            padding: collapsed ? 6 : '8px 10px',
             borderRadius: 8,
             background: 'var(--sidebar-bg-elevated)',
             cursor: 'pointer',
@@ -308,50 +363,52 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
         >
           <div
             style={{
-              width: 30,
-              height: 30,
+              width: 32,
+              height: 32,
               borderRadius: 999,
               background: 'var(--sidebar-avatar-bg)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'var(--sidebar-active-fg)',
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: 600,
               flexShrink: 0,
             }}
           >
             {initial}
           </div>
-          <div style={{ flex: 1, minWidth: 0, lineHeight: 1.2 }}>
-            <div
-              style={{
-                fontSize: 14,
-                color: 'var(--sidebar-fg)',
-                fontWeight: 500,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-              title={email}
-            >
-              {name}
-            </div>
-            <div
-              style={{
-                fontSize: 14,
-                color: 'var(--sidebar-fg-muted)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {subtitle}
-            </div>
-          </div>
-          <div style={{ color: 'var(--sidebar-fg-muted)' }}>
-            <Icons.chevronDown />
-          </div>
+          {!collapsed && (
+            <>
+              <div style={{ flex: 1, minWidth: 0, lineHeight: 1.25 }}>
+                <div
+                  style={{
+                    fontSize: 16,
+                    color: 'var(--sidebar-fg)',
+                    fontWeight: 500,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                  title={email}
+                >
+                  {name}
+                </div>
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: 'var(--sidebar-fg-muted)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {subtitle}
+                </div>
+              </div>
+              <ChevronDown size={14} style={{ color: 'var(--sidebar-fg-muted)' }} />
+            </>
+          )}
         </button>
       </div>
     </aside>

@@ -96,6 +96,7 @@
   --sidebar-bg: #1A1A1A;
   --sidebar-bg-elevated: #232220;
   --sidebar-fg: #E8E6E2;
+  --sidebar-fg-dim: #A8A5A0;   /* nav item 비활성 (S231 후속) */
   --sidebar-fg-muted: #888581;
   --sidebar-fg-subtle: #5C5A56;
   --sidebar-border: #2A2926;
