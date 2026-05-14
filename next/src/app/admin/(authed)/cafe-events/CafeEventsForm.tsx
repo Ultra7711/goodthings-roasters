@@ -347,7 +347,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
 
       {/* 이벤트 목록 — 상단 수평 스크롤 스트립 */}
       <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden mb-4">
-        <div className="flex items-center gap-2 px-[14px] py-3 border-b border-border">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
           <div className="flex-1 text-xs font-medium">
             이벤트 {events.length}개
           </div>
@@ -751,11 +751,11 @@ function ListRow({
       )}
     >
       <div className="flex items-center justify-between gap-1">
-        <span className="text-[10px] font-medium px-1.5 py-[2px] rounded bg-[var(--surface-muted)] text-[var(--foreground-muted)] border border-border">
+        <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-[var(--surface-muted)] text-[var(--foreground-muted)] border border-border">
           {TYPE_LABELS[event.type]}
         </span>
         <span
-          className="text-[10px] font-medium"
+          className="text-xs font-medium"
           style={{ color: statusColor }}
         >
           {statusLabel}
@@ -764,7 +764,7 @@ function ListRow({
       <div className="text-xs font-medium text-[var(--foreground)] overflow-hidden text-ellipsis whitespace-nowrap w-full">
         {event.h4 || <span className="text-[var(--foreground-muted)]">이름 없음</span>}
       </div>
-      <div className="text-[10px] text-[var(--foreground-muted)] font-mono">
+      <div className="text-xs text-[var(--foreground-muted)] font-mono">
         {event.start_date || '∞'} ~ {event.end_date || '∞'}
       </div>
     </button>
