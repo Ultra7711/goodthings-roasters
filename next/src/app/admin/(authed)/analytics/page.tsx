@@ -10,6 +10,7 @@ import {
   ANALYTICS_PERIOD_OPTIONS,
   type AnalyticsPeriodKey,
 } from '@/lib/admin/analytics';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import AnalyticsActions from './AnalyticsActions';
 import { cn } from '@/lib/utils';
 
@@ -28,15 +29,14 @@ export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
     <>
       <AnalyticsActions />
 
-      {/* 환영 헤더 */}
-      <div className="mb-5">
-        <h2 className="m-0 text-2xl font-medium tracking-tight">매출 통계</h2>
-        <div className="mt-1 text-sm text-muted-foreground">
-          {view.readiness.ready
+      <AdminPageHeader
+        title="매출 통계"
+        subtitle={
+          view.readiness.ready
             ? '기간별 매출, 상품별 판매량을 확인하세요.'
-            : '기간별 매출, 카테고리별 판매량, 정기배송 추이를 한눈에 보세요.'}
-        </div>
-      </div>
+            : '기간별 매출, 카테고리별 판매량, 정기배송 추이를 한눈에 보세요.'
+        }
+      />
 
       {view.readiness.ready ? (
         <ReadyView view={view} />
@@ -283,11 +283,8 @@ function ReadyView({
 
       {/* 상품별 테이블 */}
       <div className={cn(CARD_CLASS, 'p-0')}>
-        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-border">
           <h3 className="m-0 text-base font-medium">상품별 판매</h3>
-          <span className="text-xs text-muted-foreground">
-            {view.products.length}개 상품
-          </span>
         </div>
 
         {view.products.length === 0 ? (

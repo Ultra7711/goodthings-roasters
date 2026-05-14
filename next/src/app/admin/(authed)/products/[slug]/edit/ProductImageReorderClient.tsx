@@ -170,7 +170,7 @@ export default function ProductImageReorderClient({
                   disabled={isFeatured || pending}
                   aria-label="대표로 설정"
                   title="대표로 설정"
-                  className="flex-1"
+                  className="flex-1 !h-7"
                 >
                   <StarIcon />
                   대표로

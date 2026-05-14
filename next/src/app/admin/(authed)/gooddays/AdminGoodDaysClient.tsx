@@ -37,6 +37,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Star, Trash2, Upload } from 'lucide-react';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
@@ -190,24 +191,19 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
         </Button>
       </AdminTopbarActions>
 
-      {/* ── 페이지 헤더 ─────────────────────────────────────────────── */}
-      <div className="mb-6">
-        <h2 className="m-0 text-2xl font-medium tracking-tight">
-          굿데이즈 갤러리
-        </h2>
-        <div className="mt-1 text-sm text-muted-foreground leading-relaxed">
-          {items.length}장 · 드래그로 순서 변경 · 토글로 활성/비활성
-          <br />
-          <span className="text-[var(--foreground-subtle)] inline-flex items-center gap-1">
-            <Star
-              size={11}
-              fill="currentColor"
-              className="text-[var(--primary)]"
-            />
-            Featured = 매거진 그리드 큰 사진 슬롯에 우선 배치
+      <AdminPageHeader
+        title="굿데이즈 갤러리"
+        subtitle={
+          <span className="leading-relaxed">
+            {items.length}장 · 드래그로 순서 변경 · 토글로 활성/비활성
+            <br />
+            <span className="text-[var(--foreground-subtle)] inline-flex items-center gap-1">
+              <Star size={11} fill="currentColor" className="text-[var(--primary)]" />
+              Featured = 매거진 그리드 큰 사진 슬롯에 우선 배치
+            </span>
           </span>
-        </div>
-      </div>
+        }
+      />
 
       {/* ── 그리드 ─────────────────────────────────────────────────────── */}
       {!mounted ? (

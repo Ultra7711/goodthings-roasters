@@ -94,10 +94,10 @@ export default async function AdminDashboardPage() {
       {/* Topbar actions slot */}
       <DashboardActions />
 
-      {/* 환영 헤더 — 다른 admin 페이지 패턴 답습 (h2 + 한 줄 subtitle) */}
-      <div className="flex flex-col gap-1 mb-6">
+      {/* 환영 헤더 — AdminPageHeader 패턴 답습 (WelcomeHeading = ReactNode 이므로 인라인) */}
+      <div className="mb-5">
         <WelcomeHeading />
-        <div className="text-sm text-muted-foreground">
+        <div className="mt-1 text-sm text-muted-foreground">
           {TODAY_LABEL} · 오늘 운영 현황을 한눈에 확인하세요.
         </div>
       </div>

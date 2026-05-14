@@ -17,6 +17,8 @@ import { toast } from 'sonner';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Checkbox } from '@/components/admin/ui/checkbox';
+import { Switch } from '@/components/admin/ui/switch';
+import { cn } from '@/lib/utils';
 import {
   composeNoticeText,
   NOTICE_COLOR_THEMES,
@@ -584,13 +586,12 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                         type="button"
                         onClick={() => updateSignature({ eyebrow: composed })}
                         aria-pressed={sel}
-                        className="px-[9px] py-[3px] text-xs font-medium tracking-[0.04em] rounded-full cursor-pointer"
-                        style={{
-                          background: sel ? 'var(--primary)' : 'var(--surface)',
-                          color: sel ? '#fff' : 'var(--foreground-muted)',
-                          border: '1px solid ' + (sel ? 'var(--primary)' : 'var(--border)'),
-                          fontFamily: 'inherit',
-                        }}
+                        className={cn(
+                          'px-3 py-1.5 text-xs rounded-md border cursor-pointer font-[inherit]',
+                          sel
+                            ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)] font-medium'
+                            : 'bg-[var(--surface)] text-foreground border-border font-normal',
+                        )}
                       >
                         {q} · {year}
                       </button>
@@ -829,13 +830,12 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                     type="button"
                     onClick={() => setPreviewBrk(opt.key)}
                     aria-pressed={sel}
-                    className="px-2.5 py-1 text-xs font-medium rounded-[6px] cursor-pointer tracking-[-0.005em] whitespace-nowrap"
-                    style={{
-                      background: sel ? 'var(--primary)' : 'var(--surface)',
-                      color: sel ? '#fff' : 'var(--foreground-muted)',
-                      border: '1px solid ' + (sel ? 'var(--primary)' : 'var(--border)'),
-                      fontFamily: 'inherit',
-                    }}
+                    className={cn(
+                      'px-3 py-1.5 text-xs rounded-md border cursor-pointer font-[inherit] whitespace-nowrap',
+                      sel
+                        ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)] font-medium'
+                        : 'bg-[var(--surface)] text-foreground border-border font-normal',
+                    )}
                   >
                     {opt.label}{' '}
                     <span className="opacity-70 ml-1 font-mono text-[10px]">
@@ -1059,46 +1059,28 @@ function SettingsCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
-      <div className="px-6 py-4 border-b border-border flex items-center gap-3 bg-[var(--surface)]">
+    <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)]">
+      <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+        <Switch
+          checked={on}
+          onCheckedChange={() => onToggle()}
+          className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
+        />
         <div className="flex-1">
-          <h3 className="m-0 text-base font-medium">{title}</h3>
+          <h3 className="m-0 text-sm font-medium">{title}</h3>
           <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div>
         </div>
-        <span
-          className="text-xs font-medium"
-          style={{ color: on ? 'var(--primary)' : 'var(--foreground-muted)' }}
-        >
+        <span className="text-xs text-muted-foreground">
           {on ? '활성' : '비활성'}
         </span>
-        <Toggle on={on} onClick={onToggle} />
       </div>
       <div
-        className="p-6 transition-opacity duration-[150ms]"
+        className="p-6 transition-opacity duration-150"
         style={{ opacity: on ? 1 : 0.5 }}
       >
         {children}
       </div>
     </div>
-  );
-}
-
-function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      onClick={onClick}
-      className="w-9 h-5 rounded-full border-0 relative cursor-pointer p-0 transition-[background] duration-[150ms]"
-      style={{ background: on ? 'var(--primary)' : 'var(--switch-off-bg)' }}
-    >
-      <span
-        aria-hidden
-        className="absolute top-0.5 size-4 rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.15)] transition-[left] duration-[150ms]"
-        style={{ left: on ? 18 : 2 }}
-      />
-    </button>
   );
 }
 

@@ -404,10 +404,10 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                             onClick={() => handleTypeChange(t)}
                             aria-pressed={sel}
                             className={cn(
-                              'px-3 py-[5px] text-xs font-medium rounded-full border cursor-pointer font-[inherit]',
+                              'px-3 py-1.5 text-xs rounded-md border cursor-pointer font-[inherit]',
                               sel
-                                ? 'bg-[var(--primary)] !text-white border-[var(--primary)]'
-                                : 'bg-[var(--surface)] text-[var(--foreground-muted)] border-border',
+                                ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)] font-medium'
+                                : 'bg-[var(--surface)] text-foreground border-border font-normal',
                             )}
                           >
                             {TYPE_LABELS[t]}
@@ -825,10 +825,10 @@ function PreviewPane({
                 onClick={() => onSelectBrk(opt.key)}
                 aria-pressed={sel}
                 className={cn(
-                  'px-2.5 py-1 text-xs font-medium rounded-md border cursor-pointer font-[inherit] whitespace-nowrap',
+                  'px-3 py-1.5 text-xs rounded-md border cursor-pointer font-[inherit] whitespace-nowrap',
                   sel
-                    ? 'bg-[var(--primary)] !text-white border-[var(--primary)]'
-                    : 'bg-[var(--surface)] text-[var(--foreground-muted)] border-border',
+                    ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)] font-medium'
+                    : 'bg-[var(--surface)] text-foreground border-border font-normal',
                 )}
               >
                 {opt.label}{' '}
