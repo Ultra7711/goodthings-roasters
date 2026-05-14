@@ -30,7 +30,7 @@
 | `(authed)/cafe-events/CafeEventsForm.tsx` | 🟢 완료 | Tailwind | S225 작업 중 |
 | `(authed)/settings/SettingsForm.tsx` | 🟢 완료 | Tailwind | S224 |
 | `(authed)/gooddays/AdminGoodDaysClient.tsx` | 🟢 완료 | Tailwind | S223 Phase 2-a |
-| `(authed)/analytics/page.tsx` | 🔴 미정리 | inline 전체 (CARD_STYLE) | S225+ |
+| `(authed)/analytics/page.tsx` | 🟢 완료 | Tailwind | S226 |
 | `(authed)/menu/page.tsx` | — | placeholder | |
 | `admin/login/AdminLoginForm.tsx` | 🟢 완료 | Tailwind | S223 Phase 2-e |
 | `admin/admin-theme.css` | 🟢 완료 | ADR-008 가이드 포함 | 변경 금지 |

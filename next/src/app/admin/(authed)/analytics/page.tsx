@@ -5,23 +5,20 @@
    ══════════════════════════════════════════ */
 
 import Link from 'next/link';
-import type { CSSProperties } from 'react';
 import { fetchAdminAnalytics } from '@/lib/admin/analyticsServer';
 import {
   ANALYTICS_PERIOD_OPTIONS,
   type AnalyticsPeriodKey,
 } from '@/lib/admin/analytics';
 import AnalyticsActions from './AnalyticsActions';
+import { cn } from '@/lib/utils';
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-const CARD_STYLE: CSSProperties = {
-  background: 'var(--surface)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius)',
-};
+const CARD_CLASS =
+  'bg-[var(--surface)] border border-border rounded-[var(--radius)]';
 
 export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
   const raw = await searchParams;
@@ -32,25 +29,20 @@ export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
       <AnalyticsActions />
 
       {/* 환영 헤더 */}
-      <div style={{ marginBottom: 22 }}>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: 24,
-            fontWeight: 500,
-            letterSpacing: '-0.02em',
-          }}
-        >
-          매출 통계
-        </h2>
-        <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
+      <div className="mb-5">
+        <h2 className="m-0 text-2xl font-medium tracking-tight">매출 통계</h2>
+        <div className="mt-1 text-sm text-muted-foreground">
           {view.readiness.ready
             ? '기간별 매출, 상품별 판매량을 확인하세요.'
             : '기간별 매출, 카테고리별 판매량, 정기배송 추이를 한눈에 보세요.'}
         </div>
       </div>
 
-      {view.readiness.ready ? <ReadyView view={view} /> : <NotReadyView readiness={view.readiness} />}
+      {view.readiness.ready ? (
+        <ReadyView view={view} />
+      ) : (
+        <NotReadyView readiness={view.readiness} />
+      )}
     </>
   );
 }
@@ -74,118 +66,68 @@ function NotReadyView({
   return (
     <>
       {/* placeholder 통계 카드 4종 (disabled) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 12,
-          marginBottom: 16,
-        }}
-      >
+      <div className="grid grid-cols-4 gap-3 mb-4">
         {PLACEHOLDER_STAT_LABELS.map((label) => (
-          <div
-            key={label}
-            style={{
-              ...CARD_STYLE,
-              padding: 18,
-              opacity: 0.55,
-            }}
-          >
-            <div style={{ fontSize: 12.5, color: 'var(--foreground-muted)' }}>{label}</div>
+          <div key={label} className={cn(CARD_CLASS, 'p-4 opacity-50')}>
+            <div className="text-xs text-muted-foreground">{label}</div>
             <div
+              className="mt-3 h-7 w-3/5 rounded-sm"
               style={{
-                marginTop: 12,
-                height: 28,
-                width: '60%',
-                borderRadius: 4,
                 background:
                   'repeating-linear-gradient(90deg, var(--surface-muted) 0 6px, transparent 6px 10px)',
               }}
             />
-            <div
-              style={{
-                marginTop: 10,
-                height: 8,
-                width: '40%',
-                borderRadius: 4,
-                background: 'var(--surface-muted)',
-              }}
-            />
+            <div className="mt-2.5 h-2 w-2/5 rounded-sm bg-[var(--surface-muted)]" />
           </div>
         ))}
       </div>
 
       {/* main empty card */}
-      <div style={{ ...CARD_STYLE, padding: 0 }}>
-        <div
-          style={{
-            padding: '64px 24px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
+      <div className={cn(CARD_CLASS, 'p-0')}>
+        <div className="px-6 py-16 flex flex-col items-center text-center relative overflow-hidden">
           {/* faint grid backdrop */}
           <div
             aria-hidden
+            className="absolute inset-0 pointer-events-none opacity-40"
             style={{
-              position: 'absolute',
-              inset: 0,
-              opacity: 0.4,
               backgroundImage:
                 'linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)',
               backgroundSize: '24px 24px',
-              maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
-              WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)',
-              pointerEvents: 'none',
+              maskImage:
+                'radial-gradient(ellipse at center, black 30%, transparent 70%)',
+              WebkitMaskImage:
+                'radial-gradient(ellipse at center, black 30%, transparent 70%)',
             }}
           />
 
           {/* 일러스트: 5-bar chart 카드 + badge */}
           <div
+            className="relative mb-5 flex items-end gap-2 rounded-lg bg-[var(--surface)] border border-border"
             style={{
-              position: 'relative',
               width: 120,
               height: 90,
-              marginBottom: 20,
-              borderRadius: 8,
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'flex-end',
               padding: 14,
-              gap: 8,
               boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
             }}
           >
             {[14, 26, 18, 32, 22].map((h, i) => (
               <div
                 key={i}
+                className="flex-1 rounded-[2px]"
                 style={{
-                  flex: 1,
                   height: h,
-                  borderRadius: 2,
                   background: i === 3 ? 'var(--primary)' : 'var(--border-strong)',
                   opacity: i === 3 ? 0.9 : 0.6,
                 }}
               />
             ))}
             <div
+              className="absolute flex items-center justify-center rounded-full bg-[var(--primary-soft)] text-[var(--primary)]"
               style={{
-                position: 'absolute',
                 top: -10,
                 right: -10,
                 width: 28,
                 height: 28,
-                borderRadius: 999,
-                background: 'var(--primary-soft)',
-                color: 'var(--primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 border: '1.5px solid var(--surface)',
               }}
             >
@@ -205,32 +147,18 @@ function NotReadyView({
             </div>
           </div>
 
-          <h3
-            style={{
-              margin: 0,
-              fontSize: 20,
-              fontWeight: 500,
-              letterSpacing: '-0.015em',
-              position: 'relative',
-            }}
-          >
+          <h3 className="m-0 text-xl font-medium tracking-tight relative">
             아직 분석할 데이터가 부족해요
           </h3>
           <p
-            style={{
-              margin: '8px 0 0',
-              maxWidth: 420,
-              fontSize: 13.5,
-              lineHeight: 1.7,
-              color: 'var(--foreground-muted)',
-              position: 'relative',
-            }}
+            className="mt-2 text-sm text-muted-foreground relative"
+            style={{ maxWidth: 420, lineHeight: 1.7 }}
           >
             통계 리포트는 최소{' '}
-            <strong style={{ color: 'var(--foreground)' }}>주문 {readiness.ordersMax}건</strong> 또는{' '}
-            <strong style={{ color: 'var(--foreground)' }}>운영 {readiness.daysMax}일</strong>이 지나야 정확한 인사이트를
-            보여드려요. 현재까지{' '}
-            <strong style={{ color: 'var(--foreground)' }}>
+            <strong className="text-foreground">주문 {readiness.ordersMax}건</strong> 또는{' '}
+            <strong className="text-foreground">운영 {readiness.daysMax}일</strong>이 지나야 정확한 인사이트를 보여드려요.
+            현재까지{' '}
+            <strong className="text-foreground">
               주문 {readiness.ordersCur}건 · 운영 {readiness.daysCur}일
             </strong>
             이 누적됐어요.
@@ -238,45 +166,24 @@ function NotReadyView({
 
           {/* progress bars */}
           <div
-            style={{
-              position: 'relative',
-              width: 320,
-              marginTop: 24,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 12,
-            }}
+            className="relative mt-6 flex flex-col gap-3"
+            style={{ width: 320 }}
           >
             {progress.map(({ label, cur, max, unit }) => (
               <div key={label}>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: 12,
-                    marginBottom: 5,
-                  }}
-                >
-                  <span style={{ color: 'var(--foreground-muted)' }}>{label}</span>
-                  <span className="gtr-tnum" style={{ fontWeight: 500 }}>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">{label}</span>
+                  <span className="gtr-tnum font-medium">
                     {cur} / {max} {unit}
                   </span>
                 </div>
                 <div
-                  style={{
-                    height: 6,
-                    borderRadius: 999,
-                    background: 'var(--surface-muted)',
-                    overflow: 'hidden',
-                  }}
+                  className="rounded-full bg-[var(--surface-muted)] overflow-hidden"
+                  style={{ height: 6 }}
                 >
                   <div
-                    style={{
-                      height: '100%',
-                      width: `${Math.min(100, (cur / max) * 100)}%`,
-                      background: 'var(--primary)',
-                      borderRadius: 999,
-                    }}
+                    className="h-full rounded-full bg-[var(--primary)]"
+                    style={{ width: `${Math.min(100, (cur / max) * 100)}%` }}
                   />
                 </div>
               </div>
@@ -284,25 +191,11 @@ function NotReadyView({
           </div>
 
           {/* CTA buttons */}
-          <div style={{ marginTop: 28, display: 'flex', gap: 8, position: 'relative' }}>
+          <div className="mt-7 flex gap-2 relative">
             <Link
               href="/admin/orders"
-              style={{
-                padding: '7px 14px',
-                fontSize: 13,
-                height: 34,
-                gap: 6,
-                borderRadius: 6,
-                fontWeight: 500,
-                background: 'var(--primary)',
-                color: '#fff',
-                border: '1px solid var(--primary)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textDecoration: 'none',
-                letterSpacing: '-0.005em',
-              }}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 rounded-md text-sm font-medium bg-[var(--primary)] !text-white border border-[var(--primary)] no-underline"
+              style={{ height: 34 }}
             >
               주문 목록 열기
             </Link>
@@ -310,39 +203,17 @@ function NotReadyView({
 
           {/* 팁 */}
           <div
-            style={{
-              position: 'relative',
-              marginTop: 32,
-              padding: '12px 16px',
-              borderRadius: 6,
-              background: 'var(--surface-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              fontSize: 12,
-              color: 'var(--foreground-muted)',
-              maxWidth: 460,
-            }}
+            className="relative mt-8 px-4 py-3 rounded-md bg-[var(--surface-muted)] flex items-center gap-2.5 text-xs text-muted-foreground"
+            style={{ maxWidth: 460 }}
           >
             <span
-              style={{
-                width: 22,
-                height: 22,
-                flexShrink: 0,
-                borderRadius: 999,
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 12,
-              }}
+              className="flex-shrink-0 rounded-full bg-[var(--surface)] border border-border flex items-center justify-center text-xs"
+              style={{ width: 22, height: 22 }}
             >
               💡
             </span>
             <span>
-              <strong style={{ color: 'var(--foreground)' }}>팁.</strong> 사이트 설정에서 오픈 공지를 등록하면 첫 주문이
-              평균 3배 빨라져요.
+              <strong className="text-foreground">팁.</strong> 사이트 설정에서 오픈 공지를 등록하면 첫 주문이 평균 3배 빨라져요.
             </span>
           </div>
         </div>
@@ -375,30 +246,19 @@ function ReadyView({
   return (
     <>
       {/* period switcher */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 6,
-          marginBottom: 14,
-          flexWrap: 'wrap',
-        }}
-      >
+      <div className="flex gap-1.5 mb-3 flex-wrap">
         {ANALYTICS_PERIOD_OPTIONS.map((opt) => {
           const active = view.period === opt.id;
           return (
             <Link
               key={opt.id}
               href={`/admin/analytics?period=${opt.id}`}
-              style={{
-                padding: '6px 12px',
-                fontSize: 12.5,
-                borderRadius: 6,
-                border: `1px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
-                background: active ? 'var(--primary-soft)' : 'var(--surface)',
-                color: active ? 'var(--primary)' : 'var(--foreground)',
-                textDecoration: 'none',
-                fontWeight: active ? 500 : 400,
-              }}
+              className={cn(
+                'px-3 py-1.5 rounded-md text-xs no-underline border',
+                active
+                  ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)] font-medium'
+                  : 'bg-[var(--surface)] text-foreground border-border font-normal',
+              )}
             >
               {opt.label}
             </Link>
@@ -407,27 +267,13 @@ function ReadyView({
       </div>
 
       {/* 4 stat cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 12,
-          marginBottom: 16,
-        }}
-      >
+      <div className="grid grid-cols-4 gap-3 mb-4">
         {view.stats.map((s) => (
-          <div key={s.label} style={{ ...CARD_STYLE, padding: 18 }}>
-            <div style={{ fontSize: 12.5, color: 'var(--foreground-muted)' }}>{s.label}</div>
+          <div key={s.label} className={cn(CARD_CLASS, 'p-4')}>
+            <div className="text-xs text-muted-foreground">{s.label}</div>
             <div
-              className="gtr-tnum"
-              style={{
-                marginTop: 10,
-                fontSize: 24,
-                fontWeight: 500,
-                letterSpacing: '-0.02em',
-                color: 'var(--foreground)',
-                lineHeight: 1.1,
-              }}
+              className="gtr-tnum mt-2.5 text-2xl font-medium tracking-tight text-foreground"
+              style={{ lineHeight: 1.1 }}
             >
               {s.value}
             </div>
@@ -436,88 +282,46 @@ function ReadyView({
       </div>
 
       {/* 상품별 테이블 */}
-      <div style={{ ...CARD_STYLE, padding: 0 }}>
-        <div
-          style={{
-            padding: '14px 18px',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 500 }}>상품별 판매</h3>
-          <span style={{ fontSize: 12, color: 'var(--foreground-muted)' }}>
+      <div className={cn(CARD_CLASS, 'p-0')}>
+        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+          <h3 className="m-0 text-base font-medium">상품별 판매</h3>
+          <span className="text-xs text-muted-foreground">
             {view.products.length}개 상품
           </span>
         </div>
 
         {view.products.length === 0 ? (
-          <div
-            style={{
-              padding: '48px 18px',
-              textAlign: 'center',
-              fontSize: 13,
-              color: 'var(--foreground-muted)',
-            }}
-          >
+          <div className="px-4 py-12 text-center text-sm text-muted-foreground">
             선택한 기간에 판매된 상품이 없습니다.
           </div>
         ) : (
           <div>
             <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 100px 100px 130px',
-                gap: 12,
-                padding: '10px 18px',
-                background: 'var(--surface-muted)',
-                fontSize: 11.5,
-                fontWeight: 500,
-                color: 'var(--foreground-muted)',
-                borderBottom: '1px solid var(--border)',
-              }}
+              className="grid gap-3 px-4 py-2.5 bg-[var(--surface-muted)] text-xs font-medium text-muted-foreground border-b border-border"
+              style={{ gridTemplateColumns: '1fr 100px 100px 130px' }}
             >
               <div>상품</div>
-              <div style={{ textAlign: 'right' }}>판매량</div>
-              <div style={{ textAlign: 'right' }}>주문 수</div>
-              <div style={{ textAlign: 'right' }}>매출</div>
+              <div className="text-right">판매량</div>
+              <div className="text-right">주문 수</div>
+              <div className="text-right">매출</div>
             </div>
             {view.products.map((p, idx) => (
               <div
                 key={p.productSlug + idx}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 100px 100px 130px',
-                  gap: 12,
-                  padding: '12px 18px',
-                  borderTop: idx === 0 ? 'none' : '1px solid var(--border)',
-                  fontSize: 13,
-                  alignItems: 'center',
-                }}
+                className={cn(
+                  'grid gap-3 px-4 py-3 text-sm items-center',
+                  idx !== 0 && 'border-t border-border',
+                )}
+                style={{ gridTemplateColumns: '1fr 100px 100px 130px' }}
               >
-                <div
-                  style={{
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                <div className="overflow-hidden text-ellipsis whitespace-nowrap">
                   {p.label}
                 </div>
-                <div className="gtr-tnum" style={{ textAlign: 'right' }}>
-                  {p.quantityLabel}
-                </div>
-                <div
-                  className="gtr-tnum"
-                  style={{ textAlign: 'right', color: 'var(--foreground-muted)' }}
-                >
+                <div className="gtr-tnum text-right">{p.quantityLabel}</div>
+                <div className="gtr-tnum text-right text-muted-foreground">
                   {p.orderCount}
                 </div>
-                <div
-                  className="gtr-tnum"
-                  style={{ textAlign: 'right', fontWeight: 500 }}
-                >
+                <div className="gtr-tnum text-right font-medium">
                   {p.revenueLabel}
                 </div>
               </div>
