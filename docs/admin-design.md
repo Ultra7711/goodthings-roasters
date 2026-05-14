@@ -1290,7 +1290,7 @@ import { listProductsAdmin } from '@/lib/admin/productsServer';
 |---|---|---|---|
 | ~~S227 (Phase 1)~~ | ✅ 완료 — Architecture audit + 6 컴포넌트 추출 + lib/admin/errors + productsServer 분리 | — | mattpocock `diagnose`/`improve-codebase-architecture`/`zoom-out` 적용 |
 | **S228~S229 (Phase 2)** | 페이지별 적용 (테이블 4종 PR-A / 상세 PR-B / 단일 PR-C) | 24~32h | `code-reviewer` + `tdd-guide` |
-| **별 PR (S228 carry-over)** | `createAdminFetcher` factory + 4 도메인 마이그 (DEC-17) | 6~8h | `code-architect` + `code-reviewer` |
+| ~~별 PR (S228 carry-over)~~ | ✅ **S229 변경** — DEC-17 풀 factory 폐기 → `lib/admin/listHelpers.ts` (AdminListResult + applyRange + applyIlikeSearch) 추출 (`afbb82f4`) | 1~2h | `mattpocock/diagnose` 적용 (재진단) |
 | **S230 (Phase 3)** | 잘못 구현 fix 일괄 — §7-3 hex Type 1+2 / ProductEditForm 탭 결정 / Topbar 정책 / lib 누락 2종 (cafeEvents/settings) | 8~12h | `refactor-cleaner` + `type-design-analyzer` |
 | **S231 (Phase 4)** | products/new 재기획 (실 PDP 모델 + RHF + create mode) | 12~16h | `planner` + `code-architect` + mattpocock `grill-with-docs` |
 | **별 (Phase 5)** | improve-codebase-architecture 최종 refactor (ADR-009 sweep audit) | 8~10h | `code-architect` + `zoom-out` |
@@ -1310,7 +1310,7 @@ import { listProductsAdmin } from '@/lib/admin/productsServer';
 | **DEC-14** | ~~AdminListMeta 추출~~ → **헤더 subtitle 흡수** (hypothetical seam · 1 caller) | ✅ S227 변경 |
 | **DEC-15** | `lib/admin/errors.ts` 단일 SoT (3 곳 `summarizePgError` 답습 폐기) | ✅ S227 |
 | **DEC-16** | `lib/admin/productsServer.ts` 분리 (B2C `lib/productsServer.ts` 와 admin variant 분리) | ✅ S227 |
-| **DEC-17** | `createAdminFetcher` factory = S228 별 PR carry-over | 📋 S228 |
+| **DEC-17** (변경 · S229) | 풀 factory 폐기 → `lib/admin/listHelpers.ts` (AdminListResult<T,S,F> + applyRange + applyIlikeSearch) 3종 helper 추출. 3 도메인 (orders/users/subscriptions) 마이그. 재진단 근거: products 패턴 안 맞음 + 3 도메인 차이가 factory 비용보다 큼 (shallow interface 위험) | ✅ S229 `afbb82f4` |
 | **DEC-18** | 칩 표준 (§5-23) = analytics period switcher 스타일 답습. Subscriptions 다이얼로그 칩 (Button variant 답습 S228 임시) 폐기 → 칩 표준으로 변경 (S229 PR-C) | 📋 S229 PR-C |
 
 기존 잠금 유지: ADR-008 (inline raw 금지) / DEC-1 (S125 폐기) / DEC-2 (shadcn override 4) / DEC-3 (마이그 순서) / DEC-4 (RHF carry) / DEC-5 (native select) / DEC-6 (작게 round)

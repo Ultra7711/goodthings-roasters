@@ -5,7 +5,7 @@
 - **Session:** S227 — Architecture audit + 표준 컴포넌트 추출
 - **Related:** ADR-006 (admin pages ↔ API 분리) / ADR-007 (shadcn 채택) / ADR-008 (visual sweep tokenization)
 - **Supersedes:** 없음 (3 ADR 위 보강)
-- **Implementation:** S227 Phase B (본 sprint) + S228 별 PR (createAdminFetcher) carry-over
+- **Implementation:** S227 Phase B (본 sprint) + S229 DEC-17 B안 (createAdminFetcher 폐기 → listHelpers 추출 · `afbb82f4`)
 
 ## Context
 
@@ -59,7 +59,8 @@ S227 Phase A 에서 mattpocock `diagnose` + `improve-codebase-architecture` + `z
 
 본 sprint 보류 (별 PR 권장):
 
-- **`createAdminFetcher` factory** (Candidate A) — 4 도메인 마이그 + RPC count + RLS 회귀 risk 가 본 sprint 범위 초과. **S228 별 PR carry-over**.
+- **`createAdminFetcher` factory** (Candidate A) — 4 도메인 마이그 + RPC count + RLS 회귀 risk 가 본 sprint 범위 초과. **S229 별 PR carry-over**.
+  - **S229 재진단 (`afbb82f4`)** — 풀 factory 폐기, B안 (공통 helper 추출) 채택. 근거: products 패턴 안 맞고 (no pagination/counts), 3 도메인도 counts 모드 / search 복잡도 차이로 factory config 가 원본만큼 복잡 (shallow interface). 대안 = `lib/admin/listHelpers.ts` 의 `AdminListResult<T,S,F>` 타입 + `applyRange` + `applyIlikeSearch` 3종.
 - **cafeEvents/siteSettings lib/admin 이동** — drift risk 작고 단일 caller. S229 lib 레이어 정리 시 동시.
 
 ### 3. DEC 변경 / 신설 잠금
@@ -75,7 +76,7 @@ S227 Phase A 에서 mattpocock `diagnose` + `improve-codebase-architecture` + `z
 | **DEC-14** | **변경** — AdminListMeta 추출 → /products outlier 정정만 (헤더 subtitle 흡수) | 1 caller hypothetical seam |
 | **DEC-15** (신규) | `lib/admin/errors.ts` 단일 정의 + `summarizePgError` 3 곳 답습 폐기 | 3 곳 중복 → 단일 SoT |
 | **DEC-16** (신규) | `lib/admin/productsServer.ts` 분리 — B2C `lib/productsServer.ts` 와 admin variant 분리 | locality 회복 (orders/users/subscriptions 패턴 답습) |
-| **DEC-17** (신규) | `createAdminFetcher` factory = S228 별 PR carry-over | 회귀 risk 본 sprint 범위 초과 |
+| **DEC-17** (변경 · S229) | 풀 factory 폐기 → `lib/admin/listHelpers.ts` 의 `AdminListResult<T,S,F>` + `applyRange` + `applyIlikeSearch` 3종 helper 추출. 3 도메인 (orders/users/subscriptions) 마이그 (`afbb82f4`). | 재진단: products 패턴 안 맞음 (no pagination/counts) + 3 도메인 차이가 factory 추상화 비용보다 큼 (shallow interface 위험) |
 
 ### 4. 컴포넌트 Interface 설계 (LANGUAGE.md "interface = type + invariants + ordering + error modes + config")
 
@@ -109,9 +110,11 @@ S227 본 sprint:
 - `lib/admin/errors.ts` 신설 + 3 도메인 마이그
 - `lib/admin/productsServer.ts` 신설 + B2C `lib/productsServer.ts` 의 admin variant 이관
 
-S228 carry-over:
-- `createAdminFetcher` factory 도입 (4 도메인 마이그 · RPC count · RLS 회귀 검증)
-- 페이지별 6 컴포넌트 실 적용 (PR-A: 테이블 4종 / PR-B: 상세 페이지 / PR-C: 단일 페이지)
+S228 carry-over (완료):
+- 페이지별 6 컴포넌트 실 적용 (PR-A: 테이블 4종 / PR-B: 상세 페이지 / PR-C: 단일 페이지) ✅
+
+S229 후속 (완료):
+- DEC-17 변경 — 풀 factory 폐기, `lib/admin/listHelpers.ts` (AdminListResult + applyRange + applyIlikeSearch) 추출 (`afbb82f4`) ✅
 
 S229~S231 (마스터 plan §3 답습):
 - §7-3 hex Type 1/2 정정 (Sprint 3)
@@ -128,7 +131,7 @@ S229~S231 (마스터 plan §3 답습):
 ### (B) 6 컴포넌트만 + lib 작업 보류
 
 - Real seam 6종만 추출. errors / productsServer 분리는 S229 별 sprint.
-- **거부 이유 (사용자 결정)**: lib 작업이 컴포넌트 작업과 독립 + 회귀 risk 작음. 본 sprint 동시 처리가 효율적. 단 `createAdminFetcher` factory 는 회귀 risk 커서 별 PR 분리.
+- **거부 이유 (사용자 결정)**: lib 작업이 컴포넌트 작업과 독립 + 회귀 risk 작음. 본 sprint 동시 처리가 효율적. 단 `createAdminFetcher` factory 는 회귀 risk 커서 별 PR 분리 → **S229 재진단 후 폐기, listHelpers 추출로 대체** (`afbb82f4`).
 
 ### (C) lib 통합 — `lib/admin/index.ts` barrel
 
