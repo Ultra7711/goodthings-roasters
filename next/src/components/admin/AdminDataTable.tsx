@@ -67,6 +67,8 @@ type AdminDataTableProps<T> = {
   empty?: ReactNode;
   /** 테이블 외부 wrapper className (border / radius 등) */
   className?: string;
+  /** 테이블 카드 안 하단 슬롯 (페이지네이션 + 범위 텍스트 등 · DEC-9 정합) */
+  footer?: ReactNode;
 };
 
 const TH_PADDING = 'px-4 py-3';
@@ -82,6 +84,7 @@ export function AdminDataTable<T>({
   isRowSelected,
   empty,
   className,
+  footer,
 }: AdminDataTableProps<T>) {
   return (
     <div
@@ -147,6 +150,11 @@ export function AdminDataTable<T>({
               })}
         </TableBody>
       </Table>
+      {footer && (
+        <div className="px-5 py-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+          {footer}
+        </div>
+      )}
     </div>
   );
 }

@@ -3,16 +3,21 @@
 /* ══════════════════════════════════════════════════════════════════════════
    OrdersTableClient — /admin/orders 인터랙티브 본체 (S128 Group B)
 
-   책임:
-   - 시안 inline style 100% 이식 (S125 결정 — Tailwind/shadcn 폐기)
-   - 탭·페이지네이션은 <Link href> (URL state)
-   - 검색은 debounced router.replace
-   - 기간·결제수단 드롭다운은 click-toggle 패턴 + 외부 클릭 close
-   - 선택 행(selected) UI 만 — 일괄 처리/송장 발급 액션은 carry-over
+   S228 PR-A — 5 inline 답습 폐기:
+   - 페이지 헤더    → AdminPageHeader
+   - STATUS_TABS    → AdminTabsNav (mode='url')
+   - TH/TD inline   → AdminDataTable (Column<ListedOrder> + footer 슬롯)
+   - colSpan 빈     → AdminEmptyState (variant='table-row')
+   - PageNav etc.   → AdminPagination (mode='url')
+
+   행 클릭 = router.push(/admin/orders/[orderNumber]) 추가 (S228 결정).
+   checkbox / 주문번호 Link 셀은 stopPropagation 으로 행 클릭과 분리.
+
+   유지 (마이그 비대상):
+   - AdminTopbarActions / AdminSearchInput / DropdownFilter (1 caller hypothetical)
+   - selection state + Badge (TONES) + describeRange
 
    carry-over (시안 export 후 진입):
-   - 행 클릭 → /admin/orders/[orderNumber] 상세 (B-2)
-   - "발송 처리" 다이얼로그 + dispatchOrderAction (B-3)
    - CSV 내보내기 / 주문 생성 / 일괄 처리 / 송장 발급 (placeholder)
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -21,18 +26,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminTabsNav } from '@/components/admin/AdminTabsNav';
+import { AdminDataTable, type Column } from '@/components/admin/AdminDataTable';
+import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
+import { AdminPagination } from '@/components/admin/AdminPagination';
 import { Button } from '@/components/admin/ui/button';
-import { Input } from '@/components/admin/ui/input';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import { Checkbox } from '@/components/admin/ui/checkbox';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '@/components/admin/ui/table';
 import {
   PAGE_SIZE,
   PAYMENT_OPTIONS,
@@ -63,25 +64,6 @@ const TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> = {
   warning: { bg: 'var(--warning-soft)', fg: 'var(--warning)', dot: 'var(--warning)' },
   info:    { bg: 'var(--info-soft)',    fg: 'var(--info)',    dot: 'var(--info)' },
   primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)', dot: 'var(--primary)' },
-};
-
-/* S223 토큰 정합 — TH/TD inline 유지 (shadcn Table 도입은 carry-over).
-   값 정합: fontSize 11/13 → 12/14, padding 12×16 (py-3 px-4 · shadcn 표준 답습). */
-const TH_STYLE: React.CSSProperties = {
-  textAlign: 'left',
-  padding: '12px 16px',
-  fontSize: 12,
-  fontWeight: 500,
-  letterSpacing: '0.04em',
-  textTransform: 'uppercase',
-  color: 'var(--foreground-muted)',
-};
-
-/* fontSize 는 inline 제거 — cell 별 className 으로 hierarchy 표현 (primary 14 / meta 12).
-   inline fontSize 가 className 보다 specificity 우선이라 override 안 됨 (S223 회귀 fix). */
-const TD_STYLE: React.CSSProperties = {
-  padding: '12px 16px',
-  verticalAlign: 'middle',
 };
 
 export default function OrdersTableClient({ rows, total, counts, filters }: Props) {
@@ -119,9 +101,7 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchValue]);
 
-  /* 페이지 윈도우 (... 포함 표시) */
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const pageWindow = useMemo(() => buildPageWindow(filters.page, pageCount), [filters.page, pageCount]);
 
   /* 선택 행 헬퍼 — 표시 행만 대상 */
   const allSelected = rows.length > 0 && selected.length === rows.length;
@@ -138,6 +118,117 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
   useEffect(() => {
     setSelected([]);
   }, [filters.page, filters.status, filters.period, filters.payment, filters.q]);
+
+  const columns: readonly Column<ListedOrder>[] = useMemo(() => [
+    {
+      key: 'select',
+      width: 'w-9',
+      header: (
+        <span onClick={(e) => e.stopPropagation()}>
+          <CheckBox
+            checked={allSelected}
+            indeterminate={indeterminate}
+            onChange={toggleAll}
+            ariaLabel={allSelected ? '전체 선택 해제' : '전체 선택'}
+            disabled={rows.length === 0}
+          />
+        </span>
+      ),
+      render: (o) => (
+        <span onClick={(e) => e.stopPropagation()}>
+          <CheckBox
+            checked={selected.includes(o.id)}
+            onChange={() => toggleRow(o.id)}
+            ariaLabel={selected.includes(o.id) ? `${o.orderNumber} 선택 해제` : `${o.orderNumber} 선택`}
+          />
+        </span>
+      ),
+    },
+    {
+      key: 'orderNumber',
+      header: '주문번호',
+      render: (o) => (
+        <Link
+          href={`/admin/orders/${o.orderNumber}`}
+          onClick={(e) => e.stopPropagation()}
+          className="gtr-mono text-xs text-[var(--primary)] font-medium no-underline"
+        >
+          {o.orderNumber}
+        </Link>
+      ),
+    },
+    {
+      key: 'createdAt',
+      header: '주문일시',
+      cellClassName: 'text-xs text-muted-foreground tabular-nums',
+      render: (o) => formatKstDateTime(o.createdAtIso),
+    },
+    {
+      key: 'customer',
+      header: '고객',
+      cellClassName: 'text-sm',
+      render: (o) => (
+        <>
+          <div className="font-medium">{o.customerName}</div>
+          <div className="text-xs text-[var(--foreground-subtle)] mt-0.5">{o.contactEmail}</div>
+        </>
+      ),
+    },
+    {
+      key: 'items',
+      header: '상품',
+      cellClassName: 'text-sm max-w-[240px]',
+      render: (o) => {
+        if (o.itemsStructured.length === 0) {
+          return <span className="opacity-50">—</span>;
+        }
+        const first = o.itemsStructured[0];
+        const rest = o.itemsStructured.length - 1;
+        const detail = [
+          first.detail,
+          rest > 0 ? `+${rest}건` : '',
+        ].filter(Boolean).join(' · ');
+        return (
+          <div title={o.itemsLabel}>
+            <div className="font-medium">{first.name}</div>
+            {detail && (
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {detail}
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'amount',
+      header: '금액',
+      align: 'right',
+      cellClassName: 'text-sm tabular-nums font-medium',
+      render: (o) => `${o.totalAmount.toLocaleString()}원`,
+    },
+    {
+      key: 'payment',
+      header: '결제',
+      align: 'right',
+      cellClassName: 'text-xs text-muted-foreground',
+      render: (o) => o.paymentLabel,
+    },
+    {
+      key: 'status',
+      header: '상태',
+      align: 'right',
+      render: (o) => {
+        const status = describeStatus(o.status);
+        return (
+          <Badge tone={status.tone} dot>
+            {status.label}
+          </Badge>
+        );
+      },
+    },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [rows, selected, allSelected, indeterminate]);
 
   return (
     <>
@@ -165,54 +256,26 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
         </Button>
       </AdminTopbarActions>
 
-      {/* 헤더 */}
-      <div className="flex items-baseline justify-between mb-5">
-        <div>
-          <h2 className="m-0 text-2xl font-medium tracking-tight">주문 관리</h2>
-          <div className="mt-1 text-sm text-muted-foreground">
+      <AdminPageHeader
+        title="주문 관리"
+        subtitle={
+          <>
             총 {counts.all.toLocaleString()}건의 주문
             {counts.new > 0 ? ` · ${counts.new.toLocaleString()}건 처리 대기` : ''}
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
-      {/* 탭 */}
-      <div className="flex gap-1 border-b border-border mb-4">
-        {STATUS_TABS.map((t) => {
-          const active = t.id === filters.status;
-          const cnt = counts[t.id] ?? 0;
-          return (
-            <Link
-              key={t.id}
-              href={buildHref({ status: t.id, page: 1 })}
-              replace
-              className={`px-3 py-2 bg-transparent cursor-pointer text-sm relative flex items-center gap-1.5 no-underline ${
-                active
-                  ? 'font-medium text-foreground'
-                  : 'font-normal text-muted-foreground'
-              }`}
-            >
-              {t.label}
-              <span
-                className={`text-xs tabular-nums px-1.5 rounded-sm ${
-                  active
-                    ? 'text-muted-foreground bg-muted'
-                    : 'text-[var(--foreground-subtle)] bg-transparent'
-                }`}
-                style={{ padding: '1px 6px' }}
-              >
-                {cnt.toLocaleString()}
-              </span>
-              {active && (
-                <div
-                  className="absolute left-0 right-0 h-0.5 bg-[var(--primary)]"
-                  style={{ bottom: -1 }}
-                />
-              )}
-            </Link>
-          );
-        })}
-      </div>
+      <AdminTabsNav
+        mode="url"
+        tabs={STATUS_TABS.map((t) => ({
+          id: t.id,
+          label: t.label,
+          count: counts[t.id] ?? 0,
+        }))}
+        active={filters.status}
+        buildHref={(id) => buildHref({ status: id as StatusTabKey, page: 1 })}
+      />
 
       {/* 필터 바 */}
       <div className="flex gap-2 mb-3 items-center">
@@ -245,144 +308,31 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
         )}
       </div>
 
-      {/* 테이블 — TH/TD inline 토큰 정합 (shadcn Table 마이그 carry-over) */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-          padding: 0,
-          overflow: 'hidden',
-        }}
-      >
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr style={{ background: 'var(--surface-muted)', color: 'var(--foreground-muted)' }}>
-              <th style={{ ...TH_STYLE, width: 36 }}>
-                <CheckBox
-                  checked={allSelected}
-                  indeterminate={indeterminate}
-                  onChange={toggleAll}
-                  ariaLabel={allSelected ? '전체 선택 해제' : '전체 선택'}
-                  disabled={rows.length === 0}
-                />
-              </th>
-              <th style={TH_STYLE}>주문번호</th>
-              <th style={TH_STYLE}>주문일시</th>
-              <th style={TH_STYLE}>고객</th>
-              <th style={TH_STYLE}>상품</th>
-              <th style={{ ...TH_STYLE, textAlign: 'right' }}>금액</th>
-              <th style={{ ...TH_STYLE, textAlign: 'right' }}>결제</th>
-              <th style={{ ...TH_STYLE, textAlign: 'right' }}>상태</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-sm text-muted-foreground">
-                  표시할 주문이 없습니다.
-                </td>
-              </tr>
-            ) : (
-              rows.map((o, i) => {
-                const sel = selected.includes(o.id);
-                const status = describeStatus(o.status);
-                return (
-                  <tr
-                    key={o.id}
-                    style={{
-                      borderTop: i === 0 ? 'none' : '1px solid var(--border)',
-                      background: sel ? 'var(--primary-soft)' : 'transparent',
-                    }}
-                  >
-                    <td style={TD_STYLE}>
-                      <CheckBox
-                        checked={sel}
-                        onChange={() => toggleRow(o.id)}
-                        ariaLabel={sel ? `${o.orderNumber} 선택 해제` : `${o.orderNumber} 선택`}
-                      />
-                    </td>
-                    <td style={TD_STYLE}>
-                      <Link
-                        href={`/admin/orders/${o.orderNumber}`}
-                        className="gtr-mono text-xs text-[var(--primary)] font-medium no-underline"
-                      >
-                        {o.orderNumber}
-                      </Link>
-                    </td>
-                    <td
-                      style={TD_STYLE}
-                      className="text-xs text-muted-foreground tabular-nums"
-                    >
-                      {formatKstDateTime(o.createdAtIso)}
-                    </td>
-                    <td style={TD_STYLE} className="text-sm">
-                      <div className="font-medium">{o.customerName}</div>
-                      <div className="text-xs text-[var(--foreground-subtle)] mt-0.5">{o.contactEmail}</div>
-                    </td>
-                    <td style={{ ...TD_STYLE, maxWidth: 240 }} className="text-sm" title={o.itemsLabel}>
-                      {o.itemsStructured.length === 0 ? (
-                        <span className="opacity-50">—</span>
-                      ) : (() => {
-                        const first = o.itemsStructured[0];
-                        const rest = o.itemsStructured.length - 1;
-                        const detail = [
-                          first.detail,
-                          rest > 0 ? `+${rest}건` : '',
-                        ].filter(Boolean).join(' · ');
-                        return (
-                          <div>
-                            <div className="font-medium">{first.name}</div>
-                            {detail && (
-                              <div className="text-xs text-muted-foreground mt-0.5">
-                                {detail}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </td>
-                    <td
-                      style={TD_STYLE}
-                      className="text-sm text-right tabular-nums font-medium"
-                    >
-                      {o.totalAmount.toLocaleString()}원
-                    </td>
-                    <td style={{ ...TD_STYLE, textAlign: 'right' }} className="text-xs text-muted-foreground">
-                      {o.paymentLabel}
-                    </td>
-                    <td style={{ ...TD_STYLE, textAlign: 'right' }}>
-                      <Badge tone={status.tone} dot>
-                        {status.label}
-                      </Badge>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-
-        {/* 페이지네이션 */}
-        <div className="px-5 py-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-          <div>{describeRange(filters.page, total)}</div>
-          <div className="flex gap-1 items-center">
-            <PageNav href={buildHref({ page: 1 })} disabled={filters.page === 1}>‹‹</PageNav>
-            <PageNav href={buildHref({ page: Math.max(1, filters.page - 1) })} disabled={filters.page === 1}>‹</PageNav>
-            {pageWindow.map((p, idx) =>
-              p === 'ellipsis' ? (
-                <span key={`e-${idx}`} style={ELLIPSIS_STYLE}>…</span>
-              ) : (
-                <PageNav key={p} href={buildHref({ page: p })} active={p === filters.page}>
-                  {p}
-                </PageNav>
-              ),
-            )}
-            <PageNav href={buildHref({ page: Math.min(pageCount, filters.page + 1) })} disabled={filters.page === pageCount}>›</PageNav>
-            <PageNav href={buildHref({ page: pageCount })} disabled={filters.page === pageCount}>››</PageNav>
-          </div>
-        </div>
-      </div>
+      <AdminDataTable
+        columns={columns}
+        data={rows}
+        rowKey={(o) => o.id}
+        onRowClick={(o) => router.push(`/admin/orders/${o.orderNumber}`)}
+        isRowSelected={(o) => selected.includes(o.id)}
+        empty={
+          <AdminEmptyState
+            variant="table-row"
+            colSpan={columns.length}
+            message="표시할 주문이 없습니다."
+          />
+        }
+        footer={
+          <>
+            <div>{describeRange(filters.page, total)}</div>
+            <AdminPagination
+              mode="url"
+              page={filters.page}
+              pageCount={pageCount}
+              buildHref={(p) => buildHref({ page: p })}
+            />
+          </>
+        }
+      />
     </>
   );
 }
@@ -394,19 +344,6 @@ function describeRange(page: number, total: number): string {
   const start = (page - 1) * PAGE_SIZE + 1;
   const end = Math.min(page * PAGE_SIZE, total);
   return `${start.toLocaleString()} — ${end.toLocaleString()} / ${total.toLocaleString()}건`;
-}
-
-/** 페이지 번호 윈도우 — 7 페이지 이하면 전부 노출, 그 외엔 1 ... current-1 current current+1 ... last */
-function buildPageWindow(current: number, total: number): Array<number | 'ellipsis'> {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-  const window = new Set<number>([1, total, current, current - 1, current + 1]);
-  const sorted = [...window].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
-  const out: Array<number | 'ellipsis'> = [];
-  for (let i = 0; i < sorted.length; i++) {
-    if (i > 0 && sorted[i] - sorted[i - 1] > 1) out.push('ellipsis');
-    out.push(sorted[i]);
-  }
-  return out;
 }
 
 /* ── 로컬 컴포넌트 ─────────────────────────────────────────────────── */
@@ -438,58 +375,6 @@ function CheckBox({
   );
 }
 
-/* S222 PR-3: PageNav inline style 유지 (페이지네이션 버튼은 26×26 매우 특수 사이즈 ·
-   shadcn Button size 변종에 없음 · `!h-... !w-...` override 다수 발생 → inline 더 명료). */
-const PAGE_BUTTON_BASE: React.CSSProperties = {
-  minWidth: 26,
-  height: 26,
-  padding: '0 6px',
-  borderRadius: 5,
-  fontSize: 12,
-  fontVariantNumeric: 'tabular-nums',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textDecoration: 'none',
-};
-
-const ELLIPSIS_STYLE: React.CSSProperties = {
-  ...PAGE_BUTTON_BASE,
-  color: 'var(--foreground-subtle)',
-  cursor: 'default',
-};
-
-function PageNav({
-  href,
-  children,
-  active,
-  disabled,
-}: {
-  href: string;
-  children: React.ReactNode;
-  active?: boolean;
-  disabled?: boolean;
-}) {
-  const style: React.CSSProperties = {
-    ...PAGE_BUTTON_BASE,
-    border: '1px solid ' + (active ? 'var(--primary)' : 'var(--border)'),
-    background: active ? 'var(--primary)' : 'var(--surface)',
-    color: active ? '#fff' : disabled ? 'var(--foreground-subtle)' : 'var(--foreground)',
-    fontWeight: active ? 500 : 400,
-    cursor: disabled ? 'default' : 'pointer',
-    opacity: disabled ? 0.6 : 1,
-    pointerEvents: disabled ? 'none' : 'auto',
-  };
-  if (disabled) {
-    return <span style={style}>{children}</span>;
-  }
-  return (
-    <Link href={href} replace style={style} aria-current={active ? 'page' : undefined}>
-      {children}
-    </Link>
-  );
-}
-
 /* S222 PR-3: shadcn Badge variant=outline + tone soft 매트릭스 style override (DEC-2). */
 function Badge({
   tone,
@@ -512,8 +397,6 @@ function Badge({
     </ShadcnBadge>
   );
 }
-
-/* S223 Phase 2-c: SearchInput → @/components/admin/AdminSearchInput (admin 공통). */
 
 function DropdownFilter({
   label,
@@ -687,6 +570,3 @@ const ChevronDown = () => (
     <path d="m6 9 6 6 6-6" />
   </svg>
 );
-
-/* S222 PR-3: SM_BASE / SM_SECONDARY / SM_PRIMARY 폐기 (shadcn Button 으로 대체).
-   S223 Phase 2-c: MoreIcon 폐기 (⋯ actions 컬럼 mock + disabled 였음 · 제거). */
