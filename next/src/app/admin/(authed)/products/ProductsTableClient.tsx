@@ -246,7 +246,7 @@ export default function ProductsTableClient({ rows }: Props) {
 
       <AdminPageHeader
         title="상품 관리"
-        subtitle="원두·드립백 상품 목록 · 활성/비활성 토글 + 편집 진입"
+        subtitle="상품 목록 · 활성/비활성 토글로 웹페이지 연동"
       />
 
       <AdminTabsNav

@@ -358,6 +358,7 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
                 <button
                   key={tab.key}
                   type="button"
+                  data-slot="tabs-nav-item"
                   onClick={() => setActiveSection(tab.key)}
                   className={`px-3 py-2 text-sm font-medium bg-transparent cursor-pointer -mb-px border-b-2 ${
                     active

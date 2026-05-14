@@ -108,11 +108,15 @@ function TabItem({
     );
   }
 
+  /* data-slot="tabs-nav-item" — admin-theme.css 의 `button:not([data-slot])`
+     color/font reset 회피용. 미적용 시 Tailwind text-foreground/muted 가
+     `color: inherit` 으로 무력화되어 mode='state' 탭만 색 깨짐 (S228 회귀). */
   return (
     <button
       type="button"
+      data-slot="tabs-nav-item"
       onClick={() => props.onChange(tab.id)}
-      className={cn(labelClass, 'border-none')}
+      className={labelClass}
       aria-pressed={active}
     >
       {inner}
