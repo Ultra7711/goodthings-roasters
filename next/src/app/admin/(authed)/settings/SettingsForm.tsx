@@ -237,7 +237,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
         )}
       </div>
 
-      <div className="flex flex-col gap-3.5">
+      <div className="flex flex-col gap-4">
         {/* Section 1 — 무료 배송 정책 */}
         <SettingsCard
           title="무료 배송 정책"
@@ -245,7 +245,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
           on={settings.shipping.enabled}
           onToggle={() => updateShipping({ enabled: !settings.shipping.enabled })}
         >
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-3">
               <FormField label="기준 금액" hint="이 금액 이상 결제 시 무료">
                 <FormInput
@@ -269,7 +269,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               </FormField>
             </div>
 
-            <div className="p-3 rounded-[6px] bg-[var(--info-soft)] border border-[#C5DCF1] flex gap-2.5 items-start text-xs text-[var(--info)]">
+            <div className="p-3 rounded-[6px] bg-[var(--info-soft)] border border-[#C5DCF1] flex gap-3 items-start text-xs text-[var(--info)]">
               <svg
                 width="16"
                 height="16"
@@ -302,7 +302,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
           on={settings.notice.enabled}
           onToggle={() => updateNotice({ enabled: !settings.notice.enabled })}
         >
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-4">
             {/* 라이브 미리보기 */}
             <div
               className="rounded-[6px] overflow-hidden border border-border"
@@ -344,7 +344,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
             </div>
 
             {/* 자동 동기화 토글 */}
-            <label className="flex gap-2.5 items-start p-3 rounded-[6px] bg-[var(--surface-muted)] border border-border cursor-pointer">
+            <label className="flex gap-3 items-start p-3 rounded-[6px] bg-[var(--surface-muted)] border border-border cursor-pointer">
               <input
                 type="checkbox"
                 checked={settings.notice.auto_text}
@@ -434,7 +434,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
           onToggle={() => updateSeason({ enabled: !settings.season.enabled })}
         >
           <div className="grid grid-cols-[1fr_240px] gap-4 items-start">
-            <div className="flex flex-col gap-3.5">
+            <div className="flex flex-col gap-4">
               <FormField label="Eyebrow (작은 라벨)">
                 <FormInput
                   value={settings.season.eyebrow}
@@ -539,7 +539,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                     <div className="gtr-admin-progress-indet" />
                   </div>
                   <div
-                    className="mt-1.5 text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
+                    className="mt-2 text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
                     title={uploadState.fileName}
                   >
                     {uploadState.fileName}
@@ -566,7 +566,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
           }
         >
           <div className="grid grid-cols-[1fr_240px] gap-4 items-start">
-            <div className="flex flex-col gap-3.5">
+            <div className="flex flex-col gap-4">
               {/* eyebrow + 분기 자동 채움 */}
               <FormField
                 label="Eyebrow (분기 라벨)"
@@ -577,7 +577,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   onChange={(e) => updateSignature({ eyebrow: e.target.value })}
                   placeholder="예: Signature · 2026 SS"
                 />
-                <div className="flex gap-1.5 mt-1.5 flex-wrap items-center">
+                <div className="flex gap-1.5 mt-2 flex-wrap items-center">
                   <span className="text-xs text-muted-foreground mr-0.5">빠른 채움</span>
                   {QUARTER_LABELS.map((q) => {
                     const { year } = getCurrentQuarter();
@@ -795,7 +795,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                     <div className="gtr-admin-progress-indet" />
                   </div>
                   <div
-                    className="mt-1.5 text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
+                    className="mt-2 text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
                     title={sigUploadState.fileName}
                   >
                     {sigUploadState.fileName}
@@ -814,9 +814,9 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
 
         {/* Preview — advisory §6.1 D-1 4 brk 발행 전 미리보기 */}
         <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
-          <div className="px-[22px] py-4 border-b border-border flex items-center gap-3 flex-wrap">
+          <div className="px-6 py-4 border-b border-border flex items-center gap-3 flex-wrap">
             <div className="flex-1 min-w-[200px]">
-              <h3 className="m-0 text-[15px] font-medium">
+              <h3 className="m-0 text-base font-medium">
                 메인 페이지 미리보기
               </h3>
               <div className="text-xs text-muted-foreground mt-0.5">
@@ -851,7 +851,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
           </div>
 
           {isDirty && (
-            <div className="px-[22px] py-2 bg-[var(--warning-soft)] text-[var(--warning)] text-xs border-b border-border">
+            <div className="px-6 py-2 bg-[var(--warning-soft)] text-[var(--warning)] text-xs border-b border-border">
               저장되지 않은 변경 {dirtyCount}개 — 미리보기는 즉시 반영 · 저장 시 라이브 사이트 반영
             </div>
           )}
@@ -1062,9 +1062,9 @@ function SettingsCard({
 }) {
   return (
     <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
-      <div className="px-[22px] py-4 border-b border-border flex items-center gap-3 bg-[var(--surface)]">
+      <div className="px-6 py-4 border-b border-border flex items-center gap-3 bg-[var(--surface)]">
         <div className="flex-1">
-          <h3 className="m-0 text-[15px] font-medium">{title}</h3>
+          <h3 className="m-0 text-base font-medium">{title}</h3>
           <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div>
         </div>
         <span
@@ -1076,7 +1076,7 @@ function SettingsCard({
         <Toggle on={on} onClick={onToggle} />
       </div>
       <div
-        className="p-[22px] transition-opacity duration-[150ms]"
+        className="p-6 transition-opacity duration-[150ms]"
         style={{ opacity: on ? 1 : 0.5 }}
       >
         {children}
