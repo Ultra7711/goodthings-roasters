@@ -425,12 +425,12 @@ function DropdownFilter({
   const isDefault = activeId === options[0].id;
 
   return (
-    <div ref={wrapperRef} style={{ position: 'relative', display: 'inline-flex' }}>
+    <div ref={wrapperRef} className="relative inline-flex">
       <Button
         type="button"
         variant="outline"
         size="sm"
-        className="!h-7"
+        className="!h-7 [&>svg:last-child]:-mr-1"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -466,20 +466,7 @@ function DropdownFilter({
       {open && (
         <ul
           role="listbox"
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            marginTop: 4,
-            minWidth: 160,
-            padding: 4,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 8,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-            listStyle: 'none',
-            zIndex: 10,
-          }}
+          className="admin-dropdown-menu"
         >
           {options.map((opt) => {
             const active = opt.id === activeId;
@@ -493,7 +480,7 @@ function DropdownFilter({
                     setOpen(false);
                     onChange(opt.id);
                   }}
-                  className={`w-full text-left px-2.5 py-1.5 border-none rounded text-sm cursor-pointer ${
+                  className={`admin-dropdown-item ${
                     active
                       ? 'bg-[var(--primary-soft)] text-[var(--primary-soft-fg)]'
                       : 'bg-transparent text-foreground'

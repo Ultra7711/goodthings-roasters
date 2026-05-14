@@ -350,43 +350,54 @@ function BasicTab({
             />
           </Field>
           <Field label="슬러그" hint="상품 상세 페이지 URL · 변경 불가 (신규 등록에서만 입력)">
-            <Input type="text" {...register('slug')} readOnly />
+            <Input
+              type="text"
+              {...register('slug')}
+              readOnly
+              aria-disabled
+              tabIndex={-1}
+              className="cursor-not-allowed opacity-60 bg-[var(--surface-muted)] text-muted-foreground"
+            />
           </Field>
         </FieldGrid>
 
         <FieldGrid cols={3}>
           <Field label="카테고리" required error={errors.category?.message}>
-            <select
-              {...register('category')}
-              className={SELECT_CLASS}
-              style={{ fontFamily: 'inherit' }}
-            >
-              {CATEGORY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            <NativeSelectWrap>
+              <select
+                {...register('category')}
+                className={SELECT_CLASS}
+                style={{ fontFamily: 'inherit' }}
+              >
+                {CATEGORY_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </NativeSelectWrap>
           </Field>
           <Field label="상태 배지">
             <Controller
               name="status"
               control={control}
               render={({ field }) => (
-                <select
-                  value={field.value ?? ''}
-                  onChange={(e) =>
-                    field.onChange(e.target.value === '' ? null : e.target.value)
-                  }
-                  className={SELECT_CLASS}
-                  style={{ fontFamily: 'inherit' }}
-                >
-                  {STATUS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
+                <NativeSelectWrap>
+                  <select
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === '' ? null : e.target.value)
+                    }
+                    className={SELECT_CLASS}
+                    style={{ fontFamily: 'inherit' }}
+                  >
+                    {STATUS_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </NativeSelectWrap>
               )}
             />
           </Field>
@@ -968,9 +979,35 @@ function Field({
   );
 }
 
-/* DEC-5: native select 유지 (Radix Select 변환은 후속). FormInput h-[34px] 표준 정합. */
+/* DEC-5: native select 유지 (Radix Select 변환은 후속). FormInput h-[34px] 표준 정합.
+   chevron 위치 표준 = DropdownFilter (OrdersTableClient) 답습:
+   - chevron svg 12×12 / opacity 0.6 / 우측 8px 안쪽 (살짝 바깥)
+   - select 의 pr-8 = 32px (chevron 영역 + 여백) */
 const SELECT_CLASS =
-  'w-full h-[34px] px-2.5 bg-[var(--surface)] border border-input rounded-md text-sm text-[var(--foreground)] outline-none';
+  'appearance-none w-full h-[34px] pl-2.5 pr-8 bg-[var(--surface)] border border-input rounded-md text-sm text-[var(--foreground)] outline-none';
+
+function NativeSelectWrap({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      {children}
+      <svg
+        aria-hidden
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-foreground pointer-events-none"
+        style={{ opacity: 0.6 }}
+      >
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </div>
+  );
+}
 
 /* S222 PR-5c: SM_BASE/GHOST/PRIMARY 상수 폐기 (shadcn Button 으로 대체).
    inputStyle = native select 의 fallback 유지 (DEC-5 native select 정책). */
