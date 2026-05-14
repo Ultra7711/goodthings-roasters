@@ -386,7 +386,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         </div>
 
         {/* Detail */}
-        <div className="flex flex-col gap-[14px]">
+        <div className="flex flex-col gap-[14px] min-w-0">
           {!draft ? (
             <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] py-[60px] px-10 text-center text-[13px] text-[var(--foreground-muted)]">
               좌측에서 이벤트를 선택하거나 [+ 새 이벤트] 를 눌러주세요.
@@ -531,7 +531,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
               {/* 이미지 카드 */}
               <Card title="이미지" subtitle="1:1 정사각 권장 · 최대 5MB · webp/avif/jpeg/png">
                 <div className="grid grid-cols-[1fr_240px] gap-4 items-start">
-                  <div className="flex flex-col gap-[14px]">
+                  <div className="flex flex-col gap-[14px] min-w-0">
                     <FormField label="대체 텍스트 (alt)">
                       <FormInput
                         value={draft.image_alt}
