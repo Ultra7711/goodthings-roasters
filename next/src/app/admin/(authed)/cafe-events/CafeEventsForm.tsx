@@ -348,7 +348,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       {/* 이벤트 목록 — 상단 수평 스크롤 스트립 */}
       <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden mb-4">
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-          <div className="flex-1 text-xs font-medium">
+          <div className="flex-1 text-sm font-medium">
             이벤트 {events.length}개
           </div>
           <Button type="button" variant="outline" size="sm" className="!h-7" onClick={handleNew}>
