@@ -648,7 +648,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
 
               <FormField
                 label="플레이버 chip"
-                hint="최대 4개 · 권장 3개 · 영문 생략 가능 (예: 복숭아 / Peach)"
+                hint="최대 4개 · 권장 3개 · 영문은 공백으로 구분 (예: 복숭아 Peach)"
               >
                 <div className="flex flex-col gap-1.5">
                   <div className="flex gap-1.5 flex-wrap">
@@ -686,8 +686,8 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   </div>
                   <div className="flex gap-1.5">
                     <FormInput
-                      placeholder="예: 복숭아 / Peach  (영문 생략 가능)"
-                      maxLength={55}
+                      placeholder="예: 복숭아 Peach  (영문 생략 가능)"
+                      maxLength={50}
                       onKeyDown={(e) => {
                         if (e.key !== 'Enter') return;
                         e.preventDefault();
@@ -990,15 +990,19 @@ function buildPreviewSrc(s: SignatureSettings): string {
   return `/preview/signature?${params.toString()}`;
 }
 
-/** "복숭아 / Peach" 또는 "복숭아" → {ko, en} 파싱. ko 없으면 null. */
+/** "복숭아 Peach" 또는 "복숭아" → {ko, en} 파싱.
+    마지막 한글 문자(U+AC00~D7A3) 위치 기준으로 ko/en 분리. ko 없으면 null. */
 function parseChipInput(raw: string): { ko: string; en: string } | null {
-  const slashIdx = raw.indexOf('/');
-  if (slashIdx === -1) {
-    const ko = raw.trim();
-    return ko ? { ko, en: '' } : null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  let lastKoreanIdx = -1;
+  for (let i = trimmed.length - 1; i >= 0; i--) {
+    const code = trimmed.charCodeAt(i);
+    if (code >= 0xac00 && code <= 0xd7a3) { lastKoreanIdx = i; break; }
   }
-  const ko = raw.slice(0, slashIdx).trim();
-  const en = raw.slice(slashIdx + 1).trim();
+  if (lastKoreanIdx === -1) return { ko: trimmed, en: '' };
+  const ko = trimmed.slice(0, lastKoreanIdx + 1).trim();
+  const en = trimmed.slice(lastKoreanIdx + 1).trim();
   return ko ? { ko, en } : null;
 }
 
