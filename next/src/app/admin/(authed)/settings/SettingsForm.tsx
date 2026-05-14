@@ -31,6 +31,10 @@ import {
 import { uploadSeasonBanner } from '@/lib/admin/uploadSeasonBanner';
 import { uploadSignatureImage } from '@/lib/admin/uploadSignatureImage';
 import { FlavorChipInput } from '@/components/admin/FlavorChipInput';
+import {
+  ADMIN_SELECT_CLASS,
+  NativeSelectWrap,
+} from '@/components/admin/NativeSelectWrap';
 import type { Product } from '@/lib/products';
 import {
   saveSiteSettingsAction,
@@ -607,10 +611,11 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 label="제품 (Coffee Bean)"
                 hint="시그니처에 호명할 원두 1종 — 빈 값 시 chapter 자동 hide"
               >
+                <NativeSelectWrap>
                 <select
                   value={settings.signature.product_slug}
                   onChange={(e) => updateSignature({ product_slug: e.target.value })}
-                  className="w-full h-[34px] px-2.5 border border-[var(--input)] rounded-[6px] text-sm text-[var(--foreground)] outline-none bg-[var(--surface)] shadow-xs transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  className={ADMIN_SELECT_CLASS}
                   style={{ fontFamily: 'inherit' }}
                 >
                   <option value="">— 선택 —</option>
@@ -620,6 +625,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                     </option>
                   ))}
                 </select>
+                </NativeSelectWrap>
               </FormField>
 
               <FormField label="제목 (한국어 제품명)" hint="최대 40자">

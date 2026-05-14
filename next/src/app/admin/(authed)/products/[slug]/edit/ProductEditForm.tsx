@@ -31,6 +31,10 @@ import {
   decodeChipsFromColumns,
   type FlavorChip,
 } from '@/components/admin/FlavorChipInput';
+import {
+  ADMIN_SELECT_CLASS,
+  NativeSelectWrap,
+} from '@/components/admin/NativeSelectWrap';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 import { Slider } from '@/components/admin/ui/slider';
@@ -366,7 +370,7 @@ function BasicTab({
             <NativeSelectWrap>
               <select
                 {...register('category')}
-                className={SELECT_CLASS}
+                className={ADMIN_SELECT_CLASS}
                 style={{ fontFamily: 'inherit' }}
               >
                 {CATEGORY_OPTIONS.map((o) => (
@@ -388,7 +392,7 @@ function BasicTab({
                     onChange={(e) =>
                       field.onChange(e.target.value === '' ? null : e.target.value)
                     }
-                    className={SELECT_CLASS}
+                    className={ADMIN_SELECT_CLASS}
                     style={{ fontFamily: 'inherit' }}
                   >
                     {STATUS_OPTIONS.map((o) => (
@@ -979,35 +983,5 @@ function Field({
   );
 }
 
-/* DEC-5: native select 유지 (Radix Select 변환은 후속). FormInput h-[34px] 표준 정합.
-   chevron 위치 표준 = DropdownFilter (OrdersTableClient) 답습:
-   - chevron svg 12×12 / opacity 0.6 / 우측 8px 안쪽 (살짝 바깥)
-   - select 의 pr-8 = 32px (chevron 영역 + 여백) */
-const SELECT_CLASS =
-  'appearance-none w-full h-[34px] pl-2.5 pr-8 bg-[var(--surface)] border border-input rounded-md text-sm text-[var(--foreground)] outline-none';
-
-function NativeSelectWrap({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative">
-      {children}
-      <svg
-        aria-hidden
-        width="12"
-        height="12"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-foreground pointer-events-none"
-        style={{ opacity: 0.6 }}
-      >
-        <path d="m6 9 6 6 6-6" />
-      </svg>
-    </div>
-  );
-}
-
-/* S222 PR-5c: SM_BASE/GHOST/PRIMARY 상수 폐기 (shadcn Button 으로 대체).
-   inputStyle = native select 의 fallback 유지 (DEC-5 native select 정책). */
+/* DEC-5 (native select 유지) · chevron 표준 = NativeSelectWrap (S231-9).
+   S222 PR-5c: SM_BASE/GHOST/PRIMARY 상수 폐기 — shadcn Button 으로 대체. */
