@@ -208,7 +208,7 @@
   --color-accent: var(--neutral-soft);
   --color-accent-foreground: var(--foreground);
   --color-destructive: var(--danger);
-  --color-destructive-foreground: #FFFFFF;
+  --color-destructive-foreground: var(--primary-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -264,7 +264,7 @@
 }
 
 .gtr-admin ::-webkit-scrollbar { width: 8px; height: 8px; }
-.gtr-admin ::-webkit-scrollbar-thumb { background: #D4D4D2; border-radius: 4px; }
+.gtr-admin ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
 .gtr-admin ::-webkit-scrollbar-track { background: transparent; }
 
 /* loading spinner keyframes (S126: AdminLoginForm submit 인디케이터) */

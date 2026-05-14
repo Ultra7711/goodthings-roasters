@@ -8,7 +8,7 @@
 
 ---
 
-## 0. 현재 상태 인덱스 (2026-05-14 기준)
+## 0. 현재 상태 인덱스 (2026-05-14 기준 · S230 갱신)
 
 | 파일 | 상태 | 정리 방식 | 비고 |
 |---|---|---|---|
@@ -23,11 +23,11 @@
 | `(authed)/orders/[orderNumber]/ShippingDialog.tsx` | 🟢 완료 | Tailwind | S223 Phase 2-e |
 | `(authed)/users/UsersTableClient.tsx` | 🟢 완료 | Tailwind + TH/TD inline (carry) | S223 Phase 2-e |
 | `(authed)/users/[id]/UserDetailClient.tsx` | 🟢 완료 | Tailwind + TH/TD inline (carry) | S226 |
-| `(authed)/products/ProductsTableClient.tsx` | 🟢 완료 | Tailwind + TH/TD inline (carry) | S223 Phase 2-e · S226 thead hex 정정 |
-| `(authed)/products/[slug]/edit/ProductImageReorderClient.tsx` | 🟢 완료 | Tailwind + thumb placeholder gradient inline (carry) | S226 |
+| `(authed)/products/ProductsTableClient.tsx` | 🟢 완료 | Tailwind + AdminDataTable (S228) + placeholder gradient 토큰 (S230) | S228 PR-A · S230-2 |
+| `(authed)/products/[slug]/edit/ProductImageReorderClient.tsx` | 🟢 완료 | Tailwind + placeholder gradient 토큰 (S230) | S226 · S230-2 |
 | `(authed)/products/new/page.tsx` | 📋 재기획 | AdminPlaceholder | S226 (mock UI ≠ 실 PDP 모델 — 재기획 carry-over) |
 | `(authed)/products/[slug]/edit/ProductEditForm.tsx` | 🟢 완료 | Tailwind + RHF carry (DEC-4) | S226 |
-| `(authed)/subscriptions/SubscriptionsTableClient.tsx` | 🟡 부분 | 테이블 정리됨 · Dialog 내부 미정리 | S225+ |
+| `(authed)/subscriptions/SubscriptionsTableClient.tsx` | 🟢 완료 | Tailwind + AdminDataTable + 다이얼로그 칩 §5-23 (S229) | S228 PR-A · S229 PR-C |
 | `(authed)/cafe-events/CafeEventsForm.tsx` | 🟢 완료 | Tailwind | S225 작업 중 |
 | `(authed)/settings/SettingsForm.tsx` | 🟢 완료 | Tailwind | S224 |
 | `(authed)/gooddays/AdminGoodDaysClient.tsx` | 🟢 완료 | Tailwind | S223 Phase 2-a |
@@ -50,8 +50,8 @@
 
 | 페이지 | 카운트 위치 (DEC-8) | 페이지네이션 (DEC-9) | 탭 (DEC-11) | 빈 상태 | Topbar 액션 (DEC-13) |
 |---|---|---|---|---|---|
-| /admin (Dashboard) | — | — | — | 카드 안 placeholder | 리포트/주문 생성 (disabled · 미구현 carry-over) |
-| /admin/orders | 헤더 subtitle ✅ | inline (PR-A 추출) | URL state Link ✅ | 테이블 colSpan | CSV/주문 생성/일괄/송장 (disabled · 미구현 4종) |
+| /admin (Dashboard) | — | — | — | 카드 안 placeholder | ✅ 없음 (S230-4 mock 제거) |
+| /admin/orders | 헤더 subtitle ✅ | AdminPagination ✅ | URL state Link ✅ | 테이블 colSpan | CSV (carry tooltip) · 선택 시 일괄/송장 (carry tooltip · S230-4) |
 | /admin/products | ⚠️ 하단 텍스트 (PR-A 정정) | ❌ 없음 (PR-A 신설 검토) | local state button ✅ | 테이블 colSpan | 신규 상품 |
 | /admin/subscriptions | 헤더 subtitle ✅ | inline (PR-A 추출) | URL state Link ✅ | 테이블 colSpan | — |
 | /admin/users | 헤더 subtitle ✅ | inline (PR-A 추출) | URL state Link ✅ | 테이블 colSpan | — |
