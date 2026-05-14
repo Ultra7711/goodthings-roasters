@@ -15,6 +15,7 @@ import 'server-only';
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
+import { summarizePgError } from './errors';
 import {
   CANCELLED_GROUP,
   PAGE_SIZE,
@@ -29,32 +30,6 @@ import {
   type ListedOrder,
   type StatusTabKey,
 } from './orders';
-
-/**
- * Postgrest/일반 Error 모두 동일 형태로 요약.
- * 민감정보 누출 회피 — 200자 cap.
- */
-function summarizePgError(err: unknown): {
-  code: string | null;
-  message: string | null;
-  details: string | null;
-  hint: string | null;
-} {
-  const e = (err ?? {}) as {
-    code?: unknown;
-    message?: unknown;
-    details?: unknown;
-    hint?: unknown;
-  };
-  const trim = (v: unknown): string | null =>
-    typeof v === 'string' ? v.slice(0, 200) : null;
-  return {
-    code: typeof e.code === 'string' ? e.code : null,
-    message: trim(e.message),
-    details: trim(e.details),
-    hint: trim(e.hint),
-  };
-}
 
 export type OrderDetailItem = {
   productName: string;

@@ -16,6 +16,7 @@ import 'server-only';
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
+import { summarizePgError } from './errors';
 import {
   PAGE_SIZE,
   parseSearchParams,
@@ -31,20 +32,6 @@ import {
 
 /** 상세 페이지 — 최근 주문 N개 */
 const RECENT_ORDERS_LIMIT = 20;
-
-/**
- * Postgrest/일반 Error 모두 동일 형태로 요약. 200자 cap (민감정보 누출 회피).
- */
-function summarizePgError(err: unknown): {
-  code: string | null;
-  message: string | null;
-} {
-  const e = (err ?? {}) as { code?: unknown; message?: unknown };
-  return {
-    code: typeof e.code === 'string' ? e.code : null,
-    message: typeof e.message === 'string' ? e.message.slice(0, 200) : null,
-  };
-}
 
 type ProfileRow = {
   id: string;
