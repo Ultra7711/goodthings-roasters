@@ -97,6 +97,40 @@ export async function listAdminProductsLite(): Promise<AdminProductListItem[]> {
 }
 
 /**
+ * /admin/products/new 페이지 전용 — 신규 등록 시 sort_order 자동값.
+ * 같은 카테고리 내 max(sort_order) + 1 반환. row 0건이면 0.
+ *
+ * /shop 표시는 카테고리별로 분리되어 같은 카테고리 내 sort_order asc 정렬되므로
+ * (ShopPage 답습) 카테고리 origin 으로 자동 번호 부여 → 그룹 맨 뒤 배치.
+ *
+ * S231-2 — drip_bag 은 신규 등록 막혀있으므로 (DRIP_BAG_RECIPE Phase 3-D)
+ * 사실상 coffee_bean 만 호출. 추후 drip_bag 도메인 풀릴 때 호출 흐름 확장.
+ */
+export async function fetchAdminNextSortOrder(
+  category: 'coffee_bean' | 'drip_bag',
+): Promise<number> {
+  const client = await createRouteHandlerClient();
+  const { data, error } = await client
+    .from('products')
+    .select('sort_order')
+    .eq('category', category)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[fetchAdminNextSortOrder] query failed', {
+      category,
+      code: error.code,
+      message: error.message?.slice(0, 200),
+    });
+    return 0;
+  }
+  if (!data) return 0;
+  return (data.sort_order as number) + 1;
+}
+
+/**
  * /admin/products/[slug]/edit 상세 편집 페이지 전용 (S218).
  * raw row (with relations) 반환 — id / is_active / sort_order / product_images.id
  * 등 admin 편집에 필요한 메타 + 이미지 reorder UI 에서 image.id 사용.

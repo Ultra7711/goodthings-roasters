@@ -100,8 +100,8 @@ async function EditInner({ params }: PageProps) {
         )}
       </section>
 
-      {/* 5탭 편집 폼 (basic 탭 작동, 나머지 carry-over) */}
-      <ProductEditForm product={product} />
+      {/* 3탭 편집 폼 (basic · detail · option) */}
+      <ProductEditForm mode="edit" product={product} />
     </div>
   );
 }

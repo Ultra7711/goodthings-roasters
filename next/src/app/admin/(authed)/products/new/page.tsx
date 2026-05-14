@@ -1,11 +1,39 @@
-import AdminPlaceholder from '@/components/admin/AdminPlaceholder';
+/* ══════════════════════════════════════════════════════════════════════════
+   AdminProductNewPage — /admin/products/new (S231-2)
 
-export default function AdminProductNewPage() {
+   - ProductEditForm 답습 (mode='create')
+   - basic / detail / option 3탭 RHF + zod
+   - slug 자동 생성 (name 의 영문 부분 → kebab-case · 운영자 수동 수정 가능)
+   - sortOrder 자동 (같은 카테고리 max + 1 · readonly)
+   - 등록 성공 시 /admin/products/{slug}/edit redirect → 이미지 업로드 (S231-3)
+   - 이미지 갤러리 섹션은 edit 페이지에 두기 — 등록 직후에는 빈 상태 안내
+
+   carry-over:
+   - S231-3 이미지 Storage 업로드 (sharp + plaiceholder)
+   - S231-4 createProductAction 트랜잭션 RPC 보강
+   - /admin/products 목록 reorder UI (A-1 화살표 버튼 · 별 sprint)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+import { AdminBackLink } from '@/components/admin/AdminBackLink';
+import { fetchAdminNextSortOrder } from '@/lib/admin/productsServer';
+import ProductEditForm from '../[slug]/edit/ProductEditForm';
+
+export default async function AdminProductNewPage() {
+  /* drip_bag 은 신규 등록 막혀있음 (Phase 3-D 까지) → coffee_bean max+1 만 prefetch */
+  const initialSortOrder = await fetchAdminNextSortOrder('coffee_bean');
+
   return (
-    <AdminPlaceholder
-      title="신규 상품 등록"
-      description="실 PDP 데이터 모델 기준 재기획 후 구현 예정"
-      group="E · 재기획"
-    />
+    <div>
+      <AdminBackLink href="/admin/products" label="상품 목록으로" />
+
+      <div className="mb-6">
+        <h2 className="m-0 text-2xl font-medium tracking-tight">신규 상품 등록</h2>
+        <div className="mt-1 text-sm text-muted-foreground">
+          기본 정보 · 상세 · 옵션을 채우고 등록하면 이미지 업로드 단계로 이동합니다.
+        </div>
+      </div>
+
+      <ProductEditForm mode="create" initialSortOrder={initialSortOrder} />
+    </div>
   );
 }

@@ -1,7 +1,11 @@
 'use client';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   ProductEditForm — /admin/products/[slug]/edit 3탭 RHF 폼
+   ProductEditForm — /admin/products/[slug]/edit + /admin/products/new 공유
+
+   mode 분기:
+   - mode='edit'   : 기존 row 업데이트 (updateProductMetaAction)
+   - mode='create' : 신규 등록 (createProductAction) + 등록 후 /admin/products/{slug}/edit redirect
 
    탭 구성 (S231 β · shipping/seo 제거 — 도메인 부재):
    - basic   : name / category / status / displayPrice / sortOrder /
@@ -9,18 +13,20 @@
    - detail  : 5축 노트 + roast_stage + note_tags + flavor_desc
    - option  : product_volumes (1:N) · product_recipes (Coffee Bean 만)
 
-   - slug 는 read-only (URL 변경 위험 — 신규 등록 시만 입력)
+   - slug 는 mode='edit' 에서 read-only (URL 변경 위험) · mode='create' 에서 editable
+     (name 기반 자동 생성 + 운영자 수동 수정 가능 · 자동값과 불일치 시 lock)
    - dirty 상태일 때만 저장 활성
-   - onSubmit → updateProductMetaAction → sonner toast + revalidate
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 import {
   Controller,
   useFieldArray,
   useForm,
   useWatch,
+  type FieldErrors,
   type SubmitHandler,
 } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,7 +36,6 @@ import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import {
   FlavorChipInput,
   decodeChipsFromColumns,
-  type FlavorChip,
 } from '@/components/admin/FlavorChipInput';
 import {
   ADMIN_READONLY_FIELD,
@@ -43,9 +48,23 @@ import { Input } from '@/components/admin/ui/input';
 import { Slider } from '@/components/admin/ui/slider';
 import { Switch } from '@/components/admin/ui/switch';
 import { Textarea } from '@/components/admin/ui/textarea';
-import { updateProductMetaAction } from '../../actions';
+import { createProductAction, updateProductMetaAction } from '../../actions';
 import type { ProductWithRelationsRow } from '@/types/product';
 import { cn } from '@/lib/utils';
+
+/* name 입력에서 ASCII 영문/숫자 부분만 추출해 kebab-case slug 생성.
+   - "가을의 밤 Autumn Night" → "autumn-night"
+   - "에티오피아 예가체프" → "" (영문 없으면 빈 문자열 — 운영자 수동 입력 강제) */
+function buildSlugFromName(name: string): string {
+  if (!name) return '';
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
 /** PDP ProductRoastStage 의 한글 음차 라벨 답습 */
 const ROAST_STAGE_OPTIONS = [
@@ -95,6 +114,15 @@ const CATEGORY_OPTIONS = [
   { value: 'drip_bag', label: 'Drip Bag' },
 ] as const;
 
+/* 신규 등록 시 추출 레시피 기본 4행 — 기존 Coffee Bean 상품 답습 (lib/products.ts).
+   운영자가 상품별로 dose/temp/time/water 만 약간 수정해서 등록. */
+const DEFAULT_COFFEE_BEAN_RECIPES = [
+  { method: '에어로프레스', dose: '15g', temp: '85~90°C', time: '1분~1분 30초', water: '120g' },
+  { method: '에스프레소', dose: '18~20g', temp: '90~93°C', time: '25~30초', water: '34~40g' },
+  { method: '모카포트', dose: '12g', temp: '100°C 이상', time: '4분 내외', water: '110g' },
+  { method: '드립', dose: '18~20g', temp: '88~92°C', time: '2분 이내 (뜸 30초)', water: '270~360g' },
+] as const;
+
 const TABS = [
   { id: 'basic', label: '기본 정보' },
   { id: 'detail', label: '상세 설명' },
@@ -139,8 +167,16 @@ const RecipeSchema = z.object({
 });
 
 const FormSchema = z.object({
-  id: z.string().uuid(),
-  slug: z.string().min(1),
+  /* mode='edit' 시 product.id · mode='create' 시 undefined (createProductAction 에서 자동) */
+  id: z.string().uuid().optional(),
+  slug: z
+    .string()
+    .min(1, '슬러그를 입력해주세요')
+    .max(80, '최대 80자')
+    .regex(
+      /^[a-z0-9]+(-[a-z0-9]+)*$/,
+      '소문자/숫자 + 하이픈만 가능합니다 (예: autumn-night)',
+    ),
   name: z.string().min(1, '상품명을 입력해주세요').max(60, '최대 60자'),
   category: z.enum(['coffee_bean', 'drip_bag']),
   status: ProductStatusEnum,
@@ -167,11 +203,91 @@ const FormSchema = z.object({
 
 type FormValues = z.infer<typeof FormSchema>;
 
-type Props = {
-  product: ProductWithRelationsRow;
-};
+type Props =
+  | { mode: 'edit'; product: ProductWithRelationsRow }
+  | { mode: 'create'; initialSortOrder: number };
 
-export default function ProductEditForm({ product }: Props) {
+/* mode='create' 의 빈 폼 기본값.
+   - category 'coffee_bean' / color '#eaeaea' (049 일괄) / roastStage 'medium' / subscription true
+   - volumes 1행 빈값 (zod min(1) 충족 — 운영자가 라벨/가격 입력)
+   - sortOrder = 같은 카테고리 max + 1 (page.tsx 가 prefetch · readonly 노출) */
+function buildCreateDefaults(initialSortOrder: number): FormValues {
+  return {
+    id: undefined,
+    slug: '',
+    name: '',
+    category: 'coffee_bean',
+    status: null,
+    displayPrice: '',
+    sortOrder: initialSortOrder,
+    color: '#eaeaea',
+    subscription: true,
+    popup: false,
+    description: '',
+    flavorDesc: '',
+    roastStage: 'medium',
+    noteChips: [],
+    noteColor: '#A47146',
+    noteSweet: 0,
+    noteBody: 0,
+    noteAftertaste: 0,
+    noteAroma: 0,
+    noteAcidity: 0,
+    volumes: [{ label: '', price: 0, soldOut: false }],
+    recipes: DEFAULT_COFFEE_BEAN_RECIPES.map((r) => ({ ...r })),
+  };
+}
+
+function buildEditDefaults(product: ProductWithRelationsRow): FormValues {
+  return {
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    category: product.category,
+    status: product.status,
+    displayPrice:
+      buildAutoDisplayPrice(product.product_volumes) || product.display_price,
+    sortOrder: product.sort_order,
+    color: product.color,
+    subscription: product.subscription,
+    popup: product.popup,
+    description: product.description ?? '',
+    flavorDesc: product.flavor_desc ?? '',
+    roastStage: product.roast_stage,
+    noteChips: decodeChipsFromColumns(
+      product.note_tags ?? '',
+      product.note_tags_en ?? '',
+    ),
+    noteColor: product.note_color ?? '#A47146',
+    noteSweet: Number(product.note_sweet) || 0,
+    noteBody: Number(product.note_body) || 0,
+    noteAftertaste: Number(product.note_aftertaste) || 0,
+    noteAroma: Number(product.note_aroma) || 0,
+    noteAcidity: Number(product.note_acidity) || 0,
+    volumes: [...product.product_volumes]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((v) => ({
+        id: v.id,
+        label: v.label,
+        price: v.price,
+        soldOut: v.sold_out,
+      })),
+    recipes: [...product.product_recipes]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((r) => ({
+        id: r.id,
+        method: r.method,
+        dose: r.dose,
+        temp: r.temp,
+        time: r.time,
+        water: r.water,
+      })),
+  };
+}
+
+export default function ProductEditForm(props: Props) {
+  const router = useRouter();
+  const isCreate = props.mode === 'create';
   const [tab, setTab] = useState<TabId>('basic');
   const [pending, startTransition] = useTransition();
 
@@ -185,50 +301,10 @@ export default function ProductEditForm({ product }: Props) {
     getValues,
   } = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      category: product.category,
-      status: product.status,
-      displayPrice:
-        buildAutoDisplayPrice(product.product_volumes) || product.display_price,
-      sortOrder: product.sort_order,
-      color: product.color,
-      subscription: product.subscription,
-      popup: product.popup,
-      description: product.description ?? '',
-      flavorDesc: product.flavor_desc ?? '',
-      roastStage: product.roast_stage,
-      noteChips: decodeChipsFromColumns(
-        product.note_tags ?? '',
-        product.note_tags_en ?? '',
-      ),
-      noteColor: product.note_color ?? '#A47146',
-      noteSweet: Number(product.note_sweet) || 0,
-      noteBody: Number(product.note_body) || 0,
-      noteAftertaste: Number(product.note_aftertaste) || 0,
-      noteAroma: Number(product.note_aroma) || 0,
-      noteAcidity: Number(product.note_acidity) || 0,
-      volumes: [...product.product_volumes]
-        .sort((a, b) => a.sort_order - b.sort_order)
-        .map((v) => ({
-          id: v.id,
-          label: v.label,
-          price: v.price,
-          soldOut: v.sold_out,
-        })),
-      recipes: [...product.product_recipes]
-        .sort((a, b) => a.sort_order - b.sort_order)
-        .map((r) => ({
-          id: r.id,
-          method: r.method,
-          dose: r.dose,
-          temp: r.temp,
-          time: r.time,
-          water: r.water,
-        })),
-    },
+    defaultValues:
+      props.mode === 'create'
+        ? buildCreateDefaults(props.initialSortOrder)
+        : buildEditDefaults(props.product),
   });
 
   /* 옵션 첫 번째 가격 변경 시 표시 가격 자동 동기화 (사이트 카드/PDP 형식 정합).
@@ -241,9 +317,105 @@ export default function ProductEditForm({ product }: Props) {
     setValue('displayPrice', autoDisplayPrice, { shouldDirty: false });
   }, [autoDisplayPrice, getValues, setValue]);
 
+  /* mode='create' slug 자동 생성 (옵션 B):
+     name 변경 시 직전 자동값과 현재 slug 가 일치하면 새 자동값으로 갱신.
+     운영자가 slug 를 직접 수정해 자동값과 불일치해지면 자동 갱신 중지 (lock).
+     초기 slug = '' / prevAutoSlugRef.current = '' 로 시작 — 첫 자동 갱신 정상 트리거. */
+  const watchedName = useWatch({ control, name: 'name' });
+  const prevAutoSlugRef = useRef('');
+  useEffect(() => {
+    if (!isCreate) return;
+    const auto = buildSlugFromName(watchedName ?? '');
+    if (auto === prevAutoSlugRef.current) return;
+    const currentSlug = getValues('slug');
+    if (currentSlug === prevAutoSlugRef.current) {
+      setValue('slug', auto, { shouldDirty: true, shouldValidate: false });
+    }
+    prevAutoSlugRef.current = auto;
+  }, [isCreate, watchedName, getValues, setValue]);
+
+  /* 검증 실패 시 — 에러 발생 탭 자동 이동 + toast 안내.
+     RHF + zodResolver 가 errors state 만 채우고 onSubmit 호출 안 함 → 운영자가
+     다른 탭에 있으면 inline 에러도 못 봄. toast + 탭 이동 콤보로 안내. */
+  const TAB_FIELDS: Record<TabId, ReadonlyArray<keyof FormValues>> = {
+    basic: [
+      'slug',
+      'name',
+      'category',
+      'status',
+      'displayPrice',
+      'sortOrder',
+      'color',
+      'subscription',
+      'popup',
+      'description',
+    ],
+    detail: [
+      'flavorDesc',
+      'roastStage',
+      'noteChips',
+      'noteColor',
+      'noteSweet',
+      'noteBody',
+      'noteAftertaste',
+      'noteAroma',
+      'noteAcidity',
+    ],
+    option: ['volumes', 'recipes'],
+  };
+  const TAB_LABEL: Record<TabId, string> = {
+    basic: '기본 정보',
+    detail: '상세 설명',
+    option: '용량 / 옵션',
+  };
+
+  const onError = (errs: FieldErrors<FormValues>) => {
+    const errorKeys = Object.keys(errs) as Array<keyof FormValues>;
+    if (errorKeys.length === 0) return;
+
+    const errorTab =
+      (Object.entries(TAB_FIELDS) as Array<
+        [TabId, ReadonlyArray<keyof FormValues>]
+      >).find(([, fields]) => fields.some((f) => errorKeys.includes(f)))?.[0] ??
+      'basic';
+
+    if (errorTab !== tab) setTab(errorTab);
+    toast.error(
+      `[${TAB_LABEL[errorTab]}] 탭의 입력값을 확인해주세요`,
+    );
+  };
+
   const onSubmit: SubmitHandler<FormValues> = (values) => {
+    if (isCreate) {
+      startTransition(async () => {
+        const { id: _id, ...createInput } = values;
+        const result = await createProductAction(createInput);
+        if (!result.ok) {
+          const msg =
+            result.error === 'unauthorized'
+              ? '권한이 없습니다. 다시 로그인해주세요.'
+              : result.error === 'validation_failed'
+                ? `입력값을 확인해주세요. (${result.detail ?? ''})`
+                : result.error === 'slug_conflict'
+                  ? '같은 슬러그의 상품이 이미 있습니다. 슬러그를 변경해주세요.'
+                  : '처리 중 오류가 발생했습니다.';
+          toast.error(msg);
+          return;
+        }
+        toast.success('상품을 등록했습니다');
+        router.push(`/admin/products/${result.slug}/edit`);
+      });
+      return;
+    }
+
+    /* mode='edit' — id 보장 (defaults 가 product.id 채움) */
+    if (!values.id) {
+      toast.error('상품 ID 가 없습니다. 페이지를 새로고침해주세요.');
+      return;
+    }
+    const editInput = { ...values, id: values.id };
     startTransition(async () => {
-      const result = await updateProductMetaAction(values);
+      const result = await updateProductMetaAction(editInput);
       if (!result.ok) {
         const msg =
           result.error === 'unauthorized'
@@ -262,28 +434,49 @@ export default function ProductEditForm({ product }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      {/* 상단 액션 바 — 취소 + 저장 (이미지 reorder 는 즉시 저장, 별개 흐름).
-          settings · orders 페이지와 동일 ghost/primary 패턴. */}
+    <form onSubmit={handleSubmit(onSubmit, onError)}>
+      {/* 상단 액션 바 — settings · orders 페이지와 동일 ghost/primary 패턴.
+          mode='edit': 변경 취소 + 변경사항 저장 (dirty 일 때만 활성)
+          mode='create': 취소 + 상품 등록 (dirty 무관 — 빈 폼에서도 등록 시도 가능 · zod 가 차단) */}
       <AdminTopbarActions>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="!h-7"
-          onClick={() => reset()}
-          disabled={!isDirty || pending}
-        >
-          변경 취소
-        </Button>
-        <Button
-          type="submit"
-          size="sm"
-          className="!h-7"
-          disabled={!isDirty || pending}
-        >
-          {pending ? '저장 중…' : '변경사항 저장'}
-        </Button>
+        {isCreate ? (
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="!h-7"
+              onClick={() => router.push('/admin/products')}
+              disabled={pending}
+            >
+              취소
+            </Button>
+            <Button type="submit" size="sm" className="!h-7" disabled={pending}>
+              {pending ? '등록 중…' : '상품 등록'}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="!h-7"
+              onClick={() => reset()}
+              disabled={!isDirty || pending}
+            >
+              변경 취소
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              className="!h-7"
+              disabled={!isDirty || pending}
+            >
+              {pending ? '저장 중…' : '변경사항 저장'}
+            </Button>
+          </>
+        )}
       </AdminTopbarActions>
 
       {/* 탭 */}
@@ -322,6 +515,7 @@ export default function ProductEditForm({ product }: Props) {
           control={control}
           errors={errors}
           autoDisplayPrice={autoDisplayPrice}
+          isCreate={isCreate}
         />
       )}
       {tab === 'detail' && (
@@ -331,8 +525,8 @@ export default function ProductEditForm({ product }: Props) {
         <OptionTab register={register} control={control} errors={errors} />
       )}
 
-      {/* dirty 안내 (액션 버튼은 상단으로 portal) */}
-      {isDirty && !pending && (
+      {/* dirty 안내 — mode='edit' 에서만 의미 있음 (create 는 전부 dirty 라 안내 무의미) */}
+      {!isCreate && isDirty && !pending && (
         <div className="mt-3 px-3 py-2 bg-[var(--warning-soft)] text-[var(--warning)] rounded-[var(--radius-sm)] text-xs">
           저장되지 않은 변경이 있습니다 — 상단의 변경 저장 버튼을 눌러주세요.
         </div>
@@ -348,11 +542,13 @@ function BasicTab({
   control,
   errors,
   autoDisplayPrice,
+  isCreate,
 }: {
   register: ReturnType<typeof useForm<FormValues>>['register'];
   control: ReturnType<typeof useForm<FormValues>>['control'];
   errors: ReturnType<typeof useForm<FormValues>>['formState']['errors'];
   autoDisplayPrice: string;
+  isCreate: boolean;
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -372,33 +568,71 @@ function BasicTab({
               {...register('name')}
             />
           </Field>
-          <Field label="슬러그" hint="상품 상세 페이지 URL · 변경 불가 (신규 등록에서만 입력)">
-            <Input
-              type="text"
-              {...register('slug')}
-              readOnly
-              aria-disabled
-              tabIndex={-1}
-              onMouseDown={(e) => e.preventDefault()}
-              onFocus={(e) => e.currentTarget.blur()}
-              className={ADMIN_READONLY_FIELD}
-            />
+          <Field
+            label="슬러그"
+            required={isCreate}
+            hint={
+              isCreate
+                ? '상품명의 영문 부분에서 자동 생성됩니다. 직접 수정도 가능합니다 (소문자/숫자 + 하이픈).'
+                : '상품 상세 페이지 URL · 등록 후 변경 불가'
+            }
+            error={errors.slug?.message}
+          >
+            {isCreate ? (
+              <Input
+                type="text"
+                maxLength={80}
+                placeholder="autumn-night"
+                className="gtr-mono"
+                {...register('slug')}
+              />
+            ) : (
+              <Input
+                type="text"
+                {...register('slug')}
+                readOnly
+                aria-disabled
+                tabIndex={-1}
+                onMouseDown={(e) => e.preventDefault()}
+                onFocus={(e) => e.currentTarget.blur()}
+                className={ADMIN_READONLY_FIELD}
+              />
+            )}
           </Field>
         </FieldGrid>
 
         <FieldGrid cols={3}>
-          <Field label="카테고리" required error={errors.category?.message}>
+          <Field
+            label="카테고리"
+            required
+            hint={
+              isCreate
+                ? '드립백은 추출 가이드 도메인 준비 후 함께 풀립니다 (Phase 3-D).'
+                : undefined
+            }
+            error={errors.category?.message}
+          >
             <NativeSelectWrap>
               <select
                 {...register('category')}
                 className={ADMIN_SELECT_CLASS}
                 style={{ fontFamily: 'inherit' }}
               >
-                {CATEGORY_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
+                {CATEGORY_OPTIONS.map((o) => {
+                  /* mode='create' 에서 drip_bag = 비활성 — 추출 가이드 도메인 미준비 (Phase 3-D).
+                     mode='edit' 에서는 기존 drip_bag 상품 호환 — 둘 다 노출. */
+                  const isDripBagBlocked = isCreate && o.value === 'drip_bag';
+                  return (
+                    <option
+                      key={o.value}
+                      value={o.value}
+                      disabled={isDripBagBlocked}
+                    >
+                      {o.label}
+                      {isDripBagBlocked ? ' (준비 중)' : ''}
+                    </option>
+                  );
+                })}
               </select>
             </NativeSelectWrap>
           </Field>
@@ -426,11 +660,29 @@ function BasicTab({
               )}
             />
           </Field>
-          <Field label="정렬 순서" required error={errors.sortOrder?.message}>
-            <Input
-              type="number"
-              min={0}
-              {...register('sortOrder', { valueAsNumber: true })}
+          <Field
+            label="정렬 순서"
+            hint={
+              isCreate
+                ? '같은 카테고리 맨 뒤로 자동 배치됩니다. 순서 변경은 등록 후 목록 reorder UI 에서 (준비 중).'
+                : '카테고리 내 표시 순서. 변경은 목록 reorder UI 에서 가능합니다 (준비 중).'
+            }
+            error={errors.sortOrder?.message}
+          >
+            <Controller
+              name="sortOrder"
+              control={control}
+              render={({ field }) => (
+                <div
+                  role="status"
+                  className={cn(
+                    ADMIN_READONLY_FIELD,
+                    'flex items-center h-9 px-3 border rounded-md text-sm gtr-mono',
+                  )}
+                >
+                  {typeof field.value === 'number' ? field.value : 0}
+                </div>
+              )}
             />
           </Field>
         </FieldGrid>
@@ -946,20 +1198,6 @@ function RoastStageChips({
         </div>
       )}
     />
-  );
-}
-
-/* ── 준비 중 패널 ─────────────────────────────────────────────────────── */
-
-function ComingSoonPanel({ label }: { label: string }) {
-  return (
-    <div
-      className="px-4 py-12 text-center bg-[var(--surface-muted)] rounded-[var(--radius-sm)] text-muted-foreground text-sm"
-      style={{ border: '1px dashed var(--border-strong)' }}
-    >
-      <div className="font-medium text-foreground">{label} 탭 준비 중</div>
-      <div className="mt-1.5 text-xs">다음 단계에서 추가됩니다.</div>
-    </div>
   );
 }
 

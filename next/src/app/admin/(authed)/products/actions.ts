@@ -1,20 +1,23 @@
 'use server';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   actions.ts — /admin/products Server Actions (S218 Phase 1)
+   actions.ts — /admin/products Server Actions
 
    책임:
    1) admin 가드 (getAdminClaims)
    2) zod 검증
-   3) supabase service_role 로 products UPDATE
+   3) supabase service_role 로 products INSERT/UPDATE
    4) revalidateTag('products') + revalidatePath('/admin/products')
 
    현재 포함:
    - toggleProductActiveAction — is_active on/off (목록 인라인 토글)
+   - updateProductMetaAction — products + volumes + recipes UPDATE (S218/S231)
+   - createProductAction — products + volumes + recipes INSERT (S231-2 · 이미지 제외)
+   - reorderProductImagesAction — 이미지 갤러리 reorder
 
-   carry-over (Step 4 / Step 5):
-   - createProductAction — INSERT products + volumes + images + recipes
-   - updateProductAction — UPDATE products + 자식 테이블 sync
+   carry-over:
+   - createProductAction 이미지 업로드 (S231-3 · Storage + sharp+plaiceholder)
+   - createProductAction 트랜잭션 RPC (S231-4 · 자식 INSERT 실패 시 롤백)
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { revalidatePath, revalidateTag } from 'next/cache';
@@ -433,4 +436,183 @@ export async function reorderProductImagesAction(input: {
   revalidatePath('/admin/products');
 
   return { ok: true, productId };
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   createProductAction — products + volumes + recipes INSERT (S231-2)
+
+   책임:
+   1) admin 가드
+   2) zod 검증 (slug kebab-case · volumes 최소 1)
+   3) INSERT products (id 자동 생성)
+   4) INSERT product_volumes (sort_order = idx)
+   5) INSERT product_recipes (coffee_bean 만 · sort_order = idx)
+   6) revalidate
+   7) return { ok: true, slug } — 호출자가 /admin/products/{slug}/edit redirect
+
+   범위 (S231-2):
+   - 이미지 INSERT 제외 — 등록 후 edit 페이지의 이미지 갤러리 섹션에서 업로드 (S231-3)
+   - 자식 INSERT 실패 시 products row 가 남는 부분 정합 risk 존재 — S231-4 에서 RPC 트랜잭션 보강
+
+   slug 중복 처리:
+   - INSERT 시 UNIQUE 위반 (PostgreSQL 23505) → 'slug_conflict' 반환
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const SlugSchema = z
+  .string()
+  .min(1)
+  .max(80)
+  .regex(
+    /^[a-z0-9]+(-[a-z0-9]+)*$/,
+    '소문자/숫자 + 하이픈만 가능합니다 (예: autumn-night)',
+  );
+
+const CreateProductSchema = z.object({
+  slug: SlugSchema,
+  name: z.string().min(1).max(60),
+  category: z.enum(['coffee_bean', 'drip_bag']),
+  status: ProductStatusEnum,
+  displayPrice: z.string().min(1).max(30),
+  sortOrder: z.number().int().min(0).max(9999),
+  color: HexColorSchema,
+  subscription: z.boolean(),
+  popup: z.boolean(),
+  description: z.string().max(4000),
+  flavorDesc: z.string().max(200),
+  roastStage: RoastStageEnum,
+  noteChips: z.array(FlavorChipSchema).max(20),
+  noteColor: HexColorSchema,
+  noteSweet: FlavorAxisSchema,
+  noteBody: FlavorAxisSchema,
+  noteAftertaste: FlavorAxisSchema,
+  noteAroma: FlavorAxisSchema,
+  noteAcidity: FlavorAxisSchema,
+  volumes: z.array(VolumeInputSchema).min(1),
+  recipes: z.array(RecipeInputSchema),
+});
+
+export type CreateProductInput = z.infer<typeof CreateProductSchema>;
+
+export type CreateProductResult =
+  | { ok: true; slug: string }
+  | {
+      ok: false;
+      error:
+        | 'unauthorized'
+        | 'validation_failed'
+        | 'slug_conflict'
+        | 'server_error';
+      detail?: string;
+    };
+
+export async function createProductAction(
+  input: CreateProductInput,
+): Promise<CreateProductResult> {
+  const claims = await getAdminClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const parsed = CreateProductSchema.safeParse(input);
+  if (!parsed.success) {
+    const fields = parsed.error.flatten().fieldErrors;
+    return {
+      ok: false,
+      error: 'validation_failed',
+      detail: Object.entries(fields)
+        .map(([k, v]) => `${k}:${(v as string[])[0]}`)
+        .join('; ')
+        .slice(0, 200),
+    };
+  }
+  const v = parsed.data;
+  const noteTagsJoined = v.noteChips.map((c) => c.ko).join(' | ');
+  const noteTagsEnJoined = v.noteChips.map((c) => c.en).join(' | ');
+  const admin = getSupabaseAdmin();
+
+  /* INSERT products — id auto · specs 빈 문자열 (DB NOT NULL · UI 미노출) */
+  const { data: inserted, error: insErr } = await admin
+    .from('products')
+    .insert({
+      slug: v.slug,
+      name: v.name,
+      category: v.category,
+      status: v.status,
+      display_price: v.displayPrice,
+      sort_order: v.sortOrder,
+      color: v.color,
+      subscription: v.subscription,
+      popup: v.popup,
+      description: v.description,
+      specs: '',
+      flavor_desc: v.flavorDesc,
+      roast_stage: v.roastStage,
+      note_tags: noteTagsJoined,
+      note_tags_en: noteTagsEnJoined,
+      note_color: v.noteColor,
+      note_sweet: v.noteSweet,
+      note_body: v.noteBody,
+      note_aftertaste: v.noteAftertaste,
+      note_aroma: v.noteAroma,
+      note_acidity: v.noteAcidity,
+      is_active: false,
+    })
+    .select('id')
+    .single();
+
+  if (insErr) {
+    if (insErr.code === '23505') {
+      return { ok: false, error: 'slug_conflict' };
+    }
+    console.error('[createProductAction] insert failed', {
+      code: insErr.code,
+      message: insErr.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+  const newId = inserted.id;
+
+  /* INSERT product_volumes — sort_order = idx (최소 1행 보장 — zod) */
+  const volRows = v.volumes.map((row, idx) => ({
+    product_id: newId,
+    label: row.label,
+    price: row.price,
+    sold_out: row.soldOut,
+    sort_order: idx,
+  }));
+  const { error: volErr } = await admin.from('product_volumes').insert(volRows);
+  if (volErr) {
+    console.error('[createProductAction] volumes insert failed', {
+      code: volErr.code,
+      message: volErr.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error', detail: 'volumes insert 실패' };
+  }
+
+  /* INSERT product_recipes — coffee_bean 만 (drip_bag = DRIP_BAG_RECIPE 전역) */
+  if (v.category === 'coffee_bean' && v.recipes.length > 0) {
+    const recipeRows = v.recipes.map((row, idx) => ({
+      product_id: newId,
+      method: row.method,
+      dose: row.dose,
+      temp: row.temp,
+      time: row.time,
+      water: row.water,
+      sort_order: idx,
+    }));
+    const { error: recErr } = await admin
+      .from('product_recipes')
+      .insert(recipeRows);
+    if (recErr) {
+      console.error('[createProductAction] recipes insert failed', {
+        code: recErr.code,
+        message: recErr.message?.slice(0, 200),
+      });
+      return { ok: false, error: 'server_error', detail: 'recipes insert 실패' };
+    }
+  }
+
+  revalidateTag(PRODUCTS_CACHE_TAG, 'max');
+  revalidatePath('/admin/products');
+  revalidatePath('/shop');
+
+  return { ok: true, slug: v.slug };
 }
