@@ -13,10 +13,10 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { Suspense } from 'react';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { fetchAdminProductRawBySlug } from '@/lib/admin/productsServer';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
+import { AdminBackLink } from '@/components/admin/AdminBackLink';
 import ProductEditForm from './ProductEditForm';
 import ProductImageReorderClient from './ProductImageReorderClient';
 
@@ -43,25 +43,7 @@ async function EditInner({ params }: PageProps) {
 
   return (
     <div>
-      {/* 뒤로 가기 */}
-      <Link
-        href="/admin/products"
-        className="inline-flex items-center gap-1 px-2 py-1 -ml-1 mb-2 text-muted-foreground text-xs no-underline"
-      >
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-        상품 목록으로
-      </Link>
+      <AdminBackLink href="/admin/products" label="상품 목록으로" />
 
       {/* 헤더 */}
       <div className="mb-6">

@@ -51,6 +51,8 @@ import {
   type UserRoleActionResult,
 } from '../actions';
 import { cn } from '@/lib/utils';
+import { AdminBackLink } from '@/components/admin/AdminBackLink';
+import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 
 type Props = {
   profile: UserDetailProfile;
@@ -144,35 +146,7 @@ export default function UserDetailClient({
 
   return (
     <>
-      {/* 헤더 */}
-      <div className="mb-4 flex items-end justify-between gap-3 min-w-0">
-        <div className="min-w-0">
-          <Link
-            href="/admin/users"
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground no-underline mb-1.5"
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            고객 목록
-          </Link>
-          <div className="flex items-center gap-2.5">
-            <h2 className="m-0 text-2xl font-medium tracking-tight">{name}</h2>
-            <RoleBadge tone={role.tone}>{role.label}</RoleBadge>
-          </div>
-          <div className="mt-1 text-sm text-muted-foreground">{profile.email}</div>
-        </div>
-
-        {/* 역할 변경 버튼 — self 면 disabled + tooltip */}
+      <AdminTopbarActions>
         <Button
           type="button"
           variant={intent === 'grant' ? 'default' : 'outline'}
@@ -184,6 +158,16 @@ export default function UserDetailClient({
         >
           {intent === 'grant' ? '운영자로 승격' : '운영자 해제'}
         </Button>
+      </AdminTopbarActions>
+
+      {/* 헤더 */}
+      <div className="mb-5">
+        <AdminBackLink href="/admin/users" label="고객 목록" />
+        <div className="flex items-center gap-2.5">
+          <h2 className="m-0 text-2xl font-medium tracking-tight">{name}</h2>
+          <RoleBadge tone={role.tone}>{role.label}</RoleBadge>
+        </div>
+        <div className="mt-1 text-sm text-muted-foreground">{profile.email}</div>
       </div>
 
       <div className="flex flex-col gap-4">

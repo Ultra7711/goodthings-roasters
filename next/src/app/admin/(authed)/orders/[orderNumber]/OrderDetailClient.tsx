@@ -12,8 +12,8 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import { AdminBackLink } from '@/components/admin/AdminBackLink';
 import { Button } from '@/components/admin/ui/button';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import {
@@ -87,15 +87,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
 
       {/* page header */}
       <div className="mb-6">
-        <Link
-          href="/admin/orders"
-          className="inline-flex items-center gap-1 py-1 pr-2 pl-1 -ml-1 mb-2 text-xs text-muted-foreground rounded no-underline cursor-pointer hover:bg-accent"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-          주문 목록으로
-        </Link>
+        <AdminBackLink href="/admin/orders" label="주문 목록으로" />
 
         <div className="flex items-baseline gap-3.5 flex-wrap">
           <h2 className="m-0 text-2xl font-semibold tracking-tight">
