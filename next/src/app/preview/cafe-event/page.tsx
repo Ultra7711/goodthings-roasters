@@ -20,6 +20,7 @@ import { redirect } from 'next/navigation';
 import { getAdminClaims } from '@/lib/auth/getClaims';
 import { CafeEventSchema } from '@/lib/cafeEvents';
 import EventBanner from '@/components/home/EventBanner';
+import '@/components/home/HomePage.css';
 
 interface PreviewCafeEventPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
