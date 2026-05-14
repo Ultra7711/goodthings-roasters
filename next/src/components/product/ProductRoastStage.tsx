@@ -43,9 +43,13 @@ const STAGE_DESCRIPTIONS = [
   '농밀한 풍미와 스모키함이 절정에 이르는 가장 깊은 단계. 진한 에스프레소에 적합합니다.',
 ];
 
-type Props = { roastStage: Product['roastStage'] };
+type Props = {
+  roastStage: Product['roastStage'];
+  /** 운영자 작성 설명 — 빈 문자열 또는 undefined 시 STAGE_DESCRIPTIONS fallback (S231-4). */
+  roastDesc?: string;
+};
 
-export default function ProductRoastStage({ roastStage }: Props) {
+export default function ProductRoastStage({ roastStage, roastDesc }: Props) {
   const idx = Math.max(0, STAGES.indexOf(roastStage));
   const pinPct = STAGE_PIN_PCT[idx];
   /* italian (idx 5) 은 dark (idx 4) tick 위치와 동일 → tick 활성 매핑도 4 로 fallback */
@@ -97,7 +101,7 @@ export default function ProductRoastStage({ roastStage }: Props) {
           ))}
         </div>
       </div>
-      <p className="pd-roast-desc">{STAGE_DESCRIPTIONS[idx]}</p>
+      <p className="pd-roast-desc">{roastDesc?.trim() || STAGE_DESCRIPTIONS[idx]}</p>
     </div>
   );
 }

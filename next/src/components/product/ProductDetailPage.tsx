@@ -143,7 +143,7 @@ export default function ProductDetailPage({ product }: Props) {
               <p className="pd-chapter-eyebrow">Tasting</p>
               <h2 className="pd-chapter-h2">맛과 향</h2>
             </header>
-            <ProductRoastStage roastStage={product.roastStage} />
+            <ProductRoastStage roastStage={product.roastStage} roastDesc={product.roastDesc} />
             <ProductFlavorNote
               noteTags={product.noteTags}
               noteTagsEn={product.noteTagsEn}

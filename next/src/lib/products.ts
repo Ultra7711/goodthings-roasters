@@ -89,6 +89,8 @@ export type Product = {
   flavorDesc: string;
   noteColor: string;
   roastStage: RoastStage;
+  /** 052 마이그 — 운영자 작성 ROASTING 설명. 빈 값 시 STAGE_DESCRIPTIONS fallback. */
+  roastDesc?: string;
   recipe: RecipeItem[];
 };
 

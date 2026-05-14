@@ -12,15 +12,16 @@
    현재 포함:
    - toggleProductActiveAction — is_active on/off (목록 인라인 토글)
    - updateProductMetaAction — products + volumes + recipes UPDATE (S218/S231)
-   - createProductAction — products + volumes + recipes INSERT (S231-2 · 이미지 제외)
+   - createProductAction — create_product RPC 단일 트랜잭션 호출 (S231-2 / S231-4 마이그)
+   - deleteProductAction — products hard delete + Storage 폴더 cleanup (S231-4)
    - reorderProductImagesAction — 이미지 갤러리 reorder
    - uploadProductImageAction — Storage upload + plaiceholder + DB INSERT (S231-3 · is_active=false)
    - updateProductImageActiveAction — 이미지 공개/비공개 토글 (S231-3 안전장치)
    - deleteProductImageAction — Storage delete + DB DELETE (S231-3)
 
    carry-over:
-   - createProductAction 트랜잭션 RPC (S231-4 · 자식 INSERT 실패 시 롤백)
    - bg / bg_theme 운영자 편집 UI (memory: project_admin_product_image_bg_grad_editor)
+   - sort_order race 강한 보장 (advisory lock) — 다수 운영자 환경 시
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { revalidatePath, revalidateTag } from 'next/cache';
@@ -180,6 +181,7 @@ const UpdateProductMetaSchema = z.object({
   description: z.string().max(4000),
   flavorDesc: z.string().max(200),
   roastStage: RoastStageEnum,
+  roastDesc: z.string().max(500),
   noteChips: z.array(FlavorChipSchema).max(20),
   noteColor: HexColorSchema,
   noteSweet: FlavorAxisSchema,
@@ -237,6 +239,7 @@ export async function updateProductMetaAction(
       description: v.description,
       flavor_desc: v.flavorDesc,
       roast_stage: v.roastStage,
+      roast_desc: v.roastDesc,
       note_tags: noteTagsJoined,
       note_tags_en: noteTagsEnJoined,
       note_color: v.noteColor,
@@ -448,23 +451,21 @@ export async function reorderProductImagesAction(input: {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   createProductAction — products + volumes + recipes INSERT (S231-2)
+   createProductAction — create_product RPC 호출 (S231-4 트랜잭션 보강)
 
    책임:
    1) admin 가드
    2) zod 검증 (slug kebab-case · volumes 최소 1)
-   3) INSERT products (id 자동 생성)
-   4) INSERT product_volumes (sort_order = idx)
-   5) INSERT product_recipes (coffee_bean 만 · sort_order = idx)
-   6) revalidate
-   7) return { ok: true, slug } — 호출자가 /admin/products/{slug}/edit redirect
+   3) RPC create_product 호출 — products + volumes + recipes 한 트랜잭션 INSERT
+      - 중간 실패 시 자동 롤백 (orphan 위험 0)
+      - sort_order 는 RPC 내부에서 카테고리 max+1 재계산 (race 완화)
+      - slug UNIQUE 위반 → SQLSTATE 23505 → 'slug_conflict' 반환
+   4) revalidate
+   5) return { ok: true, slug } — 호출자가 /admin/products/{slug}/edit redirect
 
-   범위 (S231-2):
+   범위:
    - 이미지 INSERT 제외 — 등록 후 edit 페이지의 이미지 갤러리 섹션에서 업로드 (S231-3)
-   - 자식 INSERT 실패 시 products row 가 남는 부분 정합 risk 존재 — S231-4 에서 RPC 트랜잭션 보강
-
-   slug 중복 처리:
-   - INSERT 시 UNIQUE 위반 (PostgreSQL 23505) → 'slug_conflict' 반환
+   - products.is_active=false 안전장치 (RPC 안에서 박음 · 운영자가 검토 후 공개)
    ══════════════════════════════════════════════════════════════════════════ */
 
 const SlugSchema = z
@@ -476,19 +477,21 @@ const SlugSchema = z
     '소문자/숫자 + 하이픈만 가능합니다 (예: autumn-night)',
   );
 
+/* sortOrder 는 입력에서 무시 — create_product RPC 내부에서 카테고리 max+1 재계산 (S231-4).
+   ProductEditForm 의 FormValues 에는 sortOrder 가 있지만 zod strip 으로 통과. */
 const CreateProductSchema = z.object({
   slug: SlugSchema,
   name: z.string().min(1).max(60),
   category: z.enum(['coffee_bean', 'drip_bag']),
   status: ProductStatusEnum,
   displayPrice: z.string().min(1).max(30),
-  sortOrder: z.number().int().min(0).max(9999),
   color: HexColorSchema,
   subscription: z.boolean(),
   popup: z.boolean(),
   description: z.string().max(4000),
   flavorDesc: z.string().max(200),
   roastStage: RoastStageEnum,
+  roastDesc: z.string().max(500),
   noteChips: z.array(FlavorChipSchema).max(20),
   noteColor: HexColorSchema,
   noteSweet: FlavorAxisSchema,
@@ -535,95 +538,70 @@ export async function createProductAction(
   const v = parsed.data;
   const noteTagsJoined = v.noteChips.map((c) => c.ko).join(' | ');
   const noteTagsEnJoined = v.noteChips.map((c) => c.en).join(' | ');
+
+  /* S231-4 — create_product RPC 단일 트랜잭션 호출.
+     products + volumes + recipes INSERT 가 한 트랜잭션 — 중간 실패 시 자동 롤백.
+     sort_order 는 RPC 내부에서 카테고리 max+1 재계산 (race 완화). */
+  const payload = {
+    slug: v.slug,
+    name: v.name,
+    category: v.category,
+    status: v.status ?? '',
+    display_price: v.displayPrice,
+    color: v.color,
+    subscription: v.subscription,
+    popup: v.popup,
+    description: v.description,
+    flavor_desc: v.flavorDesc,
+    roast_stage: v.roastStage,
+    roast_desc: v.roastDesc,
+    note_tags: noteTagsJoined,
+    note_tags_en: noteTagsEnJoined,
+    note_color: v.noteColor,
+    note_sweet: v.noteSweet,
+    note_body: v.noteBody,
+    note_aftertaste: v.noteAftertaste,
+    note_aroma: v.noteAroma,
+    note_acidity: v.noteAcidity,
+    volumes: v.volumes.map((row) => ({
+      label: row.label,
+      price: row.price,
+      sold_out: row.soldOut,
+    })),
+    recipes:
+      v.category === 'coffee_bean'
+        ? v.recipes.map((row) => ({
+            method: row.method,
+            dose: row.dose,
+            temp: row.temp,
+            time: row.time,
+            water: row.water,
+          }))
+        : [],
+  };
+
   const admin = getSupabaseAdmin();
+  const { data: returnedSlug, error: rpcErr } = await admin.rpc(
+    'create_product',
+    { p_input: payload },
+  );
 
-  /* INSERT products — id auto · specs 빈 문자열 (DB NOT NULL · UI 미노출) */
-  const { data: inserted, error: insErr } = await admin
-    .from('products')
-    .insert({
-      slug: v.slug,
-      name: v.name,
-      category: v.category,
-      status: v.status,
-      display_price: v.displayPrice,
-      sort_order: v.sortOrder,
-      color: v.color,
-      subscription: v.subscription,
-      popup: v.popup,
-      description: v.description,
-      specs: '',
-      flavor_desc: v.flavorDesc,
-      roast_stage: v.roastStage,
-      note_tags: noteTagsJoined,
-      note_tags_en: noteTagsEnJoined,
-      note_color: v.noteColor,
-      note_sweet: v.noteSweet,
-      note_body: v.noteBody,
-      note_aftertaste: v.noteAftertaste,
-      note_aroma: v.noteAroma,
-      note_acidity: v.noteAcidity,
-      is_active: false,
-    })
-    .select('id')
-    .single();
-
-  if (insErr) {
-    if (insErr.code === '23505') {
+  if (rpcErr) {
+    if (rpcErr.code === '23505') {
       return { ok: false, error: 'slug_conflict' };
     }
-    console.error('[createProductAction] insert failed', {
-      code: insErr.code,
-      message: insErr.message?.slice(0, 200),
+    console.error('[createProductAction] RPC failed', {
+      code: rpcErr.code,
+      message: rpcErr.message?.slice(0, 200),
     });
     return { ok: false, error: 'server_error' };
-  }
-  const newId = inserted.id;
-
-  /* INSERT product_volumes — sort_order = idx (최소 1행 보장 — zod) */
-  const volRows = v.volumes.map((row, idx) => ({
-    product_id: newId,
-    label: row.label,
-    price: row.price,
-    sold_out: row.soldOut,
-    sort_order: idx,
-  }));
-  const { error: volErr } = await admin.from('product_volumes').insert(volRows);
-  if (volErr) {
-    console.error('[createProductAction] volumes insert failed', {
-      code: volErr.code,
-      message: volErr.message?.slice(0, 200),
-    });
-    return { ok: false, error: 'server_error', detail: 'volumes insert 실패' };
-  }
-
-  /* INSERT product_recipes — coffee_bean 만 (drip_bag = DRIP_BAG_RECIPE 전역) */
-  if (v.category === 'coffee_bean' && v.recipes.length > 0) {
-    const recipeRows = v.recipes.map((row, idx) => ({
-      product_id: newId,
-      method: row.method,
-      dose: row.dose,
-      temp: row.temp,
-      time: row.time,
-      water: row.water,
-      sort_order: idx,
-    }));
-    const { error: recErr } = await admin
-      .from('product_recipes')
-      .insert(recipeRows);
-    if (recErr) {
-      console.error('[createProductAction] recipes insert failed', {
-        code: recErr.code,
-        message: recErr.message?.slice(0, 200),
-      });
-      return { ok: false, error: 'server_error', detail: 'recipes insert 실패' };
-    }
   }
 
   revalidateTag(PRODUCTS_CACHE_TAG, 'max');
   revalidatePath('/admin/products');
   revalidatePath('/shop');
 
-  return { ok: true, slug: v.slug };
+  return { ok: true, slug: (returnedSlug as string) ?? v.slug };
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -909,6 +887,96 @@ export async function deleteProductImageAction(input: {
     revalidatePath(`/shop/${slug}`);
   }
   revalidatePath('/shop');
+
+  return { ok: true };
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   deleteProductAction — 상품 영구 삭제 (S231-4)
+
+   - admin 가드
+   - products DELETE → product_volumes / product_images / product_recipes
+     모두 cascade (046 마이그)
+   - Storage product-images/{slug}/* 일괄 삭제
+   - revalidate
+
+   주의 — 운영 데이터 안전장치:
+   - cart_items / subscriptions 의 product_slug 는 FK 없는 스냅샷 (046 답습)
+     → 과거 주문/구독 row 영향 0. 다만 운영자는 영구 삭제 의미 인지 필요.
+   - UI 측 강한 확인 (상품명 재입력 prompt) 답습.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+export type DeleteProductResult =
+  | { ok: true }
+  | {
+      ok: false;
+      error: 'unauthorized' | 'validation_failed' | 'not_found' | 'server_error';
+      detail?: string;
+    };
+
+export async function deleteProductAction(input: {
+  id: string;
+}): Promise<DeleteProductResult> {
+  const claims = await getAdminClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  if (!z.string().uuid().safeParse(input.id).success) {
+    return { ok: false, error: 'validation_failed', detail: 'id' };
+  }
+
+  const admin = getSupabaseAdmin();
+
+  /* 사전 SELECT — slug 조회 (Storage 폴더 path + revalidate 용). 동시에 존재 확인. */
+  const { data: prodRow, error: prodSelErr } = await admin
+    .from('products')
+    .select('id, slug')
+    .eq('id', input.id)
+    .maybeSingle();
+  if (prodSelErr) {
+    console.error('[deleteProductAction] select failed', prodSelErr.message);
+    return { ok: false, error: 'server_error' };
+  }
+  if (!prodRow) return { ok: false, error: 'not_found' };
+  const prodSlug = String(prodRow.slug);
+
+  /* Storage 폴더 cleanup — product-images/{slug}/* 전체 list → remove.
+     실패해도 DB DELETE 는 진행 (orphan storage 는 carry — 별 sweep). */
+  const { data: files, error: listErr } = await admin.storage
+    .from(PRODUCT_IMAGES_BUCKET)
+    .list(prodSlug);
+  if (listErr) {
+    console.error('[deleteProductAction] storage list failed', {
+      slug: prodSlug,
+      message: listErr.message?.slice(0, 200),
+    });
+  } else if (files && files.length > 0) {
+    const paths = files.map((f) => `${prodSlug}/${f.name}`);
+    const { error: rmErr } = await admin.storage
+      .from(PRODUCT_IMAGES_BUCKET)
+      .remove(paths);
+    if (rmErr) {
+      console.error('[deleteProductAction] storage remove failed', {
+        slug: prodSlug,
+        count: paths.length,
+        message: rmErr.message?.slice(0, 200),
+      });
+    }
+  }
+
+  /* DB DELETE — cascade 자식 (volumes / images / recipes) 일괄 삭제 */
+  const { error: delErr } = await admin
+    .from('products')
+    .delete()
+    .eq('id', input.id);
+  if (delErr) {
+    console.error('[deleteProductAction] delete failed', delErr.message);
+    return { ok: false, error: 'server_error' };
+  }
+
+  revalidateTag(PRODUCTS_CACHE_TAG, 'max');
+  revalidatePath('/admin/products');
+  revalidatePath('/shop');
+  revalidatePath(`/shop/${prodSlug}`);
 
   return { ok: true };
 }

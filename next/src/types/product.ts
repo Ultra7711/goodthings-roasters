@@ -54,6 +54,8 @@ export type ProductRow = {
   flavor_desc: string;
   note_color: string;
   roast_stage: RoastStage;
+  /** 052 마이그 — 운영자 작성 ROASTING 설명 문구. 빈 값 fallback (S231-4). */
+  roast_desc: string;
   sort_order: number;
   is_active: boolean;
   created_at: string;
@@ -191,6 +193,7 @@ export function mapProductRow(row: ProductWithRelationsRow): Product {
     flavorDesc: row.flavor_desc,
     noteColor: row.note_color,
     roastStage: row.roast_stage,
+    roastDesc: row.roast_desc ?? '',
     recipe,
   };
 
@@ -226,6 +229,23 @@ export type AdminProductListItem = {
   thumbBlurDataUrl: string | null;
 };
 
+/**
+ * volumes[0].price 기반 admin 목록용 displayPrice 자동 계산.
+ * ProductEditForm `buildAutoDisplayPrice` + B2C `formatStartPrice` 답습 (S231-4).
+ *
+ * volumes 가 비어있거나 첫 가격이 0 이하면 fallback (DB display_price 그대로).
+ */
+function buildAdminListDisplayPrice(
+  volumes: ProductVolumeRow[],
+  fallback: string,
+): string {
+  if (!volumes || volumes.length === 0) return fallback;
+  const sorted = [...volumes].sort((a, b) => a.sort_order - b.sort_order);
+  const first = sorted[0]?.price ?? 0;
+  if (!Number.isFinite(first) || first <= 0) return fallback;
+  return `${first.toLocaleString('ko-KR')}원~`;
+}
+
 /** ProductWithRelationsRow → AdminProductListItem (admin 목록 매핑) */
 export function mapAdminProductListItem(
   row: ProductWithRelationsRow,
@@ -240,7 +260,10 @@ export function mapAdminProductListItem(
     name: row.name,
     category: row.category,
     status: row.status,
-    displayPrice: row.display_price,
+    displayPrice: buildAdminListDisplayPrice(
+      row.product_volumes,
+      row.display_price,
+    ),
     sortOrder: row.sort_order,
     isActive: row.is_active,
     updatedAt: row.updated_at,

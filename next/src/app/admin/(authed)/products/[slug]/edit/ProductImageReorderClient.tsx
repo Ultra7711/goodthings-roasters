@@ -20,6 +20,7 @@ import { Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/admin/ui/button';
 import { Switch } from '@/components/admin/ui/switch';
+import ConfirmModal from '@/components/admin/ConfirmModal';
 import {
   deleteProductImageAction,
   reorderProductImagesAction,
@@ -50,6 +51,7 @@ export default function ProductImageReorderClient({
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deleteTargetIdx, setDeleteTargetIdx] = useState<number | null>(null);
 
   function applyOrder(next: ImageItem[]) {
     const prev = images;
@@ -165,15 +167,14 @@ export default function ProductImageReorderClient({
     });
   }
 
-  function handleDelete(idx: number) {
+  function handleDeleteConfirm() {
+    if (deleteTargetIdx === null) return;
+    const idx = deleteTargetIdx;
     const img = images[idx];
-    if (!img) return;
-    if (
-      typeof window !== 'undefined' &&
-      !window.confirm('이미지를 삭제하시겠습니까? Storage 와 DB 모두 제거됩니다.')
-    )
+    if (!img) {
+      setDeleteTargetIdx(null);
       return;
-
+    }
     const prev = images;
     const next = images.filter((_, i) => i !== idx);
     setImages(next);
@@ -189,9 +190,11 @@ export default function ProductImageReorderClient({
               ? '이미지를 찾을 수 없습니다.'
               : '삭제 중 오류가 발생했습니다.';
         toast.error(msg);
+        setDeleteTargetIdx(null);
         return;
       }
       toast.success('이미지가 삭제되었습니다');
+      setDeleteTargetIdx(null);
     });
   }
 
@@ -353,7 +356,7 @@ export default function ProductImageReorderClient({
                       variant="ghost"
                       size="sm"
                       className="!h-7 !text-[var(--danger)] hover:!bg-[var(--danger-soft)] !text-xs !px-2"
-                      onClick={() => handleDelete(idx)}
+                      onClick={() => setDeleteTargetIdx(idx)}
                       disabled={pending || uploading}
                       aria-label="이미지 삭제"
                     >
@@ -367,6 +370,17 @@ export default function ProductImageReorderClient({
           })}
         </div>
       )}
+
+      <ConfirmModal
+        open={deleteTargetIdx !== null}
+        variant="danger"
+        title="이미지를 삭제하시겠습니까?"
+        description="이 이미지는 영원히 사라지며, 되돌릴 수 없습니다."
+        confirmLabel="삭제"
+        pending={pending}
+        onCancel={() => setDeleteTargetIdx(null)}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   );
 }

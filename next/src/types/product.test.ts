@@ -43,6 +43,7 @@ function makeRow(
     flavor_desc: '낮은 산미와 구수한 단맛',
     note_color: '#A47146',
     roast_stage: 'medium-dark',
+    roast_desc: '',
     sort_order: 0,
     is_active: true,
     created_at: '2026-05-11T00:00:00Z',

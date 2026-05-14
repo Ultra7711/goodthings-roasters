@@ -15,8 +15,9 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { fetchAdminProductRawBySlug } from '@/lib/admin/productsServer';
-import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import { AdminBackLink } from '@/components/admin/AdminBackLink';
+import ProductActiveToggleClient from './ProductActiveToggleClient';
+import ProductDangerZoneClient from './ProductDangerZoneClient';
 import ProductEditForm from './ProductEditForm';
 import ProductImageReorderClient from './ProductImageReorderClient';
 
@@ -45,24 +46,21 @@ async function EditInner({ params }: PageProps) {
     <div>
       <AdminBackLink href="/admin/products" label="상품 목록으로" />
 
-      {/* 헤더 */}
+      {/* 헤더 — 타이틀 좌 / 상품 공개 토글 우 (S231-4 보강) */}
       <div className="mb-6">
-        <div className="flex items-baseline gap-3 flex-wrap">
-          <h2 className="m-0 text-2xl font-medium tracking-tight">
-            {product.name}
-          </h2>
-          <span className="gtr-mono text-sm text-muted-foreground">
-            {product.slug}
-          </span>
-          {!product.is_active && (
-            <ShadcnBadge
-              variant="outline"
-              className="border-transparent"
-              style={{ background: 'var(--neutral-soft)', color: 'var(--neutral-soft-fg)' }}
-            >
-              비공개
-            </ShadcnBadge>
-          )}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-baseline gap-3 flex-wrap min-w-0">
+            <h2 className="m-0 text-2xl font-medium tracking-tight">
+              {product.name}
+            </h2>
+            <span className="gtr-mono text-sm text-muted-foreground">
+              {product.slug}
+            </span>
+          </div>
+          <ProductActiveToggleClient
+            productId={product.id}
+            initialActive={product.is_active}
+          />
         </div>
         <div className="mt-1 text-sm text-muted-foreground">
           {product.category === 'coffee_bean' ? 'Coffee Bean' : 'Drip Bag'} · {product.display_price}
@@ -98,6 +96,12 @@ async function EditInner({ params }: PageProps) {
 
       {/* 3탭 편집 폼 (basic · detail · option) */}
       <ProductEditForm mode="edit" product={product} />
+
+      {/* 위험 영역 — 상품 영구 삭제 (S231-4) */}
+      <ProductDangerZoneClient
+        productId={product.id}
+        productName={product.name}
+      />
     </div>
   );
 }

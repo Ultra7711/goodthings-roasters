@@ -211,7 +211,7 @@ export default function ProductsTableClient({ rows }: Props) {
     },
     {
       key: 'active',
-      header: '활성',
+      header: '공개',
       width: 'w-24',
       align: 'center',
       render: (row) => <ProductActiveSwitch row={row} />,
@@ -246,7 +246,7 @@ export default function ProductsTableClient({ rows }: Props) {
 
       <AdminPageHeader
         title="상품 관리"
-        subtitle="상품 목록 · 활성/비활성 토글로 웹페이지 연동"
+        subtitle="상품 목록 · 공개/비공개 토글로 웹페이지 연동"
       />
 
       <AdminTabsNav
@@ -335,7 +335,9 @@ function ProductActiveSwitch({ row }: { row: AdminProductListItem }) {
         toast.error(msg);
         return;
       }
-      toast.success(next ? '판매중으로 전환했습니다' : '비공개로 전환했습니다');
+      toast.success(
+        next ? '상품을 공개했습니다' : '상품을 비공개로 전환했습니다',
+      );
     });
   }
 
@@ -345,7 +347,11 @@ function ProductActiveSwitch({ row }: { row: AdminProductListItem }) {
         checked={optimisticActive}
         onCheckedChange={handleToggle}
         disabled={pending}
-        aria-label={optimisticActive ? '판매중 — 클릭하면 비공개' : '비공개 — 클릭하면 판매중'}
+        aria-label={
+          optimisticActive
+            ? '상품 공개 — 클릭하면 비공개'
+            : '상품 비공개 — 클릭하면 공개'
+        }
         className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
       />
     </span>

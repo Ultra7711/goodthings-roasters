@@ -181,9 +181,9 @@ export function FlavorChipInput({
         {extraAction}
       </div>
 
-      {/* Footer 안내 */}
+      {/* Footer 안내 — hint 들여쓰기 pl-2.5 (admin-design §5-9 답습) */}
       {showCount && (
-        <div className="text-xs text-muted-foreground">
+        <div className="pl-2.5 text-xs text-muted-foreground">
           Enter 또는 쉼표 로 추가
           {max !== undefined ? ` · 현재 ${value.length}/${max}` : ''}
         </div>

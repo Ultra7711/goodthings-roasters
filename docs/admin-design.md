@@ -474,6 +474,31 @@ import { Button } from '@/components/admin/ui/button';
 **`!text-white` 규칙:**
 primary 배경 + 흰 텍스트 조합은 반드시 `!text-white` (admin-theme.css 전역 button color inherit 리셋이 `text-white`를 덮어씀).
 
+**좌우 minimum padding / min-width (S231-4 박음):**
+
+운영자가 클릭 영역을 직관적으로 인지하려면 짧은 라벨 버튼도 충분한 좌우 공간 필요. shadcn 기본 padding 외 짧은 라벨 / 모달 footer 는 명시적 `min-w-*` 추가.
+
+| 컨텍스트 | 좌우 padding | min-w | 비고 |
+|---|---|---|---|
+| **일반 sm 버튼** | `px-3` (12px) — shadcn 기본 | — | 한글 3자 이상 라벨 |
+| **짧은 라벨 (1~2자)** | `px-3` | `min-w-[64px]` 또는 `min-w-[72px]` | "OK" / "삭제" / "취소" 등 |
+| **모달 footer 버튼** | `px-3` | **`min-w-[96px]`** | 양쪽 버튼 폭 정합 — 시각 안정 |
+| **default 버튼** | `px-4` (16px) — shadcn 기본 | — | 강조 CTA |
+| **icon-only** | — (size 정사각) | — | `size-7` / `size-8` |
+
+**예시:**
+
+```tsx
+// 짧은 라벨 — min-w 명시
+<Button size="sm" className="!h-7 min-w-[72px]">삭제</Button>
+
+// 모달 footer — 양쪽 버튼 폭 정합 (ConfirmModal.tsx 답습)
+<Button variant="outline" size="sm" className="!h-8 min-w-[96px]">취소</Button>
+<Button size="sm" className="!h-8 min-w-[96px]">영구 삭제</Button>
+```
+
+**Why:** 짧은 라벨 + sm padding 만으로는 클릭 hit area 부족 + 시각적으로 좁아 보임. 모달 footer 의 두 버튼 폭이 다르면 한 쪽이 위축돼 보임 — 같은 `min-w` 로 정합.
+
 ### 5-7. Input (shadcn 기본값 + AdminSearchInput 공통)
 
 **shadcn Input 기본값:**
@@ -949,6 +974,76 @@ import { Trash2 } from 'lucide-react';
 **폐기 대상:**
 - shadcn `<Button variant="default" size="sm">` 칩 답습 (Subscriptions S228 임시)
 - inline 색 매트릭스 답습 (analytics 자체는 표준이지만 동일 패턴 박혀야 다른 페이지 적용 가능)
+
+### 5-24. ConfirmModal (admin 답습 · S231-4)
+
+shadcn Dialog primitive 위 wrapper. admin 도메인 확인 모달 — `window.confirm` / `window.prompt` 답습 폐기 + 디자인 토큰 일관.
+
+**파일:** `next/src/components/admin/ConfirmModal.tsx`
+
+**디자인 차별화 (B2C `mp-modal-*` 와 구분):**
+- 좌측 vertical stripe (4px) — `danger` = `var(--danger)` / `default` = `var(--primary)`
+- 헤더 아이콘 — `danger` = `AlertTriangle` / `default` = `Info` (lucide-react)
+- panel: `bg-card` + `border var(--border)` + `rounded-lg` + `shadow-xl`
+- overlay: `bg-black/50` (shadcn Dialog 기본)
+
+**기본 호출:**
+
+```tsx
+import ConfirmModal from '@/components/admin/ConfirmModal';
+
+const [open, setOpen] = useState(false);
+
+<ConfirmModal
+  open={open}
+  variant="danger"
+  title="이미지를 삭제하시겠습니까?"
+  description="이 이미지는 영원히 사라지며, 되돌릴 수 없습니다."
+  confirmLabel="삭제"
+  pending={pending}
+  onCancel={() => setOpen(false)}
+  onConfirm={handleConfirm}
+/>
+```
+
+**강한 확인 (requireTextMatch · 영구 삭제용):**
+
+```tsx
+<ConfirmModal
+  open={open}
+  variant="danger"
+  title="상품을 영구 삭제하시겠습니까?"
+  description={<>이미지·옵션·레시피도 함께 사라지며, 되돌릴 수 없습니다.<br />과거 주문·정기배송 기록은 그대로 남아 있어요.</>}
+  requireTextMatch={productName}
+  requireTextLabel="확인을 위해 상품명을 정확히 입력해주세요"
+  confirmLabel="영구 삭제"
+  pending={pending}
+  onCancel={() => setOpen(false)}
+  onConfirm={handleDelete}
+/>
+```
+
+**Footer 버튼 규칙 (S231-4 박음):**
+- 양쪽 버튼 `min-w-[96px]` — 폭 정합 + 시각 안정 (§5-6 가이드 답습)
+- 우측 정렬 (`justify-end gap-2`)
+- 취소: `variant="outline"` size="sm" `!h-8`
+- confirm: `variant=` 토큰 분기 (`danger` 시 `!bg-[var(--danger)] !text-white`)
+
+**Helper 들여쓰기:**
+- requireTextMatch 안내 텍스트도 `pl-2.5` 답습 (§5-9 hint 규칙)
+
+**금지:**
+- ❌ `window.confirm` / `window.prompt` — admin 도메인 신규 코드에서 사용 금지
+- ❌ B2C 의 `mp-modal-*` 클래스 답습 (디자인 토큰 다름)
+
+**호출처 (S231-4):**
+- `ProductDangerZoneClient` 상품 영구 삭제 (requireTextMatch=상품명)
+- `ProductImageReorderClient` 이미지 삭제
+
+**carry-over (별 sprint · S233 폴리싱):**
+- `AdminGoodDaysClient` 이미지 삭제 마이그
+- `CafeEventsForm` dirty 가드 + 이벤트 삭제 마이그
+- 어드민 전체 helper 텍스트 자연어화 + 들여쓰기 전수 검사 (memory: `project_admin_helper_text_naturalize`)
 
 ---
 

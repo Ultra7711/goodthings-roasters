@@ -76,6 +76,21 @@ const ROAST_STAGE_OPTIONS = [
   { value: 'italian', label: '이탈리안', disabled: true, hint: '국내 시장 희귀 — 사용 안 함' },
 ] as const;
 
+/** ProductRoastStage.tsx 의 STAGE_DESCRIPTIONS 답습 — 운영자가 빈 값 유지 시 PDP 가 그대로 fallback. */
+const ROAST_STAGE_PLACEHOLDERS: Record<(typeof ROAST_STAGE_OPTIONS)[number]['value'], string> = {
+  light:
+    '산뜻한 산미와 화사한 향, 산지 고유 특성이 가장 잘 드러나는 단계. 푸어오버와 에어로프레스에 적합합니다.',
+  'medium-light':
+    '산미와 단맛이 부드럽게 어우러지며 산지 특성이 살아있는 단계. 핸드드립에 잘 어울립니다.',
+  medium:
+    '캐러멜 단맛과 부드러운 바디가 균형을 이루는 단계. 다양한 추출 방식에 잘 어울립니다.',
+  'medium-dark':
+    '고소한 토스티드 너트와 깊은 단맛이 어우러지는 단계. 에스프레소 추출에 적합합니다.',
+  dark: '묵직한 바디와 카카오의 진한 단맛이 살아나는 단계. 라떼와 카푸치노에 잘 어울립니다.',
+  italian:
+    '농밀한 풍미와 스모키함이 절정에 이르는 가장 깊은 단계. 진한 에스프레소에 적합합니다.',
+};
+
 const FLAVOR_AXES = [
   { key: 'noteSweet', label: 'Sweet (단맛)' },
   { key: 'noteBody', label: 'Body (바디)' },
@@ -188,6 +203,8 @@ const FormSchema = z.object({
   description: z.string().max(4000),
   flavorDesc: z.string().max(200),
   roastStage: RoastStageEnum,
+  /** 052 마이그 — 운영자 작성 ROASTING 단계 설명. 빈 값 PDP fallback. */
+  roastDesc: z.string().max(500),
   noteChips: z
     .array(z.object({ ko: z.string().min(1), en: z.string() }))
     .max(20),
@@ -226,6 +243,8 @@ function buildCreateDefaults(initialSortOrder: number): FormValues {
     description: '',
     flavorDesc: '',
     roastStage: 'medium',
+    /* 단계별 default 텍스트 prefill — 운영자가 수정 안 하면 그대로 저장 (S231-4) */
+    roastDesc: ROAST_STAGE_PLACEHOLDERS.medium,
     noteChips: [],
     noteColor: '#A47146',
     noteSweet: 0,
@@ -254,6 +273,11 @@ function buildEditDefaults(product: ProductWithRelationsRow): FormValues {
     description: product.description ?? '',
     flavorDesc: product.flavor_desc ?? '',
     roastStage: product.roast_stage,
+    /* DB 의 roast_desc 가 빈 값이면 단계별 default 로 prefill — STAGE_DESCRIPTIONS 답습 */
+    roastDesc:
+      product.roast_desc?.trim() ||
+      ROAST_STAGE_PLACEHOLDERS[product.roast_stage] ||
+      '',
     noteChips: decodeChipsFromColumns(
       product.note_tags ?? '',
       product.note_tags_en ?? '',
@@ -437,7 +461,11 @@ export default function ProductEditForm(props: Props) {
     <form onSubmit={handleSubmit(onSubmit, onError)}>
       {/* 상단 액션 바 — settings · orders 페이지와 동일 ghost/primary 패턴.
           mode='edit': 변경 취소 + 변경사항 저장 (dirty 일 때만 활성)
-          mode='create': 취소 + 상품 등록 (dirty 무관 — 빈 폼에서도 등록 시도 가능 · zod 가 차단) */}
+          mode='create': 취소 + 상품 등록 (dirty 무관 — 빈 폼에서도 등록 시도 가능 · zod 가 차단)
+
+          ⚠️ AdminTopbarActions 가 React Portal — submit 버튼이 DOM 상 form 밖.
+          native form submit 이벤트 발화 안 됨. button type="button" + onClick 으로
+          handleSubmit 직접 호출 답습 (SettingsForm 패턴). */}
       <AdminTopbarActions>
         {isCreate ? (
           <>
@@ -451,7 +479,13 @@ export default function ProductEditForm(props: Props) {
             >
               취소
             </Button>
-            <Button type="submit" size="sm" className="!h-7" disabled={pending}>
+            <Button
+              type="button"
+              size="sm"
+              className="!h-7"
+              onClick={handleSubmit(onSubmit, onError)}
+              disabled={pending}
+            >
               {pending ? '등록 중…' : '상품 등록'}
             </Button>
           </>
@@ -468,9 +502,10 @@ export default function ProductEditForm(props: Props) {
               변경 취소
             </Button>
             <Button
-              type="submit"
+              type="button"
               size="sm"
               className="!h-7"
+              onClick={handleSubmit(onSubmit, onError)}
               disabled={!isDirty || pending}
             >
               {pending ? '저장 중…' : '변경사항 저장'}
@@ -519,7 +554,13 @@ export default function ProductEditForm(props: Props) {
         />
       )}
       {tab === 'detail' && (
-        <DetailTab register={register} control={control} errors={errors} />
+        <DetailTab
+          register={register}
+          control={control}
+          setValue={setValue}
+          getValues={getValues}
+          errors={errors}
+        />
       )}
       {tab === 'option' && (
         <OptionTab register={register} control={control} errors={errors} />
@@ -835,10 +876,14 @@ function ToggleRow({
 function DetailTab({
   register,
   control,
+  setValue,
+  getValues,
   errors,
 }: {
   register: ReturnType<typeof useForm<FormValues>>['register'];
   control: ReturnType<typeof useForm<FormValues>>['control'];
+  setValue: ReturnType<typeof useForm<FormValues>>['setValue'];
+  getValues: ReturnType<typeof useForm<FormValues>>['getValues'];
   errors: ReturnType<typeof useForm<FormValues>>['formState']['errors'];
 }) {
   return (
@@ -884,6 +929,13 @@ function DetailTab({
         >
           <RoastStageChips control={control} />
         </Field>
+        <RoastDescField
+          register={register}
+          control={control}
+          setValue={setValue}
+          getValues={getValues}
+          errors={errors}
+        />
       </Card>
 
       {/* 노트 태그 카드 — 시그니처 설정과 동일한 한·영 페어 chip UI 답습 */}
@@ -1155,6 +1207,57 @@ function FlavorAxisSlider({
         );
       }}
     />
+  );
+}
+
+/* ── 로스팅 설명 textarea (S231-4) ───────────────────────────────────
+   동작 (slug 자동 옵션 B 답습):
+   - 단계 변경 시 입력값이 직전 단계의 default 와 일치하면 새 단계 default 로 자동 갱신
+   - 운영자가 직접 수정해 default 와 달라지면 lock — 단계 변경해도 텍스트 보존
+   - 빈 값으로 저장 시 PDP 가 fallback 으로 STAGE_DESCRIPTIONS 답습 */
+
+function RoastDescField({
+  register,
+  control,
+  setValue,
+  getValues,
+  errors,
+}: {
+  register: ReturnType<typeof useForm<FormValues>>['register'];
+  control: ReturnType<typeof useForm<FormValues>>['control'];
+  setValue: ReturnType<typeof useForm<FormValues>>['setValue'];
+  getValues: ReturnType<typeof useForm<FormValues>>['getValues'];
+  errors: ReturnType<typeof useForm<FormValues>>['formState']['errors'];
+}) {
+  const stage = useWatch({ control, name: 'roastStage' });
+  const prevAutoRef = useRef<string>(
+    ROAST_STAGE_PLACEHOLDERS[stage] ?? '',
+  );
+
+  useEffect(() => {
+    const next = ROAST_STAGE_PLACEHOLDERS[stage] ?? '';
+    if (next === prevAutoRef.current) return;
+    const current = (getValues('roastDesc') ?? '').trim();
+    /* 현재값 == 직전 자동값 → 운영자가 수정 안 한 상태 → 자동 갱신 */
+    if (current === prevAutoRef.current.trim()) {
+      setValue('roastDesc', next, { shouldDirty: true, shouldValidate: false });
+    }
+    prevAutoRef.current = next;
+  }, [stage, getValues, setValue]);
+
+  return (
+    <Field
+      label="단계 설명"
+      hint="단계를 바꾸면 기본 설명이 자동으로 채워집니다. 직접 수정하면 그 내용이 유지됩니다."
+      error={errors.roastDesc?.message}
+    >
+      <Textarea
+        rows={3}
+        maxLength={500}
+        className="leading-tight"
+        {...register('roastDesc')}
+      />
+    </Field>
   );
 }
 
