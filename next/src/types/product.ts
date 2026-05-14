@@ -70,7 +70,7 @@ export type ProductVolumeRow = {
   sort_order: number;
 };
 
-/** 046 product_images 테이블 row */
+/** 046 product_images 테이블 row (050 추가: is_active) */
 export type ProductImageRow = {
   id: string;
   product_id: string;
@@ -81,6 +81,8 @@ export type ProductImageRow = {
   width: number | null;
   height: number | null;
   sort_order: number;
+  /** 사이트 노출 여부. 050 마이그 신규. 기존 row default true · 신규 업로드 default false (안전장치). */
+  is_active: boolean;
 };
 
 /** 046 product_recipes 테이블 row */
@@ -142,7 +144,10 @@ export function mapProductRow(row: ProductWithRelationsRow): Product {
       ...(v.sold_out ? { soldOut: true } : {}),
     }));
 
+  /* B2C 노출 — is_active=false 이미지는 사이트에서 제외 (안전장치 · S231-3 / 050).
+     admin 은 fetchAdminProductRawBySlug 로 raw row 사용 — 전체 노출 유지. */
   const images: ProductImage[] = [...row.product_images]
+    .filter((i) => i.is_active !== false)
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((i) => ({
       bg: i.bg,

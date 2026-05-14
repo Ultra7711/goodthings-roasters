@@ -23,9 +23,12 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
-import { getPlaiceholder } from 'plaiceholder';
 import { getAdminClaims } from '@/lib/auth/getClaims';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import {
+  buildAdminImageFilename,
+  processAdminImage,
+} from '@/lib/admin/imageProcessing';
 import { GOODDAYS_CACHE_TAG } from '@/lib/gooddaysServer';
 
 const BUCKET_ID = 'gooddays-images';
@@ -79,13 +82,6 @@ function flattenZodError(err: z.ZodError): string {
     .slice(0, 200);
 }
 
-function safeFilename(original: string): string {
-  /* webp 권장. 무관한 확장자도 통과 (Storage RLS 가 최종 MIME 검증). */
-  const ext = (original.match(/\.[a-z0-9]+$/i)?.[0] ?? '.webp').toLowerCase();
-  const stem = `gd-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  return `${stem}${ext}`;
-}
-
 /* ── Actions ──────────────────────────────────────────────────────────── */
 
 /**
@@ -115,28 +111,22 @@ export async function uploadGoodDaysImageAction(
     return { ok: false, error: 'validation_failed', detail: 'file_too_large' };
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const original = Buffer.from(await file.arrayBuffer());
 
-  let base64: string;
-  let width: number;
-  let height: number;
-  try {
-    const ph = await getPlaiceholder(buffer, { size: 10 });
-    base64 = ph.base64;
-    width = ph.metadata.width;
-    height = ph.metadata.height;
-  } catch (err) {
-    console.error('[uploadGoodDaysImageAction] plaiceholder failed', err);
+  /* lib/admin/imageProcessing.ts 답습 — 어드민 전 영역 일관 (S231-3 마이그) */
+  const processed = await processAdminImage(original);
+  if (!processed.ok) {
     return { ok: false, error: 'invalid_image' };
   }
+  const { image } = processed;
 
-  const filename = safeFilename(file.name);
+  const filename = buildAdminImageFilename('gd');
   const admin = getSupabaseAdmin();
 
   const { error: uploadErr } = await admin.storage
     .from(BUCKET_ID)
-    .upload(filename, buffer, {
-      contentType: file.type || 'image/webp',
+    .upload(filename, image.buffer, {
+      contentType: 'image/webp',
       upsert: false,
     });
   if (uploadErr) {
@@ -171,9 +161,9 @@ export async function uploadGoodDaysImageAction(
       sort_order: nextSort,
       is_active: true,
       featured,
-      blur_data_url: base64,
-      width,
-      height,
+      blur_data_url: image.base64,
+      width: image.width,
+      height: image.height,
       updated_by: claims.userId,
     })
     .select('id')

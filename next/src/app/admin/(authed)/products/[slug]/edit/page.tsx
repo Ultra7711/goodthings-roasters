@@ -69,7 +69,7 @@ async function EditInner({ params }: PageProps) {
         </div>
       </div>
 
-      {/* 이미지 reorder 섹션 */}
+      {/* 이미지 업로드 + reorder + 삭제 섹션 (S231-3) */}
       <section className="bg-card border border-border rounded-lg p-5 mb-5">
         <div className="flex items-baseline gap-2 mb-1">
           <h3 className="m-0 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -84,20 +84,16 @@ async function EditInner({ params }: PageProps) {
           대표를 바꾸려면 해당 이미지를 1번으로 이동시키세요.
         </div>
 
-        {sortedImages.length === 0 ? (
-          <div className="px-4 py-12 text-center text-sm text-muted-foreground bg-muted rounded-md">
-            등록된 이미지가 없습니다. 이미지 업로드는 다음 단계에서 추가됩니다.
-          </div>
-        ) : (
-          <ProductImageReorderClient
-            productId={product.id}
-            initialImages={sortedImages.map((i) => ({
-              id: i.id,
-              src: i.src,
-              blurDataUrl: i.blur_data_url,
-            }))}
-          />
-        )}
+        <ProductImageReorderClient
+          productId={product.id}
+          productSlug={product.slug}
+          initialImages={sortedImages.map((i) => ({
+            id: i.id,
+            src: i.src,
+            blurDataUrl: i.blur_data_url,
+            isActive: i.is_active,
+          }))}
+        />
       </section>
 
       {/* 3탭 편집 폼 (basic · detail · option) */}

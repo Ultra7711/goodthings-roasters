@@ -173,6 +173,7 @@ describe('mapProductRow — product_images', () => {
           width: null,
           height: null,
           sort_order: 1,
+          is_active: true,
         },
         {
           id: 'i1',
@@ -184,6 +185,7 @@ describe('mapProductRow — product_images', () => {
           width: 900,
           height: 900,
           sort_order: 0,
+          is_active: true,
         },
       ],
     });
@@ -229,6 +231,7 @@ describe('hasImageBlur', () => {
         width: 900,
         height: 900,
         sort_order: 0,
+        is_active: true,
       }),
     ).toBe(true);
   });
@@ -244,6 +247,7 @@ describe('hasImageBlur', () => {
         width: 900,
         height: 900,
         sort_order: 0,
+        is_active: true,
       }),
     ).toBe(false);
   });
