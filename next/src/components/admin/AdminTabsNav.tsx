@@ -71,7 +71,7 @@ function TabItem({
   const countClass = cn(
     'text-xs tabular-nums rounded-sm',
     active
-      ? 'text-muted-foreground bg-muted'
+      ? 'bg-[var(--primary)] !text-white'
       : 'text-[var(--foreground-subtle)] bg-transparent',
   );
 
