@@ -29,6 +29,7 @@ import { Input } from '@/components/admin/ui/input';
 import { Switch } from '@/components/admin/ui/switch';
 import { updateProductMetaAction } from '../../actions';
 import type { ProductWithRelationsRow } from '@/types/product';
+import { cn } from '@/lib/utils';
 
 const STATUS_OPTIONS = [
   { value: '', label: '없음' },
@@ -154,14 +155,7 @@ export default function ProductEditForm({ product }: Props) {
       </AdminTopbarActions>
 
       {/* 탭 */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 4,
-          borderBottom: '1px solid var(--border)',
-          marginBottom: 16,
-        }}
-      >
+      <div className="flex gap-1 border-b border-border mb-4">
         {TABS.map((t) => {
           const active = tab === t.id;
           return (
@@ -169,29 +163,19 @@ export default function ProductEditForm({ product }: Props) {
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
-              style={{
-                padding: '8px 14px',
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                fontSize: 13,
-                fontWeight: active ? 500 : 400,
-                color: active ? 'var(--foreground)' : 'var(--foreground-muted)',
-                position: 'relative',
-              }}
+              className={cn(
+                'px-3 py-2 bg-transparent border-none cursor-pointer text-sm relative',
+                active
+                  ? 'font-medium text-foreground'
+                  : 'font-normal text-muted-foreground',
+              )}
             >
               {t.label}
               {active && (
                 <span
                   aria-hidden
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: -1,
-                    height: 2,
-                    background: 'var(--primary)',
-                  }}
+                  className="absolute left-0 right-0 h-0.5 bg-[var(--primary)]"
+                  style={{ bottom: -1 }}
                 />
               )}
             </button>
@@ -208,16 +192,7 @@ export default function ProductEditForm({ product }: Props) {
 
       {/* dirty 안내 (액션 버튼은 상단으로 portal) */}
       {isDirty && !pending && (
-        <div
-          style={{
-            marginTop: 14,
-            padding: '8px 12px',
-            background: 'var(--warning-soft)',
-            color: 'var(--warning)',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: 12,
-          }}
-        >
+        <div className="mt-3 px-3 py-2 bg-[var(--warning-soft)] text-[var(--warning)] rounded-[var(--radius-sm)] text-xs">
           저장되지 않은 변경이 있습니다 — 상단의 변경 저장 버튼을 눌러주세요.
         </div>
       )}
@@ -237,7 +212,7 @@ function BasicTab({
   errors: ReturnType<typeof useForm<FormValues>>['formState']['errors'];
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div className="flex flex-col gap-3">
       {/* 기본 정보 카드 */}
       <Card title="기본 정보">
         <FieldGrid>
@@ -261,7 +236,11 @@ function BasicTab({
 
         <FieldGrid cols={3}>
           <Field label="카테고리" required error={errors.category?.message}>
-            <select {...register('category')} style={inputStyle}>
+            <select
+              {...register('category')}
+              className={SELECT_CLASS}
+              style={{ fontFamily: 'inherit' }}
+            >
               {CATEGORY_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
@@ -279,7 +258,8 @@ function BasicTab({
                   onChange={(e) =>
                     field.onChange(e.target.value === '' ? null : e.target.value)
                   }
-                  style={inputStyle}
+                  className={SELECT_CLASS}
+                  style={{ fontFamily: 'inherit' }}
                 >
                   {STATUS_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -324,7 +304,7 @@ function BasicTab({
 
       {/* 노출 옵션 카드 */}
       <Card title="노출 옵션">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="flex flex-col gap-2.5">
           <ToggleRow
             label="정기 배송 상품"
             hint="상품 상세 페이지에서 정기 옵션 노출됩니다"
@@ -359,30 +339,13 @@ function ColorField({
       name={name}
       control={control}
       render={({ field }) => (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '0 10px',
-            height: 34,
-            background: 'var(--surface)',
-            border: '1px solid var(--input)',
-            borderRadius: 6,
-          }}
-        >
+        <div className="flex items-center gap-2 px-2.5 h-[34px] bg-[var(--surface)] border border-input rounded-md">
           <input
             type="color"
             value={field.value}
             onChange={(e) => field.onChange(e.target.value)}
-            style={{
-              width: 24,
-              height: 24,
-              border: 'none',
-              padding: 0,
-              background: 'transparent',
-              cursor: 'pointer',
-            }}
+            className="border-none p-0 bg-transparent cursor-pointer"
+            style={{ width: 24, height: 24 }}
             aria-label="색상 선택"
           />
           <input
@@ -390,17 +353,7 @@ function ColorField({
             value={field.value}
             onChange={(e) => field.onChange(e.target.value)}
             maxLength={7}
-            className="gtr-mono"
-            style={{
-              flex: 1,
-              minWidth: 0,
-              border: 'none',
-              outline: 'none',
-              background: 'transparent',
-              fontSize: 13,
-              color: 'var(--foreground)',
-              padding: 0,
-            }}
+            className="gtr-mono flex-1 min-w-0 border-none outline-none bg-transparent text-sm text-[var(--foreground)] p-0"
             placeholder="#000000"
           />
         </div>
@@ -427,25 +380,10 @@ function ToggleRow({
       name={name}
       control={control}
       render={({ field }) => (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-          }}
-        >
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 500 }}>{label}</div>
-            <div
-              style={{
-                fontSize: 11.5,
-                color: 'var(--foreground-muted)',
-                marginTop: 2,
-              }}
-            >
-              {hint}
-            </div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-sm font-medium">{label}</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">{hint}</div>
           </div>
           <Switch
             checked={!!field.value}
@@ -464,22 +402,11 @@ function ToggleRow({
 function ComingSoonPanel({ label }: { label: string }) {
   return (
     <div
-      style={{
-        padding: '48px 18px',
-        textAlign: 'center',
-        background: 'var(--surface-muted)',
-        border: '1px dashed var(--border-strong)',
-        borderRadius: 'var(--radius-sm)',
-        color: 'var(--foreground-muted)',
-        fontSize: 13,
-      }}
+      className="px-4 py-12 text-center bg-[var(--surface-muted)] rounded-[var(--radius-sm)] text-muted-foreground text-sm"
+      style={{ border: '1px dashed var(--border-strong)' }}
     >
-      <div style={{ fontWeight: 500, color: 'var(--foreground)' }}>
-        {label} 탭 준비 중
-      </div>
-      <div style={{ marginTop: 6, fontSize: 12 }}>
-        다음 단계에서 추가됩니다.
-      </div>
+      <div className="font-medium text-foreground">{label} 탭 준비 중</div>
+      <div className="mt-1.5 text-xs">다음 단계에서 추가됩니다.</div>
     </div>
   );
 }
@@ -494,29 +421,11 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)',
-        padding: 20,
-      }}
-    >
-      <h3
-        style={{
-          margin: '0 0 14px',
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          color: 'var(--foreground-muted)',
-        }}
-      >
+    <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] p-5">
+      <h3 className="m-0 mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {children}
-      </div>
+      <div className="flex flex-col gap-3">{children}</div>
     </div>
   );
 }
@@ -530,11 +439,8 @@ function FieldGrid({
 }) {
   return (
     <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gap: 12,
-      }}
+      className="grid gap-3"
+      style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
     >
       {children}
     </div>
@@ -555,46 +461,24 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label
-        style={{
-          fontSize: 12.5,
-          fontWeight: 500,
-          color: 'var(--foreground)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-        }}
-      >
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-medium text-[var(--foreground)] tracking-[-0.005em] flex items-center gap-1">
         {label}
-        {required && <span style={{ color: 'var(--primary)' }}>*</span>}
+        {required && <span className="text-[var(--primary)]">*</span>}
       </label>
       {children}
       {error ? (
-        <div style={{ fontSize: 11.5, color: 'var(--danger)' }}>{error}</div>
+        <div className="pl-2.5 text-xs text-[var(--danger)]">{error}</div>
       ) : (
-        hint && (
-          <div style={{ fontSize: 11.5, color: 'var(--foreground-muted)' }}>
-            {hint}
-          </div>
-        )
+        hint && <div className="pl-2.5 text-xs text-muted-foreground">{hint}</div>
       )}
     </div>
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  height: 34,
-  padding: '0 10px',
-  background: 'var(--surface)',
-  border: '1px solid var(--input)',
-  borderRadius: 6,
-  fontSize: 13,
-  color: 'var(--foreground)',
-  outline: 'none',
-  fontFamily: 'inherit',
-};
+/* DEC-5: native select 유지 (Radix Select 변환은 후속). FormInput h-[34px] 표준 정합. */
+const SELECT_CLASS =
+  'w-full h-[34px] px-2.5 bg-[var(--surface)] border border-input rounded-md text-sm text-[var(--foreground)] outline-none';
 
 /* S222 PR-5c: SM_BASE/GHOST/PRIMARY 상수 폐기 (shadcn Button 으로 대체).
    inputStyle = native select 의 fallback 유지 (DEC-5 native select 정책). */

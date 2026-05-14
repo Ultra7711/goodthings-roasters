@@ -25,7 +25,7 @@
 | `(authed)/users/[id]/UserDetailClient.tsx` | 🟢 완료 | Tailwind + TH/TD inline (carry) | S226 |
 | `(authed)/products/ProductsTableClient.tsx` | 🟢 완료 | Tailwind + TH/TD inline (carry) | S223 Phase 2-e |
 | `(authed)/products/new/page.tsx` | 📋 재기획 | AdminPlaceholder | S226 (mock UI ≠ 실 PDP 모델 — 재기획 carry-over) |
-| `(authed)/products/[slug]/edit/ProductEditForm.tsx` | 🔴 미정리 | RHF + inline 잔존 | S225+ |
+| `(authed)/products/[slug]/edit/ProductEditForm.tsx` | 🟢 완료 | Tailwind + RHF carry (DEC-4) | S226 |
 | `(authed)/subscriptions/SubscriptionsTableClient.tsx` | 🟡 부분 | 테이블 정리됨 · Dialog 내부 미정리 | S225+ |
 | `(authed)/cafe-events/CafeEventsForm.tsx` | 🟢 완료 | Tailwind | S225 작업 중 |
 | `(authed)/settings/SettingsForm.tsx` | 🟢 완료 | Tailwind | S224 |
