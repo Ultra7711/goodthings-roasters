@@ -4,15 +4,11 @@
    SettingsForm — /admin/settings 클라이언트 폼 (S129 H-2 변형 1)
 
    책임:
-   - 시안 settings.jsx inline style 100% 유지 (S126 이식 베이스)
    - useState<SiteSettings> 단일 + initial ref → dirty 추적
    - "저장되지 않은 변경 N개" 동적 카운트 (countDirtyAreas)
    - [변경 취소] → reset to initial
    - [변경사항 저장] → saveSiteSettingsAction (변경된 영역만 payload)
    - dirty 없으면 두 버튼 비활성
-
-   변경 안 된 mock 컴포넌트 (시즌 배너 이미지 업로드) 는 H-3 에서 갱신.
-   Toast 는 H-4 에서 추가.
    ══════════════════════════════════════════ */
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
@@ -225,26 +221,12 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
       </AdminTopbarActions>
 
       {/* 헤더 */}
-      <div
-        style={{
-          marginBottom: 22,
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-        }}
-      >
+      <div className="mb-6 flex items-baseline justify-between">
         <div>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 24,
-              fontWeight: 500,
-              letterSpacing: '-0.02em',
-            }}
-          >
+          <h2 className="m-0 text-2xl font-medium tracking-[-0.02em]">
             메인 사이트 설정
           </h2>
-          <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
+          <div className="mt-1 text-sm text-muted-foreground">
             B2C 사이트(<span className="gtr-mono">goodthingsroasters.com</span>)에 즉시 반영돼요. 변경사항은 자동저장되지 않아요.
           </div>
         </div>
@@ -255,16 +237,16 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
         )}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {/* Section 1 — 무료 배송 정책 (정책 기준 → 공지 배너 auto_text 자동 합성) */}
+      <div className="flex flex-col gap-3.5">
+        {/* Section 1 — 무료 배송 정책 */}
         <SettingsCard
           title="무료 배송 정책"
           subtitle="장바구니 임계 금액 이상에서 자동 적용 · 공지 배너 자동 모드의 기준 금액"
           on={settings.shipping.enabled}
           onToggle={() => updateShipping({ enabled: !settings.shipping.enabled })}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="flex flex-col gap-3.5">
+            <div className="grid grid-cols-2 gap-3">
               <FormField label="기준 금액" hint="이 금액 이상 결제 시 무료">
                 <FormInput
                   suffix="원 이상"
@@ -287,19 +269,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               </FormField>
             </div>
 
-            <div
-              style={{
-                padding: 12,
-                borderRadius: 6,
-                background: 'var(--info-soft)',
-                border: '1px solid #C5DCF1',
-                display: 'flex',
-                gap: 10,
-                alignItems: 'flex-start',
-                fontSize: 12.5,
-                color: 'var(--info)',
-              }}
-            >
+            <div className="p-3 rounded-[6px] bg-[var(--info-soft)] border border-[#C5DCF1] flex gap-2.5 items-start text-xs text-[var(--info)]">
               <svg
                 width="16"
                 height="16"
@@ -309,15 +279,15 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 strokeWidth="1.7"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                style={{ flexShrink: 0, marginTop: 1 }}
+                className="shrink-0 mt-[1px]"
               >
                 <circle cx="12" cy="12" r="10" />
                 <path d="M12 16v-4" />
                 <path d="M12 8h.01" />
               </svg>
               <div>
-                <div style={{ fontWeight: 500, color: '#1F4F8B' }}>참고</div>
-                <div style={{ marginTop: 2, color: 'var(--info)' }}>
+                <div className="font-medium text-[#1F4F8B]">참고</div>
+                <div className="mt-0.5 text-[var(--info)]">
                   변경 시 메인 사이트 카트·체크아웃·마이페이지 모두 즉시 반영됩니다 (페이지 새로고침 후).
                 </div>
               </div>
@@ -332,36 +302,20 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
           on={settings.notice.enabled}
           onToggle={() => updateNotice({ enabled: !settings.notice.enabled })}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="flex flex-col gap-3.5">
             {/* 라이브 미리보기 */}
             <div
-              style={{
-                borderRadius: 6,
-                overflow: 'hidden',
-                border: '1px solid var(--border)',
-                opacity: settings.notice.enabled ? 1 : 0.4,
-              }}
+              className="rounded-[6px] overflow-hidden border border-border"
+              style={{ opacity: settings.notice.enabled ? 1 : 0.4 }}
             >
-              <div
-                style={{
-                  fontSize: 10,
-                  fontFamily: 'monospace',
-                  padding: '4px 10px',
-                  background: 'var(--surface-muted)',
-                  color: 'var(--foreground-subtle)',
-                  borderBottom: '1px solid var(--border)',
-                }}
-              >
+              <div className="text-[10px] font-mono px-2.5 py-1 bg-[var(--surface-muted)] text-[var(--foreground-subtle)] border-b border-border">
                 미리보기 · goodthingsroasters.com
               </div>
               <div
+                className="px-4 py-2.5 text-sm text-center tracking-[-0.005em]"
                 style={{
                   background: NOTICE_COLOR_THEMES[settings.notice.theme_idx][0],
                   color: NOTICE_COLOR_THEMES[settings.notice.theme_idx][1],
-                  padding: '10px 16px',
-                  fontSize: 13,
-                  textAlign: 'center',
-                  letterSpacing: '-0.005em',
                 }}
               >
                 {(() => {
@@ -369,7 +323,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   const previewSecondary = settings.notice.secondary;
                   if (!previewText && !previewSecondary) {
                     return (
-                      <span style={{ opacity: 0.5, fontStyle: 'italic' }}>
+                      <span className="opacity-50 italic">
                         (빈 공지 — 메인 사이트에 표시되지 않음)
                       </span>
                     );
@@ -380,7 +334,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                       {previewSecondary && (
                         <>
                           {previewText && ' · '}
-                          <span style={{ opacity: 0.85 }}>{previewSecondary}</span>
+                          <span className="opacity-[0.85]">{previewSecondary}</span>
                         </>
                       )}
                     </>
@@ -390,44 +344,31 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
             </div>
 
             {/* 자동 동기화 토글 */}
-            <label
-              style={{
-                display: 'flex',
-                gap: 10,
-                alignItems: 'flex-start',
-                padding: '10px 12px',
-                borderRadius: 6,
-                background: 'var(--surface-muted)',
-                border: '1px solid var(--border)',
-                cursor: 'pointer',
-              }}
-            >
+            <label className="flex gap-2.5 items-start p-3 rounded-[6px] bg-[var(--surface-muted)] border border-border cursor-pointer">
               <input
                 type="checkbox"
                 checked={settings.notice.auto_text}
                 onChange={(e) => updateNotice({ auto_text: e.target.checked })}
-                style={{ marginTop: 2, accentColor: 'var(--primary)' }}
+                className="mt-0.5 accent-[var(--primary)]"
               />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 500 }}>
+              <div className="flex-1">
+                <div className="text-xs font-medium">
                   무료배송 임계값 자동 표시{' '}
-                  <span style={{ color: 'var(--foreground-muted)', fontWeight: 400 }}>
-                    (권장)
-                  </span>
+                  <span className="text-muted-foreground font-normal">(권장)</span>
                 </div>
-                <div style={{ fontSize: 11.5, color: 'var(--foreground-muted)', marginTop: 2 }}>
-                  체크 시 아래 “무료 배송 정책” 의 기준 금액이 자동으로 반영돼요.
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  체크 시 아래 "무료 배송 정책" 의 기준 금액이 자동으로 반영돼요.
                   마케팅 카피로 직접 작성하려면 체크를 해제하세요.
                 </div>
               </div>
             </label>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 12 }}>
+            <div className="grid grid-cols-[1fr_200px] gap-3">
               <FormField
                 label="배너 문구"
                 hint={
                   settings.notice.auto_text
-                    ? '자동 모드 ON — “무료 배송 정책” 카드의 기준 금액으로 합성됩니다'
+                    ? '자동 모드 ON — "무료 배송 정책" 카드의 기준 금액으로 합성됩니다'
                     : '비워두면 보조 문구만 표시 · 이모지 1개와 링크 1개 권장'
                 }
               >
@@ -457,9 +398,9 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               />
             </FormField>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 12.5, color: 'var(--foreground-muted)' }}>색상 테마</span>
-              <div style={{ display: 'flex', gap: 6 }}>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">색상 테마</span>
+              <div className="flex gap-1.5">
                 {NOTICE_COLOR_THEMES.map(([bg, fg], i) => {
                   const sel = i === settings.notice.theme_idx;
                   return (
@@ -469,20 +410,11 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                       onClick={() => updateNotice({ theme_idx: i })}
                       aria-label={`색상 테마 ${i + 1}`}
                       aria-pressed={sel}
+                      className="size-7 rounded-[5px] flex items-center justify-center text-[10px] font-semibold cursor-pointer p-0"
                       style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 5,
                         background: bg,
                         color: fg,
                         border: sel ? '2px solid var(--primary)' : '1px solid var(--border)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 10,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        padding: 0,
                       }}
                     >
                       Aa
@@ -501,15 +433,8 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
           on={settings.season.enabled}
           onToggle={() => updateSeason({ enabled: !settings.season.enabled })}
         >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 240px',
-              gap: 16,
-              alignItems: 'flex-start',
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="grid grid-cols-[1fr_240px] gap-4 items-start">
+            <div className="flex flex-col gap-3.5">
               <FormField label="Eyebrow (작은 라벨)">
                 <FormInput
                   value={settings.season.eyebrow}
@@ -526,23 +451,11 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 <textarea
                   value={settings.season.subtitle}
                   onChange={(e) => updateSeason({ subtitle: e.target.value })}
-                  style={{
-                    width: '100%',
-                    minHeight: 64,
-                    resize: 'vertical',
-                    padding: '10px 12px',
-                    border: '1px solid var(--input)',
-                    borderRadius: 6,
-                    fontSize: 13,
-                    lineHeight: 1.6,
-                    fontFamily: 'inherit',
-                    color: 'var(--foreground)',
-                    outline: 'none',
-                    background: 'var(--surface)',
-                  }}
+                  className="w-full min-h-16 resize-y px-3 py-2.5 border border-[var(--input)] rounded-[6px] text-sm leading-[1.6] text-[var(--foreground)] outline-none bg-[var(--surface)]"
+                  style={{ fontFamily: 'inherit' }}
                 />
               </FormField>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="grid grid-cols-2 gap-3">
                 <FormField label="CTA 텍스트">
                   <FormInput
                     value={settings.season.cta_text}
@@ -556,7 +469,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   />
                 </FormField>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="grid grid-cols-2 gap-3">
                 <FormField label="시작일" hint="비워두면 상시 노출">
                   <FormInput
                     type="date"
@@ -578,51 +491,18 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               <FormField label="히어로 이미지">
                 {settings.season.image_path ? (
                   <div
-                    style={{
-                      borderRadius: 6,
-                      overflow: 'hidden',
-                      border: '1px solid var(--border)',
-                      aspectRatio: '4/5',
-                      backgroundImage: `url("${settings.season.image_path}")`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      position: 'relative',
-                      display: 'flex',
-                      alignItems: 'flex-end',
-                      padding: 10,
-                    }}
+                    className="rounded-[6px] overflow-hidden border border-border aspect-[4/5] bg-cover bg-center relative flex items-end p-2.5"
+                    style={{ backgroundImage: `url("${settings.season.image_path}")` }}
                   >
-                    <span
-                      style={{
-                        fontFamily: 'monospace',
-                        fontSize: 10,
-                        padding: '3px 7px',
-                        borderRadius: 4,
-                        background: 'rgba(255,255,255,0.9)',
-                        color: 'var(--foreground-muted)',
-                        maxWidth: '100%',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                    <span className="font-mono text-[10px] px-[7px] py-[3px] rounded-[4px] bg-white/90 text-muted-foreground max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
                       {summarizeImagePath(settings.season.image_path)}
                     </span>
                   </div>
                 ) : (
                   <div
+                    className="rounded-[6px] overflow-hidden border border-border aspect-[4/5] flex items-center justify-center text-muted-foreground text-xs"
                     style={{
-                      borderRadius: 6,
-                      overflow: 'hidden',
-                      border: '1px solid var(--border)',
-                      aspectRatio: '4/5',
-                      background:
-                        'repeating-linear-gradient(135deg, #EEEDEB 0 6px, #F5F4F2 6px 12px)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--foreground-muted)',
-                      fontSize: 11,
+                      background: 'repeating-linear-gradient(135deg, #EEEDEB 0 6px, #F5F4F2 6px 12px)',
                     }}
                   >
                     이미지 없음
@@ -640,7 +520,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 type="file"
                 accept="image/webp,image/avif,image/jpeg,image/png"
                 onChange={handleFileChange}
-                style={{ display: 'none' }}
+                className="hidden"
               />
               <Button
                 type="button"
@@ -654,27 +534,12 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               </Button>
 
               {uploadState.status === 'uploading' && (
-                <div style={{ marginTop: 8 }}>
-                  <div
-                    style={{
-                      height: 4,
-                      borderRadius: 2,
-                      background: 'var(--surface-muted)',
-                      overflow: 'hidden',
-                      position: 'relative',
-                    }}
-                  >
+                <div className="mt-2">
+                  <div className="h-1 rounded-sm bg-[var(--surface-muted)] overflow-hidden relative">
                     <div className="gtr-admin-progress-indet" />
                   </div>
                   <div
-                    style={{
-                      marginTop: 6,
-                      fontSize: 11,
-                      color: 'var(--foreground-muted)',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
+                    className="mt-1.5 text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
                     title={uploadState.fileName}
                   >
                     {uploadState.fileName}
@@ -683,21 +548,10 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               )}
 
               {uploadState.status === 'error' && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    padding: '8px 10px',
-                    borderRadius: 6,
-                    background: 'var(--danger-soft)',
-                    color: 'var(--danger)',
-                    border: '1px solid var(--danger)',
-                    fontSize: 11.5,
-                  }}
-                >
+                <div className="mt-2 px-2.5 py-2 rounded-[6px] bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
                   {uploadState.message}
                 </div>
               )}
-
             </div>
           </div>
         </SettingsCard>
@@ -711,15 +565,8 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
             updateSignature({ enabled: !settings.signature.enabled })
           }
         >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 240px',
-              gap: 16,
-              alignItems: 'flex-start',
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="grid grid-cols-[1fr_240px] gap-4 items-start">
+            <div className="flex flex-col gap-3.5">
               {/* eyebrow + 분기 자동 채움 */}
               <FormField
                 label="Eyebrow (분기 라벨)"
@@ -730,24 +577,8 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   onChange={(e) => updateSignature({ eyebrow: e.target.value })}
                   placeholder="예: Signature · 2026 SS"
                 />
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 6,
-                    marginTop: 6,
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--foreground-muted)',
-                      marginRight: 2,
-                    }}
-                  >
-                    빠른 채움
-                  </span>
+                <div className="flex gap-1.5 mt-1.5 flex-wrap items-center">
+                  <span className="text-xs text-muted-foreground mr-0.5">빠른 채움</span>
                   {QUARTER_LABELS.map((q) => {
                     const { year } = getCurrentQuarter();
                     const composed = composeEyebrow(q, year);
@@ -758,16 +589,11 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                         type="button"
                         onClick={() => updateSignature({ eyebrow: composed })}
                         aria-pressed={sel}
+                        className="px-[9px] py-[3px] text-xs font-medium tracking-[0.04em] rounded-full cursor-pointer"
                         style={{
-                          padding: '3px 9px',
-                          fontSize: 11,
-                          fontWeight: 500,
-                          letterSpacing: '0.04em',
-                          borderRadius: 999,
                           background: sel ? 'var(--primary)' : 'var(--surface)',
                           color: sel ? '#fff' : 'var(--foreground-muted)',
                           border: '1px solid ' + (sel ? 'var(--primary)' : 'var(--border)'),
-                          cursor: 'pointer',
                           fontFamily: 'inherit',
                         }}
                       >
@@ -786,18 +612,8 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 <select
                   value={settings.signature.product_slug}
                   onChange={(e) => updateSignature({ product_slug: e.target.value })}
-                  style={{
-                    width: '100%',
-                    height: 34,
-                    padding: '0 10px',
-                    border: '1px solid var(--input)',
-                    borderRadius: 6,
-                    fontSize: 13,
-                    fontFamily: 'inherit',
-                    color: 'var(--foreground)',
-                    outline: 'none',
-                    background: 'var(--surface)',
-                  }}
+                  className="w-full h-[34px] px-2.5 border border-[var(--input)] rounded-[6px] text-sm text-[var(--foreground)] outline-none bg-[var(--surface)]"
+                  style={{ fontFamily: 'inherit' }}
                 >
                   <option value="">— 선택 —</option>
                   {coffeeBeans.map((p) => (
@@ -825,20 +641,8 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   value={settings.signature.subtitle}
                   onChange={(e) => updateSignature({ subtitle: e.target.value })}
                   maxLength={160}
-                  style={{
-                    width: '100%',
-                    minHeight: 64,
-                    resize: 'vertical',
-                    padding: '10px 12px',
-                    border: '1px solid var(--input)',
-                    borderRadius: 6,
-                    fontSize: 13,
-                    lineHeight: 1.6,
-                    fontFamily: 'inherit',
-                    color: 'var(--foreground)',
-                    outline: 'none',
-                    background: 'var(--surface)',
-                  }}
+                  className="w-full min-h-16 resize-y px-3 py-2.5 border border-[var(--input)] rounded-[6px] text-sm leading-[1.6] text-[var(--foreground)] outline-none bg-[var(--surface)]"
+                  style={{ fontFamily: 'inherit' }}
                 />
               </FormField>
 
@@ -846,33 +650,17 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 label="플레이버 chip"
                 hint="최대 4개 · 권장 3개 · Tasting Notes 자동 가져오기 사용 권장"
               >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex gap-1.5 flex-wrap">
                     {settings.signature.flavor_chips.length === 0 ? (
-                      <span
-                        style={{
-                          fontSize: 12,
-                          color: 'var(--foreground-muted)',
-                          fontStyle: 'italic',
-                        }}
-                      >
+                      <span className="text-xs text-muted-foreground italic">
                         (chip 없음 — 자동 가져오기 또는 수동 추가)
                       </span>
                     ) : (
                       settings.signature.flavor_chips.map((chip, i) => (
                         <span
                           key={`${chip}-${i}`}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            padding: '3px 4px 3px 10px',
-                            fontSize: 12,
-                            background: 'var(--surface-muted)',
-                            border: '1px solid var(--border)',
-                            borderRadius: 999,
-                            color: 'var(--foreground)',
-                          }}
+                          className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-[3px] text-xs bg-[var(--surface-muted)] border border-border rounded-full text-[var(--foreground)]"
                         >
                           {chip}
                           <button
@@ -885,21 +673,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                               })
                             }
                             aria-label={`${chip} 삭제`}
-                            style={{
-                              width: 18,
-                              height: 18,
-                              borderRadius: 999,
-                              border: 'none',
-                              background: 'transparent',
-                              color: 'var(--foreground-muted)',
-                              cursor: 'pointer',
-                              fontSize: 14,
-                              padding: 0,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              lineHeight: 1,
-                            }}
+                            className="size-[18px] rounded-full border-0 bg-transparent text-muted-foreground cursor-pointer text-sm p-0 inline-flex items-center justify-center leading-none"
                           >
                             ×
                           </button>
@@ -907,7 +681,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                       ))
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
+                  <div className="flex gap-1.5">
                     <FormInput
                       placeholder="예: 복숭아 · 살구 · 시럽"
                       maxLength={20}
@@ -943,7 +717,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                       Tasting Notes 가져오기
                     </Button>
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--foreground-muted)' }}>
+                  <div className="text-xs text-muted-foreground">
                     Enter 로 추가 · 현재 {settings.signature.flavor_chips.length}/4
                   </div>
                 </div>
@@ -958,73 +732,30 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               >
                 {settings.signature.image_path ? (
                   <div
-                    style={{
-                      borderRadius: 6,
-                      overflow: 'hidden',
-                      border: '1px solid var(--border)',
-                      aspectRatio: '5/4',
-                      backgroundImage: `url("${settings.signature.image_path}")`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      position: 'relative',
-                    }}
+                    className="rounded-[6px] overflow-hidden border border-border aspect-[5/4] bg-cover bg-center relative"
+                    style={{ backgroundImage: `url("${settings.signature.image_path}")` }}
                   >
                     {/* 안전 영역 가이드 (advisory §3.3) — 좌우 18%, 상하 12% */}
                     <div
                       aria-hidden
-                      style={{
-                        position: 'absolute',
-                        inset: '12% 18%',
-                        border: '1px dashed rgba(28, 27, 25, 0.6)',
-                        background: 'rgba(28, 27, 25, 0.04)',
-                        pointerEvents: 'none',
-                      }}
+                      className="absolute border border-dashed border-[rgba(28,27,25,0.6)] bg-[rgba(28,27,25,0.04)] pointer-events-none"
+                      style={{ inset: '12% 18%' }}
                     />
-                    <span
-                      style={{
-                        position: 'absolute',
-                        bottom: 6,
-                        left: 6,
-                        fontFamily: 'monospace',
-                        fontSize: 10,
-                        padding: '3px 7px',
-                        borderRadius: 4,
-                        background: 'rgba(255,255,255,0.9)',
-                        color: 'var(--foreground-muted)',
-                        maxWidth: 'calc(100% - 12px)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                    <span className="absolute bottom-1.5 left-1.5 font-mono text-[10px] px-[7px] py-[3px] rounded-[4px] bg-white/90 text-muted-foreground max-w-[calc(100%-12px)] overflow-hidden text-ellipsis whitespace-nowrap">
                       {summarizeImagePath(settings.signature.image_path)}
                     </span>
                   </div>
                 ) : (
                   <div
+                    className="rounded-[6px] overflow-hidden border border-border aspect-[5/4] flex items-center justify-center text-muted-foreground text-xs relative"
                     style={{
-                      borderRadius: 6,
-                      overflow: 'hidden',
-                      border: '1px solid var(--border)',
-                      aspectRatio: '5/4',
-                      background:
-                        'repeating-linear-gradient(135deg, #EEEDEB 0 6px, #F5F4F2 6px 12px)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--foreground-muted)',
-                      fontSize: 11,
-                      position: 'relative',
+                      background: 'repeating-linear-gradient(135deg, #EEEDEB 0 6px, #F5F4F2 6px 12px)',
                     }}
                   >
                     <div
                       aria-hidden
-                      style={{
-                        position: 'absolute',
-                        inset: '12% 18%',
-                        border: '1px dashed rgba(28, 27, 25, 0.4)',
-                        pointerEvents: 'none',
-                      }}
+                      className="absolute border border-dashed border-[rgba(28,27,25,0.4)] pointer-events-none"
+                      style={{ inset: '12% 18%' }}
                     />
                     이미지 없음
                   </div>
@@ -1042,7 +773,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 type="file"
                 accept="image/webp,image/avif,image/jpeg,image/png"
                 onChange={handleSigFileChange}
-                style={{ display: 'none' }}
+                className="hidden"
               />
               <Button
                 type="button"
@@ -1056,27 +787,12 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               </Button>
 
               {sigUploadState.status === 'uploading' && (
-                <div style={{ marginTop: 8 }}>
-                  <div
-                    style={{
-                      height: 4,
-                      borderRadius: 2,
-                      background: 'var(--surface-muted)',
-                      overflow: 'hidden',
-                      position: 'relative',
-                    }}
-                  >
+                <div className="mt-2">
+                  <div className="h-1 rounded-sm bg-[var(--surface-muted)] overflow-hidden relative">
                     <div className="gtr-admin-progress-indet" />
                   </div>
                   <div
-                    style={{
-                      marginTop: 6,
-                      fontSize: 11,
-                      color: 'var(--foreground-muted)',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
+                    className="mt-1.5 text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
                     title={sigUploadState.fileName}
                   >
                     {sigUploadState.fileName}
@@ -1085,17 +801,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               )}
 
               {sigUploadState.status === 'error' && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    padding: '8px 10px',
-                    borderRadius: 6,
-                    background: 'var(--danger-soft)',
-                    color: 'var(--danger)',
-                    border: '1px solid var(--danger)',
-                    fontSize: 11.5,
-                  }}
-                >
+                <div className="mt-2 px-2.5 py-2 rounded-[6px] bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
                   {sigUploadState.message}
                 </div>
               )}
@@ -1104,39 +810,17 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
         </SettingsCard>
 
         {/* Preview — advisory §6.1 D-1 4 brk 발행 전 미리보기 */}
-        <div
-          style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius)',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              padding: '16px 22px',
-              borderBottom: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              flexWrap: 'wrap',
-            }}
-          >
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 500 }}>
+        <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
+          <div className="px-[22px] py-4 border-b border-border flex items-center gap-3 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <h3 className="m-0 text-[15px] font-medium">
                 메인 페이지 미리보기
               </h3>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: 'var(--foreground-muted)',
-                  marginTop: 2,
-                }}
-              >
+              <div className="text-xs text-muted-foreground mt-0.5">
                 시그니처 chapter 발행 전 4 brk 검증 · 저장된 설정 기준
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 4 }}>
+            <div className="flex gap-1">
               {PREVIEW_BRK_OPTIONS.map((opt) => {
                 const sel = previewBrk === opt.key;
                 return (
@@ -1145,29 +829,16 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                     type="button"
                     onClick={() => setPreviewBrk(opt.key)}
                     aria-pressed={sel}
+                    className="px-2.5 py-1 text-xs font-medium rounded-[6px] cursor-pointer tracking-[-0.005em] whitespace-nowrap"
                     style={{
-                      padding: '4px 10px',
-                      fontSize: 11.5,
-                      fontWeight: 500,
-                      borderRadius: 6,
                       background: sel ? 'var(--primary)' : 'var(--surface)',
                       color: sel ? '#fff' : 'var(--foreground-muted)',
                       border: '1px solid ' + (sel ? 'var(--primary)' : 'var(--border)'),
-                      cursor: 'pointer',
                       fontFamily: 'inherit',
-                      letterSpacing: '-0.005em',
-                      whiteSpace: 'nowrap',
                     }}
                   >
                     {opt.label}{' '}
-                    <span
-                      style={{
-                        opacity: 0.7,
-                        marginLeft: 4,
-                        fontFamily: 'monospace',
-                        fontSize: 10,
-                      }}
-                    >
+                    <span className="opacity-70 ml-1 font-mono text-[10px]">
                       {opt.width}
                     </span>
                   </button>
@@ -1177,29 +848,12 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
           </div>
 
           {isDirty && (
-            <div
-              style={{
-                padding: '8px 22px',
-                background: 'var(--warning-soft)',
-                color: 'var(--warning)',
-                fontSize: 12,
-                borderBottom: '1px solid var(--border)',
-              }}
-            >
+            <div className="px-[22px] py-2 bg-[var(--warning-soft)] text-[var(--warning)] text-xs border-b border-border">
               저장되지 않은 변경 {dirtyCount}개 — 미리보기는 즉시 반영 · 저장 시 라이브 사이트 반영
             </div>
           )}
 
-          <div
-            style={{
-              padding: 16,
-              background: 'var(--surface-muted)',
-              overflowX: 'auto',
-              overflowY: 'hidden',
-              display: 'flex',
-              justifyContent: 'flex-start',
-            }}
-          >
+          <div className="p-4 bg-[var(--surface-muted)] overflow-x-auto overflow-y-hidden flex justify-start">
             <iframe
               src={previewSrc}
               title={`시그니처 섹션 미리보기 — ${previewBrk}`}
@@ -1390,47 +1044,23 @@ function SettingsCard({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          padding: '16px 22px',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          background: 'var(--surface)',
-        }}
-      >
-        <div style={{ flex: 1 }}>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 500 }}>{title}</h3>
-          <div style={{ fontSize: 12, color: 'var(--foreground-muted)', marginTop: 2 }}>
-            {subtitle}
-          </div>
+    <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
+      <div className="px-[22px] py-4 border-b border-border flex items-center gap-3 bg-[var(--surface)]">
+        <div className="flex-1">
+          <h3 className="m-0 text-[15px] font-medium">{title}</h3>
+          <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div>
         </div>
         <span
-          style={{
-            fontSize: 11.5,
-            fontWeight: 500,
-            color: on ? 'var(--success)' : 'var(--foreground-muted)',
-          }}
+          className="text-xs font-medium"
+          style={{ color: on ? 'var(--success)' : 'var(--foreground-muted)' }}
         >
           {on ? '활성' : '비활성'}
         </span>
         <Toggle on={on} onClick={onToggle} />
       </div>
       <div
-        style={{
-          padding: 22,
-          opacity: on ? 1 : 0.5,
-          transition: 'opacity 0.15s',
-        }}
+        className="p-[22px] transition-opacity duration-[150ms]"
+        style={{ opacity: on ? 1 : 0.5 }}
       >
         {children}
       </div>
@@ -1445,31 +1075,13 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
       role="switch"
       aria-checked={on}
       onClick={onClick}
-      style={{
-        width: 36,
-        height: 20,
-        borderRadius: 999,
-        background: on ? 'var(--primary)' : 'var(--switch-off-bg)',
-        border: 'none',
-        position: 'relative',
-        cursor: 'pointer',
-        transition: 'background 0.15s',
-        padding: 0,
-      }}
+      className="w-9 h-5 rounded-full border-0 relative cursor-pointer p-0 transition-[background] duration-[150ms]"
+      style={{ background: on ? 'var(--primary)' : 'var(--switch-off-bg)' }}
     >
       <span
         aria-hidden
-        style={{
-          position: 'absolute',
-          top: 2,
-          left: on ? 18 : 2,
-          width: 16,
-          height: 16,
-          borderRadius: 999,
-          background: '#fff',
-          transition: 'left 0.15s',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
-        }}
+        className="absolute top-0.5 size-4 rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.15)] transition-[left] duration-[150ms]"
+        style={{ left: on ? 18 : 2 }}
       />
     </button>
   );
@@ -1485,29 +1097,16 @@ function Badge({
   const isWarn = tone === 'warning';
   return (
     <span
+      className="inline-flex items-center gap-[5px] px-2 py-0.5 rounded-full text-xs font-medium tracking-[-0.005em] leading-[1.5] whitespace-nowrap"
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '2px 8px',
-        borderRadius: 999,
         background: isWarn ? 'var(--warning-soft)' : 'var(--success-soft)',
         color: isWarn ? 'var(--warning)' : 'var(--success)',
-        fontSize: 11.5,
-        fontWeight: 500,
-        letterSpacing: '-0.005em',
-        lineHeight: 1.5,
-        whiteSpace: 'nowrap',
       }}
     >
       <span
         aria-hidden
-        style={{
-          width: 5,
-          height: 5,
-          borderRadius: 999,
-          background: isWarn ? 'var(--warning)' : 'var(--success)',
-        }}
+        className="size-[5px] rounded-full"
+        style={{ background: isWarn ? 'var(--warning)' : 'var(--success)' }}
       />
       {children}
     </span>
@@ -1526,24 +1125,14 @@ function FormField({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label
-        style={{
-          fontSize: 12.5,
-          fontWeight: 500,
-          color: 'var(--foreground)',
-          letterSpacing: '-0.005em',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-        }}
-      >
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-medium text-[var(--foreground)] tracking-[-0.005em] flex items-center gap-1">
         {label}
-        {required && <span style={{ color: 'var(--primary)' }}>*</span>}
+        {required && <span className="text-[var(--primary)]">*</span>}
       </label>
       {children}
       {hint && (
-        <div style={{ fontSize: 11.5, color: 'var(--foreground-muted)' }}>{hint}</div>
+        <div className="text-xs text-muted-foreground">{hint}</div>
       )}
     </div>
   );
@@ -1560,43 +1149,22 @@ function FormInput({
   const disabled = rest.disabled === true;
   return (
     <div
+      className="flex items-center gap-2 px-2.5 h-[34px] border border-[var(--input)] rounded-[6px]"
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '0 10px',
-        height: 34,
         background: disabled ? 'var(--surface-muted)' : 'var(--surface)',
-        border: '1px solid var(--input)',
-        borderRadius: 6,
         opacity: disabled ? 0.7 : 1,
       }}
     >
       {prefix && (
-        <span style={{ color: 'var(--foreground-muted)', fontSize: 13 }}>{prefix}</span>
+        <span className="text-muted-foreground text-sm">{prefix}</span>
       )}
       <input
         {...rest}
-        style={{
-          flex: 1,
-          minWidth: 0,
-          border: 'none',
-          outline: 'none',
-          background: 'transparent',
-          fontSize: 13,
-          color: 'var(--foreground)',
-          padding: 0,
-          height: '100%',
-        }}
+        className="flex-1 min-w-0 border-0 outline-none bg-transparent text-sm text-[var(--foreground)] p-0 h-full"
       />
       {suffix && (
-        <span style={{ color: 'var(--foreground-muted)', fontSize: 12 }}>{suffix}</span>
+        <span className="text-muted-foreground text-xs">{suffix}</span>
       )}
     </div>
   );
 }
-
-/* ── 시안 Button(size=sm) inline style ─────────────────────────────────── */
-
-/* S222 PR-5c: SM_BASE/SECONDARY/GHOST/PRIMARY 상수 폐기 (shadcn Button 으로 대체).
-   debounce + iframe postMessage 비-UI 로직은 유지 (debounceUpdate / signature preview). */
