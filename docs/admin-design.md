@@ -892,6 +892,63 @@ import { Trash2 } from 'lucide-react';
 </div>
 ```
 
+### 5-23. 칩 (선택 가능 라디오 · S228)
+
+`/admin/analytics` period switcher 스타일을 admin 칩 표준으로 박음. URL state (Link) / local state (button) 양 모드.
+
+**기준:**
+- `px-3 py-1.5` (12×6) · `rounded-md` · `text-xs` (12px) · `font-medium` (base)
+- 활성: `bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]`
+- 비활성: `bg-[var(--surface)] text-foreground border-border`
+- font-weight = 양쪽 medium (좌우 간격 변동 회피 · AdminTabsNav 답습)
+
+**URL state — analytics period (답습 source):**
+
+```tsx
+<Link
+  href={`/admin/analytics?period=${opt.id}`}
+  className={cn(
+    'px-3 py-1.5 rounded-md text-xs border font-medium no-underline',
+    active
+      ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
+      : 'bg-[var(--surface)] text-foreground border-border',
+  )}
+>
+  {opt.label}
+</Link>
+```
+
+**local state — Subscriptions 다이얼로그 배송주기 / 상태 라디오:**
+
+```tsx
+<button
+  type="button"
+  data-slot="chip-radio"
+  onClick={() => setSelected(opt.id)}
+  className={cn(
+    'px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer',
+    selected === opt.id
+      ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
+      : 'bg-[var(--surface)] text-foreground border-border',
+  )}
+>
+  {opt.label}
+</button>
+```
+
+⚠️ button mode 필수 = `data-slot="chip-radio"` (admin-theme.css `:not([data-slot])` color reset 회피 · S228 회귀 사례).
+
+**적용 대상 (S229 PR-C 합류):**
+- `/admin/analytics` period switcher (URL state · 답습 source)
+- Subscriptions 다이얼로그 배송주기 (local state · S228 임시 Button → 칩 표준 변경)
+- Subscriptions 다이얼로그 상태 라디오 (local state · 동일)
+- CafeEvents 이벤트 타입 (S229 H-8 carry-over)
+- Settings 빠른 채움 (S229 H-8 carry-over)
+
+**폐기 대상:**
+- shadcn `<Button variant="default" size="sm">` 칩 답습 (Subscriptions S228 임시)
+- inline 색 매트릭스 답습 (analytics 자체는 표준이지만 동일 패턴 박혀야 다른 페이지 적용 가능)
+
 ---
 
 ## 6. 상태 라벨 한국어 사전
@@ -1254,6 +1311,7 @@ import { listProductsAdmin } from '@/lib/admin/productsServer';
 | **DEC-15** | `lib/admin/errors.ts` 단일 SoT (3 곳 `summarizePgError` 답습 폐기) | ✅ S227 |
 | **DEC-16** | `lib/admin/productsServer.ts` 분리 (B2C `lib/productsServer.ts` 와 admin variant 분리) | ✅ S227 |
 | **DEC-17** | `createAdminFetcher` factory = S228 별 PR carry-over | 📋 S228 |
+| **DEC-18** | 칩 표준 (§5-23) = analytics period switcher 스타일 답습. Subscriptions 다이얼로그 칩 (Button variant 답습 S228 임시) 폐기 → 칩 표준으로 변경 (S229 PR-C) | 📋 S229 PR-C |
 
 기존 잠금 유지: ADR-008 (inline raw 금지) / DEC-1 (S125 폐기) / DEC-2 (shadcn override 4) / DEC-3 (마이그 순서) / DEC-4 (RHF carry) / DEC-5 (native select) / DEC-6 (작게 round)
 
@@ -1266,3 +1324,4 @@ import { listProductsAdmin } from '@/lib/admin/productsServer';
 - **2026-05-14**: 최초 작성 — S223~S225 sweep 결과를 박아 넣음. 이후 모든 어드민 작업은 이 문서를 reference로.
 - **2026-05-14 (S226)**: §0-B 페이지별 UI 요소 매트릭스 신규 + §7-3 잔존 위반 3 Type 분류 + §11 신규 컴포넌트 8종 예정 표기 + §12 Sprint 카탈로그 (S227~S231) 박음. DEC-8~14 잠금 미리 등록. 4 페이지 토큰화 sweep (analytics / UserDetailClient / ProductEditForm / ProductsTableClient / ProductImageReorderClient) + products/new mock 폐기 → AdminPlaceholder + dashboard mock task 제거 + ProductEditForm `옵션 / 재고` → `용량 / 옵션` 정정. 미커밋 carry-over: §7-3 Type 1/2 정정 (Sprint 3).
 - **2026-05-14 (S227)**: mattpocock `diagnose` / `improve-codebase-architecture` / `zoom-out` skill 본격 적용. **8 컴포넌트 → 6 추출** (LANGUAGE.md Two-adapters principle). AdminPageHeader / Pagination / TabsNav / DataTable / EmptyState / BackLink 신규 (§11 ✅). AdminDropdownFilter + AdminListMeta 보류 (hypothetical seam · 1 caller). lib/admin/errors.ts (DEC-15) + lib/admin/productsServer.ts (DEC-16) 분리. createAdminFetcher factory = S228 carry-over (DEC-17). §12 공통 컴포넌트 사용법 본격 작성. ADR-009 등록.
+- **2026-05-14 (S228 PR-A)**: 테이블 4 페이지 마이그 (Orders/Users/Subscriptions/Products) — 6 공통 컴포넌트 합성. 4 페이지 LOC 2372 → 2104 (-268). AdminDataTable `footer` prop 추가 (DEC-9 정합). AdminTabsNav active count badge primary bg + !text-white (S225 잠금). admin/ui/input + outline button 배경 white 통일 (H-4/H-5). admin/ui/switch height 분수 round fix. shadcn Table border 색 누락 (Tailwind v4 currentColor) fix. mode='state' 탭 button color reset 회귀 fix (data-slot 추가). 칩 울렁거림 fix (border + shadow-xs). EditSubscriptionDialog UX polish 13건 (미리보기 박스 / 칩 라디오 / 라벨 위치 통일 / CTA 하단 고정 + min-w / 콘텐츠 min-h / HistorySection 박스 분리). **§5-23 칩 표준 신규 등록** (analytics period switcher 스타일 답습 · DEC-18). 신규 carry-over 메모리 2건 (`project_admin_users_filter_extension` · `project_admin_export_feature`).
