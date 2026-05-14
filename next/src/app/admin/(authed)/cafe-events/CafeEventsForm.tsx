@@ -404,9 +404,9 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                             onClick={() => handleTypeChange(t)}
                             aria-pressed={sel}
                             className={cn(
-                              'px-3 py-1.5 text-xs rounded-md border cursor-pointer font-[inherit]',
+                              'px-3 py-1.5 !text-xs rounded-md border cursor-pointer',
                               sel
-                                ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)] font-medium'
+                                ? 'bg-[var(--primary-soft)] !text-[var(--primary)] border-[var(--primary)] font-medium'
                                 : 'bg-[var(--surface)] text-foreground border-border font-normal',
                             )}
                           >
@@ -825,9 +825,9 @@ function PreviewPane({
                 onClick={() => onSelectBrk(opt.key)}
                 aria-pressed={sel}
                 className={cn(
-                  'px-3 py-1.5 text-xs rounded-md border cursor-pointer font-[inherit] whitespace-nowrap',
+                  'px-3 py-1.5 !text-xs rounded-md border cursor-pointer whitespace-nowrap',
                   sel
-                    ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)] font-medium'
+                    ? 'bg-[var(--primary-soft)] !text-[var(--primary)] border-[var(--primary)] font-medium'
                     : 'bg-[var(--surface)] text-foreground border-border font-normal',
                 )}
               >
