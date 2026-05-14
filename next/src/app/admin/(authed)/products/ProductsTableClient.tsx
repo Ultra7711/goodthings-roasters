@@ -3,23 +3,37 @@
 /* ══════════════════════════════════════════════════════════════════════════
    ProductsTableClient — /admin/products 인터랙티브 본체 (S218 Phase 1)
 
-   책임:
-   - 카테고리 탭 (전체 / Coffee Bean / Drip Bag) — useState 필터
-   - 검색 (slug · name) — useState 필터
-   - 테이블 행: thumb / slug+name / category / status / 가격 /
-                is_active 토글 / sort_order / updated_at
-   - is_active 인라인 토글 → toggleProductActiveAction + sonner toast
-   - 행 클릭 → /admin/products/[id]/edit (Step 5 에서 페이지 생성)
+   S228 PR-A — Orders/Users/Subscriptions 답습 패턴 적용 (4 inline 답습 폐기):
+   - 페이지 헤더    → AdminPageHeader
+   - CATEGORY_TABS  → AdminTabsNav (mode='state' · local state 탭)
+   - TH/TD inline   → AdminDataTable (Column<AdminProductListItem>)
+   - colSpan 빈     → AdminEmptyState (variant='table-row')
 
-   패턴: app/admin/(authed)/orders/OrdersTableClient.tsx 답습 (inline style).
+   페이지네이션 ❌ — DEC (전체 표시 · 카탈로그 작음).
+   행 클릭 = router.push(/admin/products/[slug]/edit) 추가 (S228 결정).
+   chevron 컬럼 폐기 — 4 페이지 정합 (cursor-pointer + hover 가 시각 cue).
+   Switch / 상품명 Link 셀 = stopPropagation 으로 행 클릭과 분리.
+   활성 토글 셀 = ProductActiveSwitch 별 컴포넌트 (optimistic state hook).
+
+   "총 N건" footer 라벨 — 페이지네이션 없으므로 단순 텍스트 (테이블 외부).
+
+   자동 답습 (primitive 효과):
+   - admin/ui/input + outline button 배경 white
+   - AdminTabsNav active count badge = primary bg + !text-white
+   - TableRow border-color = var(--border)
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminTabsNav } from '@/components/admin/AdminTabsNav';
+import { AdminDataTable, type Column } from '@/components/admin/AdminDataTable';
+import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
 import { Button } from '@/components/admin/ui/button';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import { Switch } from '@/components/admin/ui/switch';
@@ -64,24 +78,6 @@ const TONES: Record<StatusTone, { bg: string; fg: string }> = {
   primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)' },
 };
 
-/* S223 토큰 정합 — Orders 패턴 답습 (TH 12 / TD className hierarchy). */
-const TH_STYLE: React.CSSProperties = {
-  textAlign: 'left',
-  padding: '12px 16px',
-  fontSize: 12,
-  fontWeight: 500,
-  letterSpacing: '0.04em',
-  textTransform: 'uppercase',
-  color: 'var(--foreground-muted)',
-};
-
-const TD_STYLE: React.CSSProperties = {
-  padding: '12px 16px',
-  verticalAlign: 'middle',
-};
-
-/* S222 PR-4: SM_PRIMARY 폐기 (shadcn Button asChild + Link). */
-
 const KST_DATE = new Intl.DateTimeFormat('ko-KR', {
   year: '2-digit',
   month: '2-digit',
@@ -100,6 +96,7 @@ function formatKstShort(iso: string): string {
 }
 
 export default function ProductsTableClient({ rows }: Props) {
+  const router = useRouter();
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [searchValue, setSearchValue] = useState('');
 
@@ -125,6 +122,117 @@ export default function ProductsTableClient({ rows }: Props) {
     return { all: rows.length, coffee_bean: cb, drip_bag: db };
   }, [rows]);
 
+  const columns: readonly Column<AdminProductListItem>[] = useMemo(() => [
+    {
+      key: 'thumb',
+      header: '이미지',
+      width: 'w-14',
+      render: (row) => {
+        const editHref = `/admin/products/${row.slug}/edit`;
+        return (
+          <Link
+            href={editHref}
+            onClick={(e) => e.stopPropagation()}
+            className="block w-10 h-10 rounded-md border border-border overflow-hidden relative"
+            style={{
+              background:
+                'repeating-linear-gradient(135deg, #EEEDEB 0 5px, #F5F4F2 5px 10px)',
+            }}
+          >
+            {row.thumbSrc && (
+              <Image
+                src={row.thumbSrc}
+                alt=""
+                fill
+                sizes="40px"
+                style={{ objectFit: 'cover' }}
+                placeholder={row.thumbBlurDataUrl ? 'blur' : 'empty'}
+                blurDataURL={row.thumbBlurDataUrl ?? undefined}
+              />
+            )}
+          </Link>
+        );
+      },
+    },
+    {
+      key: 'name',
+      header: '상품',
+      cellClassName: 'text-sm',
+      render: (row) => (
+        <Link
+          href={`/admin/products/${row.slug}/edit`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-foreground no-underline"
+        >
+          <div className="font-medium">{row.name}</div>
+          <div className="gtr-mono text-xs text-[var(--foreground-subtle)] mt-0.5">
+            {row.slug}
+          </div>
+        </Link>
+      ),
+    },
+    {
+      key: 'category',
+      header: '카테고리',
+      width: 'w-[110px]',
+      render: (row) => (
+        <span className="text-xs text-muted-foreground px-2 py-0.5 rounded-full border border-border whitespace-nowrap">
+          {CATEGORY_LABEL[row.category]}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: '상태',
+      width: 'w-24',
+      render: (row) => {
+        const tone = row.status ? STATUS_TONE[row.status] : null;
+        if (!tone || !row.status) {
+          return <span className="text-xs text-[var(--foreground-subtle)]">—</span>;
+        }
+        return (
+          <ShadcnBadge
+            variant="outline"
+            className="border-transparent"
+            style={{ background: TONES[tone].bg, color: TONES[tone].fg }}
+          >
+            {row.status}
+          </ShadcnBadge>
+        );
+      },
+    },
+    {
+      key: 'price',
+      header: '가격',
+      width: 'w-[110px]',
+      align: 'right',
+      cellClassName: 'text-sm tabular-nums font-medium',
+      render: (row) => row.displayPrice,
+    },
+    {
+      key: 'active',
+      header: '활성',
+      width: 'w-24',
+      align: 'center',
+      render: (row) => <ProductActiveSwitch row={row} />,
+    },
+    {
+      key: 'sortOrder',
+      header: '정렬',
+      width: 'w-[72px]',
+      align: 'right',
+      cellClassName: 'text-sm tabular-nums text-muted-foreground',
+      render: (row) => row.sortOrder,
+    },
+    {
+      key: 'updatedAt',
+      header: '최근 수정',
+      width: 'w-[132px]',
+      cellClassName: 'text-xs text-muted-foreground tabular-nums',
+      render: (row) => formatKstShort(row.updatedAt),
+    },
+  ], []);
+
   return (
     <>
       <AdminTopbarActions>
@@ -136,52 +244,31 @@ export default function ProductsTableClient({ rows }: Props) {
         </Button>
       </AdminTopbarActions>
 
-      {/* 헤더 — Orders 패턴 답습 */}
-      <div className="mb-5">
-        <h2 className="m-0 text-2xl font-medium tracking-tight">상품 관리</h2>
-        <div className="mt-1 text-sm text-muted-foreground">
-          원두·드립백 상품 목록 · 활성/비활성 토글 + 편집 진입
-        </div>
-      </div>
+      <AdminPageHeader
+        title="상품 관리"
+        subtitle="원두·드립백 상품 목록 · 활성/비활성 토글 + 편집 진입"
+      />
 
-      {/* 카테고리 탭 + 검색 */}
+      {/* 카테고리 탭 + 검색 (같은 행에 배치) */}
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <div className="flex gap-1 border-b border-border flex-1 min-w-0">
-          {CATEGORY_TABS.map((t) => {
-            const active = t.id === category;
-            const n =
-              t.id === 'all'
-                ? counts.all
-                : t.id === 'coffee_bean'
-                  ? counts.coffee_bean
-                  : counts.drip_bag;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setCategory(t.id)}
-                className={`px-3 py-2 border-none bg-transparent cursor-pointer text-sm relative inline-flex items-center gap-1.5 ${
-                  active
-                    ? 'font-medium text-foreground'
-                    : 'font-normal text-muted-foreground'
-                }`}
-              >
-                {t.label}
-                <span className="text-xs text-[var(--foreground-subtle)] tabular-nums">
-                  {n}
-                </span>
-                {active && (
-                  <span
-                    aria-hidden
-                    className="absolute left-0 right-0 h-0.5 bg-[var(--primary)]"
-                    style={{ bottom: -1 }}
-                  />
-                )}
-              </button>
-            );
-          })}
+        <div className="flex-1 min-w-0">
+          <AdminTabsNav
+            mode="state"
+            tabs={CATEGORY_TABS.map((t) => ({
+              id: t.id,
+              label: t.label,
+              count:
+                t.id === 'all'
+                  ? counts.all
+                  : t.id === 'coffee_bean'
+                    ? counts.coffee_bean
+                    : counts.drip_bag,
+            }))}
+            active={category}
+            onChange={(id) => setCategory(id as CategoryFilter)}
+            className="mb-0"
+          />
         </div>
-
         <AdminSearchInput
           value={searchValue}
           onChange={setSearchValue}
@@ -189,50 +276,25 @@ export default function ProductsTableClient({ rows }: Props) {
         />
       </div>
 
-      {/* 테이블 */}
-      <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
-        <table className="w-full border-collapse">
-          <thead style={{ background: 'var(--surface-muted)' }}>
-            <tr>
-              <th style={{ ...TH_STYLE, width: 56 }}>이미지</th>
-              <th style={TH_STYLE}>상품</th>
-              <th style={{ ...TH_STYLE, width: 110 }}>카테고리</th>
-              <th style={{ ...TH_STYLE, width: 96 }}>상태</th>
-              <th style={{ ...TH_STYLE, width: 110, textAlign: 'right' }}>
-                가격
-              </th>
-              <th style={{ ...TH_STYLE, width: 92, textAlign: 'center' }}>
-                활성
-              </th>
-              <th style={{ ...TH_STYLE, width: 72, textAlign: 'right' }}>
-                정렬
-              </th>
-              <th style={{ ...TH_STYLE, width: 132 }}>최근 수정</th>
-              <th style={{ ...TH_STYLE, width: 32 }} aria-hidden />
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={9} className="px-4 py-12 text-center text-sm text-muted-foreground">
-                  {rows.length === 0
-                    ? '등록된 상품이 없습니다.'
-                    : '필터 조건에 해당하는 상품이 없습니다.'}
-                </td>
-              </tr>
-            ) : (
-              filtered.map((row, i) => (
-                <ProductRow
-                  key={row.id}
-                  row={row}
-                  isFirst={i === 0}
-                />
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <AdminDataTable
+        columns={columns}
+        data={filtered}
+        rowKey={(row) => row.id}
+        onRowClick={(row) => router.push(`/admin/products/${row.slug}/edit`)}
+        empty={
+          <AdminEmptyState
+            variant="table-row"
+            colSpan={columns.length}
+            message={
+              rows.length === 0
+                ? '등록된 상품이 없습니다.'
+                : '필터 조건에 해당하는 상품이 없습니다.'
+            }
+          />
+        }
+      />
 
+      {/* 페이지네이션 없음 (DEC · 전체 표시) — 카운트만 단순 표시 */}
       <div className="mt-2.5 text-xs text-[var(--foreground-subtle)] tabular-nums">
         총 {filtered.length}건
         {filtered.length !== rows.length && ` (전체 ${rows.length}건)`}
@@ -241,15 +303,9 @@ export default function ProductsTableClient({ rows }: Props) {
   );
 }
 
-/* ── 행 컴포넌트 ─────────────────────────────────────────────────────── */
+/* ── 활성 토글 셀 — optimistic state hook 보유 별 컴포넌트 ─────────── */
 
-function ProductRow({
-  row,
-  isFirst,
-}: {
-  row: AdminProductListItem;
-  isFirst: boolean;
-}) {
+function ProductActiveSwitch({ row }: { row: AdminProductListItem }) {
   const [pending, startTransition] = useTransition();
   /* optimistic — 토글 직후 즉시 반영, 실패 시 rollback */
   const [optimisticActive, setOptimisticActive] = useState(row.isActive);
@@ -259,9 +315,6 @@ function ProductRow({
   useEffect(() => {
     if (!pending) setOptimisticActive(row.isActive);
   }, [row.isActive, pending]);
-
-  const tone = row.status ? STATUS_TONE[row.status] : null;
-  const editHref = `/admin/products/${row.slug}/edit`;
 
   function handleToggle() {
     const next = !optimisticActive;
@@ -289,92 +342,15 @@ function ProductRow({
   }
 
   return (
-    <tr className={isFirst ? undefined : 'border-t border-border'}>
-      <td style={TD_STYLE}>
-        <Link
-          href={editHref}
-          className="block w-10 h-10 rounded-md border border-border overflow-hidden relative"
-          style={{
-            background:
-              'repeating-linear-gradient(135deg, #EEEDEB 0 5px, #F5F4F2 5px 10px)',
-          }}
-        >
-          {row.thumbSrc && (
-            <Image
-              src={row.thumbSrc}
-              alt=""
-              fill
-              sizes="40px"
-              style={{ objectFit: 'cover' }}
-              placeholder={row.thumbBlurDataUrl ? 'blur' : 'empty'}
-              blurDataURL={row.thumbBlurDataUrl ?? undefined}
-            />
-          )}
-        </Link>
-      </td>
-      <td style={TD_STYLE} className="text-sm">
-        <Link href={editHref} className="text-foreground no-underline">
-          <div className="font-medium">{row.name}</div>
-          <div className="gtr-mono text-xs text-[var(--foreground-subtle)] mt-0.5">
-            {row.slug}
-          </div>
-        </Link>
-      </td>
-      <td style={TD_STYLE}>
-        <span className="text-xs text-muted-foreground px-2 py-0.5 rounded-full border border-border whitespace-nowrap">
-          {CATEGORY_LABEL[row.category]}
-        </span>
-      </td>
-      <td style={TD_STYLE}>
-        {tone && row.status ? (
-          <ShadcnBadge
-            variant="outline"
-            className="border-transparent"
-            style={{ background: TONES[tone].bg, color: TONES[tone].fg }}
-          >
-            {row.status}
-          </ShadcnBadge>
-        ) : (
-          <span className="text-xs text-[var(--foreground-subtle)]">—</span>
-        )}
-      </td>
-      <td
-        style={{ ...TD_STYLE, textAlign: 'right' }}
-        className="text-sm tabular-nums font-medium"
-      >
-        {row.displayPrice}
-      </td>
-      <td style={{ ...TD_STYLE, textAlign: 'center' }}>
-        <Switch
-          checked={optimisticActive}
-          onCheckedChange={handleToggle}
-          disabled={pending}
-          aria-label={optimisticActive ? '판매중 — 클릭하면 비공개' : '비공개 — 클릭하면 판매중'}
-          className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
-        />
-      </td>
-      <td
-        style={{ ...TD_STYLE, textAlign: 'right' }}
-        className="text-sm tabular-nums text-muted-foreground"
-      >
-        {row.sortOrder}
-      </td>
-      <td
-        style={TD_STYLE}
-        className="text-xs text-muted-foreground tabular-nums"
-      >
-        {formatKstShort(row.updatedAt)}
-      </td>
-      <td style={{ ...TD_STYLE, textAlign: 'right' }}>
-        <Link
-          href={editHref}
-          aria-label="편집"
-          className="text-muted-foreground inline-flex p-1"
-        >
-          <ChevronRightIcon />
-        </Link>
-      </td>
-    </tr>
+    <span onClick={(e) => e.stopPropagation()}>
+      <Switch
+        checked={optimisticActive}
+        onCheckedChange={handleToggle}
+        disabled={pending}
+        aria-label={optimisticActive ? '판매중 — 클릭하면 비공개' : '비공개 — 클릭하면 판매중'}
+        className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
+      />
+    </span>
   );
 }
 
@@ -394,23 +370,6 @@ function PlusIcon() {
     >
       <path d="M12 5v14" />
       <path d="M5 12h14" />
-    </svg>
-  );
-}
-
-function ChevronRightIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m9 18 6-6-6-6" />
     </svg>
   );
 }
