@@ -1045,6 +1045,46 @@ const [open, setOpen] = useState(false);
 - `CafeEventsForm` dirty 가드 + 이벤트 삭제 마이그
 - 어드민 전체 helper 텍스트 자연어화 + 들여쓰기 전수 검사 (memory: `project_admin_helper_text_naturalize`)
 
+### 5-25. 동적 행 grid (volumes / recipes · S231-5)
+
+useFieldArray 의 동적 행 카드 (옵션 / 레시피 등) 의 간격 토큰화. 매직 값 직접 입력 금지 — 본 상수 답습.
+
+**상수 (`ProductEditForm.tsx` 상단)**:
+
+```ts
+const DYNAMIC_ROW_LIST_GAP = 'gap-3'; // 행 사이 (카드 안 row ↔ row)
+const DYNAMIC_ROW_CELL_GAP = 'gap-2'; // 행 안 셀 ↔ 셀
+const DYNAMIC_ROW_UNIT_GAP = 'gap-1'; // 인풋 + 부속 (예: 화살표) 한 몸
+const DYNAMIC_ROW_SECTION_BREAK = 'ml-3'; // 그룹 사이 추가 spacing (예: 화살표 → 토글)
+```
+
+**사용 패턴**:
+
+```tsx
+// 카드 안 행 wrapper
+<div className={cn('flex flex-col', DYNAMIC_ROW_LIST_GAP)}>
+  {fields.map(...row...)}
+</div>
+
+// 한 행 (grid)
+<div className={cn('grid grid-cols-[1fr_auto_auto_auto] items-center', DYNAMIC_ROW_CELL_GAP)}>
+  <Input />            {/* 라벨 */}
+  <div className={cn('flex items-center', DYNAMIC_ROW_UNIT_GAP)}>
+    <Input />          {/* 마지막 input */}
+    <ReorderButtons /> {/* ↑↓ — 인풋과 한 몸 */}
+  </div>
+  <label className={cn('inline-flex items-center', DYNAMIC_ROW_SECTION_BREAK)}>
+    <Switch />          {/* 다음 그룹 — 시각 분리 */}
+  </label>
+  <DeleteButton />
+</div>
+```
+
+**Why**:
+- 매직 값 (gap-1/2/3 · ml-3) 이 컴포넌트 곳곳에 박혀 운영자/개발자 헤맴 차단
+- 행간/셀간/유닛/섹션 4 토큰만 답습 — 의도 명확
+- 다른 admin 동적 행 (subscription editor 등) 작성 시 본 토큰 답습
+
 ---
 
 ## 6. 상태 라벨 한국어 사전

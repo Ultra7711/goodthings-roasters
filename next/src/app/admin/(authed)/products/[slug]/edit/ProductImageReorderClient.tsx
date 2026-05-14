@@ -228,7 +228,7 @@ export default function ProductImageReorderClient({
 
       {images.length === 0 ? (
         <div className="px-4 py-12 text-center text-sm text-muted-foreground bg-muted rounded-md border border-dashed border-border">
-          등록된 이미지가 없습니다. 위의 "이미지 추가" 버튼으로 업로드해주세요.
+          아직 등록된 이미지가 없습니다. 위 버튼으로 업로드해주세요.
         </div>
       ) : (
         <div
