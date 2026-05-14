@@ -38,7 +38,7 @@ const TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> = {
   primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)', dot: 'var(--primary)' },
 };
 
-/* Toss 결제 내역 콘솔 (운영자 로그인 필요) — 결제 ID 검색 */
+/* TODO: URL 확인 필요 — Toss 콘솔 결제 내역 경로 미검증 */
 const TOSS_CONSOLE_URL = 'https://my.tosspayments.com/sales-history';
 /* TODO: URL 확인 필요 — docs.tosspayments.com 경로 변경됨 */
 const TOSS_REFUND_GUIDE_URL =
