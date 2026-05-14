@@ -16,9 +16,9 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
+import { Checkbox } from '@/components/admin/ui/checkbox';
 import {
   composeNoticeText,
-  countDirtyAreas,
   NOTICE_COLOR_THEMES,
   type NoticeSettings,
   type SeasonSettings,
@@ -107,10 +107,14 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
     setSavedSettings(initialSettings);
   }, [initialSettings]);
 
-  const dirtyCount = useMemo(
-    () => countDirtyAreas(savedSettings, settings),
-    [savedSettings, settings],
-  );
+  const dirtyCount = useMemo(() => {
+    let n = 0;
+    if (!shallowEqualNotice(savedSettings.notice, settings.notice)) n += 1;
+    if (!shallowEqualSeason(savedSettings.season, settings.season)) n += 1;
+    if (!shallowEqualShipping(savedSettings.shipping, settings.shipping)) n += 1;
+    if (!shallowEqualSignature(savedSettings.signature, settings.signature)) n += 1;
+    return n;
+  }, [savedSettings, settings]);
   const isDirty = dirtyCount > 0;
 
   function updateNotice(patch: Partial<NoticeSettings>) {
@@ -257,7 +261,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   }
                 />
               </FormField>
-              <FormField label="기본 배송비">
+              <FormField label="기본 배송비" hint="장바구니 · 상품 상세 · 법적 고지(배송/반품 정책)에 자동 반영">
                 <FormInput
                   suffix="원"
                   inputMode="numeric"
@@ -288,7 +292,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               <div>
                 <div className="font-medium text-[#1F4F8B]">참고</div>
                 <div className="mt-0.5 text-[var(--info)]">
-                  변경 시 메인 사이트 카트·체크아웃·마이페이지 모두 즉시 반영됩니다 (페이지 새로고침 후).
+                  변경 시 메인 사이트 장바구니·결제하기·마이페이지 모두 즉시 반영됩니다. (페이지 새로고침 후)
                 </div>
               </div>
             </div>
@@ -343,24 +347,15 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               </div>
             </div>
 
-            {/* 자동 동기화 토글 */}
-            <label className="flex gap-3 items-start p-3 rounded-[6px] bg-[var(--surface-muted)] border border-border cursor-pointer">
-              <input
-                type="checkbox"
+            <label className="flex gap-2 items-center cursor-pointer">
+              <Checkbox
                 checked={settings.notice.auto_text}
-                onChange={(e) => updateNotice({ auto_text: e.target.checked })}
-                className="mt-0.5 accent-[var(--primary)]"
+                onCheckedChange={(v) => updateNotice({ auto_text: v === true })}
               />
-              <div className="flex-1">
-                <div className="text-xs font-medium">
-                  무료배송 임계값 자동 표시{' '}
-                  <span className="text-muted-foreground font-normal">(권장)</span>
-                </div>
-                <div className="text-xs text-muted-foreground mt-0.5">
-                  체크 시 아래 "무료 배송 정책" 의 기준 금액이 자동으로 반영돼요.
-                  마케팅 카피로 직접 작성하려면 체크를 해제하세요.
-                </div>
-              </div>
+              <span className="text-xs font-medium">
+                무료배송 임계값 자동 표시{' '}
+                <span className="text-muted-foreground font-normal">(권장)</span>
+              </span>
             </label>
 
             <div className="grid grid-cols-[1fr_200px] gap-3">
@@ -684,7 +679,8 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                       ))
                     )}
                   </div>
-                  <div className="flex gap-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex-1 min-w-0">
                     <FormInput
                       placeholder="예: 복숭아 Peach  (영문 생략 가능)"
                       maxLength={50}
@@ -702,6 +698,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                         target.value = '';
                       }}
                     />
+                    </div>
                     <Button
                       type="button"
                       variant="outline"
@@ -932,7 +929,8 @@ function shallowEqualShipping(a: ShippingSettings, b: ShippingSettings): boolean
 function shallowEqualSignature(a: SignatureSettings, b: SignatureSettings): boolean {
   if (a.flavor_chips.length !== b.flavor_chips.length) return false;
   for (let i = 0; i < a.flavor_chips.length; i += 1) {
-    if (a.flavor_chips[i] !== b.flavor_chips[i]) return false;
+    if (a.flavor_chips[i].ko !== b.flavor_chips[i].ko) return false;
+    if (a.flavor_chips[i].en !== b.flavor_chips[i].en) return false;
   }
   return (
     a.enabled === b.enabled &&
@@ -1069,7 +1067,7 @@ function SettingsCard({
         </div>
         <span
           className="text-xs font-medium"
-          style={{ color: on ? 'var(--success)' : 'var(--foreground-muted)' }}
+          style={{ color: on ? 'var(--primary)' : 'var(--foreground-muted)' }}
         >
           {on ? '활성' : '비활성'}
         </span>
@@ -1149,7 +1147,7 @@ function FormField({
       </label>
       {children}
       {hint && (
-        <div className="text-xs text-muted-foreground">{hint}</div>
+        <div className="text-xs text-muted-foreground pl-2.5">{hint}</div>
       )}
     </div>
   );
@@ -1166,7 +1164,7 @@ function FormInput({
   const disabled = rest.disabled === true;
   return (
     <div
-      className="flex items-center gap-2 px-2.5 h-[34px] border border-[var(--input)] rounded-[6px] shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50"
+      className="flex items-center gap-2 px-2.5 h-[34px] border border-[var(--input)] rounded-[6px] shadow-xs transition-[color,box-shadow] has-[:focus-visible]:border-ring has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50"
       style={{
         background: disabled ? 'var(--surface-muted)' : 'var(--surface)',
         opacity: disabled ? 0.7 : 1,
@@ -1177,7 +1175,7 @@ function FormInput({
       )}
       <input
         {...rest}
-        className="flex-1 min-w-0 border-0 outline-none bg-transparent text-sm text-[var(--foreground)] p-0 h-full"
+        className="flex-1 min-w-0 border-0 outline-none shadow-none ring-0 bg-transparent text-sm text-[var(--foreground)] p-0 h-full"
       />
       {suffix && (
         <span className="text-muted-foreground text-xs">{suffix}</span>

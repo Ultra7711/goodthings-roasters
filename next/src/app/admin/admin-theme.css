@@ -246,7 +246,7 @@
   font-feature-settings: 'tnum' on;
 }
 
-.gtr-admin *:focus-visible {
+.gtr-admin *:not(input):not(select):not(textarea):focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
