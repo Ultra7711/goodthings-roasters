@@ -1,13 +1,15 @@
 import 'server-only';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   lib/productsServer.ts — products 도메인 서버 fetch (S211 Group E Phase 1)
+   lib/productsServer.ts — products 도메인 B2C 서버 fetch (S211 Group E Phase 1)
 
-   역할:
+   역할 (B2C only — S227 DEC-16 분리):
    - fetchProducts() — 메인 사이트 SSR fetch (is_active=true, sort_order asc)
    - fetchProductBySlug(slug) — PDP / 결제 / 카트 메타 조회
    - searchProducts(q) — 검색 결과 (S215 searchServer 통합 시 이관)
-   - listProductsAdmin() — 어드민 전체 (is_active 무관)
+
+   admin variant (listProductsAdmin / listAdminProductsLite /
+   fetchAdminProductRawBySlug) 는 lib/admin/productsServer.ts 분리 (ADR-009).
 
    설계:
    - server-only 격리.
@@ -19,6 +21,7 @@ import 'server-only';
 
    참조:
    - lib/cafeEventsServer.ts / lib/gooddaysServer.ts (동일 패턴)
+   - lib/admin/productsServer.ts (admin variant)
    - 046_products_schema.sql
    - types/product.ts (mapProductRow)
    ══════════════════════════════════════════════════════════════════════════ */
@@ -26,9 +29,7 @@ import 'server-only';
 import { cacheTag } from 'next/cache';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import {
-  mapAdminProductListItem,
   mapProductRow,
-  type AdminProductListItem,
   type ProductWithRelationsRow,
 } from '@/types/product';
 import type { Product } from './products';
@@ -148,92 +149,4 @@ export async function searchProducts(query: string): Promise<Product[]> {
   if (!data) return [];
 
   return (data as ProductWithRelationsRow[]).map(mapProductRow);
-}
-
-/**
- * 어드민 전체 목록 (is_active 무관) — UI Product 매핑.
- * cache 미사용 (어드민 항상 최신). 정렬: sort_order asc → updated_at desc.
- *
- * settings 페이지 등 기존 Product[] 형태가 필요한 곳에서 사용.
- * /admin/products 목록 페이지는 listAdminProductsLite() 사용.
- */
-export async function listProductsAdmin(): Promise<Product[]> {
-  const client = getAnonClient();
-  const { data, error } = await client
-    .from('products')
-    .select(PRODUCT_SELECT)
-    .order('sort_order', { ascending: true })
-    .order('updated_at', { ascending: false });
-
-  if (error) {
-    console.error('[listProductsAdmin] query failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
-    return [];
-  }
-  if (!data) return [];
-
-  return (data as ProductWithRelationsRow[]).map(mapProductRow);
-}
-
-/**
- * /admin/products 목록 페이지 전용 (S218).
- * AdminProductListItem 반환 — id / is_active / sort_order / updated_at +
- * 썸네일 (product_images sort_order 가장 낮은 1건).
- *
- * products RLS (046) = `is_active=true OR is_admin(auth.uid())` 이므로
- * is_active=false 행을 보려면 admin 세션 쿠키 필요 → createRouteHandlerClient
- * 사용. ordersServer.fetchAdminOrders 동일 패턴.
- */
-export async function listAdminProductsLite(): Promise<AdminProductListItem[]> {
-  const { createRouteHandlerClient } = await import('@/lib/supabaseServer');
-  const client = await createRouteHandlerClient();
-  const { data, error } = await client
-    .from('products')
-    .select(PRODUCT_SELECT)
-    .order('sort_order', { ascending: true })
-    .order('updated_at', { ascending: false });
-
-  if (error) {
-    console.error('[listAdminProductsLite] query failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
-    return [];
-  }
-  if (!data) return [];
-
-  return (data as ProductWithRelationsRow[]).map(mapAdminProductListItem);
-}
-
-/**
- * /admin/products/[slug]/edit 상세 편집 페이지 전용 (S218).
- * raw row (with relations) 반환 — id / is_active / sort_order / product_images.id
- * 등 admin 편집에 필요한 메타 + 이미지 reorder UI 에서 image.id 사용.
- *
- * admin RLS 통과 → is_active=false 도 fetch. cache 미사용.
- */
-export async function fetchAdminProductRawBySlug(
-  slug: string,
-): Promise<ProductWithRelationsRow | null> {
-  const { createRouteHandlerClient } = await import('@/lib/supabaseServer');
-  const client = await createRouteHandlerClient();
-  const { data, error } = await client
-    .from('products')
-    .select(PRODUCT_SELECT)
-    .eq('slug', slug)
-    .maybeSingle();
-
-  if (error) {
-    console.error('[fetchAdminProductRawBySlug] query failed', {
-      slug,
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
-    return null;
-  }
-  if (!data) return null;
-
-  return data as ProductWithRelationsRow;
 }

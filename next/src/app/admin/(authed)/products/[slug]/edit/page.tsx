@@ -15,7 +15,7 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { fetchAdminProductRawBySlug } from '@/lib/productsServer';
+import { fetchAdminProductRawBySlug } from '@/lib/admin/productsServer';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import ProductEditForm from './ProductEditForm';
 import ProductImageReorderClient from './ProductImageReorderClient';

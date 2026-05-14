@@ -4,7 +4,7 @@
    ══════════════════════════════════════════ */
 
 import { fetchSiteSettings } from '@/lib/siteSettingsServer';
-import { listProductsAdmin } from '@/lib/productsServer';
+import { listProductsAdmin } from '@/lib/admin/productsServer';
 import SettingsForm from './SettingsForm';
 
 export default async function AdminSettingsPage() {

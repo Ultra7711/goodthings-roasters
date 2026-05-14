@@ -5,7 +5,7 @@
    - 인터랙티브 영역은 ProductsTableClient 위임
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { listAdminProductsLite } from '@/lib/productsServer';
+import { listAdminProductsLite } from '@/lib/admin/productsServer';
 import ProductsTableClient from './ProductsTableClient';
 
 export default async function AdminProductsPage() {
