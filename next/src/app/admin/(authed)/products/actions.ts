@@ -97,15 +97,21 @@ export async function toggleProductActiveAction(input: {
    3) UPDATE products SET ... WHERE id
    4) revalidateTag('products') + revalidatePath (admin + 메인 사이트)
 
-   범위 (basic + detail 탭): name / category / status / displayPrice / sortOrder /
+   범위 (basic + detail + option 탭): name / category / status / displayPrice / sortOrder /
                     color / subscription / popup / description /
                     flavorDesc / roastStage / noteChips / noteColor /
-                    noteSweet / noteBody / noteAftertaste / noteAroma / noteAcidity
+                    noteSweet / noteBody / noteAftertaste / noteAroma / noteAcidity /
+                    volumes / recipes (sync — UPSERT + DELETE missing)
 
    noteChips ({ko, en}[]) 는 시그니처 chip UI 와 동일 형식 — action 안에서
    note_tags / note_tags_en 두 컬럼 ' | ' join 으로 저장.
 
-   carry-over (option/recipe 탭): specs / product_volumes / product_recipes
+   volumes / recipes sync 전략 (S231-7 사용자 결정 = B):
+   - 서버 기존 ID 집합 조회 → 클라이언트에 빠진 ID 는 DELETE
+   - 클라이언트 row 는 UPSERT (id 있으면 UPDATE · 없으면 INSERT · sort_order = idx)
+   - drip_bag 의 경우 recipes 는 항상 빈 배열로 강제 (DRIP_BAG_RECIPE 전역 상수 사용)
+
+   carry-over (별 sprint): specs UI 편집 / drip_bag_recipe site_settings 통합
    ══════════════════════════════════════════════════════════════════════════ */
 
 const ProductStatusEnum = z
@@ -132,6 +138,22 @@ const FlavorChipSchema = z.object({
   en: z.string(),
 });
 
+const VolumeInputSchema = z.object({
+  id: z.string().uuid().optional(),
+  label: z.string().min(1).max(50),
+  price: z.number().int().min(0).max(99_999_999),
+  soldOut: z.boolean(),
+});
+
+const RecipeInputSchema = z.object({
+  id: z.string().uuid().optional(),
+  method: z.string().min(1).max(50),
+  dose: z.string().min(1).max(50),
+  temp: z.string().min(1).max(50),
+  time: z.string().min(1).max(50),
+  water: z.string().min(1).max(50),
+});
+
 const UpdateProductMetaSchema = z.object({
   id: z.string().uuid(),
   slug: z.string().min(1).max(80),
@@ -153,6 +175,8 @@ const UpdateProductMetaSchema = z.object({
   noteAftertaste: FlavorAxisSchema,
   noteAroma: FlavorAxisSchema,
   noteAcidity: FlavorAxisSchema,
+  volumes: z.array(VolumeInputSchema).min(1),
+  recipes: z.array(RecipeInputSchema),
 });
 
 export type UpdateProductMetaInput = z.infer<typeof UpdateProductMetaSchema>;
@@ -223,6 +247,45 @@ export async function updateProductMetaAction(
   }
   if (!data) return { ok: false, error: 'not_found' };
 
+  /* volumes / recipes sync — S231-7 (UPSERT + DELETE missing) */
+  const volSyncErr = await syncProductChildren(admin, {
+    table: 'product_volumes',
+    productId: v.id,
+    rows: v.volumes.map((row, idx) => ({
+      ...(row.id ? { id: row.id } : {}),
+      product_id: v.id,
+      label: row.label,
+      price: row.price,
+      sold_out: row.soldOut,
+      sort_order: idx,
+    })),
+  });
+  if (volSyncErr) {
+    console.error('[updateProductMetaAction] volumes sync failed', volSyncErr);
+    return { ok: false, error: 'server_error', detail: 'volumes sync 실패' };
+  }
+
+  /* drip_bag 의 recipes 는 빈 배열로 강제 (DRIP_BAG_RECIPE 전역 상수 사용) */
+  const recipesToSync = v.category === 'coffee_bean' ? v.recipes : [];
+  const recipeSyncErr = await syncProductChildren(admin, {
+    table: 'product_recipes',
+    productId: v.id,
+    rows: recipesToSync.map((row, idx) => ({
+      ...(row.id ? { id: row.id } : {}),
+      product_id: v.id,
+      method: row.method,
+      dose: row.dose,
+      temp: row.temp,
+      time: row.time,
+      water: row.water,
+      sort_order: idx,
+    })),
+  });
+  if (recipeSyncErr) {
+    console.error('[updateProductMetaAction] recipes sync failed', recipeSyncErr);
+    return { ok: false, error: 'server_error', detail: 'recipes sync 실패' };
+  }
+
   revalidateTag(PRODUCTS_CACHE_TAG, 'max');
   revalidatePath('/admin/products');
   revalidatePath(`/admin/products/${v.slug}/edit`);
@@ -230,6 +293,51 @@ export async function updateProductMetaAction(
   revalidatePath(`/shop/${v.slug}`);
 
   return { ok: true, id: v.id };
+}
+
+/* ── product_volumes / product_recipes 자식 sync 헬퍼 ─────────────────────
+   전략: 서버 현재 ID 집합 조회 → 클라이언트에 없는 ID 는 DELETE,
+         클라이언트 row 는 UPSERT (id 없으면 INSERT, 있으면 UPDATE).
+         실패 시 부분 stale 가능하지만 데이터 손실은 0 (재시도 가능). */
+async function syncProductChildren(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  args: {
+    table: 'product_volumes' | 'product_recipes';
+    productId: string;
+    rows: Array<Record<string, unknown>>;
+  },
+): Promise<string | null> {
+  const { table, productId, rows } = args;
+
+  const { data: existing, error: selErr } = await admin
+    .from(table)
+    .select('id')
+    .eq('product_id', productId);
+  if (selErr) return `select ${table} 실패: ${selErr.message}`;
+
+  const clientIds = new Set(
+    rows.map((r) => r.id).filter((id): id is string => typeof id === 'string'),
+  );
+  const idsToDelete = (existing ?? [])
+    .map((r) => r.id as string)
+    .filter((id) => !clientIds.has(id));
+
+  if (idsToDelete.length > 0) {
+    const { error: delErr } = await admin
+      .from(table)
+      .delete()
+      .in('id', idsToDelete);
+    if (delErr) return `delete ${table} 실패: ${delErr.message}`;
+  }
+
+  if (rows.length > 0) {
+    const { error: upErr } = await admin
+      .from(table)
+      .upsert(rows, { onConflict: 'id' });
+    if (upErr) return `upsert ${table} 실패: ${upErr.message}`;
+  }
+
+  return null;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════

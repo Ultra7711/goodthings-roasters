@@ -15,7 +15,13 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { useState, useTransition } from 'react';
-import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
+import {
+  Controller,
+  useFieldArray,
+  useForm,
+  useWatch,
+  type SubmitHandler,
+} from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
@@ -104,6 +110,22 @@ const RoastStageEnum = z.enum([
 
 const FlavorAxis = z.number().min(0).max(5);
 
+const VolumeSchema = z.object({
+  id: z.string().uuid().optional(),
+  label: z.string().min(1, '라벨 필요').max(50),
+  price: z.number().int().min(0).max(99_999_999),
+  soldOut: z.boolean(),
+});
+
+const RecipeSchema = z.object({
+  id: z.string().uuid().optional(),
+  method: z.string().min(1, '방식 필요').max(50),
+  dose: z.string().min(1, '분량 필요').max(50),
+  temp: z.string().min(1, '온도 필요').max(50),
+  time: z.string().min(1, '시간 필요').max(50),
+  water: z.string().min(1, '물 필요').max(50),
+});
+
 const FormSchema = z.object({
   id: z.string().uuid(),
   slug: z.string().min(1),
@@ -127,6 +149,8 @@ const FormSchema = z.object({
   noteAftertaste: FlavorAxis,
   noteAroma: FlavorAxis,
   noteAcidity: FlavorAxis,
+  volumes: z.array(VolumeSchema).min(1, '최소 1개 옵션이 필요합니다'),
+  recipes: z.array(RecipeSchema),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -171,6 +195,24 @@ export default function ProductEditForm({ product }: Props) {
       noteAftertaste: Number(product.note_aftertaste) || 0,
       noteAroma: Number(product.note_aroma) || 0,
       noteAcidity: Number(product.note_acidity) || 0,
+      volumes: [...product.product_volumes]
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((v) => ({
+          id: v.id,
+          label: v.label,
+          price: v.price,
+          soldOut: v.sold_out,
+        })),
+      recipes: [...product.product_recipes]
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((r) => ({
+          id: r.id,
+          method: r.method,
+          dose: r.dose,
+          temp: r.temp,
+          time: r.time,
+          water: r.water,
+        })),
     },
   });
 
@@ -263,7 +305,7 @@ export default function ProductEditForm({ product }: Props) {
         <DetailTab register={register} control={control} errors={errors} />
       )}
       {tab === 'option' && (
-        <ComingSoonPanel label={TABS.find((t) => t.id === tab)?.label ?? ''} />
+        <OptionTab register={register} control={control} errors={errors} />
       )}
 
       {/* dirty 안내 (액션 버튼은 상단으로 portal) */}
@@ -571,6 +613,193 @@ function DetailTab({
           />
         </Field>
       </Card>
+    </div>
+  );
+}
+
+/* ── option 탭 ───────────────────────────────────────────────────────── */
+
+function OptionTab({
+  register,
+  control,
+  errors,
+}: {
+  register: ReturnType<typeof useForm<FormValues>>['register'];
+  control: ReturnType<typeof useForm<FormValues>>['control'];
+  errors: ReturnType<typeof useForm<FormValues>>['formState']['errors'];
+}) {
+  const category = useWatch({ control, name: 'category' });
+  const volumes = useFieldArray({ control, name: 'volumes' });
+  const recipes = useFieldArray({ control, name: 'recipes' });
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* 용량 / 옵션 카드 */}
+      <Card title="용량 / 옵션">
+        <div className="flex flex-col gap-2">
+          {volumes.fields.length === 0 && (
+            <div className="text-xs text-muted-foreground italic">
+              옵션이 없습니다. 아래 버튼으로 추가하세요.
+            </div>
+          )}
+          {volumes.fields.map((field, idx) => (
+            <div
+              key={field.id}
+              className="grid grid-cols-[1fr_140px_auto_auto] gap-2 items-center"
+            >
+              <Input
+                type="text"
+                placeholder="예: 200g · 500g · 1개"
+                maxLength={50}
+                aria-label={`옵션 ${idx + 1} 라벨`}
+                {...register(`volumes.${idx}.label` as const)}
+              />
+              <Input
+                type="number"
+                min={0}
+                placeholder="가격(KRW)"
+                aria-label={`옵션 ${idx + 1} 가격`}
+                {...register(`volumes.${idx}.price` as const, { valueAsNumber: true })}
+              />
+              <Controller
+                control={control}
+                name={`volumes.${idx}.soldOut` as const}
+                render={({ field: soField }) => (
+                  <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
+                    <Switch
+                      size="sm"
+                      checked={!!soField.value}
+                      onCheckedChange={soField.onChange}
+                      aria-label="품절 토글"
+                    />
+                    품절
+                  </label>
+                )}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="!h-7"
+                onClick={() => volumes.remove(idx)}
+                aria-label={`옵션 ${idx + 1} 삭제`}
+              >
+                삭제
+              </Button>
+            </div>
+          ))}
+          {errors.volumes?.message && (
+            <div className="text-xs text-[var(--danger)]">{errors.volumes.message}</div>
+          )}
+          <div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="!h-7"
+              onClick={() =>
+                volumes.append({ label: '', price: 0, soldOut: false })
+              }
+            >
+              + 옵션 추가
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* 추출 레시피 카드 (category 분기) */}
+      {category === 'coffee_bean' ? (
+        <Card title="추출 레시피">
+          <div className="flex flex-col gap-2">
+            {recipes.fields.length === 0 && (
+              <div className="text-xs text-muted-foreground italic">
+                레시피가 없습니다. 추출 방식별로 추가하세요.
+              </div>
+            )}
+            {recipes.fields.map((field, idx) => (
+              <div
+                key={field.id}
+                className="grid grid-cols-[1.2fr_1fr_1fr_1fr_1fr_auto] gap-2 items-center"
+              >
+                <Input
+                  type="text"
+                  placeholder="에어로프레스"
+                  aria-label={`레시피 ${idx + 1} 방식`}
+                  {...register(`recipes.${idx}.method` as const)}
+                />
+                <Input
+                  type="text"
+                  placeholder="15g"
+                  aria-label={`레시피 ${idx + 1} 분량`}
+                  {...register(`recipes.${idx}.dose` as const)}
+                />
+                <Input
+                  type="text"
+                  placeholder="85~90°C"
+                  aria-label={`레시피 ${idx + 1} 온도`}
+                  {...register(`recipes.${idx}.temp` as const)}
+                />
+                <Input
+                  type="text"
+                  placeholder="1분 30초"
+                  aria-label={`레시피 ${idx + 1} 시간`}
+                  {...register(`recipes.${idx}.time` as const)}
+                />
+                <Input
+                  type="text"
+                  placeholder="120g"
+                  aria-label={`레시피 ${idx + 1} 물`}
+                  {...register(`recipes.${idx}.water` as const)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="!h-7"
+                  onClick={() => recipes.remove(idx)}
+                  aria-label={`레시피 ${idx + 1} 삭제`}
+                >
+                  삭제
+                </Button>
+              </div>
+            ))}
+            <div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="!h-7"
+                onClick={() =>
+                  recipes.append({
+                    method: '',
+                    dose: '',
+                    temp: '',
+                    time: '',
+                    water: '',
+                  })
+                }
+              >
+                + 레시피 추가
+              </Button>
+            </div>
+            <div className="text-xs text-muted-foreground pt-1">
+              컬럼 순서: 추출 방식 / 분량 / 온도 / 시간 / 물 — 모두 텍스트 (단위 포함 자유 입력)
+            </div>
+          </div>
+        </Card>
+      ) : (
+        <Card title="드립백 추출 가이드">
+          <div className="px-3 py-2 bg-[var(--surface-muted)] rounded-[var(--radius-sm)] text-xs text-muted-foreground leading-[1.6]">
+            드립백 상품은 <strong className="text-foreground">DRIP_BAG_RECIPE 전역 상수</strong>
+            (모든 drip_bag 공통 3단계 + 팁) 가 적용됩니다. 본 옵션 탭에서는 편집하지 않습니다.
+            <br />
+            <span className="block mt-1">
+              상품별 / 어드민 편집 흐름은 후속 sprint (Phase 3-D · site_settings 통합) 에서
+              제공 예정입니다. carry-over: <code>memory/project_drip_bag_recipe_admin.md</code>
+            </span>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
