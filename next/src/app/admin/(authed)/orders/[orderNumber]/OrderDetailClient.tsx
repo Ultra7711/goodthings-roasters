@@ -40,6 +40,7 @@ const TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> = {
 
 /* Toss 결제 내역 콘솔 (운영자 로그인 필요) — 결제 ID 검색 */
 const TOSS_CONSOLE_URL = 'https://my.tosspayments.com/sales-history';
+/* TODO: URL 확인 필요 — docs.tosspayments.com 경로 변경됨 */
 const TOSS_REFUND_GUIDE_URL =
   'https://docs.tosspayments.com/guides/v2/payment-widget/refund';
 
@@ -63,15 +64,6 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
   return (
     <>
       <AdminTopbarActions>
-        <Button asChild variant="outline" size="sm" className="!h-7">
-          <a
-            href={TOSS_REFUND_GUIDE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            환불 안내
-          </a>
-        </Button>
         <Button
           type="button"
           size="sm"
