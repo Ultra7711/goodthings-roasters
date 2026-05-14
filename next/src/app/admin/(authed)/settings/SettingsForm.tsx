@@ -451,7 +451,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 <textarea
                   value={settings.season.subtitle}
                   onChange={(e) => updateSeason({ subtitle: e.target.value })}
-                  className="w-full min-h-16 resize-y px-3 py-2.5 border border-[var(--input)] rounded-[6px] text-sm leading-[1.6] text-[var(--foreground)] outline-none bg-[var(--surface)]"
+                  className="w-full min-h-16 resize-y px-3 py-2.5 border border-[var(--input)] rounded-[6px] text-sm leading-[1.6] text-[var(--foreground)] outline-none bg-[var(--surface)] shadow-xs transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   style={{ fontFamily: 'inherit' }}
                 />
               </FormField>
@@ -612,7 +612,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 <select
                   value={settings.signature.product_slug}
                   onChange={(e) => updateSignature({ product_slug: e.target.value })}
-                  className="w-full h-[34px] px-2.5 border border-[var(--input)] rounded-[6px] text-sm text-[var(--foreground)] outline-none bg-[var(--surface)]"
+                  className="w-full h-[34px] px-2.5 border border-[var(--input)] rounded-[6px] text-sm text-[var(--foreground)] outline-none bg-[var(--surface)] shadow-xs transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   style={{ fontFamily: 'inherit' }}
                 >
                   <option value="">— 선택 —</option>
@@ -641,7 +641,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   value={settings.signature.subtitle}
                   onChange={(e) => updateSignature({ subtitle: e.target.value })}
                   maxLength={160}
-                  className="w-full min-h-16 resize-y px-3 py-2.5 border border-[var(--input)] rounded-[6px] text-sm leading-[1.6] text-[var(--foreground)] outline-none bg-[var(--surface)]"
+                  className="w-full min-h-16 resize-y px-3 py-2.5 border border-[var(--input)] rounded-[6px] text-sm leading-[1.6] text-[var(--foreground)] outline-none bg-[var(--surface)] shadow-xs transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   style={{ fontFamily: 'inherit' }}
                 />
               </FormField>
@@ -1166,7 +1166,7 @@ function FormInput({
   const disabled = rest.disabled === true;
   return (
     <div
-      className="flex items-center gap-2 px-2.5 h-[34px] border border-[var(--input)] rounded-[6px]"
+      className="flex items-center gap-2 px-2.5 h-[34px] border border-[var(--input)] rounded-[6px] shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50"
       style={{
         background: disabled ? 'var(--surface-muted)' : 'var(--surface)',
         opacity: disabled ? 0.7 : 1,
