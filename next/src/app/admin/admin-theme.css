@@ -272,10 +272,10 @@
   to { transform: rotate(360deg); }
 }
 
-/* admin 드롭다운 메뉴 표준 (S231-9 · DropdownFilter + NativeSelectWrap 공통 답습)
-   - 옵션 목록 컨테이너 + 옵션 행 stylesheet 단일 출처
-   - chevron 위치 표준 = Button 내부 svg:last-child 의 -mr-1 (살짝 바깥)
-     · OrdersTableClient DropdownFilter 답습 시 동일 적용 의무 */
+/* admin 드롭다운 메뉴 표준 (S231-9/11 · DropdownFilter 단독 사용 — 옵션 목록 패턴)
+   - 사용처: OrdersTableClient DropdownFilter (커스텀 Button + ul 패턴)
+   - admin form select 는 shadcn Radix Select 사용 (S231-11 · DEC-5 갱신)
+   - chevron 표준 = Button 내부 svg:last-child 의 -mr-1 (살짝 바깥) */
 .gtr-admin .admin-dropdown-menu {
   position: absolute;
   top: 100%;

@@ -32,9 +32,12 @@ import {
   type FlavorChip,
 } from '@/components/admin/FlavorChipInput';
 import {
-  ADMIN_SELECT_CLASS,
-  NativeSelectWrap,
-} from '@/components/admin/NativeSelectWrap';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/admin/ui/select';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 import { Slider } from '@/components/admin/ui/slider';
@@ -71,6 +74,9 @@ function buildPricePlaceholder(volumes: ProductWithRelationsRow['product_volumes
   const formatted = `${min.toLocaleString('ko-KR')}원`;
   return prices.length > 1 ? `${formatted}부터` : formatted;
 }
+
+/** Radix Select 는 SelectItem value="" 비허용 — null/empty 를 표현하는 sentinel. */
+const STATUS_NONE_VALUE = '__none__';
 
 const STATUS_OPTIONS = [
   { value: '', label: '없음' },
@@ -367,41 +373,50 @@ function BasicTab({
 
         <FieldGrid cols={3}>
           <Field label="카테고리" required error={errors.category?.message}>
-            <NativeSelectWrap>
-              <select
-                {...register('category')}
-                className={ADMIN_SELECT_CLASS}
-                style={{ fontFamily: 'inherit' }}
-              >
-                {CATEGORY_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </NativeSelectWrap>
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORY_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </Field>
           <Field label="상태 배지">
             <Controller
               name="status"
               control={control}
               render={({ field }) => (
-                <NativeSelectWrap>
-                  <select
-                    value={field.value ?? ''}
-                    onChange={(e) =>
-                      field.onChange(e.target.value === '' ? null : e.target.value)
-                    }
-                    className={ADMIN_SELECT_CLASS}
-                    style={{ fontFamily: 'inherit' }}
-                  >
+                <Select
+                  value={field.value ?? STATUS_NONE_VALUE}
+                  onValueChange={(v) =>
+                    field.onChange(v === STATUS_NONE_VALUE ? null : v)
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="없음" />
+                  </SelectTrigger>
+                  <SelectContent>
                     {STATUS_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
+                      <SelectItem
+                        key={o.value === '' ? STATUS_NONE_VALUE : o.value}
+                        value={o.value === '' ? STATUS_NONE_VALUE : o.value}
+                      >
                         {o.label}
-                      </option>
+                      </SelectItem>
                     ))}
-                  </select>
-                </NativeSelectWrap>
+                  </SelectContent>
+                </Select>
               )}
             />
           </Field>
@@ -983,5 +998,6 @@ function Field({
   );
 }
 
-/* DEC-5 (native select 유지) · chevron 표준 = NativeSelectWrap (S231-9).
+/* DEC-5 갱신 (S231-11): native select → shadcn Radix Select 전환.
+   DropdownFilter 와 동일 옵션 목록 스타일 단일화 · OS dropdown 의존 폐기.
    S222 PR-5c: SM_BASE/GHOST/PRIMARY 상수 폐기 — shadcn Button 으로 대체. */
