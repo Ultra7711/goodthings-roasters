@@ -8,6 +8,8 @@
 
 import { useState } from 'react';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import { Button } from '@/components/admin/ui/button';
+import { cn } from '@/lib/utils';
 
 type TabId = 'basic' | 'detail' | 'option' | 'shipping' | 'seo';
 type VisibilityId = 'draft' | 'active' | 'hidden';
@@ -28,17 +30,10 @@ const VISIBILITY: ReadonlyArray<{ id: VisibilityId; label: string; desc: string 
 
 const FLAVOR_TAGS = ['자스민', '베르가못', '복숭아', '깔끔한 산미'];
 
-const CARD_TITLE: React.CSSProperties = {
-  margin: '0 0 16px',
-  fontSize: 15,
-  fontWeight: 500,
-};
+const CARD_CLASS =
+  'bg-[var(--surface)] border border-border rounded-[var(--radius)]';
 
-const CARD_BASE: React.CSSProperties = {
-  background: 'var(--surface)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius)',
-};
+const CARD_TITLE_CLASS = 'm-0 mb-4 text-base font-medium';
 
 export default function AdminProductNewPage() {
   const [tab, setTab] = useState<TabId>('basic');
@@ -47,37 +42,28 @@ export default function AdminProductNewPage() {
   return (
     <>
       <AdminTopbarActions>
-        <button type="button" style={SM_SECONDARY}>미리보기</button>
-        <button type="button" style={SM_GHOST}>임시저장</button>
-        <button type="button" style={SM_PRIMARY}>등록하기</button>
+        <Button variant="outline" size="sm" className="!h-7">
+          미리보기
+        </Button>
+        <Button variant="ghost" size="sm" className="!h-7">
+          임시저장
+        </Button>
+        <Button size="sm" className="!h-7">
+          등록하기
+        </Button>
       </AdminTopbarActions>
 
       {/* 헤더 */}
-      <div style={{ marginBottom: 18 }}>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: 24,
-            fontWeight: 500,
-            letterSpacing: '-0.02em',
-          }}
-        >
-          신규 상품 등록
-        </h2>
-        <div style={{ marginTop: 4, fontSize: 13, color: 'var(--foreground-muted)' }}>
-          판매할 원두·가공품 정보를 입력해주세요. <span style={{ color: 'var(--primary)' }}>*</span> 표시는 필수 항목이에요.
+      <div className="mb-4">
+        <h2 className="m-0 text-2xl font-medium tracking-tight">신규 상품 등록</h2>
+        <div className="mt-1 text-sm text-muted-foreground">
+          판매할 원두·가공품 정보를 입력해주세요.{' '}
+          <span className="text-[var(--primary)]">*</span> 표시는 필수 항목이에요.
         </div>
       </div>
 
       {/* 탭 */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 4,
-          borderBottom: '1px solid var(--border)',
-          marginBottom: 22,
-        }}
-      >
+      <div className="flex gap-1 border-b border-border mb-5">
         {TABS.map(([id, label]) => {
           const active = tab === id;
           return (
@@ -85,28 +71,18 @@ export default function AdminProductNewPage() {
               key={id}
               type="button"
               onClick={() => setTab(id)}
-              style={{
-                padding: '8px 14px',
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                fontSize: 13,
-                fontWeight: active ? 500 : 400,
-                color: active ? 'var(--foreground)' : 'var(--foreground-muted)',
-                position: 'relative',
-              }}
+              className={cn(
+                'px-3 py-2 bg-transparent border-none cursor-pointer text-sm relative',
+                active
+                  ? 'font-medium text-foreground'
+                  : 'font-normal text-muted-foreground',
+              )}
             >
               {label}
               {active && (
                 <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: -1,
-                    height: 2,
-                    background: 'var(--primary)',
-                  }}
+                  className="absolute left-0 right-0 h-0.5 bg-[var(--primary)]"
+                  style={{ bottom: -1 }}
                 />
               )}
             </button>
@@ -116,24 +92,20 @@ export default function AdminProductNewPage() {
 
       {/* 본문 grid */}
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 360px',
-          gap: 20,
-          alignItems: 'start',
-        }}
+        className="grid items-start gap-5"
+        style={{ gridTemplateColumns: '1fr 360px' }}
       >
         {/* 좌측: 폼 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="flex flex-col gap-3">
           {/* 기본 정보 카드 */}
-          <div style={{ ...CARD_BASE, padding: 22 }}>
-            <h3 style={CARD_TITLE}>기본 정보</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className={cn(CARD_CLASS, 'p-5')}>
+            <h3 className={CARD_TITLE_CLASS}>기본 정보</h3>
+            <div className="flex flex-col gap-4">
               <FormField label="상품명" required hint="고객에게 노출되는 이름이에요. (최대 60자)">
                 <FormInput defaultValue="에티오피아 예가체프 코케 G1" />
               </FormField>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="grid grid-cols-2 gap-3">
                 <FormField label="카테고리" required>
                   <FormSelect value="원두 · 싱글 오리진" />
                 </FormField>
@@ -142,7 +114,7 @@ export default function AdminProductNewPage() {
                 </FormField>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <div className="grid grid-cols-3 gap-3">
                 <FormField label="판매가" required>
                   <FormInput defaultValue="18,000" suffix="원" />
                 </FormField>
@@ -164,58 +136,30 @@ export default function AdminProductNewPage() {
           </div>
 
           {/* 커핑 노트 & 가공 카드 */}
-          <div style={{ ...CARD_BASE, padding: 22 }}>
-            <h3 style={CARD_TITLE}>커핑 노트 & 가공</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className={cn(CARD_CLASS, 'p-5')}>
+            <h3 className={CARD_TITLE_CLASS}>커핑 노트 & 가공</h3>
+            <div className="flex flex-col gap-4">
               <FormField label="플레이버 태그" hint="최대 5개. Enter로 추가">
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 6,
-                    padding: 8,
-                    border: '1px solid var(--input)',
-                    borderRadius: 6,
-                    minHeight: 40,
-                  }}
-                >
+                <div className="flex flex-wrap gap-1.5 p-2 border border-[var(--input)] rounded-md min-h-10">
                   {FLAVOR_TAGS.map((t) => (
                     <span
                       key={t}
-                      style={{
-                        padding: '4px 8px',
-                        borderRadius: 4,
-                        background: 'var(--primary-soft)',
-                        color: 'var(--primary-soft-fg)',
-                        fontSize: 12,
-                        fontWeight: 500,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                      }}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-sm bg-[var(--primary-soft)] text-[var(--primary-soft-fg)] text-xs font-medium"
                     >
                       {t}
-                      <span style={{ cursor: 'pointer', opacity: 0.6 }} aria-hidden>
+                      <span className="cursor-pointer opacity-60" aria-hidden>
                         ×
                       </span>
                     </span>
                   ))}
                   <input
-                    style={{
-                      flex: 1,
-                      minWidth: 80,
-                      border: 'none',
-                      outline: 'none',
-                      background: 'transparent',
-                      fontSize: 13,
-                      padding: '4px 6px',
-                    }}
+                    className="flex-1 min-w-20 border-none outline-none bg-transparent text-sm px-1.5 py-1"
                     placeholder="태그 추가…"
                   />
                 </div>
               </FormField>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="grid grid-cols-2 gap-3">
                 <FormField label="가공 방식">
                   <FormSelect value="워시드 (Washed)" />
                 </FormField>
@@ -230,20 +174,8 @@ export default function AdminProductNewPage() {
               >
                 <textarea
                   defaultValue="해발 1,950m 코케 마을의 워시드 G1. 자스민과 베르가못의 산뜻한 향, 잘 익은 백도의 단맛이 길게 이어집니다. 핸드드립과 에어로프레스에 특히 잘 어울려요."
-                  style={{
-                    width: '100%',
-                    minHeight: 96,
-                    resize: 'vertical',
-                    padding: '10px 12px',
-                    border: '1px solid var(--input)',
-                    borderRadius: 6,
-                    fontSize: 13,
-                    lineHeight: 1.6,
-                    fontFamily: 'inherit',
-                    color: 'var(--foreground)',
-                    outline: 'none',
-                    background: 'var(--surface)',
-                  }}
+                  className="w-full min-h-24 resize-y px-3 py-2.5 border border-[var(--input)] rounded-md text-sm leading-[1.6] text-[var(--foreground)] outline-none bg-[var(--surface)] shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  style={{ fontFamily: 'inherit' }}
                 />
               </FormField>
             </div>
@@ -251,66 +183,33 @@ export default function AdminProductNewPage() {
         </div>
 
         {/* 우측: 이미지 + 공개 + 로스팅 */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 14,
-            position: 'sticky',
-            top: 0,
-          }}
-        >
+        <div className="flex flex-col gap-3 sticky top-0">
           {/* 상품 이미지 */}
-          <div style={{ ...CARD_BASE, padding: 20 }}>
-            <h3 style={CARD_TITLE}>상품 이미지</h3>
+          <div className={cn(CARD_CLASS, 'p-5')}>
+            <h3 className={CARD_TITLE_CLASS}>상품 이미지</h3>
 
             {/* primary upload */}
             <div
-              style={{
-                border: '1.5px dashed var(--border-strong)',
-                borderRadius: 8,
-                padding: '32px 16px',
-                textAlign: 'center',
-                background: 'var(--background)',
-                cursor: 'pointer',
-              }}
+              className="rounded-lg px-4 py-8 text-center cursor-pointer bg-[var(--background)]"
+              style={{ border: '1.5px dashed var(--border-strong)' }}
             >
               <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  margin: '0 auto 10px',
-                  borderRadius: 999,
-                  background: 'var(--surface)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--foreground-muted)',
-                  border: '1px solid var(--border)',
-                }}
+                className="mx-auto mb-2.5 rounded-full bg-[var(--surface)] border border-border flex items-center justify-center text-[var(--foreground-muted)]"
+                style={{ width: 40, height: 40 }}
               >
                 <UploadIcon />
               </div>
-              <div style={{ fontSize: 13, fontWeight: 500 }}>
+              <div className="text-sm font-medium">
                 이미지를 드래그하거나{' '}
-                <span style={{ color: 'var(--primary)' }}>찾아보기</span>
+                <span className="text-[var(--primary)]">찾아보기</span>
               </div>
-              <div
-                style={{ marginTop: 4, fontSize: 11.5, color: 'var(--foreground-muted)' }}
-              >
+              <div className="mt-1 text-xs text-muted-foreground">
                 PNG, JPG · 최대 5MB · 권장 1200×1200
               </div>
             </div>
 
             {/* 업로드된 thumbs */}
-            <div
-              style={{
-                marginTop: 14,
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr',
-                gap: 8,
-              }}
-            >
+            <div className="mt-3 grid grid-cols-3 gap-2">
               {[
                 { primary: true, label: '메인' },
                 { primary: false, label: '서브 1' },
@@ -318,46 +217,36 @@ export default function AdminProductNewPage() {
               ].map((img, i) => (
                 <div
                   key={i}
+                  className={cn(
+                    'relative rounded-md overflow-hidden flex items-end p-1.5',
+                    img.primary
+                      ? 'border-2 border-[var(--primary)]'
+                      : 'border border-border',
+                  )}
                   style={{
-                    position: 'relative',
                     aspectRatio: '1',
-                    borderRadius: 6,
-                    overflow: 'hidden',
-                    border: img.primary
-                      ? '2px solid var(--primary)'
-                      : '1px solid var(--border)',
                     background:
                       'repeating-linear-gradient(135deg, #EEEDEB 0 6px, #F5F4F2 6px 12px)',
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    justifyContent: 'flex-start',
-                    padding: 6,
                   }}
                 >
                   <span
+                    className="rounded-sm bg-white/85 text-[var(--foreground-muted)]"
                     style={{
                       fontFamily: 'monospace',
                       fontSize: 9,
                       padding: '2px 6px',
-                      borderRadius: 3,
-                      background: 'rgba(255,255,255,0.85)',
-                      color: 'var(--foreground-muted)',
                     }}
                   >
                     {img.label}
                   </span>
                   {img.primary && (
                     <span
+                      className="absolute rounded-sm bg-[var(--primary)] !text-white font-semibold"
                       style={{
-                        position: 'absolute',
                         top: 6,
                         right: 6,
                         fontSize: 9,
-                        fontWeight: 600,
                         padding: '2px 6px',
-                        borderRadius: 3,
-                        background: 'var(--primary)',
-                        color: '#fff',
                       }}
                     >
                       대표
@@ -368,17 +257,10 @@ export default function AdminProductNewPage() {
               <button
                 type="button"
                 aria-label="이미지 추가"
+                className="rounded-md bg-transparent flex items-center justify-center text-[var(--foreground-subtle)] cursor-pointer text-xl"
                 style={{
                   aspectRatio: '1',
-                  borderRadius: 6,
                   border: '1px dashed var(--border-strong)',
-                  background: 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--foreground-subtle)',
-                  cursor: 'pointer',
-                  fontSize: 20,
                 }}
               >
                 +
@@ -387,24 +269,20 @@ export default function AdminProductNewPage() {
           </div>
 
           {/* 공개 상태 */}
-          <div style={{ ...CARD_BASE, padding: 20 }}>
-            <h3 style={CARD_TITLE}>공개 상태</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className={cn(CARD_CLASS, 'p-5')}>
+            <h3 className={CARD_TITLE_CLASS}>공개 상태</h3>
+            <div className="flex flex-col gap-2.5">
               {VISIBILITY.map(({ id, label, desc }) => {
                 const sel = visibility === id;
                 return (
                   <label
                     key={id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 10,
-                      padding: 10,
-                      border: '1px solid ' + (sel ? 'var(--primary)' : 'var(--border)'),
-                      borderRadius: 6,
-                      background: sel ? 'var(--primary-soft)' : 'transparent',
-                      cursor: 'pointer',
-                    }}
+                    className={cn(
+                      'relative flex items-start gap-2.5 p-2.5 rounded-md cursor-pointer border',
+                      sel
+                        ? 'border-[var(--primary)] bg-[var(--primary-soft)]'
+                        : 'border-border bg-transparent',
+                    )}
                   >
                     <input
                       type="radio"
@@ -412,52 +290,30 @@ export default function AdminProductNewPage() {
                       value={id}
                       checked={sel}
                       onChange={() => setVisibility(id)}
-                      style={{
-                        position: 'absolute',
-                        opacity: 0,
-                        width: 0,
-                        height: 0,
-                        pointerEvents: 'none',
-                      }}
+                      className="absolute w-0 h-0 opacity-0 pointer-events-none"
                     />
                     <span
                       aria-hidden
+                      className="flex-shrink-0 inline-flex items-center justify-center rounded-full bg-[var(--surface)]"
                       style={{
                         marginTop: 2,
                         width: 14,
                         height: 14,
-                        borderRadius: 999,
                         border:
                           '1.5px solid ' +
                           (sel ? 'var(--primary)' : 'var(--border-strong)'),
-                        background: 'var(--surface)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
                       }}
                     >
                       {sel && (
                         <span
-                          style={{
-                            width: 7,
-                            height: 7,
-                            borderRadius: 999,
-                            background: 'var(--primary)',
-                          }}
+                          className="rounded-full bg-[var(--primary)]"
+                          style={{ width: 7, height: 7 }}
                         />
                       )}
                     </span>
-                    <span style={{ flex: 1, fontSize: 12.5 }}>
-                      <span style={{ fontWeight: 500, display: 'block' }}>{label}</span>
-                      <span
-                        style={{
-                          color: 'var(--foreground-muted)',
-                          fontSize: 11.5,
-                          marginTop: 2,
-                          display: 'block',
-                        }}
-                      >
+                    <span className="flex-1 text-xs">
+                      <span className="font-medium block">{label}</span>
+                      <span className="block text-xs text-muted-foreground mt-0.5">
                         {desc}
                       </span>
                     </span>
@@ -468,8 +324,8 @@ export default function AdminProductNewPage() {
           </div>
 
           {/* 로스팅 일정 */}
-          <div style={{ ...CARD_BASE, padding: 20 }}>
-            <h3 style={CARD_TITLE}>로스팅 일정</h3>
+          <div className={cn(CARD_CLASS, 'p-5')}>
+            <h3 className={CARD_TITLE_CLASS}>로스팅 일정</h3>
             <FormField label="다음 로스팅" hint="수령까지 약 2-3일 소요">
               <FormInput defaultValue="2026.05.05 (월)" />
             </FormField>
@@ -494,24 +350,14 @@ function FormField({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label
-        style={{
-          fontSize: 12.5,
-          fontWeight: 500,
-          color: 'var(--foreground)',
-          letterSpacing: '-0.005em',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-        }}
-      >
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-medium text-[var(--foreground)] tracking-[-0.005em] flex items-center gap-1">
         {label}
-        {required && <span style={{ color: 'var(--primary)' }}>*</span>}
+        {required && <span className="text-[var(--primary)]">*</span>}
       </label>
       {children}
       {hint && (
-        <div style={{ fontSize: 11.5, color: 'var(--foreground-muted)' }}>{hint}</div>
+        <div className="pl-2.5 text-xs text-muted-foreground">{hint}</div>
       )}
     </div>
   );
@@ -523,38 +369,13 @@ function FormInput({
   ...rest
 }: React.InputHTMLAttributes<HTMLInputElement> & { prefix?: string; suffix?: string }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '0 10px',
-        height: 34,
-        background: 'var(--surface)',
-        border: '1px solid var(--input)',
-        borderRadius: 6,
-      }}
-    >
-      {prefix && (
-        <span style={{ color: 'var(--foreground-muted)', fontSize: 13 }}>{prefix}</span>
-      )}
+    <div className="flex items-center gap-2 px-2.5 h-[34px] border border-input rounded-md has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50 has-[:focus-visible]:border-ring bg-[var(--surface)]">
+      {prefix && <span className="text-muted-foreground text-sm">{prefix}</span>}
       <input
         {...rest}
-        style={{
-          flex: 1,
-          minWidth: 0,
-          border: 'none',
-          outline: 'none',
-          background: 'transparent',
-          fontSize: 13,
-          color: 'var(--foreground)',
-          padding: 0,
-          height: '100%',
-        }}
+        className="flex-1 min-w-0 border-none outline-none bg-transparent text-sm text-[var(--foreground)] p-0 h-full shadow-none ring-0"
       />
-      {suffix && (
-        <span style={{ color: 'var(--foreground-muted)', fontSize: 12 }}>{suffix}</span>
-      )}
+      {suffix && <span className="text-muted-foreground text-xs">{suffix}</span>}
     </div>
   );
 }
@@ -562,21 +383,9 @@ function FormInput({
 /* mock select — 시안과 동일하게 select like 표시 (실 select 동작은 후속) */
 function FormSelect({ value }: { value: string }) {
   return (
-    <div
-      style={{
-        position: 'relative',
-        height: 34,
-        border: '1px solid var(--input)',
-        borderRadius: 6,
-        background: 'var(--surface)',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 10px',
-        fontSize: 13,
-      }}
-    >
-      <span style={{ flex: 1 }}>{value}</span>
-      <span style={{ color: 'var(--foreground-muted)' }}>
+    <div className="relative h-[34px] border border-input rounded-md bg-[var(--surface)] flex items-center px-2.5 text-sm">
+      <span className="flex-1">{value}</span>
+      <span className="text-muted-foreground">
         <svg
           width="12"
           height="12"
@@ -612,41 +421,3 @@ const UploadIcon = () => (
     <path d="M12 3v12" />
   </svg>
 );
-
-/* ── 시안 Button(size=sm) inline style ─────────────────────────────────── */
-
-const SM_BASE: React.CSSProperties = {
-  padding: '5px 10px',
-  fontSize: 12,
-  height: 28,
-  gap: 5,
-  borderRadius: 6,
-  fontWeight: 500,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-  letterSpacing: '-0.005em',
-};
-
-const SM_SECONDARY: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'var(--surface)',
-  color: 'var(--foreground)',
-  border: '1px solid var(--border)',
-};
-
-const SM_GHOST: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'transparent',
-  color: 'var(--foreground-muted)',
-  border: '1px solid transparent',
-};
-
-const SM_PRIMARY: React.CSSProperties = {
-  ...SM_BASE,
-  background: 'var(--primary)',
-  color: '#fff',
-  border: '1px solid var(--primary)',
-};

@@ -24,7 +24,7 @@
 | `(authed)/users/UsersTableClient.tsx` | 🟢 완료 | Tailwind + TH/TD inline (carry) | S223 Phase 2-e |
 | `(authed)/users/[id]/UserDetailClient.tsx` | 🔴 미정리 | inline 전체 | S225+ |
 | `(authed)/products/ProductsTableClient.tsx` | 🟢 완료 | Tailwind + TH/TD inline (carry) | S223 Phase 2-e |
-| `(authed)/products/new/page.tsx` | 🔴 미정리 | inline 전체 (SM_PRIMARY 등 폐기 토큰 잔존) | S225+ |
+| `(authed)/products/new/page.tsx` | 🟢 완료 | Tailwind + shadcn Button | S226 |
 | `(authed)/products/[slug]/edit/ProductEditForm.tsx` | 🔴 미정리 | RHF + inline 잔존 | S225+ |
 | `(authed)/subscriptions/SubscriptionsTableClient.tsx` | 🟡 부분 | 테이블 정리됨 · Dialog 내부 미정리 | S225+ |
 | `(authed)/cafe-events/CafeEventsForm.tsx` | 🟢 완료 | Tailwind | S225 작업 중 |
