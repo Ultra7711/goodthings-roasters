@@ -98,9 +98,9 @@ export async function toggleProductActiveAction(input: {
    4) revalidateTag('products') + revalidatePath (admin + 메인 사이트)
 
    범위 (basic 탭): name / category / status / displayPrice / sortOrder /
-                    color / noteColor / subscription / popup
+                    color / subscription / popup / description
 
-   carry-over (detail/option/recipe 탭): description / specs / flavor_desc /
+   carry-over (detail/option/recipe 탭): specs / flavor_desc /
    note_tags / note_tags_en / roast_stage / note_sweet/body/aftertaste/aroma/acidity
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -123,6 +123,7 @@ const UpdateProductMetaSchema = z.object({
   color: HexColorSchema,
   subscription: z.boolean(),
   popup: z.boolean(),
+  description: z.string().max(4000),
 });
 
 export type UpdateProductMetaInput = z.infer<typeof UpdateProductMetaSchema>;
@@ -166,6 +167,7 @@ export async function updateProductMetaAction(
       color: v.color,
       subscription: v.subscription,
       popup: v.popup,
+      description: v.description,
     })
     .eq('id', v.id)
     .select('id')

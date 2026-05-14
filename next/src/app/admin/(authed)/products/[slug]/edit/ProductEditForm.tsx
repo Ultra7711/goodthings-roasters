@@ -23,9 +23,20 @@ import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 import { Switch } from '@/components/admin/ui/switch';
+import { Textarea } from '@/components/admin/ui/textarea';
 import { updateProductMetaAction } from '../../actions';
 import type { ProductWithRelationsRow } from '@/types/product';
 import { cn } from '@/lib/utils';
+
+/** 옵션 최소가 기반 display_price placeholder 동적 생성 */
+function buildPricePlaceholder(volumes: ProductWithRelationsRow['product_volumes']): string {
+  if (!volumes || volumes.length === 0) return '예: 14,000원';
+  const prices = volumes.map((v) => v.price).filter((p) => Number.isFinite(p) && p > 0);
+  if (prices.length === 0) return '예: 14,000원';
+  const min = Math.min(...prices);
+  const formatted = `${min.toLocaleString('ko-KR')}원`;
+  return prices.length > 1 ? `${formatted}부터` : formatted;
+}
 
 const STATUS_OPTIONS = [
   { value: '', label: '없음' },
@@ -69,6 +80,7 @@ const FormSchema = z.object({
   color: HexColor,
   subscription: z.boolean(),
   popup: z.boolean(),
+  description: z.string().max(4000),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -100,8 +112,11 @@ export default function ProductEditForm({ product }: Props) {
       color: product.color,
       subscription: product.subscription,
       popup: product.popup,
+      description: product.description ?? '',
     },
   });
+
+  const pricePlaceholder = buildPricePlaceholder(product.product_volumes);
 
   const onSubmit: SubmitHandler<FormValues> = (values) => {
     startTransition(async () => {
@@ -179,7 +194,12 @@ export default function ProductEditForm({ product }: Props) {
 
       {/* 탭 본문 */}
       {tab === 'basic' ? (
-        <BasicTab register={register} control={control} errors={errors} />
+        <BasicTab
+          register={register}
+          control={control}
+          errors={errors}
+          pricePlaceholder={pricePlaceholder}
+        />
       ) : (
         <ComingSoonPanel label={TABS.find((t) => t.id === tab)?.label ?? ''} />
       )}
@@ -200,10 +220,12 @@ function BasicTab({
   register,
   control,
   errors,
+  pricePlaceholder,
 }: {
   register: ReturnType<typeof useForm<FormValues>>['register'];
   control: ReturnType<typeof useForm<FormValues>>['control'];
   errors: ReturnType<typeof useForm<FormValues>>['formState']['errors'];
+  pricePlaceholder: string;
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -278,18 +300,34 @@ function BasicTab({
             label="표시 가격"
             required
             error={errors.displayPrice?.message}
-            hint="예: 18,000 또는 18,000원"
+            hint="카드/카탈로그 노출용 문구. 옵션별 실 가격은 '용량 / 옵션' 탭에서 관리합니다."
           >
-            <Input type="text" {...register('displayPrice')} />
+            <Input type="text" placeholder={pricePlaceholder} {...register('displayPrice')} />
           </Field>
         </FieldGrid>
+      </Card>
+
+      {/* 본문 설명 카드 */}
+      <Card title="본문 설명">
+        <Field
+          label="설명"
+          hint="PDP 본문에 노출됩니다. 멀티라인 가능."
+          error={errors.description?.message}
+        >
+          <Textarea
+            rows={5}
+            maxLength={4000}
+            placeholder="원두의 향미·산지·로스팅 의도 등 본문 설명"
+            {...register('description')}
+          />
+        </Field>
       </Card>
 
       {/* 컬러 카드 */}
       <Card title="대표 컬러">
         <Field
           label="배경 컬러"
-          hint="상품 상세 페이지 구매 영역 · 카트 · 결제 요약 썸네일 배경에 사용됩니다 (포장의 메인 톤과 어울리는 베이지/크림 권장)"
+          hint="이미지가 1:1 비율을 벗어날 때 보이는 여백 컬러. 운영 표준은 #eaeaea 일괄 적용 — 예외가 필요한 상품만 변경하세요."
           error={errors.color?.message}
         >
           <ColorField name="color" register={register} control={control} />
