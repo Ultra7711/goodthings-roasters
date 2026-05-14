@@ -3,27 +3,37 @@
 /* ══════════════════════════════════════════════════════════════════════════
    SubscriptionsTableClient — /admin/subscriptions 인터랙티브 본체 (S189 Group D)
 
-   책임 (operating safety net):
-   - status 탭 (전체 / 진행중 / 일시정지 / 해지 / 만료)
-   - product_name 검색 (debounced)
-   - 테이블: 사용자 / 상품 / 주기 / 상태 / 다음 배송일 / 편집 액션
-   - 통합 편집 다이얼로그 (3섹션):
-     1) 다음 배송일 변경
-     2) 주기 변경
-     3) 상태 변경 (pause / resume / cancel)
-   - 페이지네이션
+   S228 PR-A — Orders 답습 패턴 적용 (5 inline 답습 폐기):
+   - 페이지 헤더    → AdminPageHeader (subtitle = "총 N건의 구독 · M건 진행중")
+   - STATUS_TABS    → AdminTabsNav (mode='url')
+   - TH/TD inline   → AdminDataTable (Column<ListedSubscription> + footer)
+   - colSpan 빈     → AdminEmptyState (variant='table-row')
+   - PageNav grid   → AdminPagination (mode='url' · 26×26 정합)
+
+   행 클릭 미적용 (Orders/Users 와 정책 차이) — Subscriptions 는 별 상세
+   페이지 없는 inline 다이얼로그 구조. 명시적 "편집" 버튼 클릭만 다이얼로그
+   진입. ended (cancelled/expired) 행은 편집 버튼 disabled 로 시각 명확화.
+
+   편집 버튼 = Pencil 아이콘화 (size='icon-xs' · 24×24 admin 아이콘 표준).
+   describeRange 패턴 답습: `총 N건 · M~K번째` (단위 건).
+
+   carry-over (별 commit):
+   - EditSubscriptionDialog 토큰화 (배송주기 칩 · 폰트 크기 inline → className)
 
    참조:
    - lib/admin/subscriptions.ts            (헬퍼)
    - actions.ts                             (Server Actions)
-   - app/admin/(authed)/users/UsersTableClient.tsx (스타일 패턴 답습)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { extractKrName } from '@/lib/products';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminTabsNav } from '@/components/admin/AdminTabsNav';
+import { AdminDataTable, type Column } from '@/components/admin/AdminDataTable';
+import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
+import { AdminPagination } from '@/components/admin/AdminPagination';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
@@ -74,22 +84,6 @@ const TONES: Record<StatusTone, { bg: string; fg: string }> = {
   info: { bg: 'var(--info-soft)', fg: 'var(--info)' },
 };
 
-/* S223 토큰 정합 — Orders 패턴 답습. */
-const TH_STYLE: React.CSSProperties = {
-  textAlign: 'left',
-  padding: '12px 16px',
-  fontSize: 12,
-  fontWeight: 500,
-  letterSpacing: '0.04em',
-  textTransform: 'uppercase',
-  color: 'var(--foreground-muted)',
-};
-
-const TD_STYLE: React.CSSProperties = {
-  padding: '12px 16px',
-  verticalAlign: 'middle',
-};
-
 export default function SubscriptionsTableClient({ rows, total, counts, filters }: Props) {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState(filters.q);
@@ -121,56 +115,112 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const isEnded = (s: ListedSubscription) => s.status === 'cancelled' || s.status === 'expired';
 
+  const columns: readonly Column<ListedSubscription>[] = useMemo(() => [
+    {
+      key: 'user',
+      header: '고객',
+      cellClassName: 'text-sm',
+      render: (s) => (
+        <>
+          <div className="font-medium">{resolveUserName(s)}</div>
+          <div className="text-xs text-[var(--foreground-subtle)] mt-0.5">{s.userEmail}</div>
+        </>
+      ),
+    },
+    {
+      key: 'product',
+      header: '상품',
+      cellClassName: 'text-sm',
+      render: (s) => (
+        <>
+          <div className="font-medium">{extractKrName(s.productName)}</div>
+          {s.productVolume && (
+            <div className="text-xs text-muted-foreground mt-0.5">{s.productVolume}</div>
+          )}
+        </>
+      ),
+    },
+    {
+      key: 'cycle',
+      header: '주기',
+      cellClassName: 'text-sm',
+      render: (s) => describeCycle(s.cycle),
+    },
+    {
+      key: 'status',
+      header: '상태',
+      render: (s) => {
+        const desc = describeStatus(s.status);
+        const tone = TONES[desc.tone];
+        return (
+          <ShadcnBadge
+            variant="outline"
+            className="border-transparent rounded"
+            style={{ background: tone.bg, color: tone.fg }}
+          >
+            {desc.label}
+          </ShadcnBadge>
+        );
+      },
+    },
+    {
+      key: 'nextDelivery',
+      header: '다음 배송',
+      cellClassName: 'text-xs text-muted-foreground tabular-nums',
+      render: (s) => formatDeliveryDate(s.nextDeliveryAtIso),
+    },
+    {
+      key: 'lastDelivery',
+      header: '이전 배송',
+      cellClassName: 'text-xs text-muted-foreground tabular-nums',
+      render: (s) => (s.lastDeliveryAtIso ? formatDeliveryDate(s.lastDeliveryAtIso) : '—'),
+    },
+    {
+      key: 'edit',
+      header: '편집',
+      align: 'right',
+      width: 'w-[80px]',
+      render: (s) => (
+        <span onClick={(e) => e.stopPropagation()}>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-xs"
+            onClick={() => setEditingRow(s)}
+            disabled={isEnded(s)}
+            title="구독 편집"
+            aria-label="구독 편집"
+          >
+            <PencilIcon />
+          </Button>
+        </span>
+      ),
+    },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], []);
+
   return (
     <>
-      {/* 헤더 — Orders 패턴 답습 */}
-      <div className="flex items-baseline justify-between mb-5">
-        <div>
-          <h2 className="m-0 text-2xl font-medium tracking-tight">정기배송 관리</h2>
-          <div className="mt-1 text-sm text-muted-foreground">
+      <AdminPageHeader
+        title="정기배송 관리"
+        subtitle={
+          <>
             총 {counts.all.toLocaleString()}건의 구독
             {counts.active > 0 ? ` · ${counts.active.toLocaleString()}건 진행중` : ''}
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
-      {/* 탭 */}
-      <div className="flex gap-1 border-b border-border mb-4">
-        {STATUS_TABS.map((t) => {
-          const active = t.id === filters.status;
-          const cnt = counts[t.id] ?? 0;
-          return (
-            <Link
-              key={t.id}
-              href={buildHref({ status: t.id, page: 1 })}
-              replace
-              className={`px-3 py-2 bg-transparent cursor-pointer text-sm relative flex items-center gap-1.5 no-underline ${
-                active
-                  ? 'font-medium text-foreground'
-                  : 'font-normal text-muted-foreground'
-              }`}
-            >
-              {t.label}
-              <span
-                className={`text-xs tabular-nums rounded-sm ${
-                  active
-                    ? 'text-muted-foreground bg-muted'
-                    : 'text-[var(--foreground-subtle)] bg-transparent'
-                }`}
-                style={{ padding: '1px 6px' }}
-              >
-                {cnt.toLocaleString()}
-              </span>
-              {active && (
-                <div
-                  className="absolute left-0 right-0 h-0.5 bg-[var(--primary)]"
-                  style={{ bottom: -1 }}
-                />
-              )}
-            </Link>
-          );
-        })}
-      </div>
+      <AdminTabsNav
+        mode="url"
+        tabs={STATUS_TABS.map((t) => ({
+          id: t.id,
+          label: t.label,
+          count: counts[t.id] ?? 0,
+        }))}
+        active={filters.status}
+        buildHref={(id) => buildHref({ status: id as StatusTabKey, page: 1 })}
+      />
 
       {/* 검색 — admin 공통 AdminSearchInput */}
       <div className="flex gap-2 mb-3 items-center">
@@ -181,111 +231,29 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
         />
       </div>
 
-      {/* 테이블 */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-          padding: 0,
-          overflow: 'hidden',
-        }}
-      >
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: 'var(--surface-muted)' }}>
-              <th style={TH_STYLE}>고객</th>
-              <th style={TH_STYLE}>상품</th>
-              <th style={TH_STYLE}>주기</th>
-              <th style={TH_STYLE}>상태</th>
-              <th style={TH_STYLE}>다음 배송</th>
-              <th style={TH_STYLE}>이전 배송</th>
-              <th style={{ ...TH_STYLE, width: 80, textAlign: 'right' }}>편집</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">
-                  표시할 구독이 없습니다.
-                </td>
-              </tr>
-            ) : (
-              rows.map((s, i) => {
-                const desc = describeStatus(s.status);
-                const tone = TONES[desc.tone];
-                const userName = resolveUserName(s);
-                const lastBorder = i === rows.length - 1 ? 'none' : '1px solid var(--border)';
-                const ended = isEnded(s);
-                return (
-                  <tr key={s.id} style={{ borderBottom: lastBorder }}>
-                    <td style={TD_STYLE} className="text-sm">
-                      <div className="font-medium">{userName}</div>
-                      <div className="text-xs text-[var(--foreground-subtle)] mt-0.5">{s.userEmail}</div>
-                    </td>
-                    <td style={TD_STYLE} className="text-sm">
-                      <div className="font-medium">{extractKrName(s.productName)}</div>
-                      {s.productVolume && (
-                        <div className="text-xs text-muted-foreground mt-0.5">{s.productVolume}</div>
-                      )}
-                    </td>
-                    <td style={TD_STYLE} className="text-sm">{describeCycle(s.cycle)}</td>
-                    <td style={TD_STYLE}>
-                      <ShadcnBadge
-                        variant="outline"
-                        className="border-transparent rounded"
-                        style={{ background: tone.bg, color: tone.fg }}
-                      >
-                        {desc.label}
-                      </ShadcnBadge>
-                    </td>
-                    <td style={TD_STYLE} className="text-xs text-muted-foreground tabular-nums">
-                      {formatDeliveryDate(s.nextDeliveryAtIso)}
-                    </td>
-                    <td style={TD_STYLE} className="text-xs text-muted-foreground tabular-nums">
-                      {s.lastDeliveryAtIso ? formatDeliveryDate(s.lastDeliveryAtIso) : '—'}
-                    </td>
-                    <td style={{ ...TD_STYLE, textAlign: 'right' }}>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="!h-7"
-                        onClick={() => setEditingRow(s)}
-                        disabled={ended}
-                      >
-                        편집
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 페이지네이션 */}
-      {pageCount > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4, marginTop: 16 }}>
-          {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => {
-            const active = p === filters.page;
-            return (
-              <Button
-                key={p}
-                asChild
-                variant={active ? 'default' : 'ghost'}
-                size="sm"
-                className="!h-8 min-w-8 !px-2"
-              >
-                <Link href={buildHref({ page: p })} replace aria-current={active ? 'page' : undefined}>
-                  {p}
-                </Link>
-              </Button>
-            );
-          })}
-        </div>
-      )}
+      <AdminDataTable
+        columns={columns}
+        data={rows}
+        rowKey={(s) => s.id}
+        empty={
+          <AdminEmptyState
+            variant="table-row"
+            colSpan={columns.length}
+            message="표시할 구독이 없습니다."
+          />
+        }
+        footer={
+          <>
+            <div>{describeRange(filters.page, total)}</div>
+            <AdminPagination
+              mode="url"
+              page={filters.page}
+              pageCount={pageCount}
+              buildHref={(p) => buildHref({ page: p })}
+            />
+          </>
+        }
+      />
 
       {/* 통합 편집 다이얼로그 */}
       {editingRow && (
@@ -302,11 +270,41 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
   );
 }
 
+/* ── 공유 헬퍼 ──────────────────────────────────────────────────────── */
+
+function describeRange(page: number, total: number): string {
+  if (total === 0) return '0건';
+  const start = (page - 1) * PAGE_SIZE + 1;
+  const end = Math.min(page * PAGE_SIZE, total);
+  return `총 ${total.toLocaleString()}건 · ${start.toLocaleString()}~${end.toLocaleString()}번째`;
+}
+
+/* ── 인라인 SVG ─────────────────────────────────── */
+
+/* Pencil — 편집 액션 (size-3 자동 · icon-xs Button 매트릭스). */
+const PencilIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+    <path d="m15 5 4 4" />
+  </svg>
+);
+
 /* ══════════════════════════════════════════════════════════════════════════
    EditSubscriptionDialog — 3섹션 통합 편집 다이얼로그
    1) 다음 배송일 변경
    2) 주기 변경
    3) 상태 변경 (pause / resume / cancel)
+
+   carry-over (별 commit): inline style 토큰화 (배송주기 칩 · 폰트 크기).
    ══════════════════════════════════════════════════════════════════════════ */
 
 type SectionKey = 'delivery' | 'cycle' | 'status' | 'history';
