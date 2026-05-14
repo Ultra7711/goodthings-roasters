@@ -59,7 +59,11 @@ import {
   type StatusTabKey,
   type StatusTone,
 } from '@/lib/admin/subscriptions';
-import { SUBSCRIPTION_CYCLES } from '@/lib/subscription/cycles';
+import {
+  SUBSCRIPTION_CYCLES,
+  CYCLE_DAYS,
+  recalculateNextDeliveryOnCycleChange,
+} from '@/lib/subscription/cycles';
 import {
   updateSubscriptionNextDeliveryAction,
   updateSubscriptionCycleAction,
@@ -332,12 +336,13 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
       >
         {/* 다이얼로그 헤더 */}
         <DialogHeader className="px-6 pt-5">
-          <DialogTitle className="text-base font-medium">
+          <DialogTitle className="text-lg font-medium">
             구독 편집
           </DialogTitle>
-          <DialogDescription className="text-xs mb-4">
+          <DialogDescription className="text-sm mb-4">
             {userName} · {extractKrName(row.productName)}
             {row.productVolume ? ` (${row.productVolume})` : ''} · 주기 {describeCycle(row.cycle)}
+            {' '}· 다음 배송 <span className="tabular-nums">{formatDeliveryDate(row.nextDeliveryAtIso)}</span>
           </DialogDescription>
 
           {/* 섹션 탭 */}
@@ -367,8 +372,9 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
           </div>
         </DialogHeader>
 
-        {/* 섹션 콘텐츠 */}
-        <div className="px-6 pt-5 pb-6">
+        {/* 섹션 콘텐츠 — min-h 로 탭 전환 시 다이얼로그 크기 통일 (울렁거림 방지).
+           flex-col 으로 각 섹션이 영역 다 차지 → CTA 가 mt-auto 로 하단 고정. */}
+        <div className="px-6 pt-5 pb-6 min-h-[320px] flex flex-col">
           {activeSection === 'delivery' && (
             <DeliverySection
               row={row}
@@ -439,7 +445,7 @@ function DeliverySection({
   }
 
   return (
-    <div>
+    <div className="flex-1 flex flex-col">
       <label className="block text-xs text-muted-foreground mb-1.5">
         다음 배송일 (KST)
       </label>
@@ -453,7 +459,7 @@ function DeliverySection({
       {submitError && (
         <div className="mt-2 text-xs text-destructive">{submitError}</div>
       )}
-      <div className="mt-5 flex justify-end gap-2">
+      <div className="mt-auto pt-5 flex justify-end gap-2">
         <CancelButton onClick={onClose} disabled={isPending} />
         <SaveButton
           onClick={handleSave}
@@ -482,6 +488,16 @@ function CycleSection({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  /* 미리보기 — newCycle !== row.cycle 일 때만 계산 (SoT = lib/subscription/cycles). */
+  const previewNextIso = useMemo(() => {
+    if (newCycle === row.cycle) return null;
+    return recalculateNextDeliveryOnCycleChange(
+      new Date(row.nextDeliveryAtIso),
+      row.cycle,
+      newCycle,
+    ).toISOString();
+  }, [newCycle, row.cycle, row.nextDeliveryAtIso]);
+
   function handleSave() {
     setSubmitError(null);
     startTransition(async () => {
@@ -506,41 +522,66 @@ function CycleSection({
 
   if (!canEdit) {
     return (
-      <div className="text-sm text-muted-foreground py-3">
-        해지·만료된 구독은 주기를 변경할 수 없습니다.
+      <div className="flex-1 flex flex-col">
+        <div className="text-sm text-muted-foreground py-3">
+          해지·만료된 구독은 주기를 변경할 수 없습니다.
+        </div>
+        <div className="mt-auto pt-5 flex justify-end gap-2">
+          <CancelButton onClick={onClose} disabled={false} label="닫기" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="flex-1 flex flex-col">
       <label className="block text-xs text-muted-foreground mb-1.5">
         배송 주기
       </label>
       <div className="flex gap-2">
         {SUBSCRIPTION_CYCLES.map((c) => {
           const selected = c === newCycle;
+          /* 칩 울렁거림 fix — default 의 border 0 ↔ outline 의 border 1px 시각 변동 회피.
+             selected 시에도 transparent border + shadow-xs 강제로 height 통일. */
           return (
             <Button
               key={c}
               type="button"
               variant={selected ? 'default' : 'outline'}
+              size="sm"
               onClick={() => setNewCycle(c)}
               disabled={isPending}
-              className="flex-1"
+              className={`flex-1 border shadow-xs ${selected ? 'border-transparent' : 'border-input'}`}
             >
               {c}
             </Button>
           );
         })}
       </div>
+      {/* 미리보기 — 새 주기 선택 시 실 날짜 표시 (SoT 답습). */}
+      {previewNextIso && (
+        <div className="bg-[var(--surface-muted)] rounded-[var(--radius)] p-3 mt-3 text-xs">
+          <div className="flex justify-between text-muted-foreground">
+            <span>현재 다음 배송</span>
+            <span className="tabular-nums">
+              {formatDeliveryDate(row.nextDeliveryAtIso)} ({describeCycle(row.cycle)})
+            </span>
+          </div>
+          <div className="mt-1 flex justify-between text-foreground font-medium">
+            <span>변경 후 다음 배송</span>
+            <span className="tabular-nums">
+              {formatDeliveryDate(previewNextIso)} ({describeCycle(newCycle)})
+            </span>
+          </div>
+        </div>
+      )}
       <div className="mt-2 text-xs text-muted-foreground">
-        변경 시 다음 배송일이 재계산됩니다 (직전 배송일 + 새 주기).
+        변경 저장 시 다음 배송일이 재계산됩니다.
       </div>
       {submitError && (
         <div className="mt-2 text-xs text-destructive">{submitError}</div>
       )}
-      <div className="mt-5 flex justify-end gap-2">
+      <div className="mt-auto pt-5 flex justify-end gap-2">
         <CancelButton onClick={onClose} disabled={isPending} />
         <SaveButton
           onClick={handleSave}
@@ -563,21 +604,47 @@ function StatusSection({
   onClose: () => void;
   onSaved: (updated: ListedSubscription | null) => void;
 }) {
+  const [selectedAction, setSelectedAction] = useState<'pause' | 'resume' | 'cancel' | null>(null);
   const [cancelReason, setCancelReason] = useState('');
-  const [confirmCancel, setConfirmCancel] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const isActive = row.status === 'active';
   const isPaused = row.status === 'paused';
+  const canEdit = isActive || isPaused;
 
-  function handleAction(action: 'pause' | 'resume' | 'cancel') {
+  /* status 별 가능한 action 옵션 — 칩 라디오. */
+  const availableActions = useMemo(() => {
+    if (isActive)
+      return [
+        { id: 'pause' as const, label: '일시정지' },
+        { id: 'cancel' as const, label: '해지' },
+      ];
+    if (isPaused)
+      return [
+        { id: 'resume' as const, label: '재개' },
+        { id: 'cancel' as const, label: '해지' },
+      ];
+    return [];
+  }, [isActive, isPaused]);
+
+  /* 재개 시 다음 배송 미리보기 — 클라 기준 today + cycle (서버 KST 와 미세 차이 가능).
+     안내용이므로 UI 정합 충분 (정확값은 서버 actions.ts resume 처리). */
+  const resumePreviewIso = useMemo(() => {
+    if (!isPaused) return null;
+    const next = new Date();
+    next.setDate(next.getDate() + CYCLE_DAYS[row.cycle]);
+    return next.toISOString();
+  }, [isPaused, row.cycle]);
+
+  function handleSave() {
+    if (!selectedAction) return;
     setSubmitError(null);
     startTransition(async () => {
       const result = await updateSubscriptionStatusAction({
         subscriptionId: row.id,
-        action,
-        cancelReason: action === 'cancel' ? cancelReason || undefined : undefined,
+        action: selectedAction,
+        cancelReason: selectedAction === 'cancel' ? cancelReason || undefined : undefined,
       });
       if (result.ok) {
         onSaved(null);
@@ -594,42 +661,74 @@ function StatusSection({
     });
   }
 
-  /* admin soft tone — Badge tone (DEC-2) 패턴 답습. shadcn Button variant 매핑 없어
-     inline style 유지 (className arbitrary value 도 가능하지만 ghost hover 와 충돌
-     회피용 명시적 inline · ADR-008 §5-9 exception). */
-  const softWarning: React.CSSProperties = { background: 'var(--warning-soft)', color: 'var(--warning)' };
-  const softDestructive: React.CSSProperties = { background: 'var(--destructive-soft, #fee2e2)', color: 'var(--destructive)' };
-  const softSuccess: React.CSSProperties = { background: 'var(--success-soft)', color: 'var(--success)' };
+  /* 헤더 상태 Badge — 부모 페이지 리스트 답습 (TONES 매트릭스 정합). */
+  const statusDesc = describeStatus(row.status);
+  const statusTone = TONES[statusDesc.tone];
 
   return (
-    <div>
-      {isActive && (
-        <div className="flex flex-col gap-3">
-          <div className="text-sm text-muted-foreground">
-            현재 상태: <strong className="text-foreground">진행중</strong>
-          </div>
+    <div className="flex-1 flex flex-col">
+      {/* 현재 상태 — label 위치 = 다른 섹션 답습 (DeliverySection/CycleSection). */}
+      <label className="block text-xs text-muted-foreground mb-1.5">
+        현재 상태
+      </label>
+      <div className="mb-4">
+        <ShadcnBadge
+          variant="outline"
+          className="border-transparent rounded"
+          style={{ background: statusTone.bg, color: statusTone.fg }}
+        >
+          {statusDesc.label}
+        </ShadcnBadge>
+      </div>
+
+      {!canEdit && (
+        <div className="text-sm text-muted-foreground">
+          상태를 변경할 수 없습니다.
+        </div>
+      )}
+
+      {canEdit && (
+        <>
+          {/* 칩 라디오 (CycleSection 답습) */}
+          <label className="block text-xs text-muted-foreground mb-1.5">
+            선택할 상태
+          </label>
           <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => handleAction('pause')}
-              disabled={isPending}
-              style={softWarning}
-            >
-              일시정지
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setConfirmCancel((v) => !v)}
-              disabled={isPending}
-              style={softDestructive}
-            >
-              해지
-            </Button>
+            {availableActions.map((a) => {
+              const selected = a.id === selectedAction;
+              /* 칩 울렁거림 fix — border + shadow-xs 양쪽 자리 확보. */
+              return (
+                <Button
+                  key={a.id}
+                  type="button"
+                  variant={selected ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedAction(a.id)}
+                  disabled={isPending}
+                  className={`flex-1 border shadow-xs ${selected ? 'border-transparent' : 'border-input'}`}
+                >
+                  {a.label}
+                </Button>
+              );
+            })}
           </div>
-          {confirmCancel && (
-            <div className="bg-[var(--surface-muted)] rounded-[var(--radius)] p-3">
+
+          {/* 미리보기 / 안내 — 칩 선택 시 노출 */}
+          {selectedAction === 'pause' && (
+            <div className="bg-[var(--surface-muted)] rounded-[var(--radius)] p-3 mt-3 text-xs text-muted-foreground">
+              배송 보류 — 재개 시점에 다음 배송일이 재계산됩니다.
+            </div>
+          )}
+          {selectedAction === 'resume' && resumePreviewIso && (
+            <div className="bg-[var(--surface-muted)] rounded-[var(--radius)] p-3 mt-3 text-xs">
+              <div className="flex justify-between text-foreground font-medium">
+                <span>재개 시 다음 배송</span>
+                <span className="tabular-nums">{formatDeliveryDate(resumePreviewIso)}</span>
+              </div>
+            </div>
+          )}
+          {selectedAction === 'cancel' && (
+            <div className="mt-3">
               <label className="block text-xs text-muted-foreground mb-1.5">
                 해지 사유 (선택)
               </label>
@@ -639,88 +738,36 @@ function StatusSection({
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="해지 사유를 입력하세요…"
                 maxLength={200}
-                className="!h-8"
               />
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => handleAction('cancel')}
-                disabled={isPending}
-                className="mt-2.5"
-              >
-                {isPending ? '처리중…' : '해지 확정'}
-              </Button>
             </div>
           )}
-        </div>
-      )}
-
-      {isPaused && (
-        <div className="flex flex-col gap-3">
-          <div className="text-sm text-muted-foreground">
-            현재 상태: <strong className="text-foreground">일시정지</strong>
-          </div>
-          <div className="text-xs text-[var(--foreground-subtle)]">
-            재개 시 다음 배송일 = 오늘 + 배송 주기로 설정됩니다.
-          </div>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => handleAction('resume')}
-              disabled={isPending}
-              style={softSuccess}
-            >
-              {isPending ? '처리중…' : '재개'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setConfirmCancel((v) => !v)}
-              disabled={isPending}
-              style={softDestructive}
-            >
-              해지
-            </Button>
-          </div>
-          {confirmCancel && (
-            <div className="bg-[var(--surface-muted)] rounded-[var(--radius)] p-3">
-              <label className="block text-xs text-muted-foreground mb-1.5">
-                해지 사유 (선택)
-              </label>
-              <Input
-                type="text"
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="해지 사유를 입력하세요…"
-                maxLength={200}
-                className="!h-8"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => handleAction('cancel')}
-                disabled={isPending}
-                className="mt-2.5"
-              >
-                {isPending ? '처리중…' : '해지 확정'}
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {!isActive && !isPaused && (
-        <div className="text-sm text-muted-foreground py-3">
-          {row.status === 'cancelled' ? '해지된 구독입니다.' : '만료된 구독입니다.'} 상태를 변경할 수 없습니다.
-        </div>
+        </>
       )}
 
       {submitError && (
         <div className="mt-3 text-xs text-destructive">{submitError}</div>
       )}
-      <div className="mt-5 flex justify-end">
-        <CancelButton onClick={onClose} disabled={isPending} label="닫기" />
+
+      <div className="mt-auto pt-5 flex justify-end gap-2">
+        <CancelButton onClick={onClose} disabled={isPending} />
+        {canEdit &&
+          (selectedAction === 'cancel' ? (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleSave}
+              disabled={isPending || !selectedAction}
+              className="min-w-20"
+            >
+              {isPending ? '처리중…' : '해지 확정'}
+            </Button>
+          ) : (
+            <SaveButton
+              onClick={handleSave}
+              disabled={isPending || !selectedAction}
+              isPending={isPending}
+            />
+          ))}
       </div>
     </div>
   );
@@ -813,11 +860,11 @@ function HistorySection({ subscriptionId }: { subscriptionId: string }) {
   }
 
   return (
-    <div className="flex flex-col max-h-80 overflow-y-auto">
+    <div className="bg-[var(--surface-muted)] border border-border rounded-[var(--radius)] max-h-[260px] overflow-y-auto">
       {entries.map((entry, i) => (
         <div
           key={entry.id}
-          className={`py-2.5 ${i < entries.length - 1 ? 'border-b border-border' : ''}`}
+          className={`px-3 py-2.5 ${i < entries.length - 1 ? 'border-b border-border' : ''}`}
         >
           <div className="flex justify-between items-baseline mb-0.5">
             <span className="text-xs font-medium text-foreground">
@@ -848,7 +895,7 @@ function CancelButton({
   label?: string;
 }) {
   return (
-    <Button type="button" variant="outline" onClick={onClick} disabled={disabled}>
+    <Button type="button" variant="outline" onClick={onClick} disabled={disabled} className="min-w-20">
       {label}
     </Button>
   );
@@ -864,7 +911,7 @@ function SaveButton({
   isPending: boolean;
 }) {
   return (
-    <Button type="button" onClick={onClick} disabled={disabled}>
+    <Button type="button" onClick={onClick} disabled={disabled} className="min-w-20">
       {isPending ? '저장중…' : '저장'}
     </Button>
   );
