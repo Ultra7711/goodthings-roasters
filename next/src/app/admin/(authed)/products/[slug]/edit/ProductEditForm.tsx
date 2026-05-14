@@ -48,7 +48,7 @@ const CATEGORY_OPTIONS = [
 const TABS = [
   { id: 'basic', label: '기본 정보' },
   { id: 'detail', label: '상세 설명' },
-  { id: 'option', label: '옵션 / 재고' },
+  { id: 'option', label: '용량 / 옵션' },
   { id: 'shipping', label: '배송' },
   { id: 'seo', label: 'SEO' },
 ] as const;
