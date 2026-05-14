@@ -18,8 +18,15 @@
 
 import type { ReactNode } from 'react';
 
+/* h-9 (36px) — shadcn Input 표준 정합. */
 export const ADMIN_SELECT_CLASS =
-  'appearance-none w-full h-[34px] pl-2.5 pr-8 bg-[var(--surface)] border border-input rounded-md text-sm text-[var(--foreground)] outline-none shadow-xs transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50';
+  'appearance-none w-full h-9 pl-3 pr-8 bg-[var(--surface)] border border-input rounded-md text-sm text-[var(--foreground)] outline-none shadow-xs transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50';
+
+/* readonly / 자동 표시 필드 시각 표준 (S231 폴리싱 · 진짜 readonly 한정).
+   사용처: 슬러그 input · 표시 가격 자동 표시 · OrderDetailClient 어드민 메모 textarea 등.
+   ※ 액션 disabled hint (cursor-not-allowed opacity-60 only) 와 의미 분리. */
+export const ADMIN_READONLY_FIELD =
+  'bg-[var(--surface-muted)] text-muted-foreground border-input cursor-not-allowed select-none';
 
 export function NativeSelectWrap({ children }: { children: ReactNode }) {
   return (

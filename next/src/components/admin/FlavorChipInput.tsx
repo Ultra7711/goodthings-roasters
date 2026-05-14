@@ -81,6 +81,20 @@ export function FlavorChipInput({
     onChange(next);
   }
 
+  function moveLeft(idx: number) {
+    if (idx <= 0) return;
+    const next = [...value];
+    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+    commit(next);
+  }
+
+  function moveRight(idx: number) {
+    if (idx >= value.length - 1) return;
+    const next = [...value];
+    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+    commit(next);
+  }
+
   function addFromDraft() {
     const chip = parseChipInput(draft);
     if (!chip) return;
@@ -108,23 +122,47 @@ export function FlavorChipInput({
         {value.length === 0 ? (
           <span className="text-xs text-muted-foreground italic">{emptyMessage}</span>
         ) : (
-          value.map((chip, i) => (
-            <span
-              key={`${chip.ko}-${i}`}
-              className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-[3px] text-xs bg-[var(--surface-muted)] border border-border rounded-full text-[var(--foreground)]"
-            >
-              {chip.ko}
-              {chip.en && <span className="text-muted-foreground">{chip.en}</span>}
-              <button
-                type="button"
-                onClick={() => commit(value.filter((_, idx) => idx !== i))}
-                aria-label={`${chip.ko} 삭제`}
-                className="size-[18px] rounded-full border-0 bg-transparent text-muted-foreground cursor-pointer text-sm p-0 inline-flex items-center justify-center leading-none"
+          value.map((chip, i) => {
+            const canLeft = i > 0;
+            const canRight = i < value.length - 1;
+            return (
+              <span
+                key={`${chip.ko}-${i}`}
+                className="inline-flex items-center gap-1 pl-1 pr-1 py-[3px] text-xs bg-[var(--surface-muted)] border border-border rounded-full text-[var(--foreground)]"
               >
-                ×
-              </button>
-            </span>
-          ))
+                <button
+                  type="button"
+                  onClick={() => moveLeft(i)}
+                  disabled={!canLeft}
+                  aria-label={`${chip.ko} 앞으로`}
+                  className="size-[18px] rounded-full border-0 bg-transparent text-muted-foreground cursor-pointer p-0 inline-flex items-center justify-center leading-none hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-muted-foreground"
+                >
+                  ‹
+                </button>
+                <span className="px-0.5">
+                  {chip.ko}
+                  {chip.en && <span className="text-muted-foreground ml-1">{chip.en}</span>}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => commit(value.filter((_, idx) => idx !== i))}
+                  aria-label={`${chip.ko} 삭제`}
+                  className="size-[18px] rounded-full border-0 bg-transparent text-muted-foreground cursor-pointer text-sm p-0 inline-flex items-center justify-center leading-none hover:text-foreground"
+                >
+                  ×
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveRight(i)}
+                  disabled={!canRight}
+                  aria-label={`${chip.ko} 뒤로`}
+                  className="size-[18px] rounded-full border-0 bg-transparent text-muted-foreground cursor-pointer p-0 inline-flex items-center justify-center leading-none hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-muted-foreground"
+                >
+                  ›
+                </button>
+              </span>
+            );
+          })
         )}
       </div>
 

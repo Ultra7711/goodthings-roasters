@@ -14,7 +14,8 @@
    - onSubmit → updateProductMetaAction → sonner toast + revalidate
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
+import { Trash2 } from 'lucide-react';
 import {
   Controller,
   useFieldArray,
@@ -32,9 +33,11 @@ import {
   type FlavorChip,
 } from '@/components/admin/FlavorChipInput';
 import {
+  ADMIN_READONLY_FIELD,
   ADMIN_SELECT_CLASS,
   NativeSelectWrap,
 } from '@/components/admin/NativeSelectWrap';
+import { PriceInput } from '@/components/admin/PriceInput';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 import { Slider } from '@/components/admin/ui/slider';
@@ -62,14 +65,19 @@ const FLAVOR_AXES = [
   { key: 'noteAcidity', label: 'Acidity (산미)' },
 ] as const;
 
-/** 옵션 최소가 기반 display_price placeholder 동적 생성 */
-function buildPricePlaceholder(volumes: ProductWithRelationsRow['product_volumes']): string {
-  if (!volumes || volumes.length === 0) return '예: 14,000원';
-  const prices = volumes.map((v) => v.price).filter((p) => Number.isFinite(p) && p > 0);
-  if (prices.length === 0) return '예: 14,000원';
-  const min = Math.min(...prices);
-  const formatted = `${min.toLocaleString('ko-KR')}원`;
-  return prices.length > 1 ? `${formatted}부터` : formatted;
+
+/** formatStartPrice (lib/products.ts) 답습 — 옵션 첫 번째 가격 기반 "원~" 자동.
+    사이트 카드/PDP 가격 노출과 동일 형식으로 admin display_price 자동 동기화. */
+function buildAutoDisplayPrice(
+  volumes: Array<{ price: number; sort_order?: number }>,
+): string {
+  if (!volumes || volumes.length === 0) return '';
+  const sorted = [...volumes].sort(
+    (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+  );
+  const first = sorted[0]?.price ?? 0;
+  if (!Number.isFinite(first) || first <= 0) return '';
+  return `${first.toLocaleString('ko-KR')}원~`;
 }
 
 const STATUS_OPTIONS = [
@@ -173,6 +181,8 @@ export default function ProductEditForm({ product }: Props) {
     control,
     formState: { errors, isDirty },
     reset,
+    setValue,
+    getValues,
   } = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -181,7 +191,8 @@ export default function ProductEditForm({ product }: Props) {
       name: product.name,
       category: product.category,
       status: product.status,
-      displayPrice: product.display_price,
+      displayPrice:
+        buildAutoDisplayPrice(product.product_volumes) || product.display_price,
       sortOrder: product.sort_order,
       color: product.color,
       subscription: product.subscription,
@@ -220,7 +231,15 @@ export default function ProductEditForm({ product }: Props) {
     },
   });
 
-  const pricePlaceholder = buildPricePlaceholder(product.product_volumes);
+  /* 옵션 첫 번째 가격 변경 시 표시 가격 자동 동기화 (사이트 카드/PDP 형식 정합).
+     shouldDirty: false — 운영자가 옵션만 수정해도 displayPrice 단독 dirty 트리거 회피. */
+  const watchedVolumes = useWatch({ control, name: 'volumes' });
+  const autoDisplayPrice = buildAutoDisplayPrice(watchedVolumes ?? []);
+  useEffect(() => {
+    if (!autoDisplayPrice) return;
+    if (getValues('displayPrice') === autoDisplayPrice) return;
+    setValue('displayPrice', autoDisplayPrice, { shouldDirty: false });
+  }, [autoDisplayPrice, getValues, setValue]);
 
   const onSubmit: SubmitHandler<FormValues> = (values) => {
     startTransition(async () => {
@@ -302,7 +321,7 @@ export default function ProductEditForm({ product }: Props) {
           register={register}
           control={control}
           errors={errors}
-          pricePlaceholder={pricePlaceholder}
+          autoDisplayPrice={autoDisplayPrice}
         />
       )}
       {tab === 'detail' && (
@@ -328,12 +347,12 @@ function BasicTab({
   register,
   control,
   errors,
-  pricePlaceholder,
+  autoDisplayPrice,
 }: {
   register: ReturnType<typeof useForm<FormValues>>['register'];
   control: ReturnType<typeof useForm<FormValues>>['control'];
   errors: ReturnType<typeof useForm<FormValues>>['formState']['errors'];
-  pricePlaceholder: string;
+  autoDisplayPrice: string;
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -360,7 +379,9 @@ function BasicTab({
               readOnly
               aria-disabled
               tabIndex={-1}
-              className="cursor-not-allowed opacity-60 bg-[var(--surface-muted)] text-muted-foreground"
+              onMouseDown={(e) => e.preventDefault()}
+              onFocus={(e) => e.currentTarget.blur()}
+              className={ADMIN_READONLY_FIELD}
             />
           </Field>
         </FieldGrid>
@@ -417,11 +438,19 @@ function BasicTab({
         <FieldGrid cols={2}>
           <Field
             label="표시 가격"
-            required
+            hint="카드/PDP 노출 형식. '용량 / 옵션' 탭의 첫 번째 옵션 가격 기반으로 자동 생성됩니다."
             error={errors.displayPrice?.message}
-            hint="카드/카탈로그 노출용 문구. 옵션별 실 가격은 '용량 / 옵션' 탭에서 관리합니다."
           >
-            <Input type="text" placeholder={pricePlaceholder} {...register('displayPrice')} />
+            <div
+              role="status"
+              aria-live="polite"
+              className={cn(
+                ADMIN_READONLY_FIELD,
+                'flex items-center h-9 px-3 border rounded-md text-sm gtr-mono',
+              )}
+            >
+              {autoDisplayPrice || '옵션 추가 시 자동 표시'}
+            </div>
           </Field>
         </FieldGrid>
       </Card>
@@ -437,6 +466,7 @@ function BasicTab({
             rows={5}
             maxLength={4000}
             placeholder="원두의 향미·산지·로스팅 의도 등 본문 설명"
+            className="leading-tight"
             {...register('description')}
           />
         </Field>
@@ -660,7 +690,7 @@ function OptionTab({
           {volumes.fields.map((field, idx) => (
             <div
               key={field.id}
-              className="grid grid-cols-[1fr_140px_auto_auto] gap-2 items-center"
+              className="grid grid-cols-[1fr_140px_100px_auto] gap-2 items-center"
             >
               <Input
                 type="text"
@@ -669,36 +699,50 @@ function OptionTab({
                 aria-label={`옵션 ${idx + 1} 라벨`}
                 {...register(`volumes.${idx}.label` as const)}
               />
-              <Input
-                type="number"
-                min={0}
-                placeholder="가격(KRW)"
-                aria-label={`옵션 ${idx + 1} 가격`}
-                {...register(`volumes.${idx}.price` as const, { valueAsNumber: true })}
+              <Controller
+                control={control}
+                name={`volumes.${idx}.price` as const}
+                render={({ field: priceField }) => (
+                  <PriceInput
+                    value={
+                      typeof priceField.value === 'number' &&
+                      Number.isFinite(priceField.value)
+                        ? priceField.value
+                        : 0
+                    }
+                    onChange={priceField.onChange}
+                    placeholder="가격"
+                    ariaLabel={`옵션 ${idx + 1} 가격`}
+                  />
+                )}
               />
               <Controller
                 control={control}
                 name={`volumes.${idx}.soldOut` as const}
-                render={({ field: soField }) => (
-                  <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
-                    <Switch
-                      size="sm"
-                      checked={!!soField.value}
-                      onCheckedChange={soField.onChange}
-                      aria-label="품절 토글"
-                    />
-                    품절
-                  </label>
-                )}
+                render={({ field: soField }) => {
+                  const onSale = !soField.value;
+                  return (
+                    <label className="inline-flex items-center gap-2 text-xs text-muted-foreground whitespace-nowrap">
+                      <Switch
+                        checked={onSale}
+                        onCheckedChange={(v) => soField.onChange(!v)}
+                        aria-label={onSale ? '판매중' : '품절'}
+                        className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
+                      />
+                      {onSale ? '판매중' : '품절'}
+                    </label>
+                  );
+                }}
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="!h-7"
+                className="!h-7 !text-[var(--danger)] hover:!bg-[var(--danger-soft)]"
                 onClick={() => volumes.remove(idx)}
                 aria-label={`옵션 ${idx + 1} 삭제`}
               >
+                <Trash2 size={14} />
                 삭제
               </Button>
             </div>
@@ -770,10 +814,11 @@ function OptionTab({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="!h-7"
+                  className="!h-7 !text-[var(--danger)] hover:!bg-[var(--danger-soft)]"
                   onClick={() => recipes.remove(idx)}
                   aria-label={`레시피 ${idx + 1} 삭제`}
                 >
+                  <Trash2 size={14} />
                   삭제
                 </Button>
               </div>
@@ -873,7 +918,7 @@ function RoastStageChips({
       name="roastStage"
       control={control}
       render={({ field }) => (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {ROAST_STAGE_OPTIONS.map((opt) => {
             const active = field.value === opt.value;
             const disabled = 'disabled' in opt && opt.disabled === true;
@@ -886,11 +931,11 @@ function RoastStageChips({
                 onClick={() => !disabled && field.onChange(opt.value)}
                 title={'hint' in opt ? opt.hint : undefined}
                 className={cn(
-                  'px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer transition-colors',
+                  'px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer',
                   active
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-transparent border-input text-foreground hover:bg-accent',
-                  disabled && 'opacity-50 cursor-not-allowed hover:bg-transparent',
+                    ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
+                    : 'bg-[var(--surface)] text-foreground border-border',
+                  disabled && 'opacity-50 cursor-not-allowed',
                 )}
                 aria-pressed={active}
               >

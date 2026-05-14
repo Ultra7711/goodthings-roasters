@@ -138,29 +138,19 @@ export default function ProductImageReorderClient({
 
             {/* 액션 영역 */}
             <div className="p-2 flex flex-col gap-1.5">
-              {/* 이동 버튼 */}
+              {/* 이동 버튼 — 좌 / 대표로 / 우 (높이 28px 통일) */}
               <div className="flex gap-1">
                 <Button
                   type="button"
                   variant="outline"
                   size="icon-sm"
+                  className="!size-7"
                   onClick={() => moveUp(idx)}
                   disabled={!canMoveUp || pending}
                   aria-label="앞으로 이동"
                   title="앞으로 이동"
                 >
                   <ChevronLeftIcon />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => moveDown(idx)}
-                  disabled={!canMoveDown || pending}
-                  aria-label="뒤로 이동"
-                  title="뒤로 이동"
-                >
-                  <ChevronRightIcon />
                 </Button>
                 <Button
                   type="button"
@@ -174,6 +164,18 @@ export default function ProductImageReorderClient({
                 >
                   <StarIcon />
                   대표로
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-sm"
+                  className="!size-7"
+                  onClick={() => moveDown(idx)}
+                  disabled={!canMoveDown || pending}
+                  aria-label="뒤로 이동"
+                  title="뒤로 이동"
+                >
+                  <ChevronRightIcon />
                 </Button>
               </div>
             </div>

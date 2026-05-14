@@ -14,6 +14,7 @@
 import { useState } from 'react';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { AdminBackLink } from '@/components/admin/AdminBackLink';
+import { ADMIN_READONLY_FIELD } from '@/components/admin/NativeSelectWrap';
 import { Button } from '@/components/admin/ui/button';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import {
@@ -388,7 +389,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
                 readOnly
                 placeholder="작성된 메모가 없습니다"
                 title="편집 구현 예정 (출시 후)"
-                className="w-full min-h-[76px] resize-y px-2.5 py-2 border border-input rounded-md text-xs leading-relaxed text-foreground outline-none bg-[var(--surface-muted)] cursor-not-allowed"
+                className={`${ADMIN_READONLY_FIELD} w-full min-h-[76px] resize-y px-2.5 py-2 border rounded-md text-xs leading-relaxed outline-none`}
                 style={{ fontFamily: 'inherit' }}
               />
               <div className="mt-1.5 text-xs text-[var(--foreground-subtle)]">
