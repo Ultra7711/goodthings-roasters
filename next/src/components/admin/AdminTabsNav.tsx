@@ -64,9 +64,11 @@ function TabItem({
   active: boolean;
   props: AdminTabsNavProps;
 }) {
+  /* font-medium base — active/inactive 동일 weight 로 좌우 간격 변동 회피.
+     active 시각 cue = text color + 하단 primary bar + count badge bg. */
   const labelClass = cn(
-    'px-3 py-2 bg-transparent cursor-pointer text-sm relative flex items-center gap-1.5 no-underline',
-    active ? 'font-medium text-foreground' : 'font-normal text-muted-foreground',
+    'px-3 py-2 bg-transparent cursor-pointer text-sm font-medium relative flex items-center gap-1.5 no-underline',
+    active ? 'text-foreground' : 'text-muted-foreground',
   );
   const countClass = cn(
     'text-xs tabular-nums rounded-sm',

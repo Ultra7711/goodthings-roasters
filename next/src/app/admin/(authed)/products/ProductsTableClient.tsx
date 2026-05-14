@@ -249,26 +249,24 @@ export default function ProductsTableClient({ rows }: Props) {
         subtitle="원두·드립백 상품 목록 · 활성/비활성 토글 + 편집 진입"
       />
 
-      {/* 카테고리 탭 + 검색 (같은 행에 배치) */}
-      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <div className="flex-1 min-w-0">
-          <AdminTabsNav
-            mode="state"
-            tabs={CATEGORY_TABS.map((t) => ({
-              id: t.id,
-              label: t.label,
-              count:
-                t.id === 'all'
-                  ? counts.all
-                  : t.id === 'coffee_bean'
-                    ? counts.coffee_bean
-                    : counts.drip_bag,
-            }))}
-            active={category}
-            onChange={(id) => setCategory(id as CategoryFilter)}
-            className="mb-0"
-          />
-        </div>
+      <AdminTabsNav
+        mode="state"
+        tabs={CATEGORY_TABS.map((t) => ({
+          id: t.id,
+          label: t.label,
+          count:
+            t.id === 'all'
+              ? counts.all
+              : t.id === 'coffee_bean'
+                ? counts.coffee_bean
+                : counts.drip_bag,
+        }))}
+        active={category}
+        onChange={(id) => setCategory(id as CategoryFilter)}
+      />
+
+      {/* 검색 — 별 행 (Orders/Users/Subscriptions 답습) */}
+      <div className="flex gap-2 mb-3 items-center">
         <AdminSearchInput
           value={searchValue}
           onChange={setSearchValue}
@@ -292,13 +290,13 @@ export default function ProductsTableClient({ rows }: Props) {
             }
           />
         }
+        footer={
+          <div className="tabular-nums">
+            총 {filtered.length.toLocaleString()}건
+            {filtered.length !== rows.length && ` (전체 ${rows.length.toLocaleString()}건)`}
+          </div>
+        }
       />
-
-      {/* 페이지네이션 없음 (DEC · 전체 표시) — 카운트만 단순 표시 */}
-      <div className="mt-2.5 text-xs text-[var(--foreground-subtle)] tabular-nums">
-        총 {filtered.length}건
-        {filtered.length !== rows.length && ` (전체 ${rows.length}건)`}
-      </div>
     </>
   );
 }
