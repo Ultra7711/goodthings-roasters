@@ -19,9 +19,11 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
+import { Checkbox } from '@/components/admin/ui/checkbox';
 import { Textarea } from '@/components/admin/ui/textarea';
 import {
   CAFE_EVENT_TYPES,
@@ -300,18 +302,6 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
   return (
     <>
       <AdminTopbarActions>
-        {draft && !isNew && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="!h-7 !text-[var(--danger)] hover:!bg-[var(--danger-soft)]"
-            disabled={isPending}
-            onClick={handleDelete}
-          >
-            삭제
-          </Button>
-        )}
         <Button
           type="button"
           variant="ghost"
@@ -339,7 +329,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
           <h2 className="m-0 text-2xl font-medium tracking-[-0.02em]">
             카페 이벤트 관리
           </h2>
-          <div className="mt-1 text-[13px] text-[var(--foreground-muted)]">
+          <div className="mt-1 text-sm text-[var(--foreground-muted)]">
             메인 §2.5 카페 메뉴 chapter 의 이벤트 row · 동시 활성 max 1
           </div>
         </div>
@@ -357,7 +347,13 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         </div>
         <div className="flex gap-2 p-3 overflow-x-auto">
           {isNew && draft && (
-            <ListRow event={draft} selected isNew onClick={() => undefined} />
+            <ListRow
+              event={draft}
+              selected
+              isNew
+              isPending={isPending}
+              onClick={() => undefined}
+            />
           )}
           {events.length === 0 && !draft && (
             <div className="py-3 text-xs text-[var(--foreground-muted)]">
@@ -370,23 +366,25 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
               event={ev}
               selected={selectedId === ev.id}
               isNew={false}
+              isPending={isPending}
               onClick={() => selectEvent(ev.id)}
+              onDelete={selectedId === ev.id ? handleDelete : undefined}
             />
           ))}
         </div>
       </div>
 
       {/* Detail — 전체 너비 */}
-      <div className="flex flex-col gap-[14px] min-w-0">
+      <div className="flex flex-col gap-3 min-w-0">
           {!draft ? (
-            <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] py-[60px] px-10 text-center text-sm text-[var(--foreground-muted)]">
+            <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] py-12 px-10 text-center text-sm text-[var(--foreground-muted)]">
               위에서 이벤트를 선택하거나 [+ 새 이벤트] 를 눌러주세요.
             </div>
           ) : (
             <>
               {/* 동시 활성 충돌 경고 */}
               {activeConflict && (
-                <div className="px-[14px] py-[10px] rounded-md bg-[var(--warning-soft)] text-[var(--warning)] border border-[var(--warning)] text-[12.5px]">
+                <div className="px-3 py-2.5 rounded-md bg-[var(--warning-soft)] text-[var(--warning)] border border-[var(--warning)] text-xs">
                   ⚠ 활성 충돌 — 같은 기간에 "{activeConflict.h4 || '이름 없음'}" 이 이미
                   활성 상태입니다. 동시 활성 max 1 (자문 §5.3) — 우선순위 높은 1개만 노출됩니다.
                 </div>
@@ -394,7 +392,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
 
               {/* 기본 정보 카드 */}
               <Card title="기본 정보" subtitle="이벤트 type · 활성 · 노출 정렬">
-                <div className="flex flex-col gap-[14px]">
+                <div className="flex flex-col gap-3">
                   <FormField label="이벤트 type" required>
                     <div className="flex gap-1.5 flex-wrap">
                       {CAFE_EVENT_TYPES.map((t) => {
@@ -419,28 +417,28 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                     </div>
                   </FormField>
 
-                  <div className="grid grid-cols-[1fr_200px] gap-3">
+                  <div className="flex gap-6 items-start flex-wrap">
                     <FormField label="활성">
                       <label className="flex gap-2 items-center h-[34px] cursor-pointer">
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={draft.enabled}
-                          onChange={(e) => updateDraft('enabled', e.target.checked)}
-                          className="accent-[var(--primary)]"
+                          onCheckedChange={(v) => updateDraft('enabled', v === true)}
                         />
-                        <span className="text-[13px]">
+                        <span className="text-sm">
                           {draft.enabled ? '활성 (B2C 노출 후보)' : '비활성 (저장만)'}
                         </span>
                       </label>
                     </FormField>
                     <FormField label="정렬 순서" hint="작은 값이 먼저 (동률 fallback)">
-                      <FormInput
-                        type="number"
-                        value={String(draft.sort_order)}
-                        onChange={(e) =>
-                          updateDraft('sort_order', parseInt(e.target.value, 10) || 0)
-                        }
-                      />
+                      <div className="w-24">
+                        <FormInput
+                          type="number"
+                          value={String(draft.sort_order)}
+                          onChange={(e) =>
+                            updateDraft('sort_order', parseInt(e.target.value, 10) || 0)
+                          }
+                        />
+                      </div>
                     </FormField>
                   </div>
                 </div>
@@ -448,7 +446,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
 
               {/* 카피 카드 */}
               <Card title="카피" subtitle="자문 §3.2 — h4 max 22자 권고 · description max 80자 권고">
-                <div className="flex flex-col gap-[14px]">
+                <div className="flex flex-col gap-3">
                   <FormField
                     label="Eyebrow"
                     hint={`자동 합성 예: "${composeEventEyebrow(draft)}" — 빈 값 시 자동 합성 사용`}
@@ -522,7 +520,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
               {/* 이미지 카드 */}
               <Card title="이미지" subtitle="1:1 정사각 권장 · 최대 5MB · webp/avif/jpeg/png">
                 <div className="grid grid-cols-[1fr_240px] gap-4 items-start">
-                  <div className="flex flex-col gap-[14px] min-w-0">
+                  <div className="flex flex-col gap-3 min-w-0">
                     <FormField label="대체 텍스트 (alt)">
                       <FormInput
                         value={draft.image_alt}
@@ -549,7 +547,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                       />
                     ) : (
                       <div
-                        className="rounded-md overflow-hidden border border-border aspect-square flex items-center justify-center text-[var(--foreground-muted)] text-[11px]"
+                        className="rounded-md overflow-hidden border border-border aspect-square flex items-center justify-center text-[var(--foreground-muted)] text-xs"
                         style={{
                           background:
                             'repeating-linear-gradient(135deg, #EEEDEB 0 6px, #F5F4F2 6px 12px)',
@@ -576,7 +574,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                       {uploadState.status === 'uploading' ? '업로드 중…' : '이미지 변경'}
                     </Button>
                     {uploadState.status === 'error' && (
-                      <div className="mt-2 px-[10px] py-2 rounded-md bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-[11.5px]">
+                      <div className="mt-2 px-2.5 py-2 rounded-md bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
                         {uploadState.message}
                       </div>
                     )}
@@ -589,7 +587,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                 title="기간 · 분기 필드"
                 subtitle="ISO 날짜 (YYYY-MM-DD) · 빈 값 = 상시 노출"
               >
-                <div className="flex flex-col gap-[14px]">
+                <div className="flex flex-col gap-3">
                   <div className="grid grid-cols-2 gap-3">
                     <FormField label="시작일" hint="비워두면 상시 노출 (start 무관)">
                       <FormInput
@@ -704,12 +702,16 @@ function ListRow({
   event,
   selected,
   isNew,
+  isPending,
   onClick,
+  onDelete,
 }: {
   event: CafeEvent;
   selected: boolean;
   isNew: boolean;
+  isPending: boolean;
   onClick: () => void;
+  onDelete?: () => void;
 }) {
   const today = todayIsoSeoul();
   const status: 'active' | 'coming' | 'past' | 'disabled' = !event.enabled
@@ -722,52 +724,70 @@ function ListRow({
   const statusLabel = isNew
     ? '신규'
     : status === 'active'
-      ? 'Active'
+      ? '진행중'
       : status === 'coming'
-        ? 'Coming'
+        ? '예정'
         : status === 'past'
-          ? 'Past'
+          ? '종료'
           : '비활성';
-  const statusColor =
-    isNew
-      ? 'var(--info)'
-      : status === 'active'
-        ? 'var(--success)'
-        : status === 'coming'
-          ? 'var(--info)'
-          : status === 'past'
-            ? 'var(--foreground-muted)'
-            : 'var(--foreground-subtle)';
+  const statusClass = isNew
+    ? 'text-[var(--info)]'
+    : status === 'active'
+      ? 'text-[var(--success)]'
+      : status === 'coming'
+        ? 'text-[var(--info)]'
+        : status === 'past'
+          ? 'text-[var(--foreground-muted)]'
+          : 'text-[var(--foreground-subtle)]';
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <div
       className={cn(
-        'flex flex-col gap-1 px-3 py-2.5 w-[180px] flex-shrink-0 text-left rounded-md border cursor-pointer font-[inherit]',
+        'flex flex-col w-[180px] flex-shrink-0 rounded-md border overflow-hidden',
         selected
           ? 'bg-[var(--surface-muted)] border-[var(--primary)]'
-          : 'bg-[var(--surface)] border-border hover:bg-[var(--surface-muted)]',
+          : 'bg-[var(--surface)] border-border',
       )}
     >
-      <div className="flex items-center justify-between gap-1">
-        <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-[var(--surface-muted)] text-[var(--foreground-muted)] border border-border">
-          {TYPE_LABELS[event.type]}
-        </span>
-        <span
-          className="text-xs font-medium"
-          style={{ color: statusColor }}
-        >
-          {statusLabel}
-        </span>
-      </div>
-      <div className="text-xs font-medium text-[var(--foreground)] overflow-hidden text-ellipsis whitespace-nowrap w-full">
-        {event.h4 || <span className="text-[var(--foreground-muted)]">이름 없음</span>}
-      </div>
-      <div className="text-xs text-[var(--foreground-muted)] font-mono">
-        {event.start_date || '∞'} ~ {event.end_date || '∞'}
-      </div>
-    </button>
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn(
+          'flex flex-col gap-1 px-3 py-2.5 text-left cursor-pointer font-[inherit] border-none bg-transparent w-full',
+          !selected && 'hover:bg-[var(--surface-muted)]',
+        )}
+      >
+        <div className="flex items-center justify-between gap-1">
+          <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-[var(--surface-muted)] text-[var(--foreground-muted)] border border-border">
+            {TYPE_LABELS[event.type]}
+          </span>
+          <span className={cn('text-xs font-medium', statusClass)}>
+            {statusLabel}
+          </span>
+        </div>
+        <div className="text-xs font-medium text-[var(--foreground)] overflow-hidden text-ellipsis whitespace-nowrap w-full">
+          {event.h4 || <span className="text-[var(--foreground-muted)]">이름 없음</span>}
+        </div>
+        <div className="text-xs text-[var(--foreground-muted)] font-mono">
+          {event.start_date || '∞'} ~ {event.end_date || '∞'}
+        </div>
+      </button>
+      {onDelete && !isNew && (
+        <div className="px-3 py-2 border-t border-border">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="!h-7 !text-[var(--danger)] hover:!bg-[var(--danger-soft)]"
+            disabled={isPending}
+            onClick={onDelete}
+          >
+            <Trash2 size={14} />
+            삭제
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -788,10 +808,10 @@ function PreviewPane({
 }) {
   return (
     <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
-      <div className="px-[18px] py-[14px] border-b border-border flex items-center gap-3 flex-wrap">
+      <div className="px-4 py-3 border-b border-border flex items-center gap-3 flex-wrap">
         <div className="flex-1 min-w-[200px]">
           <h3 className="m-0 text-sm font-medium">EventBanner 미리보기</h3>
-          <div className="text-[11.5px] text-[var(--foreground-muted)] mt-0.5">
+          <div className="text-xs text-[var(--foreground-muted)] mt-0.5">
             저장 전 4 brk 검증 · 편집 중 즉시 반영
           </div>
         </div>
@@ -805,14 +825,14 @@ function PreviewPane({
                 onClick={() => onSelectBrk(opt.key)}
                 aria-pressed={sel}
                 className={cn(
-                  'px-[10px] py-1 text-[11.5px] font-medium rounded-md border cursor-pointer font-[inherit] whitespace-nowrap',
+                  'px-2.5 py-1 text-xs font-medium rounded-md border cursor-pointer font-[inherit] whitespace-nowrap',
                   sel
                     ? 'bg-[var(--primary)] !text-white border-[var(--primary)]'
                     : 'bg-[var(--surface)] text-[var(--foreground-muted)] border-border',
                 )}
               >
                 {opt.label}{' '}
-                <span className="opacity-70 ml-1 font-mono text-[10px]">
+                <span className="opacity-70 ml-1 font-mono text-xs">
                   {opt.width}
                 </span>
               </button>
@@ -821,7 +841,7 @@ function PreviewPane({
         </div>
       </div>
       {isDirty && (
-        <div className="px-[18px] py-1.5 bg-[var(--warning-soft)] text-[var(--warning)] text-[11.5px] border-b border-border">
+        <div className="px-4 py-1.5 bg-[var(--warning-soft)] text-[var(--warning)] text-xs border-b border-border">
           저장되지 않은 변경 — 미리보기는 즉시 반영 · 저장 시 라이브 사이트 반영
         </div>
       )}
@@ -931,11 +951,11 @@ function Card({
 }) {
   return (
     <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
-      <div className="px-[18px] py-[14px] border-b border-border">
+      <div className="px-4 py-3 border-b border-border">
         <h3 className="m-0 text-sm font-medium">{title}</h3>
-        <div className="text-[11.5px] text-[var(--foreground-muted)] mt-0.5">{subtitle}</div>
+        <div className="text-xs text-[var(--foreground-muted)] mt-0.5">{subtitle}</div>
       </div>
-      <div className="p-[18px]">{children}</div>
+      <div className="p-4">{children}</div>
     </div>
   );
 }
@@ -953,13 +973,13 @@ function FormField({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[12.5px] font-medium text-[var(--foreground)] tracking-[-0.005em] flex items-center gap-1">
+      <label className="text-xs font-medium text-[var(--foreground)] tracking-[-0.005em] flex items-center gap-1">
         {label}
         {required && <span className="text-[var(--primary)]">*</span>}
       </label>
       {children}
       {hint && (
-        <div className="pl-2.5 text-[11.5px] text-[var(--foreground-muted)]">{hint}</div>
+        <div className="pl-2.5 text-xs text-[var(--foreground-muted)]">{hint}</div>
       )}
     </div>
   );
@@ -977,20 +997,20 @@ function FormInput({
   return (
     <div
       className={cn(
-        'flex items-center gap-2 px-[10px] h-[34px] border border-input rounded-md',
+        'flex items-center gap-2 px-2.5 h-[34px] border border-input rounded-md',
         'has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50 has-[:focus-visible]:border-ring',
         disabled ? 'bg-[var(--surface-muted)] opacity-70' : 'bg-[var(--surface)]',
       )}
     >
       {prefix && (
-        <span className="text-[var(--foreground-muted)] text-[13px]">{prefix}</span>
+        <span className="text-[var(--foreground-muted)] text-sm">{prefix}</span>
       )}
       <input
         {...rest}
-        className="flex-1 min-w-0 border-none outline-none bg-transparent text-[13px] text-[var(--foreground)] p-0 h-full shadow-none ring-0"
+        className="flex-1 min-w-0 border-none outline-none bg-transparent text-sm text-[var(--foreground)] p-0 h-full shadow-none ring-0"
       />
       {suffix && (
-        <span className="text-[var(--foreground-muted)] text-[12px]">{suffix}</span>
+        <span className="text-[var(--foreground-muted)] text-xs">{suffix}</span>
       )}
     </div>
   );
