@@ -345,51 +345,42 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         </div>
       </div>
 
-      {/* master-detail */}
-      <div className="grid grid-cols-[280px_1fr] gap-4 items-start">
-
-        {/* List */}
-        <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden sticky top-4">
-          <div className="flex items-center gap-2 px-[14px] py-3 border-b border-border">
-            <div className="flex-1 text-[12.5px] font-medium">
-              이벤트 {events.length}개
-            </div>
-            <Button type="button" variant="outline" size="sm" className="!h-7" onClick={handleNew}>
-              + 새 이벤트
-            </Button>
+      {/* 이벤트 목록 — 상단 수평 스크롤 스트립 */}
+      <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden mb-4">
+        <div className="flex items-center gap-2 px-[14px] py-3 border-b border-border">
+          <div className="flex-1 text-xs font-medium">
+            이벤트 {events.length}개
           </div>
-          <div className="max-h-[70vh] overflow-y-auto">
-            {events.length === 0 && !draft && (
-              <div className="p-6 text-center text-xs text-[var(--foreground-muted)]">
-                아직 등록된 이벤트가 없습니다.
-              </div>
-            )}
-            {/* 신규 임시 row 도 list 상단에 표시 */}
-            {isNew && draft && (
-              <ListRow
-                event={draft}
-                selected
-                isNew
-                onClick={() => undefined}
-              />
-            )}
-            {events.map((ev) => (
-              <ListRow
-                key={ev.id}
-                event={ev}
-                selected={selectedId === ev.id}
-                isNew={false}
-                onClick={() => selectEvent(ev.id)}
-              />
-            ))}
-          </div>
+          <Button type="button" variant="outline" size="sm" className="!h-7" onClick={handleNew}>
+            + 새 이벤트
+          </Button>
         </div>
+        <div className="flex gap-2 p-3 overflow-x-auto">
+          {isNew && draft && (
+            <ListRow event={draft} selected isNew onClick={() => undefined} />
+          )}
+          {events.length === 0 && !draft && (
+            <div className="py-3 text-xs text-[var(--foreground-muted)]">
+              아직 등록된 이벤트가 없습니다.
+            </div>
+          )}
+          {events.map((ev) => (
+            <ListRow
+              key={ev.id}
+              event={ev}
+              selected={selectedId === ev.id}
+              isNew={false}
+              onClick={() => selectEvent(ev.id)}
+            />
+          ))}
+        </div>
+      </div>
 
-        {/* Detail */}
-        <div className="flex flex-col gap-[14px] min-w-0">
+      {/* Detail — 전체 너비 */}
+      <div className="flex flex-col gap-[14px] min-w-0">
           {!draft ? (
-            <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] py-[60px] px-10 text-center text-[13px] text-[var(--foreground-muted)]">
-              좌측에서 이벤트를 선택하거나 [+ 새 이벤트] 를 눌러주세요.
+            <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] py-[60px] px-10 text-center text-sm text-[var(--foreground-muted)]">
+              위에서 이벤트를 선택하거나 [+ 새 이벤트] 를 눌러주세요.
             </div>
           ) : (
             <>
@@ -703,7 +694,6 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
             </>
           )}
         </div>
-      </div>
     </>
   );
 }
@@ -754,25 +744,27 @@ function ListRow({
       type="button"
       onClick={onClick}
       className={cn(
-        'flex flex-col gap-1 px-[14px] py-[10px] w-full text-left border-none border-b border-border cursor-pointer font-[inherit]',
-        selected ? 'bg-[var(--surface-muted)]' : 'bg-transparent',
+        'flex flex-col gap-1 px-3 py-2.5 w-[180px] flex-shrink-0 text-left rounded-md border cursor-pointer font-[inherit]',
+        selected
+          ? 'bg-[var(--surface-muted)] border-[var(--primary)]'
+          : 'bg-[var(--surface)] border-border hover:bg-[var(--surface-muted)]',
       )}
     >
-      <div className="flex items-center gap-1.5">
-        <span className="text-[10px] font-medium px-1.5 py-[2px] rounded bg-[var(--surface)] text-[var(--foreground-muted)] border border-border">
+      <div className="flex items-center justify-between gap-1">
+        <span className="text-[10px] font-medium px-1.5 py-[2px] rounded bg-[var(--surface-muted)] text-[var(--foreground-muted)] border border-border">
           {TYPE_LABELS[event.type]}
         </span>
         <span
-          className="text-[10px] font-medium ml-auto"
+          className="text-[10px] font-medium"
           style={{ color: statusColor }}
         >
           {statusLabel}
         </span>
       </div>
-      <div className="text-[12.5px] font-medium text-[var(--foreground)] overflow-hidden text-ellipsis whitespace-nowrap">
+      <div className="text-xs font-medium text-[var(--foreground)] overflow-hidden text-ellipsis whitespace-nowrap w-full">
         {event.h4 || <span className="text-[var(--foreground-muted)]">이름 없음</span>}
       </div>
-      <div className="text-[10.5px] text-[var(--foreground-muted)] font-mono">
+      <div className="text-[10px] text-[var(--foreground-muted)] font-mono">
         {event.start_date || '∞'} ~ {event.end_date || '∞'}
       </div>
     </button>
