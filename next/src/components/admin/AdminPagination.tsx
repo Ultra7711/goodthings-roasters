@@ -111,7 +111,7 @@ function NavItem(props: NavItemProps) {
     ...PAGE_BUTTON_BASE,
     border: '1px solid ' + (active ? 'var(--primary)' : 'var(--border)'),
     background: active ? 'var(--primary)' : 'var(--surface)',
-    color: active ? '#fff' : disabled ? 'var(--foreground-subtle)' : 'var(--foreground)',
+    color: active ? 'var(--primary-foreground)' : disabled ? 'var(--foreground-subtle)' : 'var(--foreground)',
     fontWeight: active ? 500 : 400,
     cursor: disabled ? 'default' : 'pointer',
     opacity: disabled ? 0.6 : 1,

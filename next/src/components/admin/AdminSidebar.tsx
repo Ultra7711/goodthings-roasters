@@ -272,7 +272,7 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
                           padding: '2px 6px',
                           borderRadius: 999,
                           background: 'var(--sidebar-accent)',
-                          color: '#fff',
+                          color: 'var(--primary-foreground)',
                           fontVariantNumeric: 'tabular-nums',
                         }}
                       >
@@ -311,11 +311,11 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
               width: 30,
               height: 30,
               borderRadius: 999,
-              background: '#3a352f',
+              background: 'var(--sidebar-avatar-bg)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#fff',
+              color: 'var(--sidebar-active-fg)',
               fontSize: 14,
               fontWeight: 600,
               flexShrink: 0,

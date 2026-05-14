@@ -102,6 +102,17 @@
   --sidebar-accent: #C96442;
   --sidebar-active-bg: #2A2926;
   --sidebar-active-fg: #FFFFFF;
+  --sidebar-avatar-bg: #3A352F;   /* user 카드 avatar bg (S230 §7-3 Type 2) */
+
+  /* ── 공통 placeholder pattern (S230 §7-3 Type 2) ────
+     repeating-linear-gradient 의 stripe 색 2종.
+     상품 썸네일 누락 / 이미지 reorder 영역 등 admin 공통 placeholder. */
+  --placeholder-pattern-1: #EEEDEB;
+  --placeholder-pattern-2: #F5F4F2;
+
+  /* ── info 박스 border (S230 §7-3 Type 2) ────
+     info-soft 배경 + 한 단계 강한 border. SettingsForm / ShippingDialog 안내문. */
+  --info-border: #C5DCF1;
 
   /* ── 형태 ───────────────────────────── */
   --radius: 0.5rem;

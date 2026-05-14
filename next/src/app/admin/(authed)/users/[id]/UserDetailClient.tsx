@@ -63,11 +63,11 @@ type Props = {
 
 const ROLE_TONES: Record<RoleTone, { bg: string; fg: string; dot: string }> = {
   primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)', dot: 'var(--primary)' },
-  neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: '#888' },
+  neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: 'var(--foreground-muted)' },
 };
 
 const STATUS_TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> = {
-  neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: '#888' },
+  neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: 'var(--foreground-muted)' },
   success: { bg: 'var(--success-soft)', fg: 'var(--success)', dot: 'var(--success)' },
   warning: { bg: 'var(--warning-soft)', fg: 'var(--warning)', dot: 'var(--warning)' },
   info:    { bg: 'var(--info-soft)',    fg: 'var(--info)',    dot: 'var(--info)' },

@@ -551,7 +551,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                         className="rounded-md overflow-hidden border border-border aspect-square flex items-center justify-center text-[var(--foreground-muted)] text-xs"
                         style={{
                           background:
-                            'repeating-linear-gradient(135deg, #EEEDEB 0 6px, #F5F4F2 6px 12px)',
+                            'repeating-linear-gradient(135deg, var(--placeholder-pattern-1) 0 6px, var(--placeholder-pattern-2) 6px 12px)',
                         }}
                       >
                         이미지 없음

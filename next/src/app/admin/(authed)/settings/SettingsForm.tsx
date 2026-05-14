@@ -275,7 +275,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
               </FormField>
             </div>
 
-            <div className="p-3 rounded-[6px] bg-[var(--info-soft)] border border-[#C5DCF1] flex gap-3 items-start text-xs text-[var(--info)]">
+            <div className="p-3 rounded-[6px] bg-[var(--info-soft)] border border-[var(--info-border)] flex gap-3 items-start text-xs text-[var(--info)]">
               <svg
                 width="16"
                 height="16"
@@ -499,7 +499,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   <div
                     className="rounded-[6px] overflow-hidden border border-border aspect-[4/5] flex items-center justify-center text-muted-foreground text-xs"
                     style={{
-                      background: 'repeating-linear-gradient(135deg, #EEEDEB 0 6px, #F5F4F2 6px 12px)',
+                      background: 'repeating-linear-gradient(135deg, var(--placeholder-pattern-1) 0 6px, var(--placeholder-pattern-2) 6px 12px)',
                     }}
                   >
                     이미지 없음
@@ -751,7 +751,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                   <div
                     className="rounded-[6px] overflow-hidden border border-border aspect-[5/4] flex items-center justify-center text-muted-foreground text-xs relative"
                     style={{
-                      background: 'repeating-linear-gradient(135deg, #EEEDEB 0 6px, #F5F4F2 6px 12px)',
+                      background: 'repeating-linear-gradient(135deg, var(--placeholder-pattern-1) 0 6px, var(--placeholder-pattern-2) 6px 12px)',
                     }}
                   >
                     <div

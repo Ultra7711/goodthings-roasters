@@ -108,7 +108,7 @@ export default function ProductImageReorderClient({
               className="relative w-full aspect-square"
               style={{
                 background:
-                  'repeating-linear-gradient(135deg, #EEEDEB 0 5px, #F5F4F2 5px 10px)',
+                  'repeating-linear-gradient(135deg, var(--placeholder-pattern-1) 0 5px, var(--placeholder-pattern-2) 5px 10px)',
               }}
             >
               <Image

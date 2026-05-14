@@ -107,14 +107,15 @@
 | warning | `--warning-soft` (#F8EFD7) | `--warning` (#B8860B) | `--warning` |
 | danger | `--danger-soft` (#F8E0E0) | `--danger` (#B43D3D) | `--danger` |
 | info | `--info-soft` (#E1ECF8) | `--info` (#3D6FB4) | `--info` |
-| neutral | `--neutral-soft` (#ECECEA) | `--neutral-soft-fg` (#4A4A48) | `#888` |
+| neutral | `--neutral-soft` (#ECECEA) | `--neutral-soft-fg` (#4A4A48) | `--foreground-muted` (#6B6B6B) (S230) |
 
 ### 1-3. 사이드바 (warm dark)
 
 `--sidebar-bg #1A1A1A` / `--sidebar-bg-elevated #232220` / `--sidebar-fg #E8E6E2` /
 `--sidebar-fg-muted #888581` / `--sidebar-fg-subtle #5C5A56` /
 `--sidebar-border #2A2926` / `--sidebar-accent #C96442` /
-`--sidebar-active-bg #2A2926` / `--sidebar-active-fg #FFFFFF`
+`--sidebar-active-bg #2A2926` / `--sidebar-active-fg #FFFFFF` /
+`--sidebar-avatar-bg #3A352F` (S230)
 
 ### 1-4. 컨트롤
 
@@ -416,7 +417,7 @@ const TONES: Record<Tone, { bg: string; fg: string; dot: string }> = {
   warning: { bg: 'var(--warning-soft)', fg: 'var(--warning)', dot: 'var(--warning)' },
   danger:  { bg: 'var(--danger-soft)',  fg: 'var(--danger)',  dot: 'var(--danger)' },
   info:    { bg: 'var(--info-soft)',    fg: 'var(--info)',    dot: 'var(--info)' },
-  neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: '#888' },
+  neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: 'var(--foreground-muted)' },
 };
 
 function Badge({ tone, children, dot }: { tone: Tone; children: React.ReactNode; dot?: boolean }) {
@@ -1002,12 +1003,12 @@ import { Trash2 } from 'lucide-react';
 | 항목 | 위치 | Type | 처리 |
 |---|---|---|---|
 | ~~`#FAFAF9`~~ | ~~Products thead bg~~ | ✅ S226 정정 | `var(--surface-muted)` 완료 |
-| `#fee2e2` | Subscriptions softDestructive fallback (1곳) | Type 1 (즉시) | `var(--danger-soft)` (기존 토큰) |
-| `#888` | Badge dot neutral (5곳 · Orders/Users/UserDetail/OrderDetail) | Type 1 (즉시) | `var(--foreground-muted)` |
-| `#fff` | Pagination active / Sidebar avatar text (6곳) | Type 1 (즉시) | `!text-white` className |
-| `#EEEDEB / #F5F4F2` | Products thumb placeholder gradient (admin 공통) | Type 2 (토큰 신설) | `--placeholder-pattern-1/-2` 신설 |
-| `#C5DCF1` | SettingsForm info 박스 border + ShippingDialog | Type 2 (토큰 신설) | `--info-border` 신설 |
-| `#3a352f` | AdminSidebar avatar bg | Type 2 (토큰 신설 · §1-3 sidebar 시스템) | `--sidebar-avatar-bg` 신설 |
+| ~~`#fee2e2`~~ | ~~Subscriptions softDestructive fallback~~ | ✅ S230 검증 시 0건 (이미 정리됨) | — |
+| ~~`#888`~~ | ~~Badge dot neutral (실측 5곳 · Orders/Users/UserDetail/OrderDetail)~~ | ✅ S230 정정 | `var(--foreground-muted)` |
+| ~~`#fff`~~ | ~~AdminPagination active + AdminSidebar badge/avatar (실측 3곳)~~ | ✅ S230 정정 | inline → `var(--primary-foreground)` / `var(--sidebar-active-fg)` (className 변환 불필요 · 이미 admin token system) |
+| ~~`#EEEDEB / #F5F4F2`~~ | ~~Products/CafeEvents/Settings/OrderDetail placeholder gradient (5곳)~~ | ✅ S230 토큰 신설 + 사용처 마이그 | `--placeholder-pattern-1/-2` |
+| ~~`#C5DCF1`~~ | ~~SettingsForm info 박스 border + ShippingDialog (2곳)~~ | ✅ S230 토큰 신설 | `--info-border` |
+| ~~`#3a352f`~~ | ~~AdminSidebar avatar bg (1곳)~~ | ✅ S230 토큰 신설 (§1-3 sidebar 시스템 합류) | `--sidebar-avatar-bg` |
 | `#FBF8F3` | Settings/CafeEvents iframe bg fallback (b2c preview) | Type 3 (정당 잔존) | `var(--color-background-primary, #FBF8F3)` 형태 유지 (iframe 안은 b2c 페이지) |
 
 ### 7-4. primary 배경 + 흰 텍스트

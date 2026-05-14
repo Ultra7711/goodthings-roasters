@@ -59,7 +59,7 @@ type Props = {
 };
 
 const TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> = {
-  neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: '#888' },
+  neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: 'var(--foreground-muted)' },
   success: { bg: 'var(--success-soft)', fg: 'var(--success)', dot: 'var(--success)' },
   warning: { bg: 'var(--warning-soft)', fg: 'var(--warning)', dot: 'var(--warning)' },
   info:    { bg: 'var(--info-soft)',    fg: 'var(--info)',    dot: 'var(--info)' },

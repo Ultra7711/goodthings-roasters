@@ -31,7 +31,7 @@ import type { OrderDetail } from '@/lib/admin/ordersServer';
 import ShippingDialog from './ShippingDialog';
 
 const TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> = {
-  neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: '#888' },
+  neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: 'var(--foreground-muted)' },
   success: { bg: 'var(--success-soft)', fg: 'var(--success)', dot: 'var(--success)' },
   warning: { bg: 'var(--warning-soft)', fg: 'var(--warning)', dot: 'var(--warning)' },
   info:    { bg: 'var(--info-soft)',    fg: 'var(--info)',    dot: 'var(--info)' },
@@ -119,7 +119,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
                 >
                   <div
                     className="size-10 rounded-md border border-border"
-                    style={{ background: 'repeating-linear-gradient(135deg, #EEEDEB 0 5px, #F5F4F2 5px 10px)' }}
+                    style={{ background: 'repeating-linear-gradient(135deg, var(--placeholder-pattern-1) 0 5px, var(--placeholder-pattern-2) 5px 10px)' }}
                     aria-hidden
                   />
                   <div className="min-w-0">
