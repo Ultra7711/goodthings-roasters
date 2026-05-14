@@ -20,6 +20,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
+import {
+  FlavorChipInput,
+  decodeChipsFromColumns,
+  type FlavorChip,
+} from '@/components/admin/FlavorChipInput';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 import { Slider } from '@/components/admin/ui/slider';
@@ -113,8 +118,9 @@ const FormSchema = z.object({
   description: z.string().max(4000),
   flavorDesc: z.string().max(200),
   roastStage: RoastStageEnum,
-  noteTags: z.string().max(200),
-  noteTagsEn: z.string().max(200),
+  noteChips: z
+    .array(z.object({ ko: z.string().min(1), en: z.string() }))
+    .max(20),
   noteColor: HexColor,
   noteSweet: FlavorAxis,
   noteBody: FlavorAxis,
@@ -155,8 +161,10 @@ export default function ProductEditForm({ product }: Props) {
       description: product.description ?? '',
       flavorDesc: product.flavor_desc ?? '',
       roastStage: product.roast_stage,
-      noteTags: product.note_tags ?? '',
-      noteTagsEn: product.note_tags_en ?? '',
+      noteChips: decodeChipsFromColumns(
+        product.note_tags ?? '',
+        product.note_tags_en ?? '',
+      ),
       noteColor: product.note_color ?? '#A47146',
       noteSweet: Number(product.note_sweet) || 0,
       noteBody: Number(product.note_body) || 0,
@@ -539,21 +547,28 @@ function DetailTab({
         </Field>
       </Card>
 
-      {/* 노트 태그 카드 */}
+      {/* 노트 태그 카드 — 시그니처 설정과 동일한 한·영 페어 chip UI 답습 */}
       <Card title="노트 태그">
         <Field
-          label="한글 태그"
-          hint="Enter 또는 쉼표(,) 로 추가합니다. PDP 본문 노트 태그에 사용됩니다."
-          error={errors.noteTags?.message}
+          label="한·영 페어 chip"
+          hint="입력 예: '복숭아 Peach' · Enter 또는 쉼표로 추가 · 영문 생략 가능. PDP 본문 + 시그니처 자동 추출에 사용됩니다."
+          error={
+            (errors.noteChips as { message?: string } | undefined)?.message ??
+            undefined
+          }
         >
-          <TagInputField name="noteTags" control={control} placeholder="자몽, 설탕, 청량감" />
-        </Field>
-        <Field
-          label="영문 태그"
-          hint="Enter 또는 쉼표(,) 로 추가합니다."
-          error={errors.noteTagsEn?.message}
-        >
-          <TagInputField name="noteTagsEn" control={control} placeholder="Grapefruit, Sugar, Refreshing" />
+          <Controller
+            name="noteChips"
+            control={control}
+            render={({ field }) => (
+              <FlavorChipInput
+                value={field.value}
+                onChange={field.onChange}
+                showCount
+                emptyMessage="(chip 없음 — Enter / 쉼표로 추가)"
+              />
+            )}
+          />
         </Field>
       </Card>
     </div>
@@ -641,75 +656,6 @@ function RoastStageChips({
           })}
         </div>
       )}
-    />
-  );
-}
-
-/* ── Tag input (Enter / 쉼표 분리 · 라이브러리 미사용) ────────────────── */
-
-function parseTags(raw: string): string[] {
-  return raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-}
-
-function TagInputField({
-  name,
-  control,
-  placeholder,
-}: {
-  name: 'noteTags' | 'noteTagsEn';
-  control: ReturnType<typeof useForm<FormValues>>['control'];
-  placeholder?: string;
-}) {
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field }) => {
-        const tags = parseTags(typeof field.value === 'string' ? field.value : '');
-        const [draft, setDraft] = useState('');
-        const commit = (next: string[]) => field.onChange(next.join(', '));
-        const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
-          if (e.key === 'Enter' || e.key === ',') {
-            e.preventDefault();
-            const value = draft.trim();
-            if (value && !tags.includes(value)) commit([...tags, value]);
-            setDraft('');
-          } else if (e.key === 'Backspace' && draft === '' && tags.length > 0) {
-            commit(tags.slice(0, -1));
-          }
-        };
-        return (
-          <div className="flex flex-wrap items-center gap-1.5 min-h-[34px] px-2 py-1 bg-[var(--surface)] border border-input rounded-md">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-accent text-foreground"
-              >
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => commit(tags.filter((t) => t !== tag))}
-                  className="border-none bg-transparent cursor-pointer text-muted-foreground hover:text-foreground p-0 leading-none"
-                  aria-label={`${tag} 제거`}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            <input
-              type="text"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={tags.length === 0 ? placeholder : ''}
-              className="flex-1 min-w-[80px] border-none outline-none bg-transparent text-sm text-[var(--foreground)] p-0"
-            />
-          </div>
-        );
-      }}
     />
   );
 }

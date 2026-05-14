@@ -30,6 +30,7 @@ import {
 } from '@/lib/siteSettings';
 import { uploadSeasonBanner } from '@/lib/admin/uploadSeasonBanner';
 import { uploadSignatureImage } from '@/lib/admin/uploadSignatureImage';
+import { FlavorChipInput } from '@/components/admin/FlavorChipInput';
 import type { Product } from '@/lib/products';
 import {
   saveSiteSettingsAction,
@@ -647,60 +648,13 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                 label="플레이버 chip"
                 hint="최대 4개 · 권장 3개 · 영문은 공백으로 구분 (예: 복숭아 Peach)"
               >
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex gap-1.5 flex-wrap">
-                    {settings.signature.flavor_chips.length === 0 ? (
-                      <span className="text-xs text-muted-foreground italic">
-                        (chip 없음 — 자동 가져오기 또는 수동 추가)
-                      </span>
-                    ) : (
-                      settings.signature.flavor_chips.map((chip, i) => (
-                        <span
-                          key={`${chip.ko}-${i}`}
-                          className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-[3px] text-xs bg-[var(--surface-muted)] border border-border rounded-full text-[var(--foreground)]"
-                        >
-                          {chip.ko}
-                          {chip.en && (
-                            <span className="text-muted-foreground">{chip.en}</span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateSignature({
-                                flavor_chips: settings.signature.flavor_chips.filter(
-                                  (_, idx) => idx !== i,
-                                ),
-                              })
-                            }
-                            aria-label={`${chip.ko} 삭제`}
-                            className="size-[18px] rounded-full border-0 bg-transparent text-muted-foreground cursor-pointer text-sm p-0 inline-flex items-center justify-center leading-none"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="flex-1 min-w-0">
-                    <FormInput
-                      placeholder="예: 복숭아 Peach  (영문 생략 가능)"
-                      maxLength={50}
-                      onKeyDown={(e) => {
-                        if (e.key !== 'Enter') return;
-                        e.preventDefault();
-                        const target = e.currentTarget;
-                        const chip = parseChipInput(target.value);
-                        if (!chip) return;
-                        if (settings.signature.flavor_chips.length >= 4) return;
-                        if (settings.signature.flavor_chips.some((c) => c.ko === chip.ko)) return;
-                        updateSignature({
-                          flavor_chips: [...settings.signature.flavor_chips, chip],
-                        });
-                        target.value = '';
-                      }}
-                    />
-                    </div>
+                <FlavorChipInput
+                  value={settings.signature.flavor_chips}
+                  onChange={(chips) => updateSignature({ flavor_chips: chips })}
+                  max={4}
+                  emptyMessage="(chip 없음 — 자동 가져오기 또는 수동 추가)"
+                  showCount
+                  extraAction={
                     <Button
                       type="button"
                       variant="outline"
@@ -718,11 +672,8 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
                     >
                       Tasting Notes 가져오기
                     </Button>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Enter 로 추가 · 현재 {settings.signature.flavor_chips.length}/4
-                  </div>
-                </div>
+                  }
+                />
               </FormField>
             </div>
 
@@ -988,22 +939,6 @@ function buildPreviewSrc(s: SignatureSettings): string {
     image_alt: s.image_alt,
   });
   return `/preview/signature?${params.toString()}`;
-}
-
-/** "복숭아 Peach" 또는 "복숭아" → {ko, en} 파싱.
-    마지막 한글 문자(U+AC00~D7A3) 위치 기준으로 ko/en 분리. ko 없으면 null. */
-function parseChipInput(raw: string): { ko: string; en: string } | null {
-  const trimmed = raw.trim();
-  if (!trimmed) return null;
-  let lastKoreanIdx = -1;
-  for (let i = trimmed.length - 1; i >= 0; i--) {
-    const code = trimmed.charCodeAt(i);
-    if (code >= 0xac00 && code <= 0xd7a3) { lastKoreanIdx = i; break; }
-  }
-  if (lastKoreanIdx === -1) return { ko: trimmed, en: '' };
-  const ko = trimmed.slice(0, lastKoreanIdx + 1).trim();
-  const en = trimmed.slice(lastKoreanIdx + 1).trim();
-  return ko ? { ko, en } : null;
 }
 
 /** coffeeBeans 의 noteTags + noteTagsEn → {ko, en}[] 최대 3개 (advisory §5.1). */

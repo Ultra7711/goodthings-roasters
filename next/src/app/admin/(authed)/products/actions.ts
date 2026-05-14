@@ -99,8 +99,11 @@ export async function toggleProductActiveAction(input: {
 
    범위 (basic + detail 탭): name / category / status / displayPrice / sortOrder /
                     color / subscription / popup / description /
-                    flavorDesc / roastStage / noteTags / noteTagsEn / noteColor /
+                    flavorDesc / roastStage / noteChips / noteColor /
                     noteSweet / noteBody / noteAftertaste / noteAroma / noteAcidity
+
+   noteChips ({ko, en}[]) 는 시그니처 chip UI 와 동일 형식 — action 안에서
+   note_tags / note_tags_en 두 컬럼 ' | ' join 으로 저장.
 
    carry-over (option/recipe 탭): specs / product_volumes / product_recipes
    ══════════════════════════════════════════════════════════════════════════ */
@@ -124,6 +127,11 @@ const RoastStageEnum = z.enum([
 
 const FlavorAxisSchema = z.number().min(0).max(5);
 
+const FlavorChipSchema = z.object({
+  ko: z.string().min(1),
+  en: z.string(),
+});
+
 const UpdateProductMetaSchema = z.object({
   id: z.string().uuid(),
   slug: z.string().min(1).max(80),
@@ -138,8 +146,7 @@ const UpdateProductMetaSchema = z.object({
   description: z.string().max(4000),
   flavorDesc: z.string().max(200),
   roastStage: RoastStageEnum,
-  noteTags: z.string().max(200),
-  noteTagsEn: z.string().max(200),
+  noteChips: z.array(FlavorChipSchema).max(20),
   noteColor: HexColorSchema,
   noteSweet: FlavorAxisSchema,
   noteBody: FlavorAxisSchema,
@@ -177,6 +184,8 @@ export async function updateProductMetaAction(
     };
   }
   const v = parsed.data;
+  const noteTagsJoined = v.noteChips.map((c) => c.ko).join(' | ');
+  const noteTagsEnJoined = v.noteChips.map((c) => c.en).join(' | ');
   const admin = getSupabaseAdmin();
   const { data, error } = await admin
     .from('products')
@@ -192,8 +201,8 @@ export async function updateProductMetaAction(
       description: v.description,
       flavor_desc: v.flavorDesc,
       roast_stage: v.roastStage,
-      note_tags: v.noteTags,
-      note_tags_en: v.noteTagsEn,
+      note_tags: noteTagsJoined,
+      note_tags_en: noteTagsEnJoined,
       note_color: v.noteColor,
       note_sweet: v.noteSweet,
       note_body: v.noteBody,
