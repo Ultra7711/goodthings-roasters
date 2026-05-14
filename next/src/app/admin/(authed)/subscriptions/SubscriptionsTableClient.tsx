@@ -328,21 +328,20 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
       {/* gooddays B-180b 답습 — DialogContent 의 Tailwind p-6 가 admin Portal 안에서
          적용 안 되는 케이스 회피용 inline padding/gap. */}
       <DialogContent
-        className="gtr-admin"
-        style={{ padding: 0, gap: 0, maxWidth: 460 }}
+        className="gtr-admin p-0 gap-0 max-w-[460px]"
       >
         {/* 다이얼로그 헤더 */}
-        <DialogHeader style={{ padding: '20px 24px 0' }}>
-          <DialogTitle style={{ fontSize: 16, fontWeight: 500 }}>
+        <DialogHeader className="px-6 pt-5">
+          <DialogTitle className="text-base font-medium">
             구독 편집
           </DialogTitle>
-          <DialogDescription style={{ fontSize: 12, marginBottom: 16 }}>
+          <DialogDescription className="text-xs mb-4">
             {userName} · {extractKrName(row.productName)}
             {row.productVolume ? ` (${row.productVolume})` : ''} · 주기 {describeCycle(row.cycle)}
           </DialogDescription>
 
           {/* 섹션 탭 */}
-          <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)' }}>
+          <div className="flex gap-0 border-b border-border">
             {([
               { key: 'delivery', label: '배송일' },
               { key: 'cycle', label: '주기' },
@@ -355,17 +354,11 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
                   key={tab.key}
                   type="button"
                   onClick={() => setActiveSection(tab.key)}
-                  style={{
-                    padding: '8px 14px',
-                    fontSize: 13,
-                    fontWeight: active ? 500 : 400,
-                    color: active ? 'var(--foreground)' : 'var(--foreground-muted)',
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom: active ? '2px solid var(--primary)' : '2px solid transparent',
-                    cursor: 'pointer',
-                    marginBottom: -1,
-                  }}
+                  className={`px-3 py-2 text-sm bg-transparent border-none cursor-pointer -mb-px border-b-2 ${
+                    active
+                      ? 'font-medium text-foreground border-[var(--primary)]'
+                      : 'font-normal text-muted-foreground border-transparent'
+                  }`}
                 >
                   {tab.label}
                 </button>
@@ -375,7 +368,7 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
         </DialogHeader>
 
         {/* 섹션 콘텐츠 */}
-        <div style={{ padding: '20px 24px 24px' }}>
+        <div className="px-6 pt-5 pb-6">
           {activeSection === 'delivery' && (
             <DeliverySection
               row={row}
@@ -447,7 +440,7 @@ function DeliverySection({
 
   return (
     <div>
-      <label style={{ display: 'block', fontSize: 12, color: 'var(--foreground-muted)', marginBottom: 6 }}>
+      <label className="block text-xs text-muted-foreground mb-1.5">
         다음 배송일 (KST)
       </label>
       <Input
@@ -455,12 +448,12 @@ function DeliverySection({
         value={dateValue}
         onChange={(e) => setDateValue(e.target.value)}
         disabled={isPending}
-        style={{ fontVariantNumeric: 'tabular-nums' }}
+        className="tabular-nums"
       />
       {submitError && (
-        <div style={{ marginTop: 8, fontSize: 12, color: 'var(--destructive)' }}>{submitError}</div>
+        <div className="mt-2 text-xs text-destructive">{submitError}</div>
       )}
-      <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      <div className="mt-5 flex justify-end gap-2">
         <CancelButton onClick={onClose} disabled={isPending} />
         <SaveButton
           onClick={handleSave}
@@ -513,7 +506,7 @@ function CycleSection({
 
   if (!canEdit) {
     return (
-      <div style={{ fontSize: 13, color: 'var(--foreground-muted)', padding: '12px 0' }}>
+      <div className="text-sm text-muted-foreground py-3">
         해지·만료된 구독은 주기를 변경할 수 없습니다.
       </div>
     );
@@ -521,10 +514,10 @@ function CycleSection({
 
   return (
     <div>
-      <label style={{ display: 'block', fontSize: 12, color: 'var(--foreground-muted)', marginBottom: 6 }}>
+      <label className="block text-xs text-muted-foreground mb-1.5">
         배송 주기
       </label>
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div className="flex gap-2">
         {SUBSCRIPTION_CYCLES.map((c) => {
           const selected = c === newCycle;
           return (
@@ -541,13 +534,13 @@ function CycleSection({
           );
         })}
       </div>
-      <div style={{ marginTop: 8, fontSize: 11, color: 'var(--foreground-muted)' }}>
+      <div className="mt-2 text-xs text-muted-foreground">
         변경 시 다음 배송일이 재계산됩니다 (직전 배송일 + 새 주기).
       </div>
       {submitError && (
-        <div style={{ marginTop: 8, fontSize: 12, color: 'var(--destructive)' }}>{submitError}</div>
+        <div className="mt-2 text-xs text-destructive">{submitError}</div>
       )}
-      <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      <div className="mt-5 flex justify-end gap-2">
         <CancelButton onClick={onClose} disabled={isPending} />
         <SaveButton
           onClick={handleSave}
@@ -601,7 +594,9 @@ function StatusSection({
     });
   }
 
-  /* admin soft tone — shadcn Button variant 매핑 없음. inline style 강제 + size=sm. */
+  /* admin soft tone — Badge tone (DEC-2) 패턴 답습. shadcn Button variant 매핑 없어
+     inline style 유지 (className arbitrary value 도 가능하지만 ghost hover 와 충돌
+     회피용 명시적 inline · ADR-008 §5-9 exception). */
   const softWarning: React.CSSProperties = { background: 'var(--warning-soft)', color: 'var(--warning)' };
   const softDestructive: React.CSSProperties = { background: 'var(--destructive-soft, #fee2e2)', color: 'var(--destructive)' };
   const softSuccess: React.CSSProperties = { background: 'var(--success-soft)', color: 'var(--success)' };
@@ -609,11 +604,11 @@ function StatusSection({
   return (
     <div>
       {isActive && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ fontSize: 13, color: 'var(--foreground-muted)' }}>
-            현재 상태: <strong style={{ color: 'var(--foreground)' }}>진행중</strong>
+        <div className="flex flex-col gap-3">
+          <div className="text-sm text-muted-foreground">
+            현재 상태: <strong className="text-foreground">진행중</strong>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="flex gap-2">
             <Button
               type="button"
               variant="ghost"
@@ -634,8 +629,8 @@ function StatusSection({
             </Button>
           </div>
           {confirmCancel && (
-            <div style={{ background: 'var(--surface-muted)', borderRadius: 'var(--radius)', padding: 14 }}>
-              <label style={{ display: 'block', fontSize: 12, color: 'var(--foreground-muted)', marginBottom: 6 }}>
+            <div className="bg-[var(--surface-muted)] rounded-[var(--radius)] p-3">
+              <label className="block text-xs text-muted-foreground mb-1.5">
                 해지 사유 (선택)
               </label>
               <Input
@@ -661,14 +656,14 @@ function StatusSection({
       )}
 
       {isPaused && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ fontSize: 13, color: 'var(--foreground-muted)' }}>
-            현재 상태: <strong style={{ color: 'var(--foreground)' }}>일시정지</strong>
+        <div className="flex flex-col gap-3">
+          <div className="text-sm text-muted-foreground">
+            현재 상태: <strong className="text-foreground">일시정지</strong>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--foreground-subtle)' }}>
+          <div className="text-xs text-[var(--foreground-subtle)]">
             재개 시 다음 배송일 = 오늘 + 배송 주기로 설정됩니다.
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="flex gap-2">
             <Button
               type="button"
               variant="ghost"
@@ -689,8 +684,8 @@ function StatusSection({
             </Button>
           </div>
           {confirmCancel && (
-            <div style={{ background: 'var(--surface-muted)', borderRadius: 'var(--radius)', padding: 14 }}>
-              <label style={{ display: 'block', fontSize: 12, color: 'var(--foreground-muted)', marginBottom: 6 }}>
+            <div className="bg-[var(--surface-muted)] rounded-[var(--radius)] p-3">
+              <label className="block text-xs text-muted-foreground mb-1.5">
                 해지 사유 (선택)
               </label>
               <Input
@@ -716,15 +711,15 @@ function StatusSection({
       )}
 
       {!isActive && !isPaused && (
-        <div style={{ fontSize: 13, color: 'var(--foreground-muted)', padding: '12px 0' }}>
+        <div className="text-sm text-muted-foreground py-3">
           {row.status === 'cancelled' ? '해지된 구독입니다.' : '만료된 구독입니다.'} 상태를 변경할 수 없습니다.
         </div>
       )}
 
       {submitError && (
-        <div style={{ marginTop: 12, fontSize: 12, color: 'var(--destructive)' }}>{submitError}</div>
+        <div className="mt-3 text-xs text-destructive">{submitError}</div>
       )}
-      <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
+      <div className="mt-5 flex justify-end">
         <CancelButton onClick={onClose} disabled={isPending} label="닫기" />
       </div>
     </div>
@@ -795,7 +790,7 @@ function HistorySection({ subscriptionId }: { subscriptionId: string }) {
 
   if (entries === null && !loadError) {
     return (
-      <div style={{ padding: '24px 0', textAlign: 'center', fontSize: 13, color: 'var(--foreground-muted)' }}>
+      <div className="py-6 text-center text-sm text-muted-foreground">
         불러오는 중…
       </div>
     );
@@ -803,7 +798,7 @@ function HistorySection({ subscriptionId }: { subscriptionId: string }) {
 
   if (loadError) {
     return (
-      <div style={{ padding: '12px 0', fontSize: 13, color: 'var(--destructive)' }}>
+      <div className="py-3 text-sm text-destructive">
         이력을 불러오지 못했습니다.
       </div>
     );
@@ -811,31 +806,28 @@ function HistorySection({ subscriptionId }: { subscriptionId: string }) {
 
   if (!entries || entries.length === 0) {
     return (
-      <div style={{ padding: '24px 0', textAlign: 'center', fontSize: 13, color: 'var(--foreground-muted)' }}>
+      <div className="py-6 text-center text-sm text-muted-foreground">
         변경 이력이 없습니다.
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, maxHeight: 320, overflowY: 'auto' }}>
+    <div className="flex flex-col max-h-80 overflow-y-auto">
       {entries.map((entry, i) => (
         <div
           key={entry.id}
-          style={{
-            padding: '10px 0',
-            borderBottom: i < entries.length - 1 ? '1px solid var(--border)' : 'none',
-          }}
+          className={`py-2.5 ${i < entries.length - 1 ? 'border-b border-border' : ''}`}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--foreground)' }}>
+          <div className="flex justify-between items-baseline mb-0.5">
+            <span className="text-xs font-medium text-foreground">
               {ACTION_LABELS[entry.action] ?? entry.action}
             </span>
-            <span style={{ fontSize: 11, color: 'var(--foreground-muted)', fontVariantNumeric: 'tabular-nums' }}>
+            <span className="text-xs text-muted-foreground tabular-nums">
               {formatAuditTimestamp(entry.createdAt)}
             </span>
           </div>
-          <div style={{ fontSize: 12, color: 'var(--foreground-muted)' }}>
+          <div className="text-xs text-muted-foreground">
             {formatAuditChange(entry)}
           </div>
         </div>
