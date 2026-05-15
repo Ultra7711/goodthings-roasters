@@ -33,6 +33,7 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
       orders={detail.orders}
       audit={detail.audit}
       currentAdminId={claims?.userId ?? null}
+      isOwner={claims?.adminLevel === 'owner'}
     />
   );
 }

@@ -41,6 +41,7 @@ async function AdminAuthedInner({ children }: { children: ReactNode }) {
           email={claims.email}
           displayName={claims.displayName}
           title={claims.title}
+          adminLevel={claims.adminLevel}
         />
         <div
           style={{

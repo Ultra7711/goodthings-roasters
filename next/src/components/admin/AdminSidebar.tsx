@@ -78,15 +78,19 @@ type Props = {
   email: string;
   displayName: string | null;
   title: string | null;
+  /** S233-fu: 사이드바 user card 에 owner/staff badge 표시. */
+  adminLevel: 'owner' | 'staff';
 };
 
-export default function AdminSidebar({ email, displayName, title }: Props) {
+export default function AdminSidebar({ email, displayName, title, adminLevel }: Props) {
   const pathname = usePathname();
   const router = useRouter();
 
   const name = displayName?.trim() || email.split('@')[0] || 'Admin';
   const initial = name.charAt(0).toUpperCase();
-  const subtitle = title?.trim() || '관리자';
+  /* title 이 명시적이면 그대로 / 없으면 admin_level 라벨로 fallback */
+  const subtitle = title?.trim() || (adminLevel === 'owner' ? '관리자' : '운영자');
+  const levelLabel = adminLevel === 'owner' ? '관리자' : '운영자';
 
   /* collapse/expand 상태 — localStorage 영구 저장 (Claude 답습 · S231 후속).
      SSR 시 false 초기값 → 첫 mount 후 localStorage 동기화. */
@@ -396,14 +400,39 @@ export default function AdminSidebar({ email, displayName, title }: Props) {
                 </div>
                 <div
                   style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
                     fontSize: 13,
                     color: 'var(--sidebar-fg-muted)',
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {subtitle}
+                  <span
+                    style={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {subtitle}
+                  </span>
+                  <span
+                    aria-label={`권한 단계: ${levelLabel}`}
+                    style={{
+                      flexShrink: 0,
+                      padding: '1px 6px',
+                      borderRadius: 4,
+                      fontSize: 11,
+                      fontWeight: 500,
+                      letterSpacing: '0.02em',
+                      color: adminLevel === 'owner' ? 'var(--sidebar-fg)' : 'var(--sidebar-fg-muted)',
+                      border: `1px solid ${adminLevel === 'owner' ? 'var(--sidebar-fg)' : 'var(--sidebar-fg-muted)'}`,
+                      opacity: adminLevel === 'owner' ? 1 : 0.7,
+                    }}
+                  >
+                    {levelLabel}
+                  </span>
                 </div>
               </div>
               <ChevronDown size={14} style={{ color: 'var(--sidebar-fg-muted)' }} />

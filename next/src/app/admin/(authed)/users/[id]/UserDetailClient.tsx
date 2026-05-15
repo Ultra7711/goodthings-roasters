@@ -48,6 +48,7 @@ import {
 import {
   grantAdminAction,
   revokeAdminAction,
+  setAdminLevelAction,
   type UserRoleActionResult,
 } from '../actions';
 import { cn } from '@/lib/utils';
@@ -59,6 +60,8 @@ type Props = {
   orders: ListedUserOrder[];
   audit: AdminAuditEntry[];
   currentAdminId: string | null;
+  /** S233-fu: owner (관리자) 만 권한 변경/단계 조정 가능. staff (운영자) 는 조회만. */
+  isOwner: boolean;
 };
 
 const ROLE_TONES: Record<RoleTone, { bg: string; fg: string; dot: string }> = {
@@ -101,15 +104,25 @@ export default function UserDetailClient({
   orders,
   audit,
   currentAdminId,
+  isOwner,
 }: Props) {
   const role = describeRole(profile.role, profile.adminLevel);
   const name = resolveUserName(profile);
   const isSelf = currentAdminId !== null && currentAdminId === profile.id;
+  const isAdminTarget = profile.role === 'admin';
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [isPending, startTransition] = useTransition();
+  /* S233-fu: 권한 단계 변경 (owner ↔ staff) 다이얼로그 별도 상태 */
+  const [levelDialogOpen, setLevelDialogOpen] = useState(false);
+  const [levelReason, setLevelReason] = useState('');
+  const [isLevelPending, startLevelTransition] = useTransition();
   const router = useRouter();
+
+  /* 변경 후 새 admin_level (현재가 owner면 → staff, staff면 → owner) */
+  const targetLevel: 'owner' | 'staff' =
+    profile.adminLevel === 'owner' ? 'staff' : 'owner';
 
   const intent: 'grant' | 'revoke' = profile.role === 'admin' ? 'revoke' : 'grant';
 
@@ -144,6 +157,48 @@ export default function UserDetailClient({
           : '어드민 권한을 해제했습니다.',
       );
       setDialogOpen(false);
+      router.refresh();
+    });
+  }
+
+  /* S233-fu: 권한 단계 변경 (owner ↔ staff) 제출 */
+  function openLevelDialog() {
+    setLevelReason('');
+    setLevelDialogOpen(true);
+  }
+
+  function closeLevelDialog() {
+    if (isLevelPending) return;
+    setLevelDialogOpen(false);
+  }
+
+  function submitLevel() {
+    const trimmed = levelReason.trim();
+    const payload = {
+      targetId: profile.id,
+      newLevel: targetLevel,
+      ...(trimmed.length > 0 ? { reason: trimmed } : {}),
+    };
+    startLevelTransition(async () => {
+      const result = await setAdminLevelAction(payload);
+      if (!result.ok) {
+        const map: Record<string, string> = {
+          unauthorized: '관리자 권한이 필요합니다.',
+          validation_failed: '입력값이 잘못되었습니다.',
+          last_owner: '마지막 관리자는 운영자로 강등할 수 없습니다.',
+          not_admin: '대상이 어드민이 아닙니다.',
+          not_found: '사용자를 찾을 수 없습니다.',
+          server_error: '변경 중 오류가 발생했습니다.',
+        };
+        toast.error(map[result.error] ?? '오류가 발생했습니다.');
+        return;
+      }
+      toast.success(
+        targetLevel === 'owner'
+          ? '관리자로 승격했습니다.'
+          : '운영자로 변경했습니다.',
+      );
+      setLevelDialogOpen(false);
       router.refresh();
     });
   }
@@ -197,6 +252,50 @@ export default function UserDetailClient({
             <DefRow label="최종 업데이트">{formatAuditTimestamp(profile.updatedAtIso)}</DefRow>
           </dl>
         </section>
+
+        {/* 카드 1.5: 권한 설정 (S233-fu · admin 인 경우만) */}
+        {isAdminTarget && (
+          <section className={CARD_CLASS}>
+            <header className={CARD_HEADER_CLASS}>
+              <span>권한 설정</span>
+              <span className="text-xs text-muted-foreground font-normal">
+                현재 단계 · {profile.adminLevel === 'owner' ? '관리자' : '운영자'}
+              </span>
+            </header>
+            <div className="px-4 py-3 text-sm">
+              <div className="text-muted-foreground leading-relaxed mb-3">
+                {profile.adminLevel === 'owner' ? (
+                  <>
+                    관리자는 CSV 내보내기·상품 영구 삭제·사이트 설정 변경·다른 어드민의 권한 변경이 가능합니다.
+                    운영자로 변경하면 일상 운영 (주문 처리·구독 편집·상품 수정) 만 가능합니다.
+                  </>
+                ) : (
+                  <>
+                    운영자는 일상 운영만 가능합니다 (CSV 내보내기·영구 삭제·설정 변경 불가).
+                    관리자로 승격하면 모든 민감 액션을 수행할 수 있습니다.
+                  </>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="!h-8"
+                onClick={openLevelDialog}
+                disabled={!isOwner || isLevelPending || (isSelf && profile.adminLevel === 'owner')}
+                title={
+                  !isOwner
+                    ? '관리자 권한 필요'
+                    : isSelf && profile.adminLevel === 'owner'
+                      ? '본인은 운영자로 강등할 수 없습니다 (다른 관리자에게 요청)'
+                      : undefined
+                }
+              >
+                {profile.adminLevel === 'owner' ? '운영자로 변경' : '관리자로 승격'}
+              </Button>
+            </div>
+          </section>
+        )}
 
         {/* 카드 2: 주문 */}
         <section className={CARD_CLASS}>
@@ -313,6 +412,70 @@ export default function UserDetailClient({
                 disabled={isPending}
               >
                 {isPending ? '처리 중…' : intent === 'grant' ? '운영자로 추가' : '어드민 해제'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* 권한 단계 변경 다이얼로그 (S233-fu) */}
+        <Dialog open={levelDialogOpen} onOpenChange={(o) => (o ? setLevelDialogOpen(true) : closeLevelDialog())}>
+          <DialogContent className="max-w-[480px] p-0 gap-0">
+            <DialogHeader className="px-6 pt-5 pb-0">
+              <DialogTitle className="text-base font-medium">
+                {targetLevel === 'owner' ? '관리자로 승격' : '운영자로 변경'}
+              </DialogTitle>
+              <DialogDescription className="text-xs mt-1">
+                {targetLevel === 'owner'
+                  ? `${profile.email} 을(를) 관리자로 승격합니다. CSV 내보내기·영구 삭제·사이트 설정 등 민감 액션이 가능해집니다.`
+                  : `${profile.email} 을(를) 운영자로 변경합니다. 민감 액션 권한이 해제되며 일상 운영만 가능해집니다.`}
+                {' '}사유는 변경 이력에 기록됩니다.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="px-6 py-5 flex flex-col gap-1.5">
+              <label
+                htmlFor="level-change-reason"
+                className="text-xs text-muted-foreground"
+              >
+                사유 <span className="text-[var(--foreground-subtle)]">(선택, 최대 500자)</span>
+              </label>
+              <Textarea
+                id="level-change-reason"
+                value={levelReason}
+                onChange={(e) => setLevelReason(e.target.value.slice(0, 500))}
+                disabled={isLevelPending}
+                placeholder={targetLevel === 'owner' ? '예: 운영 책임자 변경' : '예: 권한 범위 조정'}
+                rows={4}
+              />
+              <div className="text-xs text-[var(--foreground-subtle)] text-right">
+                {levelReason.length} / 500
+              </div>
+            </div>
+
+            <DialogFooter className="px-6 pb-5 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="!h-7"
+                onClick={closeLevelDialog}
+                disabled={isLevelPending}
+              >
+                취소
+              </Button>
+              <Button
+                type="button"
+                variant={targetLevel === 'owner' ? 'default' : 'destructive'}
+                size="sm"
+                className="!h-7"
+                onClick={submitLevel}
+                disabled={isLevelPending}
+              >
+                {isLevelPending
+                  ? '처리 중…'
+                  : targetLevel === 'owner'
+                    ? '관리자로 승격'
+                    : '운영자로 변경'}
               </Button>
             </DialogFooter>
           </DialogContent>
