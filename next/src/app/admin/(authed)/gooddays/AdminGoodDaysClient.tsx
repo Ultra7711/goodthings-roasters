@@ -560,13 +560,11 @@ interface UploadDialogProps {
 function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [alt, setAlt] = useState('');
-  const [featured, setFeatured] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   function reset() {
     setFile(null);
     setAlt('');
-    setFeatured(false);
   }
 
   async function handleSubmit() {
@@ -574,7 +572,9 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
     const fd = new FormData();
     fd.append('file', file);
     fd.append('alt', alt);
-    fd.append('featured', featured ? 'true' : 'false');
+    /* S234: '추천' 토글 폐기 — 업로드 후 카드에서 토글로 설정.
+       server action 의 featured = formData.get('featured') === 'true'
+       → 미전송 시 false default · backward compat OK. */
     setSubmitting(true);
     let ok = false;
     try {
@@ -632,15 +632,6 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
               disabled={submitting}
             />
           </div>
-          <Label className="flex items-center gap-2 cursor-pointer text-xs text-foreground">
-            <Switch
-              checked={featured}
-              onCheckedChange={setFeatured}
-              disabled={submitting}
-              className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
-            />
-            추천 = 매거진 그리드 큰 사진 슬롯에 우선 배치
-          </Label>
         </div>
         <DialogFooter className="px-6 pb-5 sm:justify-end gap-2">
           <Button
