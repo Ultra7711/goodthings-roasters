@@ -971,16 +971,16 @@ function buildPreviewSrc(draft: DraftEvent): string {
 function describeUploadError(error: string, detail?: string): string {
   switch (error) {
     case 'too_large':
-      return `파일이 너무 큽니다 — ${detail ?? '5MB 이하'}`;
+      return `파일이 너무 큽니다 — ${detail ?? '5MB 이하로 다시 시도해 주세요'}`;
     case 'unsupported_type':
-      return `지원하지 않는 형식 — ${detail ?? 'webp/avif/jpeg/png 만 가능'}`;
+      return `지원하지 않는 파일 형식이에요 — ${detail ?? 'webp/avif/jpeg/png 만 가능합니다'}`;
     case 'unauthorized':
       return '업로드 권한이 없습니다. 다시 로그인해 주세요.';
     case 'public_url_failed':
-      return '업로드는 됐지만 public URL 생성 실패. 다시 시도해 주세요.';
+      return '업로드는 됐지만 주소를 만들지 못했습니다. 다시 시도해 주세요.';
     case 'upload_failed':
     default:
-      return `업로드 실패${detail ? ` — ${detail}` : ''}`;
+      return '이미지를 업로드하지 못했습니다. 잠시 후 다시 시도해 주세요.';
   }
 }
 
@@ -989,9 +989,9 @@ function describeError(error: string, detail?: string): string {
     case 'unauthorized':
       return '권한이 없습니다. 다시 로그인해 주세요.';
     case 'validation_failed':
-      return `입력 검증 실패: ${detail ?? '필드 형식 확인 필요'}`;
+      return `입력값을 확인해 주세요${detail ? ` (${detail})` : ''}`;
     case 'not_found':
-      return '이벤트를 찾을 수 없습니다 (이미 삭제되었을 수 있어요).';
+      return '이벤트를 찾을 수 없습니다 (이미 삭제됐을 수 있어요).';
     case 'server_error':
     default:
       return '저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';

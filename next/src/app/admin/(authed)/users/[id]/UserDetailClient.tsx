@@ -148,13 +148,19 @@ export default function UserDetailClient({
           ? await grantAdminAction(payload)
           : await revokeAdminAction(payload);
       if (!result.ok) {
-        toast.error(`권한 변경에 실패했습니다 (${result.detail ?? result.error})`);
+        const map: Record<string, string> = {
+          unauthorized: '관리자 권한이 필요합니다.',
+          validation_failed: '입력값을 확인해 주세요.',
+          self_action: '본인의 권한은 변경할 수 없습니다.',
+          server_error: '권한 변경 중 오류가 발생했습니다.',
+        };
+        toast.error(map[result.error] ?? '권한 변경에 실패했습니다.');
         return;
       }
       toast.success(
         intent === 'grant'
           ? '운영자 권한을 부여했습니다.'
-          : '어드민 권한을 해제했습니다.',
+          : '운영자 권한을 해제했습니다.',
       );
       setDialogOpen(false);
       router.refresh();

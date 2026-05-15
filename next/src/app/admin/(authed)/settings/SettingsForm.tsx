@@ -154,7 +154,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
     if (result.ok) {
       updateSeason({ image_path: result.publicUrl });
       setUploadState({ status: 'idle' });
-      toast.success('이미지가 업로드되었습니다 · 변경사항 저장 후 반영됩니다');
+      toast.success('이미지를 등록했습니다 · 변경사항 저장 후 반영됩니다');
     } else {
       const message = describeUploadError(result.error, result.detail);
       setUploadState({ status: 'error', message });
@@ -172,7 +172,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
     if (result.ok) {
       updateSignature({ image_path: result.publicUrl });
       setSigUploadState({ status: 'idle' });
-      toast.success('이미지가 업로드되었습니다 · 변경사항 저장 후 반영됩니다');
+      toast.success('이미지를 등록했습니다 · 변경사항 저장 후 반영됩니다');
     } else {
       const message = describeUploadError(result.error, result.detail);
       setSigUploadState({ status: 'error', message });
@@ -199,7 +199,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
       const result = await saveSiteSettingsAction(payload);
       if (result.ok) {
         setSavedSettings(settings);
-        toast.success('설정이 저장되었습니다 · B2C 사이트에 즉시 반영', {
+        toast.success('설정을 저장했습니다 · 사이트에 즉시 반영됩니다', {
           description: describeUpdatedKeys(result.updatedKeys),
         });
         router.refresh();
@@ -676,7 +676,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
                           return;
                         }
                         updateSignature({ flavor_chips: notes });
-                        toast.success(`Tasting Notes ${notes.length}개를 가져왔습니다`);
+                        toast.success(`테이스팅 노트 ${notes.length}개를 가져왔습니다`);
                       }}
                     >
                       Tasting Notes 가져오기
@@ -962,16 +962,16 @@ function extractTastingNotes(slug: string, beansList: Product[]): Array<{ ko: st
 function describeUploadError(error: string, detail?: string): string {
   switch (error) {
     case 'too_large':
-      return `파일이 너무 큽니다 — ${detail ?? '5MB 이하'}`;
+      return `파일이 너무 큽니다 — ${detail ?? '5MB 이하로 다시 시도해 주세요'}`;
     case 'unsupported_type':
-      return `지원하지 않는 형식 — ${detail ?? 'webp/avif/jpeg/png 만 가능'}`;
+      return `지원하지 않는 파일 형식이에요 — ${detail ?? 'webp/avif/jpeg/png 만 가능합니다'}`;
     case 'unauthorized':
       return '업로드 권한이 없습니다. 다시 로그인해 주세요.';
     case 'public_url_failed':
-      return '업로드는 됐지만 public URL 생성 실패. 다시 시도해 주세요.';
+      return '업로드는 됐지만 주소를 만들지 못했습니다. 다시 시도해 주세요.';
     case 'upload_failed':
     default:
-      return `업로드 실패${detail ? ` — ${detail}` : ''}`;
+      return '이미지를 업로드하지 못했습니다. 잠시 후 다시 시도해 주세요.';
   }
 }
 
@@ -980,7 +980,7 @@ function describeError(error: string, detail?: string): string {
     case 'unauthorized':
       return '권한이 없습니다. 다시 로그인해 주세요.';
     case 'validation_failed':
-      return `입력 검증 실패: ${detail ?? '필드 형식 확인 필요'}`;
+      return `입력값을 확인해 주세요${detail ? ` (${detail})` : ''}`;
     case 'no_changes':
       return '변경된 항목이 없습니다.';
     case 'server_error':

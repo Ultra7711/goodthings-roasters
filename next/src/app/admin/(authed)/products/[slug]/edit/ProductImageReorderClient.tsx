@@ -74,7 +74,7 @@ export default function ProductImageReorderClient({
         toast.error(msg);
         return;
       }
-      toast.success('이미지 순서가 저장되었습니다');
+      toast.success('이미지 순서를 저장했습니다');
     });
   }
 
@@ -125,7 +125,7 @@ export default function ProductImageReorderClient({
         toast.error(`${file.name} — ${msg}`);
         continue;
       }
-      toast.success(`${file.name} 업로드 완료`);
+      toast.success(`${file.name} — 이미지를 등록했습니다`);
     }
 
     setUploading(false);
@@ -193,7 +193,7 @@ export default function ProductImageReorderClient({
         setDeleteTargetIdx(null);
         return;
       }
-      toast.success('이미지가 삭제되었습니다');
+      toast.success('이미지를 삭제했습니다');
       setDeleteTargetIdx(null);
     });
   }
