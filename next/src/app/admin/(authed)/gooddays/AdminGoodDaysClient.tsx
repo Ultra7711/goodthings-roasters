@@ -419,10 +419,11 @@ function SortableCard({
         )}
       </div>
 
-      {/* 컨트롤 */}
-      <div className="p-3 flex flex-col gap-2.5">
-        {/* 토글 그룹 — flex-col 위/아래 · 텍스트 동적 (products 답습) */}
-        <div className="flex flex-col gap-2">
+      {/* 컨트롤 — 2 행 구조 (좌 토글 / 우 액션 · justify-between)
+         행 1 = 공개 토글 + 대체 텍스트 편집
+         행 2 = 추천 토글 + 삭제 */}
+      <div className="p-3 flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
           <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
             <Switch
               checked={item.isActive}
@@ -435,21 +436,6 @@ function SortableCard({
               {item.isActive ? '공개' : '비공개'}
             </span>
           </label>
-          <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
-            <Switch
-              checked={item.featured}
-              onCheckedChange={onFeaturedToggle}
-              disabled={disabled}
-              aria-label={item.featured ? '추천 — 해제하기' : '추천으로 설정'}
-              className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
-            />
-            <span className="text-muted-foreground">
-              {item.featured ? '추천' : '추천 해제'}
-            </span>
-          </label>
-        </div>
-        {/* 대체 텍스트 편집 + 삭제 — 한 줄 (products 답습) */}
-        <div className="flex items-center justify-between gap-2">
           <Button
             type="button"
             variant="outline"
@@ -462,6 +448,20 @@ function SortableCard({
             <Pencil size={14} />
             대체 텍스트
           </Button>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
+            <Switch
+              checked={item.featured}
+              onCheckedChange={onFeaturedToggle}
+              disabled={disabled}
+              aria-label={item.featured ? '추천 — 해제하기' : '추천으로 설정'}
+              className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
+            />
+            <span className="text-muted-foreground">
+              {item.featured ? '추천' : '추천 해제'}
+            </span>
+          </label>
           <Button
             type="button"
             variant="ghost"
