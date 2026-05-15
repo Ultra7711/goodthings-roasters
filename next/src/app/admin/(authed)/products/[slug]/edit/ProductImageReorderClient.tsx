@@ -65,9 +65,9 @@ export default function ProductImageReorderClient({
         setImages(prev);
         const msg =
           result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해주세요.'
+            ? '권한이 없습니다. 다시 로그인해 주세요.'
             : result.error === 'mismatch'
-              ? '이미지 목록이 일치하지 않습니다. 페이지를 새로고침해주세요.'
+              ? '이미지 목록이 일치하지 않습니다. 페이지를 새로고침해 주세요.'
               : result.error === 'validation_failed'
                 ? '입력값이 올바르지 않습니다.'
                 : '처리 중 오류가 발생했습니다.';
@@ -114,7 +114,7 @@ export default function ProductImageReorderClient({
       if (!result.ok) {
         const msg =
           result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해주세요.'
+            ? '권한이 없습니다. 다시 로그인해 주세요.'
             : result.error === 'invalid_image'
               ? '이미지 파일을 읽을 수 없습니다.'
               : result.error === 'validation_failed'
@@ -154,7 +154,7 @@ export default function ProductImageReorderClient({
         setImages(prev);
         const msg =
           result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해주세요.'
+            ? '권한이 없습니다. 다시 로그인해 주세요.'
             : result.error === 'not_found'
               ? '이미지를 찾을 수 없습니다.'
               : '처리 중 오류가 발생했습니다.';
@@ -185,7 +185,7 @@ export default function ProductImageReorderClient({
         setImages(prev);
         const msg =
           result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해주세요.'
+            ? '권한이 없습니다. 다시 로그인해 주세요.'
             : result.error === 'not_found'
               ? '이미지를 찾을 수 없습니다.'
               : '삭제 중 오류가 발생했습니다.';
@@ -228,7 +228,7 @@ export default function ProductImageReorderClient({
 
       {images.length === 0 ? (
         <div className="px-4 py-12 text-center text-sm text-muted-foreground bg-muted rounded-md border border-dashed border-border">
-          아직 등록된 이미지가 없습니다. 위 버튼으로 업로드해주세요.
+          아직 등록된 이미지가 없습니다. 위 버튼으로 업로드해 주세요.
         </div>
       ) : (
         <div

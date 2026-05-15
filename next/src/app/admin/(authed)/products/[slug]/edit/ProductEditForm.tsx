@@ -193,16 +193,16 @@ const FormSchema = z.object({
   id: z.string().uuid().optional(),
   slug: z
     .string()
-    .min(1, '슬러그를 입력해주세요')
+    .min(1, '슬러그를 입력해 주세요')
     .max(80, '최대 80자')
     .regex(
       /^[a-z0-9]+(-[a-z0-9]+)*$/,
       '소문자/숫자 + 하이픈만 가능합니다 (예: autumn-night)',
     ),
-  name: z.string().min(1, '상품명을 입력해주세요').max(60, '최대 60자'),
+  name: z.string().min(1, '상품명을 입력해 주세요').max(60, '최대 60자'),
   category: z.enum(['coffee_bean', 'drip_bag']),
   status: ProductStatusEnum,
-  displayPrice: z.string().min(1, '가격을 입력해주세요').max(30),
+  displayPrice: z.string().min(1, '가격을 입력해 주세요').max(30),
   sortOrder: z.number().int().min(0).max(9999),
   color: HexColor,
   subscription: z.boolean(),
@@ -412,7 +412,7 @@ export default function ProductEditForm(props: Props) {
 
     if (errorTab !== tab) setTab(errorTab);
     toast.error(
-      `[${TAB_LABEL[errorTab]}] 탭의 입력값을 확인해주세요`,
+      `[${TAB_LABEL[errorTab]}] 탭의 입력값을 확인해 주세요`,
     );
   };
 
@@ -424,11 +424,11 @@ export default function ProductEditForm(props: Props) {
         if (!result.ok) {
           const msg =
             result.error === 'unauthorized'
-              ? '권한이 없습니다. 다시 로그인해주세요.'
+              ? '권한이 없습니다. 다시 로그인해 주세요.'
               : result.error === 'validation_failed'
-                ? `입력값을 확인해주세요. (${result.detail ?? ''})`
+                ? `입력값을 확인해 주세요. (${result.detail ?? ''})`
                 : result.error === 'slug_conflict'
-                  ? '같은 슬러그의 상품이 이미 있습니다. 슬러그를 변경해주세요.'
+                  ? '같은 슬러그의 상품이 이미 있습니다. 슬러그를 변경해 주세요.'
                   : '처리 중 오류가 발생했습니다.';
           toast.error(msg);
           return;
@@ -441,7 +441,7 @@ export default function ProductEditForm(props: Props) {
 
     /* mode='edit' — id 보장 (defaults 가 product.id 채움) */
     if (!values.id) {
-      toast.error('상품 ID 가 없습니다. 페이지를 새로고침해주세요.');
+      toast.error('상품 ID 가 없습니다. 페이지를 새로고침해 주세요.');
       return;
     }
     const editInput = { ...values, id: values.id };
@@ -450,9 +450,9 @@ export default function ProductEditForm(props: Props) {
       if (!result.ok) {
         const msg =
           result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해주세요.'
+            ? '권한이 없습니다. 다시 로그인해 주세요.'
             : result.error === 'validation_failed'
-              ? `입력값을 확인해주세요. (${result.detail ?? ''})`
+              ? `입력값을 확인해 주세요. (${result.detail ?? ''})`
               : result.error === 'not_found'
                 ? '상품을 찾을 수 없습니다.'
                 : '처리 중 오류가 발생했습니다.';
@@ -995,7 +995,7 @@ function OptionTab({
         <div className={cn('flex flex-col', DYNAMIC_ROW_LIST_GAP)}>
           {volumes.fields.length === 0 && (
             <div className="text-xs text-muted-foreground italic">
-              아직 옵션이 없습니다. 아래 버튼으로 추가해주세요.
+              아직 옵션이 없습니다. 아래 버튼으로 추가해 주세요.
             </div>
           )}
           {volumes.fields.map((field, idx) => (
@@ -1104,7 +1104,7 @@ function OptionTab({
           <div className={cn('flex flex-col', DYNAMIC_ROW_LIST_GAP)}>
             {recipes.fields.length === 0 && (
               <div className="text-xs text-muted-foreground italic">
-                아직 추출 레시피가 없습니다. 아래 버튼으로 추가해주세요.
+                아직 추출 레시피가 없습니다. 아래 버튼으로 추가해 주세요.
               </div>
             )}
             {recipes.fields.map((field, idx) => (

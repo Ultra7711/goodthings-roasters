@@ -43,7 +43,7 @@ export default function ProductDangerZoneClient({
       if (!result.ok) {
         const msg =
           result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해주세요.'
+            ? '권한이 없습니다. 다시 로그인해 주세요.'
             : result.error === 'not_found'
               ? '상품을 찾을 수 없습니다.'
               : '삭제 중 오류가 발생했습니다.';
@@ -98,7 +98,7 @@ export default function ProductDangerZoneClient({
           </>
         }
         requireTextMatch={productName}
-        requireTextLabel="확인을 위해 상품명을 정확히 입력해주세요"
+        requireTextLabel="확인을 위해 상품명을 정확히 입력해 주세요"
         confirmLabel="영구 삭제"
         pending={pending}
         onCancel={() => setOpen(false)}

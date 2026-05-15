@@ -39,12 +39,12 @@ const PRESET_CARRIERS = [
 ] as const;
 
 const ERROR_MESSAGES: Record<string, string> = {
-  unauthorized: '권한이 없습니다. 다시 로그인해주세요.',
+  unauthorized: '권한이 없습니다. 다시 로그인해 주세요.',
   not_found: '주문을 찾을 수 없습니다.',
   illegal_state: '이미 발송 처리된 주문입니다.',
   invalid_tracking: '송장번호 또는 택배사가 올바르지 않습니다.',
-  validation_failed: '입력값을 확인해주세요.',
-  server_error: '처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+  validation_failed: '입력값을 확인해 주세요.',
+  server_error: '처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
 };
 
 export default function ShippingDialog({ open, onClose, orderNumber, customerName }: Props) {

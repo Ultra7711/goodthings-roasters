@@ -290,7 +290,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
                         아직 발송되지 않았습니다
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        송장번호 입력 후 발송 처리를 진행해주세요
+                        송장번호 입력 후 발송 처리를 진행해 주세요
                       </div>
                     </div>
                   </div>

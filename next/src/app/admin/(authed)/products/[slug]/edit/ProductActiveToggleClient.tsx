@@ -45,7 +45,7 @@ export default function ProductActiveToggleClient({
         setOptimisticActive(!next);
         const msg =
           result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해주세요.'
+            ? '권한이 없습니다. 다시 로그인해 주세요.'
             : result.error === 'not_found'
               ? '상품을 찾을 수 없습니다.'
               : result.error === 'validation_failed'
