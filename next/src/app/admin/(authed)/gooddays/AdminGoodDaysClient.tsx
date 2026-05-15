@@ -202,7 +202,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
             <br />
             <span className="text-[var(--foreground-subtle)] inline-flex items-center gap-1">
               <Star size={11} fill="currentColor" className="text-[var(--primary)]" />
-              Featured = 매거진 그리드 큰 사진 슬롯에 우선 배치
+              추천 = 매거진 그리드 큰 사진 슬롯에 우선 배치
             </span>
           </span>
         }
@@ -367,8 +367,8 @@ function SortableCard({
         </button>
         {item.featured && (
           <div
-            aria-label="featured"
-            title="Featured — 매거진 큰 사진 슬롯 우선 배치"
+            aria-label="추천 이미지"
+            title="추천 — 매거진 큰 사진 슬롯 우선 배치"
             className="absolute top-2 right-2 w-7 h-7 rounded-md bg-black/50 text-[var(--primary)] flex items-center justify-center"
           >
             <Star size={16} fill="currentColor" strokeWidth={1.5} />
@@ -395,7 +395,7 @@ function SortableCard({
               disabled={disabled}
               className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
             />
-            Featured
+            추천
           </Label>
           <Label className="flex items-center gap-1.5 cursor-pointer text-sm text-foreground">
             <Switch
@@ -514,7 +514,7 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
               disabled={submitting}
               className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
             />
-            Featured = 매거진 그리드 큰 사진 슬롯에 우선 배치
+            추천 = 매거진 그리드 큰 사진 슬롯에 우선 배치
           </Label>
         </div>
         <DialogFooter className="gap-2">
