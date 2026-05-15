@@ -380,13 +380,25 @@ function SortableCard({
           <GripVertical size={16} />
         </button>
         {item.featured && (
-          <div
+          <span
             aria-label="추천 이미지"
-            title="추천 — 매거진 큰 사진 슬롯 우선 배치"
-            className="absolute top-2 right-2 w-7 h-7 rounded-md bg-black/50 text-[var(--primary)] flex items-center justify-center"
+            title="추천 - 매거진 큰 사진 슬롯 우선 배치"
+            className="absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--primary)] !text-white text-xs font-semibold"
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }}
           >
-            <Star size={16} fill="currentColor" strokeWidth={1.5} />
-          </div>
+            <Star size={11} fill="currentColor" strokeWidth={1.5} />
+            추천
+          </span>
+        )}
+        {/* 비공개 배지 — 안전장치 (products 답습) · 좌하단 */}
+        {!item.isActive && (
+          <span
+            aria-label="비공개 이미지"
+            className="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--neutral-soft)] text-[var(--neutral-soft-fg)] text-xs font-semibold"
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }}
+          >
+            비공개
+          </span>
         )}
       </div>
 
