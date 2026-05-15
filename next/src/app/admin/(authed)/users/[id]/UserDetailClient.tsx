@@ -102,7 +102,7 @@ export default function UserDetailClient({
   audit,
   currentAdminId,
 }: Props) {
-  const role = describeRole(profile.role);
+  const role = describeRole(profile.role, profile.adminLevel);
   const name = resolveUserName(profile);
   const isSelf = currentAdminId !== null && currentAdminId === profile.id;
 
@@ -135,10 +135,14 @@ export default function UserDetailClient({
           ? await grantAdminAction(payload)
           : await revokeAdminAction(payload);
       if (!result.ok) {
-        toast.error(`역할 변경 실패 (${result.detail ?? result.error})`);
+        toast.error(`권한 변경에 실패했습니다 (${result.detail ?? result.error})`);
         return;
       }
-      toast.success(intent === 'grant' ? '운영자 승격 완료' : '운영자 해제 완료');
+      toast.success(
+        intent === 'grant'
+          ? '운영자 권한을 부여했습니다.'
+          : '어드민 권한을 해제했습니다.',
+      );
       setDialogOpen(false);
       router.refresh();
     });
@@ -156,7 +160,7 @@ export default function UserDetailClient({
           disabled={isSelf}
           title={isSelf ? '본인 계정은 SQL 로 직접 변경하세요' : undefined}
         >
-          {intent === 'grant' ? '운영자로 승격' : '운영자 해제'}
+          {intent === 'grant' ? '운영자 권한 부여' : '어드민 권한 해제'}
         </Button>
       </AdminTopbarActions>
 
@@ -260,12 +264,12 @@ export default function UserDetailClient({
           <DialogContent className="max-w-[480px] p-0 gap-0">
             <DialogHeader className="px-6 pt-5 pb-0">
               <DialogTitle className="text-base font-medium">
-                {intent === 'grant' ? '운영자 승격' : '운영자 해제'}
+                {intent === 'grant' ? '운영자 권한 부여' : '어드민 권한 해제'}
               </DialogTitle>
               <DialogDescription className="text-xs mt-1">
                 {intent === 'grant'
-                  ? `${profile.email} 을(를) 운영자로 승격합니다. 사유는 admin_audit 에 기록됩니다.`
-                  : `${profile.email} 의 운영자 권한을 해제합니다. 사유는 admin_audit 에 기록됩니다.`}
+                  ? `${profile.email} 을(를) 운영자(staff)로 추가합니다. 관리자(owner) 승격은 별도 SQL 절차가 필요합니다. 사유는 변경 이력에 기록됩니다.`
+                  : `${profile.email} 의 어드민 권한을 해제합니다. 사유는 변경 이력에 기록됩니다.`}
               </DialogDescription>
             </DialogHeader>
 
@@ -308,7 +312,7 @@ export default function UserDetailClient({
                 onClick={submit}
                 disabled={isPending}
               >
-                {isPending ? '처리 중…' : intent === 'grant' ? '운영자로 승격' : '운영자 해제'}
+                {isPending ? '처리 중…' : intent === 'grant' ? '운영자로 추가' : '어드민 해제'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -419,7 +423,19 @@ function StatusBadge({ tone, children }: { tone: StatusTone; children: React.Rea
   );
 }
 
-function ActionBadge({ action }: { action: 'grant_admin' | 'revoke_admin' }) {
+function ActionBadge({ action }: { action: 'grant_admin' | 'revoke_admin' | 'set_admin_level' }) {
+  /* S232: set_admin_level 액션도 표시 (owner ↔ staff 변경 이력). */
+  if (action === 'set_admin_level') {
+    return (
+      <ShadcnBadge
+        variant="outline"
+        className="border-transparent"
+        style={{ background: 'var(--info-soft)', color: 'var(--info)' }}
+      >
+        권한 단계 변경
+      </ShadcnBadge>
+    );
+  }
   const isGrant = action === 'grant_admin';
   return (
     <ShadcnBadge
@@ -430,7 +446,7 @@ function ActionBadge({ action }: { action: 'grant_admin' | 'revoke_admin' }) {
         color: isGrant ? 'var(--success)' : 'var(--neutral-soft-fg)',
       }}
     >
-      {isGrant ? '운영자 승격' : '운영자 해제'}
+      {isGrant ? '운영자 권한 부여' : '어드민 권한 해제'}
     </ShadcnBadge>
   );
 }

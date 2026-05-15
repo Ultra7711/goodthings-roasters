@@ -58,6 +58,8 @@ type Props = {
   total: number;
   counts: CountsShape;
   filters: AdminOrdersSearchParams;
+  /** S232: owner (관리자) 만 CSV 내보내기 활성. staff (운영자) 는 disabled. */
+  isOwner: boolean;
 };
 
 const TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> = {
@@ -68,7 +70,7 @@ const TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> = {
   primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)', dot: 'var(--primary)' },
 };
 
-export default function OrdersTableClient({ rows, total, counts, filters }: Props) {
+export default function OrdersTableClient({ rows, total, counts, filters, isOwner }: Props) {
   const router = useRouter();
   const [selected, setSelected] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState(filters.q);
@@ -283,8 +285,12 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
           size="sm"
           className="!h-7"
           onClick={handleExport}
-          disabled={isExporting || total === 0}
-          title="현재 필터 기준으로 CSV 내보내기"
+          disabled={!isOwner || isExporting || total === 0}
+          title={
+            !isOwner
+              ? '관리자 권한 필요'
+              : '현재 필터 기준으로 CSV 내보내기'
+          }
         >
           <Download />
           {isExporting ? '내보내는 중…' : 'CSV 내보내기'}

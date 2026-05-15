@@ -24,11 +24,14 @@ import { deleteProductAction } from '../../actions';
 type Props = {
   productId: string;
   productName: string;
+  /** S232: owner (관리자) 만 영구 삭제 가능. staff (운영자) 는 disabled. */
+  isOwner: boolean;
 };
 
 export default function ProductDangerZoneClient({
   productId,
   productName,
+  isOwner,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -75,7 +78,8 @@ export default function ProductDangerZoneClient({
           size="sm"
           className="!h-8 !text-[var(--danger)] !border-[var(--danger)] hover:!bg-[var(--danger-soft)]"
           onClick={() => setOpen(true)}
-          disabled={pending}
+          disabled={!isOwner || pending}
+          title={!isOwner ? '관리자 권한 필요' : undefined}
         >
           <Trash2 size={14} />
           상품 영구 삭제

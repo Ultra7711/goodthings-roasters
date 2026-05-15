@@ -23,6 +23,7 @@ import {
   parseSearchParams,
   sanitizeSearchQuery,
   type AdminAuditEntry,
+  type AdminLevel,
   type AdminUsersSearchParams,
   type DbUserRole,
   type ListedUser,
@@ -41,6 +42,7 @@ type ProfileRow = {
   full_name: string | null;
   display_name: string | null;
   role: DbUserRole;
+  admin_level: AdminLevel | null;
   signup_provider: SignupProvider;
   created_at: string;
 };
@@ -104,7 +106,7 @@ export async function fetchAdminUsers(
     supabase
       .from('profiles')
       .select(
-        'id, email, full_name, display_name, role, signup_provider, created_at',
+        'id, email, full_name, display_name, role, admin_level, signup_provider, created_at',
         { count: 'exact' },
       )
       .order('created_at', { ascending: false }),
@@ -153,6 +155,7 @@ export async function fetchAdminUsers(
     fullName: p.full_name,
     displayName: p.display_name,
     role: p.role,
+    adminLevel: p.admin_level,
     signupProvider: p.signup_provider,
     createdAtIso: p.created_at,
     orderCount: orderCounts.get(p.id) ?? 0,
@@ -170,6 +173,7 @@ type ProfileDetailRow = {
   display_name: string | null;
   phone: string | null;
   role: DbUserRole;
+  admin_level: AdminLevel | null;
   created_at: string;
   updated_at: string;
 };
@@ -185,7 +189,7 @@ type UserOrderRow = {
 type AuditRow = {
   id: string;
   actor_id: string | null;
-  action: 'grant_admin' | 'revoke_admin';
+  action: 'grant_admin' | 'revoke_admin' | 'set_admin_level';
   reason: string | null;
   created_at: string;
 };
@@ -220,7 +224,7 @@ export async function fetchAdminUserDetail(
     supabase
       .from('profiles')
       .select(
-        'id, email, full_name, display_name, phone, role, created_at, updated_at',
+        'id, email, full_name, display_name, phone, role, admin_level, created_at, updated_at',
       )
       .eq('id', id)
       .maybeSingle(),
@@ -295,6 +299,7 @@ export async function fetchAdminUserDetail(
     displayName: profileRow.display_name,
     phone: profileRow.phone,
     role: profileRow.role,
+    adminLevel: profileRow.admin_level,
     createdAtIso: profileRow.created_at,
     updatedAtIso: profileRow.updated_at,
   };

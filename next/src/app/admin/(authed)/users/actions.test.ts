@@ -15,6 +15,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/auth/getClaims', () => ({
   getAdminClaims: vi.fn(),
+  getAdminOwnerClaims: vi.fn(),
 }));
 
 vi.mock('@/lib/supabaseServer', () => ({
@@ -26,11 +27,11 @@ vi.mock('next/cache', () => ({
 }));
 
 import { grantAdminAction, revokeAdminAction } from './actions';
-import { getAdminClaims } from '@/lib/auth/getClaims';
+import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { revalidatePath } from 'next/cache';
 
-const getAdminClaimsMock = vi.mocked(getAdminClaims);
+const getAdminOwnerClaimsMock = vi.mocked(getAdminOwnerClaims);
 const createClientMock = vi.mocked(createRouteHandlerClient);
 const revalidatePathMock = vi.mocked(revalidatePath);
 
@@ -42,6 +43,7 @@ const ADMIN_CLAIMS = {
   email: 'admin@example.com',
   metadata: {},
   role: 'admin' as const,
+  adminLevel: 'owner' as const,
   displayName: null,
   title: null,
 };
@@ -56,13 +58,13 @@ function makeSupabaseStub(rpcError: RpcError) {
 describe('grantAdminAction', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    getAdminClaimsMock.mockResolvedValue(ADMIN_CLAIMS);
+    getAdminOwnerClaimsMock.mockResolvedValue(ADMIN_CLAIMS);
   });
 
   afterAll(() => vi.resetAllMocks());
 
-  it('unauthorized — getAdminClaims null', async () => {
-    getAdminClaimsMock.mockResolvedValueOnce(null);
+  it('unauthorized — getAdminOwnerClaims null (staff 또는 비admin)', async () => {
+    getAdminOwnerClaimsMock.mockResolvedValueOnce(null);
     const result = await grantAdminAction({ targetId: TARGET_ID });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toBe('unauthorized');
@@ -142,7 +144,7 @@ describe('grantAdminAction', () => {
 describe('revokeAdminAction', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    getAdminClaimsMock.mockResolvedValue(ADMIN_CLAIMS);
+    getAdminOwnerClaimsMock.mockResolvedValue(ADMIN_CLAIMS);
   });
 
   it('self_action — UI 단 차단', async () => {

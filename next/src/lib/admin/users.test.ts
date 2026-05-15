@@ -20,11 +20,17 @@ import {
 } from './users';
 
 describe('describeRole', () => {
-  it('admin → 운영자 / primary', () => {
-    expect(describeRole('admin')).toEqual({ label: '운영자', tone: 'primary' });
+  it('admin owner → 관리자 / primary', () => {
+    expect(describeRole('admin', 'owner')).toEqual({ label: '관리자', tone: 'primary' });
+  });
+  it('admin staff → 운영자 / primary', () => {
+    expect(describeRole('admin', 'staff')).toEqual({ label: '운영자', tone: 'primary' });
+  });
+  it('admin null → 운영자 (보수적 fallback)', () => {
+    expect(describeRole('admin', null)).toEqual({ label: '운영자', tone: 'primary' });
   });
   it('customer → 고객 / neutral', () => {
-    expect(describeRole('customer')).toEqual({ label: '고객', tone: 'neutral' });
+    expect(describeRole('customer', null)).toEqual({ label: '고객', tone: 'neutral' });
   });
 });
 

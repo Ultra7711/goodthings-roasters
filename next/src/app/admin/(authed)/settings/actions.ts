@@ -18,7 +18,7 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
-import { getAdminClaims } from '@/lib/auth/getClaims';
+import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import {
   NoticeSettingsSchema,
   SeasonSettingsSchema,
@@ -55,8 +55,8 @@ export type SaveSettingsResult =
 export async function saveSiteSettingsAction(
   input: SaveSettingsInput,
 ): Promise<SaveSettingsResult> {
-  /* 1) admin 가드 */
-  const claims = await getAdminClaims();
+  /* 1) S232: owner (관리자) 만 사이트 설정 변경. staff (운영자) 는 차단. */
+  const claims = await getAdminOwnerClaims();
   if (!claims) return { ok: false, error: 'unauthorized' };
 
   /* 2) Zod 검증 */

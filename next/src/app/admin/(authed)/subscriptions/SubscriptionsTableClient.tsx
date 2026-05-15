@@ -82,6 +82,8 @@ type Props = {
   total: number;
   counts: CountsShape;
   filters: AdminSubscriptionsSearchParams;
+  /** S232: owner (관리자) 만 CSV 내보내기 활성. staff (운영자) 는 disabled. */
+  isOwner: boolean;
 };
 
 const TONES: Record<StatusTone, { bg: string; fg: string }> = {
@@ -91,7 +93,7 @@ const TONES: Record<StatusTone, { bg: string; fg: string }> = {
   info: { bg: 'var(--info-soft)', fg: 'var(--info)' },
 };
 
-export default function SubscriptionsTableClient({ rows, total, counts, filters }: Props) {
+export default function SubscriptionsTableClient({ rows, total, counts, filters, isOwner }: Props) {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState(filters.q);
   const [editingRow, setEditingRow] = useState<ListedSubscription | null>(null);
@@ -257,8 +259,12 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
           size="sm"
           className="!h-7"
           onClick={handleExport}
-          disabled={isExporting || total === 0}
-          title="현재 필터 기준으로 CSV 내보내기"
+          disabled={!isOwner || isExporting || total === 0}
+          title={
+            !isOwner
+              ? '관리자 권한 필요'
+              : '현재 필터 기준으로 CSV 내보내기'
+          }
         >
           <DownloadIcon />
           {isExporting ? '내보내는 중…' : 'CSV 내보내기'}

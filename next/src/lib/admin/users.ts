@@ -39,14 +39,24 @@ export type RoleTabKey = (typeof ROLE_TABS)[number]['id'];
 /** profiles.role enum (020_profiles_role_rbac.sql) */
 export type DbUserRole = 'admin' | 'customer';
 
+/** S232: profiles.admin_level (055 마이그) — admin 권한 단계. customer = null. */
+export type AdminLevel = 'owner' | 'staff';
+
 /** Badge tone — orders 의 StatusTone 부분집합 */
 export type RoleTone = 'primary' | 'neutral';
 
-/** DB role → 시안 라벨 + tone */
-export function describeRole(role: DbUserRole): { label: string; tone: RoleTone } {
-  return role === 'admin'
-    ? { label: '운영자', tone: 'primary' }
-    : { label: '고객', tone: 'neutral' };
+/**
+ * DB role + admin_level → 시안 라벨 + tone.
+ * S232: admin 안에서 owner='관리자' / staff='운영자' 분리.
+ */
+export function describeRole(
+  role: DbUserRole,
+  adminLevel: AdminLevel | null,
+): { label: string; tone: RoleTone } {
+  if (role !== 'admin') return { label: '고객', tone: 'neutral' };
+  return adminLevel === 'owner'
+    ? { label: '관리자', tone: 'primary' }
+    : { label: '운영자', tone: 'primary' };
 }
 
 /* ── 가입 채널 (053_profiles_signup_provider.sql) ───────────────────── */
@@ -129,6 +139,7 @@ export type ListedUser = {
   fullName: string | null;
   displayName: string | null;
   role: DbUserRole;
+  adminLevel: AdminLevel | null;   /* 055: admin 권한 단계. customer = null */
   signupProvider: SignupProvider;  /* 053: 가입 채널 */
   createdAtIso: string;        /* DB 원본 timestamptz */
   orderCount: number;          /* 누적 주문 수 (orders.user_id 그룹 카운트) */
@@ -142,6 +153,7 @@ export type UserDetailProfile = {
   displayName: string | null;
   phone: string | null;
   role: DbUserRole;
+  adminLevel: AdminLevel | null;   /* 055: admin 권한 단계 */
   createdAtIso: string;
   updatedAtIso: string;
 };
@@ -163,12 +175,12 @@ export type ListedUserOrder = {
   totalAmount: number;
 };
 
-/** admin_audit 1행 (역할 변경 이력) */
+/** admin_audit 1행 (역할 변경 이력 · S232 set_admin_level 추가) */
 export type AdminAuditEntry = {
   id: string;
   actorId: string | null;
   actorEmail: string | null;       /* JOIN profiles.email */
-  action: 'grant_admin' | 'revoke_admin';
+  action: 'grant_admin' | 'revoke_admin' | 'set_admin_level';
   reason: string | null;
   createdAtIso: string;
 };

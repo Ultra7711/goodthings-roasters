@@ -28,7 +28,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { getAdminClaims } from '@/lib/auth/getClaims';
+import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 
 /* ── Schemas ──────────────────────────────────────────────────────────── */
@@ -114,7 +114,8 @@ async function callRoleRpc(
 export async function grantAdminAction(
   input: RoleChangeInput,
 ): Promise<UserRoleActionResult> {
-  const claims = await getAdminClaims();
+  /* S232: owner 만 admin 승격/강등. RPC 측에서도 동일 가드. */
+  const claims = await getAdminOwnerClaims();
   if (!claims) return { ok: false, error: 'unauthorized' };
 
   const parsed = RoleChangeInputSchema.safeParse(input);
@@ -132,7 +133,8 @@ export async function grantAdminAction(
 export async function revokeAdminAction(
   input: RoleChangeInput,
 ): Promise<UserRoleActionResult> {
-  const claims = await getAdminClaims();
+  /* S232: owner 만 admin 승격/강등. RPC 측에서도 동일 가드. */
+  const claims = await getAdminOwnerClaims();
   if (!claims) return { ok: false, error: 'unauthorized' };
 
   const parsed = RoleChangeInputSchema.safeParse(input);
@@ -145,4 +147,69 @@ export async function revokeAdminAction(
   }
 
   return callRoleRpc('revoke_admin', parsed.data, claims.userId);
+}
+
+/* ── set_admin_level (S232) ───────────────────────────────────────────
+   admin 권한 단계 변경 (owner ↔ staff). owner 만 호출.
+   마지막 owner self-강등은 RPC 측에서 차단.
+   ──────────────────────────────────────────────────────────────────── */
+
+const SetAdminLevelInputSchema = z.object({
+  targetId: UuidSchema,
+  newLevel: z.enum(['owner', 'staff']),
+  reason: z.string().trim().min(1).max(500).optional(),
+});
+
+export type SetAdminLevelInput = z.input<typeof SetAdminLevelInputSchema>;
+
+export type SetAdminLevelResult =
+  | { ok: true; targetId: string }
+  | {
+      ok: false;
+      error: 'unauthorized' | 'validation_failed' | 'last_owner' | 'not_admin' | 'not_found' | 'server_error';
+      detail?: string;
+    };
+
+export async function setAdminLevelAction(
+  input: SetAdminLevelInput,
+): Promise<SetAdminLevelResult> {
+  const claims = await getAdminOwnerClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const parsed = SetAdminLevelInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: 'validation_failed', detail: flattenZodError(parsed.error) };
+  }
+
+  const supabase = await createRouteHandlerClient();
+  const { error } = await supabase.rpc('set_admin_level', {
+    target_id: parsed.data.targetId,
+    new_level: parsed.data.newLevel,
+    reason: parsed.data.reason ?? null,
+  });
+
+  if (error) {
+    /* RPC 측 raise — 메시지로 케이스 매핑 */
+    if (error.code === '42501' && /last owner/i.test(error.message ?? '')) {
+      return { ok: false, error: 'last_owner' };
+    }
+    if (error.code === '42501') {
+      return { ok: false, error: 'unauthorized' };
+    }
+    if (error.code === '23514' || /not admin/i.test(error.message ?? '')) {
+      return { ok: false, error: 'not_admin' };
+    }
+    if (error.code === 'P0002' || /not found/i.test(error.message ?? '')) {
+      return { ok: false, error: 'not_found' };
+    }
+    console.error('[setAdminLevelAction] rpc failed', {
+      code: error.code,
+      message: error.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+
+  revalidatePath('/admin/users');
+  revalidatePath(`/admin/users/${parsed.data.targetId}`);
+  return { ok: true, targetId: parsed.data.targetId };
 }

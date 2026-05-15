@@ -5,6 +5,7 @@
    - 인터랙션은 OrdersTableClient (client) 가 담당
    ══════════════════════════════════════════ */
 
+import { getAdminClaims } from '@/lib/auth/getClaims';
 import { fetchAdminOrders } from '@/lib/admin/ordersServer';
 import OrdersTableClient from './OrdersTableClient';
 
@@ -14,13 +15,17 @@ type PageProps = {
 
 export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const raw = await searchParams;
-  const result = await fetchAdminOrders(raw);
+  const [result, claims] = await Promise.all([
+    fetchAdminOrders(raw),
+    getAdminClaims(),
+  ]);
   return (
     <OrdersTableClient
       rows={result.rows}
       total={result.total}
       counts={result.counts}
       filters={result.filters}
+      isOwner={claims?.adminLevel === 'owner'}
     />
   );
 }

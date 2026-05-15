@@ -14,6 +14,7 @@
 
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
+import { getAdminClaims } from '@/lib/auth/getClaims';
 import { fetchAdminProductRawBySlug } from '@/lib/admin/productsServer';
 import { AdminBackLink } from '@/components/admin/AdminBackLink';
 import ProductActiveToggleClient from './ProductActiveToggleClient';
@@ -35,9 +36,13 @@ export default function AdminProductEditPage({ params }: PageProps) {
 
 async function EditInner({ params }: PageProps) {
   const { slug } = await params;
-  const product = await fetchAdminProductRawBySlug(decodeURIComponent(slug));
+  const [product, claims] = await Promise.all([
+    fetchAdminProductRawBySlug(decodeURIComponent(slug)),
+    getAdminClaims(),
+  ]);
   if (!product) notFound();
 
+  const isOwner = claims?.adminLevel === 'owner';
   const sortedImages = [...product.product_images].sort(
     (a, b) => a.sort_order - b.sort_order,
   );
@@ -97,10 +102,11 @@ async function EditInner({ params }: PageProps) {
       {/* 3탭 편집 폼 (basic · detail · option) */}
       <ProductEditForm mode="edit" product={product} />
 
-      {/* 위험 영역 — 상품 영구 삭제 (S231-4) */}
+      {/* 위험 영역 — 상품 영구 삭제 (S231-4 · S232 owner 전용) */}
       <ProductDangerZoneClient
         productId={product.id}
         productName={product.name}
+        isOwner={isOwner}
       />
     </div>
   );

@@ -62,9 +62,11 @@ const PREVIEW_BRK_OPTIONS: ReadonlyArray<{
 interface SettingsFormProps {
   initialSettings: SiteSettings;
   coffeeBeans: Product[];
+  /** S232: owner (관리자) 만 저장 가능. staff (운영자) 는 모든 저장 버튼 disabled. */
+  isOwner: boolean;
 }
 
-export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsFormProps) {
+export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: SettingsFormProps) {
   const router = useRouter();
   const [savedSettings, setSavedSettings] = useState<SiteSettings>(initialSettings);
   const [settings, setSettings] = useState<SiteSettings>(initialSettings);
@@ -224,8 +226,9 @@ export default function SettingsForm({ initialSettings, coffeeBeans }: SettingsF
           type="button"
           size="sm"
           className="!h-7"
-          disabled={!isDirty || isPending}
+          disabled={!isOwner || !isDirty || isPending}
           onClick={handleSave}
+          title={!isOwner ? '관리자 권한 필요' : undefined}
         >
           {isPending ? '저장 중…' : '변경사항 저장'}
         </Button>

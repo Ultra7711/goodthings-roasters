@@ -19,7 +19,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { z } from 'zod';
-import { getAdminClaims } from '@/lib/auth/getClaims';
+import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { fetchAdminOrdersForExport } from '@/lib/admin/ordersServer';
 import { describeStatus } from '@/lib/admin/orders';
 import {
@@ -47,7 +47,8 @@ export type ExportCsvResult =
 export async function exportOrdersCsvAction(
   input: ExportOrdersInput,
 ): Promise<ExportCsvResult> {
-  const claims = await getAdminClaims();
+  /* S232: owner (관리자) 만 CSV 내보내기. staff (운영자) 는 차단. */
+  const claims = await getAdminOwnerClaims();
   if (!claims) return { ok: false, error: 'unauthorized' };
 
   const parsed = ExportOrdersInputSchema.safeParse(input);

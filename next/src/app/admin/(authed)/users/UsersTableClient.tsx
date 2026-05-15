@@ -129,7 +129,7 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
       key: 'role',
       header: '역할',
       render: (u) => {
-        const role = describeRole(u.role);
+        const role = describeRole(u.role, u.adminLevel);
         return (
           <Badge tone={role.tone} dot>
             {role.label}

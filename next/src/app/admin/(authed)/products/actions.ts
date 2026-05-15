@@ -26,7 +26,7 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
-import { getAdminClaims } from '@/lib/auth/getClaims';
+import { getAdminClaims, getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import {
   buildAdminImageFilename,
@@ -917,7 +917,8 @@ export type DeleteProductResult =
 export async function deleteProductAction(input: {
   id: string;
 }): Promise<DeleteProductResult> {
-  const claims = await getAdminClaims();
+  /* S232: owner (관리자) 만 영구 삭제. staff (운영자) 는 일시 비공개만 가능. */
+  const claims = await getAdminOwnerClaims();
   if (!claims) return { ok: false, error: 'unauthorized' };
 
   if (!z.string().uuid().safeParse(input.id).success) {

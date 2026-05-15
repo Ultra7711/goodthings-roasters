@@ -101,12 +101,17 @@ export async function isAdmin(userId: string): Promise<boolean> {
   return data === true;
 }
 
+/** S232: admin 권한 단계 — 'owner' (관리자) | 'staff' (운영자). */
+export type AdminLevel = 'owner' | 'staff';
+
 /**
  * admin claims — AuthClaims + role + UI 표시용 프로필 데이터.
  * S124: profiles.display_name + profiles.title 통합 (어드민 사이드바·환영 헤더 표시용).
+ * S232: profiles.admin_level (owner/staff) 추가 — 권한 분기 UI/액션 가드 공용.
  */
 export type AdminClaims = AuthClaims & {
   role: 'admin';
+  adminLevel: AdminLevel;
   displayName: string | null;
   title: string | null;
 };
@@ -116,6 +121,7 @@ export type AdminClaims = AuthClaims & {
  * 호출처는 `null` 이면 401/403 으로 응답.
  *
  * S124: profiles.display_name + profiles.title 도 함께 fetch (UI 표시용).
+ * S232: profiles.admin_level 도 함께 fetch (권한 분기용).
  * is_admin RPC 와 profile select 를 Promise.all 로 병렬화.
  */
 export async function getAdminClaims(): Promise<AdminClaims | null> {
@@ -127,7 +133,7 @@ export async function getAdminClaims(): Promise<AdminClaims | null> {
     supabase.rpc('is_admin', { uid: claims.userId }),
     supabase
       .from('profiles')
-      .select('display_name, title')
+      .select('display_name, title, admin_level')
       .eq('id', claims.userId)
       .maybeSingle(),
   ]);
@@ -142,16 +148,23 @@ export async function getAdminClaims(): Promise<AdminClaims | null> {
   if (adminRes.data !== true) return null;
 
   if (profileRes.error) {
-    /* 프로필이 없거나 조회 실패해도 admin 인증 자체는 통과 — null fallback. */
+    /* 프로필이 없거나 조회 실패해도 admin 인증 자체는 통과 — null fallback.
+       admin_level 누락 시 보수적 'staff' 처리. */
     console.warn('[getAdminClaims] profile fetch failed', {
       code: profileRes.error.code,
       message: profileRes.error.message,
     });
   }
 
+  /* admin_level 은 055 CHECK constraint 상 admin 이면 NOT NULL.
+     이론상 NULL 불가능하지만 TS narrow 위해 'staff' fallback. */
+  const adminLevel: AdminLevel =
+    profileRes.data?.admin_level === 'owner' ? 'owner' : 'staff';
+
   return {
     ...claims,
     role: 'admin',
+    adminLevel,
     displayName: profileRes.data?.display_name ?? null,
     title: profileRes.data?.title ?? null,
   };
@@ -164,5 +177,20 @@ export async function getAdminClaims(): Promise<AdminClaims | null> {
 export async function requireAdminOrRedirect(): Promise<AdminClaims> {
   const adminClaims = await getAdminClaims();
   if (!adminClaims) redirect('/admin/login');
+  return adminClaims;
+}
+
+/* ── owner (관리자) 가드 — S232 ───────────────────────────────────────
+   민감 액션 (CSV 내보내기 · 영구 삭제 · 사용자 권한 변경 · 사이트 설정) 전용.
+   ──────────────────────────────────────────────────────────────────── */
+
+/**
+ * admin owner 필수 Route Handler 가드. owner 가 아니면 `null` 반환.
+ * 호출처는 `null` 이면 'unauthorized' 응답.
+ */
+export async function getAdminOwnerClaims(): Promise<AdminClaims | null> {
+  const adminClaims = await getAdminClaims();
+  if (!adminClaims) return null;
+  if (adminClaims.adminLevel !== 'owner') return null;
   return adminClaims;
 }

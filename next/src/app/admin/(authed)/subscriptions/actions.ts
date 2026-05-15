@@ -27,7 +27,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { getAdminClaims } from '@/lib/auth/getClaims';
+import { getAdminClaims, getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import {
   dateInputToIso,
@@ -524,7 +524,8 @@ export type ExportCsvResult =
 export async function exportSubscriptionsCsvAction(
   input: ExportSubscriptionsInput,
 ): Promise<ExportCsvResult> {
-  const claims = await getAdminClaims();
+  /* S232: owner (관리자) 만 CSV 내보내기. staff (운영자) 는 차단. */
+  const claims = await getAdminOwnerClaims();
   if (!claims) return { ok: false, error: 'unauthorized' };
 
   const parsed = ExportSubscriptionsInputSchema.safeParse(input);

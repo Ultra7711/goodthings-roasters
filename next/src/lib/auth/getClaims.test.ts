@@ -130,7 +130,7 @@ describe('getAdminClaims', () => {
     } as any);
     mockRpc.mockResolvedValueOnce({ data: true, error: null });
     mockMaybeSingle.mockResolvedValueOnce({
-      data: { display_name: '정현우', title: '대표 · Owner' },
+      data: { display_name: '정현우', title: '대표 · Owner', admin_level: 'owner' },
       error: null,
     });
 
@@ -140,6 +140,7 @@ describe('getAdminClaims', () => {
       email: 'admin@example.com',
       metadata: { full_name: 'Admin' },
       role: 'admin',
+      adminLevel: 'owner',
       displayName: '정현우',
       title: '대표 · Owner',
     });
@@ -173,6 +174,7 @@ describe('getAdminClaims', () => {
       email: 'admin@example.com',
       metadata: {},
       role: 'admin',
+      adminLevel: 'staff',  /* profile row missing → 보수적 fallback */
       displayName: null,
       title: null,
     });
