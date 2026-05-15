@@ -51,6 +51,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/admin/ui/dialog';
+import ConfirmModal from '@/components/admin/ConfirmModal';
 /* S222 PR-5b: ADMIN_INPUT_STYLE / ADMIN_FILE_INPUT_STYLE / ADMIN_BTN_*
    상수 폐기 — shadcn Button / Input 직접 사용. */
 import type { GoodDaysGalleryRow } from '@/lib/gooddaysServer';
@@ -74,6 +75,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
   const [items, setItems] = useState<GoodDaysGalleryRow[]>(initialItems);
   const [isPending, startTransition] = useTransition();
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   /* dnd-kit 의 announcer ID (DndDescribedBy-N) 가 SSR vs CSR 별 카운터에서 발급되어
      hydration mismatch 발생. Grid 부분만 mounted 후에 render → SSR 시점 dnd-kit 회피.
@@ -113,7 +115,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
     startTransition(async () => {
       const result = await reorderGoodDaysImagesAction({ orderedIds });
       if (!result.ok) {
-        toast.error(`정렬 저장 실패 (${result.detail ?? result.error})`);
+        toast.error(describeMutationError('정렬을 저장', result.error, result.detail));
         setItems(items); /* 롤백 */
       } else {
         router.refresh();
@@ -133,22 +135,24 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
     startTransition(async () => {
       const result = await updateGoodDaysImageAction({ id, ...fields });
       if (!result.ok) {
-        toast.error(`수정 실패 (${result.detail ?? result.error})`);
+        toast.error(describeMutationError('변경사항을 저장', result.error, result.detail));
       }
     });
   }
 
   /* ── 삭제 ────────────────────────────────────────────────────────────── */
-  function handleDelete(id: string) {
-    if (!confirm('이 이미지를 삭제하시겠습니까? 되돌릴 수 없습니다.')) return;
+  function confirmDelete() {
+    const id = deleteTargetId;
+    if (!id) return;
     startTransition(async () => {
       const result = await deleteGoodDaysImageAction({ id });
       if (!result.ok) {
-        toast.error(`삭제 실패 (${result.detail ?? result.error})`);
+        toast.error(describeMutationError('삭제', result.error, result.detail));
         return;
       }
       setItems((prev) => prev.filter((it) => it.id !== id));
-      toast.success('삭제 완료');
+      setDeleteTargetId(null);
+      toast.success('이미지를 삭제했습니다');
       router.refresh();
     });
   }
@@ -160,15 +164,14 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
     try {
       const result = await uploadGoodDaysImageAction(formData);
       if (!result.ok) {
-        toast.error(`업로드 실패 (${result.detail ?? result.error})`);
+        toast.error(describeMutationError('이미지를 업로드', result.error, result.detail));
         return false;
       }
-      toast.success('업로드 완료');
+      toast.success('이미지를 등록했습니다');
       router.refresh();
       return true;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'unknown';
-      toast.error(`업로드 실패 (${message.slice(0, 100)})`);
+    } catch {
+      toast.error('이미지를 업로드하지 못했습니다. 잠시 후 다시 시도해 주세요.');
       return false;
     }
   }
@@ -243,7 +246,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
                     patchItem(item.id, { isActive });
                     commitUpdate(item.id, { isActive });
                   }}
-                  onDelete={() => handleDelete(item.id)}
+                  onDelete={() => setDeleteTargetId(item.id)}
                 />
               ))}
             </div>
@@ -256,8 +259,40 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
         onOpenChange={setUploadOpen}
         onSubmit={handleUpload}
       />
+
+      <ConfirmModal
+        open={deleteTargetId !== null}
+        variant="danger"
+        title="이미지를 삭제하시겠습니까?"
+        description="이 이미지는 영원히 사라지며, 되돌릴 수 없습니다."
+        confirmLabel="삭제"
+        pending={isPending}
+        onCancel={() => setDeleteTargetId(null)}
+        onConfirm={confirmDelete}
+      />
     </>
   );
+}
+
+/* ── Helpers ───────────────────────────────────────────────────────────── */
+
+/** 운영자 친화 에러 문구. action 은 동사 (예: '이미지를 업로드'). */
+function describeMutationError(action: string, error: string, detail?: string): string {
+  switch (error) {
+    case 'unauthorized':
+      return '권한이 없습니다. 다시 로그인해 주세요.';
+    case 'not_found':
+      return '이미지를 찾을 수 없어요 (이미 삭제됐을 수 있어요).';
+    case 'invalid_image':
+      return '이미지 파일을 읽을 수 없어요. 다른 파일로 시도해 주세요.';
+    case 'validation_failed':
+      if (detail === 'file_missing') return '파일을 선택해 주세요.';
+      if (detail === 'file_too_large') return '파일이 너무 큽니다. 5MB 이하로 다시 시도해 주세요.';
+      return '입력값을 확인해 주세요.';
+    case 'server_error':
+    default:
+      return `${action}하지 못했습니다. 잠시 후 다시 시도해 주세요.`;
+  }
 }
 
 /* ── SortableCard ──────────────────────────────────────────────────────── */

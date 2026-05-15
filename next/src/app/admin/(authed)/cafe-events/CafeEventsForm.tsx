@@ -25,6 +25,7 @@ import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Checkbox } from '@/components/admin/ui/checkbox';
 import { Textarea } from '@/components/admin/ui/textarea';
+import ConfirmModal from '@/components/admin/ConfirmModal';
 import {
   CAFE_EVENT_TYPES,
   composeEventEyebrow,
@@ -106,6 +107,12 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
   const [previewHeight, setPreviewHeight] = useState<number>(360);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  /** 저장되지 않은 변경 사라짐 확인 — 선택 변경 또는 새 이벤트 두 경로 분기. */
+  const [pendingNavigation, setPendingNavigation] = useState<
+    { kind: 'select'; eventId: string } | { kind: 'new' } | null
+  >(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
   /* draft 변경 시 300ms debounce 후 iframe src 갱신 */
   useEffect(() => {
     if (!draft) {
@@ -172,19 +179,13 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
 
   /* ── Handlers ─────────────────────────────────────────────────────── */
 
-  function selectEvent(id: string) {
-    if (isDirty && !confirm('저장되지 않은 변경이 사라집니다. 계속할까요?')) {
-      return;
-    }
+  function applySelectEvent(id: string) {
     const ev = events.find((e) => e.id === id);
     setSelectedId(id);
     setDraft(ev ? { ...ev } : null);
   }
 
-  function handleNew() {
-    if (isDirty && !confirm('저장되지 않은 변경이 사라집니다. 계속할까요?')) {
-      return;
-    }
+  function applyNew() {
     const tempId = `${TEMP_ID_PREFIX}${Date.now()}`;
     const newDraft: DraftEvent = {
       id: tempId,
@@ -207,6 +208,30 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     };
     setSelectedId(tempId);
     setDraft(newDraft);
+  }
+
+  function selectEvent(id: string) {
+    if (isDirty) {
+      setPendingNavigation({ kind: 'select', eventId: id });
+      return;
+    }
+    applySelectEvent(id);
+  }
+
+  function handleNew() {
+    if (isDirty) {
+      setPendingNavigation({ kind: 'new' });
+      return;
+    }
+    applyNew();
+  }
+
+  function confirmPendingNavigation() {
+    const action = pendingNavigation;
+    setPendingNavigation(null);
+    if (!action) return;
+    if (action.kind === 'select') applySelectEvent(action.eventId);
+    else applyNew();
   }
 
   function handleReset() {
@@ -248,7 +273,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     if (result.ok) {
       updateDraft('image_path', result.publicUrl);
       setUploadState({ status: 'idle' });
-      toast.success('이미지가 업로드되었습니다 · 저장 후 반영됩니다');
+      toast.success('이미지를 등록했습니다 · 저장 후 반영됩니다');
     } else {
       const message = describeUploadError(result.error, result.detail);
       setUploadState({ status: 'error', message });
@@ -263,7 +288,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         const { id: _, ...input } = draft;
         const result = await createCafeEventAction(input);
         if (result.ok) {
-          toast.success('이벤트가 생성되었습니다');
+          toast.success('이벤트를 등록했습니다');
           setSelectedId(result.id);
           router.refresh();
         } else {
@@ -272,7 +297,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       } else {
         const result = await updateCafeEventAction(draft);
         if (result.ok) {
-          toast.success('이벤트가 저장되었습니다 · B2C 사이트에 즉시 반영');
+          toast.success('이벤트를 저장했습니다 · 사이트에 즉시 반영됩니다');
           router.refresh();
         } else {
           toast.error(describeError(result.error, result.detail));
@@ -283,11 +308,16 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
 
   function handleDelete() {
     if (!draft || isNew) return;
-    if (!confirm(`"${draft.h4 || '이름 없음'}" 이벤트를 삭제할까요?`)) return;
+    setDeleteConfirmOpen(true);
+  }
+
+  function confirmDelete() {
+    if (!draft || isNew) return;
     startTransition(async () => {
       const result = await deleteCafeEventAction(draft.id);
       if (result.ok) {
-        toast.success('이벤트가 삭제되었습니다');
+        toast.success('이벤트를 삭제했습니다');
+        setDeleteConfirmOpen(false);
         setDraft(null);
         setSelectedId(null);
         router.refresh();
@@ -693,6 +723,34 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
             </>
           )}
         </div>
+
+      <ConfirmModal
+        open={pendingNavigation !== null}
+        title="저장하지 않은 변경이 있습니다"
+        description="이 페이지에서 빠져나가면 변경 내용이 사라집니다. 계속할까요?"
+        confirmLabel="계속"
+        cancelLabel="머무르기"
+        onCancel={() => setPendingNavigation(null)}
+        onConfirm={confirmPendingNavigation}
+      />
+
+      <ConfirmModal
+        open={deleteConfirmOpen}
+        variant="danger"
+        title="이벤트를 삭제하시겠습니까?"
+        description={
+          <>
+            <strong className="text-foreground">
+              {draft?.h4 || '이름 없음'}
+            </strong>{' '}
+            이벤트가 영원히 사라지며, 되돌릴 수 없습니다.
+          </>
+        }
+        confirmLabel="삭제"
+        pending={isPending}
+        onCancel={() => setDeleteConfirmOpen(false)}
+        onConfirm={confirmDelete}
+      />
     </>
   );
 }
