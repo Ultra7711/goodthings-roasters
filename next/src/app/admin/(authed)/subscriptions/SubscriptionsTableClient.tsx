@@ -27,6 +27,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { extractKrName } from '@/lib/products';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
@@ -34,6 +35,7 @@ import { AdminTabsNav } from '@/components/admin/AdminTabsNav';
 import { AdminDataTable, type Column } from '@/components/admin/AdminDataTable';
 import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
 import { AdminPagination } from '@/components/admin/AdminPagination';
+import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
@@ -69,6 +71,7 @@ import {
   updateSubscriptionCycleAction,
   updateSubscriptionStatusAction,
   fetchSubscriptionAuditLogAction,
+  exportSubscriptionsCsvAction,
   type AuditLogEntry,
 } from './actions';
 
@@ -92,10 +95,52 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
   const router = useRouter();
   const [searchValue, setSearchValue] = useState(filters.q);
   const [editingRow, setEditingRow] = useState<ListedSubscription | null>(null);
+  const [isExporting, startExport] = useTransition();
 
   useEffect(() => {
     setSearchValue(filters.q);
   }, [filters.q]);
+
+  /* CSV 내보내기 — 현재 status / q 필터 적용. truncated 시 안내 toast. */
+  function handleExport() {
+    startExport(async () => {
+      const result = await exportSubscriptionsCsvAction({
+        status: filters.status,
+        q: filters.q,
+      });
+      if (!result.ok) {
+        const map: Record<string, string> = {
+          unauthorized: '권한이 없습니다.',
+          validation_failed: '입력값이 잘못되었습니다.',
+          server_error: '내보내는 중 오류가 발생했습니다.',
+        };
+        toast.error(map[result.error] ?? '오류가 발생했습니다.');
+        return;
+      }
+      if (result.rowCount === 0) {
+        toast.info('내보낼 구독이 없습니다.');
+        return;
+      }
+      /* Blob 다운로드 — UTF-8 BOM 은 csv 본문에 이미 포함. */
+      const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      if (result.truncated) {
+        toast.warning(
+          `${result.rowCount.toLocaleString()}건 내보냈습니다. 상한(10,000건) 초과 — 필터를 좁혀 다시 내보내주세요.`,
+        );
+      } else {
+        toast.success(`${result.rowCount.toLocaleString()}건을 내보냈습니다.`);
+      }
+    });
+  }
 
   function buildHref(override: Partial<AdminSubscriptionsSearchParams>): string {
     const merged = { ...filters, ...override };
@@ -205,6 +250,21 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters 
 
   return (
     <>
+      <AdminTopbarActions>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="!h-7"
+          onClick={handleExport}
+          disabled={isExporting || total === 0}
+          title="현재 필터 기준으로 CSV 내보내기"
+        >
+          <DownloadIcon />
+          {isExporting ? '내보내는 중…' : 'CSV 내보내기'}
+        </Button>
+      </AdminTopbarActions>
+
       <AdminPageHeader
         title="정기배송 관리"
         subtitle={
@@ -284,6 +344,24 @@ function describeRange(page: number, total: number): string {
 }
 
 /* ── 인라인 SVG ─────────────────────────────────── */
+
+/* Download — CSV 내보내기 버튼 (Orders 답습). */
+const DownloadIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path d="M7 10l5 5 5-5" />
+    <path d="M12 15V3" />
+  </svg>
+);
 
 /* Pencil — 편집 액션 (size-3 자동 · icon-xs Button 매트릭스). */
 const PencilIcon = () => (

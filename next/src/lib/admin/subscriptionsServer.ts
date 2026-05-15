@@ -182,3 +182,100 @@ export async function fetchAdminSubscriptions(
 
   return { rows, total: count ?? 0, counts, filters };
 }
+
+/* ── Export (CSV) 전용 fetcher (S232) ──────────────────────────────────
+   fetchAdminSubscriptions 와 동일 필터 (status / q) 답습.
+   PAGE_SIZE 무시 + MAX_ROWS 한도 + truncated 신호 반환.
+   ───────────────────────────────────────────────────────────────────── */
+
+export type AdminSubscriptionsExportResult = {
+  rows: ListedSubscription[];
+  truncated: boolean;
+};
+
+/** 행 수 상한 + 1 fetch → truncated 판정 (lib/admin/csvExport MAX_EXPORT_ROWS 와 정합). */
+export async function fetchAdminSubscriptionsForExport(
+  searchParamsRaw: Record<string, string | string[] | undefined>,
+  maxRows: number,
+): Promise<AdminSubscriptionsExportResult> {
+  const filters = parseSearchParams(searchParamsRaw);
+  const supabase = await createRouteHandlerClient();
+
+  /* 메인 쿼리 (PAGE_SIZE 무시 · 한도+1 까지 fetch) */
+  let query = supabase
+    .from('subscriptions')
+    .select(
+      'id, user_id, product_slug, product_name, product_volume, cycle, status, next_delivery_at, last_delivery_at, created_at',
+    )
+    .order('next_delivery_at', { ascending: true })
+    .range(0, maxRows);
+
+  if (filters.status !== 'all') query = query.eq('status', filters.status);
+
+  const qSafe = sanitizeSearchQuery(filters.q);
+  if (qSafe.length > 0) {
+    const { data: emailMatches } = await supabase
+      .from('profiles')
+      .select('id')
+      .ilike('email', `%${qSafe}%`);
+    const emailMatchIds = (emailMatches ?? []).map((p: { id: string }) => p.id);
+    if (emailMatchIds.length > 0) {
+      query = query.or(
+        `product_name.ilike.%${qSafe}%,user_id.in.(${emailMatchIds.join(',')})`,
+      );
+    } else {
+      query = query.ilike('product_name', `%${qSafe}%`);
+    }
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('[fetchAdminSubscriptionsForExport] query failed', summarizePgError(error));
+    return { rows: [], truncated: false };
+  }
+
+  const all = (data ?? []) as SubscriptionRow[];
+  const truncated = all.length > maxRows;
+  const subs = truncated ? all.slice(0, maxRows) : all;
+
+  /* profiles IN(userIds) — user_id → email/name 매핑 (PAGE 내 전체) */
+  const userIds = Array.from(new Set(subs.map((s) => s.user_id)));
+  const profileMap = new Map<string, ProfileLookupRow>();
+  if (userIds.length > 0) {
+    const { data: profileRows, error: profileErr } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, display_name')
+      .in('id', userIds);
+    if (profileErr) {
+      console.error(
+        '[fetchAdminSubscriptionsForExport] profiles lookup failed',
+        summarizePgError(profileErr),
+      );
+    } else if (profileRows) {
+      for (const p of profileRows as ProfileLookupRow[]) {
+        profileMap.set(p.id, p);
+      }
+    }
+  }
+
+  const rows: ListedSubscription[] = subs.map((s) => {
+    const p = profileMap.get(s.user_id);
+    return {
+      id: s.id,
+      userId: s.user_id,
+      userEmail: p?.email ?? '(unknown)',
+      userDisplayName: p?.display_name ?? null,
+      userFullName: p?.full_name ?? null,
+      productSlug: s.product_slug,
+      productName: s.product_name,
+      productVolume: s.product_volume,
+      cycle: s.cycle,
+      status: s.status,
+      nextDeliveryAtIso: s.next_delivery_at,
+      lastDeliveryAtIso: s.last_delivery_at,
+      createdAtIso: s.created_at,
+    };
+  });
+
+  return { rows, truncated };
+}

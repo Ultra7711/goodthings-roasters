@@ -29,7 +29,22 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getAdminClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
-import { dateInputToIso } from '@/lib/admin/subscriptions';
+import {
+  dateInputToIso,
+  describeCycle,
+  describeStatus,
+  formatDeliveryDate,
+  resolveUserName,
+} from '@/lib/admin/subscriptions';
+import { fetchAdminSubscriptionsForExport } from '@/lib/admin/subscriptionsServer';
+import {
+  MAX_EXPORT_ROWS,
+  buildCsv,
+  buildExportFilename,
+  formatKstDateCell,
+  logCsvExportAudit,
+  nowKstDisplay,
+} from '@/lib/admin/csvExport';
 import {
   SUBSCRIPTION_CYCLES,
   CYCLE_DAYS,
@@ -480,4 +495,98 @@ export async function fetchSubscriptionAuditLogAction(
   }));
 
   return { ok: true, entries };
+}
+
+/* ── Export CSV (S232) ────────────────────────────────────────────── */
+
+/**
+ * 현재 필터에 일치하는 구독 목록을 CSV 로 내보낸다.
+ *
+ * - admin 가드
+ * - PAGE_SIZE 무시 + MAX_EXPORT_ROWS (10,000) 한도
+ * - PII 평문 (DEC-export-4): 운영 목적 (회계 / CS / 배송)
+ * - actor / 필터 / 행 수 audit (console 구조화 · Vercel log 보존)
+ *
+ * 반환: csv 본문 + 파일명 + truncated 신호.
+ *       client 에서 Blob 다운로드 + truncated 시 안내 toast.
+ */
+const ExportSubscriptionsInputSchema = z.object({
+  status: z.enum(['all', 'active', 'paused', 'cancelled', 'expired']).default('all'),
+  q: z.string().default(''),
+});
+
+export type ExportSubscriptionsInput = z.input<typeof ExportSubscriptionsInputSchema>;
+
+export type ExportCsvResult =
+  | { ok: true; filename: string; csv: string; rowCount: number; truncated: boolean }
+  | { ok: false; error: 'unauthorized' | 'validation_failed' | 'server_error' };
+
+export async function exportSubscriptionsCsvAction(
+  input: ExportSubscriptionsInput,
+): Promise<ExportCsvResult> {
+  const claims = await getAdminClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const parsed = ExportSubscriptionsInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'validation_failed' };
+
+  try {
+    const { rows, truncated } = await fetchAdminSubscriptionsForExport(
+      { status: parsed.data.status, q: parsed.data.q },
+      MAX_EXPORT_ROWS,
+    );
+
+    const headers = [
+      '구독 ID',
+      '고객명',
+      '이메일',
+      '상품명',
+      '용량',
+      '주기',
+      '상태',
+      '다음 배송',
+      '이전 배송',
+      '시작일',
+    ] as const;
+
+    const dataRows = rows.map((s) => [
+      s.id,
+      resolveUserName(s),
+      s.userEmail,
+      s.productName,
+      s.productVolume ?? '',
+      describeCycle(s.cycle),
+      describeStatus(s.status).label,
+      formatDeliveryDate(s.nextDeliveryAtIso),
+      s.lastDeliveryAtIso ? formatDeliveryDate(s.lastDeliveryAtIso) : '',
+      formatKstDateCell(s.createdAtIso),
+    ]);
+
+    const csv = buildCsv(headers, dataRows, {
+      domain: '정기배송',
+      generatedAtKst: nowKstDisplay(),
+    });
+    const filename = buildExportFilename('subscriptions');
+
+    logCsvExportAudit({
+      domain: 'subscriptions',
+      actorId: claims.userId,
+      filters: { status: parsed.data.status, q: parsed.data.q },
+      rowCount: rows.length,
+      truncated,
+    });
+
+    return {
+      ok: true,
+      filename,
+      csv,
+      rowCount: rows.length,
+      truncated,
+    };
+  } catch (err: unknown) {
+    console.error('[exportSubscriptionsCsvAction] failed', {
+      message: err instanceof Error ? err.message.slice(0, 200) : 'unknown',
+    });
+    return { ok: false, error: 'server_error' };
+  }
 }
