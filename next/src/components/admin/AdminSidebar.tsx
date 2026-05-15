@@ -9,7 +9,7 @@
    - sticky (top: 0 · height: 100vh)
    ══════════════════════════════════════════ */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -40,34 +40,43 @@ type NavItem = {
 };
 type NavGroup = { label: string; items: NavItem[] };
 
-const NAV_GROUPS: NavGroup[] = [
-  {
-    label: '운영',
-    items: [
-      { href: '/admin', label: '대시보드', icon: LayoutTemplate },
-      { href: '/admin/orders', label: '주문', icon: ShoppingBag },
-      { href: '/admin/subscriptions', label: '정기배송', icon: Calendar },
-    ],
-  },
-  {
-    label: '카탈로그',
-    items: [
-      { href: '/admin/products', label: '상품', icon: Package2 },
-      { href: '/admin/menu', label: '카페 메뉴', icon: Coffee },
-      { href: '/admin/cafe-events', label: '카페 이벤트', icon: Megaphone },
-      { href: '/admin/users', label: '고객', icon: Users },
-      { href: '/admin/gooddays', label: '굿데이즈', icon: ImageIcon },
-    ],
-  },
-  {
-    label: '인사이트',
-    items: [{ href: '/admin/analytics', label: '통계', icon: BarChart3 }],
-  },
-  {
-    label: '설정',
-    items: [{ href: '/admin/settings', label: '사이트 설정', icon: Settings }],
-  },
-];
+/* S233-fu: 감사 로그는 owner 만 노출. NAV_GROUPS 를 admin_level 별 함수로. */
+function buildNavGroups(adminLevel: 'owner' | 'staff'): NavGroup[] {
+  const settingsItems: NavItem[] = [
+    { href: '/admin/settings', label: '사이트 설정', icon: Settings },
+  ];
+  if (adminLevel === 'owner') {
+    settingsItems.push({ href: '/admin/audit', label: '감사 로그', icon: BarChart3 });
+  }
+  return [
+    {
+      label: '운영',
+      items: [
+        { href: '/admin', label: '대시보드', icon: LayoutTemplate },
+        { href: '/admin/orders', label: '주문', icon: ShoppingBag },
+        { href: '/admin/subscriptions', label: '정기배송', icon: Calendar },
+      ],
+    },
+    {
+      label: '카탈로그',
+      items: [
+        { href: '/admin/products', label: '상품', icon: Package2 },
+        { href: '/admin/menu', label: '카페 메뉴', icon: Coffee },
+        { href: '/admin/cafe-events', label: '카페 이벤트', icon: Megaphone },
+        { href: '/admin/users', label: '고객', icon: Users },
+        { href: '/admin/gooddays', label: '굿데이즈', icon: ImageIcon },
+      ],
+    },
+    {
+      label: '인사이트',
+      items: [{ href: '/admin/analytics', label: '통계', icon: BarChart3 }],
+    },
+    {
+      label: '설정',
+      items: settingsItems,
+    },
+  ];
+}
 
 /* collapse 영구 저장 — localStorage key. 운영자 선호 유지 (Claude 답습) */
 const COLLAPSED_STORAGE_KEY = 'admin-sidebar-collapsed';
@@ -91,6 +100,7 @@ export default function AdminSidebar({ email, displayName, title, adminLevel }: 
   /* title 이 명시적이면 그대로 / 없으면 admin_level 라벨로 fallback */
   const subtitle = title?.trim() || (adminLevel === 'owner' ? '관리자' : '운영자');
   const levelLabel = adminLevel === 'owner' ? '관리자' : '운영자';
+  const navGroups = useMemo(() => buildNavGroups(adminLevel), [adminLevel]);
 
   /* collapse/expand 상태 — localStorage 영구 저장 (Claude 답습 · S231 후속).
      SSR 시 false 초기값 → 첫 mount 후 localStorage 동기화. */
@@ -269,7 +279,7 @@ export default function AdminSidebar({ email, displayName, title, adminLevel }: 
           gap: 18,
         }}
       >
-        {NAV_GROUPS.map((g) => (
+        {navGroups.map((g) => (
           <div key={g.label}>
             {!collapsed && (
               <div

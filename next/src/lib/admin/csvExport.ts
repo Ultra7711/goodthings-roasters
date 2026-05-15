@@ -104,19 +104,24 @@ export function nowKstDisplay(nowIso: string = new Date().toISOString()): string
   return `${p.yyyy}.${pad2(p.mm)}.${pad2(p.dd)} ${pad2(p.hh)}:${pad2(p.mi)} KST`;
 }
 
-/* ── audit 로그 (console 구조화) ────────────────────────────────────── */
+/* ── audit 로그 (DB + console) ─────────────────────────────────────── */
 
 /**
- * CSV 내보내기 행위 audit — Vercel log 30일+ 보존.
- * 별도 admin_export_log 테이블은 출시 후 carry-over.
+ * CSV 내보내기 행위 audit — admin_export_log 테이블 INSERT + console 병행.
+ *
+ * - DB: 056 마이그 admin_export_log (영구 보관 + owner 통합 조회)
+ * - console: Vercel log 30일+ 보존 (DB INSERT 실패 시 fallback 가시성)
+ *
+ * RLS: admin_export_log_insert_admin_self — admin 본인 행만 INSERT 허용.
+ * INSERT 실패해도 caller 의 다운로드 자체는 영향 없음 (best-effort).
  */
-export function logCsvExportAudit(params: {
-  domain: string;
+export async function logCsvExportAudit(params: {
+  domain: 'subscriptions' | 'orders' | 'users' | 'products';
   actorId: string;
   filters: Record<string, unknown>;
   rowCount: number;
   truncated: boolean;
-}): void {
+}): Promise<void> {
   /* eslint-disable-next-line no-console */
   console.log('[admin.export.csv]', JSON.stringify({
     domain: params.domain,
@@ -126,4 +131,26 @@ export function logCsvExportAudit(params: {
     truncated: params.truncated,
     at: new Date().toISOString(),
   }));
+
+  try {
+    const { createRouteHandlerClient } = await import('@/lib/supabaseServer');
+    const supabase = await createRouteHandlerClient();
+    const { error } = await supabase.from('admin_export_log').insert({
+      actor_id: params.actorId,
+      domain: params.domain,
+      filters: params.filters,
+      row_count: params.rowCount,
+      truncated: params.truncated,
+    });
+    if (error) {
+      console.error('[logCsvExportAudit] insert failed', {
+        code: error.code,
+        message: error.message?.slice(0, 200),
+      });
+    }
+  } catch (err: unknown) {
+    console.error('[logCsvExportAudit] caught', {
+      message: err instanceof Error ? err.message.slice(0, 200) : 'unknown',
+    });
+  }
 }

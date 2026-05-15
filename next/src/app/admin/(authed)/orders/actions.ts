@@ -103,7 +103,7 @@ export async function exportOrdersCsvAction(
     });
     const filename = buildExportFilename('orders');
 
-    logCsvExportAudit({
+    await logCsvExportAudit({
       domain: 'orders',
       actorId: claims.userId,
       filters: parsed.data,

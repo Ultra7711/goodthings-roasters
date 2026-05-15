@@ -569,7 +569,7 @@ export async function exportSubscriptionsCsvAction(
     });
     const filename = buildExportFilename('subscriptions');
 
-    logCsvExportAudit({
+    await logCsvExportAudit({
       domain: 'subscriptions',
       actorId: claims.userId,
       filters: { status: parsed.data.status, q: parsed.data.q },
