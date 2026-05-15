@@ -598,7 +598,7 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
       }}
     >
       {/* admin-design §5-12 Dialog 답습 — p-0 gap-0 + 영역별 padding 토큰 */}
-      <DialogContent className="max-w-[480px] p-0 gap-0">
+      <DialogContent showCloseButton className="max-w-[480px] p-0 gap-0">
         <DialogHeader className="px-6 pt-5 pb-0 text-left">
           <DialogTitle className="text-base font-medium">이미지 업로드</DialogTitle>
           <DialogDescription className="text-xs mt-1">
@@ -616,7 +616,7 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
               accept="image/webp,image/avif,image/jpeg,image/png"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               disabled={submitting}
-              className="file:mr-2 file:rounded-md file:border-0 file:bg-[var(--surface-muted)] file:px-2 file:py-1 file:text-xs file:text-muted-foreground"
+              className="file:inline-flex file:h-7 file:items-center file:mr-3 file:rounded-md file:border-0 file:bg-[var(--surface-muted)] file:px-2.5 file:text-xs file:font-medium file:text-foreground hover:file:bg-[var(--accent)] file:cursor-pointer"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -632,7 +632,7 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
               disabled={submitting}
             />
           </div>
-          <Label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
+          <Label className="flex items-center gap-2 cursor-pointer text-xs text-foreground">
             <Switch
               checked={featured}
               onCheckedChange={setFeatured}
