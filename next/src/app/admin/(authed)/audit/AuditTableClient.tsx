@@ -14,11 +14,14 @@
    - export 다운로드 자체 audit 페이지 export
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useMemo } from 'react';
+import { useMemo, useTransition } from 'react';
+import { toast } from 'sonner';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminDataTable, type Column } from '@/components/admin/AdminDataTable';
 import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
+import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
+import { Button } from '@/components/admin/ui/button';
 import {
   describeAuditAction,
   describeExportFilters,
@@ -26,6 +29,7 @@ import {
   type AuditTone,
 } from '@/lib/admin/audit';
 import type { AdminAuditEvent } from '@/lib/admin/auditServer';
+import { exportAuditCsvAction } from './actions';
 
 const TONES: Record<AuditTone, { bg: string; fg: string; dot: string }> = {
   primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)', dot: 'var(--primary)' },
@@ -40,6 +44,37 @@ type Props = {
 };
 
 export default function AuditTableClient({ events }: Props) {
+  const [isExporting, startExport] = useTransition();
+
+  /* CSV 내보내기 — 컴플라이언스 자료 (정부·KISA PII 조회 기록 제출용). */
+  function handleExport() {
+    startExport(async () => {
+      const result = await exportAuditCsvAction();
+      if (!result.ok) {
+        const map: Record<string, string> = {
+          unauthorized: '관리자 권한이 필요합니다.',
+          server_error: '내보내는 중 오류가 발생했습니다.',
+        };
+        toast.error(map[result.error] ?? '오류가 발생했습니다.');
+        return;
+      }
+      if (result.rowCount === 0) {
+        toast.info('내보낼 감사 로그가 없습니다.');
+        return;
+      }
+      const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(`${result.rowCount.toLocaleString()}건을 내보냈습니다.`);
+    });
+  }
+
   const columns: readonly Column<AdminAuditEvent>[] = useMemo(() => [
     {
       key: 'createdAt',
@@ -112,6 +147,21 @@ export default function AuditTableClient({ events }: Props) {
 
   return (
     <>
+      <AdminTopbarActions>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="!h-7"
+          onClick={handleExport}
+          disabled={isExporting || events.length === 0}
+          title="감사 로그를 CSV 로 내보내기 (컴플라이언스 첨부 자료)"
+        >
+          <DownloadIcon />
+          {isExporting ? '내보내는 중…' : 'CSV 내보내기'}
+        </Button>
+      </AdminTopbarActions>
+
       <AdminPageHeader
         title="감사 로그"
         subtitle={
@@ -136,3 +186,20 @@ export default function AuditTableClient({ events }: Props) {
     </>
   );
 }
+
+const DownloadIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path d="M7 10l5 5 5-5" />
+    <path d="M12 15V3" />
+  </svg>
+);

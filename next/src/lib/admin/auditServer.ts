@@ -41,6 +41,7 @@ export type AdminAuditAction =
   | 'csv_orders'
   | 'csv_users'
   | 'csv_products'
+  | 'csv_audit'
   | 'grant_admin'
   | 'revoke_admin'
   | 'set_admin_level';

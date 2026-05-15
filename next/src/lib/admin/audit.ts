@@ -51,6 +51,7 @@ export function describeAuditAction(
     case 'csv_orders':        return { label: '주문 CSV', tone: 'info' };
     case 'csv_users':         return { label: '고객 CSV', tone: 'info' };
     case 'csv_products':      return { label: '상품 CSV', tone: 'info' };
+    case 'csv_audit':         return { label: '감사 로그 CSV', tone: 'info' };
     case 'grant_admin':       return { label: '운영자 권한 부여', tone: 'success' };
     case 'revoke_admin':      return { label: '어드민 권한 해제', tone: 'neutral' };
     case 'set_admin_level':   return { label: '권한 단계 변경', tone: 'warning' };
