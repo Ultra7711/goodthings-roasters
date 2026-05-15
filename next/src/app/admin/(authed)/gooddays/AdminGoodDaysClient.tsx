@@ -471,16 +471,15 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
         onOpenChange(o);
       }}
     >
-      {/* shadcn DialogContent 의 Tailwind p-6 가 admin 영역에서 적용되지 않는
-         케이스 관찰됨 — inline style 로 padding·gap 명시 강제. (B-180b) */}
-      <DialogContent style={{ padding: 24, gap: 16, maxWidth: 480 }}>
-        <DialogHeader>
-          <DialogTitle>이미지 업로드</DialogTitle>
-          <DialogDescription>
+      {/* admin-design §5-12 Dialog 답습 — p-0 gap-0 + 영역별 padding 토큰 */}
+      <DialogContent className="max-w-[480px] p-0 gap-0">
+        <DialogHeader className="px-6 pt-5 pb-0 text-left">
+          <DialogTitle className="text-base font-medium">이미지 업로드</DialogTitle>
+          <DialogDescription className="text-xs mt-1">
             webp · avif · jpeg · png. 최대 5MB.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-3.5">
+        <div className="px-6 py-5 flex flex-col gap-3.5">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="gd-upload-file" className="text-xs font-medium text-foreground">
               파일
@@ -517,10 +516,12 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
             추천 = 매거진 그리드 큰 사진 슬롯에 우선 배치
           </Label>
         </div>
-        <DialogFooter className="gap-2">
+        <DialogFooter className="px-6 pb-5 sm:justify-end gap-2">
           <Button
             type="button"
             variant="outline"
+            size="sm"
+            className="!h-8 min-w-[96px]"
             onClick={() => onOpenChange(false)}
             disabled={submitting}
           >
@@ -528,6 +529,8 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
           </Button>
           <Button
             type="button"
+            size="sm"
+            className="!h-8 min-w-[96px]"
             onClick={handleSubmit}
             disabled={!file || submitting}
           >
