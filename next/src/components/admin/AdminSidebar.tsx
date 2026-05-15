@@ -18,6 +18,7 @@ import {
   BarChart3,
   Calendar,
   ChevronDown,
+  ClipboardClock,
   Coffee,
   Image as ImageIcon,
   LayoutTemplate,
@@ -46,7 +47,7 @@ function buildNavGroups(adminLevel: 'owner' | 'staff'): NavGroup[] {
     { href: '/admin/settings', label: '사이트 설정', icon: Settings },
   ];
   if (adminLevel === 'owner') {
-    settingsItems.push({ href: '/admin/audit', label: '감사 로그', icon: BarChart3 });
+    settingsItems.push({ href: '/admin/audit', label: '감사 로그', icon: ClipboardClock });
   }
   return [
     {
@@ -100,6 +101,12 @@ export default function AdminSidebar({ email, displayName, title, adminLevel }: 
   /* title 이 명시적이면 그대로 / 없으면 admin_level 라벨로 fallback */
   const subtitle = title?.trim() || (adminLevel === 'owner' ? '관리자' : '운영자');
   const levelLabel = adminLevel === 'owner' ? '관리자' : '운영자';
+  /* badge 노출 조건:
+     - title 이 명시적으로 있을 것 (없으면 subtitle 자체가 권한 라벨)
+     - title 이 admin_level 라벨과 다를 것 (029 backfill default '관리자' 와 우연 일치 회피) */
+  const trimmedTitle = title?.trim() ?? '';
+  const showLevelBadge =
+    trimmedTitle.length > 0 && trimmedTitle !== levelLabel;
   const navGroups = useMemo(() => buildNavGroups(adminLevel), [adminLevel]);
 
   /* collapse/expand 상태 — localStorage 영구 저장 (Claude 답습 · S231 후속).
@@ -324,7 +331,8 @@ export default function AdminSidebar({ email, displayName, title, adminLevel }: 
                     )}
                     <Icon size={20} style={{ opacity: isActive ? 1 : 0.75, flexShrink: 0, display: 'block' }} />
                     {!collapsed && (
-                      <span style={{ flex: 1 }}>{it.label}</span>
+                      /* 텍스트 baseline 미세 정렬 — 아이콘 viewBox 정중앙 vs 한글 baseline 어긋남 보정 (1px) */
+                      <span style={{ flex: 1, transform: 'translateY(1px)' }}>{it.label}</span>
                     )}
                     {!collapsed && it.badge != null && (
                       <span
@@ -397,7 +405,7 @@ export default function AdminSidebar({ email, displayName, title, adminLevel }: 
               <div style={{ flex: 1, minWidth: 0, lineHeight: 1.25 }}>
                 <div
                   style={{
-                    fontSize: 16,
+                    fontSize: 14,
                     color: 'var(--sidebar-fg)',
                     fontWeight: 500,
                     overflow: 'hidden',
@@ -427,22 +435,24 @@ export default function AdminSidebar({ email, displayName, title, adminLevel }: 
                   >
                     {subtitle}
                   </span>
-                  <span
-                    aria-label={`권한 단계: ${levelLabel}`}
-                    style={{
-                      flexShrink: 0,
-                      padding: '1px 6px',
-                      borderRadius: 4,
-                      fontSize: 11,
-                      fontWeight: 500,
-                      letterSpacing: '0.02em',
-                      color: adminLevel === 'owner' ? 'var(--sidebar-fg)' : 'var(--sidebar-fg-muted)',
-                      border: `1px solid ${adminLevel === 'owner' ? 'var(--sidebar-fg)' : 'var(--sidebar-fg-muted)'}`,
-                      opacity: adminLevel === 'owner' ? 1 : 0.7,
-                    }}
-                  >
-                    {levelLabel}
-                  </span>
+                  {showLevelBadge && (
+                    <span
+                      aria-label={`권한 단계: ${levelLabel}`}
+                      style={{
+                        flexShrink: 0,
+                        padding: '1px 6px',
+                        borderRadius: 4,
+                        fontSize: 11,
+                        fontWeight: 500,
+                        letterSpacing: '0.02em',
+                        color: adminLevel === 'owner' ? 'var(--sidebar-fg)' : 'var(--sidebar-fg-muted)',
+                        border: `1px solid ${adminLevel === 'owner' ? 'var(--sidebar-fg)' : 'var(--sidebar-fg-muted)'}`,
+                        opacity: adminLevel === 'owner' ? 1 : 0.7,
+                      }}
+                    >
+                      {levelLabel}
+                    </span>
+                  )}
                 </div>
               </div>
               <ChevronDown size={14} style={{ color: 'var(--sidebar-fg-muted)' }} />
