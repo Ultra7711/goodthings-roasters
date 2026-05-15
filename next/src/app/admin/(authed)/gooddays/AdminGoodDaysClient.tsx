@@ -36,7 +36,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Star, Trash2, Upload } from 'lucide-react';
+import { GripVertical, Pencil, Star, Trash2, Upload } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
@@ -77,6 +77,9 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
   const [isPending, startTransition] = useTransition();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [altEditTarget, setAltEditTarget] = useState<
+    { id: string; alt: string } | null
+  >(null);
 
   /* dnd-kit 의 announcer ID (DndDescribedBy-N) 가 SSR vs CSR 별 카운터에서 발급되어
      hydration mismatch 발생. Grid 부분만 mounted 후에 render → SSR 시점 dnd-kit 회피.
@@ -139,6 +142,15 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
         toast.error(describeMutationError('변경사항을 저장', result.error, result.detail));
       }
     });
+  }
+
+  /* ── alt 편집 모달 저장 ──────────────────────────────────────────────── */
+  function handleAltSave(alt: string) {
+    if (!altEditTarget) return;
+    const id = altEditTarget.id;
+    patchItem(id, { alt });
+    commitUpdate(id, { alt });
+    setAltEditTarget(null);
   }
 
   /* ── 삭제 ────────────────────────────────────────────────────────────── */
@@ -250,8 +262,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
                   key={item.id}
                   item={item}
                   disabled={isPending}
-                  onAltChange={(alt) => patchItem(item.id, { alt })}
-                  onAltCommit={(alt) => commitUpdate(item.id, { alt })}
+                  onEditAlt={() => setAltEditTarget({ id: item.id, alt: item.alt })}
                   onFeaturedToggle={(featured) => {
                     patchItem(item.id, { featured });
                     commitUpdate(item.id, { featured });
@@ -284,6 +295,14 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
         onCancel={() => setDeleteTargetId(null)}
         onConfirm={confirmDelete}
       />
+
+      <EditAltDialog
+        open={altEditTarget !== null}
+        initialAlt={altEditTarget?.alt ?? ''}
+        pending={isPending}
+        onCancel={() => setAltEditTarget(null)}
+        onSave={handleAltSave}
+      />
     </>
   );
 }
@@ -314,8 +333,7 @@ function describeMutationError(action: string, error: string, detail?: string): 
 interface CardProps {
   item: GoodDaysGalleryRow;
   disabled: boolean;
-  onAltChange: (alt: string) => void;
-  onAltCommit: (alt: string) => void;
+  onEditAlt: () => void;
   onFeaturedToggle: (featured: boolean) => void;
   onActiveToggle: (isActive: boolean) => void;
   onDelete: () => void;
@@ -324,8 +342,7 @@ interface CardProps {
 function SortableCard({
   item,
   disabled,
-  onAltChange,
-  onAltCommit,
+  onEditAlt,
   onFeaturedToggle,
   onActiveToggle,
   onDelete,
@@ -403,16 +420,7 @@ function SortableCard({
       </div>
 
       {/* 컨트롤 */}
-      <div className="p-3 flex flex-col gap-2">
-        <Input
-          value={item.alt}
-          placeholder="대체 텍스트 (alt)"
-          maxLength={200}
-          disabled={disabled}
-          onChange={(e) => onAltChange(e.target.value)}
-          onBlur={(e) => onAltCommit(e.target.value)}
-          className="!h-8"
-        />
+      <div className="p-3 flex flex-col gap-2.5">
         {/* 토글 그룹 — flex-col 위/아래 · 텍스트 동적 (products 답습) */}
         <div className="flex flex-col gap-2">
           <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
@@ -440,19 +448,104 @@ function SortableCard({
             </span>
           </label>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="!h-7 self-start !text-[var(--danger)] hover:!bg-[var(--danger-soft)]"
-          onClick={onDelete}
-          disabled={disabled}
-        >
-          <Trash2 size={14} />
-          삭제
-        </Button>
+        {/* 대체 텍스트 편집 + 삭제 — 한 줄 (products 답습) */}
+        <div className="flex items-center justify-between gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="!h-7 !text-xs !px-2"
+            onClick={onEditAlt}
+            disabled={disabled}
+            aria-label="대체 텍스트 편집"
+          >
+            <Pencil size={14} />
+            대체 텍스트
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="!h-7 !text-[var(--danger)] hover:!bg-[var(--danger-soft)] !text-xs !px-2"
+            onClick={onDelete}
+            disabled={disabled}
+            aria-label="이미지 삭제"
+          >
+            <Trash2 size={14} />
+            삭제
+          </Button>
+        </div>
       </div>
     </div>
+  );
+}
+
+/* ── EditAltDialog ────────────────────────────────────────────────────── */
+
+interface EditAltDialogProps {
+  open: boolean;
+  initialAlt: string;
+  pending: boolean;
+  onCancel: () => void;
+  onSave: (alt: string) => void;
+}
+
+function EditAltDialog({
+  open,
+  initialAlt,
+  pending,
+  onCancel,
+  onSave,
+}: EditAltDialogProps) {
+  const [alt, setAlt] = useState(initialAlt);
+
+  /* 모달 열릴 때마다 initialAlt 로 재초기화 */
+  useEffect(() => {
+    if (open) setAlt(initialAlt);
+  }, [open, initialAlt]);
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onCancel()}>
+      <DialogContent className="max-w-[480px] p-0 gap-0">
+        <DialogHeader className="px-6 pt-5 pb-0 text-left">
+          <DialogTitle className="text-base font-medium">대체 텍스트 편집</DialogTitle>
+          <DialogDescription className="text-xs mt-1">
+            스크린리더 사용자에게 읽어줄 이미지 설명 (선택)
+          </DialogDescription>
+        </DialogHeader>
+        <div className="px-6 py-5">
+          <Input
+            value={alt}
+            onChange={(e) => setAlt(e.target.value)}
+            maxLength={200}
+            placeholder="예: 매장 전경 — 따뜻한 조명 아래 손님 두 분"
+            autoFocus
+            disabled={pending}
+          />
+        </div>
+        <DialogFooter className="px-6 pb-5 sm:justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="!h-8 min-w-[96px]"
+            onClick={onCancel}
+            disabled={pending}
+          >
+            취소
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="!h-8 min-w-[96px]"
+            onClick={() => onSave(alt)}
+            disabled={pending}
+          >
+            {pending ? '저장 중…' : '저장'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
