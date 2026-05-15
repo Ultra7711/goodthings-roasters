@@ -21,9 +21,11 @@
    - CSV 내보내기 / 주문 생성 / 일괄 처리 / 송장 발급 (placeholder)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { exportOrdersCsvAction } from './actions';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
@@ -70,11 +72,53 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
   const router = useRouter();
   const [selected, setSelected] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState(filters.q);
+  const [isExporting, startExport] = useTransition();
 
   /* filters.q 가 외부에서 바뀌면 (예: 탭 전환) input 도 동기화 */
   useEffect(() => {
     setSearchValue(filters.q);
   }, [filters.q]);
+
+  /* CSV 내보내기 — 현재 status/period/payment/q 필터 적용. truncated 시 안내. */
+  function handleExport() {
+    startExport(async () => {
+      const result = await exportOrdersCsvAction({
+        status: filters.status,
+        period: filters.period,
+        payment: filters.payment,
+        q: filters.q,
+      });
+      if (!result.ok) {
+        const map: Record<string, string> = {
+          unauthorized: '권한이 없습니다.',
+          validation_failed: '입력값이 잘못되었습니다.',
+          server_error: '내보내는 중 오류가 발생했습니다.',
+        };
+        toast.error(map[result.error] ?? '오류가 발생했습니다.');
+        return;
+      }
+      if (result.rowCount === 0) {
+        toast.info('내보낼 주문이 없습니다.');
+        return;
+      }
+      const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      if (result.truncated) {
+        toast.warning(
+          `${result.rowCount.toLocaleString()}건 내보냈습니다. 상한(10,000건) 초과 — 필터를 좁혀 다시 내보내주세요.`,
+        );
+      } else {
+        toast.success(`${result.rowCount.toLocaleString()}건을 내보냈습니다.`);
+      }
+    });
+  }
 
   /* URL builder — 현재 filters + override */
   function buildHref(override: Partial<AdminOrdersSearchParams>): string {
@@ -238,11 +282,12 @@ export default function OrdersTableClient({ rows, total, counts, filters }: Prop
           variant="outline"
           size="sm"
           className="!h-7"
-          disabled
-          title="구현 예정 (S232 · CSV export)"
+          onClick={handleExport}
+          disabled={isExporting || total === 0}
+          title="현재 필터 기준으로 CSV 내보내기"
         >
           <Download />
-          CSV 내보내기
+          {isExporting ? '내보내는 중…' : 'CSV 내보내기'}
         </Button>
       </AdminTopbarActions>
 

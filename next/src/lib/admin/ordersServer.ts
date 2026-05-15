@@ -200,6 +200,116 @@ export async function fetchAdminOrders(
   return { rows, total: count ?? 0, counts, filters };
 }
 
+/* ── Export (CSV) 전용 fetcher (S232) ──────────────────────────────────
+   fetchAdminOrders 와 동일 필터 (status/period/payment/q) 답습.
+   PAGE_SIZE 무시 + MAX_ROWS 한도 + 배송 정보 포함 select.
+   ───────────────────────────────────────────────────────────────────── */
+
+type OrderExportRow = {
+  id: string;
+  order_number: string;
+  created_at: string;
+  contact_email: string;
+  contact_phone: string | null;
+  shipping_name: string;
+  shipping_phone: string | null;
+  shipping_zipcode: string | null;
+  shipping_addr1: string | null;
+  shipping_addr2: string | null;
+  total_amount: number;
+  payment_method: 'card' | 'transfer';
+  status: DbOrderStatus;
+  order_items: OrderItemRow[] | null;
+};
+
+export type ListedOrderForExport = {
+  id: string;
+  orderNumber: string;
+  createdAtIso: string;
+  customerName: string;
+  contactEmail: string;
+  contactPhone: string | null;
+  shippingPhone: string | null;
+  shippingZipcode: string | null;
+  shippingAddr1: string | null;
+  shippingAddr2: string | null;
+  itemsLabel: string;
+  totalAmount: number;
+  paymentLabel: string;
+  status: DbOrderStatus;
+};
+
+export type AdminOrdersExportResult = {
+  rows: ListedOrderForExport[];
+  truncated: boolean;
+};
+
+/** 행 수 상한 + 1 fetch → truncated 판정 (lib/admin/csvExport MAX_EXPORT_ROWS 와 정합). */
+export async function fetchAdminOrdersForExport(
+  searchParamsRaw: Record<string, string | string[] | undefined>,
+  maxRows: number,
+): Promise<AdminOrdersExportResult> {
+  const filters = parseSearchParams(searchParamsRaw);
+  const supabase = await createRouteHandlerClient();
+
+  let query = supabase
+    .from('orders')
+    .select(
+      `id, order_number, created_at, contact_email, contact_phone,
+       shipping_name, shipping_phone, shipping_zipcode, shipping_addr1, shipping_addr2,
+       total_amount, payment_method, status,
+       order_items ( product_name, product_volume, quantity )`,
+    )
+    .order('created_at', { ascending: false })
+    .range(0, maxRows);
+
+  if (filters.status === 'new')             query = query.eq('status', 'paid');
+  else if (filters.status === 'shipping')   query = query.eq('status', 'shipping');
+  else if (filters.status === 'delivered')  query = query.eq('status', 'delivered');
+  else if (filters.status === 'cancelled')  query = query.in('status', CANCELLED_GROUP);
+  else                                      query = query.neq('status', 'pending');
+
+  const sinceIso = periodToSinceIso(filters.period);
+  if (sinceIso) query = query.gte('created_at', sinceIso);
+
+  if (filters.payment !== 'all') query = query.eq('payment_method', filters.payment);
+
+  query = applyIlikeSearch(query, sanitizeSearchQuery(filters.q), [
+    'order_number',
+    'contact_email',
+    'shipping_name',
+  ]);
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('[fetchAdminOrdersForExport] query failed', summarizePgError(error));
+    return { rows: [], truncated: false };
+  }
+
+  const all = (data ?? []) as OrderExportRow[];
+  const truncated = all.length > maxRows;
+  const trimmed = truncated ? all.slice(0, maxRows) : all;
+
+  const rows: ListedOrderForExport[] = trimmed.map((r) => ({
+    id: r.id,
+    orderNumber: r.order_number,
+    createdAtIso: r.created_at,
+    customerName: r.shipping_name,
+    contactEmail: r.contact_email,
+    contactPhone: r.contact_phone,
+    shippingPhone: r.shipping_phone,
+    shippingZipcode: r.shipping_zipcode,
+    shippingAddr1: r.shipping_addr1,
+    shippingAddr2: r.shipping_addr2,
+    itemsLabel: summarizeItems(r.order_items ?? []),
+    totalAmount: r.total_amount,
+    paymentLabel: describePayment(r.payment_method),
+    status: r.status,
+  }));
+
+  return { rows, truncated };
+}
+
 /* ── 상세 조회 ──────────────────────────────────────────────────────── */
 
 type DetailRow = {
