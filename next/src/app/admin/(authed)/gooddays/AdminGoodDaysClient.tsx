@@ -15,7 +15,7 @@
    - 드래그 종료 시 즉시 reorder action 호출 (낙관 X, 일관성 우선).
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -561,10 +561,12 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [alt, setAlt] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   function reset() {
     setFile(null);
     setAlt('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   async function handleSubmit() {
@@ -602,22 +604,37 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
         <DialogHeader className="px-6 pt-5 pb-0 text-left">
           <DialogTitle className="text-base font-medium">이미지 업로드</DialogTitle>
           <DialogDescription className="text-xs mt-1">
-            webp · avif · jpeg · png. 최대 5MB.
+            굿데이즈 갤러리에 새 이미지를 등록합니다.
           </DialogDescription>
         </DialogHeader>
         <div className="px-6 py-5 flex flex-col gap-3.5">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="gd-upload-file" className="text-xs font-medium text-foreground">
-              파일
-            </Label>
-            <Input
-              id="gd-upload-file"
-              type="file"
-              accept="image/webp,image/avif,image/jpeg,image/png"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              disabled={submitting}
-              className="file:inline-flex file:h-7 file:items-center file:mr-3 file:rounded-md file:border-0 file:bg-[var(--surface-muted)] file:px-2.5 file:text-xs file:font-medium file:text-foreground hover:file:bg-[var(--accent)] file:cursor-pointer"
-            />
+            <Label className="text-xs font-medium text-foreground">파일</Label>
+            {/* ProductImageReorderClient 답습 — hidden input + Button trigger.
+               파일명 + helper 한 줄 (버튼 밑 별도 행 없음). */}
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="!h-8 shrink-0"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={submitting}
+              >
+                <Upload size={14} />
+                파일 선택
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/webp,image/avif,image/jpeg,image/png"
+                hidden
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+              <span className="flex-1 min-w-0 text-xs text-muted-foreground truncate">
+                {file ? file.name : '선택된 파일 없음 · 5MB 이하 · webp · avif · jpeg · png'}
+              </span>
+            </div>
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="gd-upload-alt" className="text-xs font-medium text-foreground">
