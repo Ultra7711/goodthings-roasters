@@ -38,6 +38,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Star, Trash2, Upload } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
@@ -214,9 +215,22 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
           로딩 중…
         </div>
       ) : items.length === 0 ? (
-        <div className="border border-dashed border-border rounded-lg px-6 py-16 text-center text-sm text-muted-foreground">
-          아직 등록된 이미지가 없습니다. 상단 "이미지 업로드" 로 시작하세요.
-        </div>
+        <AdminEmptyState
+          variant="card"
+          message="아직 등록된 이미지가 없습니다."
+          action={
+            <Button
+              type="button"
+              size="sm"
+              className="!h-8"
+              onClick={() => setUploadOpen(true)}
+              disabled={isPending}
+            >
+              <Upload size={14} />
+              이미지 업로드
+            </Button>
+          }
+        />
       ) : (
         <DndContext
           sensors={sensors}
