@@ -199,7 +199,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
         title="굿데이즈 갤러리"
         subtitle={
           <span className="leading-relaxed">
-            {items.length}장 · 드래그로 순서 변경 · 토글로 활성/비활성
+            {items.length}장 · 드래그로 순서 변경 · 공개 토글로 사이트 노출 제어
             <br />
             <span className="text-[var(--foreground-subtle)] inline-flex items-center gap-1">
               <Star size={11} fill="currentColor" className="text-[var(--primary)]" />
@@ -413,25 +413,32 @@ function SortableCard({
           onBlur={(e) => onAltCommit(e.target.value)}
           className="!h-8"
         />
-        <div className="flex items-center justify-between text-sm">
-          <Label className="flex items-center gap-1.5 cursor-pointer text-sm text-foreground">
-            <Switch
-              checked={item.featured}
-              onCheckedChange={onFeaturedToggle}
-              disabled={disabled}
-              className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
-            />
-            추천
-          </Label>
-          <Label className="flex items-center gap-1.5 cursor-pointer text-sm text-foreground">
+        {/* 토글 그룹 — flex-col 위/아래 · 텍스트 동적 (products 답습) */}
+        <div className="flex flex-col gap-2">
+          <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
             <Switch
               checked={item.isActive}
               onCheckedChange={onActiveToggle}
               disabled={disabled}
+              aria-label={item.isActive ? '사이트 노출 중 — 비공개로 전환' : '비공개 — 사이트에 노출'}
               className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
             />
-            활성
-          </Label>
+            <span className="text-muted-foreground">
+              {item.isActive ? '공개' : '비공개'}
+            </span>
+          </label>
+          <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
+            <Switch
+              checked={item.featured}
+              onCheckedChange={onFeaturedToggle}
+              disabled={disabled}
+              aria-label={item.featured ? '추천 — 해제하기' : '추천으로 설정'}
+              className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
+            />
+            <span className="text-muted-foreground">
+              {item.featured ? '추천' : '추천 해제'}
+            </span>
+          </label>
         </div>
         <Button
           type="button"
