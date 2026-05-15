@@ -18,7 +18,7 @@
    - PR-3: 역할 변경 다이얼로그 (admin_audit 카드 포함)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
@@ -28,14 +28,18 @@ import { AdminDataTable, type Column } from '@/components/admin/AdminDataTable';
 import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
+import { Button } from '@/components/admin/ui/button';
 import {
   PAGE_SIZE,
+  PROVIDER_OPTIONS,
   ROLE_TABS,
+  describeProvider,
   describeRole,
   formatJoinedDate,
   resolveUserName,
   type AdminUsersSearchParams,
   type ListedUser,
+  type ProviderFilterKey,
   type RoleTabKey,
   type RoleTone,
 } from '@/lib/admin/users';
@@ -68,6 +72,7 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
     const merged = { ...filters, ...override };
     const params = new URLSearchParams();
     if (merged.role !== 'all') params.set('role', merged.role);
+    if (merged.provider !== 'all') params.set('provider', merged.provider);
     if (merged.q.trim().length > 0) params.set('q', merged.q.trim());
     if (merged.page > 1) params.set('page', String(merged.page));
     const qs = params.toString();
@@ -133,6 +138,12 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
       },
     },
     {
+      key: 'signupProvider',
+      header: '가입 채널',
+      cellClassName: 'text-xs text-muted-foreground',
+      render: (u) => describeProvider(u.signupProvider),
+    },
+    {
       key: 'joinedAt',
       header: '가입일',
       cellClassName: 'text-xs text-muted-foreground tabular-nums',
@@ -170,12 +181,18 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
         buildHref={(id) => buildHref({ role: id as RoleTabKey, page: 1 })}
       />
 
-      {/* 필터 바 — 검색만 */}
+      {/* 필터 바 — 검색 + 가입 채널 */}
       <div className="flex gap-2 mb-3 items-center">
         <AdminSearchInput
           value={searchValue}
           onChange={setSearchValue}
           placeholder="이메일, 이름으로 검색…"
+        />
+        <DropdownFilter
+          label="가입 채널"
+          options={PROVIDER_OPTIONS}
+          activeId={filters.provider}
+          onChange={(id) => router.replace(buildHref({ provider: id as ProviderFilterKey, page: 1 }))}
         />
       </div>
 
@@ -245,3 +262,109 @@ function Badge({
     </ShadcnBadge>
   );
 }
+
+/* S232: 가입 채널 DropdownFilter. Orders 답습 (1 caller hypothetical seam — S227 audit
+   결과 보류 결정 답습 · 별 추출 안 함). */
+function DropdownFilter({
+  label,
+  options,
+  activeId,
+  onChange,
+}: {
+  label: string;
+  options: ReadonlyArray<{ id: string; label: string }>;
+  activeId: string;
+  onChange: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocClick(e: MouseEvent) {
+      if (!wrapperRef.current) return;
+      if (!wrapperRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const activeOpt = options.find((o) => o.id === activeId) ?? options[0];
+  const isDefault = activeId === options[0].id;
+
+  return (
+    <div ref={wrapperRef} className="relative inline-flex">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="!h-7 [&>svg:last-child]:-mr-1"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        style={
+          isDefault
+            ? undefined
+            : {
+                borderColor: 'var(--primary)',
+                color: 'var(--primary-soft-fg)',
+                background: 'var(--primary-soft)',
+              }
+        }
+      >
+        {isDefault ? label : `${label}: ${activeOpt.label}`}
+        <ChevronDown />
+      </Button>
+      {open && (
+        <ul role="listbox" className="admin-dropdown-menu">
+          {options.map((opt) => {
+            const active = opt.id === activeId;
+            return (
+              <li key={opt.id}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={active}
+                  onClick={() => {
+                    setOpen(false);
+                    onChange(opt.id);
+                  }}
+                  className={`admin-dropdown-item ${
+                    active
+                      ? 'bg-[var(--primary-soft)] text-[var(--primary-soft-fg)]'
+                      : 'bg-transparent text-foreground'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+const ChevronDown = () => (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ opacity: 0.6 }}
+  >
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);

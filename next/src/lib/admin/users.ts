@@ -49,6 +49,32 @@ export function describeRole(role: DbUserRole): { label: string; tone: RoleTone 
     : { label: '고객', tone: 'neutral' };
 }
 
+/* ── 가입 채널 (053_profiles_signup_provider.sql) ───────────────────── */
+
+/** profiles.signup_provider enum */
+export type SignupProvider = 'email' | 'google' | 'kakao' | 'naver';
+
+/** DropdownFilter 옵션 — 'all' = 전체 */
+export const PROVIDER_OPTIONS = [
+  { id: 'all', label: '전체' },
+  { id: 'email', label: '이메일' },
+  { id: 'google', label: '구글' },
+  { id: 'kakao', label: '카카오' },
+  { id: 'naver', label: '네이버' },
+] as const;
+
+export type ProviderFilterKey = (typeof PROVIDER_OPTIONS)[number]['id'];
+
+/** DB provider → 시안 라벨 (테이블 셀 표시) */
+export function describeProvider(provider: SignupProvider): string {
+  switch (provider) {
+    case 'email': return '이메일';
+    case 'google': return '구글';
+    case 'kakao': return '카카오';
+    case 'naver': return '네이버';
+  }
+}
+
 /* ── 검색 입력 sanitize ──────────────────────────────────────────────── */
 
 /**
@@ -69,6 +95,7 @@ export function sanitizeSearchQuery(raw: string): string {
 
 const SearchParamsSchema = z.object({
   role: z.enum(['all', 'admin', 'customer']).default('all'),
+  provider: z.enum(['all', 'email', 'google', 'kakao', 'naver']).default('all'),
   q: z.string().default(''),
   page: z.coerce.number().int().min(1).max(9999).default(1),
 });
@@ -102,6 +129,7 @@ export type ListedUser = {
   fullName: string | null;
   displayName: string | null;
   role: DbUserRole;
+  signupProvider: SignupProvider;  /* 053: 가입 채널 */
   createdAtIso: string;        /* DB 원본 timestamptz */
   orderCount: number;          /* 누적 주문 수 (orders.user_id 그룹 카운트) */
 };

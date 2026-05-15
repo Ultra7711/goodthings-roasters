@@ -28,6 +28,7 @@ import {
   type ListedUser,
   type ListedUserOrder,
   type RoleTabKey,
+  type SignupProvider,
   type UserDetailProfile,
 } from './users';
 
@@ -40,6 +41,7 @@ type ProfileRow = {
   full_name: string | null;
   display_name: string | null;
   role: DbUserRole;
+  signup_provider: SignupProvider;
   created_at: string;
 };
 
@@ -97,19 +99,21 @@ export async function fetchAdminUsers(
     customer: customerCount,
   };
 
-  /* 2) 메인 쿼리 (role / q 필터 + 페이지네이션) */
+  /* 2) 메인 쿼리 (role / provider / q 필터 + 페이지네이션) */
   let query = applyRange(
     supabase
       .from('profiles')
-      .select('id, email, full_name, display_name, role, created_at', {
-        count: 'exact',
-      })
+      .select(
+        'id, email, full_name, display_name, role, signup_provider, created_at',
+        { count: 'exact' },
+      )
       .order('created_at', { ascending: false }),
     filters.page,
     PAGE_SIZE,
   );
 
   if (filters.role !== 'all') query = query.eq('role', filters.role);
+  if (filters.provider !== 'all') query = query.eq('signup_provider', filters.provider);
 
   query = applyIlikeSearch(query, sanitizeSearchQuery(filters.q), [
     'email',
@@ -149,6 +153,7 @@ export async function fetchAdminUsers(
     fullName: p.full_name,
     displayName: p.display_name,
     role: p.role,
+    signupProvider: p.signup_provider,
     createdAtIso: p.created_at,
     orderCount: orderCounts.get(p.id) ?? 0,
   }));

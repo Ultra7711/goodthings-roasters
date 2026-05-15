@@ -11,6 +11,7 @@
 
 import { describe, expect, it } from 'vitest';
 import {
+  describeProvider,
   describeRole,
   formatJoinedDate,
   parseSearchParams,
@@ -50,12 +51,16 @@ describe('sanitizeSearchQuery', () => {
 });
 
 describe('parseSearchParams', () => {
+  /* S232: provider 필드 추가 — 모든 fallback case 에서 'all' 기본값. */
+  const DEFAULTS = { role: 'all', provider: 'all', q: '', page: 1 } as const;
+
   it('빈 객체 → 기본값', () => {
-    expect(parseSearchParams({})).toEqual({ role: 'all', q: '', page: 1 });
+    expect(parseSearchParams({})).toEqual(DEFAULTS);
   });
 
   it('정상 값 통과', () => {
     expect(parseSearchParams({ role: 'admin', q: '홍길', page: '2' })).toEqual({
+      ...DEFAULTS,
       role: 'admin',
       q: '홍길',
       page: 2,
@@ -63,41 +68,51 @@ describe('parseSearchParams', () => {
   });
 
   it('잘못된 role → 전체 기본값으로 fallback', () => {
-    expect(parseSearchParams({ role: 'superuser' })).toEqual({
-      role: 'all',
-      q: '',
-      page: 1,
-    });
+    expect(parseSearchParams({ role: 'superuser' })).toEqual(DEFAULTS);
   });
 
   it('page 음수 → 기본값으로 fallback', () => {
-    expect(parseSearchParams({ page: '-3' })).toEqual({
-      role: 'all',
-      q: '',
-      page: 1,
-    });
+    expect(parseSearchParams({ page: '-3' })).toEqual(DEFAULTS);
   });
 
   it('page 비정수 → 기본값으로 fallback', () => {
-    expect(parseSearchParams({ page: 'abc' })).toEqual({
-      role: 'all',
-      q: '',
-      page: 1,
-    });
+    expect(parseSearchParams({ page: 'abc' })).toEqual(DEFAULTS);
   });
 
   it('page 상한 초과 → 기본값으로 fallback', () => {
-    expect(parseSearchParams({ page: '99999' })).toEqual({
-      role: 'all',
-      q: '',
-      page: 1,
-    });
+    expect(parseSearchParams({ page: '99999' })).toEqual(DEFAULTS);
   });
 
   it('배열 값 → 첫 요소만 사용', () => {
     expect(parseSearchParams({ role: ['customer', 'admin'] })).toMatchObject({
       role: 'customer',
     });
+  });
+
+  it('provider 정상 값 통과', () => {
+    expect(parseSearchParams({ provider: 'kakao' })).toEqual({
+      ...DEFAULTS,
+      provider: 'kakao',
+    });
+  });
+
+  it('잘못된 provider → 전체 기본값으로 fallback', () => {
+    expect(parseSearchParams({ provider: 'apple' })).toEqual(DEFAULTS);
+  });
+});
+
+describe('describeProvider', () => {
+  it('email → 이메일', () => {
+    expect(describeProvider('email')).toBe('이메일');
+  });
+  it('google → 구글', () => {
+    expect(describeProvider('google')).toBe('구글');
+  });
+  it('kakao → 카카오', () => {
+    expect(describeProvider('kakao')).toBe('카카오');
+  });
+  it('naver → 네이버', () => {
+    expect(describeProvider('naver')).toBe('네이버');
   });
 });
 
