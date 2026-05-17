@@ -54,33 +54,43 @@ function getAnonClient(): SupabaseClient {
   return cachedClient;
 }
 
+const SELECT_COLS =
+  'id, type, enabled, ' +
+  'custom_html_path, image_path_desktop, image_path_tablet, image_path_mobile, ' +
+  'aspect_desktop, aspect_tablet, aspect_mobile, ' +
+  'image_alt, start_date, end_date, sort_order';
+
+/* Next.js 16 dev 환경의 Supabase fetch AbortError 가 RSC streaming timing
+   이슈로 간헐 발생 → 최대 2회 retry. production 영향 없음. */
 async function fetchAllRows(): Promise<CafeEvent[]> {
-  const client = getAnonClient();
-  const { data, error } = await client
-    .from('cafe_events')
-    .select(
-      'id, type, enabled, ' +
-        'custom_html_path, image_path_desktop, image_path_tablet, image_path_mobile, ' +
-        'aspect_desktop, aspect_tablet, aspect_mobile, ' +
-        'image_alt, start_date, end_date, sort_order',
-    )
-    .eq('enabled', true);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const client = getAnonClient();
+    const { data, error } = await client
+      .from('cafe_events')
+      .select(SELECT_COLS)
+      .eq('enabled', true);
 
-  if (error) {
-    console.error('[cafeEventsServer] query failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
-    return [];
-  }
-  if (!data) return [];
+    if (error) {
+      const msg = error.message ?? '';
+      const aborted = /abort/i.test(msg);
+      if (aborted && attempt < 2) continue;
+      console.error('[cafeEventsServer] query failed', {
+        code: error.code,
+        message: msg.slice(0, 200),
+        attempt,
+      });
+      return [];
+    }
+    if (!data) return [];
 
-  const parsed: CafeEvent[] = [];
-  for (const row of data) {
-    const ev = parseCafeEventRow(row);
-    if (ev) parsed.push(ev);
+    const parsed: CafeEvent[] = [];
+    for (const row of data) {
+      const ev = parseCafeEventRow(row);
+      if (ev) parsed.push(ev);
+    }
+    return parsed;
   }
-  return parsed;
+  return [];
 }
 
 /**
