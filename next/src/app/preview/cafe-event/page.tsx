@@ -1,17 +1,17 @@
 /* ══════════════════════════════════════════
-   /preview/cafe-event — 라이브 미리보기 (S151 PR-2a)
+   /preview/cafe-event — 라이브 미리보기 (S234 후속 overlay 재설계)
 
    책임:
    - admin 가드 (비admin → /admin/login).
    - URL 파라미터 → CafeEvent 조립 → CafeEventSchema safeParse.
    - EventBanner 호출 (메인 페이지 §2.5 와 동일 컴포넌트).
-   - 빈 상태 (banner 미표시 조건) 시 placeholder.
+   - 빈 상태 (desktop 이미지 미입력 등) 시 placeholder.
 
    호출:
    - 어드민 CafeEventsForm iframe src 로만 사용. 외부 임베드는 frame-ancestors 'self'.
 
    참조:
-   - app/preview/signature/page.tsx (signature 패턴)
+   - app/preview/signature/page.tsx
    - components/home/EventBanner.tsx
    - lib/cafeEvents.ts CafeEventSchema
    ══════════════════════════════════════════ */
@@ -32,12 +32,6 @@ function asString(v: string | string[] | undefined): string {
   return '';
 }
 
-/** 빈 문자열 → null (cafe_events 의 nullable 분기 필드 동일 변환). */
-function asNullable(v: string | string[] | undefined): string | null {
-  const s = asString(v);
-  return s === '' ? null : s;
-}
-
 export default async function PreviewCafeEventPage({
   searchParams,
 }: PreviewCafeEventPageProps) {
@@ -53,27 +47,19 @@ export default async function PreviewCafeEventPage({
     id: PLACEHOLDER_UUID,
     type: asString(params.type) || 'campaign',
     enabled: asString(params.enabled) === 'true',
-    eyebrow: asString(params.eyebrow),
-    h4: asString(params.h4),
-    meta: asString(params.meta),
-    description: asString(params.description),
-    image_path: asString(params.image_path),
+    image_path_desktop: asString(params.image_path_desktop),
+    image_path_tablet: asString(params.image_path_tablet),
+    image_path_mobile: asString(params.image_path_mobile),
     image_alt: asString(params.image_alt),
-    start_date: asString(params.start_date),
-    end_date: asString(params.end_date),
-    recurring: asNullable(params.recurring),
-    linked_menu_slug: asNullable(params.linked_menu_slug),
-    season_label: asNullable(params.season_label),
-    partner_name: asNullable(params.partner_name),
-    cta_target: asNullable(params.cta_target),
+    custom_css_path: asString(params.custom_css_path),
+    start_date: '',
+    end_date: '',
     sort_order: 0,
   });
 
-  /* 빈 상태 — 어드민이 신규 폼 첫 진입 시 (h4 비어있음) */
+  /* 빈 상태 — desktop 이미지 미입력 또는 비활성 */
   const willHide =
-    !parsed.success ||
-    !parsed.data.enabled ||
-    (!parsed.data.h4 && !parsed.data.image_path);
+    !parsed.success || !parsed.data.enabled || !parsed.data.image_path_desktop;
 
   if (willHide) {
     return (
@@ -119,7 +105,7 @@ export default async function PreviewCafeEventPage({
               ? '입력 검증 실패 — 필수 필드를 확인해 주세요.'
               : !parsed.data.enabled
                 ? '이벤트 비활성 — 활성으로 변경하면 표시됩니다.'
-                : '제목과 이미지를 입력해 주세요.'}
+                : 'Desktop 이미지를 업로드해 주세요.'}
           </div>
         </div>
       </div>
