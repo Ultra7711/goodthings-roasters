@@ -536,7 +536,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
                 type="button"
                 variant="outline"
                 size="sm"
-                className="!h-7 w-full mt-2"
+                className="!h-8 w-full mt-2"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadState.status === 'uploading'}
               >
@@ -746,7 +746,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
                 type="button"
                 variant="outline"
                 size="sm"
-                className="!h-7 w-full mt-2"
+                className="!h-8 w-full mt-2"
                 onClick={() => sigFileInputRef.current?.click()}
                 disabled={sigUploadState.status === 'uploading'}
               >
