@@ -155,7 +155,9 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
     if (result.ok) {
       updateSeason({ image_path: result.publicUrl });
       setUploadState({ status: 'idle' });
-      toast.success('이미지를 등록했습니다 · 변경사항 저장 후 반영됩니다');
+      toast.success('이미지를 등록했습니다', {
+        description: '변경사항 저장 후 사이트에 반영됩니다',
+      });
     } else {
       const message = describeUploadError(result.error, result.detail);
       setUploadState({ status: 'error', message });
@@ -173,7 +175,9 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
     if (result.ok) {
       updateSignature({ image_path: result.publicUrl });
       setSigUploadState({ status: 'idle' });
-      toast.success('이미지를 등록했습니다 · 변경사항 저장 후 반영됩니다');
+      toast.success('이미지를 등록했습니다', {
+        description: '변경사항 저장 후 사이트에 반영됩니다',
+      });
     } else {
       const message = describeUploadError(result.error, result.detail);
       setSigUploadState({ status: 'error', message });
@@ -200,8 +204,8 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
       const result = await saveSiteSettingsAction(payload);
       if (result.ok) {
         setSavedSettings(settings);
-        toast.success('설정을 저장했습니다 · 사이트에 즉시 반영됩니다', {
-          description: describeUpdatedKeys(result.updatedKeys),
+        toast.success('설정을 저장했습니다', {
+          description: `사이트에 즉시 반영됩니다 · ${describeUpdatedKeys(result.updatedKeys)}`,
         });
         router.refresh();
       } else {
