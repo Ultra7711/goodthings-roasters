@@ -1,50 +1,74 @@
 /* ══════════════════════════════════════════
-   EventBanner — cafe-events overlay 형식 (S234 후속 재작성)
+   EventBanner — cafe-events iframe HTML 형식 (S234 후속 · 060 iframe 진화)
 
-   059 모델:
-   - 반응형 이미지 3종 (desktop/tablet/mobile) — <picture> 로 brk 분기.
-     · tablet/mobile 빈 값 → desktop fallback.
-   - custom_css_path 가 있으면 <link rel="stylesheet"> 로 주입 →
-     운영자가 미리 제작한 텍스트·레이아웃 CSS 가 .ev-banner[data-event-id="{id}"]
-     scope 안에서 동작.
+   060 모델:
+   - 운영자가 제작한 단일 .html 파일을 Supabase Storage 에 업로드.
+   - <iframe sandbox="allow-same-origin"> 으로 임베드 — script 차단 보안 격리.
+   - brk 별 aspect-ratio (CSS 'W/H') 로 iframe 컨테이너 사이즈 결정.
+   - 이미지·CSS·SVG·폰트 모두 운영자 HTML 안에서 처리.
 
    설계:
-   - <picture> 가 brk srcset 처리 → next/image 자체 srcset 우회 (운영자
-     이미지 그대로 사용).
-   - desktop 이미지 빈 값이면 EventBanner 자체 렌더 skip (null 반환).
-   - data-event-id 속성 부여 → 운영자 CSS 가 scope 지정 가능.
+   - server component — 인라인 <style> 로 brk 별 aspect-ratio 미디어 쿼리 주입.
+   - data-event-id 속성 부여 → 스타일 scope 지정.
+   - allow-same-origin 만 부여 → script 실행 차단 + 외부 폰트 로딩 허용.
    ══════════════════════════════════════════ */
 
 import type { CafeEvent } from '@/lib/cafeEvents';
 
 type Props = { event: CafeEvent };
 
-export default function EventBanner({ event }: Props) {
-  const desktop = event.image_path_desktop;
-  if (!desktop) return null;
+/** "W/H" / "W / H" / "W:H" 등을 CSS aspect-ratio 형식 "W / H" 로 정규화. */
+function normalizeAspect(s: string, fallback: string): string {
+  const m = /^\s*(\d+(?:\.\d+)?)\s*[/:]\s*(\d+(?:\.\d+)?)\s*$/.exec(s);
+  if (!m) return fallback;
+  return `${m[1]} / ${m[2]}`;
+}
 
-  const tablet = event.image_path_tablet || desktop;
-  const mobile = event.image_path_mobile || desktop;
-  const alt = event.image_alt || '';
+export default function EventBanner({ event }: Props) {
+  if (!event.custom_html_path) return null;
+
+  const desktop = normalizeAspect(event.aspect_desktop, '1320 / 480');
+  const tablet = normalizeAspect(event.aspect_tablet, '1024 / 400');
+  const mobile = normalizeAspect(event.aspect_mobile, '390 / 640');
+
+  /* brk 별 aspect-ratio 미디어 쿼리 — data-event-id scope.
+     desktop 기본 + tablet (max 1023) + mobile (max 767). */
+  const inlineCss = `
+    .ev-banner-iframe[data-event-id="${event.id}"] {
+      aspect-ratio: ${desktop};
+    }
+    @media (max-width: 1023px) {
+      .ev-banner-iframe[data-event-id="${event.id}"] {
+        aspect-ratio: ${tablet};
+      }
+    }
+    @media (max-width: 767px) {
+      .ev-banner-iframe[data-event-id="${event.id}"] {
+        aspect-ratio: ${mobile};
+      }
+    }
+  `;
 
   return (
     <>
-      {event.custom_css_path && (
-        <link rel="stylesheet" href={event.custom_css_path} />
-      )}
-      <div className="ev-banner-bleed" data-event-id={event.id}>
+      <style dangerouslySetInnerHTML={{ __html: inlineCss }} />
+      <div className="ev-banner-bleed">
         <div className="ev-banner">
-          <picture className="ev-banner__media">
-            <source media="(max-width: 767px)" srcSet={mobile} />
-            <source media="(max-width: 1023px)" srcSet={tablet} />
-            <img
-              src={desktop}
-              alt={alt}
-              className="ev-banner__img"
-              loading="lazy"
-              decoding="async"
-            />
-          </picture>
+          <iframe
+            className="ev-banner-iframe"
+            data-event-id={event.id}
+            src={event.custom_html_path}
+            title={event.image_alt || '카페 이벤트 배너'}
+            sandbox="allow-same-origin"
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            style={{
+              display: 'block',
+              width: '100%',
+              border: 0,
+              background: 'transparent',
+            }}
+          />
         </div>
       </div>
     </>

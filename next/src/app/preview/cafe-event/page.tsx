@@ -1,11 +1,11 @@
 /* ══════════════════════════════════════════
-   /preview/cafe-event — 라이브 미리보기 (S234 후속 overlay 재설계)
+   /preview/cafe-event — 라이브 미리보기 (S234 후속 · 060 iframe 진화)
 
    책임:
    - admin 가드 (비admin → /admin/login).
    - URL 파라미터 → CafeEvent 조립 → CafeEventSchema safeParse.
    - EventBanner 호출 (메인 페이지 §2.5 와 동일 컴포넌트).
-   - 빈 상태 (desktop 이미지 미입력 등) 시 placeholder.
+   - 빈 상태 (HTML 미입력 등) 시 placeholder.
 
    호출:
    - 어드민 CafeEventsForm iframe src 로만 사용. 외부 임베드는 frame-ancestors 'self'.
@@ -47,19 +47,19 @@ export default async function PreviewCafeEventPage({
     id: PLACEHOLDER_UUID,
     type: asString(params.type) || 'campaign',
     enabled: asString(params.enabled) === 'true',
-    image_path_desktop: asString(params.image_path_desktop),
-    image_path_tablet: asString(params.image_path_tablet),
-    image_path_mobile: asString(params.image_path_mobile),
+    custom_html_path: asString(params.custom_html_path),
+    aspect_desktop: asString(params.aspect_desktop) || '1320/480',
+    aspect_tablet: asString(params.aspect_tablet) || '1024/400',
+    aspect_mobile: asString(params.aspect_mobile) || '390/640',
     image_alt: asString(params.image_alt),
-    custom_css_path: asString(params.custom_css_path),
     start_date: '',
     end_date: '',
     sort_order: 0,
   });
 
-  /* 빈 상태 — desktop 이미지 미입력 또는 비활성 */
+  /* 빈 상태 — HTML 미입력 또는 비활성 */
   const willHide =
-    !parsed.success || !parsed.data.enabled || !parsed.data.image_path_desktop;
+    !parsed.success || !parsed.data.enabled || !parsed.data.custom_html_path;
 
   if (willHide) {
     return (
@@ -105,7 +105,7 @@ export default async function PreviewCafeEventPage({
               ? '입력 검증 실패 — 필수 필드를 확인해 주세요.'
               : !parsed.data.enabled
                 ? '이벤트 비활성 — 활성으로 변경하면 표시됩니다.'
-                : 'Desktop 이미지를 업로드해 주세요.'}
+                : '배너 HTML 파일을 업로드해 주세요.'}
           </div>
         </div>
       </div>
