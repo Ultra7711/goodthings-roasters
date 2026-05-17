@@ -2,7 +2,7 @@
    lib/siteSettings.ts — 사이트 설정 (site_settings) 순수 헬퍼 (S129 Group H)
 
    역할:
-   - 영역별 Zod schema (notice · season · shipping)
+   - 영역별 Zod schema (notice · shipping · signature)
    - 기본값 (DB seed 와 동일 — 프론트에서도 fallback 으로 사용)
    - 영역 ID 상수 + 라벨 매핑
 
@@ -19,7 +19,7 @@ import { z } from 'zod';
 
 /* ── 영역 상수 ────────────────────────────────────────────────────────── */
 
-export const SITE_SETTING_KEYS = ['notice', 'season', 'shipping', 'signature'] as const;
+export const SITE_SETTING_KEYS = ['notice', 'shipping', 'signature'] as const;
 export type SiteSettingKey = (typeof SITE_SETTING_KEYS)[number];
 
 /* ── 1. 공지 배너 (notice) ────────────────────────────────────────────── */
@@ -50,49 +50,7 @@ export const NOTICE_DEFAULTS: NoticeSettings = {
   theme_idx: 0,
 };
 
-/* ── 2. 시즌 배너 (season) ────────────────────────────────────────────── */
-
-export const SeasonSettingsSchema = z.object({
-  enabled: z.boolean().default(true),
-  eyebrow: z.string().trim().max(40).default(''),
-  title: z.string().trim().max(40).default(''),
-  subtitle: z.string().trim().max(120).default(''),
-  cta_text: z.string().trim().max(40).default(''),
-  cta_link: z.string().trim().max(200).default(''),
-  /** ISO date "YYYY-MM-DD" 또는 빈 문자열. 다른 포맷은 빈 문자열로 강제 (Zod transform). */
-  start_date: z
-    .string()
-    .trim()
-    .transform((v) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ''))
-    .pipe(z.string())
-    .default(''),
-  end_date: z
-    .string()
-    .trim()
-    .transform((v) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ''))
-    .pipe(z.string())
-    .default(''),
-  /** Storage public URL 또는 /images/ 정적 경로 */
-  image_path: z.string().trim().max(500).default(''),
-  image_alt: z.string().trim().max(120).default(''),
-});
-
-export type SeasonSettings = z.infer<typeof SeasonSettingsSchema>;
-
-export const SEASON_DEFAULTS: SeasonSettings = {
-  enabled: true,
-  eyebrow: '2026 · SPRING',
-  title: '봄, 한 잔의 여유.',
-  subtitle: '벚꽃이 지기 전에 만나는 시즌 한정 메뉴',
-  cta_text: '시즌 메뉴 보기',
-  cta_link: '/menu?cat=signature',
-  start_date: '2026-03-01',
-  end_date: '2026-05-31',
-  image_path: '/images/sections/img_season_banner.webp',
-  image_alt: '시즌 메뉴',
-};
-
-/* ── 3. 무료배송 정책 (shipping) ──────────────────────────────────────── */
+/* ── 2. 무료배송 정책 (shipping) ──────────────────────────────────────── */
 
 export const ShippingSettingsSchema = z.object({
   enabled: z.boolean().default(true),
@@ -110,7 +68,7 @@ export const SHIPPING_DEFAULTS: ShippingSettings = {
   base_fee: 3500,
 };
 
-/* ── 4. 시그니처 chapter (signature) — S146 V2 §2.2 PR-1 ─────────────── */
+/* ── 3. 시그니처 chapter (signature) — S146 V2 §2.2 PR-1 ─────────────── */
 
 export const SignatureSettingsSchema = z.object({
   enabled: z.boolean().default(false),
@@ -155,14 +113,12 @@ export const SIGNATURE_DEFAULTS: SignatureSettings = {
 
 export interface SiteSettings {
   notice: NoticeSettings;
-  season: SeasonSettings;
   shipping: ShippingSettings;
   signature: SignatureSettings;
 }
 
 export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   notice: NOTICE_DEFAULTS,
-  season: SEASON_DEFAULTS,
   shipping: SHIPPING_DEFAULTS,
   signature: SIGNATURE_DEFAULTS,
 };
@@ -185,7 +141,6 @@ export function parseSiteSettingsRows(
 
   return {
     notice: safeParse(NoticeSettingsSchema, map.get('notice'), NOTICE_DEFAULTS),
-    season: safeParse(SeasonSettingsSchema, map.get('season'), SEASON_DEFAULTS),
     shipping: safeParse(ShippingSettingsSchema, map.get('shipping'), SHIPPING_DEFAULTS),
     signature: safeParse(SignatureSettingsSchema, map.get('signature'), SIGNATURE_DEFAULTS),
   };
@@ -213,7 +168,6 @@ export function countDirtyAreas(
 ): number {
   let n = 0;
   if (!shallowEqual(initial.notice, current.notice)) n += 1;
-  if (!shallowEqual(initial.season, current.season)) n += 1;
   if (!shallowEqual(initial.shipping, current.shipping)) n += 1;
   if (!shallowEqual(initial.signature, current.signature)) n += 1;
   return n;

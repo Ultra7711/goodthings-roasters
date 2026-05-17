@@ -5,7 +5,7 @@
 
    책임:
    1) getAdminClaims 가드 — 비admin 차단
-   2) Zod 검증 — notice / season / shipping 영역별
+   2) Zod 검증 — notice / shipping / signature 영역별
    3) UPDATE 실 변경된 영역만 (dirty diff 는 클라이언트가 보냄)
    4) revalidatePath — /admin/settings + 메인 사이트 영역(/, /menu 등)
 
@@ -21,7 +21,6 @@ import { z } from 'zod';
 import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import {
   NoticeSettingsSchema,
-  SeasonSettingsSchema,
   ShippingSettingsSchema,
   SignatureSettingsSchema,
   type SiteSettingKey,
@@ -31,7 +30,6 @@ import { createRouteHandlerClient } from '@/lib/supabaseServer';
 
 const SaveInputSchema = z.object({
   notice: NoticeSettingsSchema.optional(),
-  season: SeasonSettingsSchema.optional(),
   shipping: ShippingSettingsSchema.optional(),
   signature: SignatureSettingsSchema.optional(),
 });
@@ -77,7 +75,6 @@ export async function saveSiteSettingsAction(
   /* 3) 변경된 영역만 추출 */
   const updates: Array<{ key: SiteSettingKey; value: unknown }> = [];
   if (data.notice) updates.push({ key: 'notice', value: data.notice });
-  if (data.season) updates.push({ key: 'season', value: data.season });
   if (data.shipping) updates.push({ key: 'shipping', value: data.shipping });
   if (data.signature) updates.push({ key: 'signature', value: data.signature });
 

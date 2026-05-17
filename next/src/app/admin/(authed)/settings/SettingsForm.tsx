@@ -24,12 +24,10 @@ import {
   composeNoticeText,
   NOTICE_COLOR_THEMES,
   type NoticeSettings,
-  type SeasonSettings,
   type ShippingSettings,
   type SignatureSettings,
   type SiteSettings,
 } from '@/lib/siteSettings';
-import { uploadSeasonBanner } from '@/lib/admin/uploadSeasonBanner';
 import { uploadSignatureImage } from '@/lib/admin/uploadSignatureImage';
 import { FlavorChipInput } from '@/components/admin/FlavorChipInput';
 import {
@@ -72,14 +70,12 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
   const [savedSettings, setSavedSettings] = useState<SiteSettings>(initialSettings);
   const [settings, setSettings] = useState<SiteSettings>(initialSettings);
   const [isPending, startTransition] = useTransition();
-  const [uploadState, setUploadState] = useState<UploadState>({ status: 'idle' });
   const [sigUploadState, setSigUploadState] = useState<UploadState>({ status: 'idle' });
   const [previewBrk, setPreviewBrk] = useState<PreviewBrk>('desktop');
   const [previewSrc, setPreviewSrc] = useState<string>(() =>
     buildPreviewSrc(initialSettings.signature),
   );
   const [previewHeight, setPreviewHeight] = useState<number>(720);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const sigFileInputRef = useRef<HTMLInputElement | null>(null);
 
   /* settings.signature 변경 시 300ms debounce 후 iframe src 갱신 — 매 키 입력마다 reload 방지 */
@@ -120,7 +116,6 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
   const dirtyCount = useMemo(() => {
     let n = 0;
     if (!shallowEqualNotice(savedSettings.notice, settings.notice)) n += 1;
-    if (!shallowEqualSeason(savedSettings.season, settings.season)) n += 1;
     if (!shallowEqualShipping(savedSettings.shipping, settings.shipping)) n += 1;
     if (!shallowEqualSignature(savedSettings.signature, settings.signature)) n += 1;
     return n;
@@ -129,9 +124,6 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
 
   function updateNotice(patch: Partial<NoticeSettings>) {
     setSettings((prev) => ({ ...prev, notice: { ...prev.notice, ...patch } }));
-  }
-  function updateSeason(patch: Partial<SeasonSettings>) {
-    setSettings((prev) => ({ ...prev, season: { ...prev.season, ...patch } }));
   }
   function updateShipping(patch: Partial<ShippingSettings>) {
     setSettings((prev) => ({ ...prev, shipping: { ...prev.shipping, ...patch } }));
@@ -142,27 +134,6 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
 
   function handleReset() {
     setSettings(savedSettings);
-  }
-
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    /* input value reset — 같은 파일 재선택 가능하게 */
-    e.target.value = '';
-    if (!file) return;
-
-    setUploadState({ status: 'uploading', fileName: file.name });
-    const result = await uploadSeasonBanner(file);
-    if (result.ok) {
-      updateSeason({ image_path: result.publicUrl });
-      setUploadState({ status: 'idle' });
-      toast.success('이미지를 등록했습니다', {
-        description: '변경사항 저장 후 사이트에 반영됩니다',
-      });
-    } else {
-      const message = describeUploadError(result.error, result.detail);
-      setUploadState({ status: 'error', message });
-      toast.error(message);
-    }
   }
 
   async function handleSigFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -189,9 +160,6 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
     const payload: SaveSettingsInput = {};
     if (!shallowEqualNotice(savedSettings.notice, settings.notice)) {
       payload.notice = settings.notice;
-    }
-    if (!shallowEqualSeason(savedSettings.season, settings.season)) {
-      payload.season = settings.season;
     }
     if (!shallowEqualShipping(savedSettings.shipping, settings.shipping)) {
       payload.shipping = settings.shipping;
@@ -436,137 +404,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
           </div>
         </SettingsCard>
 
-        {/* Section 3 — 시즌 배너 */}
-        <SettingsCard
-          title="시즌 배너"
-          subtitle="홈 히어로 영역의 큰 배너"
-          on={settings.season.enabled}
-          onToggle={() => updateSeason({ enabled: !settings.season.enabled })}
-        >
-          <div className="grid grid-cols-[1fr_240px] gap-4 items-start">
-            <div className="flex flex-col gap-4">
-              <FormField label="Eyebrow (작은 라벨)">
-                <FormInput
-                  value={settings.season.eyebrow}
-                  onChange={(e) => updateSeason({ eyebrow: e.target.value })}
-                />
-              </FormField>
-              <FormField label="제목">
-                <FormInput
-                  value={settings.season.title}
-                  onChange={(e) => updateSeason({ title: e.target.value })}
-                />
-              </FormField>
-              <FormField label="부제 / 설명">
-                <textarea
-                  value={settings.season.subtitle}
-                  onChange={(e) => updateSeason({ subtitle: e.target.value })}
-                  className="w-full min-h-16 resize-y px-3 py-2.5 border border-[var(--input)] rounded-[6px] text-sm leading-[1.6] text-[var(--foreground)] outline-none bg-[var(--surface)] shadow-xs transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                  style={{ fontFamily: 'inherit' }}
-                />
-              </FormField>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField label="CTA 텍스트">
-                  <FormInput
-                    value={settings.season.cta_text}
-                    onChange={(e) => updateSeason({ cta_text: e.target.value })}
-                  />
-                </FormField>
-                <FormField label="CTA 링크">
-                  <FormInput
-                    value={settings.season.cta_link}
-                    onChange={(e) => updateSeason({ cta_link: e.target.value })}
-                  />
-                </FormField>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField label="시작일" hint="비워두면 상시 노출">
-                  <FormInput
-                    type="date"
-                    value={settings.season.start_date}
-                    onChange={(e) => updateSeason({ start_date: e.target.value })}
-                  />
-                </FormField>
-                <FormField label="종료일" hint="비워두면 상시 노출">
-                  <FormInput
-                    type="date"
-                    value={settings.season.end_date}
-                    onChange={(e) => updateSeason({ end_date: e.target.value })}
-                  />
-                </FormField>
-              </div>
-            </div>
-
-            <div>
-              <FormField label="히어로 이미지">
-                {settings.season.image_path ? (
-                  <div
-                    className="rounded-[6px] overflow-hidden border border-border aspect-[4/5] bg-cover bg-center relative flex items-end p-2.5"
-                    style={{ backgroundImage: `url("${settings.season.image_path}")` }}
-                  >
-                    <span className="font-mono text-[10px] px-[7px] py-[3px] rounded-[4px] bg-white/90 text-muted-foreground max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
-                      {summarizeImagePath(settings.season.image_path)}
-                    </span>
-                  </div>
-                ) : (
-                  <div
-                    className="rounded-[6px] overflow-hidden border border-border aspect-[4/5] flex items-center justify-center text-muted-foreground text-xs"
-                    style={{
-                      background: 'repeating-linear-gradient(135deg, var(--placeholder-pattern-1) 0 6px, var(--placeholder-pattern-2) 6px 12px)',
-                    }}
-                  >
-                    이미지 없음
-                  </div>
-                )}
-              </FormField>
-              <FormField label="대체 텍스트 (alt)">
-                <FormInput
-                  value={settings.season.image_alt}
-                  onChange={(e) => updateSeason({ image_alt: e.target.value })}
-                />
-              </FormField>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/webp,image/avif,image/jpeg,image/png"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="!h-8 w-full mt-2"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadState.status === 'uploading'}
-              >
-                {uploadState.status === 'uploading' ? '업로드 중…' : '이미지 변경'}
-              </Button>
-
-              {uploadState.status === 'uploading' && (
-                <div className="mt-2">
-                  <div className="h-1 rounded-sm bg-[var(--surface-muted)] overflow-hidden relative">
-                    <div className="gtr-admin-progress-indet" />
-                  </div>
-                  <div
-                    className="mt-2 text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
-                    title={uploadState.fileName}
-                  >
-                    {uploadState.fileName}
-                  </div>
-                </div>
-              )}
-
-              {uploadState.status === 'error' && (
-                <div className="mt-2 px-2.5 py-2 rounded-[6px] bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
-                  {uploadState.message}
-                </div>
-              )}
-            </div>
-          </div>
-        </SettingsCard>
-
-        {/* Section 4 — 시그니처 섹션 (S148 PR-2 advisory §6) */}
+        {/* Section 3 — 시그니처 섹션 (S148 PR-2 advisory §6) */}
         <SettingsCard
           title="시그니처 섹션"
           subtitle="메인 페이지 §2.2 sand 단독 chapter · 분기 갱신 (SS/SU/FW/WT)"
@@ -872,20 +710,6 @@ function shallowEqualNotice(a: NoticeSettings, b: NoticeSettings): boolean {
     a.theme_idx === b.theme_idx
   );
 }
-function shallowEqualSeason(a: SeasonSettings, b: SeasonSettings): boolean {
-  return (
-    a.enabled === b.enabled &&
-    a.eyebrow === b.eyebrow &&
-    a.title === b.title &&
-    a.subtitle === b.subtitle &&
-    a.cta_text === b.cta_text &&
-    a.cta_link === b.cta_link &&
-    a.start_date === b.start_date &&
-    a.end_date === b.end_date &&
-    a.image_path === b.image_path &&
-    a.image_alt === b.image_alt
-  );
-}
 function shallowEqualShipping(a: ShippingSettings, b: ShippingSettings): boolean {
   return (
     a.enabled === b.enabled &&
@@ -913,7 +737,6 @@ function shallowEqualSignature(a: SignatureSettings, b: SignatureSettings): bool
 function describeUpdatedKeys(keys: ReadonlyArray<string>): string {
   const labels: Record<string, string> = {
     notice: '공지 배너',
-    season: '시즌 배너',
     shipping: '무료 배송 정책',
     signature: '시그니처 섹션',
   };
