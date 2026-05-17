@@ -60,11 +60,14 @@ export const CAFE_EVENT_TYPE_LABELS: Record<CafeEventType, string> = {
 
 /* ── 2. CafeEvent schema ────────────────────────────────────────────────── */
 
+/* DB date 컬럼은 NULL 또는 ISO "YYYY-MM-DD" 문자열. 둘 다 빈 문자열로 정규화. */
 const dateOrEmpty = z
-  .string()
-  .trim()
-  .transform((v) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ''))
-  .pipe(z.string());
+  .union([z.string(), z.null()])
+  .transform((v) => {
+    if (v == null) return '';
+    const trimmed = v.trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? trimmed : '';
+  });
 
 export const CafeEventSchema = z.object({
   id: z.string().uuid(),
