@@ -1,21 +1,22 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   lib/cafeEvents.ts — V2 §2.5 카페 메뉴 chapter 이벤트 row 헬퍼 (S149 PR-1a)
+   lib/cafeEvents.ts — 카페 메뉴 chapter 이벤트 row 헬퍼 (S234 후속 overlay 재설계)
 
    역할:
    - 5-type Zod schema (campaign · collab · seasonal · new_item · oneplus)
-   - 우선순위 + 활성 이벤트 선택 (selectActiveEvent)
+   - 우선순위 + 활성 이벤트 선택 (selectActiveEvent · selectComingEvent)
    - DB row ↔ 코드 객체 변환 (parseCafeEventRow)
+
+   모델 (059 마이그):
+   - 운영자가 미리 제작한 (반응형 이미지 3종 + 매칭 CSS) 쌍을 업로드.
+   - eyebrow/h4/meta/description/cta 등 텍스트는 CSS 안에 포함 (DB 컬럼 0).
+   - type 분류 (운영 의미) + 우선순위 (자문 §5.3) 는 유지.
 
    설계:
    - client-safe — 어드민 폼 + B2C SSR 양쪽에서 import.
-   - DB는 5-type enum + nullable 분기 컬럼. 코드 schema 도 동일한 모양.
-   - 자문 §3.2 max-length 권고 (h4 22 / desc 80) 는 schema 에 박아 검증.
-   - 자문 §5.3 우선순위 (campaign > collab > seasonal > new_item > oneplus)
-     → CAFE_EVENT_TYPE_PRIORITY 배열로 명시.
 
    참조:
-   - 035_cafe_events.sql (테이블 + seed)
-   - memory/project_design_audit_v2.md §2.5 / advisory-E §3
+   - 035_cafe_events.sql (최초 모델)
+   - 059_cafe_events_overlay_redesign.sql (현 모델)
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { z } from 'zod';
@@ -45,6 +46,15 @@ export const CAFE_EVENT_TYPE_PRIORITY: Record<CafeEventType, number> = {
   oneplus: 4,
 };
 
+/** 어드민 폼 select 라벨 — 운영자 친화 한글 (S234 DEC-4 답습). */
+export const CAFE_EVENT_TYPE_LABELS: Record<CafeEventType, string> = {
+  campaign: '캠페인',
+  collab: '콜라보',
+  seasonal: '시즌 한정',
+  new_item: '신메뉴',
+  oneplus: '1+1',
+};
+
 /* ── 2. CafeEvent schema ────────────────────────────────────────────────── */
 
 const dateOrEmpty = z
@@ -58,30 +68,20 @@ export const CafeEventSchema = z.object({
   type: CafeEventTypeSchema,
   enabled: z.boolean().default(true),
 
-  /** "Now On · ~5/31" — 11 caps · gold (자문 §3.2) */
-  eyebrow: z.string().trim().max(40).default(''),
-  /** max 22자 권고 (자문 §3.2 · 모바일 wrap 깨짐 방지) */
-  h4: z.string().trim().max(40).default(''),
-  /** 요일/매장/가격 등 mono 메타 (max 80자 — 운영 여유) */
-  meta: z.string().trim().max(80).default(''),
-  /** 본문 1~2줄 (max 80자 권고 — 자문 §3.2) */
-  description: z.string().trim().max(160).default(''),
-
-  image_path: z.string().trim().max(500).default(''),
+  /** 데스크탑 이미지 Storage public URL — 필수 (빈 값이면 EventBanner 렌더 skip) */
+  image_path_desktop: z.string().trim().max(500).default(''),
+  /** 태블릿 이미지 — 비어있으면 desktop fallback */
+  image_path_tablet: z.string().trim().max(500).default(''),
+  /** 모바일 이미지 — 비어있으면 desktop fallback */
+  image_path_mobile: z.string().trim().max(500).default(''),
   image_alt: z.string().trim().max(120).default(''),
+
+  /** Storage public URL — <link rel="stylesheet"> 로 EventBanner 가 주입 */
+  custom_css_path: z.string().trim().max(500).default(''),
 
   /** ISO date "YYYY-MM-DD" 또는 "" (자문 §5.3 active 판정 기준) */
   start_date: dateOrEmpty.default(''),
   end_date: dateOrEmpty.default(''),
-
-  /** type 분기 필드 — 모두 optional */
-  recurring: z.string().trim().max(40).nullable().default(null),
-  linked_menu_slug: z.string().trim().max(80).nullable().default(null),
-  season_label: z.string().trim().max(40).nullable().default(null),
-  partner_name: z.string().trim().max(80).nullable().default(null),
-
-  /** null = CTA 없음 */
-  cta_target: z.string().trim().max(200).nullable().default(null),
 
   sort_order: z.number().int().default(0),
 });
@@ -91,7 +91,7 @@ export type CafeEvent = z.infer<typeof CafeEventSchema>;
 /* ── 3. DB row 변환 ─────────────────────────────────────────────────────── */
 
 /**
- * Supabase row (snake_case + null/string 혼합) → CafeEvent.
+ * Supabase row (snake_case) → CafeEvent.
  * date 컬럼은 PostgREST 가 ISO "YYYY-MM-DD" 문자열로 내려줌.
  * 실패 시 null 반환 (호출부가 fallback 처리).
  */
@@ -115,8 +115,6 @@ export interface SelectActiveEventOptions {
  *   3. 동시 active 시 — start_date 최신
  *   4. 동률 — type 우선순위 (campaign > collab > seasonal > new_item > oneplus)
  *   5. 동률 — sort_order (작은 값 우선)
- *
- * @returns 활성 이벤트 1개 또는 null.
  */
 export function selectActiveEvent(
   events: ReadonlyArray<CafeEvent>,
@@ -147,7 +145,6 @@ export function selectActiveEvent(
 
 /**
  * 자문 §5.3 — active 0 + 7일 내 시작 이벤트 있으면 Coming 이벤트.
- * @returns Coming 이벤트 1개 또는 null.
  */
 export function selectComingEvent(
   events: ReadonlyArray<CafeEvent>,
@@ -176,63 +173,7 @@ export function selectComingEvent(
   })[0]!;
 }
 
-/* ── 5. eyebrow grammar (자문 §3.4) ──────────────────────────────────────── */
-
-/**
- * eyebrow 자동 합성. 어드민에서 manual 입력 시 그대로 사용 (B2C SSR 은 state 기반 override 가능).
- *
- * 자문 §3.4 grammar (active state):
- *   - oneplus  : "Now On · 매주 화" (recurring 활용)
- *   - new_item : "Now On · ~MM/DD"
- *   - seasonal : "{Season} · ~MM/DD" — season_label 활용
- *   - collab   : "Coming · MM/DD~" (start_date 기준 — 사전 발표 패턴)
- *   - campaign : "Now On · ~MM/DD" (기본)
- *
- * Coming state override (S150 PR-1d):
- *   options.isComing = true 시 type 무관 "Coming · MM/DD~" 강제
- *   (selectComingEvent 가 반환한 7일 내 시작 이벤트의 SSR 분기 처리용)
- */
-export function composeEventEyebrow(
-  event: Pick<CafeEvent,
-    'type' | 'start_date' | 'end_date' | 'recurring' | 'season_label'>,
-  options: { isComing?: boolean } = {},
-): string {
-  const formatMd = (iso: string): string => {
-    const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(iso);
-    if (!m) return '';
-    return `${parseInt(m[1]!, 10)}/${parseInt(m[2]!, 10)}`;
-  };
-
-  const endMd = event.end_date ? formatMd(event.end_date) : '';
-  const startMd = event.start_date ? formatMd(event.start_date) : '';
-
-  // Coming state 강제 — type 무관 "Coming · MM/DD~"
-  if (options.isComing) {
-    return startMd ? `Coming · ${startMd}~` : 'Coming';
-  }
-
-  switch (event.type) {
-    case 'oneplus':
-      if (event.recurring) return `Now On · ${event.recurring}`;
-      return endMd ? `Now On · ~${endMd}` : 'Now On';
-    case 'new_item':
-      return endMd ? `Now On · ~${endMd}` : 'Now On';
-    case 'seasonal':
-      if (event.season_label) {
-        return endMd
-          ? `${event.season_label} · ~${endMd}`
-          : event.season_label;
-      }
-      return endMd ? `Now On · ~${endMd}` : 'Now On';
-    case 'collab':
-      return startMd ? `Coming · ${startMd}~` : 'Coming';
-    case 'campaign':
-    default:
-      return endMd ? `Now On · ~${endMd}` : 'Now On';
-  }
-}
-
-/* ── 6. 날짜 유틸 (Asia/Seoul 기준) ──────────────────────────────────────── */
+/* ── 5. 날짜 유틸 (Asia/Seoul 기준) ──────────────────────────────────────── */
 
 /** Asia/Seoul 기준 today (ISO "YYYY-MM-DD"). */
 export function todayIsoSeoul(): string {

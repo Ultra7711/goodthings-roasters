@@ -1,10 +1,11 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   cafeEvents.test.ts — V2 §2.5 카페 메뉴 chapter 이벤트 헬퍼 (S149 PR-1a)
+   cafeEvents.test.ts — 카페 메뉴 chapter 이벤트 헬퍼 (S234 후속 overlay 재설계)
 
    범위:
    - selectActiveEvent (자문 §5.3 우선순위)
    - selectComingEvent (7일 내 시작)
-   - composeEventEyebrow (자문 §3.4 grammar)
+
+   composeEventEyebrow 는 모델 재설계로 dead — 텍스트는 모두 CSS 에 포함.
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { describe, it, expect } from 'vitest';
@@ -12,7 +13,6 @@ import {
   CafeEventSchema,
   selectActiveEvent,
   selectComingEvent,
-  composeEventEyebrow,
   type CafeEvent,
 } from './cafeEvents';
 
@@ -26,19 +26,13 @@ function makeEvent(overrides: Partial<CafeEvent> = {}): CafeEvent {
     id: id(1),
     type: 'campaign',
     enabled: true,
-    eyebrow: '',
-    h4: '',
-    meta: '',
-    description: '',
-    image_path: '',
+    image_path_desktop: '',
+    image_path_tablet: '',
+    image_path_mobile: '',
     image_alt: '',
+    custom_css_path: '',
     start_date: '',
     end_date: '',
-    recurring: null,
-    linked_menu_slug: null,
-    season_label: null,
-    partner_name: null,
-    cta_target: null,
     sort_order: 0,
     ...overrides,
   });
@@ -191,116 +185,5 @@ describe('selectComingEvent — 7일 내 시작', () => {
     });
     const result = selectComingEvent([a, b], { today: '2026-05-15' });
     expect(result?.id).toBe(id(24));
-  });
-});
-
-describe('composeEventEyebrow — 자문 §3.4 grammar', () => {
-  it('campaign + end_date → "Now On · ~MM/DD"', () => {
-    const eyebrow = composeEventEyebrow({
-      type: 'campaign',
-      start_date: '2026-05-01',
-      end_date: '2026-05-31',
-      recurring: null,
-      season_label: null,
-    });
-    expect(eyebrow).toBe('Now On · ~5/31');
-  });
-
-  it('oneplus + recurring → "Now On · 매주 화"', () => {
-    const eyebrow = composeEventEyebrow({
-      type: 'oneplus',
-      start_date: '',
-      end_date: '',
-      recurring: '매주 화',
-      season_label: null,
-    });
-    expect(eyebrow).toBe('Now On · 매주 화');
-  });
-
-  it('seasonal + season_label → "{Season} · ~MM/DD"', () => {
-    const eyebrow = composeEventEyebrow({
-      type: 'seasonal',
-      start_date: '2026-06-01',
-      end_date: '2026-08-31',
-      recurring: null,
-      season_label: 'Summer',
-    });
-    expect(eyebrow).toBe('Summer · ~8/31');
-  });
-
-  it('collab + start_date → "Coming · MM/DD~"', () => {
-    const eyebrow = composeEventEyebrow({
-      type: 'collab',
-      start_date: '2026-04-15',
-      end_date: '2026-05-15',
-      recurring: null,
-      season_label: null,
-    });
-    expect(eyebrow).toBe('Coming · 4/15~');
-  });
-
-  it('new_item → "Now On · ~MM/DD"', () => {
-    const eyebrow = composeEventEyebrow({
-      type: 'new_item',
-      start_date: '2026-04-01',
-      end_date: '2026-06-30',
-      recurring: null,
-      season_label: null,
-    });
-    expect(eyebrow).toBe('Now On · ~6/30');
-  });
-
-  it('빈 날짜 → 라벨만 (campaign)', () => {
-    const eyebrow = composeEventEyebrow({
-      type: 'campaign',
-      start_date: '',
-      end_date: '',
-      recurring: null,
-      season_label: null,
-    });
-    expect(eyebrow).toBe('Now On');
-  });
-
-  /* PR-1d — Coming state override */
-  it('isComing=true → type 무관 "Coming · MM/DD~" 강제 (campaign)', () => {
-    const eyebrow = composeEventEyebrow(
-      {
-        type: 'campaign',
-        start_date: '2026-06-01',
-        end_date: '2026-06-30',
-        recurring: null,
-        season_label: null,
-      },
-      { isComing: true },
-    );
-    expect(eyebrow).toBe('Coming · 6/1~');
-  });
-
-  it('isComing=true + start_date 빈값 → "Coming"', () => {
-    const eyebrow = composeEventEyebrow(
-      {
-        type: 'campaign',
-        start_date: '',
-        end_date: '',
-        recurring: null,
-        season_label: null,
-      },
-      { isComing: true },
-    );
-    expect(eyebrow).toBe('Coming');
-  });
-
-  it('isComing=true 가 seasonal type 의 season_label 형식보다 우선', () => {
-    const eyebrow = composeEventEyebrow(
-      {
-        type: 'seasonal',
-        start_date: '2026-06-01',
-        end_date: '2026-08-31',
-        recurring: null,
-        season_label: 'Summer',
-      },
-      { isComing: true },
-    );
-    expect(eyebrow).toBe('Coming · 6/1~');
   });
 });
