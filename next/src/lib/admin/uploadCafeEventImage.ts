@@ -7,13 +7,13 @@
    - public URL 반환 (image_path 로 cafe_events 행에 저장)
 
    설계:
-   - uploadSeasonBanner 의 검증·에러 매핑 패턴 답습.
+   - imageUploadShared 의 검증·에러 매핑 패턴 답습.
    - 035 마이그레이션이 cafe-events 버킷을 별도로 만들었으므로 prefix 분리 불필요.
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { supabase } from '@/lib/supabase';
-import { MAX_FILE_BYTES, ALLOWED_MIME } from './uploadSeasonBanner';
-import type { UploadResult } from './uploadSeasonBanner';
+import { MAX_FILE_BYTES, ALLOWED_MIME } from './imageUploadShared';
+import type { UploadResult } from './imageUploadShared';
 
 export const CAFE_EVENT_BUCKET = 'cafe-events';
 
