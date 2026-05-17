@@ -659,7 +659,6 @@ body {
    프로토타입 라인 248–261 이식 */
 .hdr,
 .hero-c,
-.season-txt,
 .cat-grid,
 .section-cta,
 .f-inner {
@@ -670,7 +669,6 @@ body {
 }
 /* 풀블리드 섹션: 배경만 풀폭 */
 .hero,
-.season-banner,
 .footer {
   width: 100%;
 }
@@ -2183,18 +2181,15 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 /* ══ Step 3-A-5: 섹션 eyebrow gold rule ══
    Home·Story 섹션 머리 uppercase eyebrow 앞에 32px gold 수평선.
-   대상: .blk-label · .st-label (2종)
-   제외: .season-tag (시즌 배너 별도 맥락) */
+   대상: .blk-label · .st-label (2종) */
 .blk-label,
-.st-label,
-.season-tag {
+.st-label {
   display: inline-flex;
   align-items: center;
   gap: 12px;
 }
 .blk-label::before,
-.st-label::before,
-.season-tag::before {
+.st-label::before {
   content: '';
   display: inline-block;
   width: 32px;
@@ -2207,15 +2202,13 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    초기: margin-left -44px → label 박스 밖 (overflow: hidden 마스킹).
    sr--visible: margin-left 0 → eyebrow 가 들어오며 텍스트를 우측으로 밀어냄. */
 .blk-label.sr-txt,
-.st-label.sr-txt,
-.season-tag.sr-txt {
+.st-label.sr-txt {
   overflow: hidden;
 }
 /* 초기·리셋 상태: transition 없음 → sr--visible 제거 시 즉시 -44px 복귀
    (섹션 벗어났다 재진입하면 항상 처음부터 슬라이드 재생) */
 .blk-label.sr-txt::before,
-.st-label.sr-txt::before,
-.season-tag.sr-txt::before {
+.st-label.sr-txt::before {
   margin-left: var(--eyebrow-slide-distance);
 }
 /* 노출: transition 정의 + margin 0 → 보간 발화.
@@ -2223,9 +2216,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 .sr--visible .blk-label.sr-txt:not([data-sr-eyebrow])::before,
 .blk-label.sr-txt.sr--visible::before,
 .sr--visible .st-label.sr-txt:not([data-sr-eyebrow])::before,
-.st-label.sr-txt.sr--visible::before,
-.sr--visible .season-tag.sr-txt:not([data-sr-eyebrow])::before,
-.season-tag.sr-txt.sr--visible::before {
+.st-label.sr-txt.sr--visible::before {
   margin-left: 0;
   transition: margin-left var(--eyebrow-slide-duration) var(--eyebrow-slide-easing) var(--eyebrow-slide-delay);
 }
@@ -2237,8 +2228,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 @media (prefers-reduced-motion: reduce) {
   .blk-label.sr-txt::before,
-  .st-label.sr-txt::before,
-  .season-tag.sr-txt::before {
+  .st-label.sr-txt::before {
     margin-left: 0;
     transition: none;
   }
