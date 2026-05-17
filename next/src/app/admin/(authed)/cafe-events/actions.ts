@@ -13,7 +13,7 @@
    - settings/actions.ts 동일 패턴 (admin 가드 → Zod → DB → revalidate).
    - 빈 문자열 date 는 NULL 로 변환 (DB date 컬럼은 빈 문자열 reject).
    - "동시 활성 max 1" 는 DB 제약이 아니라 어드민 운영 책임 — 폼에서 visual cue 만.
-   - 059 overlay 재설계 — 텍스트 필드 0 · 이미지 3종 + custom_css_path 만.
+   - 060 iframe 진화 — custom_html_path + aspect_desktop/tablet/mobile.
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { revalidatePath, revalidateTag } from 'next/cache';
@@ -63,11 +63,11 @@ function toDbRow(ev: Omit<z.infer<typeof CafeEventSchema>, 'id'>) {
   return {
     type: ev.type,
     enabled: ev.enabled,
-    image_path_desktop: ev.image_path_desktop,
-    image_path_tablet: ev.image_path_tablet,
-    image_path_mobile: ev.image_path_mobile,
+    custom_html_path: ev.custom_html_path,
+    aspect_desktop: ev.aspect_desktop,
+    aspect_tablet: ev.aspect_tablet,
+    aspect_mobile: ev.aspect_mobile,
     image_alt: ev.image_alt,
-    custom_css_path: ev.custom_css_path,
     start_date: emptyToNull(ev.start_date),
     end_date: emptyToNull(ev.end_date),
     sort_order: ev.sort_order,
