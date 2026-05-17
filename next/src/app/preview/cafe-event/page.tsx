@@ -48,6 +48,9 @@ export default async function PreviewCafeEventPage({
     type: asString(params.type) || 'campaign',
     enabled: asString(params.enabled) === 'true',
     custom_html_path: asString(params.custom_html_path),
+    image_path_desktop: asString(params.image_path_desktop),
+    image_path_tablet: asString(params.image_path_tablet),
+    image_path_mobile: asString(params.image_path_mobile),
     aspect_desktop: asString(params.aspect_desktop) || '1320/480',
     aspect_tablet: asString(params.aspect_tablet) || '1024/400',
     aspect_mobile: asString(params.aspect_mobile) || '390/640',
@@ -57,9 +60,12 @@ export default async function PreviewCafeEventPage({
     sort_order: 0,
   });
 
-  /* 빈 상태 — HTML 미입력 또는 비활성 */
+  /* 빈 상태 — HTML 또는 desktop 이미지 미입력 또는 비활성 */
   const willHide =
-    !parsed.success || !parsed.data.enabled || !parsed.data.custom_html_path;
+    !parsed.success ||
+    !parsed.data.enabled ||
+    !parsed.data.custom_html_path ||
+    !parsed.data.image_path_desktop;
 
   if (willHide) {
     return (
@@ -105,7 +111,9 @@ export default async function PreviewCafeEventPage({
               ? '입력 검증 실패 — 필수 필드를 확인해 주세요.'
               : !parsed.data.enabled
                 ? '이벤트 비활성 — 활성으로 변경하면 표시됩니다.'
-                : '배너 HTML 파일을 업로드해 주세요.'}
+                : !parsed.data.custom_html_path
+                  ? '배너 HTML 파일을 업로드해 주세요.'
+                  : 'Desktop 이미지를 업로드해 주세요.'}
           </div>
         </div>
       </div>
