@@ -12,8 +12,8 @@
    설계:
    - settings/actions.ts 동일 패턴 (admin 가드 → Zod → DB → revalidate).
    - 빈 문자열 date 는 NULL 로 변환 (DB date 컬럼은 빈 문자열 reject).
-   - 빈 cta_target 은 NULL (= CTA 없음).
    - "동시 활성 max 1" 는 DB 제약이 아니라 어드민 운영 책임 — 폼에서 visual cue 만.
+   - 059 overlay 재설계 — 텍스트 필드 0 · 이미지 3종 + custom_css_path 만.
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { revalidatePath, revalidateTag } from 'next/cache';
@@ -44,7 +44,7 @@ export type CafeEventActionResult =
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
-/** DB date 컬럼은 "" reject → NULL 변환. cta_target 도 동일. */
+/** DB date 컬럼은 "" reject → NULL 변환. */
 function emptyToNull(s: string): string | null {
   return s === '' ? null : s;
 }
@@ -58,24 +58,18 @@ function flattenZodError(err: z.ZodError): string {
     .slice(0, 200);
 }
 
-/** Zod-parsed event → DB row payload. nullable 컬럼 변환. id 는 호출부가 처리. */
+/** Zod-parsed event → DB row payload. date 만 NULL 변환. id 는 호출부가 처리. */
 function toDbRow(ev: Omit<z.infer<typeof CafeEventSchema>, 'id'>) {
   return {
     type: ev.type,
     enabled: ev.enabled,
-    eyebrow: ev.eyebrow,
-    h4: ev.h4,
-    meta: ev.meta,
-    description: ev.description,
-    image_path: ev.image_path,
+    image_path_desktop: ev.image_path_desktop,
+    image_path_tablet: ev.image_path_tablet,
+    image_path_mobile: ev.image_path_mobile,
     image_alt: ev.image_alt,
+    custom_css_path: ev.custom_css_path,
     start_date: emptyToNull(ev.start_date),
     end_date: emptyToNull(ev.end_date),
-    recurring: ev.recurring,
-    linked_menu_slug: ev.linked_menu_slug,
-    season_label: ev.season_label,
-    partner_name: ev.partner_name,
-    cta_target: ev.cta_target,
     sort_order: ev.sort_order,
   };
 }
