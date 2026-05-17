@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Checkbox } from '@/components/admin/ui/checkbox';
@@ -234,22 +235,22 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
         </Button>
       </AdminTopbarActions>
 
-      {/* 헤더 */}
-      <div className="mb-6 flex items-baseline justify-between">
-        <div>
-          <h2 className="m-0 text-2xl font-medium tracking-[-0.02em]">
-            메인 사이트 설정
-          </h2>
-          <div className="mt-1 text-sm text-muted-foreground">
+      <AdminPageHeader
+        title="메인 사이트 설정"
+        subtitle={
+          <>
             B2C 사이트(<span className="gtr-mono">goodthingsroasters.com</span>)에 즉시 반영돼요. 변경사항은 자동저장되지 않아요.
-          </div>
-        </div>
-        {isDirty ? (
-          <Badge tone="warning">저장되지 않은 변경 {dirtyCount}개</Badge>
-        ) : (
-          <Badge tone="success">최신 상태</Badge>
-        )}
-      </div>
+          </>
+        }
+        rightSlot={
+          isDirty ? (
+            <Badge tone="warning">저장되지 않은 변경 {dirtyCount}개</Badge>
+          ) : (
+            <Badge tone="success">최신 상태</Badge>
+          )
+        }
+        className="mb-6"
+      />
 
       <div className="flex flex-col gap-4">
         {/* Section 1 — 무료 배송 정책 */}
