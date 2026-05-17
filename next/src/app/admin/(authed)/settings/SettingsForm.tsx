@@ -607,7 +607,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
                             : 'bg-[var(--surface)] text-foreground border-border',
                         )}
                       >
-                        {q} · {year}
+                        {year} {q}
                       </button>
                     );
                   })}
