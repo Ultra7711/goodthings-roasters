@@ -680,7 +680,7 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
                         toast.success(`테이스팅 노트 ${notes.length}개를 가져왔습니다`);
                       }}
                     >
-                      Tasting Notes 가져오기
+                      테이스팅 노트 가져오기
                     </Button>
                   }
                 />
