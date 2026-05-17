@@ -38,9 +38,9 @@ export async function listCafeEventsAdmin(): Promise<CafeEvent[]> {
   const { data, error } = await client
     .from('cafe_events')
     .select(
-      'id, type, enabled, eyebrow, h4, meta, description, image_path, image_alt, ' +
-        'start_date, end_date, recurring, linked_menu_slug, season_label, partner_name, ' +
-        'cta_target, sort_order',
+      'id, type, enabled, ' +
+        'image_path_desktop, image_path_tablet, image_path_mobile, image_alt, ' +
+        'custom_css_path, start_date, end_date, sort_order',
     )
     .order('start_date', { ascending: false, nullsFirst: false });
 
