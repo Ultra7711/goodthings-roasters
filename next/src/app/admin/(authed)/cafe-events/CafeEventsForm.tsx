@@ -1,18 +1,17 @@
 'use client';
 
 /* ══════════════════════════════════════════
-   CafeEventsForm — /admin/cafe-events master-detail (S234 후속 overlay 재설계)
+   CafeEventsForm — /admin/cafe-events master-detail (S234 후속 · 060 iframe 진화)
 
    책임:
    - 좌측 list (이벤트 N개 — type pill + 상태 라벨)
    - 우측 edit form (선택된 이벤트 또는 신규 임시 row)
-   - 반응형 이미지 3종 업로드 (desktop/tablet/mobile)
-   - 매칭 CSS 파일 업로드 (custom_css_path)
-   - 4 brk iframe 라이브 미리보기 (signature 패턴 답습)
-   - createCafeEventAction · updateCafeEventAction · deleteCafeEventAction
+   - 운영자 .html 파일 업로드 (custom_html_path)
+   - brk 별 aspect-ratio 3 입력 (1320/480 형식)
+   - 4 brk iframe 라이브 미리보기
 
    참조:
-   - 059_cafe_events_overlay_redesign.sql
+   - 060_cafe_events_iframe_html.sql
    - SettingsForm.tsx (signature 카드 — iframe + debounce + postMessage 패턴)
    - admin-design.md §5-1 ~ §5-25
    ══════════════════════════════════════════ */
@@ -34,11 +33,7 @@ import {
   type CafeEvent,
   type CafeEventType,
 } from '@/lib/cafeEvents';
-import {
-  uploadCafeEventImage,
-  type CafeEventBreakpoint,
-} from '@/lib/admin/uploadCafeEventImage';
-import { uploadCafeEventCss } from '@/lib/admin/uploadCafeEventCss';
+import { uploadCafeEventHtml } from '@/lib/admin/uploadCafeEventHtml';
 import {
   createCafeEventAction,
   updateCafeEventAction,
@@ -61,6 +56,8 @@ const PREVIEW_BRK_OPTIONS: ReadonlyArray<{
 ];
 
 const TEMP_ID_PREFIX = 'temp:';
+
+const ASPECT_RE = /^\s*\d+(\.\d+)?\s*[/]\s*\d+(\.\d+)?\s*$/;
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
 
@@ -90,21 +87,15 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     initialEvents[0] ? { ...initialEvents[0] } : null,
   );
   const [isPending, startTransition] = useTransition();
-  const [desktopUpload, setDesktopUpload] = useState<UploadState>({ status: 'idle' });
-  const [tabletUpload, setTabletUpload] = useState<UploadState>({ status: 'idle' });
-  const [mobileUpload, setMobileUpload] = useState<UploadState>({ status: 'idle' });
-  const [cssUpload, setCssUpload] = useState<UploadState>({ status: 'idle' });
+  const [htmlUpload, setHtmlUpload] = useState<UploadState>({ status: 'idle' });
 
   const [previewBrk, setPreviewBrk] = useState<PreviewBrk>('desktop');
   const [previewSrc, setPreviewSrc] = useState<string>(() =>
     draft ? buildPreviewSrc(draft) : '/preview/cafe-event?enabled=false',
   );
-  const [previewHeight, setPreviewHeight] = useState<number>(360);
+  const [previewHeight, setPreviewHeight] = useState<number>(480);
 
-  const desktopInputRef = useRef<HTMLInputElement | null>(null);
-  const tabletInputRef = useRef<HTMLInputElement | null>(null);
-  const mobileInputRef = useRef<HTMLInputElement | null>(null);
-  const cssInputRef = useRef<HTMLInputElement | null>(null);
+  const htmlInputRef = useRef<HTMLInputElement | null>(null);
 
   const [pendingNavigation, setPendingNavigation] = useState<
     { kind: 'select'; eventId: string } | { kind: 'new' } | null
@@ -123,7 +114,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     return () => clearTimeout(timer);
   }, [draft]);
 
-  /* iframe 으로부터 height 수신 */
+  /* iframe 으로부터 height 수신 (preview 페이지가 postMessage 로 전달) */
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.origin !== window.location.origin) return;
@@ -189,11 +180,11 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       id: tempId,
       type: 'campaign',
       enabled: true,
-      image_path_desktop: '',
-      image_path_tablet: '',
-      image_path_mobile: '',
+      custom_html_path: '',
+      aspect_desktop: '1320/480',
+      aspect_tablet: '1024/400',
+      aspect_mobile: '390/640',
       image_alt: '',
-      custom_css_path: '',
       start_date: '',
       end_date: '',
       sort_order: 0,
@@ -241,58 +232,22 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     setDraft((prev) => (prev ? { ...prev, [key]: value } : prev));
   }
 
-  async function handleImageUpload(
-    e: React.ChangeEvent<HTMLInputElement>,
-    brk: CafeEventBreakpoint,
-  ) {
+  async function handleHtmlUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
 
-    const setState =
-      brk === 'desktop'
-        ? setDesktopUpload
-        : brk === 'tablet'
-          ? setTabletUpload
-          : setMobileUpload;
-    const fieldKey =
-      brk === 'desktop'
-        ? 'image_path_desktop'
-        : brk === 'tablet'
-          ? 'image_path_tablet'
-          : 'image_path_mobile';
-
-    setState({ status: 'uploading', fileName: file.name });
-    const result = await uploadCafeEventImage(file, brk);
+    setHtmlUpload({ status: 'uploading', fileName: file.name });
+    const result = await uploadCafeEventHtml(file);
     if (result.ok) {
-      updateDraft(fieldKey, result.publicUrl);
-      setState({ status: 'idle' });
-      toast.success('이미지를 등록했습니다', {
+      updateDraft('custom_html_path', result.publicUrl);
+      setHtmlUpload({ status: 'idle' });
+      toast.success('HTML 파일을 등록했습니다', {
         description: '변경사항 저장 후 사이트에 반영됩니다',
       });
     } else {
       const message = describeUploadError(result.error, result.detail);
-      setState({ status: 'error', message });
-      toast.error(message);
-    }
-  }
-
-  async function handleCssUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-
-    setCssUpload({ status: 'uploading', fileName: file.name });
-    const result = await uploadCafeEventCss(file);
-    if (result.ok) {
-      updateDraft('custom_css_path', result.publicUrl);
-      setCssUpload({ status: 'idle' });
-      toast.success('CSS 파일을 등록했습니다', {
-        description: '변경사항 저장 후 사이트에 반영됩니다',
-      });
-    } else {
-      const message = describeUploadError(result.error, result.detail);
-      setCssUpload({ status: 'error', message });
+      setHtmlUpload({ status: 'error', message });
       toast.error(message);
     }
   }
@@ -373,7 +328,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
 
       <AdminPageHeader
         title="카페 이벤트 관리"
-        subtitle="메인 §2.5 카페 메뉴 chapter 의 이벤트 배너 · 동시 활성 max 1"
+        subtitle="메인 §2.5 카페 메뉴 chapter 의 이벤트 배너 · iframe HTML 임베드 · 동시 활성 max 1"
         className="mb-6"
       />
 
@@ -486,66 +441,27 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
               </div>
             </Card>
 
-            {/* 이미지 3종 카드 */}
+            {/* HTML 카드 */}
             <Card
-              title="이미지 (반응형 3종)"
-              subtitle="desktop 필수 · tablet/mobile 비워두면 desktop fallback · 최대 5MB · webp/avif/jpeg/png"
+              title="배너 HTML 파일"
+              subtitle="이미지 · CSS · SVG · 폰트 모두 포함된 단일 .html 파일. iframe sandbox (allow-same-origin) 으로 임베드 — script 차단."
             >
-              <div className="flex flex-col gap-4">
-                <FormField label="대체 텍스트 (alt)" required>
+              <div className="flex flex-col gap-3">
+                <FormField label="대체 텍스트 (alt · iframe title)" required>
                   <FormInput
                     value={draft.image_alt}
                     maxLength={120}
                     onChange={(e) => updateDraft('image_alt', e.target.value)}
-                    placeholder="예: 5월 가정의 달 가족 일러스트 배너"
+                    placeholder="예: UBE 시리즈 배너 — 자색 고구마 라떼 메뉴 소개"
                   />
                 </FormField>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <ImageUploadSlot
-                    label="Desktop"
-                    sublabel="1440px 기준"
-                    required
-                    imagePath={draft.image_path_desktop}
-                    uploadState={desktopUpload}
-                    inputRef={desktopInputRef}
-                    onUpload={(e) => handleImageUpload(e, 'desktop')}
-                    onClear={() => updateDraft('image_path_desktop', '')}
-                  />
-                  <ImageUploadSlot
-                    label="Tablet"
-                    sublabel="768px 기준 (선택)"
-                    imagePath={draft.image_path_tablet}
-                    uploadState={tabletUpload}
-                    inputRef={tabletInputRef}
-                    onUpload={(e) => handleImageUpload(e, 'tablet')}
-                    onClear={() => updateDraft('image_path_tablet', '')}
-                  />
-                  <ImageUploadSlot
-                    label="Mobile"
-                    sublabel="360px 기준 (선택)"
-                    imagePath={draft.image_path_mobile}
-                    uploadState={mobileUpload}
-                    inputRef={mobileInputRef}
-                    onUpload={(e) => handleImageUpload(e, 'mobile')}
-                    onClear={() => updateDraft('image_path_mobile', '')}
-                  />
-                </div>
-              </div>
-            </Card>
-
-            {/* CSS 카드 */}
-            <Card
-              title="overlay CSS 파일"
-              subtitle="이미지 위에 얹을 텍스트·레이아웃을 정의한 .css 파일. 비워두면 이미지만 표시."
-            >
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <input
-                    ref={cssInputRef}
+                    ref={htmlInputRef}
                     type="file"
-                    accept=".css,text/css"
-                    onChange={handleCssUpload}
+                    accept=".html,.htm,text/html"
+                    onChange={handleHtmlUpload}
                     className="hidden"
                   />
                   <Button
@@ -553,44 +469,71 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                     variant="outline"
                     size="sm"
                     className="!h-8"
-                    onClick={() => cssInputRef.current?.click()}
-                    disabled={cssUpload.status === 'uploading'}
+                    onClick={() => htmlInputRef.current?.click()}
+                    disabled={htmlUpload.status === 'uploading'}
                   >
-                    {cssUpload.status === 'uploading' ? '업로드 중…' : 'CSS 파일 선택'}
+                    {htmlUpload.status === 'uploading' ? '업로드 중…' : 'HTML 파일 선택'}
                   </Button>
                   <span className="text-xs text-[var(--foreground-muted)]">
-                    {draft.custom_css_path
-                      ? `등록됨 · ${summarizeUrl(draft.custom_css_path)}`
-                      : '선택된 파일 없음 · 5MB 이하 · .css'}
+                    {draft.custom_html_path
+                      ? `등록됨 · ${summarizeUrl(draft.custom_html_path)}`
+                      : '선택된 파일 없음 · 5MB 이하 · .html'}
                   </span>
-                  {draft.custom_css_path && (
+                  {draft.custom_html_path && (
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       className="!h-7 !text-xs !text-[var(--danger)] hover:!bg-[var(--danger-soft)] ml-auto"
-                      onClick={() => updateDraft('custom_css_path', '')}
+                      onClick={() => updateDraft('custom_html_path', '')}
                     >
                       <Trash2 size={14} />
                       제거
                     </Button>
                   )}
                 </div>
-                {cssUpload.status === 'error' && (
+                {htmlUpload.status === 'error' && (
                   <div className="px-2.5 py-2 rounded-md bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
-                    {cssUpload.message}
+                    {htmlUpload.message}
                   </div>
                 )}
-                {draft.custom_css_path && (
+                {draft.custom_html_path && (
                   <a
-                    href={draft.custom_css_path}
+                    href={draft.custom_html_path}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="pl-2.5 text-xs text-[var(--foreground-muted)] underline-offset-2 hover:underline"
                   >
-                    CSS 원본 열기 ↗
+                    HTML 원본 열기 ↗
                   </a>
                 )}
+              </div>
+            </Card>
+
+            {/* aspect-ratio 카드 */}
+            <Card
+              title="iframe 컨테이너 비율"
+              subtitle="brk 별 가로/세로 비율. 'W/H' 형식. 컨테이너 너비 = 100%, 높이 = 너비 ÷ 비율."
+            >
+              <div className="grid grid-cols-3 gap-3">
+                <AspectInput
+                  label="Desktop (≥1024px)"
+                  value={draft.aspect_desktop}
+                  onChange={(v) => updateDraft('aspect_desktop', v)}
+                  placeholder="1320/480"
+                />
+                <AspectInput
+                  label="Tablet (768~1023px)"
+                  value={draft.aspect_tablet}
+                  onChange={(v) => updateDraft('aspect_tablet', v)}
+                  placeholder="1024/400"
+                />
+                <AspectInput
+                  label="Mobile (<768px)"
+                  value={draft.aspect_mobile}
+                  onChange={(v) => updateDraft('aspect_mobile', v)}
+                  placeholder="390/640"
+                />
               </div>
             </Card>
 
@@ -657,86 +600,38 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
   );
 }
 
-/* ── Image Upload Slot ──────────────────────────────────────────────────── */
+/* ── Aspect Input ───────────────────────────────────────────────────────── */
 
-function ImageUploadSlot({
+function AspectInput({
   label,
-  sublabel,
-  required,
-  imagePath,
-  uploadState,
-  inputRef,
-  onUpload,
-  onClear,
+  value,
+  onChange,
+  placeholder,
 }: {
   label: string;
-  sublabel: string;
-  required?: boolean;
-  imagePath: string;
-  uploadState: UploadState;
-  inputRef: React.RefObject<HTMLInputElement | null>;
-  onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onClear: () => void;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
 }) {
+  const invalid = value !== '' && !ASPECT_RE.test(value);
   return (
-    <div className="flex flex-col gap-2">
-      <div className="text-xs font-medium tracking-[-0.005em] flex items-center gap-1">
-        {label}
-        {required && <span className="text-[var(--primary)]">*</span>}
-        <span className="text-[var(--foreground-muted)] font-normal ml-1">{sublabel}</span>
-      </div>
-      {imagePath ? (
-        <div
-          className="rounded-md overflow-hidden border border-border aspect-video bg-cover bg-center relative"
-          style={{ backgroundImage: `url("${imagePath}")` }}
-        >
-          <button
-            type="button"
-            onClick={onClear}
-            aria-label={`${label} 이미지 제거`}
-            className="absolute top-1.5 right-1.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/90 text-[var(--danger)] hover:bg-white shadow-sm cursor-pointer p-0 border-none"
-          >
-            <Trash2 size={12} />
-          </button>
-        </div>
-      ) : (
-        <div
-          className="rounded-md overflow-hidden border border-border aspect-video flex items-center justify-center text-[var(--foreground-muted)] text-xs"
-          style={{
-            background:
-              'repeating-linear-gradient(135deg, var(--placeholder-pattern-1) 0 6px, var(--placeholder-pattern-2) 6px 12px)',
-          }}
-        >
-          이미지 없음
-        </div>
-      )}
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/webp,image/avif,image/jpeg,image/png"
-        onChange={onUpload}
-        className="hidden"
+    <FormField
+      label={label}
+      hint={
+        invalid ? (
+          <span className="text-[var(--warning)]">형식 오류 — "W/H" (예: 1320/480)</span>
+        ) : (
+          '예: 1320/480 = 2.75:1 가로 와이드'
+        )
+      }
+    >
+      <FormInput
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        maxLength={40}
       />
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="!h-8 w-full"
-        onClick={() => inputRef.current?.click()}
-        disabled={uploadState.status === 'uploading'}
-      >
-        {uploadState.status === 'uploading'
-          ? '업로드 중…'
-          : imagePath
-            ? '이미지 변경'
-            : '파일 선택'}
-      </Button>
-      {uploadState.status === 'error' && (
-        <div className="px-2.5 py-2 rounded-md bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
-          {uploadState.message}
-        </div>
-      )}
-    </div>
+    </FormField>
   );
 }
 
@@ -801,17 +696,9 @@ function ListRow({
           !selected && 'hover:bg-[var(--surface-muted)]',
         )}
       >
-        {event.image_path_desktop ? (
-          <div
-            className="w-full aspect-video rounded-sm bg-cover bg-center border border-border"
-            style={{ backgroundImage: `url("${event.image_path_desktop}")` }}
-            aria-hidden
-          />
-        ) : (
-          <div className="w-full aspect-video rounded-sm border border-border bg-[var(--surface-muted)] flex items-center justify-center text-xs text-[var(--foreground-muted)]">
-            이미지 없음
-          </div>
-        )}
+        <div className="w-full aspect-video rounded-sm border border-border bg-[var(--surface-muted)] flex items-center justify-center text-xs text-[var(--foreground-muted)]">
+          {event.custom_html_path ? 'HTML 등록됨' : 'HTML 없음'}
+        </div>
         <div className="flex items-center justify-between gap-1">
           <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-[var(--surface-muted)] text-[var(--foreground-muted)] border border-border">
             {CAFE_EVENT_TYPE_LABELS[event.type]}
@@ -919,11 +806,11 @@ function shallowEqualEvent(a: CafeEvent, b: CafeEvent): boolean {
     a.id === b.id &&
     a.type === b.type &&
     a.enabled === b.enabled &&
-    a.image_path_desktop === b.image_path_desktop &&
-    a.image_path_tablet === b.image_path_tablet &&
-    a.image_path_mobile === b.image_path_mobile &&
+    a.custom_html_path === b.custom_html_path &&
+    a.aspect_desktop === b.aspect_desktop &&
+    a.aspect_tablet === b.aspect_tablet &&
+    a.aspect_mobile === b.aspect_mobile &&
     a.image_alt === b.image_alt &&
-    a.custom_css_path === b.custom_css_path &&
     a.start_date === b.start_date &&
     a.end_date === b.end_date &&
     a.sort_order === b.sort_order
@@ -935,11 +822,11 @@ function buildPreviewSrc(draft: DraftEvent): string {
   const params = new URLSearchParams({
     enabled: String(draft.enabled),
     type: draft.type,
-    image_path_desktop: draft.image_path_desktop,
-    image_path_tablet: draft.image_path_tablet,
-    image_path_mobile: draft.image_path_mobile,
+    custom_html_path: draft.custom_html_path,
+    aspect_desktop: draft.aspect_desktop,
+    aspect_tablet: draft.aspect_tablet,
+    aspect_mobile: draft.aspect_mobile,
     image_alt: draft.image_alt,
-    custom_css_path: draft.custom_css_path,
   });
   return `/preview/cafe-event?${params.toString()}`;
 }
@@ -955,7 +842,7 @@ function describeUploadError(error: string, detail?: string): string {
     case 'too_large':
       return `파일이 너무 큽니다 — ${detail ?? '5MB 이하로 다시 시도해 주세요'}`;
     case 'unsupported_type':
-      return `지원하지 않는 파일 형식이에요 — ${detail ?? 'webp/avif/jpeg/png · .css 만 가능합니다'}`;
+      return `지원하지 않는 파일 형식이에요 — ${detail ?? '.html 파일만 지원합니다'}`;
     case 'unauthorized':
       return '업로드 권한이 없습니다. 다시 로그인해 주세요.';
     case 'public_url_failed':
