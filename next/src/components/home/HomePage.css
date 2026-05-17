@@ -260,15 +260,17 @@
   margin-bottom: 72px;
 }
 .ev-banner {
-  padding: 32px 60px;
-  max-width: 1440px;
-  margin: 0 auto;
+  /* 위/아래 sand bg 만 노출 · 좌우는 iframe max-width 가 제어 */
+  padding: 32px 0;
 }
-/* iframe — 컨테이너 너비 100% · aspect-ratio 는 EventBanner inline <style> 가
-   data-event-id scope 로 brk 별 주입 */
+/* iframe — width 100% 안에서 max 1320 (운영자 HTML 의 desktop 디자인 폭) ·
+   margin auto 로 가운데 정렬 → viewport >= 1320 에서 좌우 sand bg 노출.
+   aspect-ratio 는 EventBanner inline <style> 가 data-event-id scope 로 brk 별 주입. */
 .ev-banner-iframe {
   display: block;
   width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
   border: 0;
   background: transparent;
 }
@@ -302,12 +304,12 @@
      cmsplit-desc → Story story-stage__inner 시각 = 32 + 40 + 72 = 144 (다른 섹션 정합). */
   .cafe-menu-blk { padding-bottom: 40px; }
   .ev-banner-bleed { margin-bottom: 40px; }
-  .ev-banner { padding: 22px 24px; }
+  .ev-banner { padding: 22px 0; }
 }
 @media (max-width: 1023px) and (min-width: 768px) {
   .cafe-menu-head { padding: 96px 48px 48px; }
   .ev-banner-bleed { margin-bottom: 56px; }
-  .ev-banner { padding: 28px 48px; }
+  .ev-banner { padding: 28px 0; }
 }
 /* ── PR-1c 카페 메뉴 split (매장 사진 + 시그니처 3종 / S150 사용자 커스텀) ──
    max-width 1440 = home 섹션 표준 (.two-col / .gooddays-sec / .phil / .hdr 등과 정합)
