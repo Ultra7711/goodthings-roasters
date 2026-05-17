@@ -1,19 +1,20 @@
 'use client';
 
 /* ══════════════════════════════════════════
-   CafeEventsForm — /admin/cafe-events master-detail (S151 PR-2a)
+   CafeEventsForm — /admin/cafe-events master-detail (S234 후속 overlay 재설계)
 
    책임:
    - 좌측 list (이벤트 N개 — type pill + 상태 라벨)
    - 우측 edit form (선택된 이벤트 또는 신규 임시 row)
-   - 5-type 분기 필드 조건부 렌더링
-   - 22자 inline soft warn (h4 — 자문 §3.2)
+   - 반응형 이미지 3종 업로드 (desktop/tablet/mobile)
+   - 매칭 CSS 파일 업로드 (custom_css_path)
    - 4 brk iframe 라이브 미리보기 (signature 패턴 답습)
    - createCafeEventAction · updateCafeEventAction · deleteCafeEventAction
 
    참조:
+   - 059_cafe_events_overlay_redesign.sql
    - SettingsForm.tsx (signature 카드 — iframe + debounce + postMessage 패턴)
-   - lib/cafeEvents.ts CafeEventSchema · composeEventEyebrow
+   - admin-design.md §5-1 ~ §5-25
    ══════════════════════════════════════════ */
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
@@ -21,19 +22,23 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Checkbox } from '@/components/admin/ui/checkbox';
-import { Textarea } from '@/components/admin/ui/textarea';
 import ConfirmModal from '@/components/admin/ConfirmModal';
 import {
   CAFE_EVENT_TYPES,
-  composeEventEyebrow,
+  CAFE_EVENT_TYPE_LABELS,
   todayIsoSeoul,
   type CafeEvent,
   type CafeEventType,
 } from '@/lib/cafeEvents';
-import { uploadCafeEventImage } from '@/lib/admin/uploadCafeEventImage';
+import {
+  uploadCafeEventImage,
+  type CafeEventBreakpoint,
+} from '@/lib/admin/uploadCafeEventImage';
+import { uploadCafeEventCss } from '@/lib/admin/uploadCafeEventCss';
 import {
   createCafeEventAction,
   updateCafeEventAction,
@@ -41,19 +46,6 @@ import {
 } from './actions';
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
-
-const TYPE_LABELS: Record<CafeEventType, string> = {
-  campaign: '캠페인',
-  collab: '콜라보',
-  seasonal: '시즌 한정',
-  new_item: '신메뉴',
-  oneplus: '1+1',
-};
-
-/** 자문 §3.2 — h4 권고 max 22자. schema 는 max(40) 이지만 visual cue 로 사용. */
-const H4_SOFT_LIMIT = 22;
-/** 자문 §3.2 — description 권고 max 80자. schema max(160). */
-const DESC_SOFT_LIMIT = 80;
 
 /** advisory §6.1 D-1 — 발행 전 4 brk 미리보기 검증 */
 type PreviewBrk = 'desktop' | 'laptop' | 'tablet' | 'mobile';
@@ -94,20 +86,26 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
   const [selectedId, setSelectedId] = useState<string | null>(
     initialEvents[0]?.id ?? null,
   );
-  /** 편집 중인 임시 row (신규 OR 수정). null = 선택 없음. */
   const [draft, setDraft] = useState<DraftEvent | null>(
     initialEvents[0] ? { ...initialEvents[0] } : null,
   );
   const [isPending, startTransition] = useTransition();
-  const [uploadState, setUploadState] = useState<UploadState>({ status: 'idle' });
+  const [desktopUpload, setDesktopUpload] = useState<UploadState>({ status: 'idle' });
+  const [tabletUpload, setTabletUpload] = useState<UploadState>({ status: 'idle' });
+  const [mobileUpload, setMobileUpload] = useState<UploadState>({ status: 'idle' });
+  const [cssUpload, setCssUpload] = useState<UploadState>({ status: 'idle' });
+
   const [previewBrk, setPreviewBrk] = useState<PreviewBrk>('desktop');
   const [previewSrc, setPreviewSrc] = useState<string>(() =>
     draft ? buildPreviewSrc(draft) : '/preview/cafe-event?enabled=false',
   );
   const [previewHeight, setPreviewHeight] = useState<number>(360);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  /** 저장되지 않은 변경 사라짐 확인 — 선택 변경 또는 새 이벤트 두 경로 분기. */
+  const desktopInputRef = useRef<HTMLInputElement | null>(null);
+  const tabletInputRef = useRef<HTMLInputElement | null>(null);
+  const mobileInputRef = useRef<HTMLInputElement | null>(null);
+  const cssInputRef = useRef<HTMLInputElement | null>(null);
+
   const [pendingNavigation, setPendingNavigation] = useState<
     { kind: 'select'; eventId: string } | { kind: 'new' } | null
   >(null);
@@ -191,19 +189,13 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       id: tempId,
       type: 'campaign',
       enabled: true,
-      eyebrow: '',
-      h4: '',
-      meta: '',
-      description: '',
-      image_path: '',
+      image_path_desktop: '',
+      image_path_tablet: '',
+      image_path_mobile: '',
       image_alt: '',
+      custom_css_path: '',
       start_date: '',
       end_date: '',
-      recurring: null,
-      linked_menu_slug: null,
-      season_label: null,
-      partner_name: null,
-      cta_target: null,
       sort_order: 0,
     };
     setSelectedId(tempId);
@@ -249,34 +241,58 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     setDraft((prev) => (prev ? { ...prev, [key]: value } : prev));
   }
 
-  function handleTypeChange(type: CafeEventType) {
-    setDraft((prev) => {
-      if (!prev) return prev;
-      /* type 변경 시 — 새 type 에 안 쓰이는 분기 필드는 NULL 로 reset.
-         (UPDATE 시 stale 데이터 누수 방지 + Zod nullable 통과) */
-      const next = { ...prev, type };
-      if (type !== 'oneplus') next.recurring = null;
-      if (type !== 'new_item') next.linked_menu_slug = null;
-      if (type !== 'seasonal') next.season_label = null;
-      if (type !== 'collab') next.partner_name = null;
-      return next;
-    });
-  }
-
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageUpload(
+    e: React.ChangeEvent<HTMLInputElement>,
+    brk: CafeEventBreakpoint,
+  ) {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
 
-    setUploadState({ status: 'uploading', fileName: file.name });
-    const result = await uploadCafeEventImage(file);
+    const setState =
+      brk === 'desktop'
+        ? setDesktopUpload
+        : brk === 'tablet'
+          ? setTabletUpload
+          : setMobileUpload;
+    const fieldKey =
+      brk === 'desktop'
+        ? 'image_path_desktop'
+        : brk === 'tablet'
+          ? 'image_path_tablet'
+          : 'image_path_mobile';
+
+    setState({ status: 'uploading', fileName: file.name });
+    const result = await uploadCafeEventImage(file, brk);
     if (result.ok) {
-      updateDraft('image_path', result.publicUrl);
-      setUploadState({ status: 'idle' });
-      toast.success('이미지를 등록했습니다 · 저장 후 반영됩니다');
+      updateDraft(fieldKey, result.publicUrl);
+      setState({ status: 'idle' });
+      toast.success('이미지를 등록했습니다', {
+        description: '변경사항 저장 후 사이트에 반영됩니다',
+      });
     } else {
       const message = describeUploadError(result.error, result.detail);
-      setUploadState({ status: 'error', message });
+      setState({ status: 'error', message });
+      toast.error(message);
+    }
+  }
+
+  async function handleCssUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setCssUpload({ status: 'uploading', fileName: file.name });
+    const result = await uploadCafeEventCss(file);
+    if (result.ok) {
+      updateDraft('custom_css_path', result.publicUrl);
+      setCssUpload({ status: 'idle' });
+      toast.success('CSS 파일을 등록했습니다', {
+        description: '변경사항 저장 후 사이트에 반영됩니다',
+      });
+    } else {
+      const message = describeUploadError(result.error, result.detail);
+      setCssUpload({ status: 'error', message });
       toast.error(message);
     }
   }
@@ -297,7 +313,9 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       } else {
         const result = await updateCafeEventAction(draft);
         if (result.ok) {
-          toast.success('이벤트를 저장했습니다 · 사이트에 즉시 반영됩니다');
+          toast.success('이벤트를 저장했습니다', {
+            description: '사이트에 즉시 반영됩니다',
+          });
           router.refresh();
         } else {
           toast.error(describeError(result.error, result.detail));
@@ -353,24 +371,16 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         </Button>
       </AdminTopbarActions>
 
-      {/* 헤더 */}
-      <div className="mb-[22px] flex items-baseline justify-between">
-        <div>
-          <h2 className="m-0 text-2xl font-medium tracking-[-0.02em]">
-            카페 이벤트 관리
-          </h2>
-          <div className="mt-1 text-sm text-[var(--foreground-muted)]">
-            메인 §2.5 카페 메뉴 chapter 의 이벤트 row · 동시 활성 max 1
-          </div>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="카페 이벤트 관리"
+        subtitle="메인 §2.5 카페 메뉴 chapter 의 이벤트 배너 · 동시 활성 max 1"
+        className="mb-6"
+      />
 
       {/* 이벤트 목록 — 상단 수평 스크롤 스트립 */}
       <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden mb-4">
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-          <div className="flex-1 text-sm font-medium">
-            등록중인 이벤트
-          </div>
+          <div className="flex-1 text-sm font-medium">등록중인 이벤트</div>
           <Button type="button" variant="outline" size="sm" className="!h-7" onClick={handleNew}>
             + 새 이벤트
           </Button>
@@ -404,325 +414,217 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         </div>
       </div>
 
-      {/* Detail — 전체 너비 */}
+      {/* Detail */}
       <div className="flex flex-col gap-3 min-w-0">
-          {!draft ? (
-            <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] py-12 px-10 text-center text-sm text-[var(--foreground-muted)]">
-              위에서 이벤트를 선택하거나 [+ 새 이벤트] 를 눌러주세요.
-            </div>
-          ) : (
-            <>
-              {/* 동시 활성 충돌 경고 */}
-              {activeConflict && (
-                <div className="px-3 py-2.5 rounded-md bg-[var(--warning-soft)] text-[var(--warning)] border border-[var(--warning)] text-xs">
-                  ⚠ 활성 충돌 — 같은 기간에 "{activeConflict.h4 || '이름 없음'}" 이 이미
-                  활성 상태입니다. 동시 활성 max 1 (자문 §5.3) — 우선순위 높은 1개만 노출됩니다.
-                </div>
-              )}
+        {!draft ? (
+          <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] py-12 px-10 text-center text-sm text-[var(--foreground-muted)]">
+            위에서 이벤트를 선택하거나 [+ 새 이벤트] 를 눌러주세요.
+          </div>
+        ) : (
+          <>
+            {/* 동시 활성 충돌 경고 */}
+            {activeConflict && (
+              <div className="px-3 py-2.5 rounded-md bg-[var(--warning-soft)] text-[var(--warning)] border border-[var(--warning)] text-xs">
+                ⚠ 활성 충돌 — 같은 기간에 다른 이벤트
+                ({CAFE_EVENT_TYPE_LABELS[activeConflict.type]}) 가 이미 활성 상태입니다.
+                동시 활성 max 1 (자문 §5.3) — 우선순위 높은 1개만 노출됩니다.
+              </div>
+            )}
 
-              {/* 기본 정보 카드 */}
-              <Card title="기본 정보" subtitle="이벤트 type · 활성 · 노출 정렬">
-                <div className="flex flex-col gap-3">
-                  <FormField label="이벤트 type" required>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {CAFE_EVENT_TYPES.map((t) => {
-                        const sel = draft.type === t;
-                        return (
-                          <button
-                            key={t}
-                            type="button"
-                            data-slot="chip-radio"
-                            onClick={() => handleTypeChange(t)}
-                            aria-pressed={sel}
-                            className={cn(
-                              'px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer',
-                              sel
-                                ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
-                                : 'bg-[var(--surface)] text-foreground border-border',
-                            )}
-                          >
-                            {TYPE_LABELS[t]}
-                          </button>
-                        );
-                      })}
+            {/* 기본 정보 카드 */}
+            <Card title="기본 정보" subtitle="이벤트 type · 활성 · 노출 정렬">
+              <div className="flex flex-col gap-3">
+                <FormField label="이벤트 type" required>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {CAFE_EVENT_TYPES.map((t) => {
+                      const sel = draft.type === t;
+                      return (
+                        <button
+                          key={t}
+                          type="button"
+                          data-slot="chip-radio"
+                          onClick={() => updateDraft('type', t)}
+                          aria-pressed={sel}
+                          className={cn(
+                            'px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer',
+                            sel
+                              ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
+                              : 'bg-[var(--surface)] text-foreground border-border',
+                          )}
+                        >
+                          {CAFE_EVENT_TYPE_LABELS[t]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </FormField>
+
+                <div className="flex gap-6 items-start flex-wrap">
+                  <FormField label="활성">
+                    <label className="flex gap-2 items-center h-[34px] cursor-pointer">
+                      <Checkbox
+                        checked={draft.enabled}
+                        onCheckedChange={(v) => updateDraft('enabled', v === true)}
+                      />
+                      <span className="text-sm">
+                        {draft.enabled ? '활성 (B2C 노출 후보)' : '비활성 (저장만)'}
+                      </span>
+                    </label>
+                  </FormField>
+                  <FormField label="정렬 순서" hint="작은 값이 먼저 (동률 fallback)">
+                    <div className="w-24">
+                      <FormInput
+                        type="number"
+                        value={String(draft.sort_order)}
+                        onChange={(e) =>
+                          updateDraft('sort_order', parseInt(e.target.value, 10) || 0)
+                        }
+                      />
                     </div>
                   </FormField>
-
-                  <div className="flex gap-6 items-start flex-wrap">
-                    <FormField label="활성">
-                      <label className="flex gap-2 items-center h-[34px] cursor-pointer">
-                        <Checkbox
-                          checked={draft.enabled}
-                          onCheckedChange={(v) => updateDraft('enabled', v === true)}
-                        />
-                        <span className="text-sm">
-                          {draft.enabled ? '활성 (B2C 노출 후보)' : '비활성 (저장만)'}
-                        </span>
-                      </label>
-                    </FormField>
-                    <FormField label="정렬 순서" hint="작은 값이 먼저 (동률 fallback)">
-                      <div className="w-24">
-                        <FormInput
-                          type="number"
-                          value={String(draft.sort_order)}
-                          onChange={(e) =>
-                            updateDraft('sort_order', parseInt(e.target.value, 10) || 0)
-                          }
-                        />
-                      </div>
-                    </FormField>
-                  </div>
                 </div>
-              </Card>
+              </div>
+            </Card>
 
-              {/* 카피 카드 */}
-              <Card title="카피" subtitle="자문 §3.2 — h4 max 22자 권고 · description max 80자 권고">
-                <div className="flex flex-col gap-3">
-                  <FormField
-                    label="Eyebrow"
-                    hint={`자동 합성 예: "${composeEventEyebrow(draft)}" — 빈 값 시 자동 합성 사용`}
-                  >
-                    <FormInput
-                      value={draft.eyebrow}
-                      onChange={(e) => updateDraft('eyebrow', e.target.value)}
-                      placeholder={composeEventEyebrow(draft) || '예: Now On · ~5/31'}
-                    />
-                  </FormField>
-
-                  <FormField
-                    label="제목 (h4)"
-                    required
-                    hint={
-                      <span
-                        className={
-                          draft.h4.length > H4_SOFT_LIMIT
-                            ? 'text-[var(--warning)]'
-                            : 'text-[var(--foreground-muted)]'
-                        }
-                      >
-                        {draft.h4.length}/{H4_SOFT_LIMIT}자 권고 (max 40)
-                        {draft.h4.length > H4_SOFT_LIMIT &&
-                          ' · 모바일 wrap 깨짐 위험'}
-                      </span>
-                    }
-                  >
-                    <FormInput
-                      value={draft.h4}
-                      maxLength={40}
-                      onChange={(e) => updateDraft('h4', e.target.value)}
-                      placeholder="예: 가족과 함께라면, 음료 한 잔 더 무료"
-                    />
-                  </FormField>
-
-                  <FormField label="메타 (요일·매장·가격 등 mono)">
-                    <FormInput
-                      value={draft.meta}
-                      maxLength={80}
-                      onChange={(e) => updateDraft('meta', e.target.value)}
-                      placeholder="예: 5월 한 달 · 매장 한정 · 가족 동반"
-                    />
-                  </FormField>
-
-                  <FormField
-                    label="본문 (1~2줄)"
-                    hint={
-                      <span
-                        className={
-                          draft.description.length > DESC_SOFT_LIMIT
-                            ? 'text-[var(--warning)]'
-                            : 'text-[var(--foreground-muted)]'
-                        }
-                      >
-                        {draft.description.length}/{DESC_SOFT_LIMIT}자 권고 (max 160)
-                      </span>
-                    }
-                  >
-                    <Textarea
-                      value={draft.description}
-                      maxLength={160}
-                      onChange={(e) => updateDraft('description', e.target.value)}
-                      placeholder="예: 부모님과 아이가 함께 방문하시면 음료 한 잔을 무료로 드립니다."
-                      rows={3}
-                    />
-                  </FormField>
-                </div>
-              </Card>
-
-              {/* 이미지 카드 */}
-              <Card title="이미지" subtitle="1:1 정사각 권장 · 최대 5MB · webp/avif/jpeg/png">
-                <div className="grid grid-cols-[1fr_240px] gap-4 items-start">
-                  <div className="flex flex-col gap-3 min-w-0">
-                    <FormField label="대체 텍스트 (alt)">
-                      <FormInput
-                        value={draft.image_alt}
-                        maxLength={120}
-                        onChange={(e) => updateDraft('image_alt', e.target.value)}
-                        placeholder="예: 5월 가정의 달 이벤트 일러스트"
-                      />
-                    </FormField>
-                    <FormField label="이미지 경로" hint="업로드 후 자동 입력 · 직접 편집 가능">
-                      <FormInput
-                        value={draft.image_path}
-                        maxLength={500}
-                        onChange={(e) => updateDraft('image_path', e.target.value)}
-                        placeholder="/images/cafe-events/... 또는 https://..."
-                      />
-                    </FormField>
-                  </div>
-
-                  <div>
-                    {draft.image_path ? (
-                      <div
-                        className="rounded-md overflow-hidden border border-border aspect-square bg-cover bg-center"
-                        style={{ backgroundImage: `url("${draft.image_path}")` }}
-                      />
-                    ) : (
-                      <div
-                        className="rounded-md overflow-hidden border border-border aspect-square flex items-center justify-center text-[var(--foreground-muted)] text-xs"
-                        style={{
-                          background:
-                            'repeating-linear-gradient(135deg, var(--placeholder-pattern-1) 0 6px, var(--placeholder-pattern-2) 6px 12px)',
-                        }}
-                      >
-                        이미지 없음
-                      </div>
-                    )}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/webp,image/avif,image/jpeg,image/png"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="!h-7 w-full mt-2"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadState.status === 'uploading'}
-                    >
-                      {uploadState.status === 'uploading' ? '업로드 중…' : '이미지 변경'}
-                    </Button>
-                    {uploadState.status === 'error' && (
-                      <div className="mt-2 px-2.5 py-2 rounded-md bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
-                        {uploadState.message}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
-
-              {/* 기간 + type 분기 카드 */}
-              <Card
-                title="기간 · 분기 필드"
-                subtitle="ISO 날짜 (YYYY-MM-DD) · 빈 값 = 상시 노출"
-              >
-                <div className="flex flex-col gap-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormField label="시작일" hint="비워두면 상시 노출 (start 무관)">
-                      <FormInput
-                        type="date"
-                        value={draft.start_date}
-                        onChange={(e) => updateDraft('start_date', e.target.value)}
-                      />
-                    </FormField>
-                    <FormField label="종료일" hint="비워두면 상시 노출 (end 무관)">
-                      <FormInput
-                        type="date"
-                        value={draft.end_date}
-                        onChange={(e) => updateDraft('end_date', e.target.value)}
-                      />
-                    </FormField>
-                  </div>
-
-                  {/* type 분기 필드 */}
-                  {draft.type === 'oneplus' && (
-                    <FormField
-                      label="반복 (recurring)"
-                      hint='예: "매주 화" · "매월 첫 주말" — eyebrow 자동 합성에 사용'
-                    >
-                      <FormInput
-                        value={draft.recurring ?? ''}
-                        maxLength={40}
-                        onChange={(e) =>
-                          updateDraft('recurring', e.target.value || null)
-                        }
-                        placeholder="예: 매주 화"
-                      />
-                    </FormField>
-                  )}
-                  {draft.type === 'new_item' && (
-                    <FormField
-                      label="연결 메뉴 slug"
-                      hint="신메뉴 type — 카페 메뉴 chapter 의 메뉴 slug"
-                    >
-                      <FormInput
-                        value={draft.linked_menu_slug ?? ''}
-                        maxLength={80}
-                        onChange={(e) =>
-                          updateDraft('linked_menu_slug', e.target.value || null)
-                        }
-                        placeholder="예: spring-yuzu-latte"
-                      />
-                    </FormField>
-                  )}
-                  {draft.type === 'seasonal' && (
-                    <FormField
-                      label="시즌 라벨 (season_label)"
-                      hint='예: "Spring" · "May" — eyebrow 자동 합성에 사용'
-                    >
-                      <FormInput
-                        value={draft.season_label ?? ''}
-                        maxLength={40}
-                        onChange={(e) =>
-                          updateDraft('season_label', e.target.value || null)
-                        }
-                        placeholder="예: Spring"
-                      />
-                    </FormField>
-                  )}
-                  {draft.type === 'collab' && (
-                    <FormField label="파트너명 (partner_name)">
-                      <FormInput
-                        value={draft.partner_name ?? ''}
-                        maxLength={80}
-                        onChange={(e) =>
-                          updateDraft('partner_name', e.target.value || null)
-                        }
-                        placeholder="예: 굿데이즈"
-                      />
-                    </FormField>
-                  )}
-                </div>
-              </Card>
-
-              {/* CTA 카드 */}
-              <Card title="CTA" subtitle="비워두면 버튼 없음 — null 저장">
-                <FormField
-                  label="CTA 링크"
-                  hint={'비워두면 “자세히 →” 버튼 노출 안 함'}
-                >
+            {/* 이미지 3종 카드 */}
+            <Card
+              title="이미지 (반응형 3종)"
+              subtitle="desktop 필수 · tablet/mobile 비워두면 desktop fallback · 최대 5MB · webp/avif/jpeg/png"
+            >
+              <div className="flex flex-col gap-4">
+                <FormField label="대체 텍스트 (alt)" required>
                   <FormInput
-                    value={draft.cta_target ?? ''}
-                    maxLength={200}
-                    onChange={(e) => updateDraft('cta_target', e.target.value || null)}
-                    placeholder="예: /events/family-month-2026 또는 /menu?cat=signature"
+                    value={draft.image_alt}
+                    maxLength={120}
+                    onChange={(e) => updateDraft('image_alt', e.target.value)}
+                    placeholder="예: 5월 가정의 달 가족 일러스트 배너"
                   />
                 </FormField>
-              </Card>
 
-              {/* Preview */}
-              <PreviewPane
-                previewBrk={previewBrk}
-                onSelectBrk={setPreviewBrk}
-                previewSrc={previewSrc}
-                previewHeight={previewHeight}
-                isDirty={isDirty}
-              />
-            </>
-          )}
-        </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <ImageUploadSlot
+                    label="Desktop"
+                    sublabel="1440px 기준"
+                    required
+                    imagePath={draft.image_path_desktop}
+                    uploadState={desktopUpload}
+                    inputRef={desktopInputRef}
+                    onUpload={(e) => handleImageUpload(e, 'desktop')}
+                    onClear={() => updateDraft('image_path_desktop', '')}
+                  />
+                  <ImageUploadSlot
+                    label="Tablet"
+                    sublabel="768px 기준 (선택)"
+                    imagePath={draft.image_path_tablet}
+                    uploadState={tabletUpload}
+                    inputRef={tabletInputRef}
+                    onUpload={(e) => handleImageUpload(e, 'tablet')}
+                    onClear={() => updateDraft('image_path_tablet', '')}
+                  />
+                  <ImageUploadSlot
+                    label="Mobile"
+                    sublabel="360px 기준 (선택)"
+                    imagePath={draft.image_path_mobile}
+                    uploadState={mobileUpload}
+                    inputRef={mobileInputRef}
+                    onUpload={(e) => handleImageUpload(e, 'mobile')}
+                    onClear={() => updateDraft('image_path_mobile', '')}
+                  />
+                </div>
+              </div>
+            </Card>
+
+            {/* CSS 카드 */}
+            <Card
+              title="overlay CSS 파일"
+              subtitle="이미지 위에 얹을 텍스트·레이아웃을 정의한 .css 파일. 비워두면 이미지만 표시."
+            >
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <input
+                    ref={cssInputRef}
+                    type="file"
+                    accept=".css,text/css"
+                    onChange={handleCssUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="!h-8"
+                    onClick={() => cssInputRef.current?.click()}
+                    disabled={cssUpload.status === 'uploading'}
+                  >
+                    {cssUpload.status === 'uploading' ? '업로드 중…' : 'CSS 파일 선택'}
+                  </Button>
+                  <span className="text-xs text-[var(--foreground-muted)]">
+                    {draft.custom_css_path
+                      ? `등록됨 · ${summarizeUrl(draft.custom_css_path)}`
+                      : '선택된 파일 없음 · 5MB 이하 · .css'}
+                  </span>
+                  {draft.custom_css_path && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="!h-7 !text-xs !text-[var(--danger)] hover:!bg-[var(--danger-soft)] ml-auto"
+                      onClick={() => updateDraft('custom_css_path', '')}
+                    >
+                      <Trash2 size={14} />
+                      제거
+                    </Button>
+                  )}
+                </div>
+                {cssUpload.status === 'error' && (
+                  <div className="px-2.5 py-2 rounded-md bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
+                    {cssUpload.message}
+                  </div>
+                )}
+                {draft.custom_css_path && (
+                  <a
+                    href={draft.custom_css_path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pl-2.5 text-xs text-[var(--foreground-muted)] underline-offset-2 hover:underline"
+                  >
+                    CSS 원본 열기 ↗
+                  </a>
+                )}
+              </div>
+            </Card>
+
+            {/* 기간 카드 */}
+            <Card title="기간" subtitle="ISO 날짜 (YYYY-MM-DD) · 빈 값 = 상시 노출">
+              <div className="grid grid-cols-2 gap-3">
+                <FormField label="시작일" hint="비워두면 상시 노출 (start 무관)">
+                  <FormInput
+                    type="date"
+                    value={draft.start_date}
+                    onChange={(e) => updateDraft('start_date', e.target.value)}
+                  />
+                </FormField>
+                <FormField label="종료일" hint="비워두면 상시 노출 (end 무관)">
+                  <FormInput
+                    type="date"
+                    value={draft.end_date}
+                    onChange={(e) => updateDraft('end_date', e.target.value)}
+                  />
+                </FormField>
+              </div>
+            </Card>
+
+            {/* Preview */}
+            <PreviewPane
+              previewBrk={previewBrk}
+              onSelectBrk={setPreviewBrk}
+              previewSrc={previewSrc}
+              previewHeight={previewHeight}
+              isDirty={isDirty}
+            />
+          </>
+        )}
+      </div>
 
       <ConfirmModal
         open={pendingNavigation !== null}
@@ -741,7 +643,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         description={
           <>
             <strong className="text-foreground">
-              {draft?.h4 || '이름 없음'}
+              {draft ? CAFE_EVENT_TYPE_LABELS[draft.type] : ''}
             </strong>{' '}
             이벤트가 영원히 사라지며, 되돌릴 수 없습니다.
           </>
@@ -752,6 +654,89 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         onConfirm={confirmDelete}
       />
     </>
+  );
+}
+
+/* ── Image Upload Slot ──────────────────────────────────────────────────── */
+
+function ImageUploadSlot({
+  label,
+  sublabel,
+  required,
+  imagePath,
+  uploadState,
+  inputRef,
+  onUpload,
+  onClear,
+}: {
+  label: string;
+  sublabel: string;
+  required?: boolean;
+  imagePath: string;
+  uploadState: UploadState;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="text-xs font-medium tracking-[-0.005em] flex items-center gap-1">
+        {label}
+        {required && <span className="text-[var(--primary)]">*</span>}
+        <span className="text-[var(--foreground-muted)] font-normal ml-1">{sublabel}</span>
+      </div>
+      {imagePath ? (
+        <div
+          className="rounded-md overflow-hidden border border-border aspect-video bg-cover bg-center relative"
+          style={{ backgroundImage: `url("${imagePath}")` }}
+        >
+          <button
+            type="button"
+            onClick={onClear}
+            aria-label={`${label} 이미지 제거`}
+            className="absolute top-1.5 right-1.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/90 text-[var(--danger)] hover:bg-white shadow-sm cursor-pointer p-0 border-none"
+          >
+            <Trash2 size={12} />
+          </button>
+        </div>
+      ) : (
+        <div
+          className="rounded-md overflow-hidden border border-border aspect-video flex items-center justify-center text-[var(--foreground-muted)] text-xs"
+          style={{
+            background:
+              'repeating-linear-gradient(135deg, var(--placeholder-pattern-1) 0 6px, var(--placeholder-pattern-2) 6px 12px)',
+          }}
+        >
+          이미지 없음
+        </div>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/webp,image/avif,image/jpeg,image/png"
+        onChange={onUpload}
+        className="hidden"
+      />
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="!h-8 w-full"
+        onClick={() => inputRef.current?.click()}
+        disabled={uploadState.status === 'uploading'}
+      >
+        {uploadState.status === 'uploading'
+          ? '업로드 중…'
+          : imagePath
+            ? '이미지 변경'
+            : '파일 선택'}
+      </Button>
+      {uploadState.status === 'error' && (
+        <div className="px-2.5 py-2 rounded-md bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
+          {uploadState.message}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -802,7 +787,7 @@ function ListRow({
   return (
     <div
       className={cn(
-        'flex flex-col w-[180px] flex-shrink-0 rounded-md border overflow-hidden',
+        'flex flex-col w-[200px] flex-shrink-0 rounded-md border overflow-hidden',
         selected
           ? 'bg-[var(--surface-muted)] border-[var(--primary)]'
           : 'bg-[var(--surface)] border-border',
@@ -812,20 +797,26 @@ function ListRow({
         type="button"
         onClick={onClick}
         className={cn(
-          'flex flex-col gap-1 px-3 py-2.5 text-left cursor-pointer font-[inherit] border-none bg-transparent w-full',
+          'flex flex-col gap-1.5 px-3 py-2.5 text-left cursor-pointer font-[inherit] border-none bg-transparent w-full',
           !selected && 'hover:bg-[var(--surface-muted)]',
         )}
       >
+        {event.image_path_desktop ? (
+          <div
+            className="w-full aspect-video rounded-sm bg-cover bg-center border border-border"
+            style={{ backgroundImage: `url("${event.image_path_desktop}")` }}
+            aria-hidden
+          />
+        ) : (
+          <div className="w-full aspect-video rounded-sm border border-border bg-[var(--surface-muted)] flex items-center justify-center text-xs text-[var(--foreground-muted)]">
+            이미지 없음
+          </div>
+        )}
         <div className="flex items-center justify-between gap-1">
           <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-[var(--surface-muted)] text-[var(--foreground-muted)] border border-border">
-            {TYPE_LABELS[event.type]}
+            {CAFE_EVENT_TYPE_LABELS[event.type]}
           </span>
-          <span className={cn('text-xs font-medium', statusClass)}>
-            {statusLabel}
-          </span>
-        </div>
-        <div className="text-xs font-medium text-[var(--foreground)] overflow-hidden text-ellipsis whitespace-nowrap w-full">
-          {event.h4 || <span className="text-[var(--foreground-muted)]">이름 없음</span>}
+          <span className={cn('text-xs font-medium', statusClass)}>{statusLabel}</span>
         </div>
         <div className="text-xs text-[var(--foreground-muted)] font-mono">
           {event.start_date || '∞'} ~ {event.end_date || '∞'}
@@ -892,9 +883,7 @@ function PreviewPane({
                 )}
               >
                 {opt.label}{' '}
-                <span className="opacity-70 ml-1 font-mono text-xs">
-                  {opt.width}
-                </span>
+                <span className="opacity-70 ml-1 font-mono text-xs">{opt.width}</span>
               </button>
             );
           })}
@@ -930,19 +919,13 @@ function shallowEqualEvent(a: CafeEvent, b: CafeEvent): boolean {
     a.id === b.id &&
     a.type === b.type &&
     a.enabled === b.enabled &&
-    a.eyebrow === b.eyebrow &&
-    a.h4 === b.h4 &&
-    a.meta === b.meta &&
-    a.description === b.description &&
-    a.image_path === b.image_path &&
+    a.image_path_desktop === b.image_path_desktop &&
+    a.image_path_tablet === b.image_path_tablet &&
+    a.image_path_mobile === b.image_path_mobile &&
     a.image_alt === b.image_alt &&
+    a.custom_css_path === b.custom_css_path &&
     a.start_date === b.start_date &&
     a.end_date === b.end_date &&
-    a.recurring === b.recurring &&
-    a.linked_menu_slug === b.linked_menu_slug &&
-    a.season_label === b.season_label &&
-    a.partner_name === b.partner_name &&
-    a.cta_target === b.cta_target &&
     a.sort_order === b.sort_order
   );
 }
@@ -952,20 +935,19 @@ function buildPreviewSrc(draft: DraftEvent): string {
   const params = new URLSearchParams({
     enabled: String(draft.enabled),
     type: draft.type,
-    eyebrow: draft.eyebrow,
-    h4: draft.h4,
-    meta: draft.meta,
-    description: draft.description,
-    image_path: draft.image_path,
+    image_path_desktop: draft.image_path_desktop,
+    image_path_tablet: draft.image_path_tablet,
+    image_path_mobile: draft.image_path_mobile,
     image_alt: draft.image_alt,
-    start_date: draft.start_date,
-    end_date: draft.end_date,
-    recurring: draft.recurring ?? '',
-    season_label: draft.season_label ?? '',
-    partner_name: draft.partner_name ?? '',
-    cta_target: draft.cta_target ?? '',
+    custom_css_path: draft.custom_css_path,
   });
   return `/preview/cafe-event?${params.toString()}`;
+}
+
+function summarizeUrl(url: string): string {
+  const parts = url.split('/');
+  const name = parts[parts.length - 1] ?? url;
+  return name.length > 36 ? `${name.slice(0, 32)}…` : name;
 }
 
 function describeUploadError(error: string, detail?: string): string {
@@ -973,14 +955,14 @@ function describeUploadError(error: string, detail?: string): string {
     case 'too_large':
       return `파일이 너무 큽니다 — ${detail ?? '5MB 이하로 다시 시도해 주세요'}`;
     case 'unsupported_type':
-      return `지원하지 않는 파일 형식이에요 — ${detail ?? 'webp/avif/jpeg/png 만 가능합니다'}`;
+      return `지원하지 않는 파일 형식이에요 — ${detail ?? 'webp/avif/jpeg/png · .css 만 가능합니다'}`;
     case 'unauthorized':
       return '업로드 권한이 없습니다. 다시 로그인해 주세요.';
     case 'public_url_failed':
       return '업로드는 됐지만 주소를 만들지 못했습니다. 다시 시도해 주세요.';
     case 'upload_failed':
     default:
-      return '이미지를 업로드하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      return '파일을 업로드하지 못했습니다. 잠시 후 다시 시도해 주세요.';
   }
 }
 
@@ -1075,6 +1057,3 @@ function FormInput({
     </div>
   );
 }
-
-/* S222 PR-5b: TEXTAREA_STYLE / SM_BASE/SECONDARY/GHOST/GHOST_DANGER/PRIMARY 폐기
-   (shadcn Button / Textarea 으로 대체). FormInput 로컬 wrapper 는 prefix/suffix 유지. */
