@@ -1012,18 +1012,21 @@ function SettingsCard({
   return (
     <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)]">
       <div className="px-6 py-4 border-b border-border flex items-center gap-3">
-        <Switch
-          checked={on}
-          onCheckedChange={() => onToggle()}
-          className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
-        />
         <div className="flex-1">
           <h3 className="m-0 text-sm font-medium">{title}</h3>
           <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {on ? '활성' : '비활성'}
-        </span>
+        <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
+          <Switch
+            checked={on}
+            onCheckedChange={() => onToggle()}
+            aria-label={on ? `${title} — 비활성으로 전환` : `${title} — 활성으로 전환`}
+            className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
+          />
+          <span className="text-muted-foreground">
+            {on ? '활성' : '비활성'}
+          </span>
+        </label>
       </div>
       <div
         className="p-6 transition-opacity duration-150"
