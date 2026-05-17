@@ -70,9 +70,12 @@ export default async function EventBanner({ event }: Props) {
   const aspectTablet = normalizeAspect(event.aspect_tablet, '1024 / 400');
   const aspectMobile = normalizeAspect(event.aspect_mobile, '390 / 640');
 
-  /* brk 별 aspect-ratio 미디어 쿼리 — data-event-id scope. */
+  /* brk 별 aspect-ratio 미디어 쿼리 — data-event-id scope.
+     iframe 의 default attribute height(150) 가 aspect-ratio 보다 우선 적용되는
+     이슈 회피 위해 height: auto 명시. */
   const inlineCss = `
     .ev-banner-iframe[data-event-id="${event.id}"] {
+      height: auto;
       aspect-ratio: ${aspectDesktop};
     }
     @media (max-width: 1023px) {
@@ -103,6 +106,7 @@ export default async function EventBanner({ event }: Props) {
             style={{
               display: 'block',
               width: '100%',
+              height: 'auto',
               border: 0,
               background: 'transparent',
             }}
