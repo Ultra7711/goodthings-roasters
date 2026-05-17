@@ -265,14 +265,25 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         : brk === 'tablet'
           ? 'image_path_tablet'
           : 'image_path_mobile';
+    const aspectKey =
+      brk === 'desktop'
+        ? 'aspect_desktop'
+        : brk === 'tablet'
+          ? 'aspect_tablet'
+          : 'aspect_mobile';
 
     setState({ status: 'uploading', fileName: file.name });
+    /* 이미지 dimension 측정 — aspect 자동 입력. 실패 시 기본값 유지. */
+    const aspect = await measureImageAspect(file).catch(() => null);
     const result = await uploadCafeEventImage(file, brk);
     if (result.ok) {
       updateDraft(fieldKey, result.publicUrl);
+      if (aspect) updateDraft(aspectKey, aspect);
       setState({ status: 'idle' });
       toast.success('이미지를 등록했습니다', {
-        description: '변경사항 저장 후 사이트에 반영됩니다',
+        description: aspect
+          ? `비율 ${aspect} 자동 입력 · 변경사항 저장 후 사이트에 반영됩니다`
+          : '변경사항 저장 후 사이트에 반영됩니다',
       });
     } else {
       const message = describeUploadError(result.error, result.detail);
@@ -1008,6 +1019,25 @@ function buildPreviewSrc(draft: DraftEvent): string {
     image_alt: draft.image_alt,
   });
   return `/preview/cafe-event?${params.toString()}`;
+}
+
+/** File 의 naturalWidth/Height 측정 → "W/H" 문자열. 실패 시 reject. */
+function measureImageAspect(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { naturalWidth: w, naturalHeight: h } = img;
+      if (w > 0 && h > 0) resolve(`${w}/${h}`);
+      else reject(new Error('invalid dimension'));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('image load failed'));
+    };
+    img.src = url;
+  });
 }
 
 function summarizeUrl(url: string): string {
