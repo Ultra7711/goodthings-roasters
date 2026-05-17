@@ -310,6 +310,8 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         if (result.ok) {
           toast.success('이벤트를 등록했습니다');
           setSelectedId(result.id);
+          /* TEMP_ID → 실 UUID 로 교체 — isNew 해제 + list 의 신규/실 row 중복 방지 */
+          setDraft((prev) => (prev ? { ...prev, id: result.id } : prev));
           router.refresh();
         } else {
           toast.error(describeError(result.error, result.detail));
