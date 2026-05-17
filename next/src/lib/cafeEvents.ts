@@ -72,8 +72,14 @@ export const CafeEventSchema = z.object({
   enabled: z.boolean().default(true),
 
   /** 운영자 .html 파일 Storage URL — 필수 (빈 값이면 EventBanner 렌더 skip).
-      <iframe sandbox="allow-same-origin"> 로 임베드. */
+      EventBanner 가 fetch → placeholder 치환 후 <iframe srcDoc sandbox> 임베드. */
   custom_html_path: z.string().trim().max(500).default(''),
+  /** 데스크탑 이미지 Storage URL. HTML 안 {{IMAGE_DESKTOP}} placeholder 와 치환. */
+  image_path_desktop: z.string().trim().max(500).default(''),
+  /** 태블릿 이미지 — 비어있으면 desktop fallback */
+  image_path_tablet: z.string().trim().max(500).default(''),
+  /** 모바일 이미지 — 비어있으면 desktop fallback */
+  image_path_mobile: z.string().trim().max(500).default(''),
   /** iframe 컨테이너 aspect-ratio (>=1024px). CSS aspect-ratio 형식. */
   aspect_desktop: z.string().trim().max(40).default('1320/480'),
   /** iframe 컨테이너 aspect-ratio (768~1023px). */
