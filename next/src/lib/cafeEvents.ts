@@ -6,17 +6,20 @@
    - 우선순위 + 활성 이벤트 선택 (selectActiveEvent · selectComingEvent)
    - DB row ↔ 코드 객체 변환 (parseCafeEventRow)
 
-   모델 (059 마이그):
-   - 운영자가 미리 제작한 (반응형 이미지 3종 + 매칭 CSS) 쌍을 업로드.
-   - eyebrow/h4/meta/description/cta 등 텍스트는 CSS 안에 포함 (DB 컬럼 0).
-   - type 분류 (운영 의미) + 우선순위 (자문 §5.3) 는 유지.
+   모델 (060 마이그 — iframe HTML 진화):
+   - 운영자가 제작한 단일 .html 파일을 Supabase Storage 에 업로드.
+   - EventBanner 가 <iframe sandbox> 로 임베드 — 이미지/CSS/SVG/폰트 모두
+     HTML 내부에서 처리.
+   - brk 별 aspect-ratio 3 컬럼으로 iframe 컨테이너 사이즈 결정.
+   - type 분류 + 우선순위 (자문 §5.3) 는 유지.
 
    설계:
    - client-safe — 어드민 폼 + B2C SSR 양쪽에서 import.
 
    참조:
    - 035_cafe_events.sql (최초 모델)
-   - 059_cafe_events_overlay_redesign.sql (현 모델)
+   - 059_cafe_events_overlay_redesign.sql (이미지+CSS 모델)
+   - 060_cafe_events_iframe_html.sql (현 모델)
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { z } from 'zod';
@@ -68,16 +71,17 @@ export const CafeEventSchema = z.object({
   type: CafeEventTypeSchema,
   enabled: z.boolean().default(true),
 
-  /** 데스크탑 이미지 Storage public URL — 필수 (빈 값이면 EventBanner 렌더 skip) */
-  image_path_desktop: z.string().trim().max(500).default(''),
-  /** 태블릿 이미지 — 비어있으면 desktop fallback */
-  image_path_tablet: z.string().trim().max(500).default(''),
-  /** 모바일 이미지 — 비어있으면 desktop fallback */
-  image_path_mobile: z.string().trim().max(500).default(''),
+  /** 운영자 .html 파일 Storage URL — 필수 (빈 값이면 EventBanner 렌더 skip).
+      <iframe sandbox="allow-same-origin"> 로 임베드. */
+  custom_html_path: z.string().trim().max(500).default(''),
+  /** iframe 컨테이너 aspect-ratio (>=1024px). CSS aspect-ratio 형식. */
+  aspect_desktop: z.string().trim().max(40).default('1320/480'),
+  /** iframe 컨테이너 aspect-ratio (768~1023px). */
+  aspect_tablet: z.string().trim().max(40).default('1024/400'),
+  /** iframe 컨테이너 aspect-ratio (<768px). */
+  aspect_mobile: z.string().trim().max(40).default('390/640'),
+  /** iframe title 속성 + 접근성 description */
   image_alt: z.string().trim().max(120).default(''),
-
-  /** Storage public URL — <link rel="stylesheet"> 로 EventBanner 가 주입 */
-  custom_css_path: z.string().trim().max(500).default(''),
 
   /** ISO date "YYYY-MM-DD" 또는 "" (자문 §5.3 active 판정 기준) */
   start_date: dateOrEmpty.default(''),

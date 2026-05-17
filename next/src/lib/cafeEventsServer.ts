@@ -60,8 +60,8 @@ async function fetchAllRows(): Promise<CafeEvent[]> {
     .from('cafe_events')
     .select(
       'id, type, enabled, ' +
-        'image_path_desktop, image_path_tablet, image_path_mobile, image_alt, ' +
-        'custom_css_path, start_date, end_date, sort_order',
+        'custom_html_path, aspect_desktop, aspect_tablet, aspect_mobile, ' +
+        'image_alt, start_date, end_date, sort_order',
     )
     .eq('enabled', true);
 
