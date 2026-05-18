@@ -1,25 +1,25 @@
 /* ══════════════════════════════════════════
-   /preview/signature — 라이브 미리보기 (S148 PR-2 advisory §6.1 D-1)
+   /preview/signature — 라이브 미리보기 (S237 iframe 모델 · 062)
 
    책임:
    - admin 가드 (비admin → /admin/login).
-   - URL 파라미터 → SignatureSettings 파싱 (Zod safeParse · 실패 시 DEFAULTS).
+   - URL 파라미터 → SignatureSettings 조립 → SignatureSettingsSchema safeParse.
    - SignatureChapterView 호출 (메인 페이지와 동일 컴포넌트).
-   - 빈 상태 (chapter hide) 시 어드민 시각 디버깅용 placeholder 표시.
+   - 빈 상태 (HTML 또는 desktop 이미지 미입력 등) 시 placeholder.
 
    호출:
    - 어드민 SettingsForm iframe src 로만 사용. 외부 임베드는 frame-ancestors 'self'.
 
-   참조: SignatureChapterView · proxy.ts (pathname 분기)
+   답습: /preview/cafe-event/page.tsx
+
+   참조:
+   - components/home/SignatureChapterView.tsx
+   - lib/siteSettings.ts SignatureSettingsSchema
    ══════════════════════════════════════════ */
 
 import { redirect } from 'next/navigation';
 import { getAdminClaims } from '@/lib/auth/getClaims';
-import {
-  SIGNATURE_DEFAULTS,
-  SignatureSettingsSchema,
-} from '@/lib/siteSettings';
-import { fetchProductBySlug } from '@/lib/productsServer';
+import { SignatureSettingsSchema } from '@/lib/siteSettings';
 import SignatureChapterView from '@/components/home/SignatureChapterView';
 
 interface PreviewSignaturePageProps {
@@ -40,44 +40,30 @@ export default async function PreviewSignaturePage({
 
   const params = await searchParams;
 
-  /* URL 파라미터 → SignatureSettings 파싱.
-     chips 는 'ko:en|ko:en' 형식 — ':' 로 ko/en 분리, '|' 로 chip 분리. */
-  const chipsRaw = asString(params.chips);
   const parsed = SignatureSettingsSchema.safeParse({
     enabled: asString(params.enabled) === 'true',
-    eyebrow: asString(params.eyebrow),
-    product_slug: asString(params.product_slug),
-    title: asString(params.title),
-    subtitle: asString(params.subtitle),
-    flavor_chips: chipsRaw
-      ? chipsRaw.split('|').map((pair) => {
-          const idx = pair.indexOf(':');
-          if (idx === -1) return { ko: pair.trim(), en: '' };
-          return { ko: pair.slice(0, idx).trim(), en: pair.slice(idx + 1).trim() };
-        }).filter((c) => c.ko)
-      : [],
-    image_path: asString(params.image_path),
+    custom_html_path: asString(params.custom_html_path),
+    image_path_desktop: asString(params.image_path_desktop),
+    image_path_tablet: asString(params.image_path_tablet),
+    image_path_mobile: asString(params.image_path_mobile),
+    aspect_desktop: asString(params.aspect_desktop) || '1320/600',
+    aspect_tablet: asString(params.aspect_tablet) || '1024/520',
+    aspect_mobile: asString(params.aspect_mobile) || '390/520',
     image_alt: asString(params.image_alt),
   });
 
-  const signature = parsed.success ? parsed.data : SIGNATURE_DEFAULTS;
-
-  const product = signature.product_slug
-    ? await fetchProductBySlug(signature.product_slug)
-    : null;
-
-  /* 빈 상태 — chapter 가 hide 될 조건 (View 가 null 반환).
-     어드민 시각 디버깅용 placeholder 표시. */
+  /* 빈 상태 — HTML 또는 desktop 이미지 미입력 또는 비활성 */
   const willHide =
-    !signature.enabled ||
-    !signature.image_path ||
-    !signature.product_slug;
+    !parsed.success ||
+    !parsed.data.enabled ||
+    !parsed.data.custom_html_path ||
+    !parsed.data.image_path_desktop;
 
   if (willHide) {
     return (
       <div
         style={{
-          minHeight: '60vh',
+          minHeight: '40vh',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -104,7 +90,7 @@ export default async function PreviewSignaturePage({
               marginBottom: 12,
             }}
           >
-            Preview · Hidden
+            Preview · Empty
           </div>
           <div
             style={{
@@ -113,16 +99,18 @@ export default async function PreviewSignaturePage({
               lineHeight: 1.6,
             }}
           >
-            {!signature.enabled
-              ? '시그니처 섹션 비활성 상태 — 활성으로 변경하면 표시됩니다.'
-              : !signature.product_slug
-                ? '제품을 선택해 주세요.'
-                : '이미지를 업로드해 주세요.'}
+            {!parsed.success
+              ? '입력 검증 실패 — 필수 필드를 확인해 주세요.'
+              : !parsed.data.enabled
+                ? '시그니처 섹션 비활성 — 활성으로 변경하면 표시됩니다.'
+                : !parsed.data.custom_html_path
+                  ? '배너 HTML 파일을 업로드해 주세요.'
+                  : 'Desktop 이미지를 업로드해 주세요.'}
           </div>
         </div>
       </div>
     );
   }
 
-  return <SignatureChapterView signature={signature} product={product} />;
+  return <SignatureChapterView signature={parsed.data} />;
 }

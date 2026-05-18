@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════
-   SignatureChapter — server data fetcher (S146 V2 §2.2 PR-1 / S148 PR-2 분리)
+   SignatureChapter — server data fetcher (S237 iframe 모델 · 062)
 
    책임:
    - fetchSiteSettings 으로 signature 영역 fetch
@@ -9,17 +9,13 @@
    - 메인 페이지 (`/`) → 본 SignatureChapter (DB fetch)
    - /preview/signature (어드민) → SignatureChapterView 직접 호출 (URL 파라미터 → SignatureSettings)
 
-   참조: SignatureChapterView.tsx
+   참조: SignatureChapterView.tsx · EventBanner.tsx (답습)
    ══════════════════════════════════════════ */
 
 import { fetchSiteSettings } from '@/lib/siteSettingsServer';
-import { fetchProductBySlug } from '@/lib/productsServer';
 import SignatureChapterView from './SignatureChapterView';
 
 export default async function SignatureChapter() {
   const { signature } = await fetchSiteSettings();
-  const product = signature.product_slug
-    ? await fetchProductBySlug(signature.product_slug)
-    : null;
-  return <SignatureChapterView signature={signature} product={product} />;
+  return <SignatureChapterView signature={signature} />;
 }
