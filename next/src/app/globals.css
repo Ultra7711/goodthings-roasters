@@ -2107,7 +2107,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 /* PR-1c-1~7 — Blue Bottle 패턴 통일 모바일 sticky hover 차단 */
 @media (hover: none) {
   /* primary filled: hover bg darken 차단 → default bg 유지 */
-  .sig-cta:hover,
   #pd-cart-btn:not(.disabled):hover,
   .lp-submit-btn:not(:disabled):hover,
   .lp-guest-buy-btn:not(:disabled):hover,
@@ -2304,8 +2303,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 /* Legal Pages (.legal-* / 5종 약관 라우트) — 분리: components/legal/LegalPage.css (S179 Pilot) */
 
-/* Signature chapter (.sig-* / .cta-btn-secondary / `/` 한정) — 분리: components/home/SignatureChapterView.css (S189 Pilot 9) */
-/* cross-route 잔류: .sig-cta:hover (PR-1c-1 hover:none 그룹 룰 — line ~7136) */
+/* Signature chapter (.sig-section / .sig-bleed / .sig-iframe / `/` 한정) — 분리: components/home/SignatureChapterView.css (S189 Pilot 9 · S237 iframe 모델 재구성) */
 
 /* ══════════════════════════════════════════
    pd-dropdown — 공통 드롭다운 패널 (cross-route: PDP + MyPage CycleDropdown)

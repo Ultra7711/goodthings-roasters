@@ -793,8 +793,8 @@ function BasicTab({
             control={control}
           />
           <ToggleRow
-            label="홈 시그니처 챕터 노출 후보"
-            hint="홈 메인 SignatureChapter 선택 가능 리스트에 등록됩니다"
+            label="노출 후보 플래그 (예약)"
+            hint="현재 사이트 어디서도 사용하지 않음 · 컬럼만 보존 (S237 시그니처 iframe 모델 전환)"
             name="popup"
             control={control}
           />
