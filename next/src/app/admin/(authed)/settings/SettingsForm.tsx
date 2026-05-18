@@ -1,7 +1,7 @@
 'use client';
 
 /* ══════════════════════════════════════════
-   SettingsForm — /admin/settings 클라이언트 폼 (S129 H-2 변형 1)
+   SettingsForm — /admin/settings 클라이언트 폼 (S129 H-2 · S237 시그니처 iframe 모델)
 
    책임:
    - useState<SiteSettings> 단일 + initial ref → dirty 추적
@@ -9,11 +9,17 @@
    - [변경 취소] → reset to initial
    - [변경사항 저장] → saveSiteSettingsAction (변경된 영역만 payload)
    - dirty 없으면 두 버튼 비활성
+
+   S237 (062 마이그) 시그니처 iframe 모델:
+   - 운영자가 .html 1 + 이미지 3 (desktop/tablet/mobile) 업로드 → placeholder
+     ({{IMAGE_DESKTOP}} 등) 치환 후 <iframe sandbox srcDoc> 임베드.
+   - cafe-events (060/061) 답습 — ImageUploadSlot / AspectInput / measureImageAspect.
    ══════════════════════════════════════════ */
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Trash2 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
@@ -28,13 +34,11 @@ import {
   type SignatureSettings,
   type SiteSettings,
 } from '@/lib/siteSettings';
-import { uploadSignatureImage } from '@/lib/admin/uploadSignatureImage';
-import { FlavorChipInput } from '@/components/admin/FlavorChipInput';
 import {
-  ADMIN_SELECT_CLASS,
-  NativeSelectWrap,
-} from '@/components/admin/NativeSelectWrap';
-import type { Product } from '@/lib/products';
+  uploadSignatureImage,
+  type SignatureBreakpoint,
+} from '@/lib/admin/uploadSignatureImage';
+import { uploadSignatureHtml } from '@/lib/admin/uploadSignatureHtml';
 import {
   saveSiteSettingsAction,
   type SaveSettingsInput,
@@ -58,25 +62,35 @@ const PREVIEW_BRK_OPTIONS: ReadonlyArray<{
   { key: 'mobile', label: 'Mobile', width: 360 },
 ];
 
+const ASPECT_RE = /^\s*\d+(\.\d+)?\s*[/]\s*\d+(\.\d+)?\s*$/;
+
 interface SettingsFormProps {
   initialSettings: SiteSettings;
-  coffeeBeans: Product[];
   /** S232: owner (관리자) 만 저장 가능. staff (운영자) 는 모든 저장 버튼 disabled. */
   isOwner: boolean;
 }
 
-export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: SettingsFormProps) {
+export default function SettingsForm({ initialSettings, isOwner }: SettingsFormProps) {
   const router = useRouter();
   const [savedSettings, setSavedSettings] = useState<SiteSettings>(initialSettings);
   const [settings, setSettings] = useState<SiteSettings>(initialSettings);
   const [isPending, startTransition] = useTransition();
-  const [sigUploadState, setSigUploadState] = useState<UploadState>({ status: 'idle' });
+
+  const [htmlUpload, setHtmlUpload] = useState<UploadState>({ status: 'idle' });
+  const [desktopUpload, setDesktopUpload] = useState<UploadState>({ status: 'idle' });
+  const [tabletUpload, setTabletUpload] = useState<UploadState>({ status: 'idle' });
+  const [mobileUpload, setMobileUpload] = useState<UploadState>({ status: 'idle' });
+
   const [previewBrk, setPreviewBrk] = useState<PreviewBrk>('desktop');
   const [previewSrc, setPreviewSrc] = useState<string>(() =>
     buildPreviewSrc(initialSettings.signature),
   );
   const [previewHeight, setPreviewHeight] = useState<number>(720);
-  const sigFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const htmlInputRef = useRef<HTMLInputElement | null>(null);
+  const desktopInputRef = useRef<HTMLInputElement | null>(null);
+  const tabletInputRef = useRef<HTMLInputElement | null>(null);
+  const mobileInputRef = useRef<HTMLInputElement | null>(null);
 
   /* settings.signature 변경 시 300ms debounce 후 iframe src 갱신 — 매 키 입력마다 reload 방지 */
   useEffect(() => {
@@ -136,22 +150,68 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
     setSettings(savedSettings);
   }
 
-  async function handleSigFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleSigImageUpload(
+    e: React.ChangeEvent<HTMLInputElement>,
+    brk: SignatureBreakpoint,
+  ) {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
 
-    setSigUploadState({ status: 'uploading', fileName: file.name });
-    const result = await uploadSignatureImage(file);
+    const setState =
+      brk === 'desktop'
+        ? setDesktopUpload
+        : brk === 'tablet'
+          ? setTabletUpload
+          : setMobileUpload;
+    const fieldKey: keyof SignatureSettings =
+      brk === 'desktop'
+        ? 'image_path_desktop'
+        : brk === 'tablet'
+          ? 'image_path_tablet'
+          : 'image_path_mobile';
+    const aspectKey: keyof SignatureSettings =
+      brk === 'desktop'
+        ? 'aspect_desktop'
+        : brk === 'tablet'
+          ? 'aspect_tablet'
+          : 'aspect_mobile';
+
+    setState({ status: 'uploading', fileName: file.name });
+    /* 이미지 dimension 측정 — aspect 자동 입력. 실패 시 기본값 유지. */
+    const aspect = await measureImageAspect(file).catch(() => null);
+    const result = await uploadSignatureImage(file, brk);
     if (result.ok) {
-      updateSignature({ image_path: result.publicUrl });
-      setSigUploadState({ status: 'idle' });
+      updateSignature({ [fieldKey]: result.publicUrl, ...(aspect ? { [aspectKey]: aspect } : {}) });
+      setState({ status: 'idle' });
       toast.success('이미지를 등록했습니다', {
+        description: aspect
+          ? `비율 ${aspect} 자동 입력 · 변경사항 저장 후 사이트에 반영됩니다`
+          : '변경사항 저장 후 사이트에 반영됩니다',
+      });
+    } else {
+      const message = describeUploadError(result.error, result.detail);
+      setState({ status: 'error', message });
+      toast.error(message);
+    }
+  }
+
+  async function handleSigHtmlUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setHtmlUpload({ status: 'uploading', fileName: file.name });
+    const result = await uploadSignatureHtml(file);
+    if (result.ok) {
+      updateSignature({ custom_html_path: result.publicUrl });
+      setHtmlUpload({ status: 'idle' });
+      toast.success('HTML 파일을 등록했습니다', {
         description: '변경사항 저장 후 사이트에 반영됩니다',
       });
     } else {
       const message = describeUploadError(result.error, result.detail);
-      setSigUploadState({ status: 'error', message });
+      setHtmlUpload({ status: 'error', message });
       toast.error(message);
     }
   }
@@ -404,213 +464,146 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
           </div>
         </SettingsCard>
 
-        {/* Section 3 — 시그니처 섹션 (S148 PR-2 advisory §6) */}
+        {/* Section 3 — 시그니처 섹션 (S237 iframe 모델 · 062) */}
         <SettingsCard
           title="시그니처 섹션"
-          subtitle="메인 페이지 §2.2 sand 단독 chapter · 분기 갱신 (SS/SU/FW/WT)"
+          subtitle="메인 페이지 §2.2 sand 단독 chapter · 운영자 HTML + 이미지 3종 · iframe sandbox 임베드"
           on={settings.signature.enabled}
-          onToggle={() =>
-            updateSignature({ enabled: !settings.signature.enabled })
-          }
+          onToggle={() => updateSignature({ enabled: !settings.signature.enabled })}
         >
-          <div className="grid grid-cols-[1fr_240px] gap-4 items-start">
-            <div className="flex flex-col gap-4">
-              {/* eyebrow + 분기 자동 채움 */}
-              <FormField
-                label="Eyebrow (분기 라벨)"
-                hint="형식: Signature · 2026 SS · 분기 pill 클릭 시 자동 채움"
-              >
-                <FormInput
-                  value={settings.signature.eyebrow}
-                  onChange={(e) => updateSignature({ eyebrow: e.target.value })}
-                  placeholder="예: Signature · 2026 SS"
+          <div className="flex flex-col gap-4">
+            {/* 이미지 3종 */}
+            <SubCard
+              title="이미지 (반응형 3종)"
+              subtitle="desktop 필수 · tablet/mobile 비워두면 desktop fallback · HTML 안 {{IMAGE_DESKTOP}} 등 placeholder 와 자동 치환"
+            >
+              <div className="grid grid-cols-3 gap-3">
+                <ImageUploadSlot
+                  label="Desktop"
+                  sublabel="{{IMAGE_DESKTOP}}"
+                  required
+                  imagePath={settings.signature.image_path_desktop}
+                  uploadState={desktopUpload}
+                  inputRef={desktopInputRef}
+                  onUpload={(e) => handleSigImageUpload(e, 'desktop')}
+                  onClear={() => updateSignature({ image_path_desktop: '' })}
                 />
-                <div className="flex gap-1.5 mt-2 flex-wrap items-center">
-                  <span className="text-xs text-muted-foreground mr-0.5">빠른 채움</span>
-                  {QUARTER_LABELS.map((q) => {
-                    const { year } = getCurrentQuarter();
-                    const composed = composeEyebrow(q, year);
-                    const sel = settings.signature.eyebrow === composed;
-                    return (
-                      <button
-                        key={q}
-                        type="button"
-                        data-slot="chip-radio"
-                        onClick={() => updateSignature({ eyebrow: composed })}
-                        aria-pressed={sel}
-                        className={cn(
-                          'px-3 py-1.5 rounded-md text-xs border font-medium cursor-pointer',
-                          sel
-                            ? 'bg-[var(--primary-soft)] text-[var(--primary)] border-[var(--primary)]'
-                            : 'bg-[var(--surface)] text-foreground border-border',
-                        )}
-                      >
-                        {year} {q}
-                      </button>
-                    );
-                  })}
-                </div>
-              </FormField>
-
-              {/* product 드롭다운 — Coffee Bean 만 (advisory §6.1 SKU 1개 매핑) */}
-              <FormField
-                label="제품 (Coffee Bean)"
-                hint="시그니처에 호명할 원두 1종 — 빈 값 시 chapter 자동 hide"
-              >
-                <NativeSelectWrap>
-                <select
-                  value={settings.signature.product_slug}
-                  onChange={(e) => updateSignature({ product_slug: e.target.value })}
-                  className={ADMIN_SELECT_CLASS}
-                  style={{ fontFamily: 'inherit' }}
-                >
-                  <option value="">— 선택 —</option>
-                  {coffeeBeans.map((p) => (
-                    <option key={p.slug} value={p.slug}>
-                      {p.name} ({p.slug})
-                    </option>
-                  ))}
-                </select>
-                </NativeSelectWrap>
-              </FormField>
-
-              <FormField label="제목 (한국어 제품명)" hint="최대 40자">
-                <FormInput
-                  value={settings.signature.title}
-                  onChange={(e) => updateSignature({ title: e.target.value })}
-                  maxLength={40}
-                  placeholder="예: 산뜻한 오후"
+                <ImageUploadSlot
+                  label="Tablet"
+                  sublabel="{{IMAGE_TABLET}}"
+                  imagePath={settings.signature.image_path_tablet}
+                  uploadState={tabletUpload}
+                  inputRef={tabletInputRef}
+                  onUpload={(e) => handleSigImageUpload(e, 'tablet')}
+                  onClear={() => updateSignature({ image_path_tablet: '' })}
                 />
-              </FormField>
-
-              <FormField
-                label="본문 카피 (1~2줄)"
-                hint={`권장 80자 이내 · 명사형 짧게 · 현재 ${settings.signature.subtitle.length}/160자`}
-              >
-                <textarea
-                  value={settings.signature.subtitle}
-                  onChange={(e) => updateSignature({ subtitle: e.target.value })}
-                  maxLength={160}
-                  className="w-full min-h-16 resize-y px-3 py-2.5 border border-[var(--input)] rounded-[6px] text-sm leading-[1.6] text-[var(--foreground)] outline-none bg-[var(--surface)] shadow-xs transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                  style={{ fontFamily: 'inherit' }}
+                <ImageUploadSlot
+                  label="Mobile"
+                  sublabel="{{IMAGE_MOBILE}}"
+                  imagePath={settings.signature.image_path_mobile}
+                  uploadState={mobileUpload}
+                  inputRef={mobileInputRef}
+                  onUpload={(e) => handleSigImageUpload(e, 'mobile')}
+                  onClear={() => updateSignature({ image_path_mobile: '' })}
                 />
-              </FormField>
+              </div>
+            </SubCard>
 
-              <FormField
-                label="플레이버 chip"
-                hint="최대 4개 · 권장 3개 · 영문은 공백으로 구분 (예: 복숭아 Peach)"
-              >
-                <FlavorChipInput
-                  value={settings.signature.flavor_chips}
-                  onChange={(chips) => updateSignature({ flavor_chips: chips })}
-                  max={4}
-                  emptyMessage="(chip 없음 — 자동 가져오기 또는 수동 추가)"
-                  showCount
-                  extraAction={
+            {/* HTML 파일 */}
+            <SubCard
+              title="배너 HTML 파일"
+              subtitle="CSS · SVG · 폰트 포함된 단일 .html 파일. 이미지는 {{IMAGE_DESKTOP}} 등 placeholder 사용 · iframe sandbox 로 격리 (script 차단)."
+            >
+              <div className="flex flex-col gap-3">
+                <FormField label="대체 텍스트 (alt · iframe title)" required>
+                  <FormInput
+                    value={settings.signature.image_alt}
+                    maxLength={120}
+                    onChange={(e) => updateSignature({ image_alt: e.target.value })}
+                    placeholder="예: 2026 SS 시그니처 — 산뜻한 오후 패키지 디자인 소개"
+                  />
+                </FormField>
+
+                <div className="flex items-center gap-3 flex-wrap">
+                  <input
+                    ref={htmlInputRef}
+                    type="file"
+                    accept=".html,.htm,text/html"
+                    onChange={handleSigHtmlUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="!h-8"
+                    onClick={() => htmlInputRef.current?.click()}
+                    disabled={htmlUpload.status === 'uploading'}
+                  >
+                    {htmlUpload.status === 'uploading' ? '업로드 중…' : 'HTML 파일 선택'}
+                  </Button>
+                  <span className="text-xs text-[var(--foreground-muted)]">
+                    {settings.signature.custom_html_path
+                      ? `등록됨 · ${summarizeUrl(settings.signature.custom_html_path)}`
+                      : '선택된 파일 없음 · 5MB 이하 · .html'}
+                  </span>
+                  {settings.signature.custom_html_path && (
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      className="!h-7 whitespace-nowrap"
-                      onClick={() => {
-                        const notes = extractTastingNotes(settings.signature.product_slug, coffeeBeans);
-                        if (notes.length === 0) {
-                          toast.info('제품을 먼저 선택해 주세요');
-                          return;
-                        }
-                        updateSignature({ flavor_chips: notes });
-                        toast.success(`테이스팅 노트 ${notes.length}개를 가져왔습니다`);
-                      }}
+                      className="!h-7 !text-xs !text-[var(--danger)] hover:!bg-[var(--danger-soft)] ml-auto"
+                      onClick={() => updateSignature({ custom_html_path: '' })}
                     >
-                      테이스팅 노트 가져오기
+                      <Trash2 size={14} />
+                      제거
                     </Button>
-                  }
-                />
-              </FormField>
-            </div>
-
-            {/* 우측 — 이미지 5:4 + 안전 영역 가이드 (advisory §3.3 inset 12% 18%) */}
-            <div>
-              <FormField
-                label="이미지 (5:4 패키지 정면)"
-                hint="안전 영역 (점선) 안쪽에 패키지 라벨 배치"
-              >
-                {settings.signature.image_path ? (
-                  <div
-                    className="rounded-[6px] overflow-hidden border border-border aspect-[5/4] bg-cover bg-center relative"
-                    style={{ backgroundImage: `url("${settings.signature.image_path}")` }}
-                  >
-                    {/* 안전 영역 가이드 (advisory §3.3) — 좌우 18%, 상하 12% */}
-                    <div
-                      aria-hidden
-                      className="absolute border border-dashed border-[rgba(28,27,25,0.6)] bg-[rgba(28,27,25,0.04)] pointer-events-none"
-                      style={{ inset: '12% 18%' }}
-                    />
-                    <span className="absolute bottom-1.5 left-1.5 font-mono text-[10px] px-[7px] py-[3px] rounded-[4px] bg-white/90 text-muted-foreground max-w-[calc(100%-12px)] overflow-hidden text-ellipsis whitespace-nowrap">
-                      {summarizeImagePath(settings.signature.image_path)}
-                    </span>
-                  </div>
-                ) : (
-                  <div
-                    className="rounded-[6px] overflow-hidden border border-border aspect-[5/4] flex items-center justify-center text-muted-foreground text-xs relative"
-                    style={{
-                      background: 'repeating-linear-gradient(135deg, var(--placeholder-pattern-1) 0 6px, var(--placeholder-pattern-2) 6px 12px)',
-                    }}
-                  >
-                    <div
-                      aria-hidden
-                      className="absolute border border-dashed border-[rgba(28,27,25,0.4)] pointer-events-none"
-                      style={{ inset: '12% 18%' }}
-                    />
-                    이미지 없음
+                  )}
+                </div>
+                {htmlUpload.status === 'error' && (
+                  <div className="px-2.5 py-2 rounded-md bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
+                    {htmlUpload.message}
                   </div>
                 )}
-              </FormField>
-              <FormField label="대체 텍스트 (alt)">
-                <FormInput
-                  value={settings.signature.image_alt}
-                  onChange={(e) => updateSignature({ image_alt: e.target.value })}
-                  maxLength={120}
-                />
-              </FormField>
-              <input
-                ref={sigFileInputRef}
-                type="file"
-                accept="image/webp,image/avif,image/jpeg,image/png"
-                onChange={handleSigFileChange}
-                className="hidden"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="!h-8 w-full mt-2"
-                onClick={() => sigFileInputRef.current?.click()}
-                disabled={sigUploadState.status === 'uploading'}
-              >
-                {sigUploadState.status === 'uploading' ? '업로드 중…' : '이미지 변경'}
-              </Button>
-
-              {sigUploadState.status === 'uploading' && (
-                <div className="mt-2">
-                  <div className="h-1 rounded-sm bg-[var(--surface-muted)] overflow-hidden relative">
-                    <div className="gtr-admin-progress-indet" />
-                  </div>
-                  <div
-                    className="mt-2 text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
-                    title={sigUploadState.fileName}
+                {settings.signature.custom_html_path && (
+                  <a
+                    href={settings.signature.custom_html_path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pl-2.5 text-xs text-[var(--foreground-muted)] underline-offset-2 hover:underline"
                   >
-                    {sigUploadState.fileName}
-                  </div>
-                </div>
-              )}
+                    HTML 원본 열기 ↗
+                  </a>
+                )}
+              </div>
+            </SubCard>
 
-              {sigUploadState.status === 'error' && (
-                <div className="mt-2 px-2.5 py-2 rounded-[6px] bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
-                  {sigUploadState.message}
-                </div>
-              )}
-            </div>
+            {/* aspect-ratio */}
+            <SubCard
+              title="iframe 컨테이너 비율"
+              subtitle="brk 별 가로/세로 비율 · 'W/H' 형식 · 컨테이너 너비 = 100%, 높이 = 너비 ÷ 비율 · 이미지 업로드 시 자동 입력"
+            >
+              <div className="grid grid-cols-3 gap-3">
+                <AspectInput
+                  label="Desktop (≥1024px)"
+                  value={settings.signature.aspect_desktop}
+                  onChange={(v) => updateSignature({ aspect_desktop: v })}
+                  placeholder="1320/600"
+                />
+                <AspectInput
+                  label="Tablet (768~1023px)"
+                  value={settings.signature.aspect_tablet}
+                  onChange={(v) => updateSignature({ aspect_tablet: v })}
+                  placeholder="1024/520"
+                />
+                <AspectInput
+                  label="Mobile (<768px)"
+                  value={settings.signature.aspect_mobile}
+                  onChange={(v) => updateSignature({ aspect_mobile: v })}
+                  placeholder="390/520"
+                />
+              </div>
+            </SubCard>
           </div>
         </SettingsCard>
 
@@ -619,10 +612,10 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
           <div className="px-6 py-4 border-b border-border flex items-center gap-3 flex-wrap">
             <div className="flex-1 min-w-[200px]">
               <h3 className="m-0 text-base font-medium">
-                메인 페이지 미리보기
+                시그니처 chapter 미리보기
               </h3>
               <div className="text-xs text-muted-foreground mt-0.5">
-                시그니처 chapter 발행 전 4 brk 검증 · 저장된 설정 기준
+                발행 전 4 brk 검증 · 편집 중 즉시 반영
               </div>
             </div>
             <div className="flex gap-1">
@@ -679,6 +672,126 @@ export default function SettingsForm({ initialSettings, coffeeBeans, isOwner }: 
   );
 }
 
+/* ── Image Upload Slot ──────────────────────────────────────────────────── */
+
+function ImageUploadSlot({
+  label,
+  sublabel,
+  required,
+  imagePath,
+  uploadState,
+  inputRef,
+  onUpload,
+  onClear,
+}: {
+  label: string;
+  sublabel: string;
+  required?: boolean;
+  imagePath: string;
+  uploadState: UploadState;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="text-xs font-medium tracking-[-0.005em] flex items-center gap-1">
+        {label}
+        {required && <span className="text-[var(--primary)]">*</span>}
+        <span className="text-[var(--foreground-muted)] font-mono font-normal ml-1 text-[10px]">
+          {sublabel}
+        </span>
+      </div>
+      {imagePath ? (
+        <div
+          className="rounded-md overflow-hidden border border-border aspect-video bg-cover bg-center relative"
+          style={{ backgroundImage: `url("${imagePath}")` }}
+        >
+          <button
+            type="button"
+            onClick={onClear}
+            aria-label={`${label} 이미지 제거`}
+            className="absolute top-1.5 right-1.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/90 text-[var(--danger)] hover:bg-white shadow-sm cursor-pointer p-0 border-none"
+          >
+            <Trash2 size={12} />
+          </button>
+        </div>
+      ) : (
+        <div
+          className="rounded-md overflow-hidden border border-border aspect-video flex items-center justify-center text-[var(--foreground-muted)] text-xs"
+          style={{
+            background:
+              'repeating-linear-gradient(135deg, var(--placeholder-pattern-1) 0 6px, var(--placeholder-pattern-2) 6px 12px)',
+          }}
+        >
+          이미지 없음
+        </div>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/webp,image/avif,image/jpeg,image/png"
+        onChange={onUpload}
+        className="hidden"
+      />
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="!h-8 w-full"
+        onClick={() => inputRef.current?.click()}
+        disabled={uploadState.status === 'uploading'}
+      >
+        {uploadState.status === 'uploading'
+          ? '업로드 중…'
+          : imagePath
+            ? '이미지 변경'
+            : '파일 선택'}
+      </Button>
+      {uploadState.status === 'error' && (
+        <div className="px-2.5 py-2 rounded-md bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
+          {uploadState.message}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Aspect Input ───────────────────────────────────────────────────────── */
+
+function AspectInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
+  const invalid = value !== '' && !ASPECT_RE.test(value);
+  return (
+    <FormField
+      label={label}
+      hint={
+        invalid ? (
+          <span className="text-[var(--warning)]">형식 오류 — &quot;W/H&quot; (예: 1320/600)</span>
+        ) : (
+          '예: 1320/600 = 2.2:1 가로 와이드'
+        )
+      }
+    >
+      <FormInput
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        maxLength={40}
+      />
+    </FormField>
+  );
+}
+
 /* ── Helpers ─────────────────────────────────────────────────── */
 
 function formatNumber(n: number): string {
@@ -691,13 +804,29 @@ function parseNumber(s: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function summarizeImagePath(p: string): string {
-  if (p.startsWith('http')) {
-    /* Storage public URL — 파일명만 추출 */
-    const u = p.split('/').pop() ?? p;
-    return u.length > 32 ? `${u.slice(0, 28)}…` : u;
-  }
-  return p.length > 32 ? `${p.slice(0, 28)}…` : p;
+function summarizeUrl(url: string): string {
+  const parts = url.split('/');
+  const name = parts[parts.length - 1] ?? url;
+  return name.length > 36 ? `${name.slice(0, 32)}…` : name;
+}
+
+/** File 의 naturalWidth/Height 측정 → "W/H" 문자열. 실패 시 reject. */
+function measureImageAspect(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { naturalWidth: w, naturalHeight: h } = img;
+      if (w > 0 && h > 0) resolve(`${w}/${h}`);
+      else reject(new Error('invalid dimension'));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('image load failed'));
+    };
+    img.src = url;
+  });
 }
 
 function shallowEqualNotice(a: NoticeSettings, b: NoticeSettings): boolean {
@@ -718,18 +847,15 @@ function shallowEqualShipping(a: ShippingSettings, b: ShippingSettings): boolean
   );
 }
 function shallowEqualSignature(a: SignatureSettings, b: SignatureSettings): boolean {
-  if (a.flavor_chips.length !== b.flavor_chips.length) return false;
-  for (let i = 0; i < a.flavor_chips.length; i += 1) {
-    if (a.flavor_chips[i].ko !== b.flavor_chips[i].ko) return false;
-    if (a.flavor_chips[i].en !== b.flavor_chips[i].en) return false;
-  }
   return (
     a.enabled === b.enabled &&
-    a.eyebrow === b.eyebrow &&
-    a.product_slug === b.product_slug &&
-    a.title === b.title &&
-    a.subtitle === b.subtitle &&
-    a.image_path === b.image_path &&
+    a.custom_html_path === b.custom_html_path &&
+    a.image_path_desktop === b.image_path_desktop &&
+    a.image_path_tablet === b.image_path_tablet &&
+    a.image_path_mobile === b.image_path_mobile &&
+    a.aspect_desktop === b.aspect_desktop &&
+    a.aspect_tablet === b.aspect_tablet &&
+    a.aspect_mobile === b.aspect_mobile &&
     a.image_alt === b.image_alt
   );
 }
@@ -743,48 +869,20 @@ function describeUpdatedKeys(keys: ReadonlyArray<string>): string {
   return keys.map((k) => labels[k] ?? k).join(' · ');
 }
 
-/* ── 시그니처 분기 라벨 (advisory §6.1 자동 채움) ─────────────────────────
-   분기 매핑: 3~5월 SS · 6~8월 SU · 9~11월 FW · 12~2월 WT.
-   advisory §6.3 발행 D-day 와 일치 (3/1 SS · 6/15 SU · 9/1 FW · 12/1 WT). */
-const QUARTER_LABELS = ['SS', 'SU', 'FW', 'WT'] as const;
-type QuarterLabel = (typeof QUARTER_LABELS)[number];
-
-function getCurrentQuarter(date: Date = new Date()): { season: QuarterLabel; year: number } {
-  const m = date.getMonth() + 1; // 1-12
-  if (m >= 3 && m <= 5) return { season: 'SS', year: date.getFullYear() };
-  if (m >= 6 && m <= 8) return { season: 'SU', year: date.getFullYear() };
-  if (m >= 9 && m <= 11) return { season: 'FW', year: date.getFullYear() };
-  // 12~2월 WT — 1·2월은 직전 해 WT 시즌
-  return { season: 'WT', year: m === 12 ? date.getFullYear() : date.getFullYear() - 1 };
-}
-
-function composeEyebrow(season: QuarterLabel, year: number): string {
-  return `Signature · ${year} ${season}`;
-}
-
-/** SignatureSettings → /preview/signature URL.
-    chips: 'ko:en|ko:en' 형식 — ':' 로 ko/en 분리, '|' 로 chip 분리. */
+/** SignatureSettings → /preview/signature URL. */
 function buildPreviewSrc(s: SignatureSettings): string {
   const params = new URLSearchParams({
     enabled: String(s.enabled),
-    eyebrow: s.eyebrow,
-    product_slug: s.product_slug,
-    title: s.title,
-    subtitle: s.subtitle,
-    chips: s.flavor_chips.map((c) => `${c.ko}:${c.en}`).join('|'),
-    image_path: s.image_path,
+    custom_html_path: s.custom_html_path,
+    image_path_desktop: s.image_path_desktop,
+    image_path_tablet: s.image_path_tablet,
+    image_path_mobile: s.image_path_mobile,
+    aspect_desktop: s.aspect_desktop,
+    aspect_tablet: s.aspect_tablet,
+    aspect_mobile: s.aspect_mobile,
     image_alt: s.image_alt,
   });
   return `/preview/signature?${params.toString()}`;
-}
-
-/** coffeeBeans 의 noteTags + noteTagsEn → {ko, en}[] 최대 3개 (advisory §5.1). */
-function extractTastingNotes(slug: string, beansList: Product[]): Array<{ ko: string; en: string }> {
-  const product = beansList.find((p) => p.slug === slug);
-  if (!product) return [];
-  const kos = product.noteTags.split(' | ').map((s) => s.trim()).filter(Boolean);
-  const ens = product.noteTagsEn.split(' | ').map((s) => s.trim());
-  return kos.slice(0, 3).map((ko, i) => ({ ko, en: ens[i] ?? '' }));
 }
 
 function describeUploadError(error: string, detail?: string): string {
@@ -792,14 +890,14 @@ function describeUploadError(error: string, detail?: string): string {
     case 'too_large':
       return `파일이 너무 큽니다 — ${detail ?? '5MB 이하로 다시 시도해 주세요'}`;
     case 'unsupported_type':
-      return `지원하지 않는 파일 형식이에요 — ${detail ?? 'webp/avif/jpeg/png 만 가능합니다'}`;
+      return `지원하지 않는 파일 형식이에요 — ${detail ?? 'webp/avif/jpeg/png · .html 만 지원합니다'}`;
     case 'unauthorized':
       return '업로드 권한이 없습니다. 다시 로그인해 주세요.';
     case 'public_url_failed':
       return '업로드는 됐지만 주소를 만들지 못했습니다. 다시 시도해 주세요.';
     case 'upload_failed':
     default:
-      return '이미지를 업로드하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      return '파일을 업로드하지 못했습니다. 잠시 후 다시 시도해 주세요.';
   }
 }
 
@@ -861,6 +959,26 @@ function SettingsCard({
   );
 }
 
+function SubCard({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-[var(--surface)] border border-border rounded-md overflow-hidden">
+      <div className="px-4 py-3 border-b border-border">
+        <h4 className="m-0 text-sm font-medium">{title}</h4>
+        <div className="text-xs text-[var(--foreground-muted)] mt-0.5">{subtitle}</div>
+      </div>
+      <div className="p-4">{children}</div>
+    </div>
+  );
+}
+
 function Badge({
   tone,
   children,
@@ -894,7 +1012,7 @@ function FormField({
   children,
 }: {
   label: string;
-  hint?: string;
+  hint?: React.ReactNode;
   required?: boolean;
   children: React.ReactNode;
 }) {
