@@ -68,31 +68,56 @@ export const SHIPPING_DEFAULTS: ShippingSettings = {
   base_fee: 3500,
 };
 
-/* ── 3. 시그니처 chapter (signature) — S146 V2 §2.2 PR-1 ─────────────── */
+/* ── 3. 시그니처 chapter (signature) — S237 iframe HTML 모델 (062) ────── */
 
+/**
+ * cafe-events (060/061) 답습 — 운영자가 .html 1 + 이미지 3 (desktop/tablet/mobile)
+ * 을 업로드하면 SignatureChapter 가 placeholder 치환 후 <iframe sandbox srcDoc>
+ * 으로 임베드. 디자인·텍스트·SVG·폰트 모두 운영자 HTML 내부에서 처리.
+ *
+ * Zod nullable() — site_settings.value 의 jsonb 에 NULL 키가 섞일 수 있는
+ * 가능성 대비 (S235 학습 #3 cafe-events 답습).
+ */
 export const SignatureSettingsSchema = z.object({
   enabled: z.boolean().default(false),
-  /** "Signature · 2026 SS" 형식 — eyebrow caps */
-  eyebrow: z.string().trim().max(40).default(''),
-  /** PRODUCTS 정적 배열 매핑용 slug (UUID 아님). 빈 값 → chapter hide. */
-  product_slug: z.string().trim().max(80).default(''),
-  /** 한국어 제품명 (예: "산뜻한 오후") */
-  title: z.string().trim().max(40).default(''),
-  /** 본문 1~2줄 호명 카피. advisory §4.3 max-width 340 한 줄 18~22자 */
-  subtitle: z.string().trim().max(160).default(''),
-  /** 플레이버 chip 3~4개. advisory §5.1 최대 4 권장 3. {ko, en} 쌍 — en 생략 가능. */
-  flavor_chips: z
-    .array(
-      z.union([
-        z.object({ ko: z.string().trim().max(20), en: z.string().trim().max(30).default('') }),
-        /* 구버전 string[] 호환 */
-        z.string().trim().max(20).transform((s) => ({ ko: s, en: '' })),
-      ]),
-    )
-    .max(4)
-    .default([]),
-  image_path: z.string().trim().max(500).default(''),
-  image_alt: z.string().trim().max(120).default(''),
+
+  /** 운영자 .html 파일 Storage URL (season-banners/signature/html/*) — 필수.
+      빈 값이면 chapter hide. SignatureChapter 가 fetch → placeholder 치환 →
+      <iframe srcDoc sandbox="allow-same-origin"> 임베드. */
+  custom_html_path: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(500),
+  ).default(''),
+
+  /** 데스크탑 이미지 Storage URL. HTML 안 {{IMAGE_DESKTOP}} placeholder 치환. */
+  image_path_desktop: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(500),
+  ).default(''),
+  /** 태블릿 이미지 — 비어있으면 desktop fallback. {{IMAGE_TABLET}} 치환. */
+  image_path_tablet: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(500),
+  ).default(''),
+  /** 모바일 이미지 — 비어있으면 desktop fallback. {{IMAGE_MOBILE}} 치환. */
+  image_path_mobile: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(500),
+  ).default(''),
+
+  /** iframe 컨테이너 aspect-ratio (>=1024px). CSS aspect-ratio 형식 "W/H". */
+  aspect_desktop: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(40),
+  ).default('1320/600'),
+  /** iframe 컨테이너 aspect-ratio (768~1023px). */
+  aspect_tablet: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(40),
+  ).default('1024/520'),
+  /** iframe 컨테이너 aspect-ratio (<768px). */
+  aspect_mobile: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(40),
+  ).default('390/520'),
+
+  /** iframe title 속성 + 접근성 description. */
+  image_alt: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(120),
+  ).default(''),
 });
 
 export type SignatureSettings = z.infer<typeof SignatureSettingsSchema>;
@@ -100,12 +125,13 @@ export type SignatureSettings = z.infer<typeof SignatureSettingsSchema>;
 /** 코드 default — DB row 없을 때 fallback. enabled=false → chapter hide. */
 export const SIGNATURE_DEFAULTS: SignatureSettings = {
   enabled: false,
-  eyebrow: '',
-  product_slug: '',
-  title: '',
-  subtitle: '',
-  flavor_chips: [],
-  image_path: '',
+  custom_html_path: '',
+  image_path_desktop: '',
+  image_path_tablet: '',
+  image_path_mobile: '',
+  aspect_desktop: '1320/600',
+  aspect_tablet: '1024/520',
+  aspect_mobile: '390/520',
   image_alt: '',
 };
 
