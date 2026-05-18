@@ -20,7 +20,8 @@ export default function AdminRootLayout({ children }: { children: ReactNode }) {
   return (
     <div className="gtr-admin min-h-screen">
       {children}
-      <Toaster richColors position="top-right" />
+      {/* AdminTopbar(56px sticky) 와 겹치지 않도록 top offset = 56 + 16 여유 = 72. */}
+      <Toaster richColors position="top-right" offset={{ top: 72, right: 16 }} />
     </div>
   );
 }
