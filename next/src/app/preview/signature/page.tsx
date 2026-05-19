@@ -50,6 +50,10 @@ export default async function PreviewSignaturePage({
     aspect_tablet: asString(params.aspect_tablet) || '1024/520',
     aspect_mobile: asString(params.aspect_mobile) || '390/520',
     image_alt: asString(params.image_alt),
+    headline_text: asString(params.headline_text),
+    subhead_text: asString(params.subhead_text),
+    cta_text: asString(params.cta_text),
+    cta_href: asString(params.cta_href),
   });
 
   /* 빈 상태 — HTML 또는 desktop 이미지 미입력 또는 비활성 */

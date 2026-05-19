@@ -58,7 +58,8 @@ const SELECT_COLS =
   'id, type, enabled, ' +
   'custom_html_path, image_path_desktop, image_path_tablet, image_path_mobile, ' +
   'aspect_desktop, aspect_tablet, aspect_mobile, ' +
-  'image_alt, start_date, end_date, sort_order';
+  'image_alt, headline_text, subhead_text, cta_text, cta_href, ' +
+  'start_date, end_date, sort_order';
 
 /* Next.js 16 dev 환경의 Supabase fetch AbortError 가 RSC streaming timing
    이슈로 간헐 발생 → 최대 2회 retry. production 영향 없음. */
@@ -77,6 +78,8 @@ async function fetchAllRows(): Promise<CafeEvent[]> {
       console.error('[cafeEventsServer] query failed', {
         code: error.code,
         message: msg.slice(0, 200),
+        details: error.details,
+        hint: error.hint,
         attempt,
       });
       return [];

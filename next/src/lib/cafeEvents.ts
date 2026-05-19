@@ -92,6 +92,21 @@ export const CafeEventSchema = z.object({
   /** iframe title 속성 + 접근성 description */
   image_alt: z.string().trim().max(120).default(''),
 
+  /* ── SEO 메타 슬롯 (064) ───────────────────────────────────────────────
+     iframe srcDoc 안 텍스트는 검색엔진/스크린리더에서 분리된 document 로
+     인식되어 SEO/a11y 진입이 약함. 운영자가 동일 텍스트를 별도 입력 →
+     EventBanner 가 iframe 외부에 sr-only `<h2>/<p>/<a>` 로 출력.
+     빈 값이면 해당 슬롯 미출력. signature (063) 답습. */
+
+  /** 검색용 헤드라인 (iframe 외부 sr-only `<h2>`). 빈 값 = 미출력. */
+  headline_text: z.string().trim().max(80).default(''),
+  /** 검색용 부제 (iframe 외부 sr-only `<p>`). 빈 값 = 미출력. */
+  subhead_text: z.string().trim().max(200).default(''),
+  /** 검색용 CTA 라벨 (iframe 외부 sr-only `<a>` 텍스트). 빈 값 = 미출력. */
+  cta_text: z.string().trim().max(30).default(''),
+  /** CTA 링크. cta_text 없으면 무시. 빈 값 + cta_text 있으면 `<span>` 으로 출력. */
+  cta_href: z.string().trim().max(500).default(''),
+
   /** ISO date "YYYY-MM-DD" 또는 "" (자문 §5.3 active 판정 기준) */
   start_date: dateOrEmpty.default(''),
   end_date: dateOrEmpty.default(''),

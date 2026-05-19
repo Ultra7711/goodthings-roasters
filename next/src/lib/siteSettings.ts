@@ -118,6 +118,29 @@ export const SignatureSettingsSchema = z.object({
   image_alt: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
     z.string().trim().max(120),
   ).default(''),
+
+  /* ── SEO 메타 슬롯 (063) ───────────────────────────────────────────────
+     iframe srcDoc 안 텍스트는 검색엔진/스크린리더에서 분리된 document 로
+     인식되어 SEO/a11y 진입이 약함. 운영자가 iframe 안 텍스트와 동일한 텍스트를
+     별도 입력 → SignatureChapterView 가 iframe 외부에 sr-only `<h2>/<p>/<a>`
+     로 출력. 빈 값이면 해당 슬롯 미출력. */
+
+  /** 검색용 헤드라인 (iframe 외부 sr-only `<h2>`). 빈 값 = 미출력. */
+  headline_text: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(80),
+  ).default(''),
+  /** 검색용 부제 (iframe 외부 sr-only `<p>`). 빈 값 = 미출력. */
+  subhead_text: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(200),
+  ).default(''),
+  /** 검색용 CTA 라벨 (iframe 외부 sr-only `<a>` 텍스트). 빈 값 = 미출력. */
+  cta_text: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(30),
+  ).default(''),
+  /** CTA 링크. cta_text 없으면 무시. 빈 값 + cta_text 있으면 `<span>` 으로 출력. */
+  cta_href: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(500),
+  ).default(''),
 });
 
 export type SignatureSettings = z.infer<typeof SignatureSettingsSchema>;
@@ -133,6 +156,10 @@ export const SIGNATURE_DEFAULTS: SignatureSettings = {
   aspect_tablet: '1024/520',
   aspect_mobile: '390/520',
   image_alt: '',
+  headline_text: '',
+  subhead_text: '',
+  cta_text: '',
+  cta_href: '',
 };
 
 /* ── 통합 ────────────────────────────────────────────────────────────── */
