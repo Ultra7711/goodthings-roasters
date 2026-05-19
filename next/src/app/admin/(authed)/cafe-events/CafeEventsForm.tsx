@@ -542,7 +542,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
               title="이미지 (반응형 3종)"
               subtitle={
                 <>
-                  1단계 — 원본 배너 이미지에서 텍스트와 작은 디자인 요소를 제거한 깨끗한 배경 이미지를 등록합니다.
+                  원본 배너 이미지에서 텍스트와 작은 디자인 요소를 제거한 깨끗한 배경 이미지를 등록합니다.
                   <br />
                   우측 'AI prompt 복사' 버튼으로 Gemini 같은 이미지 AI 에 의뢰하실 때 원본 배너 이미지 1장을 함께 첨부해 주시면 AI 가 배경 이미지를 만들어줍니다.
                   <br />
@@ -558,14 +558,13 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                   onClick={async () => {
                     const prompt = buildBannerAiPrompt({
                       kind: 'cafe-event',
-                      stage: 'stage1',
                       aspectDesktop: draft.aspect_desktop,
                       aspectTablet: draft.aspect_tablet,
                       aspectMobile: draft.aspect_mobile,
                     });
                     try {
                       await navigator.clipboard.writeText(prompt);
-                      toast.success('1단계 prompt 를 복사했습니다', {
+                      toast.success('AI prompt 를 복사했습니다', {
                         description: 'Gemini · ChatGPT image 등에 원본 배너 이미지를 함께 첨부해 사용하세요.',
                       });
                     } catch {
@@ -574,7 +573,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                   }}
                 >
                   <Copy size={14} />
-                  1단계 prompt
+                  AI prompt 복사
                 </Button>
               }
             >
@@ -615,42 +614,12 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
               title="배너 HTML 파일"
               subtitle={
                 <>
-                  2단계 — 1단계에서 만든 배경 이미지 위에 헤드라인 · 부제 · CTA 같은 텍스트를 입힌 HTML 코드를 받아 등록합니다.
+                  2단계 — 1단계 배경 이미지 위에 텍스트를 입힌 production HTML 을 등록합니다.
                   <br />
-                  우측 'AI prompt 복사' 버튼으로 Claude.ai/design (또는 ChatGPT · Gemini) 에 의뢰하실 때, 원본 배너 이미지 1장 + 1단계 결과 배경 이미지 + 1단계 출력 안전 영역 메타데이터(텍스트)를 모두 함께 첨부해 주세요.
+                  디자이너가 작성한 responsive.html (모든 BP 시각 검증된 데모) 을 별도 Claude Code 인스턴스에서 production HTML 로 변환해 주세요. iframe sandbox 모델 + 미디어쿼리 + placeholder 4종을 자동 적용하는 변환 규칙입니다.
                   <br />
-                  받은 코드는 .html 파일로 저장해 올리거나, 코드를 그대로 복사해서 '텍스트 붙여넣기' 로 등록할 수 있어요.
-                  <br />
-                  이미지가 들어갈 자리는 등록 후 자동으로 채워지고, 보안을 위해 외부 스크립트는 차단됩니다.
+                  받은 코드는 .html 파일로 저장해 올리거나, 코드를 그대로 복사해서 '텍스트 붙여넣기' 로 등록할 수 있어요. 이미지가 들어갈 자리는 등록 후 자동으로 채워지고, 보안을 위해 외부 스크립트는 차단됩니다.
                 </>
-              }
-              action={
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="!h-7 !text-xs"
-                  onClick={async () => {
-                    const prompt = buildBannerAiPrompt({
-                      kind: 'cafe-event',
-                      stage: 'stage2',
-                      aspectDesktop: draft.aspect_desktop,
-                      aspectTablet: draft.aspect_tablet,
-                      aspectMobile: draft.aspect_mobile,
-                    });
-                    try {
-                      await navigator.clipboard.writeText(prompt);
-                      toast.success('2단계 prompt 를 복사했습니다', {
-                        description: 'Claude.ai/design (또는 ChatGPT · Gemini) 에 원본 이미지 + 1단계 결과 (배경 + 안전 영역 메타) 를 모두 첨부해 사용하세요.',
-                      });
-                    } catch {
-                      toast.error('복사에 실패했습니다 — 수동으로 복사해 주세요');
-                    }
-                  }}
-                >
-                  <Copy size={14} />
-                  2단계 prompt
-                </Button>
               }
             >
               <div className="flex flex-col gap-3">
