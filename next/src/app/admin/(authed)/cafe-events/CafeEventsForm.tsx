@@ -19,7 +19,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Trash2 } from 'lucide-react';
+import { Copy, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
@@ -34,6 +34,7 @@ import {
   type CafeEventType,
 } from '@/lib/cafeEvents';
 import { uploadCafeEventHtml } from '@/lib/admin/uploadCafeEventHtml';
+import { buildBannerAiPrompt } from '@/lib/admin/aiPrompt';
 import {
   uploadCafeEventImage,
   type CafeEventBreakpoint,
@@ -60,8 +61,6 @@ const PREVIEW_BRK_OPTIONS: ReadonlyArray<{
 ];
 
 const TEMP_ID_PREFIX = 'temp:';
-
-const ASPECT_RE = /^\s*\d+(\.\d+)?\s*[/]\s*\d+(\.\d+)?\s*$/;
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
 
@@ -95,6 +94,10 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
   const [desktopUpload, setDesktopUpload] = useState<UploadState>({ status: 'idle' });
   const [tabletUpload, setTabletUpload] = useState<UploadState>({ status: 'idle' });
   const [mobileUpload, setMobileUpload] = useState<UploadState>({ status: 'idle' });
+
+  /* HTML 텍스트 직접 입력 (AI 결과 코드 블록 붙여넣기용) */
+  const [htmlTextOpen, setHtmlTextOpen] = useState(false);
+  const [htmlText, setHtmlText] = useState('');
 
   const [previewBrk, setPreviewBrk] = useState<PreviewBrk>('desktop');
   const [previewSrc, setPreviewSrc] = useState<string>(() =>
@@ -159,7 +162,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     return !shallowEqualEvent(original, draft);
   }, [draft, events, isNew]);
 
-  /** 동시 활성 max 1 룰 — 선택된 event 외에 활성·기간 겹치는 row 가 있으면 경고. */
+  /** 동시 활성 max 1 룰 — 선택된 event 외에 활성 · 기간 겹치는 row 가 있으면 경고. */
   const activeConflict = useMemo(() => {
     if (!draft || !draft.enabled) return null;
     const today = todayIsoSeoul();
@@ -198,6 +201,10 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       aspect_tablet: '1024/400',
       aspect_mobile: '390/640',
       image_alt: '',
+      headline_text: '',
+      subhead_text: '',
+      cta_text: '',
+      cta_href: '',
       start_date: '',
       end_date: '',
       sort_order: 0,
@@ -303,6 +310,33 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       updateDraft('custom_html_path', result.publicUrl);
       setHtmlUpload({ status: 'idle' });
       toast.success('HTML 파일을 등록했습니다', {
+        description: '변경사항 저장 후 사이트에 반영됩니다',
+      });
+    } else {
+      const message = describeUploadError(result.error, result.detail);
+      setHtmlUpload({ status: 'error', message });
+      toast.error(message);
+    }
+  }
+
+  /* AI 결과 코드 블록 텍스트 → Blob → File 변환 후 기존 업로드 경로 재사용. */
+  async function handleHtmlTextUpload() {
+    const text = htmlText.trim();
+    if (!text) {
+      toast.error('HTML 텍스트를 붙여넣어 주세요');
+      return;
+    }
+    const blob = new Blob([text], { type: 'text/html' });
+    const file = new File([blob], 'banner.html', { type: 'text/html' });
+
+    setHtmlUpload({ status: 'uploading', fileName: file.name });
+    const result = await uploadCafeEventHtml(file);
+    if (result.ok) {
+      updateDraft('custom_html_path', result.publicUrl);
+      setHtmlUpload({ status: 'idle' });
+      setHtmlText('');
+      setHtmlTextOpen(false);
+      toast.success('HTML 텍스트를 등록했습니다', {
         description: '변경사항 저장 후 사이트에 반영됩니다',
       });
     } else {
@@ -506,7 +540,43 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
             {/* 이미지 3종 카드 */}
             <Card
               title="이미지 (반응형 3종)"
-              subtitle="desktop 필수 · tablet/mobile 비워두면 desktop fallback · HTML 안 {{IMAGE_DESKTOP}} 등 placeholder 와 자동 치환"
+              subtitle={
+                <>
+                  1단계 — 원본 배너 이미지에서 텍스트와 작은 디자인 요소를 제거한 깨끗한 배경 이미지를 등록합니다.
+                  <br />
+                  우측 'AI prompt 복사' 버튼으로 Gemini 같은 이미지 AI 에 의뢰하실 때 원본 배너 이미지 1장을 함께 첨부해 주시면 AI 가 배경 이미지를 만들어줍니다.
+                  <br />
+                  데스크탑 · 모바일 2장만 등록하시는 것을 권장해요. 태블릿은 비우면 데스크탑 이미지를 자동으로 사용합니다 (AI 가 데스크탑과 다른 태블릿 비율을 만들기 어려워서 별도 생성 비추천).
+                </>
+              }
+              action={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="!h-7 !text-xs"
+                  onClick={async () => {
+                    const prompt = buildBannerAiPrompt({
+                      kind: 'cafe-event',
+                      stage: 'stage1',
+                      aspectDesktop: draft.aspect_desktop,
+                      aspectTablet: draft.aspect_tablet,
+                      aspectMobile: draft.aspect_mobile,
+                    });
+                    try {
+                      await navigator.clipboard.writeText(prompt);
+                      toast.success('1단계 prompt 를 복사했습니다', {
+                        description: 'Gemini · ChatGPT image 등에 원본 배너 이미지를 함께 첨부해 사용하세요.',
+                      });
+                    } catch {
+                      toast.error('복사에 실패했습니다 — 수동으로 복사해 주세요');
+                    }
+                  }}
+                >
+                  <Copy size={14} />
+                  1단계 prompt
+                </Button>
+              }
             >
               <div className="grid grid-cols-3 gap-3">
                 <ImageUploadSlot
@@ -543,18 +613,47 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
             {/* HTML 카드 */}
             <Card
               title="배너 HTML 파일"
-              subtitle="CSS · SVG · 폰트 포함된 단일 .html 파일. 이미지는 {{IMAGE_DESKTOP}} 등 placeholder 사용 · iframe sandbox 로 격리 (script 차단)."
+              subtitle={
+                <>
+                  2단계 — 1단계에서 만든 배경 이미지 위에 헤드라인 · 부제 · CTA 같은 텍스트를 입힌 HTML 코드를 받아 등록합니다.
+                  <br />
+                  우측 'AI prompt 복사' 버튼으로 Claude.ai/design (또는 ChatGPT · Gemini) 에 의뢰하실 때, 원본 배너 이미지 1장 + 1단계 결과 배경 이미지 + 1단계 출력 안전 영역 메타데이터(텍스트)를 모두 함께 첨부해 주세요.
+                  <br />
+                  받은 코드는 .html 파일로 저장해 올리거나, 코드를 그대로 복사해서 '텍스트 붙여넣기' 로 등록할 수 있어요.
+                  <br />
+                  이미지가 들어갈 자리는 등록 후 자동으로 채워지고, 보안을 위해 외부 스크립트는 차단됩니다.
+                </>
+              }
+              action={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="!h-7 !text-xs"
+                  onClick={async () => {
+                    const prompt = buildBannerAiPrompt({
+                      kind: 'cafe-event',
+                      stage: 'stage2',
+                      aspectDesktop: draft.aspect_desktop,
+                      aspectTablet: draft.aspect_tablet,
+                      aspectMobile: draft.aspect_mobile,
+                    });
+                    try {
+                      await navigator.clipboard.writeText(prompt);
+                      toast.success('2단계 prompt 를 복사했습니다', {
+                        description: 'Claude.ai/design (또는 ChatGPT · Gemini) 에 원본 이미지 + 1단계 결과 (배경 + 안전 영역 메타) 를 모두 첨부해 사용하세요.',
+                      });
+                    } catch {
+                      toast.error('복사에 실패했습니다 — 수동으로 복사해 주세요');
+                    }
+                  }}
+                >
+                  <Copy size={14} />
+                  2단계 prompt
+                </Button>
+              }
             >
               <div className="flex flex-col gap-3">
-                <FormField label="대체 텍스트 (alt · iframe title)" required>
-                  <FormInput
-                    value={draft.image_alt}
-                    maxLength={120}
-                    onChange={(e) => updateDraft('image_alt', e.target.value)}
-                    placeholder="예: UBE 시리즈 배너 — 자색 고구마 라떼 메뉴 소개"
-                  />
-                </FormField>
-
                 <div className="flex items-center gap-3 flex-wrap">
                   <input
                     ref={htmlInputRef}
@@ -572,6 +671,16 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                     disabled={htmlUpload.status === 'uploading'}
                   >
                     {htmlUpload.status === 'uploading' ? '업로드 중…' : 'HTML 파일 선택'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="!h-8"
+                    onClick={() => setHtmlTextOpen((v) => !v)}
+                    disabled={htmlUpload.status === 'uploading'}
+                  >
+                    {htmlTextOpen ? '텍스트 입력 닫기' : '또는 텍스트 붙여넣기'}
                   </Button>
                   <span className="text-xs text-[var(--foreground-muted)]">
                     {draft.custom_html_path
@@ -606,33 +715,119 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                     HTML 원본 열기 ↗
                   </a>
                 )}
+                {htmlTextOpen && (
+                  <div className="flex flex-col gap-2 mt-1">
+                    <textarea
+                      value={htmlText}
+                      onChange={(e) => setHtmlText(e.target.value)}
+                      placeholder="<!DOCTYPE html>&#10;<html>&#10;  ..."
+                      rows={10}
+                      spellCheck={false}
+                      className="font-mono text-xs px-3 py-2 rounded-md border border-input bg-[var(--surface)] resize-y min-h-[200px]"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="!h-8"
+                        onClick={handleHtmlTextUpload}
+                        disabled={htmlUpload.status === 'uploading' || !htmlText.trim()}
+                      >
+                        {htmlUpload.status === 'uploading' ? '업로드 중…' : '텍스트 업로드'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="!h-8 !text-xs"
+                        onClick={() => { setHtmlText(''); setHtmlTextOpen(false); }}
+                      >
+                        취소
+                      </Button>
+                      <span className="text-xs text-[var(--foreground-muted)] ml-auto">
+                        AI 작성 코드 블록 복사 후 그대로 붙여넣기
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
 
-            {/* aspect-ratio 카드 */}
+            {/* aspect-ratio 카드 · S239 read-only 표시 */}
             <Card
               title="iframe 컨테이너 비율"
-              subtitle="brk 별 가로/세로 비율. 'W/H' 형식. 컨테이너 너비 = 100%, 높이 = 너비 ÷ 비율."
+              subtitle="이미지를 등록하면 자동으로 측정·입력됩니다. 표시 전용이라 직접 수정할 수 없어요."
             >
               <div className="grid grid-cols-3 gap-3">
                 <AspectInput
                   label="Desktop (≥1024px)"
                   value={draft.aspect_desktop}
-                  onChange={(v) => updateDraft('aspect_desktop', v)}
-                  placeholder="1320/480"
                 />
                 <AspectInput
                   label="Tablet (768~1023px)"
                   value={draft.aspect_tablet}
-                  onChange={(v) => updateDraft('aspect_tablet', v)}
-                  placeholder="1024/400"
                 />
                 <AspectInput
                   label="Mobile (<768px)"
                   value={draft.aspect_mobile}
-                  onChange={(v) => updateDraft('aspect_mobile', v)}
-                  placeholder="390/640"
                 />
+              </div>
+            </Card>
+
+            {/* 검색·접근성 메타 카드 — iframe 외부 sr-only 출력 + alt (064) */}
+            <Card
+              title="검색 · 접근성 메타 텍스트"
+              subtitle={
+                <>
+                  iframe 안 텍스트는 검색엔진과 스크린리더에서 분리된 영역으로 인식돼요.
+                  <br />
+                  같은 내용을 여기 별도로 입력하면 화면에는 변화 없이 검색·낭독에서만 인식됩니다. 빈 값은 출력되지 않아요.
+                </>
+              }
+            >
+              <div className="flex flex-col gap-3">
+                <FormField label="대체 텍스트 (alt · iframe title)" required>
+                  <FormInput
+                    value={draft.image_alt}
+                    maxLength={120}
+                    onChange={(e) => updateDraft('image_alt', e.target.value)}
+                    placeholder="예: UBE 시리즈 배너 — 자색 고구마 라떼 메뉴 소개"
+                  />
+                </FormField>
+                <FormField label="헤드라인 (검색용 h2)">
+                  <FormInput
+                    value={draft.headline_text}
+                    maxLength={80}
+                    onChange={(e) => updateDraft('headline_text', e.target.value)}
+                    placeholder="예: UBE 시리즈 오픈"
+                  />
+                </FormField>
+                <FormField label="부제 (검색용 p)">
+                  <FormInput
+                    value={draft.subhead_text}
+                    maxLength={200}
+                    onChange={(e) => updateDraft('subhead_text', e.target.value)}
+                    placeholder="예: 자색 고구마 라떼 등 시즌 한정 5종"
+                  />
+                </FormField>
+                <div className="grid grid-cols-[1fr_2fr] gap-3">
+                  <FormField label="CTA 라벨">
+                    <FormInput
+                      value={draft.cta_text}
+                      maxLength={30}
+                      onChange={(e) => updateDraft('cta_text', e.target.value)}
+                      placeholder="예: 메뉴 보기"
+                    />
+                  </FormField>
+                  <FormField label="CTA 링크">
+                    <FormInput
+                      value={draft.cta_href}
+                      maxLength={500}
+                      onChange={(e) => updateDraft('cta_href', e.target.value)}
+                      placeholder="예: /cafe · 비워두면 텍스트만 노출"
+                    />
+                  </FormField>
+                </div>
               </div>
             </Card>
 
@@ -784,39 +979,38 @@ function ImageUploadSlot({
   );
 }
 
-/* ── Aspect Input ───────────────────────────────────────────────────────── */
+/* ── Aspect Display (read-only · S239) ─────────────────────────────────────
+   이미지 업로드 시 naturalWidth/Height 가 자동 측정되어 값이 채워짐.
+   운영자가 직접 수정하면 iframe 컨테이너 비율 ↔ 실 이미지 비율 불일치로
+   화면이 stretch/squash 될 위험. 따라서 표시 전용으로 전환. 비율 정보 자체는
+   AI prompt 에 들어가므로 운영자가 확인할 수 있어야 함. */
 
 function AspectInput({
   label,
   value,
-  onChange,
-  placeholder,
 }: {
   label: string;
   value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
 }) {
-  const invalid = value !== '' && !ASPECT_RE.test(value);
+  const display = formatAspectDisplay(value);
   return (
     <FormField
       label={label}
-      hint={
-        invalid ? (
-          <span className="text-[var(--warning)]">형식 오류 — "W/H" (예: 1320/480)</span>
-        ) : (
-          '예: 1320/480 = 2.75:1 가로 와이드'
-        )
-      }
+      hint={value ? '이미지 업로드 시 자동 측정된 값입니다.' : '이미지를 먼저 등록해 주세요.'}
     >
-      <FormInput
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        maxLength={40}
-      />
+      <div className="px-3 py-2 rounded-md border border-input bg-[var(--surface-muted)] text-sm font-mono text-foreground select-text">
+        {display}
+      </div>
     </FormField>
   );
+}
+
+/** "2008/783" → "2008px x 783px" · 빈 값 → "—" · 형식 오류 → 원본 그대로. */
+function formatAspectDisplay(value: string): string {
+  if (!value) return '—';
+  const m = /^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/.exec(value);
+  if (!m) return value;
+  return `${m[1]}px x ${m[2]}px`;
 }
 
 /* ── List Row ──────────────────────────────────────────────────────────── */
@@ -998,6 +1192,10 @@ function shallowEqualEvent(a: CafeEvent, b: CafeEvent): boolean {
     a.aspect_tablet === b.aspect_tablet &&
     a.aspect_mobile === b.aspect_mobile &&
     a.image_alt === b.image_alt &&
+    a.headline_text === b.headline_text &&
+    a.subhead_text === b.subhead_text &&
+    a.cta_text === b.cta_text &&
+    a.cta_href === b.cta_href &&
     a.start_date === b.start_date &&
     a.end_date === b.end_date &&
     a.sort_order === b.sort_order
@@ -1017,6 +1215,10 @@ function buildPreviewSrc(draft: DraftEvent): string {
     aspect_tablet: draft.aspect_tablet,
     aspect_mobile: draft.aspect_mobile,
     image_alt: draft.image_alt,
+    headline_text: draft.headline_text,
+    subhead_text: draft.subhead_text,
+    cta_text: draft.cta_text,
+    cta_href: draft.cta_href,
   });
   return `/preview/cafe-event?${params.toString()}`;
 }
@@ -1082,16 +1284,23 @@ function Card({
   title,
   subtitle,
   children,
+  action,
 }: {
   title: string;
-  subtitle: string;
+  /** string · JSX 모두 허용 (의미 단위 줄바꿈 시 fragment + <br/> 사용). */
+  subtitle: React.ReactNode;
   children: React.ReactNode;
+  /** 우측 상단 액션 슬롯 (예: AI prompt 복사 버튼). */
+  action?: React.ReactNode;
 }) {
   return (
     <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
-      <div className="px-4 py-3 border-b border-border">
-        <h3 className="m-0 text-sm font-medium">{title}</h3>
-        <div className="text-xs text-[var(--foreground-muted)] mt-0.5">{subtitle}</div>
+      <div className="px-4 py-3 border-b border-border flex items-start gap-3">
+        <div className="flex-1 min-w-0">
+          <h3 className="m-0 text-sm font-medium">{title}</h3>
+          <div className="text-xs text-[var(--foreground-muted)] mt-0.5 leading-relaxed">{subtitle}</div>
+        </div>
+        {action && <div className="shrink-0">{action}</div>}
       </div>
       <div className="p-4">{children}</div>
     </div>
