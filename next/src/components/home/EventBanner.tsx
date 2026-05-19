@@ -14,6 +14,7 @@
    ══════════════════════════════════════════ */
 
 import type { CafeEvent } from '@/lib/cafeEvents';
+import IframeBanner from './IframeBanner';
 
 type Props = { event: CafeEvent };
 
@@ -70,7 +71,10 @@ export default async function EventBanner({ event }: Props) {
   const aspectTablet = normalizeAspect(event.aspect_tablet, '1024 / 400');
   const aspectMobile = normalizeAspect(event.aspect_mobile, '390 / 640');
 
-  /* brk 별 aspect-ratio 미디어 쿼리 — data-event-id scope.
+  /* brk 별 aspect-ratio 컨테이너 쿼리 — data-event-id scope.
+     S239: @media → @container 변경. .ev-banner-bleed 가 container 등록 → 외부
+     wrapper width 기준 BP 분기. iframe 안 @container (banner-wrap container) 도
+     동일 width 기준 → 양쪽 BP 동시 매치. mismatch 0.
      iframe 의 default attribute height(150) 가 aspect-ratio 보다 우선 적용되는
      이슈 회피 위해 height: auto 명시. */
   const inlineCss = `
@@ -78,12 +82,12 @@ export default async function EventBanner({ event }: Props) {
       height: auto;
       aspect-ratio: ${aspectDesktop};
     }
-    @media (max-width: 1023px) {
+    @container (max-width: 1023px) {
       .ev-banner-iframe[data-event-id="${event.id}"] {
         aspect-ratio: ${aspectTablet};
       }
     }
-    @media (max-width: 767px) {
+    @container (max-width: 767px) {
       .ev-banner-iframe[data-event-id="${event.id}"] {
         aspect-ratio: ${aspectMobile};
       }
@@ -94,22 +98,26 @@ export default async function EventBanner({ event }: Props) {
     <>
       <style dangerouslySetInnerHTML={{ __html: inlineCss }} />
       <div className="ev-banner-bleed">
+        {/* SEO/a11y 메타 텍스트 — iframe srcDoc 안 텍스트는 별도 document 라
+            검색엔진/스크린리더 진입이 약함. iframe 외부 sr-only 로 동일 텍스트
+            제공해 인덱싱·낭독 회수. signature (063) 답습. */}
+        {(event.headline_text || event.subhead_text || event.cta_text) && (
+          <div className="sr-only">
+            {event.headline_text && <h2>{event.headline_text}</h2>}
+            {event.subhead_text && <p>{event.subhead_text}</p>}
+            {event.cta_text && (
+              event.cta_href
+                ? <a href={event.cta_href}>{event.cta_text}</a>
+                : <span>{event.cta_text}</span>
+            )}
+          </div>
+        )}
         <div className="ev-banner">
-          <iframe
+          <IframeBanner
             className="ev-banner-iframe"
             data-event-id={event.id}
             srcDoc={filledHtml}
             title={event.image_alt || '카페 이벤트 배너'}
-            sandbox="allow-same-origin"
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            style={{
-              display: 'block',
-              width: '100%',
-              height: 'auto',
-              border: 0,
-              background: 'transparent',
-            }}
           />
         </div>
       </div>

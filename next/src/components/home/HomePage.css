@@ -255,6 +255,10 @@
    wrapper(.ev-banner-bleed): 풀블리드 sand bg + margin-bottom
    inner(.ev-banner): max-width 1440 + 단일 column · 운영자 HTML 의 wrapper 자체가 디자인 책임 */
 .ev-banner-bleed {
+  /* S239: container-type 등록 → 내부 .ev-banner-iframe 의 aspect-ratio
+     @container 분기 기준. iframe 안 @container (banner-wrap) 와 동일 width
+     기준으로 양쪽 BP 동시 매치 → 외부 frame ↔ iframe layout mismatch 0. */
+  container-type: inline-size;
   background: var(--color-surface-warm);
   width: 100%;
   margin-bottom: 72px;

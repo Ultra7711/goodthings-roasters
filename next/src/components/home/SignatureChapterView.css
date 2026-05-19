@@ -24,8 +24,12 @@
   padding-bottom: 32px;
 }
 
-/* iframe wrapper — 다른 섹션 좌우 gutter 60px 정합 */
+/* iframe wrapper — 다른 섹션 좌우 gutter 60px 정합.
+   S239: container-type: inline-size 등록 → 내부 .sig-iframe 의 aspect-ratio
+   @container 분기 기준이 됨. wrapper 의 padding (60/48/24 brk 별) 으로 인한
+   iframe width 와 외부 viewport mismatch (877~768 시점 등) 해소. */
 .sig-bleed {
+  container-type: inline-size;
   max-width: 1440px;
   margin: 0 auto;
   padding: 0 60px;
