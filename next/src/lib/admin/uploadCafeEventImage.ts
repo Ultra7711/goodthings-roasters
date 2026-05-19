@@ -15,6 +15,7 @@
 import { supabase } from '@/lib/supabase';
 import { MAX_FILE_BYTES, ALLOWED_MIME } from './imageUploadShared';
 import type { UploadResult } from './imageUploadShared';
+import { convertToWebPClient } from './clientImageProcessing';
 
 const CAFE_EVENT_BUCKET = 'cafe-events';
 
@@ -34,13 +35,6 @@ export async function uploadCafeEventImage(
   file: File,
   brk: CafeEventBreakpoint,
 ): Promise<UploadResult> {
-  if (file.size > MAX_FILE_BYTES) {
-    return {
-      ok: false,
-      error: 'too_large',
-      detail: `${(file.size / 1024 / 1024).toFixed(1)}MB · 최대 5MB`,
-    };
-  }
   if (!ALLOWED_MIME.includes(file.type as (typeof ALLOWED_MIME)[number])) {
     return {
       ok: false,
@@ -49,12 +43,25 @@ export async function uploadCafeEventImage(
     };
   }
 
-  const path = buildObjectPath(file, brk);
+  /* AI 서비스 출력 포맷이 제각각이므로 Canvas API 로 WebP 자동 변환 + 2000px
+     downscale. 이미 WebP 면 skip. 변환 실패 시 fallback 으로 원본 사용. */
+  const converted = await convertToWebPClient(file);
+  const uploadFile = converted.ok ? converted.file : file;
+
+  if (uploadFile.size > MAX_FILE_BYTES) {
+    return {
+      ok: false,
+      error: 'too_large',
+      detail: `${(uploadFile.size / 1024 / 1024).toFixed(1)}MB · 최대 5MB`,
+    };
+  }
+
+  const path = buildObjectPath(uploadFile, brk);
   const { error: uploadError } = await supabase.storage
     .from(CAFE_EVENT_BUCKET)
-    .upload(path, file, {
+    .upload(path, uploadFile, {
       cacheControl: '3600',
-      contentType: file.type,
+      contentType: uploadFile.type,
       upsert: false,
     });
 
