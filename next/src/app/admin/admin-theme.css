@@ -67,7 +67,7 @@
 
   /* ── Sizing 토큰 (S218 · shadcn 표준) ─────────────────────────
      Button: sm 32 / md 36 (default) / lg 40
-     Input · Select: 36 (단일 — sm 28 은 검색·필터 전용 카탈로그) */
+     Input · Select: 36 (단일 — sm 28 은 검색 · 필터 전용 카탈로그) */
   --btn-h-sm: 32px;
   --btn-h-md: 36px;
   --btn-h-lg: 40px;
@@ -178,7 +178,7 @@
 
    ═══ shadcn override 4 패턴 (DEC-2 — 변경 금지) ═════════════════
 
-   1. Input h-sm (검색·필터 전용)
+   1. Input h-sm (검색 · 필터 전용)
         <Input className="!h-7" placeholder="검색" />
    2. Switch OFF 색상
         <Switch className="data-[state=unchecked]:bg-[var(--switch-off-bg)]" />

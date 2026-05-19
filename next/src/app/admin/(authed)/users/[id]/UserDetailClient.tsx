@@ -272,12 +272,12 @@ export default function UserDetailClient({
               <div className="text-muted-foreground leading-relaxed mb-3">
                 {profile.adminLevel === 'owner' ? (
                   <>
-                    관리자는 CSV 내보내기·상품 영구 삭제·사이트 설정 변경·다른 어드민의 권한 변경이 가능합니다.
-                    운영자로 변경하면 일상 운영 (주문 처리·구독 편집·상품 수정) 만 가능합니다.
+                    관리자는 CSV 내보내기 · 상품 영구 삭제 · 사이트 설정 변경 · 다른 어드민의 권한 변경이 가능합니다.
+                    운영자로 변경하면 일상 운영 (주문 처리 · 구독 편집 · 상품 수정) 만 가능합니다.
                   </>
                 ) : (
                   <>
-                    운영자는 일상 운영만 가능합니다 (CSV 내보내기·영구 삭제·설정 변경 불가).
+                    운영자는 일상 운영만 가능합니다 (CSV 내보내기 · 영구 삭제 · 설정 변경 불가).
                     관리자로 승격하면 모든 민감 액션을 수행할 수 있습니다.
                   </>
                 )}
@@ -432,7 +432,7 @@ export default function UserDetailClient({
               </DialogTitle>
               <DialogDescription className="text-xs mt-1">
                 {targetLevel === 'owner'
-                  ? `${profile.email} 을(를) 관리자로 승격합니다. CSV 내보내기·영구 삭제·사이트 설정 등 민감 액션이 가능해집니다.`
+                  ? `${profile.email} 을(를) 관리자로 승격합니다. CSV 내보내기 · 영구 삭제 · 사이트 설정 등 민감 액션이 가능해집니다.`
                   : `${profile.email} 을(를) 운영자로 변경합니다. 민감 액션 권한이 해제되며 일상 운영만 가능해집니다.`}
                 {' '}사유는 변경 이력에 기록됩니다.
               </DialogDescription>

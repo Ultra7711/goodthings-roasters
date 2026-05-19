@@ -1,7 +1,7 @@
 'use client';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   FlavorChipInput — 한·영 페어 노트 태그 칩 입력 (시그니처 + 상품 공유 · S231-6b/c)
+   FlavorChipInput — 한 · 영 페어 노트 태그 칩 입력 (시그니처 + 상품 공유 · S231-6b/c)
 
    - value: { ko, en }[] (controlled)
    - 입력 1줄 "복숭아 Peach" → parseChipInput → 마지막 한글 위치 기준 ko/en 분리

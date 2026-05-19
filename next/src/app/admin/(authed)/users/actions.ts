@@ -8,7 +8,7 @@
    2) Zod 검증 — RoleChangeInputSchema (targetId · reason?)
    3) self-action 차단 — actor === target → 'self_action' (RPC round-trip 절약)
    4) RPC `grant_admin` / `revoke_admin` 호출 — 020 마이그레이션
-   5) revalidatePath('/admin/users' + '/[id]') — 목록·상세 캐시 무효화
+   5) revalidatePath('/admin/users' + '/[id]') — 목록 · 상세 캐시 무효화
 
    설계 (ADR-006 §적용 범위):
    - 호출처 = 어드민 UI 1곳만 → Server Action 단일 채널 (REST API 미생성).
@@ -69,7 +69,7 @@ function flattenZodError(err: z.ZodError): string {
 /**
  * grant_admin / revoke_admin RPC 호출 + 결과 매핑.
  *
- * 호출자는 이미 admin 가드·Zod 검증을 통과한 상태.
+ * 호출자는 이미 admin 가드 · Zod 검증을 통과한 상태.
  */
 async function callRoleRpc(
   fn: 'grant_admin' | 'revoke_admin',

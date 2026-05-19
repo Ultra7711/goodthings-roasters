@@ -5,7 +5,7 @@
 
    책임:
    - S224: inline style → Tailwind className 토큰화 (ADR-008)
-   - 2-col grid (1fr 340px), 좌(상품·결제·배송) · 우(고객·환불·메모·타임라인)
+   - 2-col grid (1fr 340px), 좌(상품 · 결제 · 배송) · 우(고객 · 환불 · 메모 · 타임라인)
    - Topbar [환불 안내] [발송 처리] (paid 만 활성)
    - "발송 처리" 클릭 → ShippingDialog open
    - 어드민 메모는 읽기 전용 표시 (편집 액션은 carry-over · Group H 와 함께 진행 예정)
@@ -60,7 +60,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
     detail.shipping.messageCode,
     detail.shipping.messageCustom,
   );
-  const customerInitial = detail.customer.name?.charAt(0) ?? '·';
+  const customerInitial = detail.customer.name?.charAt(0) ?? ' · ';
 
   return (
     <>
@@ -97,7 +97,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
           <span className="tabular-nums">
             주문일시 · {formatKstFullDate(detail.createdAtIso)}
           </span>
-          <span className="text-[var(--foreground-subtle)]">·</span>
+          <span className="text-[var(--foreground-subtle)]"> · </span>
           <Badge tone={detail.customer.isMember ? 'info' : 'neutral'}>
             {detail.customer.isMember ? '회원' : '비회원'}
           </Badge>
@@ -134,7 +134,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
                     </div>
                     <div className="mt-0.5 text-xs text-[var(--foreground-subtle)] flex gap-2 flex-wrap">
                       {it.productVolume && <span>{it.productVolume}</span>}
-                      {it.productVolume && <span>·</span>}
+                      {it.productVolume && <span> · </span>}
                       <span className="gtr-mono">{it.productSlug}</span>
                     </div>
                   </div>
@@ -271,7 +271,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
                         </span>
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5 tabular-nums">
-                        출고 ·{' '}
+                        출고  · {' '}
                         {detail.dispatch.shippedAtIso
                           ? formatKstDateTime(detail.dispatch.shippedAtIso)
                           : '—'}
@@ -307,7 +307,7 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
               ) : (
                 <div className="text-xs text-muted-foreground">
                   {isCancelled
-                    ? '취소·환불된 주문입니다.'
+                    ? '취소 · 환불된 주문입니다.'
                     : '결제가 완료되면 발송 처리할 수 있습니다.'}
                 </div>
               )}
@@ -358,9 +358,9 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
             </div>
           </Card>
 
-          {/* E — 환불·취소 */}
+          {/* E — 환불 · 취소 */}
           <Card>
-            <SectionHeader title="환불·취소" />
+            <SectionHeader title="환불 · 취소" />
             <div className="px-[18px] py-3.5 text-xs text-muted-foreground leading-relaxed">
               환불은 <strong className="text-foreground">Toss 콘솔</strong>에서
               직접 처리합니다.

@@ -765,7 +765,7 @@ function BasicTab({
           <Textarea
             rows={5}
             maxLength={4000}
-            placeholder="원두의 향미·산지·로스팅 의도 등 본문 설명"
+            placeholder="원두의 향미 · 산지 · 로스팅 의도 등 본문 설명"
             className="leading-tight"
             {...register('description')}
           />
@@ -945,10 +945,10 @@ function DetailTab({
         />
       </Card>
 
-      {/* 노트 태그 카드 — 시그니처 설정과 동일한 한·영 페어 chip UI 답습 */}
+      {/* 노트 태그 카드 — 시그니처 설정과 동일한 한 · 영 페어 chip UI 답습 */}
       <Card title="노트 태그">
         <Field
-          label="한·영 페어 chip"
+          label="한 · 영 페어 chip"
           hint="입력 예: '복숭아 Peach' · Enter 또는 쉼표로 추가 · 영문 생략 가능. PDP 본문 + 시그니처 자동 추출에 사용됩니다."
           error={
             (errors.noteChips as { message?: string } | undefined)?.message ??
@@ -1190,7 +1190,7 @@ function OptionTab({
             </div>
             {/* hint 들여쓰기 pl-2.5 (admin-design §5-9 답습) */}
             <div className="pl-2.5 text-xs text-muted-foreground pt-1">
-              방식·분량·온도·시간·물 (예: &apos;15g&apos;, &apos;85~90°C&apos;) — 단위까지 자유롭게 적어주세요.
+              방식 · 분량 · 온도 · 시간 · 물 (예: &apos;15g&apos;, &apos;85~90°C&apos;) — 단위까지 자유롭게 적어주세요.
             </div>
           </div>
         </Card>

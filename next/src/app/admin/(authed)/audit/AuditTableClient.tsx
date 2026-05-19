@@ -46,7 +46,7 @@ type Props = {
 export default function AuditTableClient({ events }: Props) {
   const [isExporting, startExport] = useTransition();
 
-  /* CSV 내보내기 — 컴플라이언스 자료 (정부·KISA PII 조회 기록 제출용). */
+  /* CSV 내보내기 — 컴플라이언스 자료 (정부 · KISA PII 조회 기록 제출용). */
   function handleExport() {
     startExport(async () => {
       const result = await exportAuditCsvAction();

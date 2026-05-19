@@ -66,7 +66,7 @@ export default function ProductDangerZoneClient({
           위험 영역
         </h3>
         <div className="text-xs text-muted-foreground leading-relaxed mb-4">
-          상품을 영원히 삭제합니다. 이 상품의 이미지·옵션·레시피도 함께 사라지며,
+          상품을 영원히 삭제합니다. 이 상품의 이미지 · 옵션 · 레시피도 함께 사라지며,
           업로드해 둔 이미지 파일도 모두 지워집니다.
           <br />
           <strong className="text-foreground">고객이 이미 주문하거나 정기배송 중인 기록은 그대로 남아 있습니다</strong> —
@@ -92,9 +92,9 @@ export default function ProductDangerZoneClient({
         title="상품을 영구 삭제하시겠습니까?"
         description={
           <>
-            이미지·옵션·레시피도 함께 사라지며, 되돌릴 수 없습니다.
+            이미지 · 옵션 · 레시피도 함께 사라지며, 되돌릴 수 없습니다.
             <br />
-            과거 주문·정기배송 기록은 그대로 남아 있어요.
+            과거 주문 · 정기배송 기록은 그대로 남아 있어요.
           </>
         }
         requireTextMatch={productName}

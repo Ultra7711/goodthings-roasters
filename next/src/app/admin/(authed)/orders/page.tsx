@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════
    AdminOrdersPage (서버 컴포넌트)
-   - searchParams 로 status·period·payment·q·page 수신
+   - searchParams 로 status · period · payment · q · page 수신
    - fetchAdminOrders 가 RLS 통한 admin SELECT + 탭 카운트 RPC 동시 수행
    - 인터랙션은 OrdersTableClient (client) 가 담당
    ══════════════════════════════════════════ */

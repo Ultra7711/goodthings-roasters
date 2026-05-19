@@ -426,7 +426,7 @@ function EditSubscriptionDialog({ row, onClose, onSaved }: DialogProps) {
           <DialogDescription className="text-sm mb-4">
             {userName} · {extractKrName(row.productName)}
             {row.productVolume ? ` (${row.productVolume})` : ''} · 주기 {describeCycle(row.cycle)}
-            {' '}· 다음 배송 <span className="tabular-nums">{formatDeliveryDate(row.nextDeliveryAtIso)}</span>
+            {' '} ·  다음 배송 <span className="tabular-nums">{formatDeliveryDate(row.nextDeliveryAtIso)}</span>
           </DialogDescription>
 
           {/* 섹션 탭 */}
@@ -598,7 +598,7 @@ function CycleSection({
         unauthorized: '권한이 없습니다.',
         validation_failed: '입력값이 잘못되었습니다.',
         not_found: '구독을 찾을 수 없습니다.',
-        conflict: '해지·만료된 구독은 변경할 수 없습니다.',
+        conflict: '해지 · 만료된 구독은 변경할 수 없습니다.',
         server_error: '저장 중 오류가 발생했습니다.',
       };
       setSubmitError(map[result.error] ?? '오류가 발생했습니다.');
@@ -609,7 +609,7 @@ function CycleSection({
     return (
       <div className="flex-1 flex flex-col">
         <div className="text-sm text-muted-foreground py-3">
-          해지·만료된 구독은 주기를 변경할 수 없습니다.
+          해지 · 만료된 구독은 주기를 변경할 수 없습니다.
         </div>
         <div className="mt-auto pt-5 flex justify-end gap-2">
           <CancelButton onClick={onClose} disabled={false} label="닫기" />

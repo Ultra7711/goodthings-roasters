@@ -122,7 +122,7 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
           <DialogDescription asChild>
             <div className="text-xs text-muted-foreground flex items-center gap-1.5">
               <span className="gtr-mono text-[var(--primary)]">{orderNumber}</span>
-              <span className="text-[var(--foreground-subtle)]">·</span>
+              <span className="text-[var(--foreground-subtle)]"> · </span>
               <span>{customerName}</span>
             </div>
           </DialogDescription>

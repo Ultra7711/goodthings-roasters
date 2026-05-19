@@ -9,7 +9,7 @@
    - logCsvExportAudit (재귀 audit · 057 마이그 'audit' enum 답습)
 
    사용 사례:
-   - 정부·KISA 컴플라이언스 측 PII 조회 기록 제출 자료
+   - 정부 · KISA 컴플라이언스 측 PII 조회 기록 제출 자료
    - 분기별 외부 감사 첨부
 
    참조:
