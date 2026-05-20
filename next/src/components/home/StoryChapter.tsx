@@ -41,9 +41,9 @@ export default function StoryChapter() {
       {/* Stage 1 — cream · 텍스트 + 이미지 */}
       <div className="story-stage story-stage--cream" data-header-theme="light" data-sr>
         <div className="story-stage__inner">
-          <div className="story-img sr-img">
+          <Link href="/story" className="story-img sr-img" aria-label="스토리 보기">
             <div className="story-img__inner" />
-          </div>
+          </Link>
           <div className="story-txt">
             <span className="blk-label sr-txt sr-txt--d1" data-sr-eyebrow>The Story</span>
             <h2 className="story-h sr-txt sr-txt--d2">
@@ -55,8 +55,8 @@ export default function StoryChapter() {
               정직한 로스팅, 일관된 품질, 그리고 진심.<br />
               그것이 굳띵즈가 지켜온 단 하나의 기준입니다.
             </p>
-            <div className="sig-cta-row sr-txt sr-txt--d4">
-              <Link href="/story" className="sig-cta" data-gtr-tap>
+            <div className="story-cta-row sr-txt sr-txt--d4">
+              <Link href="/story" className="cta-btn cta-btn-light-outline" data-gtr-tap>
                 스토리 보기
               </Link>
             </div>

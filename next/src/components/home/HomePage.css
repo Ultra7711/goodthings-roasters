@@ -259,13 +259,14 @@
      @container 분기 기준. iframe 안 @container (banner-wrap) 와 동일 width
      기준으로 양쪽 BP 동시 매치 → 외부 frame ↔ iframe layout mismatch 0. */
   container-type: inline-size;
-  background: var(--color-surface-warm);
   width: 100%;
-  margin-bottom: 72px;
+  /* S241: 합산 80 — .ev-banner padding 24 + margin-bottom 56 = 80 (desktop). */
+  margin-bottom: 56px;
 }
 .ev-banner {
-  /* 위/아래 sand bg 만 노출 · 좌우는 iframe max-width 가 제어 */
-  padding: 32px 0;
+  /* S241: 합산 80 — cafe-menu-head bottom 56 + .ev-banner padding-top 24 = 80 (desktop).
+     아래도 동일 — .ev-banner padding-bottom 24 + margin-bottom 56 = 80. */
+  padding: 24px 0;
 }
 /* iframe — width 100% (viewport 풀블리드) · 컨텐츠 max-width 는 iframe 안 production
    HTML 의 .banner-text 가 처리 (max-width 1440 + padding 0 60 + margin auto, 메인
@@ -307,13 +308,15 @@
   /* S199 — padding-bot 40 = 72 - 32 (cafe-menu-split__items padding-bot 32 흡수).
      cmsplit-desc → Story story-stage__inner 시각 = 32 + 40 + 72 = 144 (다른 섹션 정합). */
   .cafe-menu-blk { padding-bottom: 40px; }
+  /* S241: 합산 80 — head bottom 40 + .ev-banner padding-top 40 = 80. 아래도 동일. */
   .ev-banner-bleed { margin-bottom: 40px; }
-  .ev-banner { padding: 22px 0; }
+  .ev-banner { padding: 40px 0; }
 }
 @media (max-width: 1023px) and (min-width: 768px) {
   .cafe-menu-head { padding: 96px 48px 48px; }
-  .ev-banner-bleed { margin-bottom: 56px; }
-  .ev-banner { padding: 28px 0; }
+  /* S241: 합산 80 — head bottom 48 + .ev-banner padding-top 32 = 80. 아래 = padding 32 + margin 48 = 80. */
+  .ev-banner-bleed { margin-bottom: 48px; }
+  .ev-banner { padding: 32px 0; }
 }
 /* ── PR-1c 카페 메뉴 split (매장 사진 + 시그니처 3종 / S150 사용자 커스텀) ──
    max-width 1440 = home 섹션 표준 (.two-col / .gooddays-sec / .phil / .hdr 등과 정합)
@@ -455,10 +458,8 @@
   .cafe-menu-split__items { padding: 0 0 0 40px; gap: 20px; }
   .cmsplit-row { gap: 20px; }
 }
-/* S152 — 태블릿+모바일 MenuTab 숨김 (사진 전체 클릭으로 /menu 진입) */
-@media (max-width: 1023px) {
-  .menu-tab { display: none; }
-}
+/* S241: 태블릿+모바일 MenuTab 표시 유지 (S152 숨김 해제 — 사용자 결정).
+   사진 전체 클릭(.cmsplit-photo-link)도 그대로 유효 — MenuTab z-index 2 보다 아래. */
 @media (max-width: 767px) {
   .cafe-menu-split { grid-template-columns: 1fr; padding: 0 24px; }
   .cafe-menu-split__photo { aspect-ratio: 4/3; }
@@ -579,6 +580,10 @@
   aspect-ratio: 3/2;
   width: 100%;
   overflow: hidden;
+  /* S241: <div> → <a> (Link) 전환 — block 보장 + 링크 색/밑줄 제거. */
+  display: block;
+  text-decoration: none;
+  color: inherit;
 }
 .story-img__inner {
   position: absolute;
@@ -613,6 +618,10 @@
   line-height: 24px;
   color: var(--color-text-secondary);
   margin: 0;
+}
+/* S241: CTA row — body 텍스트와 32px 간격 (--space-8) */
+.story-cta-row {
+  margin-top: 32px;
 }
 
 /* Stage 2 — GoodDays head + grid */
@@ -790,18 +799,24 @@
 
 /* ══ Lineup (V2 §2.3 전체 라인업 — 원두 2 + 드립백 4 2행 그리드) ══ */
 .lineup-blk {
-  padding: 120px 0;
+  /* S241: padding-top 120 → 48 — 시그니처 배너 아래 합산 80 (.sig-section bottom 32 + 48). */
+  padding: 48px 0 120px;
   display: flex;
   flex-direction: column;
   gap: 80px;
   /* S203 후속 — wrapper light bg 명시. */
   background: var(--color-background-primary);
 }
+@media (max-width: 1023px) and (min-width: 768px) {
+  /* S241: tablet 합산 80 — .sig-section bottom 28 + .lineup-blk top 52 = 80. */
+  .lineup-blk { padding-top: 52px; }
+}
 @media (max-width: 767px) {
   /* S199 — 모바일 전체 80 → 72 통일 (사용자 결정 — top 120 도 72 로).
      padding-bot 44 = 72 - 28 (sp-card-info padding-bot 흡수).
-     가격 텍스트 → Cafe Menu eyebrow 시각 = 28 + 44 + 72 = 144 (다른 섹션 정합). */
-  .lineup-blk { padding: 72px 0 44px; gap: 60px; }
+     가격 텍스트 → Cafe Menu eyebrow 시각 = 28 + 44 + 72 = 144 (다른 섹션 정합).
+     S241: padding-top 72 → 58 — 시그니처 배너 아래 합산 80 (.sig-section bottom 22 + 58). */
+  .lineup-blk { padding: 58px 0 44px; gap: 60px; }
 }
 
 .lineup-row {
