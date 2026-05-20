@@ -348,30 +348,15 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
             );
           })}
 
-          {/* Wholesale: 별도 그룹 (NAV 다음 32px 간격, 기존 위계 유지) */}
+          {/* Wholesale: 별도 그룹 (NAV 4종 다음 32px 간격, 메인 4종과 동일 폰트·정렬).
+              FAQ 는 S243 에서 footer legal 영역으로 이관. */}
           <Link
             href="/biz-inquiry"
-            className="mn-account-link"
+            className="mn-sub-link"
             onClick={handleWholesaleClick}
             data-gtr-tap
           >
             Wholesale
-            <span className="mn-link-arrow" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4,24h34"/>
-                <path d="M24,10l14,14-14,14"/>
-              </svg>
-            </span>
-          </Link>
-
-          {/* FAQ: Wholesale 아래 동일 그룹 */}
-          <Link
-            href="/legal/payment-faq"
-            className="mn-account-link"
-            onClick={(e) => handleLegalClick(e, '/legal/payment-faq')}
-            data-gtr-tap
-          >
-            FAQ
             <span className="mn-link-arrow" aria-hidden="true">
               <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4,24h34"/>
@@ -409,6 +394,14 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
               onClick={(e) => handleLegalClick(e, '/legal/privacy')}
             >
               개인정보처리방침
+            </Link>
+            <span className="mn-f-sep">·</span>
+            <Link
+              href="/legal/payment-faq"
+              className="mn-f-legal"
+              onClick={(e) => handleLegalClick(e, '/legal/payment-faq')}
+            >
+              FAQ
             </Link>
           </div>
           <div

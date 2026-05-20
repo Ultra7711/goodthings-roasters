@@ -94,7 +94,10 @@
   background: var(--color-text-primary);
   color: var(--color-background-primary);
 }
-.mn-account-link {
+/* ── 부가 메뉴 (Wholesale) — NAV 4종 다음 별도 그룹 (S243) ──
+   폰트·들여쓰기는 메인 4종 (.mn-link) 와 동일. 32px margin-top 으로 그룹 분리만.
+   B2B inquiry entry 가시성 유지. FAQ 는 footer legal 영역으로 이관. */
+.mn-sub-link {
   font-family: var(--font-en);
   font-size: var(--type-h3-size);
   font-weight: 400;
@@ -110,7 +113,7 @@
   align-items: center;
   gap: 8px;
 }
-.mn-account-link:hover { opacity: 1; }
+.mn-sub-link:hover { opacity: 1; }
 /* ── 로그인 identity 카드 (BUG-140 · S77) ──
    3그룹 구조: 그룹1 (welcome + 마이페이지|로그아웃) · 그룹2 (NAV 4개) · 그룹3 (Wholesale).
    그룹 간 32px 분리: user-wrap margin-bottom 32 (= Wholesale margin-top 32 와 동일 패턴).
@@ -264,14 +267,14 @@
    duration 만 var(--duration-hover) 200ms 로 단축 (기존 600ms → 200ms).
    마이페이지 inline 은 width 0→24 펼쳐짐 패턴 — 둘 다 "펼쳐짐" 효과로 통일 (BUG-140 · S77). */
 .mn-link:hover .mn-link-arrow,
-.mn-account-link:hover .mn-link-arrow {
+.mn-sub-link:hover .mn-link-arrow {
   opacity: 1;
   transition: opacity var(--duration-hover) ease;
   animation: cat-arrow-slide var(--duration-hover) ease-out;
 }
 /* 모바일 탭 피드백 (TouchHoverGuard [data-gtr-tap] 패턴): --duration-tap 350ms 로 통일 */
 .mn-link.is-tapping .mn-link-arrow,
-.mn-account-link.is-tapping .mn-link-arrow {
+.mn-sub-link.is-tapping .mn-link-arrow {
   opacity: 1;
   transition: opacity var(--duration-tap) ease;
   animation: cat-arrow-slide var(--duration-tap) ease-out;
