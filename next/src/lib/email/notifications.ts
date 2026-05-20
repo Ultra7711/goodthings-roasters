@@ -19,6 +19,10 @@ import { renderWelcomeEmail } from './templates/welcomeEmail';
 import { renderOrderConfirmationEmail } from './templates/orderConfirmationEmail';
 import { renderShippingNotificationEmail } from './templates/shippingNotificationEmail';
 import { renderNewsletterWelcomeEmail } from './templates/newsletterWelcomeEmail';
+import {
+  renderBizInquiryNotificationEmail,
+  type BizInquiryNotificationProps,
+} from './templates/bizInquiryNotificationEmail';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import type { DbPaymentMethod, EasypayProvider } from '@/types/db';
 
@@ -155,6 +159,51 @@ export async function sendNewsletterWelcomeEmail(
     }
   } catch (err) {
     console.error('[notifications] sendNewsletterWelcomeEmail unexpected error', err);
+  }
+}
+
+/**
+ * B2B 비즈니스 문의 운영자 알림 메일 (S243-A-2).
+ * submitBizInquiry 성공 후 fire-and-forget 호출.
+ * 수신자: BIZ_INQUIRY_TO → RESEND_REPLY_TO → RESEND_FROM_EMAIL 순으로 폴백.
+ * 미설정 시 console.error 후 skip (구독 success 자체는 막지 않음 — Newsletter 정신 답습).
+ *
+ * @param inquiryId DB record id — idempotencyKey 용
+ * @param props 메일 본문 데이터 (label 변환 완료 상태)
+ */
+export async function sendBizInquiryNotificationEmail(
+  inquiryId: string,
+  props: BizInquiryNotificationProps,
+): Promise<void> {
+  try {
+    const to =
+      process.env.BIZ_INQUIRY_TO?.trim() ||
+      process.env.RESEND_REPLY_TO?.trim() ||
+      process.env.RESEND_FROM_EMAIL?.trim();
+    if (!to) {
+      console.error(
+        '[notifications] sendBizInquiryNotificationEmail: no recipient configured',
+        '(set BIZ_INQUIRY_TO or RESEND_REPLY_TO or RESEND_FROM_EMAIL)',
+      );
+      return;
+    }
+    const { subject, html, text } = renderBizInquiryNotificationEmail(props);
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      text,
+      replyTo: props.email,
+      idempotencyKey: `biz-inquiry:${inquiryId}`,
+    });
+    if (!result.ok) {
+      console.error('[notifications] sendBizInquiryNotificationEmail FAIL', {
+        code: result.error.code,
+        inquiryId,
+      });
+    }
+  } catch (err) {
+    console.error('[notifications] sendBizInquiryNotificationEmail unexpected error', err);
   }
 }
 

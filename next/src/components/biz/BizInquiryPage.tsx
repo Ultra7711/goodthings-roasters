@@ -25,6 +25,7 @@
 'use client';
 
 import './BizInquiryPage.css';
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { shakeFields } from '@/lib/shakeFields';
@@ -33,6 +34,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { useInputNav } from '@/hooks/useInputNav';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
 import { isValidEmail } from '@/lib/validation';
+import { submitBizInquiry } from '@/lib/bizSubmit';
 import {
   BIZ_TYPE_OPTIONS,
   BIZ_VOLUME_OPTIONS,
@@ -81,11 +83,11 @@ const INITIAL_FORM: FormState = {
   message: '',
 };
 
-/* warn 상태 키 — 필수 필드 6 개 + 업종 드롭다운 */
-type WarnKey = 'name' | 'email' | 'phone' | 'company' | 'address' | 'message' | 'type';
+/* warn 상태 키 — 필수 필드 6 개 + 업종 드롭다운 + 개인정보 동의 (S243-A-2) */
+type WarnKey = 'name' | 'email' | 'phone' | 'company' | 'address' | 'message' | 'type' | 'consent';
 /** handleTextChange에서 warn 해제 대상 키 집합 */
 const WARN_CLEARABLE_KEYS = new Set<WarnKey>(['name', 'email', 'phone', 'company', 'address', 'message']);
-const REQUIRED_TEXT_FIELDS: { key: Exclude<WarnKey, 'type'>; label: string }[] = [
+const REQUIRED_TEXT_FIELDS: { key: Exclude<WarnKey, 'type' | 'consent'>; label: string }[] = [
   { key: 'name', label: '고객명' },
   { key: 'email', label: '이메일' },
   { key: 'phone', label: '전화번호' },
@@ -100,6 +102,8 @@ export default function BizInquiryPage() {
 
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [warns, setWarns] = useState<Set<WarnKey>>(new Set());
+  const [consent, setConsent] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [phoneHelper, setPhoneHelper] = useState<{ text: string; warn: boolean }>({
     text: '전화번호를 입력하세요.',
     warn: false,
@@ -143,6 +147,7 @@ export default function BizInquiryPage() {
     setPhoneHelper({ text: '전화번호를 입력하세요.', warn: false });
     setRegHelper({ text: '예: 123-45-67890', warn: false });
     setOpenDropdown(null);
+    setConsent(false);
   }, []);
 
   /* SiteHeader 의 Wholesale 링크 재클릭 시 발송되는 'gtr:biz-reset' 수신
@@ -247,32 +252,71 @@ export default function BizInquiryPage() {
     if (field === 'type') clearWarn('type');
   }
 
-  /* 제출 — 필수 검증 + showToast + 리셋 */
-  function handleSubmit() {
+  /* 제출 (S243-A-2) — 검증 + submitBizInquiry server action + 로딩/에러 처리. */
+  async function handleSubmit() {
+    if (isSubmitting) return;
+
     const next = new Set<WarnKey>();
     REQUIRED_TEXT_FIELDS.forEach(({ key }) => {
       if (!form[key].trim()) next.add(key);
     });
     if (!form.type) next.add('type');
+    if (!consent) next.add('consent');
 
     setWarns(next);
 
     if (next.size > 0) {
-      /* shake + 첫 에러로 스크롤 — DOM 쿼리 후 비동기 (setState 반영 대기) */
+      /* shake + 첫 에러로 스크롤. consent 미체크는 .bi-consent-warn 도 포함. */
       requestAnimationFrame(() => {
         shakeFields(bodyRef.current);
-        /* TextField → .chp-field.input-warn / BiDropdown → .bi-input-warn */
         const first = bodyRef.current?.querySelector(
-          '.chp-field.input-warn, .bi-input-warn',
+          '.chp-field.input-warn, .bi-input-warn, .bi-consent-warn',
         );
         if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
       return;
     }
 
-    show('문의가 접수되었습니다. 확인 후 빠르게 연락드리겠습니다.', 3500);
-    resetForm();
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    setIsSubmitting(true);
+    try {
+      const result = await submitBizInquiry({
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        company: form.company,
+        bizType: form.type,
+        address: form.address,
+        regNum: form.regNum,
+        equipment: form.equipment,
+        currentBean: form.currentBean,
+        products: form.products,
+        monthlyVolume: form.volume,
+        deliveryCycle: form.cycle,
+        message: form.message,
+        consent: true,
+      });
+
+      if (!result.ok) {
+        const baseMsg =
+          result.error === 'invalid_consent'
+            ? '개인정보 수집·이용 동의가 필요합니다.'
+            : result.error === 'invalid_input'
+              ? '입력값을 확인해 주세요.'
+              : '문의 전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+        const msg = result.detail ? `${baseMsg} [DEV] ${result.detail}` : baseMsg;
+        show(msg, 5000);
+        return;
+      }
+
+      show('문의가 접수되었습니다. 확인 후 빠르게 연락드리겠습니다.', 3500);
+      resetForm();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    } catch (err) {
+      console.error('[biz-inquiry] submit unexpected error', err);
+      show('네트워크 오류로 전송에 실패했습니다. 다시 시도해 주세요.', 3500);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   /* Enter 키 다음 필드 이동 — useInputNav 훅 사용 (chp-input / select 순회) */
@@ -454,20 +498,53 @@ export default function BizInquiryPage() {
             onChange={(v) => handleTextChange('message', v)}
             onClear={() => handleTextChange('message', '')}
           />
+
+          {/* 개인정보 수집·이용 동의 (PIPA 필수 · S243-A-2) */}
+          <label
+            className={`bi-consent-row${warns.has('consent') ? ' bi-consent-warn' : ''}`}
+          >
+            <input
+              type="checkbox"
+              className="bi-consent-input"
+              checked={consent}
+              onChange={(e) => {
+                setConsent(e.target.checked);
+                if (e.target.checked) {
+                  setWarns((prev) => {
+                    if (!prev.has('consent')) return prev;
+                    const next = new Set(prev);
+                    next.delete('consent');
+                    return next;
+                  });
+                }
+              }}
+            />
+            <span className="bi-consent-text">
+              비즈니스 문의 처리를 위한{' '}
+              <Link
+                href="/legal/privacy"
+                className="bi-consent-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                개인정보 수집·이용
+              </Link>
+              에 동의합니다.
+            </span>
+          </label>
+
           {/* 폼 최하단에서 Enter 네비게이션 타겟이 없어도 OK */}
           <button
             className="bi-submit-btn"
             id="bi-submit-btn"
             type="button"
             onClick={handleSubmit}
+            disabled={isSubmitting}
             data-gtr-tap
           >
-            문의 보내기
+            {isSubmitting ? '전송 중...' : '문의 보내기'}
           </button>
-          <p id="bi-privacy-note">제출 시 개인정보 처리방침에 동의하게 됩니다.</p>
-          <div id="bi-privacy-link-wrap">
-            <span className="bi-privacy-link">개인정보 처리방침</span>
-          </div>
         </FormSection>
       </div>
     </div>

@@ -1,9 +1,10 @@
 /* ══════════════════════════════════════════
-   Biz Inquiry 페이지 데이터
-   프로토타입 #biz-inquiry-page (L1055~1210, L10047~10070) 그대로 이식.
-   - 드롭다운 옵션 3종 (업종 / 월 사용량 / 납품 주기)
-   - 관심 제품 체크박스 6종
-   - 폼 섹션 라벨 5종
+   Biz Inquiry 페이지 데이터 + Submit server action
+
+   S243-A-2 확장:
+   - submitBizInquiry server action — biz_inquiries DB INSERT + 운영자 알림 메일
+     (Resend · sendBizInquiryNotificationEmail · fire-and-forget)
+   - Newsletter Phase 3 (S241 · lib/newsletter.ts) 답습 패턴.
    ══════════════════════════════════════════ */
 
 export type BizDropdownOption = { value: string; label: string };
@@ -47,3 +48,5 @@ export const BIZ_PRODUCT_OPTIONS: BizDropdownOption[] = [
   { value: 'oem', label: 'OEM / ODM' },
   { value: 'retail', label: '리테일 패키지' },
 ];
+
+

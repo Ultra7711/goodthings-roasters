@@ -306,6 +306,47 @@
   text-overflow: ellipsis;
 }
 
+/* ── 개인정보 수집·이용 동의 (PIPA · S243-A-2) ── */
+.bi-consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0 24px;
+  cursor: pointer;
+  user-select: none;
+}
+.bi-consent-input {
+  flex-shrink: 0;
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-btn-primary-bg);
+}
+.bi-consent-text {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+.bi-consent-warn .bi-consent-text {
+  color: var(--color-error);
+}
+.bi-consent-link {
+  color: var(--text-link-color);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  font-weight: var(--text-link-font-weight);
+  transition: color var(--duration-hover) ease,
+              text-decoration-color var(--duration-hover) ease;
+}
+.bi-consent-link:hover {
+  color: var(--color-accent-gold);
+  text-decoration-color: var(--color-accent-gold);
+}
+
 /* ── 제출 버튼 ── */
 .bi-submit-btn {
   display: flex;
@@ -322,7 +363,7 @@
   font-size: var(--btn-font-size);
   font-weight: var(--btn-font-weight);
   letter-spacing: var(--btn-letter-spacing);
-  transition: background 200ms ease;
+  transition: background 200ms ease, opacity 200ms ease;
   margin-bottom: 36px;
 }
 .bi-submit-btn:not(:disabled):hover {
@@ -331,37 +372,9 @@
 .bi-submit-btn:not(:disabled):active {
   background: var(--color-btn-primary-bg-active);
 }
-
-/* ── 개인정보 안내 ── */
-#bi-privacy-note {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  color: var(--color-text-secondary);
-  text-align: center;
-  margin-top: 0;
-  line-height: var(--lh-normal);
-}
-#bi-privacy-link-wrap {
-  text-align: center;
-  margin-top: 8px;
-}
-.bi-privacy-link {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: var(--text-link-font-weight);
-  letter-spacing: var(--text-link-letter-spacing);
-  color: var(--text-link-color);
-  cursor: pointer;
-  line-height: 1;
-  text-decoration: underline;
-  text-decoration-color: var(--color-border-primary);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
-}
-.bi-privacy-link:hover {
-  color: var(--color-accent-gold);
-  text-decoration-color: var(--color-accent-gold);
+.bi-submit-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* ══ BizInquiry — Laptop/Tablet (≤1024) + Mobile (≤767) 정규화 ══
