@@ -72,7 +72,7 @@ export function renderNewsletterWelcomeEmail(
           <!-- 본문 -->
           <tr>
             <td align="left" style="padding:0 40px 32px;">
-              <p style="margin:0;font-size:16px;color:#6B6963;line-height:1.75;text-align:left;">
+              <p style="margin:0;font-size:16px;color:#4A4844;line-height:1.75;text-align:left;">
                 뉴스레터를 신청해 주셔서 감사합니다. 시즌 원두 출시, 매장 소식, 정기배송 안내를 가장 먼저 받아보실 수 있습니다.
               </p>
             </td>
@@ -106,17 +106,17 @@ export function renderNewsletterWelcomeEmail(
           <!-- 푸터 -->
           <tr>
             <td align="left" style="padding:28px 40px 48px;">
-              <p style="margin:0;font-size:13px;color:#A8A49E;line-height:1.85;text-align:left;">
+              <p style="margin:0;font-size:13px;color:#4A4844;line-height:1.5;text-align:left;">
                 문의 사항이 있으시면 이 메일에 회신하시거나
-                <a href="mailto:${esc(CONTACT_EMAIL)}" style="color:#6B6963;text-decoration:none;">${esc(CONTACT_EMAIL)}</a>
+                <a href="mailto:${esc(CONTACT_EMAIL)}" style="color:#000000;text-decoration:none;font-weight:600;">${esc(CONTACT_EMAIL)}</a>
                 으로 연락 주시기 바랍니다.
               </p>
-              <p style="margin:14px 0 0;font-size:13px;color:#A8A49E;line-height:1.85;text-align:left;">
+              <p style="margin:8px 0 0;font-size:13px;color:#4A4844;line-height:1.5;text-align:left;">
                 뉴스레터 수신을 원하지 않으시면
-                <a href="${unsubscribeUrl}" style="color:#6B6963;text-decoration:none;">구독 취소</a>
+                <a href="${unsubscribeUrl}" style="color:#000000;text-decoration:none;font-weight:600;">구독 취소</a>
                 를 눌러주세요.
               </p>
-              <p style="margin:24px 0 0;font-size:12px;color:#C4C0B9;line-height:1.7;text-align:left;">
+              <p style="margin:12px 0 0;font-size:12px;color:#4A4844;line-height:1.5;text-align:left;">
                 © ${new Date().getFullYear()} Good Things Roasters
               </p>
             </td>

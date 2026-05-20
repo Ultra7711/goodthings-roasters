@@ -125,6 +125,10 @@ export default async function SignatureChapterView({
         className="blk sig-section"
         data-header-theme="light"
         data-sr
+        /* S241: SRInitializer 의 useEffect 안 classList.add('sr--visible') 이
+           Router Cache / bfcache restore 시점에 server HTML 과 어긋나는 dev-only
+           race (S236 진단 · production 영향 0). React 에 mismatch 경고 무시 지시. */
+        suppressHydrationWarning
       >
         {/* SEO/a11y 메타 텍스트 — iframe srcDoc 안 텍스트는 별도 document 라
             검색엔진/스크린리더 진입이 약함. iframe 외부에 sr-only 로 동일 텍스트

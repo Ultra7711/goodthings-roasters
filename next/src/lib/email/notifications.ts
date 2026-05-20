@@ -18,6 +18,7 @@ import { sendEmail } from './sendEmail';
 import { renderWelcomeEmail } from './templates/welcomeEmail';
 import { renderOrderConfirmationEmail } from './templates/orderConfirmationEmail';
 import { renderShippingNotificationEmail } from './templates/shippingNotificationEmail';
+import { renderNewsletterWelcomeEmail } from './templates/newsletterWelcomeEmail';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import type { DbPaymentMethod, EasypayProvider } from '@/types/db';
 
@@ -125,6 +126,35 @@ export async function sendWelcomeEmail(to: string, name?: string): Promise<void>
     }
   } catch (err) {
     console.error('[notifications] sendWelcomeEmail unexpected error', err);
+  }
+}
+
+/**
+ * Newsletter 구독 환영 메일 (S241 Phase 3).
+ * subscribeNewsletter 성공 후 fire-and-forget 호출.
+ * unsubscribeToken 은 client 측에서 미리 생성 (anon RLS SELECT 권한 없음 우회).
+ */
+export async function sendNewsletterWelcomeEmail(
+  to: string,
+  unsubscribeToken: string,
+): Promise<void> {
+  try {
+    const { subject, html, text } = renderNewsletterWelcomeEmail({ unsubscribeToken });
+    const safeKey = to.toLowerCase().replace(/[^a-z0-9._\-]/g, '_').slice(0, 120);
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      text,
+      idempotencyKey: `newsletter-welcome:${safeKey}`,
+    });
+    if (!result.ok) {
+      console.error('[notifications] sendNewsletterWelcomeEmail FAIL', {
+        code: result.error.code,
+      });
+    }
+  } catch (err) {
+    console.error('[notifications] sendNewsletterWelcomeEmail unexpected error', err);
   }
 }
 

@@ -19,8 +19,10 @@
    - Phase 3: admin 발송 (Resend · /admin/newsletter)
    ══════════════════════════════════════════════════════════════════════════ */
 
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
+import { sendNewsletterWelcomeEmail } from '@/lib/email/notifications';
 
 const emailSchema = z.string().trim().toLowerCase().email();
 
@@ -40,10 +42,16 @@ export async function subscribeNewsletter(
     data: { user },
   } = await supabase.auth.getUser();
 
+  /* unsubscribe_token 을 client 측에서 미리 생성 — anon RLS 상 SELECT 권한 없어
+     INSERT 후 RETURNING/SELECT 로 token 받을 수 없음. UUID v4 추측 불가능하므로
+     server 측 default(gen_random_uuid()) 와 동등한 보안. */
+  const unsubscribeToken = randomUUID();
+
   const { error } = await supabase.from('newsletter_subscribers').insert({
     email,
     user_id: user?.id ?? null,
     source: 'newsletter_form',
+    unsubscribe_token: unsubscribeToken,
   });
 
   if (error) {
@@ -55,6 +63,9 @@ export async function subscribeNewsletter(
     console.error('[newsletter] subscribe failed', error);
     return { ok: false, error: 'db_error' };
   }
+
+  /* Welcome 메일 발송 — fire-and-forget. 발송 실패는 구독 success 자체를 막지 않음. */
+  void sendNewsletterWelcomeEmail(email, unsubscribeToken);
 
   return { ok: true };
 }

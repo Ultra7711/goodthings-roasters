@@ -22,6 +22,7 @@ import {
   Coffee,
   Image as ImageIcon,
   LayoutTemplate,
+  Mail,
   Megaphone,
   Package2,
   PanelLeftClose,
@@ -70,7 +71,10 @@ function buildNavGroups(adminLevel: 'owner' | 'staff'): NavGroup[] {
     },
     {
       label: '인사이트',
-      items: [{ href: '/admin/analytics', label: '통계', icon: BarChart3 }],
+      items: [
+        { href: '/admin/analytics', label: '통계', icon: BarChart3 },
+        { href: '/admin/newsletter', label: '뉴스레터', icon: Mail },
+      ],
     },
     {
       label: '설정',
