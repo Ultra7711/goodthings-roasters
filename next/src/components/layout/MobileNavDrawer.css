@@ -142,7 +142,7 @@
 .mn-account-row {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: baseline;
   gap: var(--gap-sm);
   padding: 16px 0;
   min-height: 44px;
@@ -164,6 +164,25 @@
   transition: color var(--duration-hover) ease;
 }
 .mn-account-link-inline:hover { color: var(--color-text-primary); }
+/* 로그아웃 인라인 = MyPage HeroGreeting `.mp-hero-logout` 답습 (S242).
+   body-m + 500 + ls-button + underline 1px border-primary + offset 4 + hover gold.
+   parent .mn-account-row align-items: baseline 으로 마이페이지 (h3) 와 baseline 정렬. */
+.mn-account-link-inline.mn-logout-btn-inline {
+  font-size: var(--type-body-m-size);
+  font-weight: var(--text-link-font-weight);
+  letter-spacing: var(--text-link-letter-spacing);
+  color: var(--text-link-color);
+  line-height: 1;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
+}
+.mn-account-link-inline.mn-logout-btn-inline:hover {
+  color: var(--color-accent-gold);
+  text-decoration-color: var(--color-accent-gold);
+}
 /* inline 화살표: 평상시 width 0 → 호버 시 24px 펼쳐짐 (옆 텍스트 자연 밀림).
    compound 셀렉터로 specificity 0,2,0 → base .mn-link-arrow (0,1,0) 의 width 24px 덮음.
    duration·easing 은 NAV `.mn-link-arrow` 와 동일 (var(--duration-hover) 200ms ease). */
