@@ -209,7 +209,8 @@
   color: var(--color-text-primary);
   transition: background var(--duration-hover) ease;
 }
-.bi-dropdown-option:hover {
+.bi-dropdown-option:hover,
+.bi-dropdown-option[data-focused='true'] {
   background: var(--color-background-secondary);
 }
 .bi-dropdown-option.active {

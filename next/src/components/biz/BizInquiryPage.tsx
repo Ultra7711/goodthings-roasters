@@ -33,7 +33,7 @@ import { TextField } from '@/components/ui/TextField';
 import { Textarea } from '@/components/ui/Textarea';
 import { useInputNav } from '@/hooks/useInputNav';
 import { usePhoneFormat } from '@/hooks/usePhoneFormat';
-import { isValidEmail } from '@/lib/validation';
+import { isValidEmail, isValidKoreanBizRegNum } from '@/lib/validation';
 import { submitBizInquiry } from '@/lib/bizSubmit';
 import {
   BIZ_TYPE_OPTIONS,
@@ -87,6 +87,9 @@ const INITIAL_FORM: FormState = {
 type WarnKey = 'name' | 'email' | 'phone' | 'company' | 'address' | 'message' | 'type' | 'consent';
 /** handleTextChange에서 warn 해제 대상 키 집합 */
 const WARN_CLEARABLE_KEYS = new Set<WarnKey>(['name', 'email', 'phone', 'company', 'address', 'message']);
+/* localStorage 임시 저장 key (S243-B). 페이지 이탈 후 복원. */
+const DRAFT_STORAGE_KEY = 'gtr:biz-inquiry-draft';
+
 const REQUIRED_TEXT_FIELDS: { key: Exclude<WarnKey, 'type' | 'consent'>; label: string }[] = [
   { key: 'name', label: '고객명' },
   { key: 'email', label: '이메일' },
@@ -140,7 +143,7 @@ export default function BizInquiryPage() {
     };
   }, [openDropdown]);
 
-  /* 폼 리셋 */
+  /* 폼 리셋 — localStorage draft 도 클리어 (S243-B) */
   const resetForm = useCallback(() => {
     setForm(INITIAL_FORM);
     setWarns(new Set());
@@ -148,7 +151,46 @@ export default function BizInquiryPage() {
     setRegHelper({ text: '예: 123-45-67890', warn: false });
     setOpenDropdown(null);
     setConsent(false);
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch {
+      /* localStorage 비활성/full 등 — 무시 */
+    }
   }, []);
+
+  /* localStorage 복원 (S243-B) — mount 1회만. 'use client' 라 SSR 영향 없음.
+     Activity preserve (page navigate 갔다 돌아오기) 시엔 component state 가 유지되어
+     이 effect 가 다시 실행되지 않음 → 중복 덮어쓰기 없음. */
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as {
+        form?: Partial<FormState>;
+        consent?: boolean;
+      };
+      if (saved.form) setForm((prev) => ({ ...prev, ...saved.form }));
+      if (saved.consent === true) setConsent(true);
+    } catch {
+      /* parse 실패 / disabled — 무시 */
+    }
+  }, []);
+
+  /* localStorage 저장 (S243-B) — form 또는 consent 변경 시 즉시 저장.
+     INITIAL_FORM 상태(빈 폼) + consent=false 일 땐 저장 안 함 (불필요한 쓰기 회피). */
+  useEffect(() => {
+    const isEmpty =
+      !consent &&
+      Object.entries(form).every(([, v]) =>
+        Array.isArray(v) ? v.length === 0 : v === '',
+      );
+    if (isEmpty) return;
+    try {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ form, consent }));
+    } catch {
+      /* quota 초과 / disabled — 무시 */
+    }
+  }, [form, consent]);
 
   /* SiteHeader 의 Wholesale 링크 재클릭 시 발송되는 'gtr:biz-reset' 수신
      → 스크롤 top + 폼 리셋 (samepage_reentry_animation 패턴) */
@@ -232,8 +274,14 @@ export default function BizInquiryPage() {
 
   function handleRegBlur() {
     const digits = form.regNum.replace(/\D/g, '');
-    if (digits.length > 0 && digits.length < 10) {
+    if (digits.length === 0) return;
+    if (digits.length < 10) {
       setRegHelper({ text: '사업자등록번호 10자리를 입력하세요.', warn: true });
+      return;
+    }
+    /* S243-B: 10자리 입력 완료 후 국세청 체크섬 알고리즘 검증 */
+    if (!isValidKoreanBizRegNum(form.regNum)) {
+      setRegHelper({ text: '사업자등록번호 형식이 올바르지 않습니다.', warn: true });
     }
   }
 
@@ -587,6 +635,62 @@ function BiDropdown({
 }: BiDropdownProps) {
   const selectedLabel = options.find((o) => o.value === value)?.label ?? '';
   const hasValue = !!value;
+  /* S243-B 키보드 접근성: ArrowUp/Down 으로 옵션 이동, Enter/Space 로 선택,
+     ESC/Tab 으로 닫기. aria-activedescendant 로 active option 식별. */
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const listboxId = `${id}-listbox`;
+  const optionId = (idx: number) => `${id}-option-${idx}`;
+
+  useEffect(() => {
+    if (open) {
+      const idx = options.findIndex((o) => o.value === value);
+      setFocusedIndex(idx >= 0 ? idx : 0);
+    } else {
+      setFocusedIndex(-1);
+    }
+  }, [open, options, value]);
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    if (!open) {
+      if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onToggle();
+      }
+      return;
+    }
+    switch (e.key) {
+      case 'Escape':
+        e.preventDefault();
+        onToggle();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex((i) => (i < 0 ? 0 : (i + 1) % options.length));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex((i) => (i <= 0 ? options.length - 1 : i - 1));
+        break;
+      case 'Home':
+        e.preventDefault();
+        setFocusedIndex(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        setFocusedIndex(options.length - 1);
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (focusedIndex >= 0) onSelect(options[focusedIndex].value);
+        break;
+      case 'Tab':
+        /* close 만 — browser default focus 이동 유지 */
+        onToggle();
+        break;
+    }
+  }
+
   return (
     <div
       id={`${id}-field`}
@@ -594,7 +698,19 @@ function BiDropdown({
         hasValue ? ' has-value' : ''
       }${warn ? ' bi-input-warn' : ''}`}
     >
-      <button className="bi-dropdown-trigger" type="button" onClick={onToggle}>
+      <button
+        className="bi-dropdown-trigger"
+        type="button"
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-controls={listboxId}
+        aria-activedescendant={
+          open && focusedIndex >= 0 ? optionId(focusedIndex) : undefined
+        }
+        onClick={onToggle}
+        onKeyDown={handleKeyDown}
+      >
         <span className="bi-dropdown-value">{selectedLabel}</span>
         <svg
           className="bi-dropdown-arrow"
@@ -612,12 +728,17 @@ function BiDropdown({
         </svg>
       </button>
       <label className="bi-floating-label">{label}</label>
-      <div className="bi-dropdown-list">
+      <div className="bi-dropdown-list" role="listbox" id={listboxId}>
         <div className="bi-dropdown-title">{placeholderTitle}</div>
-        {options.map((opt) => (
+        {options.map((opt, idx) => (
           <div
             key={opt.value}
+            id={optionId(idx)}
+            role="option"
+            aria-selected={opt.value === value}
+            data-focused={focusedIndex === idx ? 'true' : undefined}
             className={`bi-dropdown-option${opt.value === value ? ' active' : ''}`}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => onSelect(opt.value)}
           >
             {opt.label}
@@ -655,6 +776,67 @@ function BiMultiDropdown({
     .map((o) => o.label)
     .join(', ');
   const hasValue = values.length > 0;
+  /* S243-B 키보드 접근성: single 과 동일하나 Enter/Space 는 toggle 후 close 하지 않음
+     (multi-select 특성). ESC/Tab 만 close. */
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const listboxId = `${id}-listbox`;
+  const optionId = (idx: number) => `${id}-option-${idx}`;
+
+  /* multi 는 Enter 후에도 열린 상태 유지 — values 변경 시 focusedIndex 가 reset 되지
+     않도록 functional setter 로 valid 한 prev 보존 (S243-B fix). */
+  useEffect(() => {
+    if (!open) {
+      setFocusedIndex(-1);
+      return;
+    }
+    setFocusedIndex((prev) => {
+      if (prev >= 0 && prev < options.length) return prev;
+      const firstChecked = options.findIndex((o) => values.includes(o.value));
+      return firstChecked >= 0 ? firstChecked : 0;
+    });
+  }, [open, options, values]);
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    if (!open) {
+      if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onToggle();
+      }
+      return;
+    }
+    switch (e.key) {
+      case 'Escape':
+        e.preventDefault();
+        onToggle();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex((i) => (i < 0 ? 0 : (i + 1) % options.length));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex((i) => (i <= 0 ? options.length - 1 : i - 1));
+        break;
+      case 'Home':
+        e.preventDefault();
+        setFocusedIndex(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        setFocusedIndex(options.length - 1);
+        break;
+      case 'Enter':
+      case ' ':
+        /* multi: toggle 만, close 안 함. focusedIndex 위치 유지 (useEffect functional setter). */
+        e.preventDefault();
+        if (focusedIndex >= 0) onSelect(options[focusedIndex].value);
+        break;
+      case 'Tab':
+        onToggle();
+        break;
+    }
+  }
+
   return (
     <div
       id={`${id}-field`}
@@ -662,7 +844,19 @@ function BiMultiDropdown({
         hasValue ? ' has-value' : ''
       }`}
     >
-      <button className="bi-dropdown-trigger" type="button" onClick={onToggle}>
+      <button
+        className="bi-dropdown-trigger"
+        type="button"
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-controls={listboxId}
+        aria-activedescendant={
+          open && focusedIndex >= 0 ? optionId(focusedIndex) : undefined
+        }
+        onClick={onToggle}
+        onKeyDown={handleKeyDown}
+      >
         <span className="bi-dropdown-value">{selectedLabels}</span>
         <svg
           className="bi-dropdown-arrow"
@@ -680,14 +874,19 @@ function BiMultiDropdown({
         </svg>
       </button>
       <label className="bi-floating-label">{label}</label>
-      <div className="bi-dropdown-list">
+      <div className="bi-dropdown-list" role="listbox" id={listboxId} aria-multiselectable="true">
         <div className="bi-dropdown-title">{placeholderTitle}</div>
-        {options.map((opt) => {
+        {options.map((opt, idx) => {
           const checked = values.includes(opt.value);
           return (
             <div
               key={opt.value}
+              id={optionId(idx)}
+              role="option"
+              aria-selected={checked}
+              data-focused={focusedIndex === idx ? 'true' : undefined}
               className={`bi-dropdown-option${checked ? ' active' : ''}`}
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => onSelect(opt.value)}
             >
               <span className="bi-check-box">

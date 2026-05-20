@@ -46,6 +46,31 @@ export function isValidOrderNumber(value: string): boolean {
 }
 
 /**
+ * 한국 사업자등록번호 체크섬 검증 (국세청 알고리즘 · S243-B).
+ * - 10자리 숫자
+ * - 가중치 [1,3,7,1,3,7,1,3,5] 를 첫 9자리에 곱하여 합산
+ * - 9번째 자리(인덱스 8) 의 가중치 5 결과는 10 으로 나눈 몫을 추가 합산
+ * - 체크 디지트 = (10 - (sum % 10)) % 10
+ * - 체크 디지트 === 10번째 자리(인덱스 9) 면 유효
+ *
+ * 빈 값은 true 반환 (선택 필드 — 빈 값은 형식 검증에서 거름).
+ */
+export function isValidKoreanBizRegNum(value: string): boolean {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length === 0) return true;
+  if (digits.length !== 10) return false;
+
+  const weights = [1, 3, 7, 1, 3, 7, 1, 3, 5];
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(digits[i], 10) * weights[i];
+  }
+  sum += Math.floor((parseInt(digits[8], 10) * 5) / 10);
+  const checkDigit = (10 - (sum % 10)) % 10;
+  return checkDigit === parseInt(digits[9], 10);
+}
+
+/**
  * 비밀번호 강도 검증
  * - 길이 6~16자
  * - 영문 대소문자 / 숫자 / 특수문자 중 2종류 이상 포함
