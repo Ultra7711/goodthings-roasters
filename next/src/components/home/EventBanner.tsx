@@ -71,25 +71,34 @@ export default async function EventBanner({ event }: Props) {
   const aspectTablet = normalizeAspect(event.aspect_tablet, '1024 / 400');
   const aspectMobile = normalizeAspect(event.aspect_mobile, '390 / 640');
 
+  /* desktop max-height — viewport > 1440 일 때 iframe height cap (가로만 stretch).
+     1440 viewport 의 desktop height = 1440 × (aspectY / aspectX). */
+  const [dw, dh] = aspectDesktop.split(' / ').map(Number);
+  const desktopMaxHeight = (1440 * dh) / dw;
+
   /* brk 별 aspect-ratio 컨테이너 쿼리 — data-event-id scope.
      S239: @media → @container 변경. .ev-banner-bleed 가 container 등록 → 외부
      wrapper width 기준 BP 분기. iframe 안 @container (banner-wrap container) 도
      동일 width 기준 → 양쪽 BP 동시 매치. mismatch 0.
      iframe 의 default attribute height(150) 가 aspect-ratio 보다 우선 적용되는
-     이슈 회피 위해 height: auto 명시. */
+     이슈 회피 위해 height: auto 명시.
+     S241: desktop max-height 추가 — viewport > 1440 일 때 height cap (이미지 가로 stretch). */
   const inlineCss = `
     .ev-banner-iframe[data-event-id="${event.id}"] {
       height: auto;
       aspect-ratio: ${aspectDesktop};
+      max-height: ${desktopMaxHeight}px;
     }
     @container (max-width: 1023px) {
       .ev-banner-iframe[data-event-id="${event.id}"] {
         aspect-ratio: ${aspectTablet};
+        max-height: none;
       }
     }
     @container (max-width: 767px) {
       .ev-banner-iframe[data-event-id="${event.id}"] {
         aspect-ratio: ${aspectMobile};
+        max-height: none;
       }
     }
   `;

@@ -86,25 +86,34 @@ export default async function SignatureChapterView({
   const aspectTablet = normalizeAspect(signature.aspect_tablet, '1024 / 520');
   const aspectMobile = normalizeAspect(signature.aspect_mobile, '390 / 520');
 
+  /* desktop max-height — viewport > 1440 일 때 iframe height cap (가로만 stretch).
+     1440 viewport 의 desktop height = 1440 × (aspectY / aspectX). */
+  const [dw, dh] = aspectDesktop.split(' / ').map(Number);
+  const desktopMaxHeight = (1440 * dh) / dw;
+
   /* brk 별 aspect-ratio 컨테이너 쿼리 — 단일 chapter scope.
      S239: @media → @container 변경. .sig-bleed 가 container 등록 → 외부 wrapper
      width 기준 BP 분기 (외부 wrapper padding 영향 흡수). iframe 안 @container
      (banner-wrap container) 도 동일 width 기준 → 양쪽 BP 동시 매치. mismatch 0.
      iframe 의 default attribute height(150) 가 aspect-ratio 보다 우선 적용되는
-     이슈 회피 위해 height: auto 명시. */
+     이슈 회피 위해 height: auto 명시.
+     S241: desktop max-height 추가 — viewport > 1440 일 때 height cap (이미지 가로 stretch). */
   const inlineCss = `
     .sig-iframe {
       height: auto;
       aspect-ratio: ${aspectDesktop};
+      max-height: ${desktopMaxHeight}px;
     }
     @container (max-width: 1023px) {
       .sig-iframe {
         aspect-ratio: ${aspectTablet};
+        max-height: none;
       }
     }
     @container (max-width: 767px) {
       .sig-iframe {
         aspect-ratio: ${aspectMobile};
+        max-height: none;
       }
     }
   `;

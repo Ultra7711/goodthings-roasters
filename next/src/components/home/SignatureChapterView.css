@@ -34,14 +34,13 @@
   padding: 0;
 }
 
-/* iframe — width 100% 안에서 max 1320 (운영자 HTML 의 desktop 디자인 폭) ·
-   margin auto 로 가운데 정렬 → viewport >= 1320 에서 좌우 sand bg 노출.
-   aspect-ratio 는 SignatureChapterView inline <style> 가 brk 별 주입. */
+/* iframe — width 100% (viewport 풀블리드) · 컨텐츠 max-width 는 iframe 안 production
+   HTML 의 .banner-text 가 처리 (max-width 1440 center).
+   aspect-ratio + desktop max-height 는 SignatureChapterView inline <style> 가 주입
+   (S241 — viewport > 1440 일 때 height cap, 이미지 가로 stretch). */
 .sig-iframe {
   display: block;
   width: 100%;
-  max-width: 1320px;
-  margin: 0 auto;
   border: 0;
   background: transparent;
 }
