@@ -16,27 +16,25 @@
    - aspect-ratio 는 SignatureChapterView inline <style> 가 brk 별 주입
    ════════════════════════════════════════════════════════════════════════ */
 
-/* Section — sand bg 풀폭 chapter break */
+/* Section — sand bg 풀폭 chapter break (cafe-events .ev-banner-bleed 1:1 정합)
+   S239: container-type 등록 → 내부 .sig-iframe 의 aspect-ratio @container 분기
+   기준. iframe 안 @container (banner-wrap container) 도 동일 width 기준 → 양쪽
+   BP 동시 매치. mismatch 0. */
 .sig-section {
+  container-type: inline-size;
   background: var(--color-surface-warm);
   width: 100%;
   padding-top: 32px;
   padding-bottom: 32px;
 }
 
-/* iframe wrapper — 다른 섹션 좌우 gutter 60px 정합.
-   S239: container-type: inline-size 등록 → 내부 .sig-iframe 의 aspect-ratio
-   @container 분기 기준이 됨. wrapper 의 padding (60/48/24 brk 별) 으로 인한
-   iframe width 와 외부 viewport mismatch (877~768 시점 등) 해소. */
+/* inner wrapper — 위/아래 sand bg 만 노출 · 좌우는 iframe max-width 가 제어
+   (cafe-events .ev-banner 답습) */
 .sig-bleed {
-  container-type: inline-size;
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 60px;
-  box-sizing: border-box;
+  padding: 0;
 }
 
-/* iframe 본체 — width 100% 안에서 max 1320 (운영자 HTML 의 desktop 디자인 폭) ·
+/* iframe — width 100% 안에서 max 1320 (운영자 HTML 의 desktop 디자인 폭) ·
    margin auto 로 가운데 정렬 → viewport >= 1320 에서 좌우 sand bg 노출.
    aspect-ratio 는 SignatureChapterView inline <style> 가 brk 별 주입. */
 .sig-iframe {
@@ -48,24 +46,12 @@
   background: transparent;
 }
 
-/* ── <768 mobile: 상하 padding 22 / 좌우 gutter 24 ──────────────────────── */
+/* ── <768 mobile: 상하 padding 22 ──────────────────────── */
 @media (max-width: 767px) {
-  .sig-section {
-    padding-top: 22px;
-    padding-bottom: 22px;
-  }
-  .sig-bleed {
-    padding: 0 24px;
-  }
+  .sig-section { padding-top: 22px; padding-bottom: 22px; }
 }
 
-/* ── 768~1023 tablet: 상하 padding 28 / 좌우 gutter 48 ───────────────────── */
+/* ── 768~1023 tablet: 상하 padding 28 ───────────────────── */
 @media (max-width: 1023px) and (min-width: 768px) {
-  .sig-section {
-    padding-top: 28px;
-    padding-bottom: 28px;
-  }
-  .sig-bleed {
-    padding: 0 48px;
-  }
+  .sig-section { padding-top: 28px; padding-bottom: 28px; }
 }

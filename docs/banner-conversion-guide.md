@@ -2,7 +2,7 @@
 
 > **위치**: `docs/banner-conversion-guide.md` (git tracked · 단일 SoT)
 > **적용**: signature chapter · cafe-events 배너 양쪽 동일 모델
-> **갱신 이력**: S237 iframe srcDoc 모델 도입 → S239 container query + cqw fluid 전환 → S240 폰트 토큰 정합 (Pretendard / Inter)
+> **갱신 이력**: S237 iframe srcDoc 모델 도입 → S239 container query + cqw fluid 전환 → S240 폰트 토큰 정합 (Pretendard / Inter) + responsive 4 BP 양 끝점 모델
 
 GoodThings Roasters 의 운영자 데모 HTML (`*_responsive.html`) 을 **iframe 모델 production HTML** (`*_production.html`) 로 변환하는 작업 명세.
 
@@ -11,12 +11,21 @@ GoodThings Roasters 의 운영자 데모 HTML (`*_responsive.html`) 을 **iframe
 ## 입력 / 출력
 
 **입력** — 디자이너 데모 (`*_responsive.html`)
-- `<body>` 안에 3 BP section stacked (`.desktop-wrap` / `.tablet-wrap` / `.mobile-wrap`)
-- 각 section 의 `<img class="bg" src="*.png">` 가 BP 별 다른 이미지 참조
-- section 마다 `<p class="label">🖥 Desktop — 1320px</p>` 같은 메타 라벨
+- `<body>` 안에 **4 BP section stacked — fluid scaling 양 끝점 모델** (S240 도입):
+  - `.landscape-max-wrap` — 가로형 최대 (1440 = production clamp 가로형 max)
+  - `.landscape-min-wrap` — 가로형 최소 (768 = production clamp 가로형 min)
+  - `.portrait-max-wrap` — 세로형 최대 (767 = production clamp 세로형 max)
+  - `.portrait-min-wrap` — 세로형 최소 (360 = production clamp 세로형 min)
+- **이미지 참조는 2장만**: 가로형 (`*_desktop.png`) · 세로형 (`*_mobile.png`)
+  - 가로형 max + min section 모두 `*_desktop.png` 재사용
+  - 세로형 max + min section 모두 `*_mobile.png` 재사용
+  - AI prompt 출력 = 2장 (Desktop · Mobile) 과 1:1 정합 — 별도 tablet/mobile-min 이미지 생성 불필요
+- section 마다 `<p class="label">🖥 가로형 최대 — 1440px</p>` 같은 메타 라벨
 - `body { padding: 40px 20px; gap: 48px; background: #f5f0ea; }` 같은 stacked 데모 레이아웃
 - `.banner-wrap { border-radius: 12px; box-shadow: ...; }` 같은 section 박스 분리
-- 폰트/패딩 등은 **고정 px** (BP 별 polyphony — desktop 64px · tablet 48px · mobile 38px 식)
+- 폰트/패딩 등은 **고정 px** — 각 section 의 값이 곧 production clamp 식의 양 끝점 (디자이너 결정 영역)
+
+**디자이너 작업 의미**: 가로형/세로형 각각의 max + min 양 끝점에서 직접 시각 검증 후 폰트/패딩값 결정. production clamp 식이 그 사이를 fluid 보간하므로 중간 viewport (예: 1024 · 500 등) 는 자동 적정값.
 
 **출력** — production HTML (`*_production.html`)
 - `<body>` 안에 단일 `.banner-wrap` + **container query 분기** 로 BP 별 콘텐츠 자동 분기
@@ -422,10 +431,10 @@ production HTML 작성 후 다음 모두 통과 확인:
 ## 실 운영 흐름 (참고)
 
 1. **디자이너 의뢰** — 운영자가 시즌 컨셉 + 운영자 admin 폼의 BP 별 aspect-ratio 를 디자이너에게 전달
-2. **이미지 생성** — `PROMPT.md` (Stage 1) 으로 AI 가 배경 이미지 3종 (Desktop · Mobile · Tablet 선택) 생성
-3. **responsive.html 작성** — 디자이너가 3 BP stacked 시각 데모 작성. aspect-ratio = §시스템 컨텍스트 SoT 와 일치 의무
-4. **production.html 변환** — 별도 Claude Code 인스턴스가 본 가이드 따라 변환
-5. **운영자 admin 등록** — `/admin/settings` (signature) 또는 `/admin/cafe-events` → 이미지 3종 업로드 (자동 aspect 측정) + production HTML 업로드 + 텍스트/SEO 메타 입력
+2. **이미지 생성** — `aiPrompt.ts` (Stage 1) 으로 AI 가 배경 이미지 **2장** (가로형 = Desktop · 세로형 = Mobile) 생성. tablet 별도 생성 불필요 — 가로형 재사용
+3. **responsive.html 작성** — 디자이너가 **4 BP 양 끝점** stacked 시각 데모 작성 (가로형 max 1440 + 가로형 min 768 + 세로형 max 767 + 세로형 min 360). 각 section 의 폰트/패딩값이 production clamp 식의 양 끝점이 되므로 양 끝점 시각 최적화 후 production 변환. aspect-ratio = §시스템 컨텍스트 SoT 와 일치 의무
+4. **production.html 변환** — 별도 Claude Code 인스턴스가 본 가이드 따라 변환. responsive 의 가로형 max/min 값 → 가로형 clamp 식 양 끝점 / 세로형 max/min 값 → 세로형 clamp 식 양 끝점
+5. **운영자 admin 등록** — `/admin/settings` (signature) 또는 `/admin/cafe-events` → **이미지 2장 업로드** (Desktop · Mobile · tablet 슬롯 비움 → desktop fallback) + production HTML 업로드 + 텍스트/SEO 메타 입력
 6. **/preview 검증** — 4 BP (1440 · 1024 · 768 · 390) 모두 mismatch 0 확인
 7. **enabled = true 활성화** — 메인 페이지 노출
 
@@ -467,4 +476,4 @@ production HTML 작성 후 다음 모두 통과 확인:
 
 - **S237** — iframe srcDoc 모델 도입. signature + cafe-events 양쪽 채택.
 - **S239** — BP mismatch (768 / 877 경계) 진단 → container query + cqw + clamp fluid 전환. 외부 wrapper container 등록. viewport meta 제거. 본 가이드는 S239 모델 기준.
-- **S240** — 폰트 토큰 정합. Noto Sans KR · Outfit · Montserrat 폐기 → Pretendard Variable + Inter 두 패밀리로 통일. `:root --font-en` / `--font-kr` 토큰 + 한/영 자동 매핑 규칙 §7 신설. UBE · Dripbag production / responsive 4 파일 동시 적용.
+- **S240** — 폰트 토큰 정합. Noto Sans KR · Outfit · Montserrat 폐기 → Pretendard Variable + Inter 두 패밀리로 통일. `:root --font-en` / `--font-kr` 토큰 + 한/영 자동 매핑 규칙 §7 신설. UBE · Dripbag production / responsive 4 파일 동시 적용. responsive 의 BP 구조를 **4 BP 양 끝점 모델** (가로형 max/min + 세로형 max/min) 로 전환 — fluid scaling 양 끝점이 production clamp 식 양 끝점과 1:1 정합. 이미지 참조는 가로형 + 세로형 2장 (max + min 각각 재사용).
