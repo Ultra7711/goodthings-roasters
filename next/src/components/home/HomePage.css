@@ -303,14 +303,16 @@
     aspect-ratio: 3/2;
   }
   .cafe-menu-head {
-    padding: 72px 24px 40px;
+    /* S241: head bottom 40 → 32 (모바일 viewport 대비 보정 — 합산 64) */
+    padding: 72px 24px 32px;
   }
   /* S199 — padding-bot 40 = 72 - 32 (cafe-menu-split__items padding-bot 32 흡수).
      cmsplit-desc → Story story-stage__inner 시각 = 32 + 40 + 72 = 144 (다른 섹션 정합). */
   .cafe-menu-blk { padding-bottom: 40px; }
-  /* S241: 합산 80 — head bottom 40 + .ev-banner padding-top 40 = 80. 아래도 동일. */
-  .ev-banner-bleed { margin-bottom: 40px; }
-  .ev-banner { padding: 40px 0; }
+  /* S241: 합산 64 (모바일 viewport 비율 보정 — desktop 80 의 5.5% vs mobile 21% → 17%).
+     head bottom 32 + .ev-banner padding 32 = 64. 아래도 동일 (32 + margin 32 = 64). */
+  .ev-banner-bleed { margin-bottom: 32px; }
+  .ev-banner { padding: 32px 0; }
 }
 @media (max-width: 1023px) and (min-width: 768px) {
   .cafe-menu-head { padding: 96px 48px 48px; }
@@ -815,8 +817,9 @@
   /* S199 — 모바일 전체 80 → 72 통일 (사용자 결정 — top 120 도 72 로).
      padding-bot 44 = 72 - 28 (sp-card-info padding-bot 흡수).
      가격 텍스트 → Cafe Menu eyebrow 시각 = 28 + 44 + 72 = 144 (다른 섹션 정합).
-     S241: padding-top 72 → 58 — 시그니처 배너 아래 합산 80 (.sig-section bottom 22 + 58). */
-  .lineup-blk { padding: 58px 0 44px; gap: 60px; }
+     S241: padding-top 58 → 48 — 시그니처 배너 아래 합산 64 (.sig-section bottom 16 + 48 — 모바일 viewport 보정).
+     S241: gap 60 → 48 — 카드 간 모바일 viewport 비율 보정. */
+  .lineup-blk { padding: 48px 0 44px; gap: 48px; }
 }
 
 .lineup-row {

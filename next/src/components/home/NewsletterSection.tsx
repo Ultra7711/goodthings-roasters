@@ -2,14 +2,21 @@
    NewsletterSection (V2 §2.7 — Footer 직전 CTA)
    - 자문 §0 핵심결정 메인 5섹션 마지막 dark CTA
    - bg --ink-section (Story Stage 2 통일)
-   - submit = UI only · client Zod email 검증 + 성공 toast
-   - DB 저장 / 외부 SaaS 연동은 D-25 carry-over
+   - submit = subscribeNewsletter server action (S241 D-25 · Phase 1)
+   - 회원이면 user_id 자동 연결 (cookies 인증) · 비회원이면 user_id null
+   - Phase 2: 마이페이지 토글 / Phase 3: Resend 발송 + admin
    ══════════════════════════════════════════ */
 
 'use client';
 
-import { useState, type FormEvent, type ChangeEvent } from 'react';
+import {
+  useState,
+  useTransition,
+  type FormEvent,
+  type ChangeEvent,
+} from 'react';
 import { z } from 'zod';
+import { subscribeNewsletter } from '@/lib/newsletter';
 
 const emailSchema = z.string().trim().email();
 
@@ -17,6 +24,7 @@ export default function NewsletterSection() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     setEmail(e.target.value);
@@ -31,9 +39,21 @@ export default function NewsletterSection() {
       setError('올바른 이메일 주소를 입력해주세요');
       return;
     }
-    /* TODO D-25 — newsletter_subscribers DB 저장 또는 외부 SaaS 연동 */
-    setSuccess(true);
-    setEmail('');
+    startTransition(async () => {
+      const res = await subscribeNewsletter(email);
+      if (res.ok) {
+        setSuccess(true);
+        setEmail('');
+        return;
+      }
+      if (res.error === 'invalid_email') {
+        setError('올바른 이메일 주소를 입력해주세요');
+      } else if (res.error === 'already_subscribed') {
+        setError('이미 구독 중인 이메일입니다');
+      } else {
+        setError('일시적 오류가 발생했습니다. 잠시 후 다시 시도해주세요');
+      }
+    });
   }
 
   return (
@@ -56,8 +76,13 @@ export default function NewsletterSection() {
             aria-label="이메일 주소"
             aria-invalid={!!error}
           />
-          <button type="submit" className="newsletter-btn" data-gtr-tap>
-            구독
+          <button
+            type="submit"
+            className="newsletter-btn"
+            data-gtr-tap
+            disabled={isPending}
+          >
+            {isPending ? '처리 중…' : '구독'}
           </button>
         </form>
         {error && (

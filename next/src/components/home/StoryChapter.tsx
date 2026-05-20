@@ -29,7 +29,7 @@ function handleMomentClick() {
 }
 
 const GD_IMAGES = [
-  { src: '/images/gallery/KakaoTalk_20260328_161956706_01.webp', featured: true },
+  { src: '/images/gallery/KakaoTalk_20260328_161956706_01.webp' },
   { src: '/images/gallery/KakaoTalk_20260328_161956706_02.webp' },
   { src: '/images/gallery/KakaoTalk_20260328_161956706_03.webp' },
   { src: '/images/gallery/KakaoTalk_20260328_161956706_04.webp' },

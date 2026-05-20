@@ -49,9 +49,9 @@
   background: transparent;
 }
 
-/* ── <768 mobile: padding-top 116 (lineup→cafe 모바일 합산 정합) / padding-bottom 22 (.lineup-blk top 58 과 합산 80) ── */
+/* ── <768 mobile: padding-top 116 (lineup→cafe 모바일 합산 정합) / padding-bottom 16 (.lineup-blk top 48 과 합산 64 — 모바일 viewport 보정) ── */
 @media (max-width: 767px) {
-  .sig-section { padding-top: 116px; padding-bottom: 22px; }
+  .sig-section { padding-top: 116px; padding-bottom: 16px; }
 }
 
 /* ── 768~1023 tablet: padding-top 216 (lineup→cafe 태블릿 합산 정합) / padding-bottom 28 (.lineup-blk top 52 와 합산 80) ── */
