@@ -56,7 +56,7 @@ export default function StoryChapter() {
               그것이 굳띵즈가 지켜온 단 하나의 기준입니다.
             </p>
             <div className="story-cta-row sr-txt sr-txt--d4">
-              <Link href="/story" className="cta-btn cta-btn-light-outline" data-gtr-tap>
+              <Link href="/story" className="cta-btn cta-btn-light-filled" data-gtr-tap>
                 스토리 보기
               </Link>
             </div>
