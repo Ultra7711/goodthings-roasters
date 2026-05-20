@@ -628,3 +628,54 @@
     height: 44px;
   }
 }
+
+/* ══ S241 Phase 2 — newsletter 토글 (AccountInfoRow 안 이메일 row 아래) ══ */
+.mp-newsletter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.mp-newsletter-status {
+  font-family: var(--font-kr);
+  font-size: var(--type-body-m-size);
+  font-weight: var(--type-body-m-weight);
+  color: var(--color-text-primary);
+}
+.mp-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 36px;
+  height: 20px;
+  background: #A8A49E;
+  border: none;
+  border-radius: 999px;
+  padding: 0;
+  cursor: pointer;
+  transition: background 200ms ease;
+  flex-shrink: 0;
+}
+.mp-switch[data-state="checked"] {
+  background: var(--color-btn-primary-bg, #1C1B19);
+}
+.mp-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.mp-switch:focus-visible {
+  outline: 2px solid var(--color-focus-ring, #1C1B19);
+  outline-offset: 2px;
+}
+.mp-switch-thumb {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  transform: translateX(2px);
+  transition: transform 200ms ease;
+  pointer-events: none;
+}
+.mp-switch[data-state="checked"] .mp-switch-thumb {
+  transform: translateX(18px);
+}

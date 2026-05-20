@@ -59,6 +59,90 @@ export async function subscribeNewsletter(
   return { ok: true };
 }
 
+/* ── 회원 마이페이지 토글 (Phase 2) ─────────────────────────────────────── */
+
+export type NewsletterStatusResult =
+  | { ok: true; status: 'active' | 'unsubscribed' | 'none' }
+  | { ok: false; error: 'unauthenticated' | 'db_error' };
+
+/* 현재 회원의 newsletter 구독 상태 조회. ProfileView 초기 로드 시 사용.
+   RLS owner_select 정책 통과 — authenticated + auth.uid() = user_id. */
+export async function getNewsletterStatus(): Promise<NewsletterStatusResult> {
+  const supabase = await createRouteHandlerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'unauthenticated' };
+
+  const { data, error } = await supabase
+    .from('newsletter_subscribers')
+    .select('status')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[newsletter] status fetch failed', error);
+    return { ok: false, error: 'db_error' };
+  }
+  if (!data) return { ok: true, status: 'none' };
+  return { ok: true, status: data.status as 'active' | 'unsubscribed' };
+}
+
+export type SetSubscriptionResult =
+  | { ok: true }
+  | { ok: false; error: 'unauthenticated' | 'no_record' | 'db_error' };
+
+/* 회원 마이페이지 토글 (active / unsubscribed). 가입 시 trigger 가 자동 INSERT 하므로
+   대부분 UPDATE 경로. 만약 record 없으면 (이메일 trigger 실패 등 edge) 신규 INSERT. */
+export async function setNewsletterSubscription(
+  enabled: boolean,
+): Promise<SetSubscriptionResult> {
+  const supabase = await createRouteHandlerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: 'unauthenticated' };
+
+  const nextStatus = enabled ? 'active' : 'unsubscribed';
+
+  const { data: existing, error: selectError } = await supabase
+    .from('newsletter_subscribers')
+    .select('id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (selectError) {
+    console.error('[newsletter] status check failed', selectError);
+    return { ok: false, error: 'db_error' };
+  }
+
+  if (existing) {
+    const { error } = await supabase
+      .from('newsletter_subscribers')
+      .update({ status: nextStatus })
+      .eq('id', existing.id);
+    if (error) {
+      console.error('[newsletter] status update failed', error);
+      return { ok: false, error: 'db_error' };
+    }
+    return { ok: true };
+  }
+
+  /* edge: trigger 실패로 record 없음. 신규 INSERT. */
+  if (!user.email) return { ok: false, error: 'no_record' };
+  const { error } = await supabase.from('newsletter_subscribers').insert({
+    email: user.email,
+    user_id: user.id,
+    source: 'signup_default',
+    status: nextStatus,
+  });
+  if (error) {
+    console.error('[newsletter] fallback insert failed', error);
+    return { ok: false, error: 'db_error' };
+  }
+  return { ok: true };
+}
+
 export type UnsubscribeResult =
   | { ok: true; updated: boolean }
   | { ok: false; error: 'invalid_token' | 'db_error' };
