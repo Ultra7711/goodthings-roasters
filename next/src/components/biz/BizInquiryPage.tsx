@@ -112,18 +112,28 @@ export default function BizInquiryPage() {
   /* 드롭다운 open 상태 — 한 번에 하나만 */
   const [openDropdown, setOpenDropdown] = useState<'type' | 'volume' | 'cycle' | 'products' | null>(null);
 
-  /* 외부 클릭 시 드롭다운 닫기 — click 캡처 단계에서 stopPropagation 으로 버튼 관통 차단 */
+  /* 외부 클릭 시 드롭다운 닫기 — 다른 컴포넌트(인풋·다른 드롭다운·버튼) 동작 차단 + 닫힘만 (S243).
+     - pointerdown capture: 인풋 focus 차단 (focus 는 mousedown/pointerdown 에 발동 — click 보다 빠름)
+     - click capture: button onClick / Link navigate 차단
+     둘 다 stopPropagation + preventDefault. setOpenDropdown 은 pointerdown 에서만 호출 (중복 방지). */
   useEffect(() => {
     if (!openDropdown) return;
-    function onCapture(e: MouseEvent) {
+    function onCapture(e: Event) {
       const target = e.target as HTMLElement;
-      if (!target.closest('.bi-dropdown-field')) {
-        e.stopPropagation();
+      const openField = document.querySelector('.bi-dropdown-field.open');
+      if (openField && openField.contains(target)) return;
+      e.stopPropagation();
+      e.preventDefault();
+      if (e.type === 'pointerdown') {
         setOpenDropdown(null);
       }
     }
+    document.addEventListener('pointerdown', onCapture, true);
     document.addEventListener('click', onCapture, true);
-    return () => document.removeEventListener('click', onCapture, true);
+    return () => {
+      document.removeEventListener('pointerdown', onCapture, true);
+      document.removeEventListener('click', onCapture, true);
+    };
   }, [openDropdown]);
 
   /* 폼 리셋 */

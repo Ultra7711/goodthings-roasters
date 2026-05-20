@@ -74,6 +74,8 @@
   grid-template-columns: 120px 1fr;
   gap: 0 32px;
 }
+/* sticky 섹션 라벨 (S243): 모바일 전용 — 페이지가 길어 스크롤 시 현재 작성 중인 섹션 표시.
+   데스크탑은 sticky 미적용 (좌측 컬럼 정적 라벨 — 사용자 의견 반영). */
 .bi-section-label {
   font-family: var(--font-kr);
   font-size: var(--type-body-s-size);
@@ -389,7 +391,23 @@
     gap: 0;
   }
   .bi-section-label {
+    /* 모바일 전용 sticky 섹션 라벨 (S243).
+       ann-bar (.ann) 는 position:relative — 스크롤 시 viewport 밖으로 사라지고
+       헤더만 viewport top 에 남음. 따라서 sticky top 은 var(--header-height) 만
+       사용 (ann-bar 가 있을 때 가정한 --sticky-offset 사용 시 32px 갭 발생). */
     padding-top: 0;
+    padding-bottom: 12px;
+    margin-bottom: 0;
+    position: sticky;
+    top: var(--header-height);
+    background: var(--color-background-primary);
+    z-index: 1;
+  }
+  /* 마지막 section "문의 내용" 은 sticky 제외 — cell 안에 CTA + privacy note 까지 포함되어
+     라벨이 페이지 끝까지 잔존하는 어색함 회피 (S243 스크린샷 보고). */
+  .bi-form-section:last-child .bi-section-label {
+    position: static;
+    padding-bottom: 0;
     margin-bottom: 12px;
   }
 }
