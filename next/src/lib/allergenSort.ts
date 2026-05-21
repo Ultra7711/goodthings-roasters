@@ -123,3 +123,25 @@ export function normalizeAllergen(input: string): string {
 
   return unique.join(', ');
 }
+
+/* ── 표시 라벨 매핑 (S245) ──────────────────────────────────────────────── */
+
+/**
+ * 표시 시점 라벨 매핑 — 일반 소비자 친숙도 보강.
+ * DB 는 식약처 공식 표기 유지 · 표시만 병기.
+ *
+ * 적용 원칙 (최소 범위):
+ * - '알류' = 식약처 공식 표기이나 일반 소비자에게 낯섦 → '알류(계란)' 병기
+ * - 다른 19종 (우유/밀/땅콩/대두 등) = 이미 충분히 친숙 → 단독 표기
+ */
+const DISPLAY_LABEL_MAP: Record<string, string> = {
+  '알류': '알류(계란)',
+};
+
+/**
+ * 정규화된 알레르기 항목명 → 표시용 라벨.
+ * CafeNutritionSheet 등 사용자 노출 컴포넌트에서 chip 렌더 시 호출.
+ */
+export function getAllergenDisplayLabel(name: string): string {
+  return DISPLAY_LABEL_MAP[name] ?? name;
+}

@@ -1,5 +1,9 @@
 import { describe, expect, test } from 'vitest';
-import { normalizeAllergen, STANDARD_ALLERGEN_ORDER } from './allergenSort';
+import {
+  getAllergenDisplayLabel,
+  normalizeAllergen,
+  STANDARD_ALLERGEN_ORDER,
+} from './allergenSort';
 
 describe('normalizeAllergen', () => {
   test('빈 문자열 → 빈 문자열', () => {
@@ -85,5 +89,29 @@ describe('normalizeAllergen', () => {
     expect(normalizeAllergen('잣, 카카오, 우유, 견과류, 호두')).toBe(
       '우유, 호두, 잣, 견과류, 카카오',
     );
+  });
+});
+
+describe('getAllergenDisplayLabel', () => {
+  test('알류 → 알류(계란) 병기', () => {
+    expect(getAllergenDisplayLabel('알류')).toBe('알류(계란)');
+  });
+
+  test('우유 — 친숙어이므로 단독 유지', () => {
+    expect(getAllergenDisplayLabel('우유')).toBe('우유');
+  });
+
+  test('대두 — 단독 유지', () => {
+    expect(getAllergenDisplayLabel('대두')).toBe('대두');
+  });
+
+  test('밀 — 단독 유지', () => {
+    expect(getAllergenDisplayLabel('밀')).toBe('밀');
+  });
+
+  test('19종 외 항목 (견과류/카카오 등) — 그대로 반환', () => {
+    expect(getAllergenDisplayLabel('카카오')).toBe('카카오');
+    expect(getAllergenDisplayLabel('견과류')).toBe('견과류');
+    expect(getAllergenDisplayLabel('버터')).toBe('버터');
   });
 });

@@ -16,6 +16,7 @@ import { useEffect } from 'react';
 import Image from 'next/image';
 import { useDrawer } from '@/hooks/useDrawer';
 import { useHistoryDismiss } from '@/hooks/useHistoryDismiss';
+import { getAllergenDisplayLabel } from '@/lib/allergenSort';
 import {
   CAFE_CATEGORY_LABEL,
   getCafeImageMeta,
@@ -132,7 +133,7 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
                     <div className="cns-allergen-chips">
                       {chips.map((chip) => (
                         <span key={chip} className="cns-allergen-chip">
-                          {chip}
+                          {getAllergenDisplayLabel(chip)}
                         </span>
                       ))}
                     </div>
