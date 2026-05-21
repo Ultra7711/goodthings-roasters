@@ -3,6 +3,7 @@ import {
   getAllergenDisplayLabel,
   normalizeAllergen,
   STANDARD_ALLERGEN_ORDER,
+  syncHighCaffeineMarker,
 } from './allergenSort';
 
 describe('normalizeAllergen', () => {
@@ -113,5 +114,43 @@ describe('getAllergenDisplayLabel', () => {
     expect(getAllergenDisplayLabel('카카오')).toBe('카카오');
     expect(getAllergenDisplayLabel('견과류')).toBe('견과류');
     expect(getAllergenDisplayLabel('버터')).toBe('버터');
+  });
+});
+
+describe('syncHighCaffeineMarker', () => {
+  test('caffeine >= 150mg + 마커 없음 → 마커 추가', () => {
+    expect(syncHighCaffeineMarker('우유', '150mg')).toBe('우유, 고카페인 함유');
+  });
+
+  test('caffeine >= 150mg + 마커 이미 있음 → 그대로 (중복 X)', () => {
+    expect(syncHighCaffeineMarker('우유, 고카페인 함유', '200mg')).toBe(
+      '우유, 고카페인 함유',
+    );
+  });
+
+  test('caffeine < 150mg + 마커 있음 → 마커 제거', () => {
+    expect(syncHighCaffeineMarker('우유, 고카페인 함유', '75mg')).toBe('우유');
+  });
+
+  test('caffeine < 150mg + 마커 없음 → 그대로', () => {
+    expect(syncHighCaffeineMarker('우유', '75mg')).toBe('우유');
+  });
+
+  test('caffeine = 150mg 경계 → 마커 추가 (>= 조건)', () => {
+    expect(syncHighCaffeineMarker('', '150mg')).toBe('고카페인 함유');
+  });
+
+  test('caffeine = 149mg → 마커 없음', () => {
+    expect(syncHighCaffeineMarker('고카페인 함유', '149mg')).toBe('');
+  });
+
+  test('빈 allergen + 고카페인 → 마커만', () => {
+    expect(syncHighCaffeineMarker('', '200mg')).toBe('고카페인 함유');
+  });
+
+  test('정규화 자동 — 별칭 + 정렬도 함께 적용', () => {
+    expect(syncHighCaffeineMarker('계란, 우유', '150mg')).toBe(
+      '알류, 우유, 고카페인 함유',
+    );
   });
 });

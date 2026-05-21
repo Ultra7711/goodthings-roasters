@@ -124,6 +124,47 @@ export function normalizeAllergen(input: string): string {
   return unique.join(', ');
 }
 
+/* ── 고카페인 함유 마커 동기화 (S245-P19) ─────────────────────────────── */
+
+/** 식약처 「식품등의 표시기준」 — 1회 분량 카페인 >= 150mg 시 표시 의무. */
+export const HIGH_CAFFEINE_THRESHOLD_MG = 150;
+const HIGH_CAFFEINE_MARKER = '고카페인 함유';
+
+/** caffeine 문자열 ('75mg' / '150mg') → mg 정수. 파싱 실패 0. */
+function parseCaffeineMg(text: string | null | undefined): number {
+  if (!text) return 0;
+  const m = String(text).match(/(\d+(?:\.\d+)?)/);
+  return m ? parseFloat(m[1]) : 0;
+}
+
+/**
+ * allergen 문자열에 '고카페인 함유' 마커를 caffeine 값 기준으로 동기화.
+ *  - caffeine >= 150mg → 마커 보장 (없으면 추가)
+ *  - caffeine <  150mg → 마커 제거 (있으면)
+ *  결과는 normalizeAllergen 으로 재정렬됨 (19종 우선 + 가나다).
+ *
+ * 호출:
+ *  - admin/menu/actions.ts toCafeMenuDbRow — DB 저장 시점 자동 동기화
+ *  - scripts/normalize-high-caffeine.ts — 1회성 백필
+ */
+export function syncHighCaffeineMarker(
+  allergen: string | null | undefined,
+  caffeineText: string | null | undefined,
+): string {
+  const mg = parseCaffeineMg(caffeineText);
+  const shouldHave = mg >= HIGH_CAFFEINE_THRESHOLD_MG;
+
+  /* 분할 + trim + 빈 제거 + 마커 항목 제외 후 재합성 */
+  const items = (allergen ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && s !== HIGH_CAFFEINE_MARKER);
+
+  if (shouldHave) items.push(HIGH_CAFFEINE_MARKER);
+
+  return normalizeAllergen(items.join(', '));
+}
+
 /* ── 표시 라벨 매핑 (S245) ──────────────────────────────────────────────── */
 
 /**

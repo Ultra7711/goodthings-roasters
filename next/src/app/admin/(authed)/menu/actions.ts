@@ -39,7 +39,7 @@ import {
   fetchAdminNextCafeMenuSortOrder,
   type CafeMenuIdPrefix,
 } from '@/lib/admin/cafeMenuServer';
-import { normalizeAllergen } from '@/lib/allergenSort';
+import { normalizeAllergen, syncHighCaffeineMarker } from '@/lib/allergenSort';
 import { CAFE_MENU_CACHE_TAG } from '@/lib/cafeMenuServer';
 
 const MENU_IMAGES_BUCKET = 'menu-images';
@@ -271,9 +271,9 @@ function toCafeMenuDbRow(v: MenuMetaInput) {
     sodium: appendUnit(v.sodium, 'mg'),
     protein: appendUnit(v.protein, 'g'),
     caffeine: appendUnit(v.caffeine, 'mg'),
-    /* S245: 식약처 19종 순 + 가나다 fallback + 별칭 정규화 (계란→알류 등).
-       DB 저장 시점 정규화 → 어드민 재진입 시 정돈된 값 prefill + 사이트 표시 일관. */
-    allergen: normalizeAllergen(v.allergen),
+    /* S245-P19: caffeine 값 기준으로 '고카페인 함유' 마커 자동 동기화
+       (식약처 1회 분량 >=150mg 표시 의무). 후속 normalizeAllergen 으로 19종 순 정렬. */
+    allergen: syncHighCaffeineMarker(v.allergen, appendUnit(v.caffeine, 'mg')),
     sort_order: v.sortOrder,
   };
 }
