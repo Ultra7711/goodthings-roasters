@@ -21,8 +21,28 @@ import {
   CAFE_CATEGORY_LABEL,
   getCafeImageMeta,
   type CafeMenuItem,
+  type CafeMenuTemp,
 } from '@/lib/cafeMenu';
 import { CloseIcon } from '@/components/ui/Icons';
+import MenuCardBadges from './MenuCardBadges';
+import MenuLikeSheetButton from './MenuLikeSheetButton';
+
+/** 카드 getTempBadge 답습 (CafeMenuCard.tsx) — both 는 표시 X */
+function getTempBadge(
+  temp: CafeMenuTemp,
+): { cls: string; txt: string } | null {
+  if (!temp || temp === 'both') return null;
+  switch (temp) {
+    case 'ice-only':
+      return { cls: 'cm-temp-ice-only', txt: 'ICE\nONLY' };
+    case 'hot-only':
+      return { cls: 'cm-temp-hot-only', txt: 'HOT\nONLY' };
+    case 'warm':
+      return { cls: 'cm-temp-warm', txt: 'WARM' };
+    default:
+      return null;
+  }
+}
 
 type Props = {
   item: CafeMenuItem | null;
@@ -70,7 +90,9 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
           </button>
         </div>
 
-        {item && (
+        {item && (() => {
+          const tempBadge = getTempBadge(item.temp);
+          return (
           <>
             <div className="cns-image-wrap">
               {item.img && (() => {
@@ -87,6 +109,19 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
                   />
                 );
               })()}
+
+              {/* S245-P20 Phase 2 · Z 옵션 — hero 4 모서리 배치.
+                  좌상=메타 (cm-card-badges) · 우상=close (sticky · 상단) ·
+                  좌하=온도 · 우하=좋아요 (인터랙티브) */}
+              <MenuCardBadges menuId={item.id} status={item.status} />
+              {tempBadge && (
+                <div className="cns-temp">
+                  <span className={`cm-badge-temp ${tempBadge.cls}`}>
+                    {tempBadge.txt}
+                  </span>
+                </div>
+              )}
+              <MenuLikeSheetButton menuId={item.id} menuName={item.name} />
             </div>
 
             <div className="cns-content">
@@ -142,7 +177,8 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
               })()}
             </div>
           </>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
