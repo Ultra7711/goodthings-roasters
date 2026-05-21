@@ -100,3 +100,44 @@ export function mapCafeMenuRow(row: CafeMenuItemRow): CafeMenuItem {
 export function hasItemBlur(row: CafeMenuItemRow): boolean {
   return row.blur_data_url !== null && row.width !== null && row.height !== null;
 }
+
+/* ── Admin 목록용 매핑 (S244) ────────────────────────────────────────────── */
+
+/**
+ * /admin/menu 목록 행 — types/product.ts 의 AdminProductListItem 답습.
+ * is_active=false 도 포함 (admin RLS).
+ */
+export type AdminCafeMenuListItem = {
+  id: string;
+  name: string;
+  cat: CafeMenuItemRow['cat'];
+  status: string;
+  temp: string | null;
+  price: number;
+  displayPrice: string;
+  sortOrder: number;
+  isActive: boolean;
+  updatedAt: string;
+  thumbSrc: string | null;
+  thumbBlurDataUrl: string | null;
+};
+
+/** CafeMenuItemRow → AdminCafeMenuListItem (admin 목록 매핑) */
+export function mapAdminCafeMenuListItem(
+  row: CafeMenuItemRow,
+): AdminCafeMenuListItem {
+  return {
+    id: row.id,
+    name: row.name,
+    cat: row.cat,
+    status: row.status,
+    temp: row.temp,
+    price: row.price,
+    displayPrice: `${row.price.toLocaleString('ko-KR')}원`,
+    sortOrder: row.sort_order,
+    isActive: row.is_active,
+    updatedAt: row.updated_at,
+    thumbSrc: row.img_src || null,
+    thumbBlurDataUrl: row.blur_data_url,
+  };
+}

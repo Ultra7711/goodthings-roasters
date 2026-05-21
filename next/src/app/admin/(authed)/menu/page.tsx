@@ -1,11 +1,15 @@
-import AdminPlaceholder from '@/components/admin/AdminPlaceholder';
+/* ══════════════════════════════════════════════════════════════════════════
+   AdminMenuPage (서버 컴포넌트) — S244
 
-export default function AdminMenuPage() {
-  return (
-    <AdminPlaceholder
-      title="카페 메뉴 관리"
-      description="메뉴 등록 · 수정 · 이미지 · 영양 정보 · 좋아요 통계"
-      group="F · I-3"
-    />
-  );
+   - listAdminCafeMenuLite() 로 어드민 목록 행 조회 (is_active 무관)
+   - 인터랙티브 영역은 MenuTableClient 위임
+   - products/page.tsx 1:1 답습
+   ══════════════════════════════════════════════════════════════════════════ */
+
+import { listAdminCafeMenuLite } from '@/lib/admin/cafeMenuServer';
+import MenuTableClient from './MenuTableClient';
+
+export default async function AdminMenuPage() {
+  const rows = await listAdminCafeMenuLite();
+  return <MenuTableClient rows={rows} />;
 }
