@@ -708,12 +708,9 @@
   white-space: nowrap;
 }
 
-/* 타이틀 행 — 데스크탑은 단일 컬럼(기존), 모바일은 flex row + 우측 뱃지 */
-.cns-head-top {
-  display: flex;
-  flex-direction: column;
-}
-.cns-title-col { min-width: 0; }
+/* S245-P20 정리: 기존 .cns-head-top { flex-direction: column } 폐기 —
+   line 497 의 새 룰 (flex row + 좌 stack + 우 좋아요 세로 중앙) 이 source order
+   후순위 이 룰에 override 되던 버그 fix (lessons §4 cascade 함정). */
 .cns-title-badge { display: none; }
 
 /* 모바일(<480) — 풀스크린 시트 + collapsing hero 패턴 (S203).
