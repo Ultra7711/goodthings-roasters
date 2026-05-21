@@ -93,6 +93,10 @@ export function mapCafeMenuRow(row: CafeMenuItemRow): CafeMenuItem {
     protein: row.protein,
     caffeine: row.caffeine,
     allergen: row.allergen,
+    /* S245-P21: DB LQIP 메타 매핑 — 어드민 업로드 이미지 blur 표시. */
+    blurDataUrl: row.blur_data_url,
+    imgWidth: row.width,
+    imgHeight: row.height,
   };
 }
 

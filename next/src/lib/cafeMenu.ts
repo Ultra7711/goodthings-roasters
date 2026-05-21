@@ -45,6 +45,11 @@ export type CafeMenuItem = {
   protein: string;
   caffeine: string;
   allergen: string;
+  /* S245-P21: DB blur_data_url/width/height 매핑 (어드민 업로드 이미지의 LQIP).
+     정적 배열 (CAFE_MENU) 은 undefined · DB mapper 가 채움. */
+  blurDataUrl?: string | null;
+  imgWidth?: number | null;
+  imgHeight?: number | null;
 };
 
 /** 이미지 LQIP 메타데이터 — npm run gen:cafe-blur 가 생성한 cafe-menu-blur.json 에서 lookup */

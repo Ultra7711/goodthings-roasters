@@ -39,7 +39,10 @@ export default function CafeMenuCard({
   instant = false,
   onOpenNutrition,
 }: Props) {
+  /* S245-P21: 정적 자산은 cafe-menu-blur.json lookup · 어드민 업로드 (Storage URL)
+     는 DB blur_data_url fallback. 둘 중 있는 값 우선. */
   const imgMeta = getCafeImageMeta(item.img);
+  const blurDataURL = imgMeta?.blurDataURL ?? item.blurDataUrl ?? undefined;
 
   return (
     <GenericCard
@@ -48,7 +51,7 @@ export default function CafeMenuCard({
       asButton
       imgSrc={item.img}
       imgAlt={item.name}
-      imgBlurDataURL={imgMeta?.blurDataURL}
+      imgBlurDataURL={blurDataURL}
       badgeSlot={<MenuCardBadges menuId={item.id} status={item.status} />}
       topRightSlot={<MenuLikeCount menuId={item.id} />}
       name={<MenuName item={item} iconSize={16} />}

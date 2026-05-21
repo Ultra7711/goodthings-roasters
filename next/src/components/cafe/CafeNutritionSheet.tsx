@@ -97,7 +97,10 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
           <>
             <div className="cns-image-wrap">
               {item.img && (() => {
+                /* S245-P21: 정적 자산 blur (cafe-menu-blur.json) · 어드민 업로드는
+                   DB blur_data_url fallback. 둘 중 있는 값 우선. */
                 const meta = getCafeImageMeta(item.img);
+                const blurDataURL = meta?.blurDataURL ?? item.blurDataUrl ?? undefined;
                 return (
                   <Image
                     src={item.img}
@@ -105,8 +108,8 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
                     fill
                     sizes="(max-width: 479px) 100vw, 540px"
                     className="cns-image"
-                    placeholder={meta ? 'blur' : 'empty'}
-                    blurDataURL={meta?.blurDataURL}
+                    placeholder={blurDataURL ? 'blur' : 'empty'}
+                    blurDataURL={blurDataURL}
                   />
                 );
               })()}
