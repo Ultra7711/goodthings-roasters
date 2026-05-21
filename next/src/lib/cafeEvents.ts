@@ -83,6 +83,11 @@ export const CafeEventSchema = z.object({
   image_path_tablet: z.string().trim().max(500).default(''),
   /** 모바일 이미지 — 비어있으면 desktop fallback */
   image_path_mobile: z.string().trim().max(500).default(''),
+  /* LQIP base64 dataURL (S246 · 068). 업로드 시 generateImageBlurAction 자동 생성.
+     운영자 HTML 의 {{IMAGE_BLUR_DESKTOP/TABLET/MOBILE}} placeholder 치환에 사용. */
+  image_blur_desktop: z.string().trim().max(5000).default(''),
+  image_blur_tablet: z.string().trim().max(5000).default(''),
+  image_blur_mobile: z.string().trim().max(5000).default(''),
   /** iframe 컨테이너 aspect-ratio (>=1024px). CSS aspect-ratio 형식. */
   aspect_desktop: z.string().trim().max(40).default('1320/480'),
   /** iframe 컨테이너 aspect-ratio (768~1023px). */

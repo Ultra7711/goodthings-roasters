@@ -173,6 +173,12 @@ export default function SettingsForm({ initialSettings, isOwner }: SettingsFormP
         : brk === 'tablet'
           ? 'image_path_tablet'
           : 'image_path_mobile';
+    const blurKey: keyof SignatureSettings =
+      brk === 'desktop'
+        ? 'image_blur_desktop'
+        : brk === 'tablet'
+          ? 'image_blur_tablet'
+          : 'image_blur_mobile';
     const aspectKey: keyof SignatureSettings =
       brk === 'desktop'
         ? 'aspect_desktop'
@@ -185,7 +191,13 @@ export default function SettingsForm({ initialSettings, isOwner }: SettingsFormP
     const aspect = await measureImageAspect(file).catch(() => null);
     const result = await uploadSignatureImage(file, brk);
     if (result.ok) {
-      updateSignature({ [fieldKey]: result.publicUrl, ...(aspect ? { [aspectKey]: aspect } : {}) });
+      updateSignature({
+        [fieldKey]: result.publicUrl,
+        /* S246: LQIP — 업로드 핸들러가 server action 으로 생성. 실패 시 빈 문자열
+           (운영자 HTML 측 fallback). */
+        [blurKey]: result.blurDataURL ?? '',
+        ...(aspect ? { [aspectKey]: aspect } : {}),
+      });
       setState({ status: 'idle' });
       toast.success('이미지를 등록했습니다', {
         description: aspect
@@ -555,7 +567,7 @@ export default function SettingsForm({ initialSettings, isOwner }: SettingsFormP
                   uploadState={desktopUpload}
                   inputRef={desktopInputRef}
                   onUpload={(e) => handleSigImageUpload(e, 'desktop')}
-                  onClear={() => updateSignature({ image_path_desktop: '' })}
+                  onClear={() => updateSignature({ image_path_desktop: '', image_blur_desktop: '' })}
                 />
                 <ImageUploadSlot
                   label="Tablet"
@@ -564,7 +576,7 @@ export default function SettingsForm({ initialSettings, isOwner }: SettingsFormP
                   uploadState={tabletUpload}
                   inputRef={tabletInputRef}
                   onUpload={(e) => handleSigImageUpload(e, 'tablet')}
-                  onClear={() => updateSignature({ image_path_tablet: '' })}
+                  onClear={() => updateSignature({ image_path_tablet: '', image_blur_tablet: '' })}
                 />
                 <ImageUploadSlot
                   label="Mobile"
@@ -573,7 +585,7 @@ export default function SettingsForm({ initialSettings, isOwner }: SettingsFormP
                   uploadState={mobileUpload}
                   inputRef={mobileInputRef}
                   onUpload={(e) => handleSigImageUpload(e, 'mobile')}
-                  onClear={() => updateSignature({ image_path_mobile: '' })}
+                  onClear={() => updateSignature({ image_path_mobile: '', image_blur_mobile: '' })}
                 />
               </div>
             </SubCard>
@@ -1016,6 +1028,9 @@ function shallowEqualSignature(a: SignatureSettings, b: SignatureSettings): bool
     a.image_path_desktop === b.image_path_desktop &&
     a.image_path_tablet === b.image_path_tablet &&
     a.image_path_mobile === b.image_path_mobile &&
+    a.image_blur_desktop === b.image_blur_desktop &&
+    a.image_blur_tablet === b.image_blur_tablet &&
+    a.image_blur_mobile === b.image_blur_mobile &&
     a.aspect_desktop === b.aspect_desktop &&
     a.aspect_tablet === b.aspect_tablet &&
     a.aspect_mobile === b.aspect_mobile &&

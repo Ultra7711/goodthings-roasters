@@ -101,6 +101,20 @@ export const SignatureSettingsSchema = z.object({
     z.string().trim().max(500),
   ).default(''),
 
+  /* ── LQIP base64 dataURL (S246) ────────────────────────────────────────
+     068 마이그. 업로드 시 generateImageBlurAction 으로 자동 생성. 운영자 HTML 의
+     {{IMAGE_BLUR_DESKTOP/TABLET/MOBILE}} placeholder 치환에 사용. base64 dataURL
+     은 길이 ~2KB 라 z.string() max 5000 으로 여유. */
+  image_blur_desktop: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(5000),
+  ).default(''),
+  image_blur_tablet: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(5000),
+  ).default(''),
+  image_blur_mobile: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
+    z.string().trim().max(5000),
+  ).default(''),
+
   /** iframe 컨테이너 aspect-ratio (>=1024px). CSS aspect-ratio 형식 "W/H". */
   aspect_desktop: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
     z.string().trim().max(40),
@@ -152,6 +166,9 @@ export const SIGNATURE_DEFAULTS: SignatureSettings = {
   image_path_desktop: '',
   image_path_tablet: '',
   image_path_mobile: '',
+  image_blur_desktop: '',
+  image_blur_tablet: '',
+  image_blur_mobile: '',
   aspect_desktop: '1320/600',
   aspect_tablet: '1024/520',
   aspect_mobile: '390/520',

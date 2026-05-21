@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase';
 import { MAX_FILE_BYTES, ALLOWED_MIME } from './imageUploadShared';
 import type { UploadResult } from './imageUploadShared';
 import { convertToWebPClient } from './clientImageProcessing';
+import { generateImageBlurAction } from './imageBlur';
 
 const CAFE_EVENT_BUCKET = 'cafe-events';
 
@@ -78,5 +79,10 @@ export async function uploadCafeEventImage(
     return { ok: false, error: 'public_url_failed' };
   }
 
-  return { ok: true, publicUrl: data.publicUrl, path };
+  /* S246: server action 으로 LQIP base64 dataURL 생성. uploadSignatureImage 답습.
+     실패 시 graceful — blur 없이 이미지만 저장. */
+  const blurRes = await generateImageBlurAction(data.publicUrl);
+  const blurDataURL = blurRes.ok ? blurRes.blurDataURL : undefined;
+
+  return { ok: true, publicUrl: data.publicUrl, path, blurDataURL };
 }

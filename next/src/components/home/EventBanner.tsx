@@ -46,6 +46,10 @@ export default async function EventBanner({ event }: Props) {
   const desktop = event.image_path_desktop;
   const tablet = event.image_path_tablet || desktop;
   const mobile = event.image_path_mobile || desktop;
+  /* S246 — LQIP base64 dataURL. 빈 값 fallback 은 desktop blur. */
+  const blurDesktop = event.image_blur_desktop;
+  const blurTablet = event.image_blur_tablet || blurDesktop;
+  const blurMobile = event.image_blur_mobile || blurDesktop;
 
   /* HTML fetch — 운영자 .html 파일은 Storage public URL (cafe-events/html/*).
      실패 시 EventBanner 렌더 skip (graceful). */
@@ -64,6 +68,9 @@ export default async function EventBanner({ event }: Props) {
     IMAGE_DESKTOP: desktop,
     IMAGE_TABLET: tablet,
     IMAGE_MOBILE: mobile,
+    IMAGE_BLUR_DESKTOP: blurDesktop,
+    IMAGE_BLUR_TABLET: blurTablet,
+    IMAGE_BLUR_MOBILE: blurMobile,
     IMAGE_ALT: event.image_alt,
   });
 

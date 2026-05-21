@@ -197,6 +197,9 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       image_path_desktop: '',
       image_path_tablet: '',
       image_path_mobile: '',
+      image_blur_desktop: '',
+      image_blur_tablet: '',
+      image_blur_mobile: '',
       aspect_desktop: '1320/480',
       aspect_tablet: '1024/400',
       aspect_mobile: '390/640',
@@ -272,6 +275,12 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         : brk === 'tablet'
           ? 'image_path_tablet'
           : 'image_path_mobile';
+    const blurKey =
+      brk === 'desktop'
+        ? 'image_blur_desktop'
+        : brk === 'tablet'
+          ? 'image_blur_tablet'
+          : 'image_blur_mobile';
     const aspectKey =
       brk === 'desktop'
         ? 'aspect_desktop'
@@ -285,6 +294,8 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     const result = await uploadCafeEventImage(file, brk);
     if (result.ok) {
       updateDraft(fieldKey, result.publicUrl);
+      /* S246: LQIP — 업로드 핸들러가 server action 으로 생성. 실패 시 빈 문자열. */
+      updateDraft(blurKey, result.blurDataURL ?? '');
       if (aspect) updateDraft(aspectKey, aspect);
       setState({ status: 'idle' });
       toast.success('이미지를 등록했습니다', {
@@ -586,7 +597,10 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                   uploadState={desktopUpload}
                   inputRef={desktopInputRef}
                   onUpload={(e) => handleImageUpload(e, 'desktop')}
-                  onClear={() => updateDraft('image_path_desktop', '')}
+                  onClear={() => {
+                    updateDraft('image_path_desktop', '');
+                    updateDraft('image_blur_desktop', '');
+                  }}
                 />
                 <ImageUploadSlot
                   label="Tablet"
@@ -595,7 +609,10 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                   uploadState={tabletUpload}
                   inputRef={tabletInputRef}
                   onUpload={(e) => handleImageUpload(e, 'tablet')}
-                  onClear={() => updateDraft('image_path_tablet', '')}
+                  onClear={() => {
+                    updateDraft('image_path_tablet', '');
+                    updateDraft('image_blur_tablet', '');
+                  }}
                 />
                 <ImageUploadSlot
                   label="Mobile"
@@ -604,7 +621,10 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
                   uploadState={mobileUpload}
                   inputRef={mobileInputRef}
                   onUpload={(e) => handleImageUpload(e, 'mobile')}
-                  onClear={() => updateDraft('image_path_mobile', '')}
+                  onClear={() => {
+                    updateDraft('image_path_mobile', '');
+                    updateDraft('image_blur_mobile', '');
+                  }}
                 />
               </div>
             </Card>
@@ -1157,6 +1177,9 @@ function shallowEqualEvent(a: CafeEvent, b: CafeEvent): boolean {
     a.image_path_desktop === b.image_path_desktop &&
     a.image_path_tablet === b.image_path_tablet &&
     a.image_path_mobile === b.image_path_mobile &&
+    a.image_blur_desktop === b.image_blur_desktop &&
+    a.image_blur_tablet === b.image_blur_tablet &&
+    a.image_blur_mobile === b.image_blur_mobile &&
     a.aspect_desktop === b.aspect_desktop &&
     a.aspect_tablet === b.aspect_tablet &&
     a.aspect_mobile === b.aspect_mobile &&

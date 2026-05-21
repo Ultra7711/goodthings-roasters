@@ -16,7 +16,14 @@ export const ALLOWED_MIME = [
 ] as const;
 
 export type UploadResult =
-  | { ok: true; publicUrl: string; path: string }
+  | {
+      ok: true;
+      publicUrl: string;
+      path: string;
+      /** S246: 업로드 직후 server action 으로 생성한 LQIP base64 dataURL.
+          plaiceholder 실패 시 undefined — caller 는 빈 문자열로 DB 저장. */
+      blurDataURL?: string;
+    }
   | {
       ok: false;
       error:

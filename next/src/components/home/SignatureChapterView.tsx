@@ -61,6 +61,10 @@ export default async function SignatureChapterView({
   const desktop = signature.image_path_desktop;
   const tablet = signature.image_path_tablet || desktop;
   const mobile = signature.image_path_mobile || desktop;
+  /* S246 — LQIP base64 dataURL. 빈 값 fallback 은 desktop blur. */
+  const blurDesktop = signature.image_blur_desktop;
+  const blurTablet = signature.image_blur_tablet || blurDesktop;
+  const blurMobile = signature.image_blur_mobile || blurDesktop;
 
   /* HTML fetch — 운영자 .html 파일은 Storage public URL (season-banners/signature/html/*).
      실패 시 chapter 렌더 skip (graceful). */
@@ -79,6 +83,9 @@ export default async function SignatureChapterView({
     IMAGE_DESKTOP: desktop,
     IMAGE_TABLET: tablet,
     IMAGE_MOBILE: mobile,
+    IMAGE_BLUR_DESKTOP: blurDesktop,
+    IMAGE_BLUR_TABLET: blurTablet,
+    IMAGE_BLUR_MOBILE: blurMobile,
     IMAGE_ALT: signature.image_alt,
   });
 

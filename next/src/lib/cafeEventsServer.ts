@@ -57,6 +57,7 @@ function getAnonClient(): SupabaseClient {
 const SELECT_COLS =
   'id, type, enabled, ' +
   'custom_html_path, image_path_desktop, image_path_tablet, image_path_mobile, ' +
+  'image_blur_desktop, image_blur_tablet, image_blur_mobile, ' +
   'aspect_desktop, aspect_tablet, aspect_mobile, ' +
   'image_alt, headline_text, subhead_text, cta_text, cta_href, ' +
   'start_date, end_date, sort_order';

@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 import { SEASON_BANNER_BUCKET, MAX_FILE_BYTES, ALLOWED_MIME } from './imageUploadShared';
 import type { UploadResult } from './imageUploadShared';
 import { convertToWebPClient } from './clientImageProcessing';
+import { generateImageBlurAction } from './imageBlur';
 
 export type SignatureBreakpoint = 'desktop' | 'tablet' | 'mobile';
 
@@ -77,5 +78,11 @@ export async function uploadSignatureImage(
     return { ok: false, error: 'public_url_failed' };
   }
 
-  return { ok: true, publicUrl: data.publicUrl, path };
+  /* S246: server action 으로 LQIP base64 dataURL 생성. 실패 시 graceful — blur 없이
+     이미지만 저장. iframe 안 운영자 HTML 이 {{IMAGE_BLUR_*}} 를 빈 문자열로 받는 케이스
+     대비 (운영자 HTML 측 fallback 처리). */
+  const blurRes = await generateImageBlurAction(data.publicUrl);
+  const blurDataURL = blurRes.ok ? blurRes.blurDataURL : undefined;
+
+  return { ok: true, publicUrl: data.publicUrl, path, blurDataURL };
 }
