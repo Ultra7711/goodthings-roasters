@@ -213,8 +213,15 @@ export default function CafeMenuPage({ items }: Props) {
       // 후 잔존 scrollY 가 BFCache/Activity 로 복원되는 케이스 보정.
       // window.location.search 로 stale closure 회피.
       const params = new URLSearchParams(window.location.search);
-      if (params.get('item') && window.scrollY > 0) {
+      const hasItem = params.get('item');
+      if (hasItem && window.scrollY > 0) {
         window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+      // S245-P13: cacheComponents/Activity 환경에서 page state 잔존 방지.
+      // 외부 → /menu 진입 시 page 1 로 reset. ?item= 일 때는 item 검색 로직이
+      // page 를 자동 결정하므로 skip (덮어쓰기 방지).
+      if (!hasItem) {
+        setPage(1);
       }
       triggerAnim();
     };
