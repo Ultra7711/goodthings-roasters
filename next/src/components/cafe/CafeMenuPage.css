@@ -561,6 +561,13 @@
   line-height: 1;
   white-space: nowrap;
 }
+@media (max-width: 767px) {
+  /* 모바일 font rendering 의 미세 baseline 차이 — label line-height 20 통일 후에도
+     pill 이 0.5px 아래로 보임 → 0.5px 위로 보정. PC 는 정합되어 보정 불필요. */
+  .cns-temp-pill {
+    transform: translateY(-0.5px);
+  }
+}
 .cns-temp-pill--ice  { color: var(--color-info); }
 .cns-temp-pill--hot  { color: var(--color-error); }
 .cns-temp-pill--warm { color: var(--color-warning); }

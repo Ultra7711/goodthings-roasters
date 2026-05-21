@@ -88,9 +88,34 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
        토큰 변경 시 양쪽 함께 갱신 필요. */
     root.style.backgroundColor = '#E5E2DD';
     body.style.backgroundColor = '#E5E2DD';
+
+    /* theme-color meta 동적 변경 — iOS Safari 의 viewport extra area (status bar 변동
+       영역 · home indicator 사라진 영역) 색 결정. 시트 open 시 stone-light 로 → panel
+       rubber-band 시 viewport extra area 의 점멸 영역도 stone-light 노출 (시각 통일). */
+    let metaEl = document.querySelector(
+      'meta[name="theme-color"]',
+    ) as HTMLMetaElement | null;
+    let metaCreated = false;
+    let prevMetaContent = '';
+    if (metaEl) {
+      prevMetaContent = metaEl.content;
+      metaEl.content = '#E5E2DD';
+    } else {
+      metaEl = document.createElement('meta');
+      metaEl.name = 'theme-color';
+      metaEl.content = '#E5E2DD';
+      document.head.appendChild(metaEl);
+      metaCreated = true;
+    }
+
     return () => {
       root.style.backgroundColor = prevRoot;
       body.style.backgroundColor = prevBody;
+      if (metaCreated && metaEl) {
+        metaEl.remove();
+      } else if (metaEl) {
+        metaEl.content = prevMetaContent;
+      }
     };
   }, [open]);
 
