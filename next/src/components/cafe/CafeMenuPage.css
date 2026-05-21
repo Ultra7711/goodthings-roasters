@@ -778,11 +778,9 @@
     border-radius: 0;
     transform: translateY(100%);
     padding-bottom: 0;
-    /* S247 강화 fix: iOS Safari bottom sheet (translateY + dvh + bottom 0) rubber-band
-       quirk 차단. contain 으로는 부족 (외부 전파만 차단), none 이 bounce 자체 차단.
-       다층 방어 ②: body 도 함께 backgroundColor 변경 (CafeNutritionSheet.tsx) / ③: 부모
-       #cafe-nutrition-sheet.open 의 모바일 한정 background (아래). */
-    overscroll-behavior: none;
+    /* overscroll-behavior 는 base 정의 (line ~456) 의 contain 유지 — none 으로 강화
+       시도 했으나 iOS bounce 자체 차단되어 스크롤 답답함 발생. UX 우선 → contain 복귀.
+       점멸 차단은 다층 방어 ②(body bg) + ③(부모 bg) 으로 위임. */
   }
   #cafe-nutrition-sheet.open #cns-panel { transform: translateY(0); }
   /* S247 강화 fix ③: parent fixed inset:0 영역에 panel content 색 미리 채움.
