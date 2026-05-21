@@ -42,11 +42,13 @@ function spawnParticles(btn: HTMLButtonElement) {
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     const baseAngle = (360 / PARTICLE_COUNT) * i;
     const angle = baseAngle + (Math.random() * 24 - 12);
-    const distance = 28 + Math.random() * 22;
+    /* S245-P20 fine tune: 범위 28~50 → 60~110 (가시성 ↑) */
+    const distance = 60 + Math.random() * 50;
     const rad = (angle * Math.PI) / 180;
     const dx = Math.cos(rad) * distance;
     const dy = Math.sin(rad) * distance;
-    const size = 6 + Math.random() * 6; // 6~12px
+    /* 파티클 사이즈도 살짝 확대 (6~12 → 8~16) */
+    const size = 8 + Math.random() * 8;
 
     const el = document.createElement('span');
     el.className = 'cm-like-particle';
