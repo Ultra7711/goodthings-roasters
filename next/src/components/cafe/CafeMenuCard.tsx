@@ -51,7 +51,8 @@ export default function CafeMenuCard({
   const tempBadge = getTempBadge(item.temp);
   const imgMeta = getCafeImageMeta(item.img);
 
-  const bottomRightSlot = tempBadge ? (
+  /* S245-P20: Z 옵션 적용 — 좌상=메타 / 우상=비움 / 좌하=온도 / 우하=좋아요 */
+  const bottomLeftSlot = tempBadge ? (
     <div className="cm-temp-badges">
       <span className={`cm-badge-temp ${tempBadge.cls}`}>{tempBadge.txt}</span>
     </div>
@@ -66,8 +67,8 @@ export default function CafeMenuCard({
       imgAlt={item.name}
       imgBlurDataURL={imgMeta?.blurDataURL}
       badgeSlot={<MenuCardBadges menuId={item.id} status={item.status} />}
-      topRightSlot={<MenuLikeCount menuId={item.id} />}
-      bottomRightSlot={bottomRightSlot}
+      bottomLeftSlot={bottomLeftSlot}
+      bottomRightSlot={<MenuLikeCount menuId={item.id} />}
       name={item.name}
       price={`${item.price.toLocaleString('ko-KR')}원`}
       scrollRoot={scrollRoot}

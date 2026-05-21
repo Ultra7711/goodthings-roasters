@@ -88,8 +88,9 @@ type Props = {
 
   /** 슬롯 — 카드별 부가 요소 주입 */
   badgeSlot?: ReactNode;       // 좌상단 (status badge)
-  topRightSlot?: ReactNode;    // 우상단 (좋아요 등 — cafe 전용)
-  bottomRightSlot?: ReactNode; // 우하단 (온도 뱃지 등 — cafe 전용)
+  topRightSlot?: ReactNode;    // 우상단 (cafe 카드는 P20 이후 비움)
+  bottomLeftSlot?: ReactNode;  // 좌하단 (cafe 온도 뱃지 — P20 재배치)
+  bottomRightSlot?: ReactNode; // 우하단 (cafe 좋아요 — P20 재배치)
 
   /** info */
   name: string;
@@ -123,6 +124,7 @@ export default function GenericCard({
   thumbAspect = '1:1',
   badgeSlot,
   topRightSlot,
+  bottomLeftSlot,
   bottomRightSlot,
   name,
   price,
@@ -238,6 +240,7 @@ export default function GenericCard({
         )}
         {badgeSlot}
         {topRightSlot}
+        {bottomLeftSlot}
         {bottomRightSlot}
       </div>
 

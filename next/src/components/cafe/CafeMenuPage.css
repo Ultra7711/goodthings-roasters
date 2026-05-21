@@ -172,10 +172,11 @@
 }
 
 /* 온도 뱃지 (우하단 원형) */
+/* S245-P20: 온도 우하 → 좌하 이동 (Z 옵션 · 시트와 카드 일관) */
 .cm-temp-badges {
   position: absolute;
   bottom: 12px;
-  right: 12px;
+  left: 12px;
   display: flex;
   gap: 4px;
   pointer-events: none;
@@ -226,13 +227,34 @@
     font-size: 9px;
     line-height: 1.1;
   }
+
+  /* 좌하단 온도 / 우하단 좋아요 — 모바일 축소 (S245-P20) */
+  .cm-card .cm-temp-badges { bottom: 10px; left: 10px; }
+  .cm-card .cm-like-count {
+    bottom: 10px;
+    right: 10px;
+    --like-baseline: 42px;
+    height: 36px;
+    width: 36px;
+    border-radius: 18px;
+  }
+  .cm-card .cm-like-count-icon {
+    left: 6px;
+    top: 6px;
+    width: 24px;
+    height: 24px;
+  }
+  .cm-card .cm-like-count-num {
+    left: 34px; /* icon-end(30) + gap(4) */
+    font-size: 12px;
+  }
 }
 
 /* 소형 모바일 (≤480px): 카드 폭 ~150-210px, 슬롯 오프셋 8px */
 @media (max-width: 480px) {
-  .cm-card .cm-temp-badges { bottom: 8px; right: 8px; }
   .cm-card .cm-card-badges { top: 8px; left: 8px; }
-  .cm-card .cm-like-count  { top: 8px; right: 8px; }
+  .cm-card .cm-temp-badges { bottom: 8px; left: 8px; }
+  .cm-card .cm-like-count  { bottom: 8px; right: 8px; }
 }
 
 /* ── highlight 플래시 (URL ?item= 진입 시) ── */
@@ -287,43 +309,58 @@
 .cm-meta-badge--rank-2 { background: #8C9BB5; }
 .cm-meta-badge--rank-3 { background: #A07850; }
 /* ══════════════════════════════════════════
-   카드 좋아요 인디케이터 (S245-P20 Phase 2 · read-only)
-   클릭 = 카드 click handler (시트 진입) 동일. 토글 X.
-   - 누른 메뉴: ♥ filled (red) + count red
-   - 안 누른 메뉴 (count > 0): ♡ outline (gray) + count muted
-   - count 0 + 안 누른 메뉴: hidden (MenuLikeCount 컴포넌트가 null 반환)
+   카드 좋아요 인디케이터 (S245-P20 Phase 2 정정 · read-only)
+   기존 MenuLikeButton 시각 답습 + 인터랙션만 제거.
+   - 흰 반투명 원형 (count 0 + liked) → liked red solid
+   - count > 0 시 가로 알약 확장 (baseline + countWidth · JS layout)
+   - 클릭 = 카드 click handler (시트 진입) — pointer-events: none 으로 부모 click 위임
+   위치: 우하단 (S245-P20 Z 옵션 · 좋아요 우상 → 우하 재배치)
    ══════════════════════════════════════════ */
 .cm-like-count {
   position: absolute;
-  top: 12px;
+  bottom: 12px;
   right: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 10px 6px 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
+  height: 48px;
+  width: 48px;
+  /* baseline = 좌 12 + icon 24 + gap 4 + 우 12 = 52. count 있을 때 JS 가
+     width = baseline + countScrollWidth 로 확장 (cm-like-count-num 노출). */
+  --like-baseline: 52px;
+  overflow: hidden;
+  border-radius: 24px;
+  display: block;
+  background: rgba(255, 255, 255, 0.28);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  pointer-events: none;
+  z-index: 2;
+  transition: width 320ms cubic-bezier(0.16, 1, 0.3, 1), background 280ms ease;
+}
+.cm-like-count--liked {
+  background: #E84E4E;
+}
+.cm-like-count-icon {
+  display: block;
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 24px;
+  height: 24px;
+  color: #fff;
+}
+.cm-like-count-num {
+  position: absolute;
+  left: 40px; /* icon-end(36) + gap(4) */
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
   font-family: var(--font-en);
   font-size: 13px;
   font-weight: 600;
+  color: #fff;
   line-height: 1;
   white-space: nowrap;
   pointer-events: none;
-  z-index: 2;
-}
-.cm-like-count--liked {
-  color: #E84E4E;
-}
-.cm-like-count--not-liked {
-  color: var(--color-text-tertiary);
-}
-.cm-like-count-icon {
-  flex-shrink: 0;
-}
-.cm-like-count-num {
-  letter-spacing: var(--ls-label);
 }
 
 /* ── NUTRITION SHEET (우측 슬라이드인 드로어) ── */
