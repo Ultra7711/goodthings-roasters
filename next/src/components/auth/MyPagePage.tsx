@@ -196,9 +196,11 @@ export default function MyPagePage({
 
   return (
     <>
-      {/* BUG-165: 마이페이지 light bg (#FBF8F3) — (main) 셸의 OverscrollColor default(dark) 부조화 차단.
-         cleanup 시 resetColors → 다른 라우트로 navigate 시 default 색상 복귀. */}
-      <OverscrollTop top="#FBF8F3" bottom="#FBF8F3" />
+      {/* 모바일 오버스크롤 영역: 상단 = ann-bar 색 (#1E1B16) / 하단 = footer 색 (#4A4845 default).
+         메인 페이지와 동일 패턴 — 페이지 콘텐츠 영역 (mp-body #FBF8F3) 위/아래로 노출되는
+         오버스크롤이 ann-bar / footer 와 시각적으로 연속되게. BUG-165 에서 #FBF8F3 단일색
+         적용했던 결정 회귀 (사용자 디자인 변경). */}
+      <OverscrollTop top="#1E1B16" />
 
       {/* ── V2 §3.2 재구조화 본문 ── */}
       <div className="mp-body" ref={setBodyEl}>
