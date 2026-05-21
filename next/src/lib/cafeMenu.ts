@@ -144,23 +144,48 @@ export function filterCafeMenu(items: CafeMenuItem[], filter: CafeFilterKey): Ca
   return items.filter((i) => i.cat === filter);
 }
 
-/** NEW → 인기 No.1~3 → 나머지 순으로 노출. stable sort 보장용 index tie-breaker 포함 */
-export function sortCafeMenu(
-  items: CafeMenuItem[],
-  popularIds?: Set<string>,
-): CafeMenuItem[] {
+/**
+ * 카드 정렬 정책 (S245-P11):
+ *   1. status='NEW'      — 신규 메뉴
+ *   2. status='인기'     — 운영자 명시 인기 마커
+ *   3. status='시그니처' — 운영자 명시 시그니처 마커
+ *   4. 나머지            — cat 순 (brewing → tea → non-coffee → dessert)
+ *
+ * 각 그룹 내부: cat asc → sort_order asc (input items 가 이미 sort_order asc 정렬).
+ *
+ * 변경 사유:
+ * - 직전 popularIds (menu_likes 좋아요 카운트 상위 ID) 기반 자동 정렬 폐기.
+ *   운영자가 status='인기' 로 명시한 메뉴만 우선 정렬 — 마케팅 의도 일관성.
+ * - status='시그니처' 도 정렬 우선 그룹 추가 (NEW/인기 다음).
+ * - 일반 메뉴는 cat 별 그룹화 (탭 흐름 정합 + 운영자 의도 명확).
+ */
+const CAT_ORDER: Record<CafeMenuItem['cat'], number> = {
+  brewing: 0,
+  tea: 1,
+  'non-coffee': 2,
+  dessert: 3,
+};
+
+function getStatusRank(item: CafeMenuItem): number {
+  if (item.status === 'NEW') return 0;
+  if (item.status === '인기') return 1;
+  if (item.status === '시그니처') return 2;
+  return 3;
+}
+
+export function sortCafeMenu(items: CafeMenuItem[]): CafeMenuItem[] {
   return items
     .map((item, index) => ({ item, index }))
     .sort((a, b) => {
-      const aNew = a.item.status === 'NEW' ? 0 : 1;
-      const bNew = b.item.status === 'NEW' ? 0 : 1;
-      if (aNew !== bNew) return aNew - bNew;
-      // NEW가 아닌 항목: 인기 1~3을 다음 그룹으로
-      if (popularIds) {
-        const aP = popularIds.has(a.item.id) ? 0 : 1;
-        const bP = popularIds.has(b.item.id) ? 0 : 1;
-        if (aP !== bP) return aP - bP;
-      }
+      const rankA = getStatusRank(a.item);
+      const rankB = getStatusRank(b.item);
+      if (rankA !== rankB) return rankA - rankB;
+
+      const catA = CAT_ORDER[a.item.cat];
+      const catB = CAT_ORDER[b.item.cat];
+      if (catA !== catB) return catA - catB;
+
+      /* sort_order asc — input items 가 이미 sort_order asc 정렬됨 (index 가 그 순서) */
       return a.index - b.index;
     })
     .map(({ item }) => item);

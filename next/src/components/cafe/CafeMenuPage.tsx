@@ -261,12 +261,11 @@ export default function CafeMenuPage({ items }: Props) {
     };
   }, [highlightId]);
 
-  // 필터/페이징 — sortCommitted (store) 기반. 첫 마운트 시 빈 객체 = NEW only,
-  // 재진입 시 commitMenuRanksOnReentry → sortCommitted 변경 → 재정렬.
+  /* S245-P11: 정렬 정책 변경 — popularIds (menu_likes 카운트) 폐기.
+     status 마커 + cat 순으로 명시적 정렬 (운영자 의도 일관성). */
   const filtered: CafeMenuItem[] = useMemo(() => {
-    const popularIds = new Set(Object.keys(sortCommitted));
-    return sortCafeMenu(filterCafeMenu(items, filter), popularIds);
-  }, [filter, sortCommitted, items]);
+    return sortCafeMenu(filterCafeMenu(items, filter));
+  }, [filter, items]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
