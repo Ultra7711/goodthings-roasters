@@ -539,7 +539,9 @@
 }
 
 /* 온도 pill — outline (transparent bg + colored border + colored text · 컬러 일치).
-   1px baseline 어긋남 fix — 카테고리 라벨 시각 베이스라인과 정합 위해 translateY 보정. */
+   S247: 11px + height 20px 로 슬림화. label 에 line-height: 20px 명시하여 box height
+   정합 (.cns-category-label) → align-items: center 만으로 baseline 자연 정합 (PC/모바일
+   양쪽 정확). transform 보정 hack 폐기. */
 .cns-temp-pill {
   display: inline-flex;
   align-items: center;
@@ -558,7 +560,6 @@
   text-transform: uppercase;
   line-height: 1;
   white-space: nowrap;
-  transform: translateY(-1px);
 }
 .cns-temp-pill--ice  { color: var(--color-info); }
 .cns-temp-pill--hot  { color: var(--color-error); }
@@ -677,6 +678,8 @@
   /* S245: stone-light 배경 (HSL 26/10/86) 위 neutral text — warm brown 폐기 */
   color: var(--color-text-tertiary);
   margin: 0 0 8px;
+  /* S247: pill height (20) 와 정합 → align-items: center 만으로 baseline 자연 정합. */
+  line-height: 20px;
 }
 .cns-item-name {
   font-family: var(--font-kr);
