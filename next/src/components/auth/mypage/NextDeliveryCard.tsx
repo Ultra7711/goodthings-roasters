@@ -11,6 +11,7 @@
 import Image from 'next/image';
 import './NextDeliveryCard.css';
 import { extractKrName } from '@/lib/utils';
+import { getProductImageMeta } from '@/lib/products';
 import type { Subscription } from '@/types/subscription';
 
 type Props = {
@@ -42,15 +43,20 @@ export default function NextDeliveryCard({ sub, onManage }: Props) {
         </button>
       </div>
       <div className="mp-next-image" aria-hidden="true">
-        {sub.imageUrl ? (
-          <Image
-            src={sub.imageUrl}
-            alt=""
-            fill
-            sizes="240px"
-            className="mp-next-image-img"
-          />
-        ) : (
+        {sub.imageUrl ? (() => {
+          const meta = getProductImageMeta(sub.imageUrl);
+          return (
+            <Image
+              src={sub.imageUrl}
+              alt=""
+              fill
+              sizes="240px"
+              className="mp-next-image-img"
+              placeholder={meta ? 'blur' : 'empty'}
+              blurDataURL={meta?.blurDataURL}
+            />
+          );
+        })() : (
           <div className="mp-next-image-placeholder" />
         )}
       </div>

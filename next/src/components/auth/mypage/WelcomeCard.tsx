@@ -9,7 +9,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
-import type { Product } from '@/lib/products';
+import { getProductImageMeta, type Product } from '@/lib/products';
 import './NextDeliveryCard.css';
 import './WelcomeCard.css';
 
@@ -48,15 +48,21 @@ export default function WelcomeCard({ userName, products }: Props) {
         </Link>
       </div>
       <div className="mp-next-image" aria-hidden="true">
-        {pick ? (
-          <Image
-            src={pick.images[0].src}
-            alt=""
-            fill
-            sizes="240px"
-            className="mp-next-image-img"
-          />
-        ) : (
+        {pick ? (() => {
+          const src = pick.images[0].src;
+          const meta = getProductImageMeta(src);
+          return (
+            <Image
+              src={src}
+              alt=""
+              fill
+              sizes="240px"
+              className="mp-next-image-img"
+              placeholder={meta ? 'blur' : 'empty'}
+              blurDataURL={meta?.blurDataURL}
+            />
+          );
+        })() : (
           <div className="mp-next-image-placeholder" />
         )}
       </div>

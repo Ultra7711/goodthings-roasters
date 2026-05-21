@@ -10,6 +10,7 @@ import Image from 'next/image';
 import './NextDeliveryCard.css';
 import './RecentOrderCard.css';
 import { extractKrName } from '@/lib/utils';
+import { getProductImageMeta } from '@/lib/products';
 import type { Order } from '@/types/order';
 
 const STATUS_TONE: Record<Order['status'], string> = {
@@ -64,15 +65,20 @@ export default function RecentOrderCard({ order, onViewOrders }: Props) {
         </button>
       </div>
       <div className="mp-next-image" aria-hidden="true">
-        {imageSrc ? (
-          <Image
-            src={imageSrc}
-            alt=""
-            fill
-            sizes="(max-width: 767px) 100vw, 40vw"
-            className="mp-next-image-img"
-          />
-        ) : (
+        {imageSrc ? (() => {
+          const meta = getProductImageMeta(imageSrc);
+          return (
+            <Image
+              src={imageSrc}
+              alt=""
+              fill
+              sizes="(max-width: 767px) 100vw, 40vw"
+              className="mp-next-image-img"
+              placeholder={meta ? 'blur' : 'empty'}
+              blurDataURL={meta?.blurDataURL}
+            />
+          );
+        })() : (
           <div className="mp-next-image-placeholder" />
         )}
       </div>
