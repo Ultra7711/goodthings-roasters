@@ -145,8 +145,10 @@ export default async function SignatureChapterView({
           </div>
         )}
         <div className="sig-bleed">
+          {/* sr-img — 부모 section 의 [data-sr] 와 함께 SRInitializer 가 sr--visible
+              토글 시 opacity/blur fade-in. globals.css §스크롤 리빌 베이스 답습. */}
           <IframeBanner
-            className="sig-iframe"
+            className="sig-iframe sr-img"
             srcDoc={filledHtml}
             title={signature.image_alt || '시그니처 섹션'}
           />

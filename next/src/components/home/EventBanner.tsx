@@ -106,7 +106,9 @@ export default async function EventBanner({ event }: Props) {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: inlineCss }} />
-      <div className="ev-banner-bleed">
+      {/* data-sr + 자식 sr-img — SRInitializer 가 sr--visible 토글 시 iframe
+          opacity/blur fade-in (SignatureChapter 답습). */}
+      <div className="ev-banner-bleed" data-sr>
         {/* SEO/a11y 메타 텍스트 — iframe srcDoc 안 텍스트는 별도 document 라
             검색엔진/스크린리더 진입이 약함. iframe 외부 sr-only 로 동일 텍스트
             제공해 인덱싱·낭독 회수. signature (063) 답습. */}
@@ -123,7 +125,7 @@ export default async function EventBanner({ event }: Props) {
         )}
         <div className="ev-banner">
           <IframeBanner
-            className="ev-banner-iframe"
+            className="ev-banner-iframe sr-img"
             data-event-id={event.id}
             srcDoc={filledHtml}
             title={event.image_alt || '카페 이벤트 배너'}
