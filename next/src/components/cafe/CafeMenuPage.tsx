@@ -32,8 +32,8 @@ import {
 } from '@/lib/cafeMenu';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import {
-  fetchMenuLikes,
   commitMenuRanksOnReentry,
+  hydrateMenuLikes,
   useMenuSortCommitted,
 } from '@/lib/menuLikesStore';
 
@@ -44,9 +44,25 @@ const HIGHLIGHT_MS = 3000;
 // ShopPage 와 동일 — 탭(0.3s) 등장 후 카드 시작, 진입 후엔 0
 const CARD_BASE_DELAY_INIT = 420;
 
-type Props = { items: CafeMenuItem[] };
+type Props = {
+  items: CafeMenuItem[];
+  /* S245-P20 Phase 1: SSR likes snapshot — store hydrate 로 첫 렌더부터
+     popular 정렬 + count 완성 (카드 reorder 점프 제거). */
+  initialLikesSnapshot: {
+    counts: Record<string, number>;
+    liked: string[];
+  };
+};
 
-export default function CafeMenuPage({ items }: Props) {
+export default function CafeMenuPage({ items, initialLikesSnapshot }: Props) {
+  /* S245-P20 Phase 1: SSR snapshot 으로 store hydrate (1회).
+     useState lazy initializer — SSR + CSR 첫 렌더 시 store 가 이미 채워진 상태 →
+     hydration mismatch 0 + 카드 reorder 점프 0. */
+  useState(() => {
+    hydrateMenuLikes(initialLikesSnapshot);
+    return true;
+  });
+
   const searchParams = useSearchParams();
 
   // URL `?cat=` 파싱 — searchParams 가 바뀔 때마다 재평가
@@ -166,15 +182,10 @@ export default function CafeMenuPage({ items }: Props) {
     }
   }
 
-  // 마운트 시 likes 1회 fetch (store 내부에 fetched 가드 있음 → 중복 호출 안전)
-  // S245-P14: fetch 완료 후 commitMenuRanksOnReentry 호출 — 첫 진입부터 popular
-  // 정렬(좋아요 1~3위 우선) 활성. 기존 정책은 재진입 시점만 commit → 첫 진입은
-  // NEW only sort 였음. 사용자 의도 = 첫 진입부터 인기 정렬 보고 싶음.
-  useEffect(() => {
-    void fetchMenuLikes().then(() => {
-      commitMenuRanksOnReentry();
-    });
-  }, []);
+  /* S245-P20 Phase 1: client fetch /api/menu-likes 자동 호출 폐기 —
+     SSR snapshot hydrate 가 그 자리 대체 (첫 렌더부터 popular 정렬 완성).
+     재진입 시점은 gtr:route-change listener 안 commitMenuRanksOnReentry 가 처리.
+     사용자 토글 후 sync 필요 시 toggleMenuLike 가 store optimistic update. */
 
   // S216-D P5: home → /menu?item= 진입 시 풋터 먼저 노출 버그 fix.
   // layout-level NavigationScrollReset 이 useLayoutEffect 로 scrollTo(0) 하지만

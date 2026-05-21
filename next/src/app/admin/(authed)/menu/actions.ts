@@ -41,6 +41,7 @@ import {
 } from '@/lib/admin/cafeMenuServer';
 import { normalizeAllergen, syncHighCaffeineMarker } from '@/lib/allergenSort';
 import { CAFE_MENU_CACHE_TAG } from '@/lib/cafeMenuServer';
+import { MENU_LIKES_CACHE_TAG } from '@/lib/menuLikesServer';
 
 const MENU_IMAGES_BUCKET = 'menu-images';
 
@@ -187,6 +188,8 @@ export async function deleteCafeMenuAction(input: {
   }
 
   revalidateTag(CAFE_MENU_CACHE_TAG, 'max');
+  /* S245-P20: 메뉴 삭제 시 menu_likes orphan 발생 → SSR snapshot 도 새로 fetch */
+  revalidateTag(MENU_LIKES_CACHE_TAG, 'max');
   revalidatePath('/admin/menu');
   revalidatePath('/menu');
 

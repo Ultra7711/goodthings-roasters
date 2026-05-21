@@ -5,11 +5,13 @@
    - 응답: { liked: boolean, count: number }
    ══════════════════════════════════════════════════════════════════════════ */
 
+import { revalidateTag } from 'next/cache';
 import { apiError, apiSuccess } from '@/lib/api/errors';
 import { enforceSameOrigin } from '@/lib/api/csrf';
 import { checkRateLimit } from '@/lib/auth/rateLimit';
 import { getClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
+import { MENU_LIKES_CACHE_TAG } from '@/lib/menuLikesServer';
 
 export async function POST(
   request: Request,
@@ -93,6 +95,10 @@ export async function POST(
       console.error('[POST /api/menu-likes] count error', { code: cntErr.code, message: cntErr.message });
       return apiError('server_error');
     }
+
+    /* S245-P20 Phase 1: SSR snapshot cache 무효화 — 다른 사용자가 새로 진입 시
+       fresh counts 반영. 본인은 store optimistic update 로 즉시 반영. */
+    revalidateTag(MENU_LIKES_CACHE_TAG, 'max');
 
     return apiSuccess({ liked: !wasLiked, count: count ?? 0 });
   } catch (err) {
