@@ -69,24 +69,28 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
     return () => bg.removeEventListener('touchmove', prevent);
   }, [open]);
 
-  /* S247 폴리싱: 모바일 풀스크린 시트일 때 html bg 를 panel content 색으로 임시 변경.
-     iOS Safari rubber-band overscroll 시 fixed panel 외부에 html bg (#1E1B16 다크) 가
-     프레임 단위로 노출되는 점멸 현상 차단. OverscrollTop 컴포넌트와 동일 패턴 (html
-     documentElement.style.backgroundColor 토글). prev 값 저장 → close 시 복원하여
-     다른 OverscrollTop 적용 페이지와의 충돌 회피. 데스크탑은 540px 우측 드로어 + dim
-     효과 보존 → 모바일 한정. */
+  /* S247 폴리싱 + 강화 fix: 모바일 풀스크린 bottom sheet 에서 iOS Safari rubber-band
+     overscroll 시 fixed panel 외부에 html bg (#1E1B16 다크) 가 프레임 단위로 노출되는
+     점멸 현상 차단. 단일 fix 부족 → 다층 방어 (overscroll-behavior:none 은 CSS 측).
+     - html 만 변경 시 body transparent 영역에서 일부 noise 잔존 → body 도 함께 변경.
+     - prev 값 저장 → close 시 복원하여 OverscrollTop 적용 페이지와의 충돌 회피.
+     - 데스크탑은 540px 우측 드로어 + dim 효과 보존 → 모바일 한정. */
   useEffect(() => {
     if (!open) return;
     if (typeof window === 'undefined') return;
     const isMobile = window.matchMedia('(max-width: 767px)').matches;
     if (!isMobile) return;
     const root = document.documentElement;
-    const prev = root.style.backgroundColor;
+    const body = document.body;
+    const prevRoot = root.style.backgroundColor;
+    const prevBody = body.style.backgroundColor;
     /* stone-light (#E5E2DD) — globals.css `--color-surface-stone-light` 와 동기.
        토큰 변경 시 양쪽 함께 갱신 필요. */
     root.style.backgroundColor = '#E5E2DD';
+    body.style.backgroundColor = '#E5E2DD';
     return () => {
-      root.style.backgroundColor = prev;
+      root.style.backgroundColor = prevRoot;
+      body.style.backgroundColor = prevBody;
     };
   }, [open]);
 
