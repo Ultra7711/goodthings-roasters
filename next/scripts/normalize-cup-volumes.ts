@@ -105,12 +105,17 @@ function scaleNutrientText(text: string | null | undefined, k: number): string {
   return `${formatScaled(scaled)}${unit}`;
 }
 
-/** 0 이면 '0' · 정수면 정수 · 소수면 1자리. */
+/** 값 기반 분기 (S245-P16):
+ *   - v >= 1 → 정수 반올림 (kcal/sodium/caffeine/sugar 등 큰 값 라벨 관례)
+ *   - 0 < v < 1 → 소수 1자리 (satfat/protein 같은 작은 값 정보 보존)
+ *   - v == 0 → '0'
+ */
 function formatScaled(v: number): string {
   if (!Number.isFinite(v)) return '0';
   if (v === 0) return '0';
+  if (Math.abs(v) >= 1) return String(Math.round(v));
   const rounded = Math.round(v * 10) / 10;
-  if (Number.isInteger(rounded)) return String(rounded);
+  if (rounded === 0) return '0';
   return rounded.toFixed(1);
 }
 
