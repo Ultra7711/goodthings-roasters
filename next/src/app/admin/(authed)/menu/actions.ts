@@ -236,7 +236,22 @@ const MenuMetaSchema = z.object({
 
 type MenuMetaInput = z.infer<typeof MenuMetaSchema>;
 
-/** 폼 input → DB row (snake_case · null 처리 · allergen 정렬·정규화) */
+/**
+ * 영양 text 필드 단위 자동 추가 (S245-P18).
+ * 운영자가 숫자만 입력 ('38') 한 경우 표준 단위 append ('38mg').
+ * 이미 단위가 있으면 그대로 (대소문자 영문 또는 한글 단위 감지).
+ */
+function appendUnit(text: string | undefined | null, unit: string): string {
+  if (!text) return '';
+  const raw = String(text).trim();
+  if (raw === '') return '';
+  /* 영문 글자(g/mg/kcal) 또는 한글(컵/잔) 또는 % 있으면 단위 이미 존재 */
+  if (/[a-zA-Z가-힣%]/.test(raw)) return raw;
+  /* 숫자 + 공백/특수문자만 — 단위 append */
+  return `${raw}${unit}`;
+}
+
+/** 폼 input → DB row (snake_case · null 처리 · allergen 정렬·정규화 · 단위 자동) */
 function toCafeMenuDbRow(v: MenuMetaInput) {
   return {
     name: v.name,
@@ -248,13 +263,14 @@ function toCafeMenuDbRow(v: MenuMetaInput) {
     bg: v.bg,
     description: v.description,
     menu_desc: v.menuDesc,
-    vol: v.vol,
+    /* S245-P18: 운영자가 숫자만 입력해도 표준 단위 자동 append */
+    vol: appendUnit(v.vol, 'ml'),
     kcal: v.kcal,
-    satfat: v.satfat,
-    sugar: v.sugar,
-    sodium: v.sodium,
-    protein: v.protein,
-    caffeine: v.caffeine,
+    satfat: appendUnit(v.satfat, 'g'),
+    sugar: appendUnit(v.sugar, 'g'),
+    sodium: appendUnit(v.sodium, 'mg'),
+    protein: appendUnit(v.protein, 'g'),
+    caffeine: appendUnit(v.caffeine, 'mg'),
     /* S245: 식약처 19종 순 + 가나다 fallback + 별칭 정규화 (계란→알류 등).
        DB 저장 시점 정규화 → 어드민 재진입 시 정돈된 값 prefill + 사이트 표시 일관. */
     allergen: normalizeAllergen(v.allergen),

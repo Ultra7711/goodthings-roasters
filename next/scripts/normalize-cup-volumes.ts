@@ -91,8 +91,12 @@ function parseVolMl(text: string | null | undefined): number {
 }
 
 /** 영양 text 필드 ("0.1g" / "10mg" / "0g" 등) 비례 스케일.
-    숫자 부분 × k → 1자리 반올림 (정수면 '.0' 제거) + 단위 복원. */
-function scaleNutrientText(text: string | null | undefined, k: number): string {
+    S245-P18: defaultUnit 인자 — 단위 누락 입력에도 표준 단위 적용. */
+function scaleNutrientText(
+  text: string | null | undefined,
+  k: number,
+  defaultUnit: string,
+): string {
   if (!text) return '';
   const raw = String(text).trim();
   if (raw === '') return '';
@@ -100,7 +104,7 @@ function scaleNutrientText(text: string | null | undefined, k: number): string {
   const m = raw.match(/^(-?\d+(?:\.\d+)?)(.*)$/);
   if (!m) return raw; // 숫자 없음 — 그대로
   const value = parseFloat(m[1]);
-  const unit = m[2];
+  const unit = m[2].trim() || defaultUnit;
   const scaled = value * k;
   return `${formatScaled(scaled)}${unit}`;
 }
@@ -211,11 +215,11 @@ async function main() {
         : row.kcal !== null && row.kcal !== undefined
           ? Math.round(Number(row.kcal) * k * 10) / 10
           : 0;
-    const newSatfat = scaleNutrientText(row.satfat, k);
-    const newSugar = scaleNutrientText(row.sugar, k);
-    const newSodium = scaleNutrientText(row.sodium, k);
-    const newProtein = scaleNutrientText(row.protein, k);
-    const newCaffeine = scaleNutrientText(row.caffeine, k);
+    const newSatfat = scaleNutrientText(row.satfat, k, 'g');
+    const newSugar = scaleNutrientText(row.sugar, k, 'g');
+    const newSodium = scaleNutrientText(row.sodium, k, 'mg');
+    const newProtein = scaleNutrientText(row.protein, k, 'g');
+    const newCaffeine = scaleNutrientText(row.caffeine, k, 'mg');
 
     console.log(`  · ${id} ${name} (cat=${row.cat}, 컵 ${cupLabel})`);
     console.log(`      vol     : ${currentVolText} → ${newVol}   k=${k.toFixed(3)}`);

@@ -58,15 +58,19 @@ function formatValue(v: number): string {
   return rounded.toFixed(1);
 }
 
-/** text 필드 ('0.4g' / '27.1g' / '197.2mg') → 값 기반 reformat + 단위 복원. */
-function reformatText(text: string | null | undefined): string {
+/** text 필드 ('0.4g' / '27.1g' / '197.2mg') → 값 기반 reformat + 단위 복원.
+    S245-P18: defaultUnit 인자 — 단위 누락 row 정리 (예: '38' → '38mg'). */
+function reformatText(
+  text: string | null | undefined,
+  defaultUnit: string,
+): string {
   if (!text) return '';
   const raw = String(text).trim();
   if (raw === '') return '';
   const m = raw.match(/^(-?\d+(?:\.\d+)?)(.*)$/);
   if (!m) return raw;
   const value = parseFloat(m[1]);
-  const unit = m[2];
+  const unit = m[2].trim() || defaultUnit;
   return `${formatValue(value)}${unit}`;
 }
 
@@ -126,11 +130,11 @@ async function main() {
           : 0;
 
     const newKcal = reformatKcal(row.kcal);
-    const newSatfat = reformatText(row.satfat);
-    const newSugar = reformatText(row.sugar);
-    const newSodium = reformatText(row.sodium);
-    const newProtein = reformatText(row.protein);
-    const newCaffeine = reformatText(row.caffeine);
+    const newSatfat = reformatText(row.satfat, 'g');
+    const newSugar = reformatText(row.sugar, 'g');
+    const newSodium = reformatText(row.sodium, 'mg');
+    const newProtein = reformatText(row.protein, 'g');
+    const newCaffeine = reformatText(row.caffeine, 'mg');
 
     const fields: Array<{ name: string; before: string; after: string }> = [];
     if (currentKcal !== newKcal) {

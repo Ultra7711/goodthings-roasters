@@ -14,6 +14,7 @@
     "seed:cafe-menu": "npx tsx scripts/seed-cafe-menu.ts",
     "normalize:allergens": "npx tsx scripts/normalize-allergens.ts",
     "normalize:cup-volumes": "npx tsx scripts/normalize-cup-volumes.ts",
+    "normalize:caffeine": "npx tsx scripts/normalize-caffeine.ts",
     "round:nutrient-display": "npx tsx scripts/round-nutrient-display.ts"
   },
   "dependencies": {
