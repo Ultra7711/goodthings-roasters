@@ -73,12 +73,16 @@ export function useDrawer({ open, onClose, restoreFocus = true }: UseDrawerArgs)
 
   // body scroll lock.
   //
-  // 데스크탑은 `body.overflow = 'hidden'` 으로 충분하지만 iOS Safari 는 body overflow
-  // 만으로는 background scroll 차단이 안 된다 (모바일 웹 고전적 함정). drawer 가 열린
-  // 상태에서 panel 외 영역 (dim bg) 을 touch 하면 밑 페이지가 그대로 scroll 됨.
-  // → body 를 `position: fixed; top: -scrollY` 로 고정 + close 시 scrollY 복원.
+  // 데스크탑은 `body.overflow = 'hidden'` 으로 충분하지만 iOS Safari 등 터치 디바이스는
+  // body overflow 만으로는 background scroll 차단이 안 된다 (모바일 웹 고전적 함정).
+  // drawer 가 열린 상태에서 panel 외 영역 (dim bg) 을 touch 하면 밑 페이지가 그대로 scroll.
+  // → 터치 디바이스에서만 body 를 `position: fixed; top: -scrollY` 로 고정.
   //
-  // html { scrollbar-gutter: stable } 가 항상 거터를 예약하므로 body fix 토글만으로
+  // 데스크탑에 동일 트릭을 적용하면 close 시점에 body 가 static 으로 복원되며 한 프레임
+  // 동안 scrollY=0 위치가 paint 된 뒤 scrollTo(0, scrollY) 가 복원하는 layout race 가
+  // 발생 → "플래시" 체감. `pointer: coarse` matchMedia 로 터치 환경만 분기 적용한다.
+  //
+  // html { scrollbar-gutter: stable } 가 항상 거터를 예약하므로 body 토글만으로
   // ICB·페이지 콘텐츠 폭이 변하지 않는다. fixed 패널은 각 panel CSS 에서
   // `right: calc(var(--scrollbar-w, 0px) * -1)` 로 visible viewport 우측까지 보정한다
   // (--scrollbar-w 는 SRInitializer 가 마운트 1회 주입).
@@ -88,6 +92,10 @@ export function useDrawer({ open, onClose, restoreFocus = true }: UseDrawerArgs)
   useLayoutEffect(() => {
     if (!open) return;
     const body = document.body;
+    const isTouch =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(pointer: coarse)').matches;
     const scrollY = window.scrollY;
     const prev = {
       overflow: body.style.overflow,
@@ -96,15 +104,17 @@ export function useDrawer({ open, onClose, restoreFocus = true }: UseDrawerArgs)
       width: body.style.width,
     };
     body.style.overflow = 'hidden';
-    body.style.position = 'fixed';
-    body.style.top = `-${scrollY}px`;
-    body.style.width = '100%';
+    if (isTouch) {
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.width = '100%';
+    }
     return () => {
       body.style.overflow = prev.overflow;
       body.style.position = prev.position;
       body.style.top = prev.top;
       body.style.width = prev.width;
-      window.scrollTo(0, scrollY);
+      if (isTouch) window.scrollTo(0, scrollY);
     };
   }, [open]);
 }
