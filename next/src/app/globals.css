@@ -62,6 +62,12 @@
 
   /* ── 컬러: Surface ── */
   --color-surface-stone: #4A4845;
+  /* S245: surface-stone 의 light variant — isotonal soft beige (HSL 28/12/88).
+     카페 메뉴 영양시트 배경 (이미지 톤 #D0CBC8 saturation 8% 과 정합).
+     warm-shifted neutral background — 기존 #EFEAE0/#F5EFE0 (saturation 26~38%) 와 차별.
+     이미지 영역 + 콘텐츠 영역 통일 톤 (CafeNutritionSheet).
+     1차 #E0DDD8 → 살짝 어둡다는 피드백으로 +2 lightness 조정. */
+  --color-surface-stone-light: #E5E2DD;
   /* V2 Phase 1 (S131): brand-sand 격상. 시즌 배너·마이페이지 다음 배송 카드·빈 상태 등 chapter break 패널.
      legacy --color-surface-warm 은 alias 로 유지 — 신규 코드는 --brand-sand 권장. */
   --brand-sand: #EADFD1;
