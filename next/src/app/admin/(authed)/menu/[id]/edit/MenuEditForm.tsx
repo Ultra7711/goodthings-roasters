@@ -526,7 +526,7 @@ export default function MenuEditForm(props: Props) {
               error={errors.sortOrder?.message}
               hint={
                 isCreate
-                  ? '전체 메뉴 시퀀스 맨 뒤로 자동 배치됩니다 (등록 후 편집 가능)'
+                  ? '등록 시 전체 메뉴 시퀀스 맨 뒤로 자동 채번됩니다 (입력값 무시 · 등록 후 편집 가능)'
                   : '낮을수록 앞쪽 표시 (같은 카테고리 내)'
               }
             >
@@ -535,6 +535,11 @@ export default function MenuEditForm(props: Props) {
                 min={0}
                 max={9999}
                 {...register('sortOrder', { valueAsNumber: true })}
+                /* S245-P10: mode='create' 시 server action 이 자동 채번. UI 는 prefill
+                   참고용. 운영자가 수정해도 등록 시 덮어씌워짐. */
+                readOnly={isCreate}
+                tabIndex={isCreate ? -1 : undefined}
+                className={isCreate ? 'bg-muted' : undefined}
               />
             </Field>
 

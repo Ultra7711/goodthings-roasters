@@ -15,6 +15,12 @@ import MenuEditForm from '../[id]/edit/MenuEditForm';
 
 export default async function AdminMenuNewPage() {
   const initialSortOrder = await fetchAdminNextCafeMenuSortOrder();
+  /* S245-P10: 매 server component 실행마다 새 key 생성 → React 강제 재마운트.
+     cacheComponents + React Activity 가 이전 진입 시 컴포넌트 hidden 보존하여
+     RHF defaultValues 재적용 안 되는 문제 해소. createCafeMenuAction 가
+     revalidatePath('/admin/menu/new') 호출하면 라우터 캐시 무효화 → server
+     component 재실행 → 새 formKey → 새 컴포넌트 인스턴스. */
+  const formKey = crypto.randomUUID();
 
   return (
     <div>
@@ -28,7 +34,11 @@ export default async function AdminMenuNewPage() {
         </div>
       </div>
 
-      <MenuEditForm mode="create" initialSortOrder={initialSortOrder} />
+      <MenuEditForm
+        key={formKey}
+        mode="create"
+        initialSortOrder={initialSortOrder}
+      />
     </div>
   );
 }

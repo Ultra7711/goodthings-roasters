@@ -36,6 +36,7 @@ import {
 } from '@/lib/admin/imageProcessing';
 import {
   fetchAdminNextCafeMenuId,
+  fetchAdminNextCafeMenuSortOrder,
   type CafeMenuIdPrefix,
 } from '@/lib/admin/cafeMenuServer';
 import { normalizeAllergen } from '@/lib/allergenSort';
@@ -318,6 +319,11 @@ export async function createCafeMenuAction(
   const prefix = pickIdPrefix(v.cat, v.status);
   const id = await fetchAdminNextCafeMenuId(prefix);
 
+  /* S245-P10: sort_order 항상 server-side 자동 채번 (폼 입력값 무시).
+     hidden Activity 로 RHF state 잔존 시 폼 sortOrder 가 stale 값일 수 있어
+     server 측에서 강제 max+1 으로 덮어씀. 전체 단일 시퀀스 정책 (S245-P9 fix). */
+  const nextSortOrder = await fetchAdminNextCafeMenuSortOrder();
+
   const admin = getSupabaseAdmin();
 
   /* INSERT — is_active default true (047). 신규 등록 후 운영자가 비공개 토글 가능. */
@@ -327,6 +333,7 @@ export async function createCafeMenuAction(
       id,
       img_src: '', // 신규 등록 시점은 빈값 — edit 에서 업로드
       ...toCafeMenuDbRow(v),
+      sort_order: nextSortOrder, // 폼 입력 덮어쓰기
     });
 
   if (insErr) {
@@ -343,6 +350,9 @@ export async function createCafeMenuAction(
 
   revalidateTag(CAFE_MENU_CACHE_TAG, 'max');
   revalidatePath('/admin/menu');
+  /* /admin/menu/new 라우터 캐시 무효화 — 재진입 시 fetchAdminNextCafeMenuSortOrder
+     재실행 (방금 등록한 메뉴 반영 max+1) + 컴포넌트 fresh prop 수신 (S245-P10). */
+  revalidatePath('/admin/menu/new');
   revalidatePath('/menu');
 
   return { ok: true, id };
