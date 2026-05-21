@@ -544,13 +544,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 22px;
-  padding: 0 10px;
+  height: 20px;
+  padding: 0 6px;
   border-radius: 3px;
   border: 1px solid currentColor;
   background: transparent;
   font-family: var(--font-en);
-  font-size: var(--type-body-s-size);
+  /* 11px = pill/chip 컨벤션 (--ls-label 토큰이 11px 기준으로 정의됨 — globals.css 주석).
+     토큰 외 직접 값 — 본 pill 한정 (다른 site-wide 텍스트와 분리). */
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: var(--ls-label);
   text-transform: uppercase;

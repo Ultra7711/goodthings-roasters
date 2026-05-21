@@ -135,7 +135,7 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
                       )}
                     </div>
                     <h2 className="cns-item-name">
-                      <MenuName item={item} iconSize={24} />
+                      <MenuName item={item} iconSize={28} />
                     </h2>
                   </div>
                   {/* 우측 — 좋아요 (좌측 두 행 세로 중앙 정렬) */}
