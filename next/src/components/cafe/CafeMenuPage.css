@@ -425,7 +425,20 @@
   height: 100%;
   width: var(--drawer-width);
   max-width: 100vw;
-  background: var(--drawer-bg);
+  /* S246: panel bg 를 hero / content 영역 색으로 split. background-attachment: local
+     로 scroll content 좌표계 기준 gradient 가 scroll 따라감 → iOS overscroll bounce
+     시 상단 = stone-medium (hero 와 연속), 하단 = stone-light (content 와 연속) 노출.
+     --hero-end 는 hero (1:1 aspect) 의 정확한 끝 px 좌표. */
+  --hero-end: var(--drawer-width);
+  background-color: var(--color-surface-stone-medium);
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent var(--hero-end),
+    var(--color-surface-stone-light) var(--hero-end),
+    var(--color-surface-stone-light) 100%
+  );
+  background-attachment: local;
   box-shadow: var(--drawer-shadow);
   z-index: calc(var(--z-drawer) + 1);
   display: flex;
@@ -453,7 +466,12 @@
 #cafe-nutrition-sheet.open #cns-panel { transform: translateX(0); }
 /* 모바일: <768 풀스크린 (Session 38 Step C) */
 @media (max-width: 767px) {
-  #cns-panel { width: 100vw; right: 0; }
+  #cns-panel {
+    width: 100vw;
+    right: 0;
+    /* hero 가 panel width (100vw) 의 1:1 → hero-end = 100vw */
+    --hero-end: 100vw;
+  }
 }
 /* close sticky wrapper — height:0 로 자리 차지 X, sticky top:0 → panel 스크롤
    진행과 무관하게 panel 상단에 고정. close 는 그 안에서 absolute right. */
@@ -627,10 +645,10 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   /* S205: next/image 'fill' positioning anchor (position:relative + 명시 크기). */
-  /* S245: 이미지 톤 (#D0CBC8 · saturation 8%) 과 isotonal 한 stone-light 배경.
-     기존 #EFEAE0 (saturation 26%) 는 desaturated 이미지와 톤 갭 컸음.
-     이미지 영역 + 콘텐츠 영역 통일 톤으로 차분한 시각 분리. */
-  background: var(--color-surface-stone-light);
+  /* S246: 이미지 dominant tone (#D0CBC8) 과 정확 일치하는 stone-medium 배경.
+     S245 의 stone-light (#E5E2DD) 는 이미지보다 살짝 밝아 톤 갭이 보였던 부분을
+     stone-medium 으로 격상 → hero / content 두 영역의 시각 위계 명확화. */
+  background: var(--color-surface-stone-medium);
   margin-right: calc(var(--scrollbar-w, 0px) * -1);
 }
 /* next/image fill 모드의 자동 absolute inset:0 위에 contain + bottom 정렬.

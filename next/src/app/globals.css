@@ -68,6 +68,10 @@
      이미지 영역 + 콘텐츠 영역 통일 톤 (CafeNutritionSheet).
      1차 #E0DDD8 → 살짝 어둡다는 피드백으로 +2 lightness 조정. */
   --color-surface-stone-light: #E5E2DD;
+  /* S246: stone 의 medium variant — 영양시트 hero (이미지 영역) 배경.
+     이미지 dominant tone (#D0CBC8 · saturation 8%) 과 정확 일치 → hero 와 시각 연속.
+     light variant 보다 1.5 step 짙어 hero / content 영역 시각 분리. */
+  --color-surface-stone-medium: #D0CBC8;
   /* V2 Phase 1 (S131): brand-sand 격상. 시즌 배너·마이페이지 다음 배송 카드·빈 상태 등 chapter break 패널.
      legacy --color-surface-warm 은 alias 로 유지 — 신규 코드는 --brand-sand 권장. */
   --brand-sand: #EADFD1;
