@@ -69,8 +69,19 @@ export function useHistoryDismiss({ open, onClose, scope }: UseHistoryDismissArg
     } else if (prev && !open) {
       // true → false: marker 살아있으면 back 으로 정리.
       // popstate 경로로 이미 marker 가 사라진 경우 (브라우저 back 으로 닫힘) 는 noop.
+      //
+      // scrollRestoration 임시 manual — history.back() 시 브라우저의 자동 scroll
+      // restoration 이 이전 entry 위치로 점프했다가 useDrawer 의 scrollTo 가 원위치
+      // 복원하는 paint race ("드로어 닫을 때 페이지가 위로 점프했다 복귀" 플래시)
+      // 차단. popstate 처리 직후 setTimeout(0) 에서 원래 값으로 복원해 일반
+      // 브라우저 back/forward navigation 의 scroll 보존은 영향 없음.
       if (readModalScope() === scope) {
+        const prevRestoration = window.history.scrollRestoration;
+        window.history.scrollRestoration = 'manual';
         window.history.back();
+        setTimeout(() => {
+          window.history.scrollRestoration = prevRestoration;
+        }, 0);
       }
     }
   }, [open, scope]);
