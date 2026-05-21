@@ -593,6 +593,34 @@
   line-height: 1;
   white-space: nowrap;
 }
+
+/* like 시점 pop 애니메이션 + 파티클 burst (S245-P20 후속 복원) */
+.cns-like--popping .cns-like-icon {
+  animation: cnsHeartPop 360ms cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+@keyframes cnsHeartPop {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(0.85); }
+  50%  { transform: scale(1.35); }
+  70%  { transform: scale(0.92); }
+  85%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+/* 하트 파티클 — JS 로 document.body 에 동적 생성. .cm-like-particle 클래스 공유.
+   기존 MenuLikeButton 답습 (P20 Phase 2 폐기 → P20 후속 복원 · 시트 좋아요에서 spawn). */
+.cm-like-particle {
+  position: fixed;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999;
+  animation: cmParticleBurst 560ms ease-out forwards;
+}
+@keyframes cmParticleBurst {
+  0%   { transform: translate(-50%, -50%) translate(0, 0) scale(1); opacity: 1; }
+  50%  { opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(0.1); opacity: 0; }
+}
 .cns-image-wrap {
   position: relative;
   flex-shrink: 0;
