@@ -97,6 +97,15 @@ export const CM_PER_PAGE_MOBILE = 10;
 /** Legacy alias — 기존 CM_PER_PAGE 호출처 호환. 태블릿 값과 동일. */
 export const CM_PER_PAGE = CM_PER_PAGE_TABLET;
 
+/**
+ * 표시용 메뉴명 (S245-P20).
+ * 시그니처 메뉴는 `★` prefix 처리 — 메타 배지에서 시그니처 제외 (★ 텍스트로 충분).
+ * 카드 + 시트 양쪽 동일 적용.
+ */
+export function getMenuDisplayName(item: CafeMenuItem): string {
+  return item.status === '시그니처' ? `★${item.name}` : item.name;
+}
+
 /** 카테고리 라벨 (영양 시트 헤더용) */
 export const CAFE_CATEGORY_LABEL: Record<CafeMenuItem['cat'], string> = {
   brewing: 'COFFEE',

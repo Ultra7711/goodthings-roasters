@@ -1,21 +1,19 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   MenuLikeSheetButton — CafeNutritionSheet hero 우상단 인터랙티브 좋아요 (S245-P20)
+   MenuLikeSheetButton — CafeNutritionSheet 콘텐츠 영역 좋아요 (S245-P20 재설계)
 
-   배경:
-   사용자 의도 = 좋아요 토글은 시트 안에서만. 카드는 read-only.
-   영양정보 확인 후 좋아요 결정 (impulse → considered click).
+   위치 (사용자 spec):
+   - 시트 콘텐츠 영역의 메뉴명 h2 와 같은 row 우측 (flex justify-between)
 
    디자인:
-   - close 버튼 답습 (40x40 원형 · backdrop blur · dark transparent bg)
-   - close 좌측 위치 (right: 60px = close 의 right 12 + 40 + gap 8)
-   - 토글 상태:
-     · !isLiked → ♡ outline (흰색)
-     · isLiked → ♥ filled (빨강)
-   - 클릭 시 즉시 토글 + 사용자가 비로그인이면 토스트 (toggleMenuLike 내부 처리)
+   - 기존 MenuLikeButton 시각 답습 (흰 반투명 + 흰 ♥)
+   - liked = red solid bg + 흰 ♥
+   - count > 0 = 가로 알약 확장 (baseline + countScrollWidth)
+   - stone-light bg 위 시각 — 사용자 검증 후 컬러 조정 가능
    ══════════════════════════════════════════════════════════════════════════ */
 
 'use client';
 
+import { useLayoutEffect, useRef } from 'react';
 import {
   useMenuLiked,
   useMenuLikesCount,
@@ -29,9 +27,36 @@ type Props = {
   menuName: string;
 };
 
+function formatCount(n: number): string {
+  if (n >= 1000) return `${+(n / 1000).toFixed(1)}K`;
+  return String(n);
+}
+
 export default function MenuLikeSheetButton({ menuId, menuName }: Props) {
   const isLiked = useMenuLiked(menuId);
   const count = useMenuLikesCount(menuId);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const countRef = useRef<HTMLSpanElement>(null);
+
+  /* count 있을 때 baseline + countScrollWidth 로 확장 (MenuLikeCount 답습) */
+  useLayoutEffect(() => {
+    const btn = btnRef.current;
+    const countEl = countRef.current;
+    if (!btn) return;
+
+    function getBaseline(el: HTMLElement): number {
+      const raw = getComputedStyle(el)
+        .getPropertyValue('--like-baseline')
+        .trim();
+      return parseInt(raw, 10) || 52;
+    }
+
+    if (count > 0 && countEl) {
+      btn.style.width = `${Math.ceil(getBaseline(btn) + countEl.scrollWidth)}px`;
+    } else {
+      btn.style.width = '';
+    }
+  }, [count, isLiked]);
 
   const handleClick = () => {
     if (!isLiked && getSessionSnapshot().isLoggedIn) {
@@ -42,27 +67,33 @@ export default function MenuLikeSheetButton({ menuId, menuName }: Props) {
 
   return (
     <button
+      ref={btnRef}
       id="cns-like"
       type="button"
       onClick={handleClick}
-      className={isLiked ? 'cns-like--liked' : ''}
+      className={
+        (count > 0 ? 'cns-like--has-count ' : '') +
+        (isLiked ? 'cns-like--liked' : '')
+      }
       aria-label={isLiked ? '좋아요 취소' : '좋아요'}
       aria-pressed={isLiked}
     >
       <svg
+        className="cns-like-icon"
         width="24"
         height="24"
         viewBox="0 0 24 24"
-        fill={isLiked ? 'currentColor' : 'none'}
-        stroke="currentColor"
-        strokeWidth={isLiked ? '0' : '2'}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        fill="currentColor"
+        stroke="none"
         aria-hidden="true"
       >
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
       </svg>
-      {count > 0 && <span className="cns-like-count">{count}</span>}
+      {count > 0 && (
+        <span ref={countRef} className="cns-like-count">
+          {formatCount(count)}
+        </span>
+      )}
     </button>
   );
 }

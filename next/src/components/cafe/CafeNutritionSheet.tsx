@@ -20,6 +20,7 @@ import { getAllergenDisplayLabel } from '@/lib/allergenSort';
 import {
   CAFE_CATEGORY_LABEL,
   getCafeImageMeta,
+  getMenuDisplayName,
   type CafeMenuItem,
   type CafeMenuTemp,
 } from '@/lib/cafeMenu';
@@ -27,18 +28,18 @@ import { CloseIcon } from '@/components/ui/Icons';
 import MenuCardBadges from './MenuCardBadges';
 import MenuLikeSheetButton from './MenuLikeSheetButton';
 
-/** 카드 getTempBadge 답습 (CafeMenuCard.tsx) — both 는 표시 X */
+/** 온도 pill (S245-P20 재설계 · outline 한 줄 텍스트). both = 표시 X. */
 function getTempBadge(
   temp: CafeMenuTemp,
-): { cls: string; txt: string } | null {
+): { variant: 'ice' | 'hot' | 'warm'; txt: string } | null {
   if (!temp || temp === 'both') return null;
   switch (temp) {
     case 'ice-only':
-      return { cls: 'cm-temp-ice-only', txt: 'ICE\nONLY' };
+      return { variant: 'ice', txt: 'ICE ONLY' };
     case 'hot-only':
-      return { cls: 'cm-temp-hot-only', txt: 'HOT\nONLY' };
+      return { variant: 'hot', txt: 'HOT ONLY' };
     case 'warm':
-      return { cls: 'cm-temp-warm', txt: 'WARM' };
+      return { variant: 'warm', txt: 'WARM' };
     default:
       return null;
   }
@@ -110,27 +111,26 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
                 );
               })()}
 
-              {/* S245-P20 Phase 2 · Z 옵션 — hero 4 모서리 배치.
-                  좌상=메타 (cm-card-badges) · 우상=close (sticky · 상단) ·
-                  좌하=온도 · 우하=좋아요 (인터랙티브) */}
+              {/* S245-P20 재설계 — hero 좌상단 메타만 (좌하/우하 비움 · 시각 단순화).
+                  온도/좋아요는 콘텐츠 영역으로 이동. */}
               <MenuCardBadges menuId={item.id} status={item.status} />
-              {tempBadge && (
-                <div className="cns-temp">
-                  <span className={`cm-badge-temp ${tempBadge.cls}`}>
-                    {tempBadge.txt}
-                  </span>
-                </div>
-              )}
-              <MenuLikeSheetButton menuId={item.id} menuName={item.name} />
             </div>
 
             <div className="cns-content">
               <div className="cns-head">
-                <div className="cns-head-top">
-                  <div className="cns-title-col">
-                    <p className="cns-category-label">{categoryLabel}</p>
-                    <h2 className="cns-item-name">{item.name}</h2>
-                  </div>
+                {/* 카테고리 라벨 + 온도 pill (라벨 옆) */}
+                <div className="cns-category-row">
+                  <p className="cns-category-label">{categoryLabel}</p>
+                  {tempBadge && (
+                    <span className={`cns-temp-pill cns-temp-pill--${tempBadge.variant}`}>
+                      {tempBadge.txt}
+                    </span>
+                  )}
+                </div>
+                {/* 메뉴명 (시그니처는 ★ prefix) + 좋아요 (수평 우측) */}
+                <div className="cns-name-row">
+                  <h2 className="cns-item-name">{getMenuDisplayName(item)}</h2>
+                  <MenuLikeSheetButton menuId={item.id} menuName={item.name} />
                 </div>
                 {item.menuDesc && (
                   <p className="cns-item-desc">{item.menuDesc}</p>

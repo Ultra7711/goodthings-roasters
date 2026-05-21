@@ -1,15 +1,20 @@
 /* ══════════════════════════════════════════
-   MenuCardBadges — 카드 + 시트 좌상단 메타 배지 (status + 인기 No.)
+   MenuCardBadges — 카드 + 시트 좌상단 메타 배지 (S245-P20 재설계)
 
    왜 분리? (S116)
    - CafeMenuCard 가 popularRank prop 을 받으면 likes store 변경 시 카드 자체가
      리렌더되어 inline transitionDelay 재적용 → 진입 연출 흔들림
    - 이 컴포넌트가 자체 store 구독 → 카드는 likes 정보를 모름 → 격리
 
-   S245-P20 Phase 2 변경:
-   - sp-card-badge (pill · shop 공유) → cm-meta-badge (원형 · cafe 전용)
-   - 텍스트 두 줄 매핑 (인기 No.1 → "인기\nNo.1") · pre-line 자동 줄바꿈
-   - cm-popular-badge--{1,2,3} → cm-meta-badge--rank-{1,2,3}
+   S245-P20 재설계 변경:
+   - 단일 배지만 표시 (중복 stack 폐기)
+   - popularRank > status 우선순위
+   - status='시그니처' 제외 (★ 텍스트 처리 — getMenuDisplayName)
+   - 표시 정책:
+     1. popularRank 있음 (1/2/3위) → "인기\nNo.X" 원형
+     2. popularRank 없음 + status (NEW/인기/시즌/시즌 한정/품절) → status 원형
+     3. status='시그니처' → 메타 0 (★ 메뉴명 prefix 로 처리)
+     4. 둘 다 없음 → null
    ══════════════════════════════════════════ */
 
 'use client';
@@ -22,7 +27,7 @@ type Props = {
   status: CafeMenuStatus;
 };
 
-/** status → { variant 클래스, 두 줄 텍스트 } 매핑 */
+/** status → { variant 클래스, 두 줄 텍스트 } 매핑 · '시그니처' 제외 */
 function getStatusBadge(
   status: CafeMenuStatus,
 ): { className: string; text: string } | null {
@@ -32,14 +37,13 @@ function getStatusBadge(
       return { className: 'cm-meta-badge--season', text: '시즌' };
     case '시즌 한정':
       return { className: 'cm-meta-badge--season', text: '시즌\n한정' };
-    case '시그니처':
-      return { className: 'cm-meta-badge--signature', text: '시그\n니처' };
     case 'NEW':
       return { className: 'cm-meta-badge--new', text: 'NEW' };
     case '인기':
       return { className: 'cm-meta-badge--popular', text: '인기' };
     case '품절':
       return { className: 'cm-meta-badge--sold', text: '품절' };
+    /* '시그니처' 는 메타 배지 표시 X — ★ 텍스트로 처리 (getMenuDisplayName) */
     default:
       return null;
   }
@@ -47,22 +51,26 @@ function getStatusBadge(
 
 export default function MenuCardBadges({ menuId, status }: Props) {
   const popularRank = useMenuPopularRank(menuId);
-  const statusBadge = getStatusBadge(status);
 
-  if (!statusBadge && !popularRank) return null;
-
-  return (
-    <div className="cm-card-badges">
-      {statusBadge && (
-        <span className={`cm-meta-badge ${statusBadge.className}`}>
-          {statusBadge.text}
-        </span>
-      )}
-      {popularRank && (
+  /* 단일 배지 — popularRank 우선. 둘 다 있으면 popularRank 만 표시. */
+  if (popularRank) {
+    return (
+      <div className="cm-card-badges">
         <span
           className={`cm-meta-badge cm-meta-badge--rank-${popularRank}`}
         >{`인기\nNo.${popularRank}`}</span>
-      )}
+      </div>
+    );
+  }
+
+  const statusBadge = getStatusBadge(status);
+  if (!statusBadge) return null;
+
+  return (
+    <div className="cm-card-badges">
+      <span className={`cm-meta-badge ${statusBadge.className}`}>
+        {statusBadge.text}
+      </span>
     </div>
   );
 }

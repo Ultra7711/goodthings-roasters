@@ -172,14 +172,11 @@
 }
 
 /* 온도 뱃지 (우하단 원형) */
-/* S245-P20: 온도 우하 → 좌하 이동 (Z 옵션 · 시트와 카드 일관) */
+/* S245-P20 재설계: 카드에서 온도 배지 제거 (시트에서만 표시).
+   .cm-temp-badges / .cm-badge-temp 는 더 이상 카드에서 사용 안 함 (DOM 미출현).
+   클래스 정의 자체는 보존 (다른 페이지/잠재적 재사용 대비). */
 .cm-temp-badges {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  display: flex;
-  gap: 4px;
-  pointer-events: none;
+  display: none;
 }
 .cm-badge-temp {
   width: 48px;
@@ -225,13 +222,12 @@
     width: 36px;
     height: 36px;
     font-size: 9px;
-    line-height: 1.1;
+    line-height: 1.05;
   }
 
-  /* 좌하단 온도 / 우하단 좋아요 — 모바일 축소 (S245-P20) */
-  .cm-card .cm-temp-badges { bottom: 10px; left: 10px; }
+  /* 우상단 좋아요 — 모바일 축소 (S245-P20 재설계 · 우상단 복원) */
   .cm-card .cm-like-count {
-    bottom: 10px;
+    top: 10px;
     right: 10px;
     --like-baseline: 42px;
     height: 36px;
@@ -253,8 +249,7 @@
 /* 소형 모바일 (≤480px): 카드 폭 ~150-210px, 슬롯 오프셋 8px */
 @media (max-width: 480px) {
   .cm-card .cm-card-badges { top: 8px; left: 8px; }
-  .cm-card .cm-temp-badges { bottom: 8px; left: 8px; }
-  .cm-card .cm-like-count  { bottom: 8px; right: 8px; }
+  .cm-card .cm-like-count  { top: 8px; right: 8px; }
 }
 
 /* ── highlight 플래시 (URL ?item= 진입 시) ── */
@@ -285,18 +280,21 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
+  /* S245-P20 재설계: 두 줄 텍스트 원 안 중앙 정렬 fix.
+     line-height 1.1 · text-align center · vertical center (flex). */
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-kr);
-  font-size: var(--type-caption-size);
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: var(--ls-body);
-  line-height: 1.15;
+  letter-spacing: 0;
+  line-height: 1.1;
   text-align: center;
   color: var(--color-text-inverse);
   white-space: pre-line;
   pointer-events: none;
+  padding: 0;
 }
 /* 색상 variants — 기존 sp-card-badge variant 답습 */
 .cm-meta-badge--new { background: var(--color-status-new); }
@@ -309,16 +307,16 @@
 .cm-meta-badge--rank-2 { background: #8C9BB5; }
 .cm-meta-badge--rank-3 { background: #A07850; }
 /* ══════════════════════════════════════════
-   카드 좋아요 인디케이터 (S245-P20 Phase 2 정정 · read-only)
+   카드 좋아요 인디케이터 (S245-P20 재설계 · read-only)
    기존 MenuLikeButton 시각 답습 + 인터랙션만 제거.
    - 흰 반투명 원형 (count 0 + liked) → liked red solid
    - count > 0 시 가로 알약 확장 (baseline + countWidth · JS layout)
    - 클릭 = 카드 click handler (시트 진입) — pointer-events: none 으로 부모 click 위임
-   위치: 우하단 (S245-P20 Z 옵션 · 좋아요 우상 → 우하 재배치)
+   위치: 우상단 (기존 위치 복원)
    ══════════════════════════════════════════ */
 .cm-like-count {
   position: absolute;
-  bottom: 12px;
+  top: 12px;
   right: 12px;
   height: 48px;
   width: 48px;
@@ -441,16 +439,13 @@
   z-index: 5;
   pointer-events: none;
 }
-/* close + 좋아요 + 메타 + 온도 = 시트 hero 4 모서리 (S245-P20 Phase 2 · Z 옵션)
-   - 좌상단: .cns-meta (메타 배지 · cm-meta-badge 공유)
-   - 우상단: #cns-close
-   - 좌하단: .cns-temp (온도 배지 · cm-badge-temp 공유)
-   - 우하단: #cns-like (인터랙티브 좋아요)
-   close 디자인 통일 — 어두운 반투명 + 흰 아이콘 + backdrop blur (다양 hero bg 위 시인성).
-*/
-#cns-close,
-#cns-like {
+/* close — 시트 hero 우상단 sticky · 어두운 반투명 + 흰 X · 다양 hero bg 시인성.
+   S245-P20 재설계: hero 4 모서리 중 우상단만 사용. 메타는 hero 좌상단(MenuCardBadges
+   가 자체 absolute 처리). 온도/좋아요는 콘텐츠 영역으로 이동. */
+#cns-close {
   position: absolute;
+  top: 12px;
+  right: 12px;
   pointer-events: auto;
   background: rgba(28, 27, 25, 0.5);
   border: none;
@@ -460,48 +455,113 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
   color: #fff;
-  border-radius: 999px;
+  border-radius: 50%;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   transition: background var(--duration-hover) ease;
-  z-index: 2;
 }
-#cns-close { top: 12px; right: 12px; }
-#cns-like { bottom: 12px; right: 12px; }
-/* 좋아요 ON 상태 — red solid */
-#cns-like.cns-like--liked { background: #E84E4E; }
-/* count 표시 시 가로 확장 (알약) */
+@media (hover: hover) {
+  #cns-close:hover { background: rgba(28, 27, 25, 0.65); }
+}
+
+/* ── 시트 콘텐츠 영역 (S245-P20 재설계) ─────────────────────────────────
+   .cns-category-row — 카테고리 라벨 + 온도 pill (라벨 옆)
+   .cns-name-row     — 메뉴명 (★ prefix) + 좋아요 (수평 우측)
+*/
+.cns-category-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.cns-category-row .cns-category-label {
+  margin: 0;
+}
+.cns-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.cns-name-row .cns-item-name {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 온도 pill — outline (transparent bg + colored border + colored text · 컬러 일치) */
+.cns-temp-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 10px;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  background: transparent;
+  font-family: var(--font-en);
+  font-size: var(--type-body-s-size);
+  font-weight: 600;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+}
+.cns-temp-pill--ice  { color: var(--color-info); }
+.cns-temp-pill--hot  { color: var(--color-error); }
+.cns-temp-pill--warm { color: var(--color-warning); }
+
+/* 시트 좋아요 — 기존 MenuLikeButton 시각 답습 (흰 반투명 + 흰 ♥ · liked red).
+   콘텐츠 영역 메뉴명 행 우측 배치. stone-light bg 위 대비 — 시각 검증 후 조정 가능. */
+#cns-like {
+  flex-shrink: 0;
+  position: relative;
+  height: 48px;
+  width: 48px;
+  --like-baseline: 52px;
+  overflow: hidden;
+  border-radius: 24px;
+  border: none;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: var(--color-text-tertiary);
+  transition: width 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 280ms ease, color 200ms ease;
+}
+#cns-like.cns-like--liked {
+  background: #E84E4E;
+  color: #fff;
+}
+#cns-like:active { transform: scale(0.96); }
+@media (hover: hover) {
+  #cns-like:hover { background: rgba(255, 255, 255, 0.9); }
+  #cns-like.cns-like--liked:hover { background: #D84545; }
+}
+.cns-like-icon {
+  display: block;
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 24px;
+  height: 24px;
+}
 .cns-like-count {
+  position: absolute;
+  left: 40px; /* icon-end(36) + gap(4) */
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
   font-family: var(--font-en);
   font-size: 13px;
   font-weight: 600;
   line-height: 1;
-  padding-right: 2px;
-  letter-spacing: var(--ls-label);
-}
-#cns-like:has(.cns-like-count) { width: auto; padding: 0 12px 0 10px; }
-@media (hover: hover) {
-  #cns-close:hover { background: rgba(28, 27, 25, 0.65); }
-  #cns-like:hover { background: rgba(28, 27, 25, 0.65); }
-  #cns-like.cns-like--liked:hover { background: #D84545; }
-}
-
-/* hero 좌상단 메타 + 좌하단 온도 (사이즈는 cm-meta-badge / cm-badge-temp 공유) */
-.cns-meta {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  pointer-events: none;
-  z-index: 2;
-}
-.cns-temp {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  pointer-events: none;
-  z-index: 2;
+  white-space: nowrap;
 }
 .cns-image-wrap {
   position: relative;

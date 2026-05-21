@@ -1,33 +1,23 @@
 /* ══════════════════════════════════════════
-   CafeMenuCard — GenericCard wrapper (V2 §6.2 통합)
-   - GenericCard 가 reveal IO · stagger · highlight · 슬롯 처리
-   - 차이: 클릭 → onOpenNutrition 콜백 · 좋아요(우상단) · 온도뱃지(우하단)
+   CafeMenuCard — GenericCard wrapper (S245-P20 재설계)
+
+   슬롯 단순화 (사용자 spec):
+   - 좌상: 메타 (단일 · 시그니처 제외)
+   - 우상: 좋아요 read-only (기존 위치 복원)
+   - 좌하/우하: 비움 (온도/시그니처 시트에서만)
+
+   시그니처 메뉴: getMenuDisplayName 로 메뉴명 prefix '★' 처리.
    ══════════════════════════════════════════ */
 
 'use client';
 
-import type { CafeMenuItem, CafeMenuTemp } from '@/lib/cafeMenu';
-import { getCafeImageMeta } from '@/lib/cafeMenu';
+import type { CafeMenuItem } from '@/lib/cafeMenu';
+import { getCafeImageMeta, getMenuDisplayName } from '@/lib/cafeMenu';
 import MenuLikeCount from './MenuLikeCount';
 import MenuCardBadges from './MenuCardBadges';
 import GenericCard from '@/components/common/GenericCard';
 /* CafeMenuPage.css 의 .cm-card-* 정의 보장 — CafeMenuCard 사용처 어디서든 (S198 fix). */
 import '@/components/cafe/CafeMenuPage.css';
-
-/** 프로토타입 tMap — 온도 뱃지 (우하단 원형) */
-function getTempBadge(temp: CafeMenuTemp): { cls: string; txt: string } | null {
-  if (!temp || temp === 'both') return null;
-  switch (temp) {
-    case 'ice-only':
-      return { cls: 'cm-temp-ice-only', txt: 'ICE\nONLY' };
-    case 'hot-only':
-      return { cls: 'cm-temp-hot-only', txt: 'HOT\nONLY' };
-    case 'warm':
-      return { cls: 'cm-temp-warm', txt: 'WARM' };
-    default:
-      return null;
-  }
-}
 
 type Props = {
   item: CafeMenuItem;
@@ -48,15 +38,7 @@ export default function CafeMenuCard({
   instant = false,
   onOpenNutrition,
 }: Props) {
-  const tempBadge = getTempBadge(item.temp);
   const imgMeta = getCafeImageMeta(item.img);
-
-  /* S245-P20: Z 옵션 적용 — 좌상=메타 / 우상=비움 / 좌하=온도 / 우하=좋아요 */
-  const bottomLeftSlot = tempBadge ? (
-    <div className="cm-temp-badges">
-      <span className={`cm-badge-temp ${tempBadge.cls}`}>{tempBadge.txt}</span>
-    </div>
-  ) : undefined;
 
   return (
     <GenericCard
@@ -67,9 +49,8 @@ export default function CafeMenuCard({
       imgAlt={item.name}
       imgBlurDataURL={imgMeta?.blurDataURL}
       badgeSlot={<MenuCardBadges menuId={item.id} status={item.status} />}
-      bottomLeftSlot={bottomLeftSlot}
-      bottomRightSlot={<MenuLikeCount menuId={item.id} />}
-      name={item.name}
+      topRightSlot={<MenuLikeCount menuId={item.id} />}
+      name={getMenuDisplayName(item)}
       price={`${item.price.toLocaleString('ko-KR')}원`}
       scrollRoot={scrollRoot}
       colIndex={colIndex}
