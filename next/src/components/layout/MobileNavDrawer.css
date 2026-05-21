@@ -20,12 +20,16 @@
 }
 #mobile-nav-panel {
   position: fixed;
-  top: 0;
-  /* scrollbar-gutter:stable 로 ICB 가 visible viewport 보다 sb-width 만큼 좁다.
+  /* top/bottom inset stretch — fixed 의 inset 은 layout viewport 기준이라
+     iOS Safari 주소창 접힘/펼침 시 viewport 변동 무관하게 영역 고정.
+     `height: 100dvh` 사용 시 dvh 가 viewport 변동에 늦게 따라가 panel 영역이
+     일시적으로 뚫리고, 메뉴 간격도 dvh 변동에 따라 변하는 회귀 발생 (BUG-148 누락).
+     scrollbar-gutter:stable 로 ICB 가 visible viewport 보다 sb-width 만큼 좁다 →
      visible viewport 우측에 도달하려면 right 를 음수 sb-width 만큼 보정.
      SRInitializer 가 --scrollbar-w 를 주입 (모바일 overlay scrollbar 환경에선 0). */
+  top: 0;
+  bottom: 0;
   right: calc(var(--scrollbar-w, 0px) * -1);
-  height: 100dvh;
   width: var(--drawer-width);
   background: var(--drawer-bg);
   z-index: calc(var(--z-drawer) + 1);

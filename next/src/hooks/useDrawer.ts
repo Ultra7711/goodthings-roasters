@@ -73,24 +73,38 @@ export function useDrawer({ open, onClose, restoreFocus = true }: UseDrawerArgs)
 
   // body scroll lock.
   //
-  // html { scrollbar-gutter: stable } 가 항상 거터를 예약하므로 body overflow 토글
-  // 만으로 ICB·페이지 콘텐츠 폭이 변하지 않는다. fixed 패널은 각 panel CSS 에서
+  // 데스크탑은 `body.overflow = 'hidden'` 으로 충분하지만 iOS Safari 는 body overflow
+  // 만으로는 background scroll 차단이 안 된다 (모바일 웹 고전적 함정). drawer 가 열린
+  // 상태에서 panel 외 영역 (dim bg) 을 touch 하면 밑 페이지가 그대로 scroll 됨.
+  // → body 를 `position: fixed; top: -scrollY` 로 고정 + close 시 scrollY 복원.
+  //
+  // html { scrollbar-gutter: stable } 가 항상 거터를 예약하므로 body fix 토글만으로
+  // ICB·페이지 콘텐츠 폭이 변하지 않는다. fixed 패널은 각 panel CSS 에서
   // `right: calc(var(--scrollbar-w, 0px) * -1)` 로 visible viewport 우측까지 보정한다
   // (--scrollbar-w 는 SRInitializer 가 마운트 1회 주입).
-  //
-  // 이전 구현은 `html.scrollbarGutter='auto'` 로 ICB 를 +sb 만큼 확장했는데,
-  // 그 결과 viewport 기반(100vw·fixed·aspect-ratio under fixed) 요소가 함께 늘어나
-  // 페이지 이미지 height 가 점프하는 회귀가 있었다. body overflow 만 잠그는 방식으로 정리.
   //
   // useLayoutEffect: DOM 업데이트 직후·페인트 전 동기 실행.
   // useEffect 사용 시 첫 터치가 scroll lock 이전에 발생해 이벤트가 뚫리는 타이밍 버그 방지.
   useLayoutEffect(() => {
     if (!open) return;
     const body = document.body;
-    const prevOverflow = body.style.overflow;
+    const scrollY = window.scrollY;
+    const prev = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+    };
     body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
     return () => {
-      body.style.overflow = prevOverflow;
+      body.style.overflow = prev.overflow;
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 }
