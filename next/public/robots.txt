@@ -1,0 +1,15 @@
+# GTR — 출시 전 모든 bot 차단 (S244 진단 · Vercel CPU 비용 절감 차원)
+#
+# 출시 시점:
+#   1) 본 파일 제거 또는
+#   2) production 도메인 활성 후 아래로 교체
+#
+# 출시용 (참고):
+# User-agent: *
+# Allow: /
+# Disallow: /admin/
+# Disallow: /api/
+# Sitemap: https://<production-domain>/sitemap.xml
+
+User-agent: *
+Disallow: /
