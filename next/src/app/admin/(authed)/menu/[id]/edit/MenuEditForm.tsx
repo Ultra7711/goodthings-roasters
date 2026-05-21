@@ -23,12 +23,11 @@
    - 신규 등록은 createCafeMenuAction 이 fetchAdminNextCafeMenuId(prefix) 호출
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Controller,
   useForm,
-  useWatch,
   type FieldErrors,
   type SubmitHandler,
 } from 'react-hook-form';
@@ -46,7 +45,6 @@ import { Input } from '@/components/admin/ui/input';
 import { Textarea } from '@/components/admin/ui/textarea';
 import { cn } from '@/lib/utils';
 import type { CafeMenuItemRow } from '@/types/cafeMenu';
-import type { CafeMenuCat } from '@/lib/admin/cafeMenuServer';
 import { createCafeMenuAction, updateCafeMenuAction } from '../../actions';
 
 /* ── 상수 ─────────────────────────────────────────────────────────────── */
@@ -134,13 +132,11 @@ export type MenuFormValues = z.infer<typeof FormSchema>;
 
 type Props =
   | { mode: 'edit'; row: CafeMenuItemRow }
-  | { mode: 'create'; initialSortOrderByCat: Record<CafeMenuCat, number> };
+  | { mode: 'create'; initialSortOrder: number };
 
 /* ── Defaults ─────────────────────────────────────────────────────────── */
 
-function buildCreateDefaults(
-  initialSortOrderByCat: Record<CafeMenuCat, number>,
-): MenuFormValues {
+function buildCreateDefaults(initialSortOrder: number): MenuFormValues {
   return {
     id: '',
     name: '',
@@ -151,8 +147,9 @@ function buildCreateDefaults(
     price: 0,
     bg: '#EEEEEE',
     description: '',
-    /* S245-P9: cat 별 max+1 prefill (초기 cat='brewing') · watch('cat') 가 변경 시 갱신 */
-    sortOrder: initialSortOrderByCat.brewing,
+    /* S245-P9 정정: cafe-menu seed = 전체 단일 시퀀스 (idx 기반).
+       카테고리 무관 전체 max+1 prefill — cat 변경해도 sortOrder 변동 없음. */
+    sortOrder: initialSortOrder,
     menuDesc: '',
     vol: '',
     kcal: 0,
@@ -206,34 +203,17 @@ export default function MenuEditForm(props: Props) {
     control,
     formState: { errors, isDirty },
     reset,
-    setValue,
-    getValues,
   } = useForm<MenuFormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: isCreate
       ? buildCreateDefaults(
-          (props as { mode: 'create'; initialSortOrderByCat: Record<CafeMenuCat, number> })
-            .initialSortOrderByCat,
+          (props as { mode: 'create'; initialSortOrder: number }).initialSortOrder,
         )
       : buildEditDefaults(props.row),
   });
 
-  /* S245-P9: mode='create' cat 변경 시 sortOrder 자동 갱신.
-     운영자가 sortOrder 를 수동 변경한 적이 없으면 (sortOrderTouchedRef = false) 만 갱신.
-     수동으로 한번이라도 손댔으면 그대로 유지 (운영자 의도 존중). */
-  const sortOrderTouchedRef = useRef(false);
-  const watchedCat = useWatch({ control, name: 'cat' });
-  useEffect(() => {
-    if (!isCreate) return;
-    if (sortOrderTouchedRef.current) return;
-    const initialSortOrderByCat = (
-      props as { mode: 'create'; initialSortOrderByCat: Record<CafeMenuCat, number> }
-    ).initialSortOrderByCat;
-    const next = initialSortOrderByCat[watchedCat as CafeMenuCat];
-    if (typeof next === 'number' && getValues('sortOrder') !== next) {
-      setValue('sortOrder', next, { shouldDirty: false, shouldValidate: false });
-    }
-  }, [isCreate, watchedCat, props, getValues, setValue]);
+  /* S245-P9 정정: cat 변경 시 sortOrder 갱신 로직 제거.
+     cafe-menu seed = 전체 단일 시퀀스이므로 cat 무관 단일 max+1 값 사용. */
 
   const TAB_FIELDS: Record<TabId, ReadonlyArray<keyof MenuFormValues>> = {
     basic: [
@@ -546,7 +526,7 @@ export default function MenuEditForm(props: Props) {
               error={errors.sortOrder?.message}
               hint={
                 isCreate
-                  ? '카테고리 맨 뒤로 자동 배치됩니다 (등록 후 편집 가능)'
+                  ? '전체 메뉴 시퀀스 맨 뒤로 자동 배치됩니다 (등록 후 편집 가능)'
                   : '낮을수록 앞쪽 표시 (같은 카테고리 내)'
               }
             >
@@ -554,14 +534,7 @@ export default function MenuEditForm(props: Props) {
                 type="number"
                 min={0}
                 max={9999}
-                {...register('sortOrder', {
-                  valueAsNumber: true,
-                  onChange: () => {
-                    if (isCreate) sortOrderTouchedRef.current = true;
-                  },
-                })}
-                /* S245-P9: mode='create' 자동 채번 — Input 자체는 활성 (운영자가
-                   필요 시 수동 조정 가능). 한번이라도 손대면 cat 변경 시 자동 갱신 중지. */
+                {...register('sortOrder', { valueAsNumber: true })}
               />
             </Field>
 

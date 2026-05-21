@@ -33,9 +33,6 @@ import {
 /** ID prefix — 카테고리/시그니처 매핑 (047 seed 답습) */
 export type CafeMenuIdPrefix = 's' | 'b' | 't' | 'n' | 'd';
 
-/** cafe_menu_items.cat enum */
-export type CafeMenuCat = 'brewing' | 'tea' | 'non-coffee' | 'dessert';
-
 /**
  * 어드민 목록 (is_active 무관) — sort_order asc → updated_at desc.
  * products RLS 와 동일 — admin 세션 쿠키 필수.
@@ -136,26 +133,26 @@ export async function fetchAdminNextCafeMenuId(
 /**
  * /admin/menu/new 페이지 전용 — 신규 메뉴 등록 시 sort_order 자동값.
  *
- * 같은 카테고리 내 max(sort_order) + 1 반환. row 0건이면 0.
- * cafe-menu 표시는 카테고리별 탭 분리이므로 카테고리 내 max+1 = 그룹 맨 뒤.
+ * cafe-menu 의 sort_order = 전체 연속 시퀀스 (S213 seed = idx 기반).
+ * 카테고리 무관 전체 max + 1 반환 — 신규 메뉴는 전체 시퀀스 맨 뒤로 배치.
  *
- * products fetchAdminNextSortOrder 답습 (DEC-S244 패턴 일관).
+ * 표시 측은 fetchCafeMenuByCategory(cat) 가 cat 필터 + sort_order asc 로
+ * 카테고리 내 상대 순서만 보므로 정렬 작동에 문제 없음.
+ *
+ * products fetchAdminNextSortOrder 는 cat 별 max+1 패턴 — cafe-menu seed 와
+ * 전제가 달라 답습하지 않음 (S245-P9 정정).
  */
-export async function fetchAdminNextCafeMenuSortOrder(
-  cat: CafeMenuCat,
-): Promise<number> {
+export async function fetchAdminNextCafeMenuSortOrder(): Promise<number> {
   const client = await createRouteHandlerClient();
   const { data, error } = await client
     .from('cafe_menu_items')
     .select('sort_order')
-    .eq('cat', cat)
     .order('sort_order', { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (error) {
     console.error('[fetchAdminNextCafeMenuSortOrder] query failed', {
-      cat,
       code: error.code,
       message: error.message?.slice(0, 200),
     });
@@ -163,18 +160,4 @@ export async function fetchAdminNextCafeMenuSortOrder(
   }
   if (!data) return 0;
   return (data.sort_order as number) + 1;
-}
-
-/**
- * 4 cat 모두 max+1 prefetch — /admin/menu/new page server component 용.
- * 운영자가 cat 변경 시 MenuEditForm 의 watch('cat') 가 즉시 sortOrder 갱신.
- */
-export async function fetchAdminNextCafeMenuSortOrderByCat(): Promise<
-  Record<CafeMenuCat, number>
-> {
-  const cats: CafeMenuCat[] = ['brewing', 'tea', 'non-coffee', 'dessert'];
-  const results = await Promise.all(cats.map(fetchAdminNextCafeMenuSortOrder));
-  return Object.fromEntries(
-    cats.map((cat, i) => [cat, results[i]]),
-  ) as Record<CafeMenuCat, number>;
 }
