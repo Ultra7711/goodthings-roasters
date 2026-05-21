@@ -188,6 +188,54 @@ export function hydrateMenuLikes(snapshot: {
   getStore().fetched = true;
 }
 
+/**
+ * counts-only SSR hydrate (S247 폴리싱).
+ *
+ * /menu 페이지 dynamic 화 회피 — counts 는 SSR 'use cache' snapshot 으로 받고
+ * user liked 만 client fetchMyMenuLikes 로 분리. counts/sortCommitted/badgesCommitted
+ * 모두 SSR 시점 popular 으로 fix → 정렬·뱃지 점프 0. liked 만 client 도착 후 채워짐.
+ *
+ * S247 fix: store.fetched=false 명시 reset — 계정 전환 (logout→다른 계정 login)
+ * 시 globalThis store 가 잔존하면 이전 사용자 liked 가 그대로 보이는 회귀 발생.
+ * hydrate 시점에 fetched 를 reset 하여 fetchMyMenuLikes 가 매번 fresh fetch 하도록.
+ * 같은 계정 재진입은 동일 응답 → React selector boolean 동일 → 리렌더 없음 (안전).
+ */
+export function hydrateMenuLikesCounts(counts: Record<string, number>): void {
+  const popular = computePopularRanks(counts);
+  setState((s) => ({
+    ...s,
+    counts,
+    sortCommitted: popular,
+    badgesCommitted: popular,
+    loading: false,
+  }));
+  getStore().fetched = false;
+}
+
+/**
+ * client-side user liked 1회 fetch (S247 폴리싱).
+ *
+ * SSR 에서 counts 만 받은 후, 로그인 사용자의 liked menu_id 목록만 client 에서
+ * 적용. counts 는 응답에 포함되어 있어도 무시 — sort/badges 점프 회피.
+ *
+ * 중복 호출 안전: store.fetched 플래그 사용.
+ */
+export async function fetchMyMenuLikes(): Promise<void> {
+  const store = getStore();
+  if (store.fetched) return;
+  store.fetched = true;
+
+  try {
+    const res = await fetch('/api/menu-likes');
+    const json = (await res.json()) as MenuLikesResponse;
+    const liked = new Set<string>(json.data?.liked ?? []);
+
+    setState((s) => ({ ...s, liked }));
+  } catch {
+    // 실패 무시 — liked 미반영 (좋아요 표시만 누락, 정렬/뱃지는 SSR 시점 유효)
+  }
+}
+
 export async function toggleMenuLike(menuId: string): Promise<void> {
   const store = getStore();
   if (store.pending.has(menuId)) return;

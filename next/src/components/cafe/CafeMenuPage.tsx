@@ -33,7 +33,8 @@ import {
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import {
   commitMenuRanksOnReentry,
-  hydrateMenuLikes,
+  fetchMyMenuLikes,
+  hydrateMenuLikesCounts,
   useMenuSortCommitted,
 } from '@/lib/menuLikesStore';
 
@@ -46,22 +47,25 @@ const CARD_BASE_DELAY_INIT = 420;
 
 type Props = {
   items: CafeMenuItem[];
-  /* S245-P20 Phase 1: SSR likes snapshot — store hydrate 로 첫 렌더부터
-     popular 정렬 + count 완성 (카드 reorder 점프 제거). */
-  initialLikesSnapshot: {
-    counts: Record<string, number>;
-    liked: string[];
-  };
+  /* S247 폴리싱: counts 만 SSR snapshot. liked 는 client useEffect 에서 fetch.
+     counts 기반 popular 정렬·뱃지가 SSR 시점에 fix → 점프 0. */
+  initialLikesCounts: Record<string, number>;
 };
 
-export default function CafeMenuPage({ items, initialLikesSnapshot }: Props) {
-  /* S245-P20 Phase 1: SSR snapshot 으로 store hydrate (1회).
-     useState lazy initializer — SSR + CSR 첫 렌더 시 store 가 이미 채워진 상태 →
-     hydration mismatch 0 + 카드 reorder 점프 0. */
+export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
+  /* S247: counts-only hydrate (1회). sortCommitted/badgesCommitted 모두 SSR
+     popular 으로 fix → 카드 reorder/배지 점프 0. liked 는 아래 useEffect 에서
+     client fetch 로 채워짐 (좋아요 표시만 약간 지연). */
   useState(() => {
-    hydrateMenuLikes(initialLikesSnapshot);
+    hydrateMenuLikesCounts(initialLikesCounts);
     return true;
   });
+
+  /* S247: 로그인 사용자 liked 1회 client fetch. 정렬·뱃지는 이미 SSR 시점
+     popular 으로 fix 되어 있어 liked 도착해도 변동 없음. */
+  useEffect(() => {
+    void fetchMyMenuLikes();
+  }, []);
 
   const searchParams = useSearchParams();
 
