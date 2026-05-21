@@ -73,15 +73,17 @@ export function useHistoryDismiss({ open, onClose, scope }: UseHistoryDismissArg
       // scrollRestoration 임시 manual — history.back() 시 브라우저의 자동 scroll
       // restoration 이 이전 entry 위치로 점프했다가 useDrawer 의 scrollTo 가 원위치
       // 복원하는 paint race ("드로어 닫을 때 페이지가 위로 점프했다 복귀" 플래시)
-      // 차단. popstate 처리 직후 setTimeout(0) 에서 원래 값으로 복원해 일반
-      // 브라우저 back/forward navigation 의 scroll 보존은 영향 없음.
+      // 차단. popstate listener 안에서 원복하여 race 차단 (setTimeout(0) 보다 안전).
+      // 일반 브라우저 back/forward navigation 의 scroll 보존은 영향 없음.
       if (readModalScope() === scope) {
         const prevRestoration = window.history.scrollRestoration;
         window.history.scrollRestoration = 'manual';
-        window.history.back();
-        setTimeout(() => {
+        const restoreOnce = () => {
           window.history.scrollRestoration = prevRestoration;
-        }, 0);
+          window.removeEventListener('popstate', restoreOnce);
+        };
+        window.addEventListener('popstate', restoreOnce);
+        window.history.back();
       }
     }
   }, [open, scope]);

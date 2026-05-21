@@ -66,7 +66,11 @@ export function useDrawer({ open, onClose, restoreFocus = true }: UseDrawerArgs)
     const trigger = isInteractive ? (el as HTMLElement) : null;
     return () => {
       if (trigger && document.body.contains(trigger)) {
-        trigger.focus();
+        // preventScroll: true — focus() 의 기본 동작은 element 를 viewport 에 보이게
+        // 자동 scroll. drawer close 시 trigger (예: 헤더 cart icon) 로 페이지가 점프
+        // → useDrawer 의 scrollTo 가 원위치 복원하는 paint race 플래시 발생.
+        // "y 일정 offset 위로 점프 후 복귀" 패턴은 focus() 자동 scroll 의 특징.
+        trigger.focus({ preventScroll: true });
       }
     };
   }, [open, restoreFocus]);
