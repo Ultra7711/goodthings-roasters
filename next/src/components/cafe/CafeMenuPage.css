@@ -216,12 +216,12 @@
   }
   .cm-card .cm-temp-badges { bottom: 10px; right: 10px; }
 
-  /* 좌상단 메타 뱃지 — cafe 한정 (원형 36 축소). */
+  /* 좌상단 메타 뱃지 — cafe 한정 (원형 36 축소 · 12 → 10 비례). */
   .cm-card .cm-card-badges { top: 10px; left: 10px; gap: 3px; }
   .cm-card .cm-meta-badge {
     width: 36px;
     height: 36px;
-    font-size: 9px;
+    font-size: 10px;
     line-height: 1.05;
   }
 
@@ -280,21 +280,21 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  /* S245-P20 재설계: 두 줄 텍스트 원 안 중앙 정렬 fix.
-     line-height 1.1 · text-align center · vertical center (flex). */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* S245-P20 후속: 두 줄 텍스트 원 안 중앙 정렬 fix.
+     grid + place-items center 가 flex 보다 한글 vertical metric 정렬 더 정확.
+     font 12px · line-height 1.05 · padding-bottom 1px (한글 ascender 보정). */
+  display: grid;
+  place-items: center;
   font-family: var(--font-kr);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0;
-  line-height: 1.1;
+  line-height: 1.05;
   text-align: center;
   color: var(--color-text-inverse);
   white-space: pre-line;
   pointer-events: none;
-  padding: 0;
+  padding: 0 0 1px;
 }
 /* 색상 variants — 기존 sp-card-badge variant 답습 */
 .cm-meta-badge--new { background: var(--color-status-new); }
@@ -306,6 +306,30 @@
 .cm-meta-badge--rank-1 { background: #B8943F; }
 .cm-meta-badge--rank-2 { background: #8C9BB5; }
 .cm-meta-badge--rank-3 { background: #A07850; }
+
+/* ── 시그니처 메뉴 prefix SVG (S245-P20 후속) ─────────────────────────
+   메뉴명 옆 inline ✦ sparkle · gold 컬러 · vertical 중앙 정렬. */
+.cm-menu-name-with-sig {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.cm-signature-icon {
+  color: #B8943F; /* gold — popularRank 1 동일 톤 */
+  flex-shrink: 0;
+}
+/* sr-only — 시각 X · 스크린리더 전용 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 /* ══════════════════════════════════════════
    카드 좋아요 인디케이터 (S245-P20 재설계 · read-only)
    기존 MenuLikeButton 시각 답습 + 인터랙션만 제거.
@@ -465,10 +489,22 @@
   #cns-close:hover { background: rgba(28, 27, 25, 0.65); }
 }
 
-/* ── 시트 콘텐츠 영역 (S245-P20 재설계) ─────────────────────────────────
+/* ── 시트 콘텐츠 영역 (S245-P20 fine tune) ──────────────────────────
+   .cns-head-top     — 좌측 stack (카테고리 + 메뉴명) vs 우측 좋아요 (세로 중앙)
+   .cns-title-col    — 좌측 stack 컨테이너
    .cns-category-row — 카테고리 라벨 + 온도 pill (라벨 옆)
-   .cns-name-row     — 메뉴명 (★ prefix) + 좋아요 (수평 우측)
 */
+.cns-head-top {
+  display: flex;
+  align-items: center; /* 좌측 stack 의 세로 중앙 = 좋아요 수직 정렬 */
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.cns-title-col {
+  flex: 1;
+  min-width: 0;
+}
 .cns-category-row {
   display: flex;
   align-items: center;
@@ -479,20 +515,12 @@
 .cns-category-row .cns-category-label {
   margin: 0;
 }
-.cns-name-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-.cns-name-row .cns-item-name {
+.cns-title-col .cns-item-name {
   margin: 0;
-  flex: 1;
-  min-width: 0;
 }
 
-/* 온도 pill — outline (transparent bg + colored border + colored text · 컬러 일치) */
+/* 온도 pill — outline (transparent bg + colored border + colored text · 컬러 일치).
+   1px baseline 어긋남 fix — 카테고리 라벨 시각 베이스라인과 정합 위해 translateY 보정. */
 .cns-temp-pill {
   display: inline-flex;
   align-items: center;
@@ -509,6 +537,7 @@
   text-transform: uppercase;
   line-height: 1;
   white-space: nowrap;
+  transform: translateY(-1px);
 }
 .cns-temp-pill--ice  { color: var(--color-info); }
 .cns-temp-pill--hot  { color: var(--color-error); }

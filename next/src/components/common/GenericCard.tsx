@@ -91,8 +91,8 @@ type Props = {
   topRightSlot?: ReactNode;    // 우상단 (cafe 좋아요)
   bottomRightSlot?: ReactNode; // 우하단 (현재 미사용 · P20 재설계로 폐기)
 
-  /** info */
-  name: string;
+  /** info — string 또는 ReactNode (cafe 시그니처 메뉴는 SVG prefix 포함) */
+  name: string | ReactNode;
   price: string;
 
   /** 스크롤 reveal */

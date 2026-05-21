@@ -12,9 +12,10 @@
 'use client';
 
 import type { CafeMenuItem } from '@/lib/cafeMenu';
-import { getCafeImageMeta, getMenuDisplayName } from '@/lib/cafeMenu';
+import { getCafeImageMeta } from '@/lib/cafeMenu';
 import MenuLikeCount from './MenuLikeCount';
 import MenuCardBadges from './MenuCardBadges';
+import MenuName from './MenuName';
 import GenericCard from '@/components/common/GenericCard';
 /* CafeMenuPage.css 의 .cm-card-* 정의 보장 — CafeMenuCard 사용처 어디서든 (S198 fix). */
 import '@/components/cafe/CafeMenuPage.css';
@@ -50,7 +51,7 @@ export default function CafeMenuCard({
       imgBlurDataURL={imgMeta?.blurDataURL}
       badgeSlot={<MenuCardBadges menuId={item.id} status={item.status} />}
       topRightSlot={<MenuLikeCount menuId={item.id} />}
-      name={getMenuDisplayName(item)}
+      name={<MenuName item={item} iconSize={14} />}
       price={`${item.price.toLocaleString('ko-KR')}원`}
       scrollRoot={scrollRoot}
       colIndex={colIndex}

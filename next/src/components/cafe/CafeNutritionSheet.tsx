@@ -20,13 +20,13 @@ import { getAllergenDisplayLabel } from '@/lib/allergenSort';
 import {
   CAFE_CATEGORY_LABEL,
   getCafeImageMeta,
-  getMenuDisplayName,
   type CafeMenuItem,
   type CafeMenuTemp,
 } from '@/lib/cafeMenu';
 import { CloseIcon } from '@/components/ui/Icons';
 import MenuCardBadges from './MenuCardBadges';
 import MenuLikeSheetButton from './MenuLikeSheetButton';
+import MenuName from './MenuName';
 
 /** 온도 pill (S245-P20 재설계 · outline 한 줄 텍스트). both = 표시 X. */
 function getTempBadge(
@@ -118,18 +118,24 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
 
             <div className="cns-content">
               <div className="cns-head">
-                {/* 카테고리 라벨 + 온도 pill (라벨 옆) */}
-                <div className="cns-category-row">
-                  <p className="cns-category-label">{categoryLabel}</p>
-                  {tempBadge && (
-                    <span className={`cns-temp-pill cns-temp-pill--${tempBadge.variant}`}>
-                      {tempBadge.txt}
-                    </span>
-                  )}
-                </div>
-                {/* 메뉴명 (시그니처는 ★ prefix) + 좋아요 (수평 우측) */}
-                <div className="cns-name-row">
-                  <h2 className="cns-item-name">{getMenuDisplayName(item)}</h2>
+                <div className="cns-head-top">
+                  {/* 좌측 — 카테고리 라벨 + 메뉴명 (세로 stack) */}
+                  <div className="cns-title-col">
+                    <div className="cns-category-row">
+                      <p className="cns-category-label">{categoryLabel}</p>
+                      {tempBadge && (
+                        <span
+                          className={`cns-temp-pill cns-temp-pill--${tempBadge.variant}`}
+                        >
+                          {tempBadge.txt}
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="cns-item-name">
+                      <MenuName item={item} iconSize={20} />
+                    </h2>
+                  </div>
+                  {/* 우측 — 좋아요 (좌측 두 행 세로 중앙 정렬) */}
                   <MenuLikeSheetButton menuId={item.id} menuName={item.name} />
                 </div>
                 {item.menuDesc && (
