@@ -18,9 +18,12 @@ import { Switch as SwitchPrimitive } from 'radix-ui';
 import { useToast } from '@/hooks/useToast';
 import { getNewsletterStatus, setNewsletterSubscription } from '@/lib/newsletter';
 
+type LoadState = 'loading' | 'loaded' | 'hidden';
+
 export default function NewsletterToggleClient() {
   const { show: toast } = useToast();
-  const [enabled, setEnabled] = useState<boolean | null>(null); // null = 로딩
+  const [loadState, setLoadState] = useState<LoadState>('loading');
+  const [enabled, setEnabled] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   /* 마운트 시 현재 status 조회. RLS owner_select 통과 (authenticated · user_id 매치). */
@@ -31,9 +34,11 @@ export default function NewsletterToggleClient() {
       if (res.ok) {
         /* active → 켜짐 / unsubscribed | none → 꺼짐 */
         setEnabled(res.status === 'active');
+        setLoadState('loaded');
       } else {
-        /* unauthenticated 또는 db_error — 토글 표시 안 함 (null 유지) */
+        /* unauthenticated 또는 db_error — 토글 row 자체 숨김 (graceful) */
         console.error('[newsletter.toggle] status fetch failed', res.error);
+        setLoadState('hidden');
       }
     });
     return () => {
@@ -41,9 +46,11 @@ export default function NewsletterToggleClient() {
     };
   }, []);
 
+  const isLoading = loadState === 'loading';
+
   const handleToggle = useCallback(
     (next: boolean) => {
-      if (enabled === null) return; // 로딩 중
+      if (isLoading) return;
       /* Optimistic update */
       setEnabled(next);
       startTransition(async () => {
@@ -61,11 +68,13 @@ export default function NewsletterToggleClient() {
         toast(next ? '뉴스레터 수신 동의됨' : '뉴스레터 수신 거부됨');
       });
     },
-    [enabled, toast],
+    [isLoading, toast],
   );
 
-  /* status 로딩 중 또는 인증 실패 시 row 숨김 (graceful) */
-  if (enabled === null) return null;
+  /* fetch 실패 (unauthenticated · db_error) 시에만 row 숨김. loading 중에는 placeholder 텍스트
+     로 row 자리를 차지해 다른 row 들과 함께 즉시 렌더 → fetch 완료 후 뒤늦게 끼어드는 layout
+     shift 차단. */
+  if (loadState === 'hidden') return null;
 
   return (
     <div className="mp-info-row">
@@ -73,15 +82,19 @@ export default function NewsletterToggleClient() {
       <span className="mp-info-value mp-newsletter-toggle">
         <span
           className="mp-newsletter-status"
-          /* OFF 상태 = AddressSection 빈 상태 (등록된 배송지 정보가 없습니다.) 와 동일 회색 */
-          style={!enabled ? { color: '#9C9890' } : undefined}
+          /* OFF / 로딩 상태 = AddressSection 빈 상태와 동일 회색. */
+          style={isLoading || !enabled ? { color: '#9C9890' } : undefined}
         >
-          {enabled ? '뉴스레터를 수신합니다.' : '뉴스레터를 수신하지 않습니다.'}
+          {isLoading
+            ? '불러오는 중…'
+            : enabled
+              ? '뉴스레터를 수신합니다.'
+              : '뉴스레터를 수신하지 않습니다.'}
         </span>
         <SwitchPrimitive.Root
           checked={enabled}
           onCheckedChange={handleToggle}
-          disabled={isPending}
+          disabled={isLoading || isPending}
           className="mp-switch"
           aria-label="뉴스레터 수신 동의"
         >
