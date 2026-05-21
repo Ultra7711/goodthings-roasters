@@ -51,7 +51,7 @@ export default function CafeMenuCard({
       imgBlurDataURL={imgMeta?.blurDataURL}
       badgeSlot={<MenuCardBadges menuId={item.id} status={item.status} />}
       topRightSlot={<MenuLikeCount menuId={item.id} />}
-      name={<MenuName item={item} iconSize={14} />}
+      name={<MenuName item={item} iconSize={16} />}
       price={`${item.price.toLocaleString('ko-KR')}원`}
       scrollRoot={scrollRoot}
       colIndex={colIndex}

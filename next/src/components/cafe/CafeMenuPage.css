@@ -308,11 +308,12 @@
 .cm-meta-badge--rank-3 { background: #A07850; }
 
 /* ── 시그니처 메뉴 prefix SVG (S245-P20 후속) ─────────────────────────
-   메뉴명 옆 inline ✦ sparkle · gold 컬러 · vertical 중앙 정렬. */
+   메뉴명 옆 inline ✦ sparkle · gold 컬러 · vertical 중앙 정렬.
+   gap 2px — SVG와 텍스트 시각 결합 강화 (사용자 fine tune). */
 .cm-menu-name-with-sig {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 .cm-signature-icon {
   color: #B8943F; /* gold — popularRank 1 동일 톤 */
