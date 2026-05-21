@@ -84,8 +84,18 @@ export const CAFE_FILTER_TABS: { key: CafeFilterKey; label: string; titleKr: str
   { key: 'dessert',    label: '디저트',    titleKr: '디저트' },
 ];
 
-export const CM_PER_PAGE = 20;
+/**
+ * 페이지 사이즈 (S245-P12) — 그리드 BP 별 col × 줄 수 정합.
+ *   - 데스크탑 (≥1024 · 3 col): 24 (8줄)
+ *   - 태블릿 (480~1023 · 2 col): 20 (10줄)
+ *   - 모바일 (<480 · 2 col): 10 (5줄)
+ * 마지막 줄 빈 자리 없도록 col 수의 배수로 설정.
+ */
+export const CM_PER_PAGE_DESKTOP = 24;
+export const CM_PER_PAGE_TABLET = 20;
 export const CM_PER_PAGE_MOBILE = 10;
+/** Legacy alias — 기존 CM_PER_PAGE 호출처 호환. 태블릿 값과 동일. */
+export const CM_PER_PAGE = CM_PER_PAGE_TABLET;
 
 /** 카테고리 라벨 (영양 시트 헤더용) */
 export const CAFE_CATEGORY_LABEL: Record<CafeMenuItem['cat'], string> = {

@@ -21,8 +21,9 @@ import CafeMenuGrid from './CafeMenuGrid';
 import CafeNutritionSheet from './CafeNutritionSheet';
 import {
   CAFE_FILTER_TABS,
-  CM_PER_PAGE,
+  CM_PER_PAGE_DESKTOP,
   CM_PER_PAGE_MOBILE,
+  CM_PER_PAGE_TABLET,
   filterCafeMenu,
   isCafeFilterKey,
   sortCafeMenu,
@@ -70,8 +71,17 @@ export default function CafeMenuPage({ items }: Props) {
   const isInitRef = useRef(true);
   const shouldAnimateCardsRef = useRef(true);
 
+  /* S245-P12: BP 별 perPage — 그리드 col 수 정합 (마지막 줄 빈 자리 제거).
+     - 모바일 (<480 · 2 col): 10 (5줄)
+     - 태블릿 (480~1023 · 2 col): 20 (10줄)
+     - 데스크탑 (≥1024 · 3 col): 24 (8줄) */
   const isMobile = useMediaQuery('(max-width: 479px)');
-  const perPage = isMobile ? CM_PER_PAGE_MOBILE : CM_PER_PAGE;
+  const isTablet = useMediaQuery('(max-width: 1023px)');
+  const perPage = isMobile
+    ? CM_PER_PAGE_MOBILE
+    : isTablet
+      ? CM_PER_PAGE_TABLET
+      : CM_PER_PAGE_DESKTOP;
 
   /* sort 전용 store snapshot. 첫 마운트 시 빈 객체(NEW only sort), 재진입 시
      commitMenuRanksOnReentry() 가 갱신 → CafeMenuPage 리렌더 + 카드 재정렬.
@@ -107,10 +117,16 @@ export default function CafeMenuPage({ items }: Props) {
       if (matched) {
         /* useMediaQuery 는 초기값 false → 첫 렌더에서 perPage 가 항상 데스크탑 값.
            window.matchMedia 를 직접 읽어 실제 뷰포트 기준으로 페이지를 계산한다.
-           SSR(window 미정의) 에서는 데스크탑 fallback 사용 — 어차피 서버엔 스크롤 없음. */
-        const perPageNow = typeof window !== 'undefined' && window.matchMedia('(max-width: 479px)').matches
-          ? CM_PER_PAGE_MOBILE
-          : CM_PER_PAGE;
+           SSR(window 미정의) 에서는 데스크탑 fallback 사용 — 어차피 서버엔 스크롤 없음.
+           S245-P12: BP 별 분기 (perPage useMemo 와 동일 정책). */
+        const perPageNow =
+          typeof window !== 'undefined' &&
+          window.matchMedia('(max-width: 479px)').matches
+            ? CM_PER_PAGE_MOBILE
+            : typeof window !== 'undefined' &&
+                window.matchMedia('(max-width: 1023px)').matches
+              ? CM_PER_PAGE_TABLET
+              : CM_PER_PAGE_DESKTOP;
         const listWithinFilter = sortCafeMenu(filterCafeMenu(items, urlFilter));
         let idx = listWithinFilter.findIndex((i) => i.id === targetId);
         if (idx < 0) {
