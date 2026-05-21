@@ -261,11 +261,11 @@ export default function CafeMenuPage({ items }: Props) {
     };
   }, [highlightId]);
 
-  /* S245-P11: 정렬 정책 변경 — popularIds (menu_likes 카운트) 폐기.
-     status 마커 + cat 순으로 명시적 정렬 (운영자 의도 일관성). */
+  /* S245-P11 정정: 정렬 정책 = NEW → popular (좋아요 1~3위) → 시그니처 → cat 순.
+     popularRanks = sortCommitted (menu_likes 카운트 자동 rank 1/2/3 매핑). */
   const filtered: CafeMenuItem[] = useMemo(() => {
-    return sortCafeMenu(filterCafeMenu(items, filter));
-  }, [filter, items]);
+    return sortCafeMenu(filterCafeMenu(items, filter), sortCommitted);
+  }, [filter, sortCommitted, items]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));

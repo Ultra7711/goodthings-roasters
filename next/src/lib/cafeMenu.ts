@@ -145,19 +145,23 @@ export function filterCafeMenu(items: CafeMenuItem[], filter: CafeFilterKey): Ca
 }
 
 /**
- * 카드 정렬 정책 (S245-P11):
- *   1. status='NEW'      — 신규 메뉴
- *   2. status='인기'     — 운영자 명시 인기 마커
- *   3. status='시그니처' — 운영자 명시 시그니처 마커
- *   4. 나머지            — cat 순 (brewing → tea → non-coffee → dessert)
+ * 카드 정렬 정책 (S245-P11 정정):
+ *   1. status='NEW'           — 신규 메뉴
+ *   2. popular (좋아요 1~3위) — menu_likes 카운트 기반 자동 (popularRanks 인자)
+ *   3. status='시그니처'      — 운영자 명시 시그니처 마커
+ *   4. 나머지                 — cat 순 (brewing → tea → non-coffee → dessert)
  *
- * 각 그룹 내부: cat asc → sort_order asc (input items 가 이미 sort_order asc 정렬).
+ * 그룹 내부:
+ *   - NEW         : cat asc + sort_order asc
+ *   - popular     : rank asc (1 → 2 → 3) — 좋아요 1위가 맨 앞
+ *   - 시그니처    : cat asc + sort_order asc
+ *   - 나머지      : cat asc + sort_order asc
  *
- * 변경 사유:
- * - 직전 popularIds (menu_likes 좋아요 카운트 상위 ID) 기반 자동 정렬 폐기.
- *   운영자가 status='인기' 로 명시한 메뉴만 우선 정렬 — 마케팅 의도 일관성.
- * - status='시그니처' 도 정렬 우선 그룹 추가 (NEW/인기 다음).
- * - 일반 메뉴는 cat 별 그룹화 (탭 흐름 정합 + 운영자 의도 명확).
+ * popularRanks 는 menuLikesStore 의 sortCommitted 와 동일 형식
+ * (Record<id, 1|2|3>). useMenuSortCommitted() 로 구독.
+ *
+ * status='인기' enum 은 047 schema 에 있으나 실제 데이터/UX 에서는 popular
+ * rank 자동 표시가 정책 — status 마커는 사용 안 함 (P11 1차 잘못 도입한 부분 정정).
  */
 const CAT_ORDER: Record<CafeMenuItem['cat'], number> = {
   brewing: 0,
@@ -166,26 +170,41 @@ const CAT_ORDER: Record<CafeMenuItem['cat'], number> = {
   dessert: 3,
 };
 
-function getStatusRank(item: CafeMenuItem): number {
+/** 1차 우선순위 (major rank) */
+function getMajorRank(
+  item: CafeMenuItem,
+  popularRanks?: Record<string, 1 | 2 | 3>,
+): number {
   if (item.status === 'NEW') return 0;
-  if (item.status === '인기') return 1;
+  if (popularRanks && popularRanks[item.id] !== undefined) return 1;
   if (item.status === '시그니처') return 2;
   return 3;
 }
 
-export function sortCafeMenu(items: CafeMenuItem[]): CafeMenuItem[] {
+export function sortCafeMenu(
+  items: CafeMenuItem[],
+  popularRanks?: Record<string, 1 | 2 | 3>,
+): CafeMenuItem[] {
   return items
     .map((item, index) => ({ item, index }))
     .sort((a, b) => {
-      const rankA = getStatusRank(a.item);
-      const rankB = getStatusRank(b.item);
-      if (rankA !== rankB) return rankA - rankB;
+      const majorA = getMajorRank(a.item, popularRanks);
+      const majorB = getMajorRank(b.item, popularRanks);
+      if (majorA !== majorB) return majorA - majorB;
 
+      /* popular 그룹 — rank asc (1 → 2 → 3) */
+      if (majorA === 1 && popularRanks) {
+        const rA = popularRanks[a.item.id];
+        const rB = popularRanks[b.item.id];
+        if (rA !== rB) return rA - rB;
+      }
+
+      /* cat asc — 같은 그룹 내 카테고리 순 */
       const catA = CAT_ORDER[a.item.cat];
       const catB = CAT_ORDER[b.item.cat];
       if (catA !== catB) return catA - catB;
 
-      /* sort_order asc — input items 가 이미 sort_order asc 정렬됨 (index 가 그 순서) */
+      /* sort_order asc — input items 가 이미 sort_order asc 정렬됨 */
       return a.index - b.index;
     })
     .map(({ item }) => item);
