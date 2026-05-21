@@ -33,6 +33,9 @@ import {
 /** ID prefix — 카테고리/시그니처 매핑 (047 seed 답습) */
 export type CafeMenuIdPrefix = 's' | 'b' | 't' | 'n' | 'd';
 
+/** cafe_menu_items.cat enum */
+export type CafeMenuCat = 'brewing' | 'tea' | 'non-coffee' | 'dessert';
+
 /**
  * 어드민 목록 (is_active 무관) — sort_order asc → updated_at desc.
  * products RLS 와 동일 — admin 세션 쿠키 필수.
@@ -128,4 +131,50 @@ export async function fetchAdminNextCafeMenuId(
 
   const next = (nums.length > 0 ? Math.max(...nums) : 0) + 1;
   return `${prefix}${String(next).padStart(2, '0')}`;
+}
+
+/**
+ * /admin/menu/new 페이지 전용 — 신규 메뉴 등록 시 sort_order 자동값.
+ *
+ * 같은 카테고리 내 max(sort_order) + 1 반환. row 0건이면 0.
+ * cafe-menu 표시는 카테고리별 탭 분리이므로 카테고리 내 max+1 = 그룹 맨 뒤.
+ *
+ * products fetchAdminNextSortOrder 답습 (DEC-S244 패턴 일관).
+ */
+export async function fetchAdminNextCafeMenuSortOrder(
+  cat: CafeMenuCat,
+): Promise<number> {
+  const client = await createRouteHandlerClient();
+  const { data, error } = await client
+    .from('cafe_menu_items')
+    .select('sort_order')
+    .eq('cat', cat)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[fetchAdminNextCafeMenuSortOrder] query failed', {
+      cat,
+      code: error.code,
+      message: error.message?.slice(0, 200),
+    });
+    return 0;
+  }
+  if (!data) return 0;
+  return (data.sort_order as number) + 1;
+}
+
+/**
+ * 4 cat 모두 max+1 prefetch — /admin/menu/new page server component 용.
+ * 운영자가 cat 변경 시 MenuEditForm 의 watch('cat') 가 즉시 sortOrder 갱신.
+ */
+export async function fetchAdminNextCafeMenuSortOrderByCat(): Promise<
+  Record<CafeMenuCat, number>
+> {
+  const cats: CafeMenuCat[] = ['brewing', 'tea', 'non-coffee', 'dessert'];
+  const results = await Promise.all(cats.map(fetchAdminNextCafeMenuSortOrder));
+  return Object.fromEntries(
+    cats.map((cat, i) => [cat, results[i]]),
+  ) as Record<CafeMenuCat, number>;
 }
