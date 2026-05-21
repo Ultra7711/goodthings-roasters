@@ -114,7 +114,10 @@ export function useDrawer({ open, onClose, restoreFocus = true }: UseDrawerArgs)
       body.style.position = prev.position;
       body.style.top = prev.top;
       body.style.width = prev.width;
-      if (isTouch) window.scrollTo(0, scrollY);
+      // 모든 환경에서 scroll 복원 — 데스크탑에서도 body.overflow 토글로 인해
+      // scroll position 이 일시적으로 drift 되는 케이스 (긴 페이지 하단에서
+      // drawer 닫을 때 위로 점프했다 복귀하는 플래시) 차단. 변동 없으면 no-op.
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 }
