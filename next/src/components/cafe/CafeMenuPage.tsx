@@ -15,7 +15,7 @@
 import './CafeMenuPage.css';
 import '@/components/ui/PageTitle.css';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import CafeFilterTabs from './CafeFilterTabs';
 import CafeMenuGrid from './CafeMenuGrid';
 import CafeNutritionSheet from './CafeNutritionSheet';
@@ -101,6 +101,20 @@ export default function CafeMenuPage({ items }: Props) {
      진입하는 "첫 번째 렌더" 에서 condition 이 이미 동일해 highlight 가 누락됨. */
   const [prevSearchKey, setPrevSearchKey] = useState<string | null>(null);
 
+  /* S245-P14: pathname in-render 비교 — gtr:route-change listener 가
+     cacheComponents/Activity 환경에서 신뢰성 떨어질 때의 안전망.
+     외부 → /menu 진입 (prev !== '/menu' && now === '/menu') 시 page 1 reset.
+     hidden Activity 컴포넌트가 visible 전환 시 React 가 client component re-render
+     하면서 pathname Context Provider 가 새 값 전달 → if 비교 통과. */
+  const pathname = usePathname();
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    if (pathname === '/menu' && !searchParams.get('item')) {
+      setPage(1);
+    }
+  }
+
   if (prevUrlFilter !== urlFilter) {
     setPrevUrlFilter(urlFilter);
     setFilter(urlFilter);
@@ -153,8 +167,13 @@ export default function CafeMenuPage({ items }: Props) {
   }
 
   // 마운트 시 likes 1회 fetch (store 내부에 fetched 가드 있음 → 중복 호출 안전)
+  // S245-P14: fetch 완료 후 commitMenuRanksOnReentry 호출 — 첫 진입부터 popular
+  // 정렬(좋아요 1~3위 우선) 활성. 기존 정책은 재진입 시점만 commit → 첫 진입은
+  // NEW only sort 였음. 사용자 의도 = 첫 진입부터 인기 정렬 보고 싶음.
   useEffect(() => {
-    void fetchMenuLikes();
+    void fetchMenuLikes().then(() => {
+      commitMenuRanksOnReentry();
+    });
   }, []);
 
   // S216-D P5: home → /menu?item= 진입 시 풋터 먼저 노출 버그 fix.
