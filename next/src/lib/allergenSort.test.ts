@@ -1,0 +1,89 @@
+import { describe, expect, test } from 'vitest';
+import { normalizeAllergen, STANDARD_ALLERGEN_ORDER } from './allergenSort';
+
+describe('normalizeAllergen', () => {
+  test('빈 문자열 → 빈 문자열', () => {
+    expect(normalizeAllergen('')).toBe('');
+  });
+
+  test('공백·콤마만 → 빈 문자열', () => {
+    expect(normalizeAllergen(', ,  ,')).toBe('');
+  });
+
+  test('단일 항목 (19종 내)', () => {
+    expect(normalizeAllergen('우유')).toBe('우유');
+  });
+
+  test('단일 항목 (19종 외) — 변경 없음', () => {
+    expect(normalizeAllergen('카카오')).toBe('카카오');
+  });
+
+  test('19종 내 항목 — 식약처 별표 순으로 정렬', () => {
+    expect(normalizeAllergen('대두, 우유')).toBe('우유, 대두');
+    expect(normalizeAllergen('밀, 알류, 우유')).toBe('알류, 우유, 밀');
+  });
+
+  test('19종 외 항목은 19종 뒤에 가나다순', () => {
+    expect(normalizeAllergen('카카오, 우유, 견과류')).toBe('우유, 견과류, 카카오');
+  });
+
+  test('19종 외만 — 가나다순', () => {
+    expect(normalizeAllergen('카카오, 견과류, 코코넛')).toBe('견과류, 카카오, 코코넛');
+  });
+
+  test('별칭 정규화: 계란/달걀/난류 → 알류', () => {
+    expect(normalizeAllergen('계란')).toBe('알류');
+    expect(normalizeAllergen('달걀')).toBe('알류');
+    expect(normalizeAllergen('난류')).toBe('알류');
+  });
+
+  test('별칭 정규화: 콩/두유 → 대두', () => {
+    expect(normalizeAllergen('콩')).toBe('대두');
+    expect(normalizeAllergen('두유')).toBe('대두');
+  });
+
+  test('별칭 정규화: 밀크/유제품 → 우유', () => {
+    expect(normalizeAllergen('밀크')).toBe('우유');
+    expect(normalizeAllergen('유제품')).toBe('우유');
+  });
+
+  test('별칭 정규화: 글루텐 → 밀', () => {
+    expect(normalizeAllergen('글루텐')).toBe('밀');
+  });
+
+  test('정규화 후 중복 제거 — 별칭 + 원본', () => {
+    expect(normalizeAllergen('계란, 알류')).toBe('알류');
+    expect(normalizeAllergen('콩, 대두, 두유')).toBe('대두');
+  });
+
+  test('정규화 후 중복 제거 — 동일 항목 반복', () => {
+    expect(normalizeAllergen('우유, 우유, 대두')).toBe('우유, 대두');
+  });
+
+  test('공백 포함 입력 — trim 처리', () => {
+    expect(normalizeAllergen(' 우유 ,  대두 ')).toBe('우유, 대두');
+  });
+
+  test('빈 항목 사이 무시', () => {
+    expect(normalizeAllergen('우유, , 대두, ,')).toBe('우유, 대두');
+  });
+
+  test('실 카페 메뉴 케이스: 라떼 + 디저트', () => {
+    expect(normalizeAllergen('우유, 대두, 밀, 계란, 카카오')).toBe(
+      '알류, 우유, 대두, 밀, 카카오',
+    );
+  });
+
+  test('19종 전체 입력 — 별표 순 그대로', () => {
+    /* 입력은 역순 */
+    const reversed = [...STANDARD_ALLERGEN_ORDER].reverse().join(', ');
+    const expected = STANDARD_ALLERGEN_ORDER.join(', ');
+    expect(normalizeAllergen(reversed)).toBe(expected);
+  });
+
+  test('19종 + 19종 외 혼합 — 19종 먼저, 19종 외는 가나다', () => {
+    expect(normalizeAllergen('잣, 카카오, 우유, 견과류, 호두')).toBe(
+      '우유, 호두, 잣, 견과류, 카카오',
+    );
+  });
+});

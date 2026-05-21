@@ -38,6 +38,7 @@ import {
   fetchAdminNextCafeMenuId,
   type CafeMenuIdPrefix,
 } from '@/lib/admin/cafeMenuServer';
+import { normalizeAllergen } from '@/lib/allergenSort';
 import { CAFE_MENU_CACHE_TAG } from '@/lib/cafeMenuServer';
 
 const MENU_IMAGES_BUCKET = 'menu-images';
@@ -234,7 +235,7 @@ const MenuMetaSchema = z.object({
 
 type MenuMetaInput = z.infer<typeof MenuMetaSchema>;
 
-/** 폼 input → DB row (snake_case · null 처리) */
+/** 폼 input → DB row (snake_case · null 처리 · allergen 정렬·정규화) */
 function toCafeMenuDbRow(v: MenuMetaInput) {
   return {
     name: v.name,
@@ -253,7 +254,9 @@ function toCafeMenuDbRow(v: MenuMetaInput) {
     sodium: v.sodium,
     protein: v.protein,
     caffeine: v.caffeine,
-    allergen: v.allergen,
+    /* S245: 식약처 19종 순 + 가나다 fallback + 별칭 정규화 (계란→알류 등).
+       DB 저장 시점 정규화 → 어드민 재진입 시 정돈된 값 prefill + 사이트 표시 일관. */
+    allergen: normalizeAllergen(v.allergen),
     sort_order: v.sortOrder,
   };
 }

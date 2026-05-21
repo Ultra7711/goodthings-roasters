@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "gen:image-blur": "node scripts/generate-image-blur.mjs",
-    "seed:cafe-menu": "npx tsx scripts/seed-cafe-menu.ts"
+    "seed:cafe-menu": "npx tsx scripts/seed-cafe-menu.ts",
+    "normalize:allergens": "npx tsx scripts/normalize-allergens.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
