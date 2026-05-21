@@ -15,6 +15,10 @@
 import CafeMenuCard from './CafeMenuCard';
 import type { CafeFilterKey, CafeMenuItem } from '@/lib/cafeMenu';
 
+/* above-fold 카드 priority — LCP 개선. 데스크탑 3 col 첫 줄 + 1 = 4개.
+   모바일/태블릿 2 col 기준 첫 2줄 = 4개 정합. */
+const PRIORITY_CARD_COUNT = 4;
+
 type Props = {
   items: CafeMenuItem[];
   filterKey: CafeFilterKey;
@@ -48,6 +52,7 @@ export default function CafeMenuGrid({
           baseDelay={baseDelay}
           instant={instant}
           onOpenNutrition={onOpenNutrition}
+          imgPriority={i < PRIORITY_CARD_COUNT}
         />
       ))}
     </div>

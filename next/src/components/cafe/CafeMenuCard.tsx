@@ -28,6 +28,8 @@ type Props = {
   baseDelay?: number;
   instant?: boolean;
   onOpenNutrition: (id: string) => void;
+  /** above-fold 카드 priority (LCP 개선) */
+  imgPriority?: boolean;
 };
 
 export default function CafeMenuCard({
@@ -38,6 +40,7 @@ export default function CafeMenuCard({
   baseDelay = 0,
   instant = false,
   onOpenNutrition,
+  imgPriority = false,
 }: Props) {
   /* S245-P21: 정적 자산은 cafe-menu-blur.json lookup · 어드민 업로드 (Storage URL)
      는 DB blur_data_url fallback. 둘 중 있는 값 우선. */
@@ -52,6 +55,7 @@ export default function CafeMenuCard({
       imgSrc={item.img}
       imgAlt={item.name}
       imgBlurDataURL={blurDataURL}
+      imgPriority={imgPriority}
       badgeSlot={<MenuCardBadges menuId={item.id} status={item.status} />}
       topRightSlot={<MenuLikeCount menuId={item.id} />}
       name={<MenuName item={item} iconSize={16} />}

@@ -251,6 +251,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   instant={!shouldAnimateCardsRef.current}
                   isHighlight={highlightSlug === p.slug}
                   aspect="5:4"
+                  imgPriority={i < COLS_BEAN}
                 />
               ))}
             </div>
@@ -272,6 +273,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   instant={!shouldAnimateCardsRef.current}
                   isHighlight={highlightSlug === p.slug}
                   aspect="1:1"
+                  imgPriority={i < COLS_DRIP}
                 />
               ))}
             </div>
