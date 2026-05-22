@@ -3,18 +3,18 @@
 /* ══════════════════════════════════════════════════════════════════════════
    ProductImageReorderClient — 이미지 갤러리 업로드 + reorder + 삭제 UI
 
-   책임 (S218 + S231-3):
-   - 이미지 카드 grid (sort_order asc)
-   - 1번 = ★ 대표 배지 (카트/결제/카드에 노출됨)
-   - 각 카드 [↑] [↓] 버튼 + "대표로" 버튼 (= 맨 앞 이동)
-   - 각 카드 [삭제] 버튼 (Storage + DB hard delete · S231-3)
-   - 업로드 dropzone (file input · 5MB 제한 · plaiceholder 자동 · S231-3)
-   - 변경 시 즉시 action 호출 + sonner toast (optimistic UI · 실패 시 rollback)
+   책임 (S218 + S231-3 + S251 Phase 3b 통합):
+   - 이미지 카드 grid (PdpDirtyContext.imageDraftOrder 순서)
+   - 1번 = ★ 대표 배지
+   - 각 카드 [↑] [↓] 버튼 + "대표로" 버튼 = context.setImageDraftOrder 호출 (dirty 등록 · server 호출 X)
+   - 각 카드 [삭제] 버튼 (Storage + DB hard delete · 즉시 server + rebaseImageOrder)
+   - 업로드 dropzone (즉시 server · 성공 후 window reload — dirty 손실 주의)
+   - 활성 토글 (즉시 server · 순서 무관)
 
-   GoodDays admin 답습 (uploadGoodDaysImageAction 패턴).
+   S251 Phase 3b: reorder action 호출은 ProductEditForm 의 통합 onSubmit 에서 (단일 [변경 취소][변경사항 저장] 버튼).
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useRef, useState, useTransition } from 'react';
+import { useMemo, useRef, useState, useTransition } from 'react';
 import Image from 'next/image';
 import { Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
@@ -23,11 +23,11 @@ import { Switch } from '@/components/admin/ui/switch';
 import ConfirmModal from '@/components/admin/ConfirmModal';
 import {
   deleteProductImageAction,
-  reorderProductImagesAction,
   updateProductImageActiveAction,
   uploadProductImageAction,
 } from '../../actions';
 import { cn } from '@/lib/utils';
+import { usePdpDirty } from './PdpDirtyContext';
 
 type ImageItem = {
   id: string;
@@ -47,57 +47,43 @@ export default function ProductImageReorderClient({
   productSlug,
   initialImages,
 }: Props) {
-  const [images, setImages] = useState(initialImages);
+  const { imageDraftOrder, setImageDraftOrder, rebaseImageOrder } =
+    usePdpDirty();
+  const [images, setImages] = useState<ImageItem[]>(initialImages);
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deleteTargetIdx, setDeleteTargetIdx] = useState<number | null>(null);
 
-  function applyOrder(next: ImageItem[]) {
-    const prev = images;
-    setImages(next);
-    startTransition(async () => {
-      const result = await reorderProductImagesAction({
-        productId,
-        orderedImageIds: next.map((i) => i.id),
-      });
-      if (!result.ok) {
-        setImages(prev);
-        const msg =
-          result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해 주세요.'
-            : result.error === 'mismatch'
-              ? '이미지 목록이 일치하지 않습니다. 페이지를 새로고침해 주세요.'
-              : result.error === 'validation_failed'
-                ? '입력값이 올바르지 않습니다.'
-                : '처리 중 오류가 발생했습니다.';
-        toast.error(msg);
-        return;
-      }
-      toast.success('이미지 순서를 저장했습니다');
-    });
-  }
+  /* 표시 순서 = context.imageDraftOrder 기준 (server-known id 만 노출).
+     images 가 unordered map 역할. id 로 lookup. */
+  const orderedImages = useMemo<ImageItem[]>(() => {
+    const map = new Map(images.map((img) => [img.id, img]));
+    return imageDraftOrder
+      .map((id) => map.get(id))
+      .filter((img): img is ImageItem => img !== undefined);
+  }, [images, imageDraftOrder]);
 
   function moveUp(idx: number) {
     if (idx === 0) return;
-    const next = [...images];
+    const next = [...imageDraftOrder];
     [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
-    applyOrder(next);
+    setImageDraftOrder(next);
   }
 
   function moveDown(idx: number) {
-    if (idx === images.length - 1) return;
-    const next = [...images];
+    if (idx === orderedImages.length - 1) return;
+    const next = [...imageDraftOrder];
     [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
-    applyOrder(next);
+    setImageDraftOrder(next);
   }
 
   function moveToFront(idx: number) {
     if (idx === 0) return;
-    const next = [...images];
+    const next = [...imageDraftOrder];
     const [item] = next.splice(idx, 1);
     next.unshift(item);
-    applyOrder(next);
+    setImageDraftOrder(next);
   }
 
   async function handleFiles(files: FileList | null) {
@@ -131,16 +117,16 @@ export default function ProductImageReorderClient({
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
 
-    /* 서버 revalidate 후 page refresh 가 필요 — 새 row 가 state 에 없음.
-       window.location.reload 보다 깔끔한 방법: router.refresh 답습. */
+    /* 서버 revalidate 후 page refresh — 새 row 추가 + context 도 fresh start.
+       ⚠ dirty 상태에서 업로드 시 reorder draft 손실 (사용자 책임 · 별도 sprint 검토). */
     if (typeof window !== 'undefined') window.location.reload();
   }
 
   function handleToggleActive(idx: number) {
-    const img = images[idx];
+    const img = orderedImages[idx];
     if (!img) return;
-    const next = images.map((it, i) =>
-      i === idx ? { ...it, isActive: !it.isActive } : it,
+    const next = images.map((it) =>
+      it.id === img.id ? { ...it, isActive: !it.isActive } : it,
     );
     const prev = images;
     setImages(next);
@@ -170,13 +156,13 @@ export default function ProductImageReorderClient({
   function handleDeleteConfirm() {
     if (deleteTargetIdx === null) return;
     const idx = deleteTargetIdx;
-    const img = images[idx];
+    const img = orderedImages[idx];
     if (!img) {
       setDeleteTargetIdx(null);
       return;
     }
     const prev = images;
-    const next = images.filter((_, i) => i !== idx);
+    const next = images.filter((it) => it.id !== img.id);
     setImages(next);
 
     startTransition(async () => {
@@ -193,6 +179,9 @@ export default function ProductImageReorderClient({
         setDeleteTargetIdx(null);
         return;
       }
+      /* 성공 → 현재 draft 에서 deleted id 제외한 순서를 새 base 로 박음.
+         사용자가 dirty 상태에서 삭제 = reorder 의도 + 삭제 의도 둘 다 commit. */
+      rebaseImageOrder(imageDraftOrder.filter((id) => id !== img.id));
       toast.success('이미지를 삭제했습니다');
       setDeleteTargetIdx(null);
     });
@@ -226,7 +215,7 @@ export default function ProductImageReorderClient({
         </span>
       </div>
 
-      {images.length === 0 ? (
+      {orderedImages.length === 0 ? (
         <div className="px-4 py-12 text-center text-sm text-muted-foreground bg-muted rounded-md border border-dashed border-border">
           아직 등록된 이미지가 없습니다. 위 버튼으로 업로드해 주세요.
         </div>
@@ -238,10 +227,10 @@ export default function ProductImageReorderClient({
           )}
           style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}
         >
-          {images.map((img, idx) => {
+          {orderedImages.map((img, idx) => {
             const isFeatured = idx === 0;
             const canMoveUp = idx > 0;
-            const canMoveDown = idx < images.length - 1;
+            const canMoveDown = idx < orderedImages.length - 1;
             return (
               <div
                 key={img.id}

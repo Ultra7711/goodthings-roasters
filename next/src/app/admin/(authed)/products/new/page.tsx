@@ -17,6 +17,7 @@
 import { AdminBackLink } from '@/components/admin/AdminBackLink';
 import { fetchAdminNextSortOrder } from '@/lib/admin/productsServer';
 import ProductEditForm from '../[slug]/edit/ProductEditForm';
+import { PdpDirtyProvider } from '../[slug]/edit/PdpDirtyContext';
 
 export default async function AdminProductNewPage() {
   /* create_product RPC (마이그 051) 내부에서 카테고리 max+1 재계산하므로
@@ -24,18 +25,22 @@ export default async function AdminProductNewPage() {
      서버에서 정확한 값으로 최종 갱신. */
   const initialSortOrder = await fetchAdminNextSortOrder('coffee_bean');
 
+  /* S251 Phase 3b — ProductEditForm 의 usePdpDirty 호출 보호용 빈 Provider.
+     신규 등록 시점엔 이미지가 없으므로 imageOrderDirty 항상 false. */
   return (
-    <div>
-      <AdminBackLink href="/admin/products" label="상품 목록으로" />
+    <PdpDirtyProvider initialImageOrder={[]}>
+      <div>
+        <AdminBackLink href="/admin/products" label="상품 목록으로" />
 
-      <div className="mb-6">
-        <h2 className="m-0 text-2xl font-medium tracking-tight">신규 상품 등록</h2>
-        <div className="mt-1 text-sm text-muted-foreground">
-          기본 정보 · 상세 · 옵션을 채우고 등록하면 이미지 업로드 단계로 이동합니다.
+        <div className="mb-6">
+          <h2 className="m-0 text-2xl font-medium tracking-tight">신규 상품 등록</h2>
+          <div className="mt-1 text-sm text-muted-foreground">
+            기본 정보 · 상세 · 옵션을 채우고 등록하면 이미지 업로드 단계로 이동합니다.
+          </div>
         </div>
-      </div>
 
-      <ProductEditForm mode="create" initialSortOrder={initialSortOrder} />
-    </div>
+        <ProductEditForm mode="create" initialSortOrder={initialSortOrder} />
+      </div>
+    </PdpDirtyProvider>
   );
 }

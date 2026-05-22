@@ -48,9 +48,14 @@ import { Input } from '@/components/admin/ui/input';
 import { Slider } from '@/components/admin/ui/slider';
 import { Switch } from '@/components/admin/ui/switch';
 import { Textarea } from '@/components/admin/ui/textarea';
-import { createProductAction, updateProductMetaAction } from '../../actions';
+import {
+  createProductAction,
+  reorderProductImagesAction,
+  updateProductMetaAction,
+} from '../../actions';
 import type { ProductWithRelationsRow } from '@/types/product';
 import { cn } from '@/lib/utils';
+import { usePdpDirty } from './PdpDirtyContext';
 
 /* name 입력에서 ASCII 영문/숫자 부분만 추출해 kebab-case slug 생성.
    - "가을의 밤 Autumn Night" → "autumn-night"
@@ -338,6 +343,21 @@ export default function ProductEditForm(props: Props) {
         : buildEditDefaults(props.product),
   });
 
+  /* S251 Phase 3b — PDP 이미지 reorder dirty 통합.
+     mode='create' 에서는 provider 가 빈 array 로 init → imageOrderDirty 항상 false. */
+  const {
+    imageDraftOrder,
+    imageOrderDirty,
+    commitImageOrder,
+    resetImageOrder,
+  } = usePdpDirty();
+  const combinedDirty = isDirty || imageOrderDirty;
+
+  const handleCancel = () => {
+    reset();
+    resetImageOrder();
+  };
+
   /* 옵션 첫 번째 가격 변경 시 표시 가격 자동 동기화 (사이트 카드/PDP 형식 정합).
      shouldDirty: false — 운영자가 옵션만 수정해도 displayPrice 단독 dirty 트리거 회피. */
   const watchedVolumes = useWatch({ control, name: 'volumes' });
@@ -444,23 +464,63 @@ export default function ProductEditForm(props: Props) {
       toast.error('상품 ID 가 없습니다. 페이지를 새로고침해 주세요.');
       return;
     }
-    const editInput = { ...values, id: values.id };
+    const productIdSafe = values.id;
+    const editInput = { ...values, id: productIdSafe };
+    const needFormSave = isDirty;
+    const needImageSave = imageOrderDirty;
+
     startTransition(async () => {
-      const result = await updateProductMetaAction(editInput);
-      if (!result.ok) {
-        const msg =
-          result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해 주세요.'
-            : result.error === 'validation_failed'
-              ? `입력값을 확인해 주세요. (${result.detail ?? ''})`
-              : result.error === 'not_found'
-                ? '상품을 찾을 수 없습니다.'
-                : '처리 중 오류가 발생했습니다.';
-        toast.error(msg);
-        return;
+      /* (1) form mutation — form dirty 일 때만 */
+      if (needFormSave) {
+        const result = await updateProductMetaAction(editInput);
+        if (!result.ok) {
+          const msg =
+            result.error === 'unauthorized'
+              ? '권한이 없습니다. 다시 로그인해 주세요.'
+              : result.error === 'validation_failed'
+                ? `입력값을 확인해 주세요. (${result.detail ?? ''})`
+                : result.error === 'not_found'
+                  ? '상품을 찾을 수 없습니다.'
+                  : '처리 중 오류가 발생했습니다.';
+          toast.error(msg);
+          return;
+        }
       }
-      toast.success('상품 정보를 저장했습니다');
-      reset(values, { keepValues: true }); // dirty 해제
+
+      /* (2) image reorder mutation — imageOrderDirty 일 때만 */
+      if (needImageSave) {
+        const reorderResult = await reorderProductImagesAction({
+          productId: productIdSafe,
+          orderedImageIds: imageDraftOrder,
+        });
+        if (!reorderResult.ok) {
+          const msg =
+            reorderResult.error === 'unauthorized'
+              ? '권한이 없습니다. 다시 로그인해 주세요.'
+              : reorderResult.error === 'mismatch'
+                ? '이미지 목록이 일치하지 않습니다. 페이지를 새로고침해 주세요.'
+                : reorderResult.error === 'validation_failed'
+                  ? '입력값이 올바르지 않습니다.'
+                  : '처리 중 오류가 발생했습니다.';
+          toast.error(
+            needFormSave
+              ? `상품 정보는 저장됐지만 이미지 순서 저장 실패: ${msg}`
+              : msg,
+          );
+          return;
+        }
+        commitImageOrder(imageDraftOrder);
+      }
+
+      /* (3) 성공 — form dirty 해제 + 통합 toast */
+      if (needFormSave) reset(values, { keepValues: true });
+      toast.success(
+        needFormSave && needImageSave
+          ? '상품 정보와 이미지 순서를 저장했습니다'
+          : needFormSave
+            ? '상품 정보를 저장했습니다'
+            : '이미지 순서를 저장했습니다',
+      );
     });
   };
 
@@ -503,8 +563,8 @@ export default function ProductEditForm(props: Props) {
               variant="outline"
               size="sm"
               className="!h-7"
-              onClick={() => reset()}
-              disabled={!isDirty || pending}
+              onClick={handleCancel}
+              disabled={!combinedDirty || pending}
             >
               변경 취소
             </Button>
@@ -513,7 +573,7 @@ export default function ProductEditForm(props: Props) {
               size="sm"
               className="!h-7"
               onClick={handleSubmit(onSubmit, onError)}
-              disabled={!isDirty || pending}
+              disabled={!combinedDirty || pending}
             >
               {pending ? '저장 중…' : '변경사항 저장'}
             </Button>
@@ -574,7 +634,7 @@ export default function ProductEditForm(props: Props) {
       )}
 
       {/* dirty 안내 — mode='edit' 에서만 의미 있음 (create 는 전부 dirty 라 안내 무의미) */}
-      {!isCreate && isDirty && !pending && (
+      {!isCreate && combinedDirty && !pending && (
         <div className="mt-3 px-3 py-2 bg-[var(--warning-soft)] text-[var(--warning)] rounded-[var(--radius-sm)] text-xs">
           저장되지 않은 변경이 있습니다 — 상단의 변경 저장 버튼을 눌러주세요.
         </div>
