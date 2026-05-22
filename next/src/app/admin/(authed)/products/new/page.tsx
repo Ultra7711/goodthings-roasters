@@ -19,7 +19,9 @@ import { fetchAdminNextSortOrder } from '@/lib/admin/productsServer';
 import ProductEditForm from '../[slug]/edit/ProductEditForm';
 
 export default async function AdminProductNewPage() {
-  /* drip_bag 은 신규 등록 막혀있음 (Phase 3-D 까지) → coffee_bean max+1 만 prefetch */
+  /* create_product RPC (마이그 051) 내부에서 카테고리 max+1 재계산하므로
+     client prefetch 값은 표시용. coffee_bean 기본 prefetch — drip_bag 선택 시
+     서버에서 정확한 값으로 최종 갱신. */
   const initialSortOrder = await fetchAdminNextSortOrder('coffee_bean');
 
   return (

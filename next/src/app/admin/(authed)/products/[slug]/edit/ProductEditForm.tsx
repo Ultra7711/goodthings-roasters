@@ -655,7 +655,7 @@ function BasicTab({
             required
             hint={
               isCreate
-                ? '드립백은 추출 가이드 도메인 준비 후 함께 풀립니다 (Phase 3-D).'
+                ? '드립백은 모든 상품에 공통 추출 가이드가 자동 적용됩니다.'
                 : undefined
             }
             error={errors.category?.message}
@@ -666,21 +666,11 @@ function BasicTab({
                 className={ADMIN_SELECT_CLASS}
                 style={{ fontFamily: 'inherit' }}
               >
-                {CATEGORY_OPTIONS.map((o) => {
-                  /* mode='create' 에서 drip_bag = 비활성 — 추출 가이드 도메인 미준비 (Phase 3-D).
-                     mode='edit' 에서는 기존 drip_bag 상품 호환 — 둘 다 노출. */
-                  const isDripBagBlocked = isCreate && o.value === 'drip_bag';
-                  return (
-                    <option
-                      key={o.value}
-                      value={o.value}
-                      disabled={isDripBagBlocked}
-                    >
-                      {o.label}
-                      {isDripBagBlocked ? ' (준비 중)' : ''}
-                    </option>
-                  );
-                })}
+                {CATEGORY_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
               </select>
             </NativeSelectWrap>
           </Field>
@@ -712,8 +702,8 @@ function BasicTab({
             label="정렬 순서"
             hint={
               isCreate
-                ? '같은 카테고리 맨 뒤로 자동 배치됩니다. 순서 변경은 등록 후 목록 reorder UI 에서 (준비 중).'
-                : '카테고리 내 표시 순서. 변경은 목록 reorder UI 에서 가능합니다 (준비 중).'
+                ? '같은 카테고리 맨 뒤로 자동 배치됩니다. 순서 변경은 등록 후 상품 목록 페이지에서 ↑/↓ 버튼으로 가능합니다.'
+                : '카테고리 내 표시 순서. 변경은 상품 목록 페이지에서 ↑/↓ 버튼으로 가능합니다.'
             }
             error={errors.sortOrder?.message}
           >

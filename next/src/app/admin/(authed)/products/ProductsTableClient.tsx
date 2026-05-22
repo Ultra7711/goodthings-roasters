@@ -39,7 +39,7 @@ import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import { Switch } from '@/components/admin/ui/switch';
 import type { AdminProductListItem } from '@/types/product';
 import type { ProductStatus } from '@/lib/products';
-import { toggleProductActiveAction } from './actions';
+import { reorderProductsAction, toggleProductActiveAction } from './actions';
 
 type Props = {
   rows: AdminProductListItem[];
@@ -99,10 +99,88 @@ export default function ProductsTableClient({ rows }: Props) {
   const router = useRouter();
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [searchValue, setSearchValue] = useState('');
+  /* optimistic — reorder 직후 즉시 sort_order swap, 실패 시 rollback.
+     ProductImageReorderClient.applyOrder 답습 (S250-6-#1). */
+  const [rowsState, setRowsState] = useState(rows);
+  const [reorderPending, startReorderTransition] = useTransition();
+
+  /* rows 가 외부에서 갱신되면 (revalidate 후 새 데이터) sync.
+     reorder 중에는 optimistic 상태 유지. */
+  useEffect(() => {
+    if (!reorderPending) setRowsState(rows);
+  }, [rows, reorderPending]);
+
+  const isReorderActive =
+    (category === 'coffee_bean' || category === 'drip_bag') &&
+    searchValue.trim() === '';
+
+  const orderedSameCategoryIds = useMemo(() => {
+    if (category === 'all') return [] as string[];
+    return rowsState
+      .filter((r) => r.category === category)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((r) => r.id);
+  }, [rowsState, category]);
+
+  function applyReorder(orderedProductIds: string[]) {
+    if (category === 'all') return;
+    const idMap = new Map(orderedProductIds.map((id, idx) => [id, idx]));
+    const prev = rowsState;
+    const next = rowsState.map((r) =>
+      idMap.has(r.id) ? { ...r, sortOrder: idMap.get(r.id) as number } : r,
+    );
+    setRowsState(next);
+
+    startReorderTransition(async () => {
+      const result = await reorderProductsAction({
+        category: category as 'coffee_bean' | 'drip_bag',
+        orderedProductIds,
+      });
+      if (!result.ok) {
+        setRowsState(prev);
+        const msg =
+          result.error === 'unauthorized'
+            ? '권한이 없습니다. 다시 로그인해 주세요.'
+            : result.error === 'mismatch'
+              ? '상품 목록이 일치하지 않습니다. 페이지를 새로고침해 주세요.'
+              : result.error === 'validation_failed'
+                ? '입력값이 올바르지 않습니다.'
+                : '처리 중 오류가 발생했습니다.';
+        toast.error(msg);
+        return;
+      }
+      toast.success('상품 순서를 저장했습니다');
+    });
+  }
+
+  function handleMoveUp(productId: string) {
+    const idx = orderedSameCategoryIds.indexOf(productId);
+    if (idx <= 0) return;
+    const next = [...orderedSameCategoryIds];
+    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+    applyReorder(next);
+  }
+
+  function handleMoveDown(productId: string) {
+    const idx = orderedSameCategoryIds.indexOf(productId);
+    if (idx < 0 || idx >= orderedSameCategoryIds.length - 1) return;
+    const next = [...orderedSameCategoryIds];
+    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+    applyReorder(next);
+  }
+
+  function handleMoveToFront(productId: string) {
+    const idx = orderedSameCategoryIds.indexOf(productId);
+    if (idx <= 0) return;
+    const next = [...orderedSameCategoryIds];
+    const [id] = next.splice(idx, 1);
+    next.unshift(id);
+    applyReorder(next);
+  }
 
   const filtered = useMemo(() => {
     const q = searchValue.trim().toLowerCase();
-    return rows.filter((r) => {
+    return rowsState.filter((r) => {
       if (category !== 'all' && r.category !== category) return false;
       if (q.length > 0) {
         const hay = `${r.slug} ${r.name}`.toLowerCase();
@@ -110,19 +188,54 @@ export default function ProductsTableClient({ rows }: Props) {
       }
       return true;
     });
-  }, [rows, category, searchValue]);
+  }, [rowsState, category, searchValue]);
 
   const counts = useMemo(() => {
     let cb = 0;
     let db = 0;
-    for (const r of rows) {
+    for (const r of rowsState) {
       if (r.category === 'coffee_bean') cb += 1;
       else if (r.category === 'drip_bag') db += 1;
     }
-    return { all: rows.length, coffee_bean: cb, drip_bag: db };
-  }, [rows]);
+    return { all: rowsState.length, coffee_bean: cb, drip_bag: db };
+  }, [rowsState]);
 
-  const columns: readonly Column<AdminProductListItem>[] = useMemo(() => [
+  const columns: readonly Column<AdminProductListItem>[] = useMemo(() => {
+    const cols: Column<AdminProductListItem>[] = [];
+
+    /* category 가 coffee_bean / drip_bag 일 때만 순서 변경 컬럼 표시.
+       'all' 탭에서는 카테고리 origin 충돌 위험 → hide. */
+    if (category !== 'all') {
+      const reorderTooltip = !isReorderActive
+        ? searchValue.trim() !== ''
+          ? '검색 해제 후 순서 변경 가능'
+          : '카테고리 탭 선택 시 순서 변경 가능'
+        : undefined;
+      cols.push({
+        key: 'reorder',
+        header: '순서 변경',
+        width: 'w-[120px]',
+        align: 'center',
+        render: (row) => {
+          const idx = orderedSameCategoryIds.indexOf(row.id);
+          const isFirst = idx === 0;
+          const isLast = idx === orderedSameCategoryIds.length - 1;
+          return (
+            <ReorderButtons
+              isFirst={isFirst}
+              isLast={isLast}
+              pending={reorderPending}
+              tooltip={reorderTooltip}
+              onMoveUp={() => handleMoveUp(row.id)}
+              onMoveDown={() => handleMoveDown(row.id)}
+              onMoveToFront={() => handleMoveToFront(row.id)}
+            />
+          );
+        },
+      });
+    }
+
+    cols.push(
     {
       key: 'thumb',
       header: '이미지',
@@ -231,7 +344,16 @@ export default function ProductsTableClient({ rows }: Props) {
       cellClassName: 'text-xs text-muted-foreground tabular-nums',
       render: (row) => formatKstShort(row.updatedAt),
     },
-  ], []);
+    );
+
+    return cols;
+  }, [
+    category,
+    orderedSameCategoryIds,
+    reorderPending,
+    isReorderActive,
+    searchValue,
+  ]);
 
   return (
     <>
@@ -358,6 +480,71 @@ function ProductActiveSwitch({ row }: { row: AdminProductListItem }) {
   );
 }
 
+/* ── 순서 변경 버튼 셀 — ProductImageReorderClient 답습 (S250-6-#1) ──── */
+
+function ReorderButtons({
+  isFirst,
+  isLast,
+  pending,
+  tooltip,
+  onMoveUp,
+  onMoveDown,
+  onMoveToFront,
+}: {
+  isFirst: boolean;
+  isLast: boolean;
+  pending: boolean;
+  tooltip: string | undefined;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onMoveToFront: () => void;
+}) {
+  const disabled = pending || tooltip !== undefined;
+  return (
+    <span
+      onClick={(e) => e.stopPropagation()}
+      className="inline-flex items-center justify-center gap-1"
+    >
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        className="!size-7"
+        onClick={onMoveUp}
+        disabled={disabled || isFirst}
+        aria-label="앞으로 이동"
+        title={tooltip ?? '앞으로 이동'}
+      >
+        <ChevronUpIcon />
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        className="!size-7"
+        onClick={onMoveDown}
+        disabled={disabled || isLast}
+        aria-label="뒤로 이동"
+        title={tooltip ?? '뒤로 이동'}
+      >
+        <ChevronDownIcon />
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        className="!size-7"
+        onClick={onMoveToFront}
+        disabled={disabled || isFirst}
+        aria-label="맨 앞으로"
+        title={tooltip ?? '맨 앞으로'}
+      >
+        <ChevronsUpIcon />
+      </Button>
+    </span>
+  );
+}
+
 /* ── 아이콘 ──────────────────────────────────────────────────────────── */
 
 function PlusIcon() {
@@ -374,6 +561,58 @@ function PlusIcon() {
     >
       <path d="M12 5v14" />
       <path d="M5 12h14" />
+    </svg>
+  );
+}
+
+function ChevronUpIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m6 15 6-6 6 6" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+function ChevronsUpIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m7 11 5-5 5 5" />
+      <path d="m7 17 5-5 5 5" />
     </svg>
   );
 }

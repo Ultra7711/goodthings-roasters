@@ -981,3 +981,103 @@ export async function deleteProductAction(input: {
 
   return { ok: true };
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   reorderProductsAction — 상품 목록 순서 변경 (S250-6-#1)
+
+   책임:
+   1) admin 가드
+   2) category + orderedProductIds 검증 (zod)
+   3) 모든 productId 가 input.category 에 속하는지 확인 (보안 + 정합)
+   4) batch UPDATE — orderedProductIds[i] → sort_order = i
+   5) revalidate (admin 목록 + /shop + tag)
+
+   답습: reorderProductImagesAction (line 387~451).
+   카테고리 origin: products.sort_order 는 카테고리 무관 단일 컬럼이지만,
+   /shop 표시는 카테고리별 분리 후 sort_order asc — 같은 카테고리 내 그룹
+   origin 으로 0..N 재번호.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const ReorderProductsSchema = z.object({
+  category: z.enum(['coffee_bean', 'drip_bag']),
+  orderedProductIds: z.array(z.string().uuid()).min(1).max(100),
+});
+
+export type ReorderProductsResult =
+  | { ok: true; category: 'coffee_bean' | 'drip_bag' }
+  | {
+      ok: false;
+      error:
+        | 'unauthorized'
+        | 'validation_failed'
+        | 'mismatch'
+        | 'server_error';
+      detail?: string;
+    };
+
+export async function reorderProductsAction(input: {
+  category: 'coffee_bean' | 'drip_bag';
+  orderedProductIds: string[];
+}): Promise<ReorderProductsResult> {
+  const claims = await getAdminClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const parsed = ReorderProductsSchema.safeParse(input);
+  if (!parsed.success) {
+    const fields = parsed.error.flatten().fieldErrors;
+    return {
+      ok: false,
+      error: 'validation_failed',
+      detail: Object.entries(fields)
+        .map(([k, v]) => `${k}:${(v as string[])[0]}`)
+        .join('; ')
+        .slice(0, 200),
+    };
+  }
+
+  const { category, orderedProductIds } = parsed.data;
+  const admin = getSupabaseAdmin();
+
+  /* 보안 + 정합 — 모든 productId 가 input.category 에 속하는지 확인. */
+  const { data: owned, error: ownErr } = await admin
+    .from('products')
+    .select('id')
+    .eq('category', category)
+    .in('id', orderedProductIds);
+
+  if (ownErr) {
+    console.error('[reorderProductsAction] ownership check failed', {
+      code: ownErr.code,
+      message: ownErr.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+  if (!owned || owned.length !== orderedProductIds.length) {
+    return { ok: false, error: 'mismatch' };
+  }
+
+  /* batch UPDATE — Promise.all (소규모 배열, 동시성 낮음 → 트랜잭션 생략) */
+  const updates = await Promise.all(
+    orderedProductIds.map((productId, idx) =>
+      admin
+        .from('products')
+        .update({ sort_order: idx })
+        .eq('id', productId)
+        .eq('category', category),
+    ),
+  );
+  const firstErr = updates.find((r) => r.error);
+  if (firstErr?.error) {
+    console.error('[reorderProductsAction] update failed', {
+      code: firstErr.error.code,
+      message: firstErr.error.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+
+  revalidateTag(PRODUCTS_CACHE_TAG, 'max');
+  revalidatePath('/admin/products');
+  revalidatePath('/shop');
+
+  return { ok: true, category };
+}
