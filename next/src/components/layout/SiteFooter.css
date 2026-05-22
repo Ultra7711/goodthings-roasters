@@ -65,8 +65,10 @@ footer.blk {
 }
 @media (max-width: 767px) {
   .f-inner { padding-top: 56px; }
+  /* S252: 1열 → 2열 (자연 grid flow). row 1 = Story | Shop, row 2 = Contact | (빈).
+     세로 점유 약 1/2 절약. 3번째 셀(빈칸)은 grid 자동 처리 — 별도 placeholder 없음. */
   .f-cols {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 24px;
     margin-top: 40px;
     padding-top: 40px;
