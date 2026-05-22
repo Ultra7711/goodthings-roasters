@@ -19,7 +19,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Copy, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Plus, Trash2, X } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
@@ -27,8 +27,13 @@ import { Checkbox } from '@/components/admin/ui/checkbox';
 import { Switch } from '@/components/admin/ui/switch';
 import { cn } from '@/lib/utils';
 import {
+  CAFE_CATEGORY_LABEL,
+  type CafeMenuItem,
+} from '@/lib/cafeMenu';
+import {
   composeNoticeText,
   NOTICE_COLOR_THEMES,
+  type HomeFeaturedSettings,
   type NoticeSettings,
   type ShippingSettings,
   type SignatureSettings,
@@ -67,9 +72,11 @@ interface SettingsFormProps {
   initialSettings: SiteSettings;
   /** S232: owner (관리자) 만 저장 가능. staff (운영자) 는 모든 저장 버튼 disabled. */
   isOwner: boolean;
+  /** S248: 메인 노출 카페 메뉴 슬롯 dropdown 옵션 source (is_active=true · status 무관). */
+  cafeMenus: CafeMenuItem[];
 }
 
-export default function SettingsForm({ initialSettings, isOwner }: SettingsFormProps) {
+export default function SettingsForm({ initialSettings, isOwner, cafeMenus }: SettingsFormProps) {
   const router = useRouter();
   const [savedSettings, setSavedSettings] = useState<SiteSettings>(initialSettings);
   const [settings, setSettings] = useState<SiteSettings>(initialSettings);
@@ -135,6 +142,7 @@ export default function SettingsForm({ initialSettings, isOwner }: SettingsFormP
     if (!shallowEqualNotice(savedSettings.notice, settings.notice)) n += 1;
     if (!shallowEqualShipping(savedSettings.shipping, settings.shipping)) n += 1;
     if (!shallowEqualSignature(savedSettings.signature, settings.signature)) n += 1;
+    if (!shallowEqualHomeFeatured(savedSettings.home_featured, settings.home_featured)) n += 1;
     return n;
   }, [savedSettings, settings]);
   const isDirty = dirtyCount > 0;
@@ -147,6 +155,9 @@ export default function SettingsForm({ initialSettings, isOwner }: SettingsFormP
   }
   function updateSignature(patch: Partial<SignatureSettings>) {
     setSettings((prev) => ({ ...prev, signature: { ...prev.signature, ...patch } }));
+  }
+  function updateHomeFeatured(patch: Partial<HomeFeaturedSettings>) {
+    setSettings((prev) => ({ ...prev, home_featured: { ...prev.home_featured, ...patch } }));
   }
 
   function handleReset() {
@@ -268,6 +279,9 @@ export default function SettingsForm({ initialSettings, isOwner }: SettingsFormP
     }
     if (!shallowEqualSignature(savedSettings.signature, settings.signature)) {
       payload.signature = settings.signature;
+    }
+    if (!shallowEqualHomeFeatured(savedSettings.home_featured, settings.home_featured)) {
+      payload.home_featured = settings.home_featured;
     }
 
     startTransition(async () => {
@@ -783,6 +797,13 @@ export default function SettingsForm({ initialSettings, isOwner }: SettingsFormP
           </div>
         </SettingsCard>
 
+        {/* Section 4 — 메인 노출 카페 메뉴 (S248 · 069) */}
+        <HomeFeaturedCard
+          value={settings.home_featured}
+          onChange={updateHomeFeatured}
+          cafeMenus={cafeMenus}
+        />
+
         {/* Preview — advisory §6.1 D-1 4 brk 발행 전 미리보기 */}
         <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
           <div className="px-6 py-4 border-b border-border flex items-center gap-3 flex-wrap">
@@ -1021,6 +1042,17 @@ function shallowEqualShipping(a: ShippingSettings, b: ShippingSettings): boolean
     a.base_fee === b.base_fee
   );
 }
+function shallowEqualHomeFeatured(
+  a: HomeFeaturedSettings,
+  b: HomeFeaturedSettings,
+): boolean {
+  if (a.menu_ids.length !== b.menu_ids.length) return false;
+  for (let i = 0; i < a.menu_ids.length; i += 1) {
+    if (a.menu_ids[i] !== b.menu_ids[i]) return false;
+  }
+  return true;
+}
+
 function shallowEqualSignature(a: SignatureSettings, b: SignatureSettings): boolean {
   return (
     a.enabled === b.enabled &&
@@ -1047,6 +1079,7 @@ function describeUpdatedKeys(keys: ReadonlyArray<string>): string {
     notice: '공지 배너',
     shipping: '무료 배송 정책',
     signature: '시그니처 섹션',
+    home_featured: '메인 노출 메뉴',
   };
   return keys.map((k) => labels[k] ?? k).join(' · ');
 }
@@ -1251,5 +1284,387 @@ function FormInput({
         <span className="text-muted-foreground text-xs">{suffix}</span>
       )}
     </div>
+  );
+}
+
+/* ── Section 4 — 메인 노출 카페 메뉴 (S248 · 069) ───────────────────────────
+   매트릭스 슬롯 모델 (0~3 개 가변).
+   - dropdown source = cafe_menus 전체 (is_active=true · status 무관 · DEC-S248-4)
+   - 검색 + 카테고리/status 배지 + 중복 disabled
+   - ↑↓ 슬롯 reorder (S245 sort_order 동적 행 reorder 답습)
+   - 빈 배열·미설정 시 메인 페이지에서 status='시그니처' .slice(0,3) 자동 fallback (DEC-S248-8). */
+
+function HomeFeaturedCard({
+  value,
+  onChange,
+  cafeMenus,
+}: {
+  value: HomeFeaturedSettings;
+  onChange: (patch: Partial<HomeFeaturedSettings>) => void;
+  cafeMenus: CafeMenuItem[];
+}) {
+  const count = value.menu_ids.length;
+  const max = 3;
+
+  /** id → CafeMenuItem map (옵션 row · 슬롯 라벨 lookup). */
+  const menuById = useMemo(() => {
+    const m = new Map<string, CafeMenuItem>();
+    for (const item of cafeMenus) m.set(item.id, item);
+    return m;
+  }, [cafeMenus]);
+
+  function setSlot(index: number, menuId: string | null) {
+    const next = [...value.menu_ids];
+    if (menuId === null) {
+      next.splice(index, 1);
+    } else {
+      next[index] = menuId;
+    }
+    onChange({ menu_ids: next });
+  }
+
+  function appendSlot(menuId: string) {
+    if (count >= max) return;
+    onChange({ menu_ids: [...value.menu_ids, menuId] });
+  }
+
+  function moveSlot(index: number, dir: -1 | 1) {
+    const target = index + dir;
+    if (target < 0 || target >= count) return;
+    const next = [...value.menu_ids];
+    [next[index], next[target]] = [next[target], next[index]];
+    onChange({ menu_ids: next });
+  }
+
+  function removeSlot(index: number) {
+    const next = [...value.menu_ids];
+    next.splice(index, 1);
+    onChange({ menu_ids: next });
+  }
+
+  return (
+    <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)]">
+      <div className="px-6 py-4 border-b border-border flex items-center gap-3">
+        <div className="flex-1">
+          <h3 className="m-0 text-sm font-medium">메인 노출 카페 메뉴</h3>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            메인 페이지 §2.5 cafe-menu chapter 의 3종 슬롯 · 시그니처 마커가 아니어도 노출 가능 · 0~3 개 가변
+          </div>
+        </div>
+        <span className="text-xs text-muted-foreground gtr-tnum">
+          {count} / {max}
+        </span>
+      </div>
+      <div className="p-6 flex flex-col gap-3">
+        {count === 0 && (
+          <div className="px-4 py-3 rounded-md bg-[var(--surface-muted)] text-xs text-muted-foreground leading-relaxed">
+            아직 선택된 메뉴가 없어요 · 비워두면 시그니처 마커가 붙은 메뉴 3종이 자동 노출돼요 (안전망)
+          </div>
+        )}
+
+        {value.menu_ids.map((id, index) => {
+          const item = menuById.get(id);
+          return (
+            <HomeFeaturedSlotRow
+              key={`slot-${index}-${id}`}
+              index={index}
+              total={count}
+              item={item}
+              cafeMenus={cafeMenus}
+              selectedIds={value.menu_ids}
+              onPick={(menuId) => setSlot(index, menuId)}
+              onMoveUp={() => moveSlot(index, -1)}
+              onMoveDown={() => moveSlot(index, 1)}
+              onRemove={() => removeSlot(index)}
+            />
+          );
+        })}
+
+        {count < max && (
+          <HomeFeaturedAddRow
+            cafeMenus={cafeMenus}
+            selectedIds={value.menu_ids}
+            onPick={(menuId) => appendSlot(menuId)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HomeFeaturedSlotRow({
+  index,
+  total,
+  item,
+  cafeMenus,
+  selectedIds,
+  onPick,
+  onMoveUp,
+  onMoveDown,
+  onRemove,
+}: {
+  index: number;
+  total: number;
+  item: CafeMenuItem | undefined;
+  cafeMenus: CafeMenuItem[];
+  selectedIds: ReadonlyArray<string>;
+  onPick: (menuId: string) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onRemove: () => void;
+}) {
+  const slotLabel = `${index + 1}번째 노출`;
+  const slotHint = index === 0 ? '메인 첫 표시' : index === 1 ? '두 번째' : '세 번째';
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex flex-col text-xs min-w-[80px]">
+        <span className="font-medium">{slotLabel}</span>
+        <span className="text-muted-foreground">{slotHint}</span>
+      </div>
+
+      <div className="flex-1 min-w-[260px]">
+        {item ? (
+          <MenuPickerInline
+            current={item}
+            cafeMenus={cafeMenus}
+            selectedIds={selectedIds}
+            onPick={onPick}
+          />
+        ) : (
+          <div className="px-3 py-2 rounded-md border border-[var(--danger)] bg-[var(--danger-soft)] text-xs text-[var(--danger)]">
+            잘못된 메뉴 (삭제된 메뉴이거나 비활성 상태) — 다시 선택해 주세요
+            <MenuPickerInline
+              current={null}
+              cafeMenus={cafeMenus}
+              selectedIds={selectedIds}
+              onPick={onPick}
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-1 shrink-0">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="!h-8 !w-8 !p-0"
+          onClick={onMoveUp}
+          disabled={index === 0}
+          aria-label="위로 이동"
+          title="위로 이동"
+        >
+          <ChevronUp size={14} />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="!h-8 !w-8 !p-0"
+          onClick={onMoveDown}
+          disabled={index === total - 1}
+          aria-label="아래로 이동"
+          title="아래로 이동"
+        >
+          <ChevronDown size={14} />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="!h-8 !w-8 !p-0 !text-[var(--danger)] !border-[var(--danger)]"
+          onClick={onRemove}
+          aria-label="슬롯 제거"
+          title="슬롯 제거"
+        >
+          <X size={14} />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function HomeFeaturedAddRow({
+  cafeMenus,
+  selectedIds,
+  onPick,
+}: {
+  cafeMenus: CafeMenuItem[];
+  selectedIds: ReadonlyArray<string>;
+  onPick: (menuId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  if (!open) {
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="!h-9 self-start"
+        onClick={() => setOpen(true)}
+      >
+        <Plus size={14} />
+        메뉴 추가
+      </Button>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <div className="text-xs text-muted-foreground min-w-[80px]">신규 슬롯</div>
+      <div className="flex-1 min-w-[260px]">
+        <MenuPickerInline
+          current={null}
+          cafeMenus={cafeMenus}
+          selectedIds={selectedIds}
+          onPick={(id) => {
+            onPick(id);
+            setOpen(false);
+          }}
+          autoOpen
+        />
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="!h-8"
+        onClick={() => setOpen(false)}
+      >
+        취소
+      </Button>
+    </div>
+  );
+}
+
+/* MenuPickerInline — 검색 dropdown.
+   - native <details>/<summary> 기반 (라이브러리 0 · 키보드 esc 자연 처리)
+   - 검색 입력 (메뉴명 ilike) · status 배지 + 카테고리 표시
+   - 다른 슬롯에 선택된 메뉴 disabled + "선택됨" 라벨. */
+function MenuPickerInline({
+  current,
+  cafeMenus,
+  selectedIds,
+  onPick,
+  autoOpen,
+}: {
+  current: CafeMenuItem | null;
+  cafeMenus: CafeMenuItem[];
+  selectedIds: ReadonlyArray<string>;
+  onPick: (menuId: string) => void;
+  autoOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(!!autoOpen);
+  const [query, setQuery] = useState('');
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return cafeMenus;
+    return cafeMenus.filter((m) => m.name.toLowerCase().includes(q));
+  }, [cafeMenus, query]);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        className="w-full flex items-center justify-between gap-2 px-3 h-[34px] rounded-[6px] border border-[var(--input)] bg-[var(--surface)] text-sm text-left cursor-pointer hover:bg-[var(--surface-muted)] transition-colors"
+      >
+        {current ? (
+          <span className="flex items-center gap-2 min-w-0">
+            <span className="font-medium truncate">{current.name}</span>
+            <MenuMetaBadges item={current} />
+          </span>
+        ) : (
+          <span className="text-muted-foreground">메뉴 선택…</span>
+        )}
+        <ChevronDown
+          size={14}
+          className="shrink-0 text-muted-foreground transition-transform"
+          style={{ transform: open ? 'rotate(180deg)' : 'none' }}
+        />
+      </button>
+
+      {open && (
+        <div
+          className="absolute z-10 top-[calc(100%+4px)] left-0 right-0 max-h-[320px] overflow-y-auto bg-[var(--surface)] border border-border rounded-md shadow-lg"
+          role="listbox"
+        >
+          <div className="sticky top-0 bg-[var(--surface)] border-b border-border p-2">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="메뉴명 검색…"
+              autoFocus
+              className="w-full px-2.5 h-8 text-sm border border-[var(--input)] rounded-md bg-[var(--surface)] outline-none focus:border-ring"
+            />
+          </div>
+          {filtered.length === 0 ? (
+            <div className="px-3 py-6 text-center text-xs text-muted-foreground">
+              검색 결과가 없어요
+            </div>
+          ) : (
+            <ul className="py-1">
+              {filtered.map((m) => {
+                const isSelected = selectedSet.has(m.id);
+                const isCurrent = current?.id === m.id;
+                const disabled = isSelected && !isCurrent;
+                return (
+                  <li key={m.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (disabled) return;
+                        onPick(m.id);
+                        setOpen(false);
+                        setQuery('');
+                      }}
+                      disabled={disabled}
+                      aria-selected={isCurrent}
+                      className={cn(
+                        'w-full px-3 py-2 text-sm text-left flex items-center gap-2 transition-colors',
+                        isCurrent
+                          ? 'bg-[var(--primary-soft)] text-[var(--primary)]'
+                          : disabled
+                            ? 'text-muted-foreground cursor-not-allowed opacity-60'
+                            : 'hover:bg-[var(--surface-muted)] cursor-pointer',
+                      )}
+                    >
+                      <span className="flex-1 min-w-0 truncate">{m.name}</span>
+                      <MenuMetaBadges item={m} />
+                      {disabled && (
+                        <span className="text-[10px] text-muted-foreground shrink-0 ml-1">
+                          다른 슬롯에 선택됨
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuMetaBadges({ item }: { item: CafeMenuItem }) {
+  const catLabel = CAFE_CATEGORY_LABEL[item.cat] ?? item.cat;
+  return (
+    <span className="inline-flex items-center gap-1 shrink-0 text-[10px] font-medium">
+      <span className="px-1.5 py-0.5 rounded bg-[var(--surface-muted)] text-muted-foreground">
+        {catLabel}
+      </span>
+      {item.status && (
+        <span className="px-1.5 py-0.5 rounded bg-[var(--primary-soft)] text-[var(--primary)]">
+          {item.status}
+        </span>
+      )}
+    </span>
   );
 }

@@ -15,21 +15,45 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getActiveCafeEvent, getComingCafeEvent } from '@/lib/cafeEventsServer';
 import { fetchCafeMenu } from '@/lib/cafeMenuServer';
+import { fetchSiteSettings } from '@/lib/siteSettingsServer';
+import type { CafeMenuItem } from '@/lib/cafeMenu';
 import galleryBlur from '@/lib/gallery-blur.json';
+import MenuName from '@/components/cafe/MenuName';
 import EventBanner from './EventBanner';
 import MenuTab from './MenuTab';
 
 const cafeWebpMeta = (galleryBlur as Record<string, { blurDataURL: string }>)['cafe.webp'];
 
+/**
+ * 메인 노출 카페 메뉴 3종 결정.
+ * - S248 (069): site_settings.home_featured.menu_ids 가 우선 (운영자 명시 선택).
+ * - DEC-S248-8 안전망: 빈 배열이거나 ids 가 cafeItems 에 없는 경우 기존
+ *   `status='시그니처' .slice(0,3)` fallback.
+ */
+function pickFeatured(
+  cafeItems: ReadonlyArray<CafeMenuItem>,
+  menuIds: ReadonlyArray<string>,
+): CafeMenuItem[] {
+  if (menuIds.length > 0) {
+    const byId = new Map(cafeItems.map((i) => [i.id, i]));
+    const picked = menuIds
+      .map((id) => byId.get(id))
+      .filter((m): m is CafeMenuItem => m !== undefined);
+    if (picked.length > 0) return picked;
+  }
+  return cafeItems.filter((i) => i.status === '시그니처').slice(0, 3);
+}
+
 export default async function CafeMenuSection() {
   /* 059 overlay 재설계 — eyebrow/h4 등 텍스트는 운영자 CSS 가 처리.
        Active 또는 7일 내 Coming → 동일 EventBanner 렌더 (이미지 + custom CSS).
        비활성 → EventBanner 미렌더. */
-  const [activeEvent, cafeItems] = await Promise.all([
+  const [activeEvent, cafeItems, siteSettings] = await Promise.all([
     getActiveCafeEvent(),
     fetchCafeMenu(),
+    fetchSiteSettings(),
   ]);
-  const FEATURED_ITEMS = cafeItems.filter((i) => i.status === '시그니처').slice(0, 3);
+  const FEATURED_ITEMS = pickFeatured(cafeItems, siteSettings.home_featured.menu_ids);
   const comingEvent = activeEvent ? null : await getComingCafeEvent();
   const displayEvent = activeEvent ?? comingEvent;
 
@@ -87,8 +111,13 @@ export default async function CafeMenuSection() {
                 />
               </div>
               <div className="cmsplit-info">
+                {/* S248-2g: 메인 3종은 status 라벨 유지 (시그니처 포함) — 메뉴명 ✦ + 라벨 텍스트 병기.
+                    /menu 카드와 달리 메인은 다른 status 와의 그리드 비교 컨텍스트 부재로
+                    "시그니처" 텍스트가 노이즈가 아니라 정보 보강으로 작동. 사용자 결정. */}
                 {item.status && <span className="cmsplit-status">{item.status}</span>}
-                <span className="cmsplit-name">{item.name}</span>
+                <span className="cmsplit-name">
+                  <MenuName item={item} iconSize={18} />
+                </span>
                 {item.menuDesc && (
                   <p className="cmsplit-desc">{item.menuDesc}</p>
                 )}

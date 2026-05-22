@@ -9,6 +9,7 @@
 
 import { useEffect, useRef } from 'react';
 import { CAFE_FILTER_TABS, type CafeFilterKey } from '@/lib/cafeMenu';
+import SignatureStarIcon from './SignatureStarIcon';
 
 type Props = {
   active: CafeFilterKey;
@@ -103,7 +104,12 @@ export default function CafeFilterTabs({ active, onChange }: Props) {
             onClick={() => onChange(tab.key)}
             type="button"
           >
-            <span className="cm-tab-label">{tab.label}</span>
+            <span className="cm-tab-label">
+              {tab.key === 'signature' && (
+                <SignatureStarIcon size={16} className="cm-filter-signature-icon" />
+              )}
+              {tab.label}
+            </span>
           </button>
         ))}
       </div>

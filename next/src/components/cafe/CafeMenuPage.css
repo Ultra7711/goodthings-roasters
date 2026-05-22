@@ -61,7 +61,16 @@
 .cm-filter-tab.active { font-weight: 500; color: var(--tab-color-active); }
 .cm-filter-tab:focus { outline: none; }
 .cm-filter-tab:focus-visible { outline: 2px solid var(--color-accent-gold); outline-offset: 2px; }
-.cm-tab-label { pointer-events: none; }
+.cm-tab-label {
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px; /* S248-2g: ✦ SVG ↔ 텍스트 시각 결합 강화 (a06e155b 답습) */
+}
+.cm-filter-signature-icon {
+  color: #B8943F; /* gold — cm-signature-icon 답습 */
+  flex-shrink: 0;
+}
 
 /* 모바일 반응형 — 탭 수평 스크롤 · 그리드 BP 분기 */
 @media (max-width: 767px) {
@@ -309,11 +318,11 @@
 
 /* ── 시그니처 메뉴 prefix SVG (S245-P20 후속) ─────────────────────────
    메뉴명 옆 inline ✦ sparkle · gold 컬러 · vertical 중앙 정렬.
-   gap 2px — SVG와 텍스트 시각 결합 강화 (사용자 fine tune). */
+   gap 1px — S248 ✦ 사이즈 한 단계 더 키움에 맞춰 한 단계 더 좁힘 (a06e155b 답습). */
 .cm-menu-name-with-sig {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
 }
 .cm-signature-icon {
   color: #B8943F; /* gold — popularRank 1 동일 톤 */

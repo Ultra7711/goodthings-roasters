@@ -19,7 +19,7 @@ import { z } from 'zod';
 
 /* ── 영역 상수 ────────────────────────────────────────────────────────── */
 
-export const SITE_SETTING_KEYS = ['notice', 'shipping', 'signature'] as const;
+export const SITE_SETTING_KEYS = ['notice', 'shipping', 'signature', 'home_featured'] as const;
 export type SiteSettingKey = (typeof SITE_SETTING_KEYS)[number];
 
 /* ── 1. 공지 배너 (notice) ────────────────────────────────────────────── */
@@ -179,18 +179,48 @@ export const SIGNATURE_DEFAULTS: SignatureSettings = {
   cta_href: '',
 };
 
+/* ── 4. 메인 노출 카페 메뉴 슬롯 (home_featured) — S248 (069) ───────────── */
+
+/**
+ * 메인 페이지 §2.5 CafeMenuSection 의 시그니처 메뉴 3종 노출 슬롯.
+ *
+ * 운영자가 `/admin/settings` Section 4 에서 `cafe_menus` 전체 (is_active=true ·
+ * status 무관) 중 0~3 종을 명시 선택. 순서 = 노출 순서.
+ *
+ * 빈 배열·미설정 시 CafeMenuSection 이 기존 `status='시그니처' .slice(0,3)` 으로
+ * 자동 fallback (DEC-S248-8 안전망).
+ *
+ * id 형식: cafe_menus.id 는 **text PK** ('s01' / 'b04' 같은 prefix + 2자리 패턴).
+ * 047 마이그 check constraint `id ~ '^[a-z][0-9]{2,}$'` 와 동일 규칙 답습.
+ */
+export const HomeFeaturedSettingsSchema = z.object({
+  /** cafe_menus.id (text) 배열. 길이 0~3 · 순서 = 노출 순서. */
+  menu_ids: z
+    .array(z.string().regex(/^[a-z][0-9]{2,}$/))
+    .max(3)
+    .default([]),
+});
+
+export type HomeFeaturedSettings = z.infer<typeof HomeFeaturedSettingsSchema>;
+
+export const HOME_FEATURED_DEFAULTS: HomeFeaturedSettings = {
+  menu_ids: [],
+};
+
 /* ── 통합 ────────────────────────────────────────────────────────────── */
 
 export interface SiteSettings {
   notice: NoticeSettings;
   shipping: ShippingSettings;
   signature: SignatureSettings;
+  home_featured: HomeFeaturedSettings;
 }
 
 export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   notice: NOTICE_DEFAULTS,
   shipping: SHIPPING_DEFAULTS,
   signature: SIGNATURE_DEFAULTS,
+  home_featured: HOME_FEATURED_DEFAULTS,
 };
 
 /**
@@ -213,6 +243,7 @@ export function parseSiteSettingsRows(
     notice: safeParse(NoticeSettingsSchema, map.get('notice'), NOTICE_DEFAULTS),
     shipping: safeParse(ShippingSettingsSchema, map.get('shipping'), SHIPPING_DEFAULTS),
     signature: safeParse(SignatureSettingsSchema, map.get('signature'), SIGNATURE_DEFAULTS),
+    home_featured: safeParse(HomeFeaturedSettingsSchema, map.get('home_featured'), HOME_FEATURED_DEFAULTS),
   };
 }
 

@@ -20,6 +20,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import {
+  HomeFeaturedSettingsSchema,
   NoticeSettingsSchema,
   ShippingSettingsSchema,
   SignatureSettingsSchema,
@@ -32,6 +33,7 @@ const SaveInputSchema = z.object({
   notice: NoticeSettingsSchema.optional(),
   shipping: ShippingSettingsSchema.optional(),
   signature: SignatureSettingsSchema.optional(),
+  home_featured: HomeFeaturedSettingsSchema.optional(),
 });
 
 export type SaveSettingsInput = z.input<typeof SaveInputSchema>;
@@ -77,6 +79,7 @@ export async function saveSiteSettingsAction(
   if (data.notice) updates.push({ key: 'notice', value: data.notice });
   if (data.shipping) updates.push({ key: 'shipping', value: data.shipping });
   if (data.signature) updates.push({ key: 'signature', value: data.signature });
+  if (data.home_featured) updates.push({ key: 'home_featured', value: data.home_featured });
 
   if (updates.length === 0) {
     return { ok: false, error: 'no_changes' };
@@ -108,6 +111,11 @@ export async function saveSiteSettingsAction(
         'max' = stale-while-revalidate (다음 요청 시 fresh fetch). */
   revalidateTag(SITE_SETTINGS_CACHE_TAG, 'max');
   revalidatePath('/admin/settings');
+
+  /* S248: home_featured 변경 시 메인 페이지 (CafeMenuSection) cache 무효화. */
+  if (updates.some((u) => u.key === 'home_featured')) {
+    revalidatePath('/');
+  }
 
   return { ok: true, updatedKeys: updates.map((u) => u.key) };
 }
