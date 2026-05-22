@@ -333,6 +333,11 @@
 .bi-consent-warn .bi-consent-text {
   color: var(--color-error);
 }
+/* S252: 모바일에서 prefix 숨김 → "개인정보 수집·이용에 동의합니다." 만 노출.
+   데스크탑은 full 문구 ("비즈니스 문의 처리를 위한 ...") 유지. */
+@media (max-width: 767px) {
+  .bi-consent-prefix { display: none; }
+}
 .bi-consent-link {
   color: var(--text-link-color);
   text-decoration: underline;

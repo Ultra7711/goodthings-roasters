@@ -160,37 +160,35 @@ export default function BizInquiryPage() {
 
   /* localStorage 복원 (S243-B) — mount 1회만. 'use client' 라 SSR 영향 없음.
      Activity preserve (page navigate 갔다 돌아오기) 시엔 component state 가 유지되어
-     이 effect 가 다시 실행되지 않음 → 중복 덮어쓰기 없음. */
+     이 effect 가 다시 실행되지 않음 → 중복 덮어쓰기 없음.
+     S252: consent 는 복원 대상 제외 — PIPA 개인정보 동의는 매번 명시 동의 필요. */
   useEffect(() => {
     try {
       const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
       if (!raw) return;
       const saved = JSON.parse(raw) as {
         form?: Partial<FormState>;
-        consent?: boolean;
       };
       if (saved.form) setForm((prev) => ({ ...prev, ...saved.form }));
-      if (saved.consent === true) setConsent(true);
     } catch {
       /* parse 실패 / disabled — 무시 */
     }
   }, []);
 
-  /* localStorage 저장 (S243-B) — form 또는 consent 변경 시 즉시 저장.
-     INITIAL_FORM 상태(빈 폼) + consent=false 일 땐 저장 안 함 (불필요한 쓰기 회피). */
+  /* localStorage 저장 (S243-B) — form 변경 시 즉시 저장.
+     INITIAL_FORM 상태(빈 폼) 일 땐 저장 안 함 (불필요한 쓰기 회피).
+     S252: consent 는 저장 대상 제외 — PIPA 매번 명시 동의 정책. */
   useEffect(() => {
-    const isEmpty =
-      !consent &&
-      Object.entries(form).every(([, v]) =>
-        Array.isArray(v) ? v.length === 0 : v === '',
-      );
+    const isEmpty = Object.entries(form).every(([, v]) =>
+      Array.isArray(v) ? v.length === 0 : v === '',
+    );
     if (isEmpty) return;
     try {
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ form, consent }));
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ form }));
     } catch {
       /* quota 초과 / disabled — 무시 */
     }
-  }, [form, consent]);
+  }, [form]);
 
   /* SiteHeader 의 Wholesale 링크 재클릭 시 발송되는 'gtr:biz-reset' 수신
      → 스크롤 top + 폼 리셋 (samepage_reentry_animation 패턴) */
@@ -568,17 +566,17 @@ export default function BizInquiryPage() {
               }}
             />
             <span className="bi-consent-text">
-              비즈니스 문의 처리를 위한{' '}
+              {/* S252: prefix 는 모바일에서 hide (bi-consent-prefix). 데스크탑은
+                  full 문구 유지. JSX leading 공백 의존 회피 위해 Link 와 suffix
+                  텍스트는 같은 줄에 두어 공백 0개로 붙임. */}
+              <span className="bi-consent-prefix">비즈니스 문의 처리를 위한 </span>
               <Link
                 href="/legal/privacy"
                 className="bi-consent-link"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-              >
-                개인정보 수집·이용
-              </Link>
-              에 동의합니다.
+              >개인정보 수집·이용</Link>에 동의합니다.
             </span>
           </label>
 
