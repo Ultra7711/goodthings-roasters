@@ -99,16 +99,56 @@ export default function ProductsTableClient({ rows }: Props) {
   const router = useRouter();
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [searchValue, setSearchValue] = useState('');
-  /* optimistic — reorder 직후 즉시 sort_order swap, 실패 시 rollback.
-     ProductImageReorderClient.applyOrder 답습 (S250-6-#1). */
+  /* 옵션 C — 미리보기 + 저장 버튼 패턴 (DEC-R-1~3).
+     - rowsState: UI 표시 (↑/↓/★ 클릭 시 즉시 swap, server 호출 X)
+     - originalSnapshot: 마지막 저장 상태 (dirty 비교 + 변경 취소 기준)
+     - 저장 = reorderProductsAction
+     - 변경 취소 = rowsState ← originalSnapshot (즉시)
+     - 카테고리 탭 변경 시 dirty 자동 폐기 + info toast
+     답습: ProductEditForm 의 isDirty + 저장 버튼 패턴 (S250-6-#1). */
   const [rowsState, setRowsState] = useState(rows);
-  const [reorderPending, startReorderTransition] = useTransition();
+  const [originalSnapshot, setOriginalSnapshot] = useState(rows);
+  const [savePending, startSaveTransition] = useTransition();
 
-  /* rows 가 외부에서 갱신되면 (revalidate 후 새 데이터) sync.
-     reorder 중에는 optimistic 상태 유지. */
+  /* rows props 갱신 시 sync. dirty (rowsState.sortOrder ≠ rows.sortOrder) 있으면
+     sortOrder 보존, 다른 필드는 새 rows 로 갱신 (active 토글 등 외부 변경 반영). */
   useEffect(() => {
-    if (!reorderPending) setRowsState(rows);
-  }, [rows, reorderPending]);
+    setOriginalSnapshot(rows);
+    setRowsState((prev) => {
+      const prevSortMap = new Map(prev.map((r) => [r.id, r.sortOrder]));
+      const wasDirty = rows.some((r) => {
+        const ps = prevSortMap.get(r.id);
+        return ps !== undefined && ps !== r.sortOrder;
+      });
+      if (!wasDirty) return rows;
+      return rows.map((r) => ({
+        ...r,
+        sortOrder: prevSortMap.has(r.id)
+          ? (prevSortMap.get(r.id) as number)
+          : r.sortOrder,
+      }));
+    });
+  }, [rows]);
+
+  const isOrderDirty = useMemo(() => {
+    /* ordered id 배열 비교 — sortOrder 값이 아니라 카테고리 내 순서 자체가
+       original 과 다른지 감지. swap 후 swap-back 시 false 정합. */
+    const cats: AdminProductListItem['category'][] = ['coffee_bean', 'drip_bag'];
+    for (const cat of cats) {
+      const origIds = originalSnapshot
+        .filter((r) => r.category === cat)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((r) => r.id)
+        .join(',');
+      const currIds = rowsState
+        .filter((r) => r.category === cat)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((r) => r.id)
+        .join(',');
+      if (origIds !== currIds) return true;
+    }
+    return false;
+  }, [rowsState, originalSnapshot]);
 
   const isReorderActive =
     (category === 'coffee_bean' || category === 'drip_bag') &&
@@ -122,22 +162,65 @@ export default function ProductsTableClient({ rows }: Props) {
       .map((r) => r.id);
   }, [rowsState, category]);
 
-  function applyReorder(orderedProductIds: string[]) {
+  /* 카테고리 탭 변경 — dirty 시 자동 폐기 + info toast (DEC-R-2 = a). */
+  function handleCategoryChange(next: CategoryFilter) {
+    if (isOrderDirty) {
+      setRowsState(originalSnapshot);
+      toast.info('저장하지 않은 순서 변경이 폐기되었습니다');
+    }
+    setCategory(next);
+  }
+
+  /* ↑/↓/★ 클릭 = 미리보기 swap (server 호출 없음). */
+  function previewReorder(orderedProductIds: string[]) {
     if (category === 'all') return;
     const idMap = new Map(orderedProductIds.map((id, idx) => [id, idx]));
-    const prev = rowsState;
-    const next = rowsState.map((r) =>
-      idMap.has(r.id) ? { ...r, sortOrder: idMap.get(r.id) as number } : r,
+    setRowsState((prev) =>
+      prev.map((r) =>
+        idMap.has(r.id) ? { ...r, sortOrder: idMap.get(r.id) as number } : r,
+      ),
     );
-    setRowsState(next);
+  }
 
-    startReorderTransition(async () => {
+  function handleMoveUp(productId: string) {
+    const idx = orderedSameCategoryIds.indexOf(productId);
+    if (idx <= 0) return;
+    const next = [...orderedSameCategoryIds];
+    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+    previewReorder(next);
+  }
+
+  function handleMoveDown(productId: string) {
+    const idx = orderedSameCategoryIds.indexOf(productId);
+    if (idx < 0 || idx >= orderedSameCategoryIds.length - 1) return;
+    const next = [...orderedSameCategoryIds];
+    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+    previewReorder(next);
+  }
+
+  function handleMoveToFront(productId: string) {
+    const idx = orderedSameCategoryIds.indexOf(productId);
+    if (idx <= 0) return;
+    const next = [...orderedSameCategoryIds];
+    const [id] = next.splice(idx, 1);
+    next.unshift(id);
+    previewReorder(next);
+  }
+
+  /* "순서 저장" — 현재 카테고리 ordered ids 를 server 호출. */
+  function handleSaveOrder() {
+    if (!isOrderDirty || category === 'all') return;
+    const orderedProductIds = rowsState
+      .filter((r) => r.category === category)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((r) => r.id);
+
+    startSaveTransition(async () => {
       const result = await reorderProductsAction({
         category: category as 'coffee_bean' | 'drip_bag',
         orderedProductIds,
       });
       if (!result.ok) {
-        setRowsState(prev);
         const msg =
           result.error === 'unauthorized'
             ? '권한이 없습니다. 다시 로그인해 주세요.'
@@ -153,34 +236,14 @@ export default function ProductsTableClient({ rows }: Props) {
     });
   }
 
-  function handleMoveUp(productId: string) {
-    const idx = orderedSameCategoryIds.indexOf(productId);
-    if (idx <= 0) return;
-    const next = [...orderedSameCategoryIds];
-    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
-    applyReorder(next);
-  }
-
-  function handleMoveDown(productId: string) {
-    const idx = orderedSameCategoryIds.indexOf(productId);
-    if (idx < 0 || idx >= orderedSameCategoryIds.length - 1) return;
-    const next = [...orderedSameCategoryIds];
-    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
-    applyReorder(next);
-  }
-
-  function handleMoveToFront(productId: string) {
-    const idx = orderedSameCategoryIds.indexOf(productId);
-    if (idx <= 0) return;
-    const next = [...orderedSameCategoryIds];
-    const [id] = next.splice(idx, 1);
-    next.unshift(id);
-    applyReorder(next);
+  /* "변경 취소" — 즉시 rowsState ← originalSnapshot (DEC-R-3 = a). */
+  function handleCancelOrder() {
+    setRowsState(originalSnapshot);
   }
 
   const filtered = useMemo(() => {
     const q = searchValue.trim().toLowerCase();
-    return rowsState.filter((r) => {
+    const result = rowsState.filter((r) => {
       if (category !== 'all' && r.category !== category) return false;
       if (q.length > 0) {
         const hay = `${r.slug} ${r.name}`.toLowerCase();
@@ -188,6 +251,10 @@ export default function ProductsTableClient({ rows }: Props) {
       }
       return true;
     });
+    /* 카테고리 탭에서는 sortOrder asc 로 화면 정렬 — 미리보기 swap 즉시 반영.
+       'all' 탭은 server 정렬 (mapAdminProductList) 그대로. */
+    if (category === 'all') return result;
+    return [...result].sort((a, b) => a.sortOrder - b.sortOrder);
   }, [rowsState, category, searchValue]);
 
   const counts = useMemo(() => {
@@ -224,7 +291,7 @@ export default function ProductsTableClient({ rows }: Props) {
             <ReorderButtons
               isFirst={isFirst}
               isLast={isLast}
-              pending={reorderPending}
+              pending={savePending}
               tooltip={reorderTooltip}
               onMoveUp={() => handleMoveUp(row.id)}
               onMoveDown={() => handleMoveDown(row.id)}
@@ -350,7 +417,7 @@ export default function ProductsTableClient({ rows }: Props) {
   }, [
     category,
     orderedSameCategoryIds,
-    reorderPending,
+    savePending,
     isReorderActive,
     searchValue,
   ]);
@@ -358,12 +425,36 @@ export default function ProductsTableClient({ rows }: Props) {
   return (
     <>
       <AdminTopbarActions>
-        <Button asChild size="sm" className="!h-7">
-          <Link href="/admin/products/new">
-            <PlusIcon />
-            신규 상품
-          </Link>
-        </Button>
+        {isOrderDirty ? (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="!h-7"
+              onClick={handleCancelOrder}
+              disabled={savePending}
+            >
+              변경 취소
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="!h-7"
+              onClick={handleSaveOrder}
+              disabled={savePending}
+            >
+              {savePending ? '적용 중…' : '변경사항 적용'}
+            </Button>
+          </>
+        ) : (
+          <Button asChild size="sm" className="!h-7">
+            <Link href="/admin/products/new">
+              <PlusIcon />
+              신규 상품
+            </Link>
+          </Button>
+        )}
       </AdminTopbarActions>
 
       <AdminPageHeader
@@ -384,7 +475,7 @@ export default function ProductsTableClient({ rows }: Props) {
                 : counts.drip_bag,
         }))}
         active={category}
-        onChange={(id) => setCategory(id as CategoryFilter)}
+        onChange={(id) => handleCategoryChange(id as CategoryFilter)}
       />
 
       {/* 검색 — 별 행 (Orders/Users/Subscriptions 답습) */}
