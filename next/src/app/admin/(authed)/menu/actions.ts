@@ -583,3 +583,107 @@ export async function uploadCafeMenuImageAction(
     height: image.height,
   };
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   reorderCafeMenusAction — 카페 메뉴 목록 순서 변경 (S250-6-#1+)
+
+   책임:
+   1) admin 가드
+   2) cat + orderedMenuIds 검증 (zod)
+   3) 모든 menuId 가 input.cat 에 속하는지 확인 (보안 + 정합)
+   4) batch UPDATE — orderedMenuIds[i] → sort_order = i
+   5) revalidate (admin 목록 + /menu + tag)
+
+   답습: reorderProductsAction (products/actions.ts).
+   카테고리 origin: cafe_menu_items.sort_order 는 카테고리 무관 단일 컬럼이지만,
+   /menu 표시는 카테고리별 분리 후 sort_order asc — 같은 카테고리 내 그룹
+   origin 으로 0..N 재번호.
+
+   주의: 시그니처(status='시그니처') 는 cat 무관 cross-category 필터이므로
+   본 action 으로 reorder 불가. UI 단에서 cat 4탭 (brewing/tea/non-coffee/dessert)
+   에서만 활성화.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const ReorderCafeMenusSchema = z.object({
+  cat: z.enum(['brewing', 'tea', 'non-coffee', 'dessert']),
+  orderedMenuIds: z.array(CafeMenuIdSchema).min(1).max(100),
+});
+
+export type ReorderCafeMenusResult =
+  | { ok: true; cat: 'brewing' | 'tea' | 'non-coffee' | 'dessert' }
+  | {
+      ok: false;
+      error:
+        | 'unauthorized'
+        | 'validation_failed'
+        | 'mismatch'
+        | 'server_error';
+      detail?: string;
+    };
+
+export async function reorderCafeMenusAction(input: {
+  cat: 'brewing' | 'tea' | 'non-coffee' | 'dessert';
+  orderedMenuIds: string[];
+}): Promise<ReorderCafeMenusResult> {
+  const claims = await getAdminClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const parsed = ReorderCafeMenusSchema.safeParse(input);
+  if (!parsed.success) {
+    const fields = parsed.error.flatten().fieldErrors;
+    return {
+      ok: false,
+      error: 'validation_failed',
+      detail: Object.entries(fields)
+        .map(([k, v]) => `${k}:${(v as string[])[0]}`)
+        .join('; ')
+        .slice(0, 200),
+    };
+  }
+
+  const { cat, orderedMenuIds } = parsed.data;
+  const admin = getSupabaseAdmin();
+
+  /* 보안 + 정합 — 모든 menuId 가 input.cat 에 속하는지 확인. */
+  const { data: owned, error: ownErr } = await admin
+    .from('cafe_menu_items')
+    .select('id')
+    .eq('cat', cat)
+    .in('id', orderedMenuIds);
+
+  if (ownErr) {
+    console.error('[reorderCafeMenusAction] ownership check failed', {
+      code: ownErr.code,
+      message: ownErr.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+  if (!owned || owned.length !== orderedMenuIds.length) {
+    return { ok: false, error: 'mismatch' };
+  }
+
+  /* batch UPDATE — Promise.all (소규모 배열, 동시성 낮음) */
+  const updates = await Promise.all(
+    orderedMenuIds.map((menuId, idx) =>
+      admin
+        .from('cafe_menu_items')
+        .update({ sort_order: idx })
+        .eq('id', menuId)
+        .eq('cat', cat),
+    ),
+  );
+  const firstErr = updates.find((r) => r.error);
+  if (firstErr?.error) {
+    console.error('[reorderCafeMenusAction] update failed', {
+      code: firstErr.error.code,
+      message: firstErr.error.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+
+  revalidateTag(CAFE_MENU_CACHE_TAG, 'max');
+  revalidatePath('/admin/menu');
+  revalidatePath('/menu');
+
+  return { ok: true, cat };
+}

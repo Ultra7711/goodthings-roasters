@@ -27,7 +27,7 @@ import { Button } from '@/components/admin/ui/button';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import { Switch } from '@/components/admin/ui/switch';
 import type { AdminCafeMenuListItem } from '@/types/cafeMenu';
-import { toggleCafeMenuActiveAction } from './actions';
+import { reorderCafeMenusAction, toggleCafeMenuActiveAction } from './actions';
 
 type Props = {
   rows: AdminCafeMenuListItem[];
@@ -95,14 +95,161 @@ function formatKstShort(iso: string): string {
   }
 }
 
+type ReorderableCat = 'brewing' | 'tea' | 'non-coffee' | 'dessert';
+
+function isReorderableCat(t: TabFilter): t is ReorderableCat {
+  return (
+    t === 'brewing' || t === 'tea' || t === 'non-coffee' || t === 'dessert'
+  );
+}
+
 export default function MenuTableClient({ rows }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<TabFilter>('all');
   const [searchValue, setSearchValue] = useState('');
+  /* 옵션 C — 미리보기 + 저장 버튼 패턴 (DEC-R-1~3).
+     products 답습 (S250-6-#1+). */
+  const [rowsState, setRowsState] = useState(rows);
+  const [originalSnapshot, setOriginalSnapshot] = useState(rows);
+  const [savePending, startSaveTransition] = useTransition();
+
+  /* rows props 갱신 시 sync. dirty 가 있으면 sortOrder 보존. */
+  useEffect(() => {
+    setOriginalSnapshot(rows);
+    setRowsState((prev) => {
+      const prevSortMap = new Map(prev.map((r) => [r.id, r.sortOrder]));
+      const wasDirty = rows.some((r) => {
+        const ps = prevSortMap.get(r.id);
+        return ps !== undefined && ps !== r.sortOrder;
+      });
+      if (!wasDirty) return rows;
+      return rows.map((r) => ({
+        ...r,
+        sortOrder: prevSortMap.has(r.id)
+          ? (prevSortMap.get(r.id) as number)
+          : r.sortOrder,
+      }));
+    });
+  }, [rows]);
+
+  const isOrderDirty = useMemo(() => {
+    /* ordered id 배열 비교 — sortOrder 값이 아니라 cat 내 순서 자체가
+       original 과 다른지 감지. swap 후 swap-back 시 false 정합. */
+    const cats: AdminCafeMenuListItem['cat'][] = [
+      'brewing',
+      'tea',
+      'non-coffee',
+      'dessert',
+    ];
+    for (const cat of cats) {
+      const origIds = originalSnapshot
+        .filter((r) => r.cat === cat)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((r) => r.id)
+        .join(',');
+      const currIds = rowsState
+        .filter((r) => r.cat === cat)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((r) => r.id)
+        .join(',');
+      if (origIds !== currIds) return true;
+    }
+    return false;
+  }, [rowsState, originalSnapshot]);
+
+  const isReorderActive =
+    isReorderableCat(tab) && searchValue.trim() === '';
+
+  const orderedSameCategoryIds = useMemo(() => {
+    if (!isReorderableCat(tab)) return [] as string[];
+    return rowsState
+      .filter((r) => r.cat === tab)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((r) => r.id);
+  }, [rowsState, tab]);
+
+  /* 탭 변경 — dirty 시 자동 폐기 + info toast (DEC-R-2 = a). */
+  function handleTabChange(next: TabFilter) {
+    if (isOrderDirty) {
+      setRowsState(originalSnapshot);
+      toast.info('저장하지 않은 순서 변경이 폐기되었습니다');
+    }
+    setTab(next);
+  }
+
+  /* ↑/↓/★ 클릭 = 미리보기 swap (server 호출 없음). */
+  function previewReorder(orderedMenuIds: string[]) {
+    if (!isReorderableCat(tab)) return;
+    const idMap = new Map(orderedMenuIds.map((id, idx) => [id, idx]));
+    setRowsState((prev) =>
+      prev.map((r) =>
+        idMap.has(r.id) ? { ...r, sortOrder: idMap.get(r.id) as number } : r,
+      ),
+    );
+  }
+
+  function handleMoveUp(menuId: string) {
+    const idx = orderedSameCategoryIds.indexOf(menuId);
+    if (idx <= 0) return;
+    const next = [...orderedSameCategoryIds];
+    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+    previewReorder(next);
+  }
+
+  function handleMoveDown(menuId: string) {
+    const idx = orderedSameCategoryIds.indexOf(menuId);
+    if (idx < 0 || idx >= orderedSameCategoryIds.length - 1) return;
+    const next = [...orderedSameCategoryIds];
+    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+    previewReorder(next);
+  }
+
+  function handleMoveToFront(menuId: string) {
+    const idx = orderedSameCategoryIds.indexOf(menuId);
+    if (idx <= 0) return;
+    const next = [...orderedSameCategoryIds];
+    const [id] = next.splice(idx, 1);
+    next.unshift(id);
+    previewReorder(next);
+  }
+
+  /* "순서 저장" — 현재 cat ordered ids 를 server 호출. */
+  function handleSaveOrder() {
+    if (!isOrderDirty || !isReorderableCat(tab)) return;
+    const orderedMenuIds = rowsState
+      .filter((r) => r.cat === tab)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((r) => r.id);
+
+    startSaveTransition(async () => {
+      const result = await reorderCafeMenusAction({
+        cat: tab,
+        orderedMenuIds,
+      });
+      if (!result.ok) {
+        const msg =
+          result.error === 'unauthorized'
+            ? '권한이 없습니다. 다시 로그인해 주세요.'
+            : result.error === 'mismatch'
+              ? '메뉴 목록이 일치하지 않습니다. 페이지를 새로고침해 주세요.'
+              : result.error === 'validation_failed'
+                ? '입력값이 올바르지 않습니다.'
+                : '처리 중 오류가 발생했습니다.';
+        toast.error(msg);
+        return;
+      }
+      toast.success('메뉴 순서를 저장했습니다');
+    });
+  }
+
+  /* "변경 취소" — 즉시 rowsState ← originalSnapshot (DEC-R-3 = a). */
+  function handleCancelOrder() {
+    setRowsState(originalSnapshot);
+  }
 
   const filtered = useMemo(() => {
     const q = searchValue.trim().toLowerCase();
-    return rows.filter((r) => {
+    const result = rowsState.filter((r) => {
       if (tab === 'signature') {
         if (r.status !== '시그니처') return false;
       } else if (tab !== 'all') {
@@ -114,7 +261,11 @@ export default function MenuTableClient({ rows }: Props) {
       }
       return true;
     });
-  }, [rows, tab, searchValue]);
+    /* cat 탭에서는 sortOrder asc 로 화면 정렬 — 미리보기 swap 즉시 반영.
+       'all' / 'signature' 는 server 정렬 그대로. */
+    if (!isReorderableCat(tab)) return result;
+    return [...result].sort((a, b) => a.sortOrder - b.sortOrder);
+  }, [rowsState, tab, searchValue]);
 
   const counts = useMemo(() => {
     let sig = 0;
@@ -122,7 +273,7 @@ export default function MenuTableClient({ rows }: Props) {
     let t = 0;
     let n = 0;
     let d = 0;
-    for (const r of rows) {
+    for (const r of rowsState) {
       if (r.status === '시그니처') sig += 1;
       if (r.cat === 'brewing') b += 1;
       else if (r.cat === 'tea') t += 1;
@@ -130,16 +281,51 @@ export default function MenuTableClient({ rows }: Props) {
       else if (r.cat === 'dessert') d += 1;
     }
     return {
-      all: rows.length,
+      all: rowsState.length,
       signature: sig,
       brewing: b,
       tea: t,
       'non-coffee': n,
       dessert: d,
     };
-  }, [rows]);
+  }, [rowsState]);
 
-  const columns: readonly Column<AdminCafeMenuListItem>[] = useMemo(() => [
+  const columns: readonly Column<AdminCafeMenuListItem>[] = useMemo(() => {
+    const cols: Column<AdminCafeMenuListItem>[] = [];
+
+    /* tab 이 cat 4탭일 때만 순서 변경 컬럼 표시.
+       'all' / 'signature' 에서는 cat 무관 → hide. */
+    if (isReorderableCat(tab)) {
+      const reorderTooltip = !isReorderActive
+        ? searchValue.trim() !== ''
+          ? '검색 해제 후 순서 변경 가능'
+          : undefined
+        : undefined;
+      cols.push({
+        key: 'reorder',
+        header: '순서 변경',
+        width: 'w-[120px]',
+        align: 'center',
+        render: (row) => {
+          const idx = orderedSameCategoryIds.indexOf(row.id);
+          const isFirst = idx === 0;
+          const isLast = idx === orderedSameCategoryIds.length - 1;
+          return (
+            <ReorderButtons
+              isFirst={isFirst}
+              isLast={isLast}
+              pending={savePending}
+              tooltip={reorderTooltip}
+              onMoveUp={() => handleMoveUp(row.id)}
+              onMoveDown={() => handleMoveDown(row.id)}
+              onMoveToFront={() => handleMoveToFront(row.id)}
+            />
+          );
+        },
+      });
+    }
+
+    cols.push(
     {
       key: 'thumb',
       header: '이미지',
@@ -263,17 +449,50 @@ export default function MenuTableClient({ rows }: Props) {
       cellClassName: 'text-xs text-muted-foreground tabular-nums',
       render: (row) => formatKstShort(row.updatedAt),
     },
-  ], []);
+    );
+
+    return cols;
+  }, [
+    tab,
+    orderedSameCategoryIds,
+    savePending,
+    isReorderActive,
+    searchValue,
+  ]);
 
   return (
     <>
       <AdminTopbarActions>
-        <Button asChild size="sm" className="!h-7">
-          <Link href="/admin/menu/new">
-            <PlusIcon />
-            신규 메뉴
-          </Link>
-        </Button>
+        {isOrderDirty ? (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="!h-7"
+              onClick={handleCancelOrder}
+              disabled={savePending}
+            >
+              변경 취소
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="!h-7"
+              onClick={handleSaveOrder}
+              disabled={savePending}
+            >
+              {savePending ? '적용 중…' : '변경사항 적용'}
+            </Button>
+          </>
+        ) : (
+          <Button asChild size="sm" className="!h-7">
+            <Link href="/admin/menu/new">
+              <PlusIcon />
+              신규 메뉴
+            </Link>
+          </Button>
+        )}
       </AdminTopbarActions>
 
       <AdminPageHeader
@@ -289,7 +508,7 @@ export default function MenuTableClient({ rows }: Props) {
           count: counts[t.id],
         }))}
         active={tab}
-        onChange={(id) => setTab(id as TabFilter)}
+        onChange={(id) => handleTabChange(id as TabFilter)}
       />
 
       <div className="flex gap-2 mb-3 items-center">
@@ -395,6 +614,123 @@ function PlusIcon() {
     >
       <path d="M12 5v14" />
       <path d="M5 12h14" />
+    </svg>
+  );
+}
+
+/* ── 순서 변경 버튼 셀 — ProductsTableClient 답습 (S250-6-#1+) ──── */
+
+function ReorderButtons({
+  isFirst,
+  isLast,
+  pending,
+  tooltip,
+  onMoveUp,
+  onMoveDown,
+  onMoveToFront,
+}: {
+  isFirst: boolean;
+  isLast: boolean;
+  pending: boolean;
+  tooltip: string | undefined;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onMoveToFront: () => void;
+}) {
+  const disabled = pending || tooltip !== undefined;
+  return (
+    <span
+      onClick={(e) => e.stopPropagation()}
+      className="inline-flex items-center justify-center gap-1"
+    >
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        className="!size-7"
+        onClick={onMoveUp}
+        disabled={disabled || isFirst}
+        aria-label="앞으로 이동"
+        title={tooltip ?? '앞으로 이동'}
+      >
+        <ChevronUpIcon />
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        className="!size-7"
+        onClick={onMoveDown}
+        disabled={disabled || isLast}
+        aria-label="뒤로 이동"
+        title={tooltip ?? '뒤로 이동'}
+      >
+        <ChevronDownIcon />
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        className="!size-7"
+        onClick={onMoveToFront}
+        disabled={disabled || isFirst}
+        aria-label="맨 앞으로"
+        title={tooltip ?? '맨 앞으로'}
+      >
+        <ChevronsUpIcon />
+      </Button>
+    </span>
+  );
+}
+
+function ChevronUpIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m6 15 6-6 6 6" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+function ChevronsUpIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m7 11 5-5 5 5" />
+      <path d="m7 17 5-5 5 5" />
     </svg>
   );
 }
