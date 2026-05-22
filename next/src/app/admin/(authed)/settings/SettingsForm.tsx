@@ -307,7 +307,7 @@ export default function SettingsForm({ initialSettings, isOwner, cafeMenus }: Se
       <AdminTopbarActions>
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
           className="!h-7"
           disabled={!isDirty || isPending}

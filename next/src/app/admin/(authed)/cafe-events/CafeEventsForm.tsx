@@ -414,7 +414,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       <AdminTopbarActions>
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
           className="!h-7"
           disabled={!isDirty || isPending}

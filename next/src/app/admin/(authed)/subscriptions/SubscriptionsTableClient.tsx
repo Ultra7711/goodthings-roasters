@@ -847,7 +847,7 @@ function StatusSection({
               disabled={isPending || !selectedAction}
               className="min-w-20"
             >
-              {isPending ? '처리중…' : '해지 확정'}
+              {isPending ? '처리 중…' : '해지 확정'}
             </Button>
           ) : (
             <SaveButton
@@ -1000,7 +1000,7 @@ function SaveButton({
 }) {
   return (
     <Button type="button" onClick={onClick} disabled={disabled} className="min-w-20">
-      {isPending ? '저장중…' : '저장'}
+      {isPending ? '저장 중…' : '저장'}
     </Button>
   );
 }

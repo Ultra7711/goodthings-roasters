@@ -312,7 +312,7 @@ export default function MenuEditForm(props: Props) {
           <>
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               className="!h-7"
               onClick={() => router.push('/admin/menu')}
@@ -334,7 +334,7 @@ export default function MenuEditForm(props: Props) {
           <>
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               className="!h-7"
               onClick={() => reset()}

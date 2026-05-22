@@ -76,7 +76,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
   /* 옵션 C — 미리보기 + 저장 버튼 패턴 (S250-6 #2).
      - items: UI 표시 (DnD drag-end 시 즉시 swap, server 호출 X)
      - originalItems: 마지막 저장 상태 (dirty 비교 + 변경 취소 기준)
-     - 변경사항 적용 = reorderGoodDaysImagesAction
+     - 변경사항 저장 = reorderGoodDaysImagesAction
      - 변경 취소 = items ← originalItems (즉시)
      - alt/featured/isActive 패치 / 업로드 / 삭제 = 즉시 저장 유지 (단일 결정)
      답습: ProductsTableClient / MenuTableClient / ProductImageReorderClient 옵션 C */
@@ -139,7 +139,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
     setItems(arrayMove(items, oldIdx, newIdx));
   }
 
-  /* "변경사항 적용" — 현재 순서를 server 호출 */
+  /* "변경사항 저장" — 현재 순서를 server 호출 */
   function handleSaveOrder() {
     if (!isOrderDirty) return;
     const orderedIds = items.map((it) => it.id);
@@ -254,7 +254,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
               onClick={handleSaveOrder}
               disabled={isPending}
             >
-              {isPending ? '적용 중…' : '변경사항 적용'}
+              {isPending ? '저장 중…' : '변경사항 저장'}
             </Button>
           </>
         ) : (

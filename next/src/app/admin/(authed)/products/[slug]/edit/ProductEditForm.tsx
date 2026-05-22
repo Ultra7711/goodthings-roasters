@@ -478,7 +478,7 @@ export default function ProductEditForm(props: Props) {
           <>
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               className="!h-7"
               onClick={() => router.push('/admin/products')}
@@ -500,7 +500,7 @@ export default function ProductEditForm(props: Props) {
           <>
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               className="!h-7"
               onClick={() => reset()}

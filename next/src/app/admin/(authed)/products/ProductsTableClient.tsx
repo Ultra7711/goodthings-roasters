@@ -444,7 +444,7 @@ export default function ProductsTableClient({ rows }: Props) {
               onClick={handleSaveOrder}
               disabled={savePending}
             >
-              {savePending ? '적용 중…' : '변경사항 적용'}
+              {savePending ? '저장 중…' : '변경사항 저장'}
             </Button>
           </>
         ) : (

@@ -276,7 +276,7 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
           >
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               onClick={onClose}
               disabled={pending}
             >
