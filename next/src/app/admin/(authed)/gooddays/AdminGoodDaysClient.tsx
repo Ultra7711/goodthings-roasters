@@ -15,7 +15,7 @@
    - 드래그 종료 시 즉시 reorder action 호출 (낙관 X, 일관성 우선).
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -73,7 +73,16 @@ interface Props {
 
 export default function AdminGoodDaysClient({ initialItems }: Props) {
   const router = useRouter();
+  /* 옵션 C — 미리보기 + 저장 버튼 패턴 (S250-6 #2).
+     - items: UI 표시 (DnD drag-end 시 즉시 swap, server 호출 X)
+     - originalItems: 마지막 저장 상태 (dirty 비교 + 변경 취소 기준)
+     - 변경사항 적용 = reorderGoodDaysImagesAction
+     - 변경 취소 = items ← originalItems (즉시)
+     - alt/featured/isActive 패치 / 업로드 / 삭제 = 즉시 저장 유지 (단일 결정)
+     답습: ProductsTableClient / MenuTableClient / ProductImageReorderClient 옵션 C */
   const [items, setItems] = useState<GoodDaysGalleryRow[]>(initialItems);
+  const [originalItems, setOriginalItems] =
+    useState<GoodDaysGalleryRow[]>(initialItems);
   const [isPending, startTransition] = useTransition();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -90,20 +99,35 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
     setMounted(true);
   }, []);
 
-  /* router.refresh() 후 server fetch 결과 (initialItems prop) → items state 동기화.
-     mutation actions (upload/delete/reorder/update) 가 모두 router.refresh() 호출 →
-     이 useEffect 가 stale state 덮어쓰기. (S167 J-4 fix) */
+  /* router.refresh() 후 server fetch 결과 (initialItems prop) → state 동기화.
+     mutation actions (upload/delete/update) 가 모두 router.refresh() 호출.
+     dirty (reorder 순서 다름) 인 경우 items 의 id 순서 보존, 다른 필드는 새 props. */
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setItems(initialItems);
+    setOriginalItems(initialItems);
+    setItems((prev) => {
+      const sameLength = prev.length === initialItems.length;
+      const prevIds = prev.map((i) => i.id).join(',');
+      const newIds = initialItems.map((i) => i.id).join(',');
+      const wasDirty = sameLength && prevIds !== newIds;
+      if (!wasDirty) return initialItems;
+      const initMap = new Map(initialItems.map((i) => [i.id, i]));
+      return prev.map((p) => initMap.get(p.id) ?? p).filter((i) => initMap.has(i.id));
+    });
   }, [initialItems]);
+
+  const isOrderDirty = useMemo(() => {
+    const origIds = originalItems.map((i) => i.id).join(',');
+    const currIds = items.map((i) => i.id).join(',');
+    return origIds !== currIds;
+  }, [items, originalItems]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  /* ── 드래그 종료 → reorder action ───────────────────────────────────── */
+  /* ── 드래그 종료 → 미리보기 swap (옵션 C · server 호출 X) ───────────── */
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -112,24 +136,38 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
     const newIdx = items.findIndex((it) => it.id === over.id);
     if (oldIdx < 0 || newIdx < 0) return;
 
-    const reordered = arrayMove(items, oldIdx, newIdx);
-    setItems(reordered); /* 낙관 UI */
+    setItems(arrayMove(items, oldIdx, newIdx));
+  }
 
-    const orderedIds = reordered.map((it) => it.id);
+  /* "변경사항 적용" — 현재 순서를 server 호출 */
+  function handleSaveOrder() {
+    if (!isOrderDirty) return;
+    const orderedIds = items.map((it) => it.id);
     startTransition(async () => {
       const result = await reorderGoodDaysImagesAction({ orderedIds });
       if (!result.ok) {
         toast.error(describeMutationError('정렬을 저장', result.error, result.detail));
-        setItems(items); /* 롤백 */
-      } else {
-        router.refresh();
+        return;
       }
+      toast.success('이미지 순서를 저장했습니다');
+      setOriginalItems(items); // snapshot 갱신
+      router.refresh();
     });
   }
 
-  /* ── 부분 업데이트 (alt/featured/isActive) ──────────────────────────── */
+  /* "변경 취소" — 즉시 items ← originalItems */
+  function handleCancelOrder() {
+    setItems(originalItems);
+  }
+
+  /* ── 부분 업데이트 (alt/featured/isActive) — 즉시 저장 유지 ─────────── */
   function patchItem(id: string, patch: Partial<GoodDaysGalleryRow>) {
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
+    /* originalItems 도 동기 갱신 — dirty 와 분리 (reorder 순서 보존 / 변경 취소 시
+       이 patch 가 사라지지 않도록) */
+    setOriginalItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, ...patch } : it)),
+    );
   }
 
   function commitUpdate(
@@ -164,6 +202,8 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
         return;
       }
       setItems((prev) => prev.filter((it) => it.id !== id));
+      /* originalItems 도 동기 제거 — dirty 와 분리 */
+      setOriginalItems((prev) => prev.filter((it) => it.id !== id));
       setDeleteTargetId(null);
       toast.success('이미지를 삭제했습니다');
       router.refresh();
@@ -195,16 +235,40 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
       {/* 시안 Button(size=sm) inline style — dashboard/cafe-events 답습.
          sm: padding 5/10, fontSize 12, height 28, gap 5, primary BG. */}
       <AdminTopbarActions>
-        <Button
-          type="button"
-          size="sm"
-          className="!h-7"
-          onClick={() => setUploadOpen(true)}
-          disabled={isPending}
-        >
-          <Upload size={14} />
-          이미지 업로드
-        </Button>
+        {isOrderDirty ? (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="!h-7"
+              onClick={handleCancelOrder}
+              disabled={isPending}
+            >
+              변경 취소
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="!h-7"
+              onClick={handleSaveOrder}
+              disabled={isPending}
+            >
+              {isPending ? '적용 중…' : '변경사항 적용'}
+            </Button>
+          </>
+        ) : (
+          <Button
+            type="button"
+            size="sm"
+            className="!h-7"
+            onClick={() => setUploadOpen(true)}
+            disabled={isPending}
+          >
+            <Upload size={14} />
+            이미지 업로드
+          </Button>
+        )}
       </AdminTopbarActions>
 
       <AdminPageHeader
