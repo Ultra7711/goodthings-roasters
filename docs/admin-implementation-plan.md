@@ -1,27 +1,30 @@
 # 어드민 풀 구현 계획 (Admin Implementation Plan)
 
 > **작성일:** 2026-04-27 (Session 92)
-> **최종 업데이트:** 2026-05-14 (Session 230) — **마스터 통합** · 모든 어드민 일감을 본 문서로 일원화. detail spec 은 `memory/project_admin_*.md` 참조 link.
-> **상태:** Group A/B/C/H/I/J/K ✅ / Group E·F 부분 / Architecture deepening (ADR-009) ✅ / Visual sweep §7-3 ✅.
+> **최종 업데이트:** 2026-05-22 (Session 248) — **plan 갱신** · S231~S247 결과 반영 + S248 메인 노출 메뉴 어드민 설정 신설 + S249+ 통계 강화 carry-over 박음.
+> **상태:** Group A/B/C/E/F/H/I/J/K ✅ / Group D 부분 / Group G 미완 / Architecture deepening (ADR-009) ✅.
 > **SoT 원칙:** 본 문서 = 어드민 진행 추적 SoT. 디자인 reference = `docs/admin-design.md`. ADR = `docs/adr/ADR-009-*.md`. detail spec = `memory/project_admin_*.md`.
 
 ---
 
-## §1. 진행 상태 매트릭스 (S230 기준)
+## §1. 진행 상태 매트릭스 (S248 기준)
 
 | Group | DB | Lib | Admin UI | Storage | 상태 |
 |-------|----|----|---------|---------|------|
 | A 인프라 | — | — | ✅ 100% | ✅ buckets | ✅ S92~ |
-| B 주문 | — | ✅ ordersServer | ✅ 80%+ | — | ✅ — 환불·CSV carry-over |
-| C 사용자 | — | ✅ usersServer | ✅ 100% | — | ✅ |
-| D 정기배송 | — | ✅ subscriptionsServer | 🟡 60% | — | 🟡 — D-2 상세 페이지 미완 |
-| **E 상품** | ✅ (046) | ✅ admin/productsServer | 🟡 80% | ⏸️ DEC-7 대기 | 🟡 — new 재기획 + 이미지 업로드 carry-over |
-| **F 카페 메뉴** | ✅ (047) | ✅ cafeMenuServer (admin variant ⏸️) | 🔴 placeholder | ⏸️ | 🔴 — admin UI 0% |
-| **G 운영·문서** | — | — | ⏸️ 0% | — | ⏸️ — SOP + E2E 미작성 |
-| H 사이트 설정 | ✅ (032/034) | ⚠️ lib/admin 분리 X | ✅ 100% | ✅ | 🟡 — lib 분리 carry-over |
-| I 통계 | ✅ (033) | ✅ analyticsServer | ✅ 100% | — | ✅ |
-| J 굿데이즈 | ✅ (036) | — | ✅ 100% | ✅ | ✅ |
-| K cafe-events | ✅ (035) | ⚠️ lib/admin 분리 X | ✅ 100% | ✅ | 🟡 — lib 분리 carry-over |
+| B 주문 | — | ✅ ordersServer | ✅ 95% | — | ✅ — CSV ✅ S233 / 환불 carry-over |
+| C 사용자 | — | ✅ usersServer | ✅ 100% | — | ✅ — 가입 채널 필터 ✅ S233 |
+| D 정기배송 | — | ✅ subscriptionsServer | 🟡 70% | — | 🟡 — D-2 상세 페이지 carry-over · CSV ✅ S233 |
+| **E 상품** | ✅ (046+050~052) | ✅ admin/productsServer | ✅ 100% | ✅ (S231/S232) | ✅ — S231 detail/option 마무리 + S232 Storage + create RPC + S245 정렬 + likes hydration |
+| **F 카페 메뉴** | ✅ (047) | ✅ cafeMenuServer + admin variant | ✅ 100% | ✅ (S244 menu-images) | ✅ — S244 어드민 신설 + S245 sort_order + likes + 영양시트 |
+| **G 운영·문서** | — | — | ⏸️ 0% | — | ⏸️ — SOP + E2E carry-over |
+| H 사이트 설정 | ✅ (032/034/062/063) | ✅ lib/admin/settings 분리 | ✅ 100% | ✅ | ✅ — signature iframe + SEO meta + S246 LQIP |
+| I 통계 | ✅ (033) | ✅ analyticsServer | ✅ 100% (확장 S249+ carry) | — | ✅ — S249+ 강화 carry-over (DEC-S248-1) |
+| J 굿데이즈 | ✅ (036) | — | ✅ 100% | ✅ | ✅ — S234 Phase 2 폴리싱 + GoodDays UI 전수 점검 |
+| K cafe-events | ✅ (035+058~061+064) | ✅ lib/admin/cafeEvents 분리 (S235) | ✅ 100% | ✅ | ✅ — S235 iframe HTML 모델 + S237 signature 통합 + SEO meta |
+| **L RBAC + audit** | ✅ (055~057) | ✅ auditServer | ✅ 100% | — | ✅ — S233 owner/staff 분리 + /admin/audit |
+| **M 뉴스레터** | ✅ (065~066) | ✅ newsletter | 🟡 어드민 미완 | — | 🟡 — Phase 1+2+3 부분 (도메인 인증 carry) |
+| **N 비즈 문의** | ✅ (067) | ✅ bizSubmit | 🟡 어드민 미완 | — | 🟡 — S243 폼 신설 (어드민 목록 carry) |
 
 **범례:** ✅ 완료 · 🟡 부분 · 🔴 미완 · ⏸️ 결정 대기
 
@@ -33,123 +36,157 @@
 | §7-3 Type 1 (#888 · #fff) | hex 직접 사용 정정 | ✅ S230 `981241d6` |
 | §7-3 Type 2 (placeholder/info-border/sidebar-avatar) | 토큰 4종 신설 + 마이그 | ✅ S230 `981241d6` |
 | §5-23 칩 표준 (`data-slot="chip-radio"`) | 6곳 일관화 | ✅ S229 `88754699` |
+| GoodDays UI 전수 점검 (Featured → 추천 · 배지 · EditAltDialog · UploadDialog) | ✅ S234 Phase 2 |
+| Helper 자연어화 + 보조용언 띄어쓰기 + window.confirm → ConfirmModal | ✅ S234 Phase 1 |
 
-### 1-2. 구조 개선 (ADR-009 · DEC-8~18)
+### 1-2. 구조 개선 (ADR-009 · DEC-8~27 + DEC-S248)
 
-| DEC | 항목 | 상태 | 커밋 |
+| DEC | 항목 | 상태 | 커밋/sprint |
 |---|---|---|---|
 | DEC-8 | AdminPageHeader (5 페이지) | ✅ | S227+S229 |
 | DEC-9 | AdminPagination (3 페이지) | ✅ | S227 |
 | DEC-10 | AdminDataTable (4 페이지) | ✅ | S227+S228 |
 | DEC-11 | AdminTabsNav (3 페이지) | ✅ | S227 |
 | DEC-12 | AdminBackLink (2 페이지) | ✅ | S227+S229 |
-| DEC-13 | Topbar disabled+tooltip 정책 | 🟡 일관 적용 잔여 | S230-4 |
+| DEC-13 | Topbar disabled+tooltip 정책 | ✅ | S230-4 |
 | DEC-14 | AdminListMeta 폐기 (헤더 흡수) | ✅ | S227 |
 | DEC-15 | lib/admin/errors.ts 단일 SoT | ✅ | S227 |
 | DEC-16 | lib/admin/productsServer.ts 분리 | ✅ | S227 |
 | DEC-17 | listHelpers (factory 폐기 · B안) | ✅ | S229 `afbb82f4` |
 | DEC-18 | §5-23 칩 표준 | ✅ | S228 + S229 `88754699` |
+| DEC-19 | 시즌 배너 폐기 (cafe-events 통합) | ✅ | S235 |
+| DEC-20 | cafe-events 모델 진화 — overlay → iframe HTML → 자동화 | ✅ | S235 (058~061) |
+| DEC-21 | sandbox iframe + placeholder 치환 (IMAGE_DESKTOP 4종) + aspect 자동 측정 | ✅ | S235 |
+| DEC-22 | signature chapter iframe HTML 모델 (cafe-events 답습) | ✅ | S237 (062) |
+| DEC-23 | SEO meta 통합 (signature + cafe-events) | ✅ | S237 (063) + S235 (064) |
+| DEC-24 | RBAC owner/staff 분리 + admin_level | ✅ | S233 (055) |
+| DEC-25 | admin_export_log audit 도메인 + /admin/audit 통합 페이지 | ✅ | S233 (056~057) |
+| DEC-26 | CSV export — owner-only 가드 + audit 등록 (Subs/Orders/Audit) | ✅ | S233 |
+| DEC-27 | 배너 LQIP base64 placeholder (마이그 068 + generateImageBlurAction) | ✅ | S246 |
+| **DEC-S248-1** | **통계 강화 sprint — 출시 후 carry-over** (실데이터 누적 후 진입) | 📋 carry | S249+ |
+| **DEC-S248-2** | **plan 갱신부터** (S248 단계 1) | ⏳ 진행 중 | S248 |
+| **DEC-S248-3** | **메인 노출 메뉴 어드민 — site_settings 저장 (B 옵션)** | 📋 | S248 단계 2 |
+| **DEC-S248-4** | **Dropdown source = `cafe_menus` 전체 + ↑↓ reorder + 검색 + 중복 방지** | 📋 | S248 단계 2 |
+| **DEC-S248-5** | **`cafe_menus.status='시그니처'` 마커 그대로 유지** (PDP/리스트 배지 + 정렬 가중 — 단일 책임) | 📋 잠금 | S248 |
+| **DEC-S248-6** | **`/menu` 페이지 정렬 — 기존 status 정렬 그대로** (메인 노출과 분리) | 📋 잠금 | S248 |
+| **DEC-S248-7** | **메인 노출 메뉴 사용자 시각 — 기본 카드 그대로** ("메인 추천" 배지 추가 X) | 📋 잠금 | S248 |
+| **DEC-S248-8** | **0 slot fallback — 기존 `status='시그니처' .slice(0,3)` 자동 fallback** (안전망) | 📋 | S248 단계 2 |
 
 ---
 
 ## §2. Sprint 카탈로그
 
-### Sprint 진행 현황
+### Sprint 진행 현황 (어드민 + 관련)
 
 | Sprint | 범위 | 상태 | 추정 | 모델 |
 |---|---|---|---|---|
 | S218 | Group E Admin UI Phase 1 (목록+편집) | ✅ | 11~15h | Sonnet 4.6 |
-| S219 | Group E Admin UI Phase 2 (보류) | ⏸️ Storage DEC-7 결정 대기 | 6~9h | — |
-| S220 | Group F Admin UI (목록+등록+편집+이미지) | 🔴 미시작 | 9~12h | Sonnet 4.6 |
-| S221 | Group G + D-2 + 마무리 | 🔴 미시작 | 6~8h | Sonnet 4.6 |
 | S227 | Architecture audit + 6 컴포넌트 추출 | ✅ | — | — |
 | S228 | Phase 2 PR-A (테이블 4종 마이그) | ✅ | — | — |
 | S229 | Phase 2 PR-B/C + 칩 표준 + DEC-17 listHelpers | ✅ | — | — |
-| **S230 (현재)** | Phase 3 잘못 구현 fix (§7-3 hex + 잔여 6 항목) | 🟡 §7-3 완료 / 6 항목 잔여 | 5~9h | Sonnet 4.6 |
-| **S231** | products/new 재기획 + **ProductEditForm detail/option 마무리** (β · S230 박음) | 📋 | **16~22h** | Sonnet 4.6 + mattpocock grill-with-docs |
-| **S232** | 출시 전 carry-over (Users 필터 + Export CSV) | 📋 | 8~14h | Sonnet 4.6 |
-| **S233** | **어드민 페이지 폴리싱** (마이크로 인터랙션 · A11y · 시각 다듬기) | 📋 | 6~10h | Sonnet 4.6 |
-| **S234** | **최종 리뷰어 검토 sprint** (4 reviewer 일괄) | 📋 | 4~6h + 수정 | Opus 4.7 |
-| **별** | improve-codebase-architecture 최종 (ADR-009 sweep) | 📋 | 8~10h | Opus 4.7 |
+| S230 | Phase 3 fix (§7-3 hex + 잔여 6 항목) | ✅ | — | — |
+| S231 | ProductEditForm 3탭 마무리 (basic 재정비 + detail + option) | ✅ | — | — |
+| S232 | S231-2/3/4/5 carry 일괄 + ProductEdit 폴리싱 (ConfirmModal · Storage 이미지 · sharp webp · create_product RPC · roast_desc prefill · 단계 변경 lock · 동적 행 reorder · 사이드바 polish · DYNAMIC_ROW 토큰) | ✅ | — | — |
+| S233 (+ S233-fu) | Users 가입 채널 필터 + Subs/Orders/Audit CSV + RBAC owner/staff + 권한 단계 변경 + /admin/audit 통합 페이지 + 사이드바 폴리싱 | ✅ | — | — |
+| S234 Phase 1+2 | Admin 폴리싱 sprint Phase 1 (helper 자연어화 · toast · 보조용언) + Phase 2 (GoodDays UI 전수 점검 · 추천 배지 · EditAltDialog · UploadDialog 정합) | ✅ | — | — |
+| S235 | S234 Phase 3 마무리 + cafe-events 3단계 진화 (overlay → iframe HTML → 자동화 · 058~061 마이그) + lib/admin/cafeEventsServer 분리 | ✅ | — | — |
+| S236 | S235 carry 옵션 A (sr-* hydration race) 진단 + 어드민 Toaster offset top=72 | ✅ | — | — |
+| S237 | 시그니처 chapter iframe HTML 모델 전환 (cafe-events 답습 · 062 마이그) | ✅ | — | — |
+| S238 | 외부 미팅용 프로젝트 현황 보고서 작성 (코드 0건) | ✅ | — | — |
+| S239 | Banner conversion guide 단일 SoT 통합 | ✅ | — | — |
+| S240 | 배너 4 BP 양 끝점 모델 + 폰트 토큰 Pretendard/Inter | ✅ | — | — |
+| S241 | 배너 풀블리드 + StoryChapter + Newsletter Phase 1+2+3 부분 (도메인 인증 carry) | 🟡 부분 | — | — |
+| S243 | 모바일 햄버거 + Wholesale/FAQ + 비즈니스 폼 (067 biz_inquiries) | 🟡 어드민 carry | — | — |
+| S244 | **카페 메뉴 어드민 신설** (목록 + CRUD + 단일 이미지 업로드 · products 답습) + Vercel CPU 진단 | ✅ | — | — |
+| S245 | 영양시트 + sort_order 자동 + 카드 정렬 + 컵 용량 + 카페인 매핑 + likes SSR hydration | ✅ | — | — |
+| S246 | drawer 플래시 진단 + mypage 폴리싱 + 어드민 배너 LQIP (068 마이그) | ✅ | — | — |
+| S247 | /menu 진입 속도 (priority + 클라이언트 분리) + cafe-menu 시각 폴리싱 + 영양시트 모바일 rubber-band fix | ✅ | — | — |
+| **S248 (현재)** | **plan 갱신 (단계 1) + 메인 노출 카페 메뉴 어드민 신설 (단계 2) + 통계 강화 carry-over (단계 3)** | ⏳ 진행 중 | **4.5~7h** | Opus 4.7 + Sonnet 4.6 |
+| **S249+** | **통계 강화 sprint** (carry-over · DEC-S248-1) — 후보 10종 + Quick Win + Domain Insight | 📋 carry | 14~22h (Quick) + 11~19h (Domain) | Sonnet 4.6 |
+| **S250+** | **출시 차단 잔여 — D-2 정기배송 상세 + G-1 SOP + G-2 E2E + 뉴스레터/비즈 어드민** | 📋 | 18~28h | Sonnet 4.6 |
+| **S260** | **최종 리뷰어 검토 sprint** (4 reviewer 일괄) | 📋 | 4~6h + 수정 | Opus 4.7 |
+| **별** | improve-codebase-architecture 최종 (ADR-009 sweep) | 📋 P3 | 8~10h | Opus 4.7 |
 
-### 2-1. S230 잔여 (Phase 3 잘못 구현 fix · 5~9h)
+### 2-1. S248 — plan 갱신 + 메인 노출 메뉴 어드민 + 통계 carry-over (4.5~7h · 진행 중)
 
-| ID | 항목 | 추정 | 비고 |
+📄 spec: `memory/NEXT_SESSION.md` (S248 진입) + 본 문서 변경 이력 §8
+
+| 단계 | 항목 | 추정 | 비고 |
 |---|---|---|---|
-| ✅ S230-1 | §7-3 Type 1 hex 정정 (#888·#fff) | — | `981241d6` |
-| ✅ S230-2 | §7-3 Type 2 토큰 신설 + 마이그 | — | `981241d6` |
-| **S230-3** | ProductEditForm shipping/seo 탭 결정 | 0.5~3h | **사용자 결정 필요** (옵션 A 두 탭 제거 / B 도메인 추가 / C 유지) |
-| **S230-4** | Topbar 액션 disabled+tooltip 일관 적용 | 1h | DEC-13 적용 |
-| **S230-5** | lib/admin/{cafeEvents,settings}.ts + Server 분리 | 2~3h | DEC-15/16 답습 |
-| **S230-6** | admin-theme.css base layer 보강 | 0.5h | 필요 시 |
-| **S230-7** | design.md §0 인덱스 갱신 | 0.5h | — |
+| **S248-1** | **plan 갱신** — §1 매트릭스 + §1-2 DEC-19~27 + §2 Sprint 카탈로그 S231~S247 + S248/S249+ 신설 + §3 우선순위 재정렬 + §4 결정 항목 + §6 합계 + §7 완료 기록 + §8 변경 이력 | 1~1.5h | DEC-S248-2 박음 |
+| **S248-2** | **메인 노출 카페 메뉴 어드민 설정** | 3~6h | DEC-S248-3 ~ 8 적용 |
+| S248-2a | 마이그 069 — `site_settings.value.home_featured_menu_ids` jsonb (0~3 개 · check constraint) | 0.3h | 062 signature 답습 |
+| S248-2b | `lib/admin/homeFeatured.ts` + `homeFeaturedServer.ts` 분리 | 0.5~1h | DEC-15/16 답습 |
+| S248-2c | `/admin/settings` 또는 `/admin/home-featured` 슬롯 UI (검색 dropdown + ↑↓ + 중복 방지) | 1.5~2.5h | DEC-S248-4 |
+| S248-2d | Server Action `setHomeFeaturedAction` + audit log 등록 | 0.5~1h | DEC-25 답습 |
+| S248-2e | `CafeMenuSection.tsx:32` fetch 교체 + 0 slot fallback (DEC-S248-8) | 0.5~1h | 기존 `status='시그니처' .slice(0,3)` 자동 fallback |
+| **S248-3** | **통계 강화 carry-over 메모리 작성** — `memory/project_admin_analytics_carryover.md` | 0.5h | DEC-S248-1 박음 |
 
-### 2-2. S231 — products/new 재기획 + ProductEditForm detail/option 마무리 (β · 16~22h)
+#### S248-2 메인 노출 메뉴 어드민 UI 사양 (DEC-S248-3 ~ 8)
 
-📄 spec: `memory/project_admin_product_new_replan.md`
+| 요소 | 사양 |
+|---|---|
+| 저장 모델 | `site_settings.value.home_featured_menu_ids` jsonb 배열 (길이 0~3 · null 허용) |
+| Dropdown source | `cafe_menus` 전체 (is_active=true · status 무관) |
+| 옵션 row 표시 | `메뉴명 [카테고리 · status 배지]` |
+| 검색 | 메뉴명 ilike (S229 listHelpers `applyIlikeSearch` 답습) |
+| Reorder | ↑↓ 버튼 (S245 sort_order 동적 행 reorder 답습) |
+| 중복 방지 | 다른 slot 선택된 메뉴는 disabled + "slot N 선택됨" 라벨 |
+| 빈 slot 허용 | Yes (1~3 slot 가변) |
+| 0 slot fallback (DEC-S248-8) | 모두 비었거나 미설정 시 기존 `status='시그니처' .slice(0,3)` 자동 fallback |
+| 사용자 시각 처리 (DEC-S248-7) | 메인 페이지 기본 카드 그대로 — "메인 추천" 배지 등 차별 표시 X |
+| `cafe_menus.status='시그니처'` (DEC-S248-5) | **변경 없음** — PDP/리스트 배지 + `/menu` 정렬 가중 용도 유지 (단일 책임) |
+| `/menu` 정렬 (DEC-S248-6) | 기존 status 정렬 그대로 — 메인 노출과 분리 |
 
-**Scope β 확장 (S230 결정 · 2026-05-14):** products/new 재기획만으로는 ProductEditForm 의 detail/option/shipping/seo 4 탭 mock 잔존. β 채택으로 detail/option 마무리 + shipping/seo 제거 (3탭 축소) 합류.
+### 2-2. S249+ — 통계 강화 sprint (carry-over · DEC-S248-1)
 
-| ID | 항목 | 추정 |
-|---|---|---|
-| S231-1 | 방향 결정 (옵션 A=ProductEditForm 답습+mode='create' / B=별 폼 / C=wizard) | 0.5h |
-| S231-2 | RHF + zod 실 PDP 모델 기반 폼 (basic 답습) | 5~7h |
-| S231-3 | 이미지 업로드 (Storage + sharp+plaiceholder · DEC-7 β 채택 시) | 3~4h |
-| S231-4 | createProductAction Server Action | 2~3h |
-| S231-5 | volumes / recipe / images 동적 행 UI | 2~3h |
-| **S231-6** | **ProductEditForm detail 탭 마무리** — 5축 + 로스팅 + 플레이버칩 + flavor_desc | 3~4h |
-| **S231-7** | **ProductEditForm option 탭 마무리** — product_volumes + product_recipes 동적 행 | 1~2h |
-| **S231-8** | **shipping / seo 탭 제거** (3탭 축소) | 0.3h |
+📄 spec: `memory/project_admin_analytics_carryover.md` (S248 단계 3 에서 작성 예정)
 
-#### Detail 탭 UI 결정 (S230 박음)
+**진입 조건:** 출시 후 실데이터 50건 이상 또는 운영 14일 이상 누적. Quick Win 묶음 우선.
 
-| 필드 | UI 형식 | 비고 |
-|---|---|---|
-| **5축 (note_sweet/body/aftertaste/aroma/acidity)** | slider + 우측 값 표시 (3.5 / 5) | NUMERIC(2,1) · 0.0~5.0 step 0.1 · PDP 레이더 차트 정합 |
-| **roast_stage** | 칩 라디오 §5-23 (`data-slot="chip-radio"`) | 5단계 노출 (light / medium-light / medium / medium-dark / dark) · **italian disable** (한국 시장 희귀 · DB 제약 유지) |
-| **note_tags + note_tags_en** | Tag input (Enter/쉼표 분리 · 라이브러리 없이 구현) | comma-separated text 로 저장 |
-| **flavor_desc** | single line text input | text not null |
-| **note_color** | **hidden** (form 노출 X) | 현재 UI 사용 0건 (dead column) · DB default `#A47146` 유지. 사용자 결정 = 베리에이션 없음 |
+**🥇 Quick Win 묶음 (14~22h)**
+- J. Dashboard 위젯 추가 (어제 대비 / 주간 비교) — 2~4h
+- B. 카테고리별 판매량 (Bean / Drip / Cafe) — 3~5h
+- A. 매출 트렌드 그래프 (일/주/월) — 6~10h (recharts 1회 도입)
+- I. Analytics CSV export — 2~4h (S233 csvExport 답습 + audit 등록)
 
-### 2-3. S232 — 출시 전 carry-over (8~14h)
+**🥈 Domain Insight 묶음 (11~19h)**
+- C. 정기배송 추이 (활성/일시정지/취소) — 6~10h
+- F. 카페 메뉴 좋아요 분석 (top N + 트렌드) — 2~4h
+- D. 신규 가입 추이 (signup_provider 별) — 3~5h
+
+**🥉 Deep Analysis (별도 sprint)**
+- E. 뉴스레터 추이 — 2~4h (도메인 인증 후)
+- H. 코호트 분석 — 8~12h
+
+**❌ 제외**
+- G. 검색 쿼리 통계 — 로깅 인프라 부재. 별도 sprint 진입 시 사전 도메인 구축 필요.
+
+### 2-3. S250+ — 출시 차단 잔여 sprint (18~28h)
 
 | ID | 항목 | 추정 | spec |
 |---|---|---|---|
-| S232-1 | Users 가입 채널 DropdownFilter | 2~3h | `memory/project_admin_users_filter_extension.md` |
-| S232-2 | Subscriptions CSV export (사용자 요청) | 2~3h | `memory/project_admin_export_feature.md` |
-| S232-3 | Orders CSV export (disabled UI 활성화) | 2~3h | 동일 |
-| S232-4 | PII 정책 합의 (이메일/이름/전화 포함 여부 결정) | 1~2h | 별도 사용자 confirm |
+| S250-1 | D-2 정기배송 상세 페이지 | 4~6h | `memory/project_admin_ui_followup.md` §D-2 |
+| S250-2 | 뉴스레터 어드민 (구독자 목록 + 발송 이력) | 4~6h | `project_newsletter_carryover.md` Phase 4 |
+| S250-3 | 비즈 문의 어드민 (목록 + 상세) | 3~5h | S243 carry |
+| S250-4 | G-1 SOP 문서 (운영자/개발자) | 4~6h | DEC-G1 결정 필요 |
+| S250-5 | G-2 E2E 테스트 (critical user flow) | 6~10h | playwright |
+| S250-6 | 어드민 페이지 폴리싱 (이전 §2-4 S233 폴리싱 carry — Phase 3 미실행 부분) | 2~4h | S234 Phase 3 잔여 (사이드바·인터랙션·a11y) |
 
-### 2-4. S233 — 어드민 페이지 폴리싱 (6~10h · 신규)
+### 2-4. S260 — 최종 리뷰어 검토 sprint (4~6h + 수정)
 
-**범위:** UI 통일성 / 구조 개선 / 미완 카탈로그 완료 후 — 출시 직전 마이크로 디테일 다듬기.
-
-| ID | 항목 | 추정 | 검증 |
-|---|---|---|---|
-| S233-1 | **인터랙션 polishing** — hover/focus/active transition 일관 (~150ms ease-out) | 1~2h | 1440 inspect transition-duration |
-| S233-2 | **로딩 상태 통일** — Skeleton + Spinner + isPending 패턴 일관 | 1~2h | 모든 페이지 데이터 fetch 시 시각 일관 |
-| S233-3 | **빈 상태 (empty) 일관성** — AdminEmptyState variant 사용 검수 | 0.5~1h | message 톤 + 액션 슬롯 |
-| S233-4 | **에러 메시지 톤 일관성** — Server Action error map 검수 (한국어 정중) | 0.5~1h | summarizePgError + error map 답습 |
-| S233-5 | **Toast 메시지 일관성** — sonner toast 톤/duration/position 통일 | 0.5h | 모든 success/error toast |
-| S233-6 | **접근성 (a11y)** — aria-label / focus visible / 키보드 탐색 검수 | 1~2h | 아이콘 버튼 24×24 + aria-label · Tab 순서 |
-| S233-7 | **1440 baseline 최종 회귀** — 모든 admin 페이지 inspect computed value 검수 | 1~2h | feedback_design_baseline_1440 답습 · 1440→1024→768→360 |
-| S233-8 | **모바일 회귀** (1024/768/360) — admin 모바일 사용 안 하지만 깨지지 않는지만 | 0.5h | 페이지 layout overflow X |
-
-### 2-5. S234 — 최종 리뷰어 검토 sprint (4~6h + 수정 · 신규)
-
-**범위:** S230~S233 완료 후, 출시 전 마지막 단계. 4 reviewer agent 일괄 호출 → 결과 메모리 저장 → CRITICAL/HIGH 수정.
+**범위:** S248~S250 완료 후, 출시 전 마지막 단계. 4 reviewer agent 일괄 호출 → 결과 메모리 저장 → CRITICAL/HIGH 수정.
 
 | ID | 리뷰어 | 범위 | 산출 |
 |---|---|---|---|
-| S234-1 | **code-reviewer** | admin 코드 전수 — readability / pattern consistency / dead code | `memory/review_s234_general.md` |
-| S234-2 | **security-reviewer** | auth / RLS / Server Action 권한 / PII 누출 / CSRF | `memory/review_s234_security.md` |
-| S234-3 | **typescript-reviewer** | 타입 안정성 / any 잔존 / 제네릭 / discriminated union | `memory/review_s234_typescript.md` |
-| S234-4 | **database-reviewer** | Supabase RLS 정합 / N+1 쿼리 / 인덱스 / 트랜잭션 | `memory/review_s234_database.md` |
-| **S234-5** | 결과 통합 + CRITICAL/HIGH fix sprint | 별도 추정 (발견에 따라) | 메모리 + fix 커밋 |
+| S260-1 | **code-reviewer** | admin + 사이트 전수 — readability / pattern consistency / dead code | `memory/review_s260_general.md` |
+| S260-2 | **security-reviewer** | auth / RLS / Server Action 권한 / PII 누출 / CSRF | `memory/review_s260_security.md` |
+| S260-3 | **typescript-reviewer** | 타입 안정성 / any 잔존 / 제네릭 / discriminated union | `memory/review_s260_typescript.md` |
+| S260-4 | **database-reviewer** | Supabase RLS 정합 / N+1 쿼리 / 인덱스 / 트랜잭션 | `memory/review_s260_database.md` |
+| **S260-5** | 결과 통합 + CRITICAL/HIGH fix sprint | 별도 추정 (발견에 따라) | 메모리 + fix 커밋 |
 
 **리뷰 트리거 시점:**
-- S230~S232 완료 (출시 전 코어 작업 끝)
-- S233 폴리싱 후 (시각 + 구조 안정 상태)
+- S248~S250 완료 (출시 차단 코어 작업 끝)
 - 최종 commit 미push 상태에서 실행
 
 **리뷰 결과 분류 (`~/.claude/rules/common/code-review.md` 답습):**
@@ -158,50 +195,56 @@
 - MEDIUM → carry-over (별 sprint)
 - LOW → 기록만
 
-### 2-6. 별 sprint — improve-codebase-architecture 최종 (8~10h)
+### 2-5. 별 sprint — improve-codebase-architecture 최종 (8~10h)
 
 📄 spec: `memory/project_admin_ui_unification_plan.md` §Sprint 5
 
-mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S227 ~ S234 결과 audit 후 최종 refactor.
+mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S227 ~ S260 결과 audit 후 최종 refactor. 출시 후 V2+ 진입.
 
 ---
 
-## §3. 우선순위 분류 (출시 기준)
+## §3. 우선순위 분류 (출시 기준 · S248 갱신)
 
-### 3-1. 출시 전 — P1 (필수 · 21~32h)
+### 3-1. 출시 전 — P1 (필수 · 22.5~35h)
 
 | 항목 | sprint | 추정 |
 |---|---|---|
-| S230 잔여 6 항목 | S230 | 5~9h |
-| products/new 재기획 + ProductEditForm detail/option 마무리 (β) | S231 | 16~22h |
-| 어드민 페이지 폴리싱 | S233 | 6~10h |
-| Users 가입 채널 필터 (사용자 요청) | S232-1 | 2~3h |
-| Subscriptions CSV (사용자 요청) | S232-2 | 2~3h |
-| Orders CSV (disabled 활성화) | S232-3 | 2~3h |
-| 최종 리뷰어 검토 (4 reviewer + fix) | S234 | 4~6h + α |
+| plan 갱신 + 메인 노출 메뉴 어드민 + 통계 carry-over | S248 | 4.5~7h |
+| D-2 정기배송 상세 페이지 | S250-1 | 4~6h |
+| 뉴스레터 어드민 (구독자 목록 + 발송 이력) | S250-2 | 4~6h |
+| 비즈 문의 어드민 (목록 + 상세) | S250-3 | 3~5h |
+| G-1 SOP 문서 (운영자/개발자) | S250-4 | 4~6h |
+| G-2 E2E 테스트 (critical flow) | S250-5 | 6~10h |
+| 어드민 페이지 폴리싱 (S234 Phase 3 carry) | S250-6 | 2~4h |
+| 최종 리뷰어 검토 (4 reviewer + fix) | S260 | 4~6h + α |
 
-### 3-2. 출시 후 1~2주 — P1 (~22~30h)
+### 3-2. 출시 후 1~2주 — P1 (carry-over)
 
 | 항목 | spec |
 |---|---|
-| Group F 카페 메뉴 admin UI | `memory/project_admin_ui_followup.md` §3 |
-| Group E 이미지 업로드 Storage 통합 (DEC-7 β 채택 시) | `memory/project_admin_cafe_menu_upload.md` |
-| Group E 옵션·레시피 관리 UI | 동일 §2 |
+| 뉴스레터 도메인 인증 + production 발송 활성 | `project_newsletter_carryover.md` |
+| Newsletter Phase 4 발송 history UI | 동일 |
+| 비즈 문의 첨부 파일 (S243-C) | S243 carry |
 
-### 3-3. 출시 후 1개월 — P2 (~10~15h)
+### 3-3. 출시 후 1개월 — P2 (14~22h)
+
+| 항목 | sprint |
+|---|---|
+| 통계 강화 Quick Win (Dashboard 위젯 / 카테고리별 / 매출 트렌드 / Analytics CSV) | S249+ |
+
+### 3-4. 출시 후 2~3개월 — P2 (11~19h)
+
+| 항목 | sprint |
+|---|---|
+| 통계 강화 Domain Insight (정기배송 추이 / 카페 메뉴 좋아요 / 가입 추이) | S249+ |
+| Users CSV (PII 정책 합의 후) | S232-4 carry |
+| Products CSV | — |
+
+### 3-5. 출시 후 V2+ — P3 (~24~30h)
 
 | 항목 |
 |---|
-| Group D-2 정기배송 상세 페이지 |
-| Group G-1 SOP 문서 작성 |
-| Group G-2 E2E 테스트 |
-| Users CSV (PII 정책 합의 후) |
-| Products CSV |
-
-### 3-4. 출시 후 V2+ — P3 (~14~18h)
-
-| 항목 |
-|---|
+| 통계 강화 Deep Analysis (뉴스레터 / 코호트 / 검색 쿼리 로깅 인프라) |
 | Users 구독상태 / 활성도 필터 (6개월 후 데이터 누적 후) |
 | Excel export 옵션 |
 | improve-codebase-architecture 최종 sweep |
@@ -210,12 +253,22 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 
 ## §4. 출시 전 결정 필요 항목
 
+### 4-1. 마감된 결정 (참고용)
+
+| ID | 항목 | 결정 | 시점 |
+|---|---|---|---|
+| ~~DEC-7~~ | products 이미지 업로드 정책 | ✅ **β Storage** 채택 + sharp webp 자동 변환 | S231/S232 완료 |
+| ~~S230-3~~ | ProductEditForm shipping/seo 탭 | ✅ **β 제거** (3탭 축소) | S231 완료 |
+| ~~DEC-export-4~~ | CSV PII 익명화 정책 | ✅ **평문 + owner-only 가드 + audit log** | S233 완료 |
+
+### 4-2. 미확정 결정 (현재)
+
 | ID | 항목 | 시점 | 옵션 |
 |---|---|---|---|
-| **DEC-7** | products 이미지 업로드 정책 | S231 진입 전 | α public 유지 / β Storage 도입 (권장) / γ 하이브리드 |
-| ~~S230-3~~ | ~~ProductEditForm shipping/seo 탭~~ | ✅ **β 채택 (S230 박음)** | shipping/seo 제거 (3탭 축소) + detail/option 마무리는 S231 합류 |
-| **DEC-export-4** | CSV PII 익명화 정책 | S232 진입 전 | 마스킹 / 평문 |
-| **DEC-G1** | SOP 문서 범위 | S233/출시 직전 | 사업자용 / 개발자용 / 양쪽 |
+| **DEC-G1** | SOP 문서 범위 | S250-4 진입 전 | 사업자용 / 개발자용 / 양쪽 |
+| **DEC-newsletter-3** | 뉴스레터 도메인 인증 시점 | Google Workspace 결제 + Vercel 배포 시점 묶음 | 출시 후 1~2주 |
+| **DEC-S249-1** | 차트 라이브러리 선택 | S249+ 진입 전 | CSS-only / **recharts (권장)** / nivo / Tremor |
+| **DEC-S249-2** | Quick Win + Domain 묶음 동시 진입 vs 분리 | S249+ 진입 전 | 일괄 / Quick → 검증 → Domain |
 
 ---
 
@@ -240,15 +293,16 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 
 ---
 
-## §6. 합계 추정
+## §6. 합계 추정 (S248 갱신)
 
 | 단계 | 합계 | 비고 |
 |---|---|---|
-| 출시 전 P1 (S230~S234) | **~36~56h** | 1.5~2주 풀타임 (S231 β 확장 +4~6h) |
-| 출시 후 1~2주 P1 | ~22~30h | Group E·F 어드민 UI |
-| 출시 후 1개월 P2 | ~10~15h | D-2 + G-1/G-2 + Users/Products CSV |
-| 출시 후 V2+ P3 | ~14~18h | 필터 확장 + Excel + arch sweep |
-| **전체 잔여** | **~82~119h** | 출시 전 풀타임 1.5~2주 + 출시 후 3~4주 |
+| 출시 전 P1 (S248 + S250 + S260) | **~22.5~35h** | 1주~1.5주 풀타임 |
+| 출시 후 1~2주 P1 | 도메인 인증·DEC-G1 합의 등 (시간 추정 ↓) | 뉴스레터 production + 비즈 첨부 |
+| 출시 후 1개월 P2 (Quick Win) | ~14~22h | S249+ 통계 Quick Win 묶음 |
+| 출시 후 2~3개월 P2 (Domain) | ~11~19h | S249+ 통계 Domain Insight 묶음 |
+| 출시 후 V2+ P3 | ~24~30h | Deep Analysis + 필터 확장 + arch sweep |
+| **전체 잔여** | **~71.5~106h** | 출시 전 풀타임 1~1.5주 + 출시 후 3~6개월 |
 
 ---
 
@@ -279,10 +333,106 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 - 학습 4종 (feedback memory 2건 신규)
 - 8 commits `b1c4056b..c484569d`
 
-### S230 — Phase 3 잘못 구현 fix (진행 중)
+### S230 — Phase 3 잘못 구현 fix ✅
 
-- §7-3 hex Type 1+2 일괄 정정 + 토큰 4종 신설 ✅ (`981241d6`)
-- 잔여 6 항목 (탭 결정 / Topbar 정책 / lib 분리 / base layer / 인덱스 갱신)
+- §7-3 hex Type 1+2 일괄 정정 + 토큰 4종 신설 (`981241d6`)
+- 잔여 6 항목 완료 (탭 결정 β 채택 · Topbar 정책 · lib 분리 · base layer · 인덱스 갱신)
+
+### S231 — ProductEditForm 3탭 마무리 ✅
+
+- basic 재정비 + detail + option 탭 완성 + shipping/seo 제거 (3탭 축소)
+- NativeSelectWrap / FlavorChipInput / PriceInput / slider 신규 자산 5종
+- 5축 slider + 로스팅 5단계 칩 + Tag input + flavor_desc + note_color hidden
+- 마이그 049 적용
+- 10 commits `c9daf1ab..f57d0169`
+
+### S232 — S231 carry 일괄 + 사이드바 폴리싱 ✅
+
+- ConfirmModal + imageProcessing helper + ProductActiveToggleClient + ProductDangerZoneClient
+- mode='create' 분기 (Discriminated Union) + Storage 이미지 + sharp webp 자동 변환
+- create_product RPC 트랜잭션 + 영구 삭제 ConfirmModal danger + requireTextMatch
+- roast_desc 자동 prefill + 단계 변경 lock + 동적 행 ↑↓ reorder
+- 사이드바 sticky + Lucide + collapse/expand + next/link
+- 마이그 050/051/052 적용
+- 6 commits `3032f056..f7d250c4`
+
+### S233 (+ S233-fu) — Users 필터 + CSV + RBAC + audit ✅
+
+- Users 가입 채널 DropdownFilter + Subs/Orders CSV
+- RBAC owner/staff + 권한 단계 변경 UI
+- /admin/audit 통합 페이지 + 감사 로그 CSV
+- csvExport helper + 16 테스트 + getAdminOwnerClaims + setAdminLevelAction
+- 5 owner 가드 박음 (CSV 3종 + 영구 삭제 + 사이트 설정 + audit 페이지/CSV)
+- 마이그 053~057 적용
+- 9 commits `d0b81576..1a7d385a`
+
+### S234 Phase 1+2 — Admin 폴리싱 sprint ✅
+
+- Phase 1: window.confirm → ConfirmModal · toast 자연어화 · 보조용언 띄어쓰기
+- Phase 2: Featured → "추천" · 추천 배지 + 비공개 배지 + 토글 위/아래 · EditAltDialog · UploadDialog §5-12 답습
+- DEC-1~15 박음
+- 13 commits `a333c39b..7fe32abf`
+
+### S235 — S234 Phase 3 + cafe-events 3단계 진화 ✅
+
+- cafe-events 모델 진화 — overlay → iframe HTML → 자동화 (placeholder 치환 IMAGE_DESKTOP 4종 + aspect 자동 측정)
+- lib/admin/cafeEventsServer 분리 (DEC-15/16 답습)
+- 마이그 058~061 적용 + production HTML reference (운영자 자산)
+- DEC-19~24 박음
+- 36 commits `e8b98fee..70cf284a`
+
+### S236 — sr-* hydration race 진단 + Toaster offset ✅
+
+- S235 carry 옵션 A 진단 결과 dev-only Turbopack/HMR race 확정 (production 영향 없음 · DEC-25 박음)
+- 어드민 Toaster offset top=72 적용 (Topbar 56 sticky 와 충돌 해소)
+- 1 commit `479fa28f`
+
+### S237 — 시그니처 chapter iframe HTML 모델 ✅
+
+- cafe-events 답습 (062 마이그 — site_settings.signature_iframe)
+- DEC-26/27 박음 (iframe 모델 + Storage prefix 답습)
+- 5 commits `fc5027ab..05c95820`
+
+### S244 — 카페 메뉴 어드민 신설 + Vercel CPU 진단 ✅
+
+- 카페 메뉴 어드민 (목록 + CRUD + 단일 이미지 업로드 · products 답습)
+- Vercel CPU 진단 (Sentry traces 1.0→0.1 + robots.txt)
+- 028 마이그 menu-images 버킷 재사용
+- 11 신규 파일 (types/lib/page/actions/4 client comp/MenuEditForm)
+- DEC-S244-1~5 + DEC-OBS-1~2 박음
+- 2 commits `afab2aef..fa04488b`
+
+### S245 — 영양시트 + sort_order 자동 + 카드 정렬 + 컵 용량 + likes SSR ✅
+
+- 영양시트 + 알레르기 19종 + stone-light 토큰
+- sort_order 자동 채번 (전체 단일 시퀀스 · 3중 안전망)
+- 카드 정렬 + 페이지네이션 BP 별 + popular = menu_likes 카운트
+- 컵 용량 일괄 + 카페인 매핑 + 단위 자동 + 고카페인 동기화
+- SSR likes hydration + GenericCard prop 확장
+- DEC-S245-1~22 + DEC-P20-1~22 박음
+- 27 commits `8a8b941e..462edbcf`
+
+### S246 — drawer 플래시 + mypage 폴리싱 + 어드민 배너 LQIP ✅
+
+- drawer 플래시 5단 추적 — focus({preventScroll:true}) 진짜 원인
+- mypage 폴리싱 4건 + 영양시트 hero/content 색 분리 (stone-medium 신설)
+- 어드민 배너 LQIP base64 placeholder (068 마이그 + generateImageBlurAction)
+- 운영자 production HTML 2종 (Dripbag · UBE) inline style LQIP 부착
+- 11 commits `1c7c8999..f76be7c4`
+
+### S247 — /menu 진입 속도 + cafe-menu 폴리싱 + 영양시트 모바일 rubber-band ✅
+
+- (A) /menu 진입 속도 — priority + B user liked client 분리 + B-fix store.fetched reset
+- (B) cafe-menu 시각 폴리싱 — ✦ 카드 16→20 / 시트 24→28 + 온도 pill 11px + height 20 + padding 6
+- (C) 영양시트 모바일 rubber-band fix — OverscrollTop 패턴 답습 (⚠ iOS 26 WebKit Bug 297779 잔존 · A 옵션 유지)
+- 신규 메모리 1건 (`feedback-multi-account-verification`)
+- 9 commits `d34c83e4..a07ee35a`
+
+### S248 — plan 갱신 + 메인 노출 메뉴 어드민 + 통계 carry-over 🟡 진행 중
+
+- 단계 1 plan 갱신 ✅ (본 갱신 · 2026-05-22)
+- 단계 2 메인 노출 카페 메뉴 어드민 설정 📋
+- 단계 3 통계 강화 carry-over 메모리 📋
 
 ---
 
@@ -294,7 +444,8 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | 2026-05-02 | S124 | Group H·I·J 추가 |
 | 2026-05-11 | S209 | §0 진행률 신설 + 의존 audit 44개 + 출시 전 처리 확정 |
 | 2026-05-13 | S217 | DB 전환 / Admin UI 두 열 분리 + P0/P1/P2 분류 |
-| **2026-05-14** | **S230** | **마스터 통합 재구성** — 모든 어드민 일감 SoT 일원화 / Sprint 카탈로그 S230~S234 + 별 / 폴리싱 sprint §2-4 + 최종 리뷰어 검토 sprint §2-5 신설 / memory carry-over link 박음 / 합계 추정 갱신 |
+| 2026-05-14 | S230 | 마스터 통합 재구성 — 모든 어드민 일감 SoT 일원화 / Sprint 카탈로그 S230~S234 + 별 / 폴리싱 sprint §2-4 + 최종 리뷰어 검토 sprint §2-5 신설 / memory carry-over link 박음 / 합계 추정 갱신 |
+| **2026-05-22** | **S248** | **plan 갱신** — §1 매트릭스에 Group L (RBAC+audit) · Group M (뉴스레터) · Group N (비즈 문의) 신설 / §1-2 DEC-19~27 + DEC-S248-1~8 박음 / §2 Sprint 카탈로그에 S231~S247 결과 row 추가 + S248 단계별 항목 박음 + S249+ 통계 강화 carry-over 신설 + S250+ 출시 차단 잔여 + S260 최종 리뷰어 / §3 출시 전 P1 재추정 (4.5~7h S248 + 23~37h S250 + 4~6h S260) + 출시 후 P2 통계 강화 묶음 / §4 마감 결정 분리 + DEC-G1·newsletter-3·S249-1·2 미확정 분리 / §6 전체 잔여 71.5~106h 재계산 |
 
 ---
 
