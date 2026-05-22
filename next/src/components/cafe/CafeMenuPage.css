@@ -65,7 +65,11 @@
   pointer-events: none;
   display: inline-flex;
   align-items: center;
-  gap: 2px; /* S248-2g: ✦ SVG ↔ 텍스트 시각 결합 강화 (a06e155b 답습) */
+  /* S252: 메인 cmsplit-name 의 cm-menu-name-with-sig (✦ 18 / gap 1) 와 정합.
+     모바일에서 두 영역 폰트가 동일 16px 로 떨어졌을 때 ✦ 사이즈/gap 만
+     다른 시각 어긋남 제거. */
+  gap: 1px;
+  vertical-align: middle;
 }
 .cm-filter-signature-icon {
   color: #B8943F; /* gold — cm-signature-icon 답습 */
@@ -323,6 +327,11 @@
   display: inline-flex;
   align-items: center;
   gap: 1px;
+  /* inline-flex baseline 이 first item(SVG) bottom 으로 결정되어 line box 가
+     확장되는 문제 차단. middle 로 고정하여 line-height 24 유지 → 메인
+     cmsplit-row 의 thumb height(= width · aspect 1/1) 가 시그니처 row 에서만
+     커지는 부작용 차단. */
+  vertical-align: middle;
 }
 .cm-signature-icon {
   color: #B8943F; /* gold — popularRank 1 동일 톤 */

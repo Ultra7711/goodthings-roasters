@@ -12,6 +12,9 @@
 
 import type { CafeMenuItem } from '@/lib/cafeMenu';
 import SignatureStarIcon from './SignatureStarIcon';
+/* cm-signature-icon (gold) + cm-menu-name-with-sig (inline-flex) 정의 보장 —
+   MenuName 사용처 어디서든 (메인 CafeMenuSection 포함). CafeMenuCard.tsx 답습. */
+import './CafeMenuPage.css';
 
 type Props = {
   item: CafeMenuItem;

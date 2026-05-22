@@ -106,7 +106,7 @@ export default function CafeFilterTabs({ active, onChange }: Props) {
           >
             <span className="cm-tab-label">
               {tab.key === 'signature' && (
-                <SignatureStarIcon size={16} className="cm-filter-signature-icon" />
+                <SignatureStarIcon size={18} className="cm-filter-signature-icon" />
               )}
               {tab.label}
             </span>
