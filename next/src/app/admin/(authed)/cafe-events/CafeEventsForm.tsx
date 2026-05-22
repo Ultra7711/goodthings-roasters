@@ -429,7 +429,13 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
           disabled={!isDirty || isPending}
           onClick={handleSave}
         >
-          {isPending ? '저장 중…' : isNew ? '생성' : '변경사항 저장'}
+          {isPending
+            ? isNew
+              ? '등록 중…'
+              : '저장 중…'
+            : isNew
+              ? '이벤트 등록'
+              : '변경사항 저장'}
         </Button>
       </AdminTopbarActions>
 
