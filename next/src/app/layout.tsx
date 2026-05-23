@@ -1,5 +1,5 @@
 import { Suspense, type ReactNode } from 'react';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
@@ -31,6 +31,14 @@ const pretendard = localFont({
 export const metadata: Metadata = {
   title: 'Good Things Roasters',
   description: 'good things, simply roasted. — 스페셜티 커피 로스터리',
+};
+
+/* S263 — iOS 26 Safari Liquid Glass toolbar tinting + safe-area 지원.
+   viewport-fit=cover 필수 (toolbar tinting 정확 동작 + env(safe-area-inset-*) 활용). */
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default async function RootLayout({
