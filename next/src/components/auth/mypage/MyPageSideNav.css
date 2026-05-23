@@ -106,11 +106,25 @@
     top: var(--header-height);
     z-index: 5;
     align-self: stretch;
-    background: var(--color-background-primary);
+    /* S263 B-1 v5 — Safari 26 Liquid Glass toolbar tinting fix:
+       sticky element 자체에 background-color 부착 금지 (Safari 가 toolbar tint
+       로 sampling). visual bg 는 absolute child (.mp-side-nav-bg) 로 분리. */
+    background: transparent;
     /* S263 follow-up: 모바일 sticky + 자식 mask-image 조합에서 iOS Safari paint
-       cycle jitter (미세 떨림) 발생. GPU compositor layer 강제 → paint 안정화. */
+       cycle jitter (미세 떨림) 발생. GPU compositor layer 강제 → paint 안정화.
+       ⚠ iOS 26 sticky paint cycle bug (WebKit Bug 297779 동일 패턴) Apple 미해결.
+       transform 만으론 완전 해결 불가 — carry. */
     transform: translateZ(0);
     will-change: transform;
+  }
+  /* S263 B-1 v5 — sticky bg 를 absolute child 로 분리. Safari 26 tinting algorithm
+     은 absolute element 의 bg 를 sampling 대상에서 제외 → toolbar tint 추출 차단. */
+  .mp-side-nav-bg {
+    position: absolute;
+    inset: 0;
+    background: var(--color-background-primary);
+    z-index: -1;
+    pointer-events: none;
   }
   .mp-side-nav-list {
     flex-direction: row;

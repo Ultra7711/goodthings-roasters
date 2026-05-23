@@ -127,6 +127,13 @@ export default function MyPageSideNav({ activeId, counts, onChange }: Props) {
 
   return (
     <nav className="mp-side-nav" aria-label="마이페이지 내비게이션">
+      {/* S263 B-1 v5 — iOS 26 Safari Liquid Glass toolbar tinting fix.
+          Safari 26 가 viewport edge 근처의 sticky element 의 background-color 를
+          toolbar tint sampling 대상으로 사용. mp-side-nav 가 모바일 sticky +
+          warm white bg → top toolbar tint 가 warm white 로 추출 (mypage 만 발생
+          사용자 보고 증상). fix 가이드: "sticky element 자체에 background-color
+          금지, absolute child 로 visual bg 분리". */}
+      <div className="mp-side-nav-bg" aria-hidden />
       <ul className="mp-side-nav-list" ref={listRef}>
         <span className="mp-side-nav-indicator" ref={indicatorRef} aria-hidden="true" />
         {ITEMS.map((item) => {
