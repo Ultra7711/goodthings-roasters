@@ -155,6 +155,11 @@ export function mapProductRow(row: ProductWithRelationsRow): Product {
       bg: i.bg,
       bgTheme: i.bg_theme,
       src: i.src,
+      /* S263 — 어드민 업로드 이미지 LQIP (admin imageActions 가 base64 추출 저장).
+         정적 src (PRODUCTS 시드) 는 blur_data_url=NULL → caller 가 products-blur.json fallback. */
+      blurDataURL: i.blur_data_url,
+      width: i.width,
+      height: i.height,
     }));
 
   const recipe: RecipeItem[] = [...row.product_recipes]

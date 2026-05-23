@@ -55,8 +55,10 @@ export default function WelcomeCard({ userName }: Props) {
       </div>
       <div className="mp-next-image" aria-hidden="true">
         {pick ? (() => {
-          const src = pick.images[0].src;
-          const meta = getProductImageMeta(src);
+          const img = pick.images[0];
+          const src = img.src;
+          /* S263 — DB blur_data_url 우선 (어드민 업로드), 없으면 정적 products-blur.json fallback. */
+          const blurDataURL = img.blurDataURL ?? getProductImageMeta(src)?.blurDataURL;
           return (
             <Image
               src={src}
@@ -64,8 +66,8 @@ export default function WelcomeCard({ userName }: Props) {
               fill
               sizes="240px"
               className="mp-next-image-img"
-              placeholder={meta ? 'blur' : 'empty'}
-              blurDataURL={meta?.blurDataURL}
+              placeholder={blurDataURL ? 'blur' : 'empty'}
+              blurDataURL={blurDataURL ?? undefined}
             />
           );
         })() : (

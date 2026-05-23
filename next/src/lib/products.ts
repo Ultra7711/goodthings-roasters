@@ -13,6 +13,11 @@ export type ProductImage = {
   bg: string;
   bgTheme: 'light' | 'dark';
   src: string;
+  /** S263 — DB product_images.blur_data_url 매핑. 어드민 업로드 이미지 LQIP.
+      정적 src 는 products-blur.json (getProductImageMeta) lookup. */
+  blurDataURL?: string | null;
+  width?: number | null;
+  height?: number | null;
 };
 
 /** 이미지 LQIP 메타데이터 — npm run gen:image-blur 가 생성한 products-blur.json 에서 lookup */

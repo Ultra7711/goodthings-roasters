@@ -192,8 +192,22 @@ describe('mapProductRow — product_images', () => {
     });
     const images = mapProductRow(row).images;
     expect(images).toEqual([
-      { bg: '#000', bgTheme: 'dark', src: '/images/products/a.webp' },
-      { bg: '#fff', bgTheme: 'light', src: '/images/products/b.webp' },
+      {
+        bg: '#000',
+        bgTheme: 'dark',
+        src: '/images/products/a.webp',
+        blurDataURL: 'data:image/png;base64,xxx',
+        width: 900,
+        height: 900,
+      },
+      {
+        bg: '#fff',
+        bgTheme: 'light',
+        src: '/images/products/b.webp',
+        blurDataURL: null,
+        width: null,
+        height: null,
+      },
     ]);
   });
 });
