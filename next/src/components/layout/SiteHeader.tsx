@@ -289,8 +289,9 @@ export default function SiteHeader() {
               href="/"
               aria-label="Good Things Roasters 홈"
               onClick={handleLogoClick}
-              /* Session 43 — 로고 anchor tap-area 30h → 40h (padding 5 * 2), 레이아웃 영향 없음 */
-              style={{ display: 'inline-flex', alignItems: 'center', padding: '5px 0', margin: '-5px 0' }}
+              /* Session 43 — 로고 anchor tap-area 30h → 40h (padding 5 * 2), 레이아웃 영향 없음.
+                 S253: inline-flex + SVG 첫 자식 = baseline drift 보수 차단 (verticalAlign middle). */
+              style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle', padding: '5px 0', margin: '-5px 0' }}
             >
               <svg
                 id="logo-img"

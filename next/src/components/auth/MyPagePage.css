@@ -361,8 +361,10 @@
 .mp-sub-item-status--paused {
   display: inline-flex; align-items: center; gap: 8px;
   color: var(--color-text-tertiary);
+  /* S253: inline-flex baseline = first item (SVG) bottom → 라인 박스 확장 차단.
+     기존 `svg { top: -1px }` baseline hack 폐기 (cm-menu-name-with-sig S252 답습). */
+  vertical-align: middle;
 }
-.mp-sub-item-status--paused svg { position: relative; top: -1px; }
 
 /* 빈 상태 */
 .mp-empty-state {
