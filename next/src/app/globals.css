@@ -1621,7 +1621,7 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    LOGIN PAGE — lp-* + auth-overlay
    S186 Pilot 7 (옵션 A): 라우트 단독 자산은 components/auth/LoginPage.css 로 colocate.
    잔류 cross-route 셀렉터 1종:
-   - .lp-submit-btn:not(:disabled):hover, .lp-guest-buy-btn:not(:disabled):hover
+   - .lp-submit-btn:not(:disabled):hover
      (@media hover:none mobile 차단 정책 그룹)
    ══════════════════════════════════════════ */
 
@@ -2068,7 +2068,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   /* primary filled: hover bg darken 차단 → default bg 유지 */
   #pd-cart-btn:not(.disabled):hover,
   .lp-submit-btn:not(:disabled):hover,
-  .lp-guest-buy-btn:not(:disabled):hover,
   .chp-submit-btn:not(:disabled):hover,
   .chp-login-primary-btn:hover,
   .cp-order-btn:not(:disabled):hover,

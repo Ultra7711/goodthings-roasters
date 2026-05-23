@@ -7,7 +7,7 @@
      (LoginPage 만 사용 · 32 LOC)
 
    잔류 cross-route 셀렉터 (옵션 A):
-   - .lp-submit-btn:not(:disabled):hover, .lp-guest-buy-btn:not(:disabled):hover
+   - .lp-submit-btn:not(:disabled):hover
      → globals.css `@media (hover: none)` 모바일 hover 차단 정책 그룹에 잔류.
 
    사용처: components/auth/LoginPage.tsx
@@ -108,18 +108,6 @@
 }
 .lp-submit-btn:disabled { opacity: var(--state-disabled-opacity-cta); cursor: not-allowed; }
 
-/* 데모 채우기 버튼 */
-.lp-demo-fill-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 100%; height: 40px; padding: 0; margin-top: -24px; margin-bottom: 36px;
-  background: transparent; color: var(--color-text-caption);
-  border: 1px dashed var(--color-border-secondary); cursor: pointer;
-  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 400;
-  letter-spacing: var(--ls-body); transition: color var(--duration-hover) ease, border-color var(--duration-hover) ease;
-}
-.lp-demo-fill-btn:hover { color: var(--color-text-primary); border-color: var(--color-text-caption); }
-.lp-demo-fill-btn:disabled { opacity: var(--state-disabled-opacity-cta); cursor: not-allowed; }
-
 /* 구분선 */
 .lp-divider-wrap { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
 .lp-divider-line { flex: 1; box-shadow: inset 0 1px 0 0 var(--color-border-tertiary); height: 0; }
@@ -189,32 +177,6 @@
 .lp-guest-order-btn { display: inline-block; }
 /* .lp-forgot margin-top: -8 유지 (span 의 margin -13 이 위쪽 간격을 13 추가로 흡수하므로 원래 -8 로도 시각 동일) */
 
-/* 비회원 구매 박스 (체크아웃 진입) */
-.lp-guest-buy-box {
-  box-shadow: 0 0 0 1px var(--color-border-secondary);
-  padding: 24px; margin-bottom: 32px;
-  display: flex; flex-direction: column; gap: var(--gap-md); align-items: center;
-  width: 100%; box-sizing: border-box; text-align: center;
-}
-.lp-guest-buy-desc {
-  font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: var(--type-body-ui-weight);
-  color: var(--color-text-secondary); line-height: 24px;
-}
-.lp-guest-buy-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  height: 48px; padding: 0 var(--cta-btn-padding-x-primary);
-  font-family: var(--btn-font-family); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
-  letter-spacing: var(--btn-letter-spacing);
-  background: var(--color-btn-primary-bg); color: var(--color-text-inverse); border: none; cursor: pointer;
-  transition: background 200ms ease;
-}
-.lp-guest-buy-btn:not(:disabled):hover {
-  background: var(--color-btn-primary-bg-hover);
-}
-.lp-guest-buy-btn:not(:disabled):active {
-  background: var(--color-btn-primary-bg-active);
-}
-
 /* ══ LoginPage — Mobile (≤768) 정규화 (P0 + P1 + P2) ══
    기존 데스크탑 스펙이 모바일 분기 없이 적용되던 것을 BP 분기.
    - P0 상/하 패딩 축소 · max-width 해제 · 타이틀 블록 margin 축소 · 소셜 wrap
@@ -242,26 +204,13 @@
   .lp-guest-order-btn {
     font-size: 14px;
   }
-  /* 비회원 박스 본문 line-height 완화 (1.7 → 1.55) · 3줄 꺾임 방지 */
-  .lp-guest-buy-desc {
-    line-height: 24px;
-  }
   /* submit 버튼 아래 공간 · 소셜 divider 와의 간격 축소 */
   .lp-submit-btn {
-    margin-bottom: 24px;
-  }
-  /* 데모 채우기 버튼 margin 정리 */
-  .lp-demo-fill-btn {
     margin-bottom: 24px;
   }
   /* 비회원 주문 조회 섹션 상단 여백 축소 */
   .lp-guest-order-wrap {
     margin-top: 24px;
-  }
-  /* 비회원 구매 박스 패딩 축소 (좁은 폭 대비) */
-  .lp-guest-buy-box {
-    padding: 20px;
-    margin-bottom: 24px;
   }
 }
 
