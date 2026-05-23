@@ -64,9 +64,18 @@ export default function CheckoutPage() {
     isLoading: cartLoading,
   } = useCartQuery();
 
-  /* ── cart signature — D-1 stale guard 용 (useCheckoutFlow 에 전달) ── */
+  /* ── cart signature — D-1 stale guard 용 (useCheckoutFlow 에 전달) ──
+     id (UUID) 포함으로 추가/제거/교체 모두 감지. slug+qty 만 비교 시
+     동일 합계 우연 일치 (예: 상품 A 2개 → 상품 B 2개 + slug 정렬 동일) 누락 위험. */
   const cartSig = useMemo(
-    () => items.map((i) => `${i.slug}:${i.qty}`).sort().join('|'),
+    () =>
+      items
+        .map(
+          (i) =>
+            `${i.id}:${i.slug}:${i.qty}:${i.type}:${i.volume ?? ''}:${i.period ?? ''}`,
+        )
+        .sort()
+        .join('|'),
     [items],
   );
 

@@ -72,7 +72,12 @@ export default function CheckoutPayment({
      requesting=true 상태가 그대로 남아 CTA 가 "결제창 이동 중…" 으로 무한 대기.
      두 경로로 복구:
      1. pageshow persisted=true — bfcache 복원 (이 버그의 근본 경로) + pending cancel
-     2. 15초 안전망 — SDK 가 promise reject 없이 결제창이 닫히는 드문 케이스
+        대부분의 결제창 이탈은 이 경로로 복구된다.
+     2. 60초 안전망 — SDK 가 promise reject 없이 결제창이 닫히는 드문 케이스.
+        사용자의 정상 결제 조작 시간 (카드 정보 입력 · OTP 등) 은 보통 10~30초이며,
+        넉넉히 60초까지 보장. 60초 이후에도 무응답이면 사용자가 결제창 자체를
+        잊고 다른 작업 중일 가능성이 높아 CTA 잠금 해제가 자연스럽다.
+        (S91 카드 사고 회피: 결제 진행 중에는 절대 reset 하지 않으므로 안전.)
   */
   useEffect(() => {
     const onPageShow = (event: PageTransitionEvent) => {
@@ -87,7 +92,7 @@ export default function CheckoutPayment({
 
   useEffect(() => {
     if (!requesting) return;
-    const timer = setTimeout(() => setRequesting(false), 15000);
+    const timer = setTimeout(() => setRequesting(false), 60_000);
     return () => clearTimeout(timer);
   }, [requesting]);
 
