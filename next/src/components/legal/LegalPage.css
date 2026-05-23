@@ -181,3 +181,16 @@
   }
   .legal-defs { gap: 12px; }
 }
+
+
+/* ── S281 검색어 하이라이트 ──────────────────────────────────────────
+   /search 페이지에서 ?q=... 로 진입 시 매치 단어 골드 배경 강조.
+   .search-highlight (SearchPage.css) 와 시각 일관성 유지 — 골드 컬러 강조.
+   배경색 = surface-secondary 의 옅은 톤. */
+.legal-highlight {
+  background-color: var(--color-accent-gold-soft, rgba(196, 162, 90, 0.18));
+  color: var(--color-accent-gold);
+  font-weight: 600;
+  padding: 0 2px;
+  border-radius: 2px;
+}

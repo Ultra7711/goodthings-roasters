@@ -10,7 +10,7 @@
 
 import Image from 'next/image';
 import { FileText } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import HighlightText from './HighlightText';
 import { extractKrName } from '@/lib/utils';
 import { getProductImageMeta } from '@/lib/products';
@@ -23,12 +23,16 @@ type Props = {
 
 export default function SearchResultCard({ result }: Props) {
   const router = useRouter();
+  const params = useSearchParams();
 
   /* S280: legal 결과 — 이미지 없는 텍스트 카드 (제목 + description + slug link).
-     legal 페이지는 /legal/[slug] 라우트로 이동. */
+     legal 페이지는 /legal/[slug] 라우트로 이동.
+     S281: 현재 검색 쿼리를 ?q=... 로 전달 → legal 페이지에서 자동 스크롤 + 하이라이트. */
   if (result.kind === 'legal') {
     const l = result.item;
-    const onClick = () => router.push(`/legal/${l.slug}`);
+    const q = params.get('q')?.trim() ?? '';
+    const href = q ? `/legal/${l.slug}?q=${encodeURIComponent(q)}` : `/legal/${l.slug}`;
+    const onClick = () => router.push(href);
     const onKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
