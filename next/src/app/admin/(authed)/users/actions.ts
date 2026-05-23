@@ -30,6 +30,20 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
+import { fetchAdminUsersForExport } from '@/lib/admin/usersServer';
+import {
+  describeProvider,
+  describeRole,
+  formatJoinedDate,
+  resolveUserName,
+} from '@/lib/admin/users';
+import {
+  MAX_EXPORT_ROWS,
+  buildCsv,
+  buildExportFilename,
+  logCsvExportAudit,
+  nowKstDisplay,
+} from '@/lib/admin/csvExport';
 
 /* ── Schemas ──────────────────────────────────────────────────────────── */
 
@@ -212,4 +226,82 @@ export async function setAdminLevelAction(
   revalidatePath('/admin/users');
   revalidatePath(`/admin/users/${parsed.data.targetId}`);
   return { ok: true, targetId: parsed.data.targetId };
+}
+
+/* ── exportUsersCsvAction (S255-B · Users CSV export) ─────────────────
+   orders / subscriptions 답습. owner 가드 + Zod + fetchAdminUsersForExport
+   + buildCsv + audit log. UsersTableClient 의 handleExport 가 호출.
+   ──────────────────────────────────────────────────────────────────── */
+
+const ExportUsersInputSchema = z.object({
+  role: z.enum(['all', 'admin', 'customer']).default('all'),
+  provider: z.enum(['all', 'email', 'google', 'kakao', 'naver']).default('all'),
+  q: z.string().default(''),
+});
+
+export type ExportUsersInput = z.input<typeof ExportUsersInputSchema>;
+
+export type ExportUsersCsvResult =
+  | { ok: true; filename: string; csv: string; rowCount: number; truncated: boolean }
+  | { ok: false; error: 'unauthorized' | 'validation_failed' | 'server_error' };
+
+export async function exportUsersCsvAction(
+  input: ExportUsersInput,
+): Promise<ExportUsersCsvResult> {
+  /* owner (관리자) 만 CSV 내보내기. staff (운영자) 는 차단. */
+  const claims = await getAdminOwnerClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const parsed = ExportUsersInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'validation_failed' };
+
+  try {
+    const { rows, truncated } = await fetchAdminUsersForExport(
+      {
+        role: parsed.data.role,
+        provider: parsed.data.provider,
+        q: parsed.data.q,
+      },
+      MAX_EXPORT_ROWS,
+    );
+
+    const headers = [
+      '이메일',
+      '이름',
+      '역할',
+      '가입 채널',
+      '가입일',
+      '주문수',
+    ] as const;
+
+    const dataRows = rows.map((u) => [
+      u.email,
+      resolveUserName(u),
+      describeRole(u.role, u.adminLevel).label,
+      describeProvider(u.signupProvider),
+      formatJoinedDate(u.createdAtIso),
+      u.orderCount,
+    ]);
+
+    const csv = buildCsv(headers, dataRows, {
+      domain: '고객',
+      generatedAtKst: nowKstDisplay(),
+    });
+    const filename = buildExportFilename('users');
+
+    await logCsvExportAudit({
+      domain: 'users',
+      actorId: claims.userId,
+      filters: parsed.data,
+      rowCount: rows.length,
+      truncated,
+    });
+
+    return { ok: true, filename, csv, rowCount: rows.length, truncated };
+  } catch (err: unknown) {
+    console.error('[exportUsersCsvAction] failed', {
+      message: err instanceof Error ? err.message.slice(0, 200) : 'unknown',
+    });
+    return { ok: false, error: 'server_error' };
+  }
 }

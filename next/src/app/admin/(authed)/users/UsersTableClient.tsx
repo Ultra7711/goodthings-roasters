@@ -18,9 +18,12 @@
    - PR-3: 역할 변경 다이얼로그 (admin_audit 카드 포함)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { exportUsersCsvAction } from './actions';
+import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminTabsNav } from '@/components/admin/AdminTabsNav';
@@ -51,6 +54,8 @@ type Props = {
   total: number;
   counts: CountsShape;
   filters: AdminUsersSearchParams;
+  /** S255-B: owner (관리자) 만 CSV 내보내기 활성. staff (운영자) 는 disabled. */
+  isOwner: boolean;
 };
 
 const TONES: Record<RoleTone, { bg: string; fg: string; dot: string }> = {
@@ -58,14 +63,56 @@ const TONES: Record<RoleTone, { bg: string; fg: string; dot: string }> = {
   neutral: { bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)', dot: 'var(--foreground-muted)' },
 };
 
-export default function UsersTableClient({ rows, total, counts, filters }: Props) {
+export default function UsersTableClient({ rows, total, counts, filters, isOwner }: Props) {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState(filters.q);
+  const [isExporting, startExport] = useTransition();
 
   /* filters.q 가 외부에서 바뀌면 input 도 동기화 */
   useEffect(() => {
     setSearchValue(filters.q);
   }, [filters.q]);
+
+  /* CSV 내보내기 — 현재 role/provider/q 필터 적용. truncated 시 안내.
+     S255-B: orders/subscriptions handleExport 답습. */
+  function handleExport() {
+    startExport(async () => {
+      const result = await exportUsersCsvAction({
+        role: filters.role,
+        provider: filters.provider,
+        q: filters.q,
+      });
+      if (!result.ok) {
+        const map: Record<string, string> = {
+          unauthorized: '권한이 없습니다.',
+          validation_failed: '입력값이 잘못되었습니다.',
+          server_error: '내보내는 중 오류가 발생했습니다.',
+        };
+        toast.error(map[result.error] ?? '오류가 발생했습니다.');
+        return;
+      }
+      if (result.rowCount === 0) {
+        toast.info('내보낼 고객이 없습니다.');
+        return;
+      }
+      const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      if (result.truncated) {
+        toast.warning(
+          `${result.rowCount.toLocaleString()}명 내보냈습니다. 상한(10,000건) 초과 — 필터를 좁혀 다시 내보내주세요.`,
+        );
+      } else {
+        toast.success(`${result.rowCount.toLocaleString()}명을 내보냈습니다.`);
+      }
+    });
+  }
 
   /* URL builder — 현재 filters + override */
   function buildHref(override: Partial<AdminUsersSearchParams>): string {
@@ -160,6 +207,25 @@ export default function UsersTableClient({ rows, total, counts, filters }: Props
 
   return (
     <>
+      <AdminTopbarActions>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="!h-7"
+          onClick={handleExport}
+          disabled={!isOwner || isExporting || total === 0}
+          title={
+            !isOwner
+              ? '관리자 권한 필요'
+              : '현재 필터 기준으로 CSV 내보내기'
+          }
+        >
+          <Download />
+          {isExporting ? '내보내는 중…' : 'CSV 내보내기'}
+        </Button>
+      </AdminTopbarActions>
+
       <AdminPageHeader
         title="고객 관리"
         subtitle={
@@ -366,5 +432,22 @@ const ChevronDown = () => (
     style={{ opacity: 0.6 }}
   >
     <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
+const Download = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path d="M7 10l5 5 5-5" />
+    <path d="M12 15V3" />
   </svg>
 );

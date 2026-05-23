@@ -6,6 +6,7 @@
    - 인터랙션은 UsersTableClient (client) 가 담당
    ══════════════════════════════════════════════════════════════════════════ */
 
+import { getAdminClaims } from '@/lib/auth/getClaims';
 import { fetchAdminUsers } from '@/lib/admin/usersServer';
 import UsersTableClient from './UsersTableClient';
 
@@ -15,13 +16,17 @@ type PageProps = {
 
 export default async function AdminUsersPage({ searchParams }: PageProps) {
   const raw = await searchParams;
-  const result = await fetchAdminUsers(raw);
+  const [result, claims] = await Promise.all([
+    fetchAdminUsers(raw),
+    getAdminClaims(),
+  ]);
   return (
     <UsersTableClient
       rows={result.rows}
       total={result.total}
       counts={result.counts}
       filters={result.filters}
+      isOwner={claims?.adminLevel === 'owner'}
     />
   );
 }

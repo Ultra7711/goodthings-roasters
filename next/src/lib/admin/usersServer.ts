@@ -28,10 +28,24 @@ import {
   type DbUserRole,
   type ListedUser,
   type ListedUserOrder,
+  type ProviderFilterKey,
   type RoleTabKey,
   type SignupProvider,
   type UserDetailProfile,
 } from './users';
+
+/* ── CSV export 입력 (S255-B) ─────────────────────────────────────────── */
+
+export type AdminUsersExportFilters = {
+  role: RoleTabKey;
+  provider: ProviderFilterKey;
+  q: string;
+};
+
+export type AdminUsersExportResult = {
+  rows: ListedUser[];
+  truncated: boolean;
+};
 
 /** 상세 페이지 — 최근 주문 N개 */
 const RECENT_ORDERS_LIMIT = 20;
@@ -162,6 +176,77 @@ export async function fetchAdminUsers(
   }));
 
   return { rows, total: count ?? 0, counts, filters };
+}
+
+/* ── CSV export (S255-B) ─────────────────────────────────────────────
+   페이지네이션 무시 · maxRows+1 fetch 후 truncated 판정.
+   fetchAdminOrdersForExport / fetchAdminSubscriptionsForExport 답습.
+   ──────────────────────────────────────────────────────────────────── */
+
+export async function fetchAdminUsersForExport(
+  filters: AdminUsersExportFilters,
+  maxRows: number,
+): Promise<AdminUsersExportResult> {
+  const supabase = await createRouteHandlerClient();
+
+  let query = supabase
+    .from('profiles')
+    .select(
+      'id, email, full_name, display_name, role, admin_level, signup_provider, created_at',
+    )
+    .order('created_at', { ascending: false })
+    .range(0, maxRows);
+
+  if (filters.role !== 'all') query = query.eq('role', filters.role);
+  if (filters.provider !== 'all') query = query.eq('signup_provider', filters.provider);
+
+  query = applyIlikeSearch(query, sanitizeSearchQuery(filters.q), [
+    'email',
+    'full_name',
+    'display_name',
+  ]);
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('[fetchAdminUsersForExport] query failed', summarizePgError(error));
+    return { rows: [], truncated: false };
+  }
+
+  const all = (data ?? []) as ProfileRow[];
+  const truncated = all.length > maxRows;
+  const trimmed = truncated ? all.slice(0, maxRows) : all;
+
+  /* 주문수 — fetchAdminUsers 와 동일 패턴 (IN userIds 그룹 카운트). */
+  const orderCounts = new Map<string, number>();
+  const userIds = trimmed.map((p) => p.id);
+  if (userIds.length > 0) {
+    const { data: orderRows, error: orderErr } = await supabase
+      .from('orders')
+      .select('user_id')
+      .in('user_id', userIds);
+    if (orderErr) {
+      console.error('[fetchAdminUsersForExport] order count failed', summarizePgError(orderErr));
+    } else if (orderRows) {
+      for (const row of orderRows as { user_id: string | null }[]) {
+        if (!row.user_id) continue;
+        orderCounts.set(row.user_id, (orderCounts.get(row.user_id) ?? 0) + 1);
+      }
+    }
+  }
+
+  const rows: ListedUser[] = trimmed.map((p) => ({
+    id: p.id,
+    email: p.email,
+    fullName: p.full_name,
+    displayName: p.display_name,
+    role: p.role,
+    adminLevel: p.admin_level,
+    signupProvider: p.signup_provider,
+    createdAtIso: p.created_at,
+    orderCount: orderCounts.get(p.id) ?? 0,
+  }));
+
+  return { rows, truncated };
 }
 
 /* ── 상세 조회 ──────────────────────────────────────────────────────── */
