@@ -49,14 +49,17 @@ export function describeAuditAction(
   /* S255-C: CSV → Excel(xlsx) 전환 후 라벨 일반화. audit_log enum 'csv_*' 는
      backward compat 유지 (마이그 X) · 사용자 표시 라벨만 '내보내기' 로 갱신. */
   switch (action) {
-    case 'csv_subscriptions': return { label: '정기배송 내보내기', tone: 'info' };
-    case 'csv_orders':        return { label: '주문 내보내기', tone: 'info' };
-    case 'csv_users':         return { label: '고객 내보내기', tone: 'info' };
-    case 'csv_products':      return { label: '상품 내보내기', tone: 'info' };
-    case 'csv_audit':         return { label: '감사 로그 내보내기', tone: 'info' };
-    case 'grant_admin':       return { label: '운영자 권한 부여', tone: 'success' };
-    case 'revoke_admin':      return { label: '어드민 권한 해제', tone: 'neutral' };
-    case 'set_admin_level':   return { label: '권한 단계 변경', tone: 'warning' };
+    case 'csv_subscriptions':    return { label: '정기배송 내보내기', tone: 'info' };
+    case 'csv_orders':           return { label: '주문 내보내기', tone: 'info' };
+    case 'csv_users':            return { label: '고객 내보내기', tone: 'info' };
+    case 'csv_products':         return { label: '상품 내보내기', tone: 'info' };
+    case 'csv_audit':            return { label: '감사 로그 내보내기', tone: 'info' };
+    case 'grant_admin':          return { label: '운영자 권한 부여', tone: 'success' };
+    case 'revoke_admin':         return { label: '어드민 권한 해제', tone: 'neutral' };
+    case 'set_admin_level':      return { label: '권한 단계 변경', tone: 'warning' };
+    /* S258 P2: 회원 탈퇴 2종 — self = 자기 탈퇴, force = 운영자 직권. */
+    case 'self_delete_account':  return { label: '회원 자기 탈퇴', tone: 'neutral' };
+    case 'force_delete_account': return { label: '운영자 직권 탈퇴', tone: 'warning' };
   }
 }
 

@@ -75,6 +75,8 @@ type AdminStubOptions = {
   rpcError?: { message: string; code?: string } | null;
   rpcData?: unknown;
   deleteUserError?: { message: string; status?: number } | null;
+  /** S258 P2: admin_audit insert mock 옵션 */
+  auditInsertError?: { message: string; code?: string } | null;
 };
 
 function makeAdminStub(opts: AdminStubOptions = {}) {
@@ -86,8 +88,14 @@ function makeAdminStub(opts: AdminStubOptions = {}) {
     data: null,
     error: opts.deleteUserError ?? null,
   }));
+  /* S258 P2: admin_audit insert (self_delete_account) 후크. */
+  const insert = vi.fn(async () => ({
+    error: opts.auditInsertError ?? null,
+  }));
+  const from = vi.fn(() => ({ insert }));
   return {
     rpc,
+    from,
     auth: { admin: { deleteUser } },
   } as unknown as ReturnType<typeof getSupabaseAdmin>;
 }

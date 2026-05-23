@@ -44,7 +44,9 @@ export type AdminAuditAction =
   | 'csv_audit'
   | 'grant_admin'
   | 'revoke_admin'
-  | 'set_admin_level';
+  | 'set_admin_level'
+  | 'self_delete_account'
+  | 'force_delete_account';
 
 /** 표시 한도 — 1-3인 운영 가정. 향후 페이지네이션 carry. */
 const FETCH_LIMIT = 100;
@@ -62,9 +64,18 @@ type ExportRow = {
 type RoleAuditRow = {
   id: string;
   actor_id: string | null;
-  target_user_id: string;
-  action: 'grant_admin' | 'revoke_admin' | 'set_admin_level';
+  /** S258 P2: 070 마이그로 nullable 전환 (탈퇴된 user 의 audit 보존). */
+  target_user_id: string | null;
+  /** S258 P2: 070 마이그로 탈퇴 액션 2종 추가. */
+  action:
+    | 'grant_admin'
+    | 'revoke_admin'
+    | 'set_admin_level'
+    | 'self_delete_account'
+    | 'force_delete_account';
   reason: string | null;
+  /** S258 P2: 070 마이그 — 탈퇴 후 추적용 email 스냅샷. */
+  target_email_snapshot: string | null;
   created_at: string;
 };
 
@@ -84,7 +95,7 @@ export async function fetchAdminAuditEvents(): Promise<AdminAuditEvent[]> {
       .limit(FETCH_LIMIT),
     supabase
       .from('admin_audit')
-      .select('id, actor_id, target_user_id, action, reason, created_at')
+      .select('id, actor_id, target_user_id, action, reason, target_email_snapshot, created_at')
       .order('created_at', { ascending: false })
       .limit(FETCH_LIMIT),
   ]);
@@ -99,12 +110,15 @@ export async function fetchAdminAuditEvents(): Promise<AdminAuditEvent[]> {
   const exportRows = (exportRes.data ?? []) as ExportRow[];
   const roleRows = (roleRes.data ?? []) as RoleAuditRow[];
 
-  /* 2) 관련 프로필 lookup (actor + target) */
+  /* 2) 관련 프로필 lookup (actor + target).
+     S258 P2: target_user_id 가 nullable 됨 → filter 추가. */
   const profileIds = Array.from(
     new Set([
       ...exportRows.map((r) => r.actor_id),
       ...roleRows.map((r) => r.actor_id).filter((v): v is string => typeof v === 'string'),
-      ...roleRows.map((r) => r.target_user_id),
+      ...roleRows
+        .map((r) => r.target_user_id)
+        .filter((v): v is string => typeof v === 'string'),
     ]),
   );
 
@@ -148,7 +162,11 @@ export async function fetchAdminAuditEvents(): Promise<AdminAuditEvent[]> {
     actorId: r.actor_id ?? '',
     actorEmail: r.actor_id ? emailMap.get(r.actor_id) ?? null : null,
     targetUserId: r.target_user_id,
-    targetUserEmail: emailMap.get(r.target_user_id) ?? null,
+    /* S258 P2: target_user_id 가 NULL (탈퇴 후) 인 경우 target_email_snapshot 활용. */
+    targetUserEmail:
+      (r.target_user_id ? emailMap.get(r.target_user_id) : null) ??
+      r.target_email_snapshot ??
+      null,
     details: { reason: r.reason },
     createdAtIso: r.created_at,
   }));

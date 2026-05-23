@@ -112,7 +112,28 @@ export async function POST(request: Request): Promise<Response> {
     return apiError('server_error');
   }
 
-  /* 6) auth.users 삭제 — profiles/addresses CASCADE */
+  /* 6a) admin_audit 기록 — auth.users 삭제 전에 수행해야 함.
+     070 마이그로 target_user_id FK 가 SET NULL 로 바뀌어 탈퇴 후에도 row 잔존하지만,
+     target_email_snapshot 보존을 위해 삭제 전 시점에 insert. */
+  const { error: auditErr } = await admin
+    .from('admin_audit')
+    .insert({
+      actor_id: userId,
+      target_user_id: userId,
+      action: 'self_delete_account',
+      reason: 'mypage_self_delete',
+      target_email_snapshot: email ?? null,
+    });
+
+  if (auditErr) {
+    /* admin_audit insert 실패는 치명 아님 — 탈퇴 자체는 진행. 운영자에게 경고만. */
+    console.error('[account.delete] admin_audit insert failed', {
+      code: auditErr.code,
+      ...(process.env.NODE_ENV !== 'production' && { msg: auditErr.message?.slice(0, 200) }),
+    });
+  }
+
+  /* 6b) auth.users 삭제 — profiles/addresses CASCADE */
   const { error: deleteAuthErr } = await admin.auth.admin.deleteUser(userId);
 
   if (deleteAuthErr) {
