@@ -22,13 +22,18 @@ export default function AccountView({ onLoggedOut }: Props) {
     <div className="mp-section-body">
       <PasswordChangeForm />
       <AccountDeleteSection onLoggedOut={onLoggedOut} />
-      <p className="mp-rights-note">
-        열람·정정·처리정지 등 개인정보 권리는{' '}
-        <a href="mailto:privacy@goodthingsroasters.com">privacy@goodthingsroasters.com</a>
-        {' '}또는{' '}
-        <Link href="/legal/privacy">개인정보처리방침</Link>
-        을 통해 행사하실 수 있습니다.
-      </p>
+      <div className="mp-rights-note">
+        <p>
+          열람·정정·처리정지 등 개인정보 권리는{' '}
+          <a href="mailto:privacy@goodthingsroasters.com">privacy@goodthingsroasters.com</a>
+          {' '}으로 요청해 주세요.
+        </p>
+        <p>
+          자세한 안내는{' '}
+          <Link href="/legal/privacy">개인정보처리방침</Link>
+          을 참고하세요.
+        </p>
+      </div>
     </div>
   );
 }

@@ -543,13 +543,19 @@
 }
 
 /* S263 B-3 — 개인정보 권리 행사 안내 문구 (회원 탈퇴 아래).
-   inline edit 행이 아닌 정보 텍스트로 시각 분리: hairline 없음 · muted color · Body S. */
+   inline edit 행이 아닌 정보 텍스트로 시각 분리: hairline 없음 · muted color · Body S.
+   line-height 토큰 (한글 본문 13px = 20px 정수). 단락별 <p> 분리 + 단락 사이 margin
+   으로 줄 사이 vs 단락 사이 hierarchy 명시. */
 .mp-rights-note {
   margin: 16px 0 0;
   font-size: var(--type-body-s-size);
-  line-height: 1.6;
   color: var(--color-text-secondary);
 }
+.mp-rights-note p {
+  margin: 0;
+  line-height: var(--lh-kr-body-13);
+}
+.mp-rights-note p + p { margin-top: 12px; }
 .mp-rights-note a {
   color: var(--color-text-secondary);
   text-decoration: underline;
