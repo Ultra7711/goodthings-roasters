@@ -107,6 +107,10 @@
     z-index: 5;
     align-self: stretch;
     background: var(--color-background-primary);
+    /* S263 follow-up: 모바일 sticky + 자식 mask-image 조합에서 iOS Safari paint
+       cycle jitter (미세 떨림) 발생. GPU compositor layer 강제 → paint 안정화. */
+    transform: translateZ(0);
+    will-change: transform;
   }
   .mp-side-nav-list {
     flex-direction: row;
