@@ -24,12 +24,12 @@ import { fetchAdminOrdersForExport } from '@/lib/admin/ordersServer';
 import { describeStatus } from '@/lib/admin/orders';
 import {
   MAX_EXPORT_ROWS,
-  buildCsv,
   buildExportFilename,
   formatKstDateTimeCell,
   logCsvExportAudit,
   nowKstDisplay,
 } from '@/lib/admin/csvExport';
+import { buildXlsxBuffer, bufferToBase64 } from '@/lib/admin/xlsxExport';
 
 const ExportOrdersInputSchema = z.object({
   status: z.enum(['all', 'new', 'shipping', 'delivered', 'cancelled']).default('all'),
@@ -41,7 +41,14 @@ const ExportOrdersInputSchema = z.object({
 export type ExportOrdersInput = z.input<typeof ExportOrdersInputSchema>;
 
 export type ExportCsvResult =
-  | { ok: true; filename: string; csv: string; rowCount: number; truncated: boolean }
+  | {
+      ok: true;
+      filename: string;
+      /** S255-C: xlsx Buffer 를 base64 로 직렬화한 값. client 가 atob → Uint8Array → Blob. */
+      xlsxBase64: string;
+      rowCount: number;
+      truncated: boolean;
+    }
   | { ok: false; error: 'unauthorized' | 'validation_failed' | 'server_error' };
 
 export async function exportOrdersCsvAction(
@@ -97,11 +104,11 @@ export async function exportOrdersCsvAction(
       describeStatus(o.status).label,
     ]);
 
-    const csv = buildCsv(headers, dataRows, {
+    const buffer = await buildXlsxBuffer(headers, dataRows, {
       domain: '주문',
       generatedAtKst: nowKstDisplay(),
     });
-    const filename = buildExportFilename('orders');
+    const filename = buildExportFilename('orders', 'xlsx');
 
     await logCsvExportAudit({
       domain: 'orders',
@@ -111,7 +118,13 @@ export async function exportOrdersCsvAction(
       truncated,
     });
 
-    return { ok: true, filename, csv, rowCount: rows.length, truncated };
+    return {
+      ok: true,
+      filename,
+      xlsxBase64: bufferToBase64(buffer),
+      rowCount: rows.length,
+      truncated,
+    };
   } catch (err: unknown) {
     console.error('[exportOrdersCsvAction] failed', {
       message: err instanceof Error ? err.message.slice(0, 200) : 'unknown',

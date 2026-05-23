@@ -1,74 +1,38 @@
 import 'server-only';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   csvExport.ts — admin 도메인 CSV 내보내기 공통 helper (S232)
+   csvExport.ts — admin 도메인 내보내기 공통 helper (S232 · S255-C 갱신)
 
-   책임:
-   - 필드 escape (RFC 4180 준수)
-   - UTF-8 BOM + CRLF 라인 결합
-   - 첫 행 안내 주석 (내부 자료 표기)
-   - 파일명 패턴 (KST 시각)
+   책임 (S255-C):
+   - 파일명 패턴 (KST 시각 + 확장자)
+   - KST 셀 포맷 (formatKstDateCell / formatKstDateTimeCell · 도메인 actions 가 재사용)
+   - audit log (logCsvExportAudit — admin_export_log INSERT + console 구조화)
+   - 내보내기 행 상한 (MAX_EXPORT_ROWS)
 
    DEC (S232 잠금):
-   - DEC-export-1: CSV 우선 (Excel 별 도입)
-   - DEC-export-2: UTF-8 BOM (Excel 한글 호환)
    - DEC-export-3: MAX_EXPORT_ROWS = 10,000 (행 초과 시 caller 가 ROW_LIMIT_EXCEEDED 처리)
-   - DEC-export-4: PII 평문 + admin actor 구조화 로그 (audit_log 별 sprint)
-   - DEC-export-5: 파일명 = {domain}-{YYYY-MM-DD-HHmm}.csv (KST)
+   - DEC-export-4: PII 평문 + admin actor 구조화 로그
+   - DEC-export-5: 파일명 = {domain}-{YYYY-MM-DD-HHmm}.{ext} (KST)
+
+   S255-C 변경:
+   - buildCsv 폐기 → xlsxExport.buildXlsxBuffer 로 일원화.
+     Excel 한국 빌드의 BOM 무시 + 시스템 로케일(CP949) 강제 동작으로 인한 한글
+     mojibake 우회. xlsx 는 zip+xml internal 이라 인코딩 무관.
+   - buildExportFilename 의 확장자 인자화 (default 'xlsx').
+   - audit_log enum 'csv_*' 은 backward compat 으로 유지 (라벨만 'XX 내보내기' 로
+     갱신 — describeAuditAction).
+   - 파일명 의미 변경 (csv → xlsx) — 함수 이름은 historical 'csvExport' 그대로.
 
    PII 정책:
    - 운영 목적 (회계 / CS / 배송) 평문 허용. 외부 공유 금지 표기.
    - 다운로드 행위는 logCsvExportAudit 으로 console 구조화 기록 (Vercel log 보존).
    ══════════════════════════════════════════════════════════════════════════ */
 
-/** DEC-export-3: CSV 행 수 상한 */
+/** DEC-export-3: 내보내기 행 수 상한 */
 export const MAX_EXPORT_ROWS = 10_000;
 
-/**
- * RFC 4180 escape — 큰따옴표 / 콤마 / 줄바꿈 포함 시 quote.
- * - null / undefined → 빈 문자열
- * - 큰따옴표 = 두 번 escape ("")
- */
-export function escapeCsvField(value: string | number | null | undefined): string {
-  if (value === null || value === undefined) return '';
-  const str = String(value);
-  if (str.length === 0) return '';
-  const needsQuote = /[",\r\n]/.test(str);
-  if (!needsQuote) return str;
-  return `"${str.replace(/"/g, '""')}"`;
-}
-
-/**
- * headers + rows → CSV 문자열 (UTF-8 BOM + Excel sep directive + CRLF + 안내 주석).
- *
- * 구조:
- * - BOM (UTF-8 인식 1차 hint)
- * - 첫 행: `sep=,` Excel directive (UTF-8 sniffing 강화 · 2차 hint)
- * - 둘째 행: # 굳띵즈 로스터스 내부 운영 자료 — 외부 공유 금지 (KST 시각)
- * - 셋째 행: 헤더
- * - 넷째 행~: 데이터
- *
- * sep directive 도입 배경 (S255-B 후속 · orders CSV 깨짐 fix):
- * Excel 은 BOM 외에도 첫 chunk 의 byte 분포로 인코딩 추론. orders 같이
- * ASCII (주문번호/날짜/이메일/전화) 비중 높은 데이터는 sniffing 실패 →
- * 시스템 로케일(CP949) fallback → 한글 mojibake. `sep=,` 는 Microsoft
- * 인식 magic directive 로 separator 명시 + UTF-8 sniffing 우선순위 강화.
- * Google Sheets / Numbers 는 첫 행에 'sep=,' 셀이 한 줄 추가되어 보이는
- * 정도 — 운영 안내문과 동일 무시 대상이라 영향 미미.
- */
-export function buildCsv(
-  headers: readonly string[],
-  rows: ReadonlyArray<ReadonlyArray<string | number | null | undefined>>,
-  meta: { domain: string; generatedAtKst: string },
-): string {
-  const BOM = '﻿';
-  const CRLF = '\r\n';
-  const sepDirective = 'sep=,';
-  const notice = `# 굳띵즈 로스터스 ${meta.domain} 내부 운영 자료 — 외부 공유 금지 · 생성 ${meta.generatedAtKst}`;
-  const headerLine = headers.map(escapeCsvField).join(',');
-  const dataLines = rows.map((row) => row.map(escapeCsvField).join(','));
-  return BOM + [sepDirective, notice, headerLine, ...dataLines].join(CRLF) + CRLF;
-}
+/* S255-C: buildCsv + escapeCsvField 폐기 — xlsxExport.buildXlsxBuffer 로 일원화.
+   Excel 한국 빌드 BOM 무시 + CP949 강제 우회. 필요 시 git history 에서 복원 가능. */
 
 /* ── KST 포맷 헬퍼 ───────────────────────────────────────────────────── */
 
@@ -90,24 +54,29 @@ function toKstParts(iso: string): {
   };
 }
 
-/** ISO → KST "YYYY.MM.DD HH:mm" (CSV 셀 표시용) */
+/** ISO → KST "YYYY.MM.DD HH:mm" (내보내기 셀 표시용) */
 export function formatKstDateTimeCell(iso: string | null): string {
   if (!iso) return '';
   const p = toKstParts(iso);
   return `${p.yyyy}.${pad2(p.mm)}.${pad2(p.dd)} ${pad2(p.hh)}:${pad2(p.mi)}`;
 }
 
-/** ISO → KST "YYYY.MM.DD" (CSV 셀 표시용 — 날짜만) */
+/** ISO → KST "YYYY.MM.DD" (내보내기 셀 표시용 — 날짜만) */
 export function formatKstDateCell(iso: string | null): string {
   if (!iso) return '';
   const p = toKstParts(iso);
   return `${p.yyyy}.${pad2(p.mm)}.${pad2(p.dd)}`;
 }
 
-/** 파일명 — {domain}-{YYYY-MM-DD-HHmm}.csv (KST) */
-export function buildExportFilename(domain: string, nowIso: string = new Date().toISOString()): string {
+/** 파일명 — {domain}-{YYYY-MM-DD-HHmm}.{ext} (KST). S255-C: 기본 xlsx.
+   확장자 인자 = 'xlsx' (default) | 'csv' (레거시 호환). */
+export function buildExportFilename(
+  domain: string,
+  extension: 'xlsx' | 'csv' = 'xlsx',
+  nowIso: string = new Date().toISOString(),
+): string {
   const p = toKstParts(nowIso);
-  return `${domain}-${p.yyyy}-${pad2(p.mm)}-${pad2(p.dd)}-${pad2(p.hh)}${pad2(p.mi)}.csv`;
+  return `${domain}-${p.yyyy}-${pad2(p.mm)}-${pad2(p.dd)}-${pad2(p.hh)}${pad2(p.mi)}.${extension}`;
 }
 
 /** "현재 KST" 표시용 (안내 주석 행 사용) */
@@ -119,7 +88,7 @@ export function nowKstDisplay(nowIso: string = new Date().toISOString()): string
 /* ── audit 로그 (DB + console) ─────────────────────────────────────── */
 
 /**
- * CSV 내보내기 행위 audit — admin_export_log 테이블 INSERT + console 병행.
+ * 내보내기 행위 audit — admin_export_log 테이블 INSERT + console 병행.
  *
  * - DB: 056 마이그 admin_export_log (영구 보관 + owner 통합 조회)
  * - console: Vercel log 30일+ 보존 (DB INSERT 실패 시 fallback 가시성)

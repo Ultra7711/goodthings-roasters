@@ -22,14 +22,21 @@ import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { fetchAdminAuditEvents } from '@/lib/admin/auditServer';
 import { describeAuditAction, formatAuditKstDateTime, describeExportFilters } from '@/lib/admin/audit';
 import {
-  buildCsv,
   buildExportFilename,
   logCsvExportAudit,
   nowKstDisplay,
 } from '@/lib/admin/csvExport';
+import { buildXlsxBuffer, bufferToBase64 } from '@/lib/admin/xlsxExport';
 
 export type ExportCsvResult =
-  | { ok: true; filename: string; csv: string; rowCount: number; truncated: boolean }
+  | {
+      ok: true;
+      filename: string;
+      /** S255-C: xlsx Buffer base64 직렬화. client 가 디코딩 후 Blob 생성. */
+      xlsxBase64: string;
+      rowCount: number;
+      truncated: boolean;
+    }
   | { ok: false; error: 'unauthorized' | 'server_error' };
 
 export async function exportAuditCsvAction(): Promise<ExportCsvResult> {
@@ -73,11 +80,11 @@ export async function exportAuditCsvAction(): Promise<ExportCsvResult> {
       ];
     });
 
-    const csv = buildCsv(headers, dataRows, {
+    const buffer = await buildXlsxBuffer(headers, dataRows, {
       domain: '감사 로그',
       generatedAtKst: nowKstDisplay(),
     });
-    const filename = buildExportFilename('audit');
+    const filename = buildExportFilename('audit', 'xlsx');
 
     /* 재귀 audit — 감사 로그 내보내기 행위 자체도 기록 (057 마이그 'audit' enum 답습) */
     await logCsvExportAudit({
@@ -88,7 +95,13 @@ export async function exportAuditCsvAction(): Promise<ExportCsvResult> {
       truncated: false,
     });
 
-    return { ok: true, filename, csv, rowCount: events.length, truncated: false };
+    return {
+      ok: true,
+      filename,
+      xlsxBase64: bufferToBase64(buffer),
+      rowCount: events.length,
+      truncated: false,
+    };
   } catch (err: unknown) {
     console.error('[exportAuditCsvAction] failed', {
       message: err instanceof Error ? err.message.slice(0, 200) : 'unknown',

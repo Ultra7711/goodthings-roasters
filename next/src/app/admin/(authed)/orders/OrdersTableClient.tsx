@@ -26,6 +26,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { exportOrdersCsvAction } from './actions';
+import { downloadXlsxFromBase64 } from '@/lib/admin/clientDownload';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
@@ -103,15 +104,7 @@ export default function OrdersTableClient({ rows, total, counts, filters, isOwne
         toast.info('내보낼 주문이 없습니다.');
         return;
       }
-      const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = result.filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      downloadXlsxFromBase64(result.xlsxBase64, result.filename);
       if (result.truncated) {
         toast.warning(
           `${result.rowCount.toLocaleString()}건 내보냈습니다. 상한(10,000건) 초과 — 필터를 좁혀 다시 내보내주세요.`,
@@ -289,11 +282,11 @@ export default function OrdersTableClient({ rows, total, counts, filters, isOwne
           title={
             !isOwner
               ? '관리자 권한 필요'
-              : '현재 필터 기준으로 CSV 내보내기'
+              : '현재 필터 기준으로 Excel 내보내기'
           }
         >
           <Download />
-          {isExporting ? '내보내는 중…' : 'CSV 내보내기'}
+          {isExporting ? '내보내는 중…' : 'Excel 내보내기'}
         </Button>
       </AdminTopbarActions>
 

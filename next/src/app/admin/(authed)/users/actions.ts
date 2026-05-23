@@ -39,11 +39,11 @@ import {
 } from '@/lib/admin/users';
 import {
   MAX_EXPORT_ROWS,
-  buildCsv,
   buildExportFilename,
   logCsvExportAudit,
   nowKstDisplay,
 } from '@/lib/admin/csvExport';
+import { buildXlsxBuffer, bufferToBase64 } from '@/lib/admin/xlsxExport';
 
 /* ── Schemas ──────────────────────────────────────────────────────────── */
 
@@ -242,7 +242,14 @@ const ExportUsersInputSchema = z.object({
 export type ExportUsersInput = z.input<typeof ExportUsersInputSchema>;
 
 export type ExportUsersCsvResult =
-  | { ok: true; filename: string; csv: string; rowCount: number; truncated: boolean }
+  | {
+      ok: true;
+      filename: string;
+      /** S255-C: xlsx Buffer base64 직렬화. client 가 디코딩 후 Blob 생성. */
+      xlsxBase64: string;
+      rowCount: number;
+      truncated: boolean;
+    }
   | { ok: false; error: 'unauthorized' | 'validation_failed' | 'server_error' };
 
 export async function exportUsersCsvAction(
@@ -283,11 +290,11 @@ export async function exportUsersCsvAction(
       u.orderCount,
     ]);
 
-    const csv = buildCsv(headers, dataRows, {
+    const buffer = await buildXlsxBuffer(headers, dataRows, {
       domain: '고객',
       generatedAtKst: nowKstDisplay(),
     });
-    const filename = buildExportFilename('users');
+    const filename = buildExportFilename('users', 'xlsx');
 
     await logCsvExportAudit({
       domain: 'users',
@@ -297,7 +304,13 @@ export async function exportUsersCsvAction(
       truncated,
     });
 
-    return { ok: true, filename, csv, rowCount: rows.length, truncated };
+    return {
+      ok: true,
+      filename,
+      xlsxBase64: bufferToBase64(buffer),
+      rowCount: rows.length,
+      truncated,
+    };
   } catch (err: unknown) {
     console.error('[exportUsersCsvAction] failed', {
       message: err instanceof Error ? err.message.slice(0, 200) : 'unknown',

@@ -39,12 +39,12 @@ import {
 import { fetchAdminSubscriptionsForExport } from '@/lib/admin/subscriptionsServer';
 import {
   MAX_EXPORT_ROWS,
-  buildCsv,
   buildExportFilename,
   formatKstDateCell,
   logCsvExportAudit,
   nowKstDisplay,
 } from '@/lib/admin/csvExport';
+import { buildXlsxBuffer, bufferToBase64 } from '@/lib/admin/xlsxExport';
 import {
   SUBSCRIPTION_CYCLES,
   CYCLE_DAYS,
@@ -518,7 +518,14 @@ const ExportSubscriptionsInputSchema = z.object({
 export type ExportSubscriptionsInput = z.input<typeof ExportSubscriptionsInputSchema>;
 
 export type ExportCsvResult =
-  | { ok: true; filename: string; csv: string; rowCount: number; truncated: boolean }
+  | {
+      ok: true;
+      filename: string;
+      /** S255-C: xlsx Buffer base64 직렬화. client 가 디코딩 후 Blob 생성. */
+      xlsxBase64: string;
+      rowCount: number;
+      truncated: boolean;
+    }
   | { ok: false; error: 'unauthorized' | 'validation_failed' | 'server_error' };
 
 export async function exportSubscriptionsCsvAction(
@@ -563,11 +570,11 @@ export async function exportSubscriptionsCsvAction(
       formatKstDateCell(s.createdAtIso),
     ]);
 
-    const csv = buildCsv(headers, dataRows, {
+    const buffer = await buildXlsxBuffer(headers, dataRows, {
       domain: '정기배송',
       generatedAtKst: nowKstDisplay(),
     });
-    const filename = buildExportFilename('subscriptions');
+    const filename = buildExportFilename('subscriptions', 'xlsx');
 
     await logCsvExportAudit({
       domain: 'subscriptions',
@@ -580,7 +587,7 @@ export async function exportSubscriptionsCsvAction(
     return {
       ok: true,
       filename,
-      csv,
+      xlsxBase64: bufferToBase64(buffer),
       rowCount: rows.length,
       truncated,
     };

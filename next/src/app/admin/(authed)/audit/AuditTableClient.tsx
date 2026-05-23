@@ -30,6 +30,7 @@ import {
 } from '@/lib/admin/audit';
 import type { AdminAuditEvent } from '@/lib/admin/auditServer';
 import { exportAuditCsvAction } from './actions';
+import { downloadXlsxFromBase64 } from '@/lib/admin/clientDownload';
 
 const TONES: Record<AuditTone, { bg: string; fg: string; dot: string }> = {
   primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)', dot: 'var(--primary)' },
@@ -46,7 +47,7 @@ type Props = {
 export default function AuditTableClient({ events }: Props) {
   const [isExporting, startExport] = useTransition();
 
-  /* CSV 내보내기 — 컴플라이언스 자료 (정부 · KISA PII 조회 기록 제출용). */
+  /* Excel 내보내기 — 컴플라이언스 자료 (정부 · KISA PII 조회 기록 제출용). */
   function handleExport() {
     startExport(async () => {
       const result = await exportAuditCsvAction();
@@ -62,15 +63,7 @@ export default function AuditTableClient({ events }: Props) {
         toast.info('내보낼 감사 로그가 없습니다.');
         return;
       }
-      const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = result.filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      downloadXlsxFromBase64(result.xlsxBase64, result.filename);
       toast.success(`${result.rowCount.toLocaleString()}건을 내보냈습니다.`);
     });
   }
@@ -155,10 +148,10 @@ export default function AuditTableClient({ events }: Props) {
           className="!h-7"
           onClick={handleExport}
           disabled={isExporting || events.length === 0}
-          title="감사 로그를 CSV 로 내보내기 (컴플라이언스 첨부 자료)"
+          title="감사 로그를 Excel 로 내보내기 (컴플라이언스 첨부 자료)"
         >
           <DownloadIcon />
-          {isExporting ? '내보내는 중…' : 'CSV 내보내기'}
+          {isExporting ? '내보내는 중…' : 'Excel 내보내기'}
         </Button>
       </AdminTopbarActions>
 
@@ -166,7 +159,7 @@ export default function AuditTableClient({ events }: Props) {
         title="감사 로그"
         subtitle={
           <>
-            CSV 내보내기 · 권한 변경 통합 타임라인 · 최근 {events.length}건
+            Excel 내보내기 · 권한 변경 통합 타임라인 · 최근 {events.length}건
           </>
         }
       />
