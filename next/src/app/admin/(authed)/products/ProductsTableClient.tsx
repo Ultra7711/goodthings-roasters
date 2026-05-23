@@ -39,7 +39,7 @@ import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import { Switch } from '@/components/admin/ui/switch';
 import type { AdminProductListItem } from '@/types/product';
 import type { ProductStatus } from '@/lib/products';
-import { reorderProductsAction, toggleProductActiveAction } from './actions';
+import { reorderProductsAction, toggleProductActiveAction } from './productActions';
 
 type Props = {
   rows: AdminProductListItem[];

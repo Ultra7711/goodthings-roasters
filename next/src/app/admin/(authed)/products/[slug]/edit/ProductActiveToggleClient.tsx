@@ -14,7 +14,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/admin/ui/switch';
-import { toggleProductActiveAction } from '../../actions';
+import { toggleProductActiveAction } from '../../productActions';
 
 type Props = {
   productId: string;

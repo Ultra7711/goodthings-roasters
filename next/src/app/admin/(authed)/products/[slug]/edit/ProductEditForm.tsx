@@ -50,9 +50,9 @@ import { Switch } from '@/components/admin/ui/switch';
 import { Textarea } from '@/components/admin/ui/textarea';
 import {
   createProductAction,
-  reorderProductImagesAction,
   updateProductMetaAction,
-} from '../../actions';
+} from '../../productActions';
+import { reorderProductImagesAction } from '../../imageActions';
 import type { ProductWithRelationsRow } from '@/types/product';
 import { cn } from '@/lib/utils';
 import { usePdpDirty } from './PdpDirtyContext';

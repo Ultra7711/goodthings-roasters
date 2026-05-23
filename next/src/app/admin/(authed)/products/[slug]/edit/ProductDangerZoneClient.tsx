@@ -19,7 +19,7 @@ import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/admin/ui/button';
 import ConfirmModal from '@/components/admin/ConfirmModal';
-import { deleteProductAction } from '../../actions';
+import { deleteProductAction } from '../../productActions';
 
 type Props = {
   productId: string;

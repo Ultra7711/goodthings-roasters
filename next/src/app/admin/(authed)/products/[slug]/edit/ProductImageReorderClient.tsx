@@ -26,7 +26,7 @@ import {
   deleteProductImageAction,
   updateProductImageActiveAction,
   uploadProductImageAction,
-} from '../../actions';
+} from '../../imageActions';
 import { cn } from '@/lib/utils';
 import { usePdpDirty } from './PdpDirtyContext';
 
