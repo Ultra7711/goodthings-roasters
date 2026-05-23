@@ -46,7 +46,7 @@ export default function SiteFooter() {
             </div>
             <div>
               <div className="f-col-title">Shop</div>
-              <Link href="/shop" className="footer-col-link">Featured Beans</Link>
+              <Link href="/shop" className="footer-col-link">All Beans</Link>
               <Link href="/menu" className="footer-col-link">Cafe Menu</Link>
             </div>
             <div>

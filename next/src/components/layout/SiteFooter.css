@@ -3,6 +3,11 @@ footer.blk {
   /* .blk의 overflow:hidden이 sr-txt translateY(20px)를 클리핑해
      애니메이션이 보이지 않는 문제 방지 */
   overflow: visible;
+  /* S263 B-1 — iOS Safari rubber-band overscroll 시 .page-bg (warm white) 가
+     stretchy 영역에 노출되는 현상 차단. footer 태그 자체에 stone bg 명시 →
+     footer 영역에서 elastic stretch 가 발생해도 .page-bg 가 footer 아래로
+     비집고 나가지 못함 (footer 가 layer 격리). */
+  background-color: var(--color-surface-stone);
 }
 .footer {
   background: var(--color-surface-stone);
@@ -65,13 +70,17 @@ footer.blk {
 }
 @media (max-width: 767px) {
   .f-inner { padding-top: 56px; }
-  /* S252: 1열 → 2열 (자연 grid flow). row 1 = Story | Shop, row 2 = Contact | (빈).
-     세로 점유 약 1/2 절약. 3번째 셀(빈칸)은 grid 자동 처리 — 별도 placeholder 없음. */
+  /* S263 B-4: 모바일 2열 → 3열 1줄 (Story | Shop | Contact 가로 1행).
+     360 viewport (inner ≈ 320, gap 8 × 2 = 16) → col ≈ 101px.
+     링크 줄바꿈 차단 = white-space: nowrap (col 폭 초과 시 부모 grid 가 1fr 분배 조정). */
   .f-cols {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
     margin-top: 40px;
     padding-top: 40px;
+  }
+  .footer-col-link {
+    white-space: nowrap;
   }
 }
 .f-col-title {
