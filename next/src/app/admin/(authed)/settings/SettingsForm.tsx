@@ -45,9 +45,9 @@ import { NoticeSubForm } from './sections/NoticeSubForm';
 import { SignatureSubForm } from './sections/SignatureSubForm';
 import { HomeFeaturedSubForm } from './sections/HomeFeaturedSubForm';
 import { Badge } from './_shared/Badge';
+import { describeError } from '@/lib/admin/errorDescribe';
 import {
   buildPreviewSrc,
-  describeError,
   describeUpdatedKeys,
   shallowEqualHomeFeatured,
   shallowEqualNotice,

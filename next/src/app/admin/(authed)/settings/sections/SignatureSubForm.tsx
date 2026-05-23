@@ -27,8 +27,8 @@ import { SettingsCard } from '../_shared/SettingsCard';
 import { SubCard } from '../_shared/SubCard';
 import { FormField } from '../_shared/FormField';
 import { FormInput } from '../_shared/FormInput';
+import { describeUploadError } from '@/lib/admin/errorDescribe';
 import {
-  describeUploadError,
   formatAspectDisplay,
   measureImageAspect,
   summarizeUrl,

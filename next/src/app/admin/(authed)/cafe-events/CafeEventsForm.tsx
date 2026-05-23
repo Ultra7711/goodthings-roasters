@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Copy, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { describeError, describeUploadError } from '@/lib/admin/errorDescribe';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
@@ -1246,35 +1247,6 @@ function summarizeUrl(url: string): string {
   return name.length > 36 ? `${name.slice(0, 32)}…` : name;
 }
 
-function describeUploadError(error: string, detail?: string): string {
-  switch (error) {
-    case 'too_large':
-      return `파일이 너무 큽니다 — ${detail ?? '5MB 이하로 다시 시도해 주세요'}`;
-    case 'unsupported_type':
-      return `지원하지 않는 파일 형식이에요 — ${detail ?? 'webp/avif/jpeg/png · .html 만 지원합니다'}`;
-    case 'unauthorized':
-      return '업로드 권한이 없습니다. 다시 로그인해 주세요.';
-    case 'public_url_failed':
-      return '업로드는 됐지만 주소를 만들지 못했습니다. 다시 시도해 주세요.';
-    case 'upload_failed':
-    default:
-      return '파일을 업로드하지 못했습니다. 잠시 후 다시 시도해 주세요.';
-  }
-}
-
-function describeError(error: string, detail?: string): string {
-  switch (error) {
-    case 'unauthorized':
-      return '권한이 없습니다. 다시 로그인해 주세요.';
-    case 'validation_failed':
-      return `입력값을 확인해 주세요${detail ? ` (${detail})` : ''}`;
-    case 'not_found':
-      return '이벤트를 찾을 수 없습니다 (이미 삭제됐을 수 있어요).';
-    case 'server_error':
-    default:
-      return '저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-  }
-}
 
 /* ── 공용 컴포넌트 ─────────────────────────────────── */
 

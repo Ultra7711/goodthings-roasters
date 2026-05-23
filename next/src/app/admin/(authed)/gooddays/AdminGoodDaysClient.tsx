@@ -55,6 +55,7 @@ import {
 import ConfirmModal from '@/components/admin/ConfirmModal';
 /* S222 PR-5b: ADMIN_INPUT_STYLE / ADMIN_FILE_INPUT_STYLE / ADMIN_BTN_*
    상수 폐기 — shadcn Button / Input 직접 사용. */
+import { describeMutationError } from '@/lib/admin/errorDescribe';
 import type { GoodDaysGalleryRow } from '@/lib/gooddaysServer';
 import {
   deleteGoodDaysImageAction,
@@ -369,27 +370,6 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
       />
     </>
   );
-}
-
-/* ── Helpers ───────────────────────────────────────────────────────────── */
-
-/** 운영자 친화 에러 문구. action 은 동사 (예: '이미지를 업로드'). */
-function describeMutationError(action: string, error: string, detail?: string): string {
-  switch (error) {
-    case 'unauthorized':
-      return '권한이 없습니다. 다시 로그인해 주세요.';
-    case 'not_found':
-      return '이미지를 찾을 수 없어요 (이미 삭제됐을 수 있어요).';
-    case 'invalid_image':
-      return '이미지 파일을 읽을 수 없어요. 다른 파일로 시도해 주세요.';
-    case 'validation_failed':
-      if (detail === 'file_missing') return '파일을 선택해 주세요.';
-      if (detail === 'file_too_large') return '파일이 너무 큽니다. 5MB 이하로 다시 시도해 주세요.';
-      return '입력값을 확인해 주세요.';
-    case 'server_error':
-    default:
-      return `${action}하지 못했습니다. 잠시 후 다시 시도해 주세요.`;
-  }
 }
 
 /* ── SortableCard ──────────────────────────────────────────────────────── */

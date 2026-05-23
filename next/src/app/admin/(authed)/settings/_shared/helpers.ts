@@ -5,8 +5,10 @@
    - measureImageAspect: Signature 이미지 업로드 시 naturalWidth/Height 측정
    - shallowEqual* 4종: orchestrator dirty 계산
    - buildPreviewSrc: Signature Preview iframe URL 빌드 (orchestrator)
-   - describeUpdatedKeys / describeError / describeUploadError: toast 메시지
+   - describeUpdatedKeys: 저장 성공 시 갱신 영역 라벨
    - formatAspectDisplay: AspectInput read-only 표시
+
+   S257: describeError · describeUploadError 는 lib/admin/errorDescribe.ts 로 이관.
    ══════════════════════════════════════════ */
 
 import type {
@@ -153,32 +155,3 @@ export function describeUpdatedKeys(keys: ReadonlyArray<string>): string {
   return keys.map((k) => labels[k] ?? k).join(' · ');
 }
 
-export function describeUploadError(error: string, detail?: string): string {
-  switch (error) {
-    case 'too_large':
-      return `파일이 너무 큽니다 — ${detail ?? '5MB 이하로 다시 시도해 주세요'}`;
-    case 'unsupported_type':
-      return `지원하지 않는 파일 형식이에요 — ${detail ?? 'webp/avif/jpeg/png · .html 만 지원합니다'}`;
-    case 'unauthorized':
-      return '업로드 권한이 없습니다. 다시 로그인해 주세요.';
-    case 'public_url_failed':
-      return '업로드는 됐지만 주소를 만들지 못했습니다. 다시 시도해 주세요.';
-    case 'upload_failed':
-    default:
-      return '파일을 업로드하지 못했습니다. 잠시 후 다시 시도해 주세요.';
-  }
-}
-
-export function describeError(error: string, detail?: string): string {
-  switch (error) {
-    case 'unauthorized':
-      return '권한이 없습니다. 다시 로그인해 주세요.';
-    case 'validation_failed':
-      return `입력값을 확인해 주세요${detail ? ` (${detail})` : ''}`;
-    case 'no_changes':
-      return '변경된 항목이 없습니다.';
-    case 'server_error':
-    default:
-      return '저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-  }
-}
