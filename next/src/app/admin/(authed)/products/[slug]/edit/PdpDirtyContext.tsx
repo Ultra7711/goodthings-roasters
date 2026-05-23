@@ -45,6 +45,8 @@ type PdpDirtyContextValue = {
   commitImageOrder: (ids: string[]) => void;
   /** 즉시 액션 (업로드/삭제) 후 base 재설정 — server 가 반환한 새 ids 기준 */
   rebaseImageOrder: (ids: string[]) => void;
+  /** 업로드 성공 후 base + draft 양쪽 끝에 append — dirty 변동 없음 */
+  appendImageId: (id: string) => void;
 };
 
 const PdpDirtyContext = createContext<PdpDirtyContextValue | null>(null);
@@ -89,6 +91,13 @@ export function PdpDirtyProvider({ initialImageOrder, children }: Props) {
     setDraft(ids);
   }, []);
 
+  /* 업로드 성공 후 신규 id 를 base + draft 양쪽 끝에 append.
+     dirty 변동 없음 — 폼 dirty + reorder dirty 모두 보존된 채 신규 row 추가. */
+  const appendImageId = useCallback((id: string) => {
+    setOriginal((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setDraft((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  }, []);
+
   const value = useMemo<PdpDirtyContextValue>(
     () => ({
       imageDraftOrder: draft,
@@ -97,6 +106,7 @@ export function PdpDirtyProvider({ initialImageOrder, children }: Props) {
       resetImageOrder,
       commitImageOrder,
       rebaseImageOrder,
+      appendImageId,
     }),
     [
       draft,
@@ -105,6 +115,7 @@ export function PdpDirtyProvider({ initialImageOrder, children }: Props) {
       resetImageOrder,
       commitImageOrder,
       rebaseImageOrder,
+      appendImageId,
     ],
   );
 

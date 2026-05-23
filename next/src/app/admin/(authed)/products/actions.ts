@@ -630,7 +630,13 @@ const SlugPathSchema = z
   .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);
 
 export type UploadProductImageResult =
-  | { ok: true; id: string }
+  | {
+      ok: true;
+      id: string;
+      src: string;
+      blurDataUrl: string | null;
+      isActive: boolean;
+    }
   | {
       ok: false;
       error:
@@ -723,7 +729,7 @@ export async function uploadProductImageAction(
       sort_order: nextSort,
       is_active: false,
     })
-    .select('id')
+    .select('id, src, blur_data_url, is_active')
     .single();
   if (insErr || !inserted) {
     console.error('[uploadProductImageAction] insert failed', insErr?.message);
@@ -737,7 +743,13 @@ export async function uploadProductImageAction(
   revalidatePath('/shop');
   revalidatePath(`/shop/${slug}`);
 
-  return { ok: true, id: inserted.id };
+  return {
+    ok: true,
+    id: inserted.id as string,
+    src: inserted.src as string,
+    blurDataUrl: (inserted.blur_data_url as string | null) ?? null,
+    isActive: inserted.is_active as boolean,
+  };
 }
 
 /* ══════════════════════════════════════════════════════════════════════════

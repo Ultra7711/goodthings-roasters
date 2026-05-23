@@ -8,13 +8,14 @@
    - 1번 = ★ 대표 배지
    - 각 카드 [↑] [↓] 버튼 + "대표로" 버튼 = context.setImageDraftOrder 호출 (dirty 등록 · server 호출 X)
    - 각 카드 [삭제] 버튼 (Storage + DB hard delete · 즉시 server + rebaseImageOrder)
-   - 업로드 dropzone (즉시 server · 성공 후 window reload — dirty 손실 주의)
+   - 업로드 dropzone (즉시 server · 성공 row append + appendImageId — 폼/reorder dirty 보존)
    - 활성 토글 (즉시 server · 순서 무관)
 
    S251 Phase 3b: reorder action 호출은 ProductEditForm 의 통합 onSubmit 에서 (단일 [변경 취소][변경사항 저장] 버튼).
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { useMemo, useRef, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
@@ -47,8 +48,13 @@ export default function ProductImageReorderClient({
   productSlug,
   initialImages,
 }: Props) {
-  const { imageDraftOrder, setImageDraftOrder, rebaseImageOrder } =
-    usePdpDirty();
+  const {
+    imageDraftOrder,
+    setImageDraftOrder,
+    rebaseImageOrder,
+    appendImageId,
+  } = usePdpDirty();
+  const router = useRouter();
   const [images, setImages] = useState<ImageItem[]>(initialImages);
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
@@ -90,6 +96,10 @@ export default function ProductImageReorderClient({
     if (!files || files.length === 0) return;
     setUploading(true);
 
+    /* 업로드 성공 row 를 모아서 한 번에 state append.
+       reload 대신 client state 보존 → 폼 dirty + reorder draft 둘 다 유지. */
+    const appended: ImageItem[] = [];
+
     for (const file of Array.from(files)) {
       const formData = new FormData();
       formData.set('productId', productId);
@@ -111,15 +121,26 @@ export default function ProductImageReorderClient({
         toast.error(`${file.name} — ${msg}`);
         continue;
       }
+      appended.push({
+        id: result.id,
+        src: result.src,
+        blurDataUrl: result.blurDataUrl,
+        isActive: result.isActive,
+      });
       toast.success(`${file.name} — 이미지를 등록했습니다`);
+    }
+
+    if (appended.length > 0) {
+      setImages((prev) => [...prev, ...appended]);
+      for (const row of appended) appendImageId(row.id);
     }
 
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
 
-    /* 서버 revalidate 후 page refresh — 새 row 추가 + context 도 fresh start.
-       ⚠ dirty 상태에서 업로드 시 reorder draft 손실 (사용자 책임 · 별도 sprint 검토). */
-    if (typeof window !== 'undefined') window.location.reload();
+    /* 서버 revalidate 결과를 다른 server tree (/admin/products · /shop) 에 반영.
+       client state (RHF dirty · imageDraftOrder · images) 는 보존됨 — useState 는 mount 시 한번만 init. */
+    router.refresh();
   }
 
   function handleToggleActive(idx: number) {
