@@ -252,7 +252,6 @@
 }
 
 .gtr-tnum { font-variant-numeric: tabular-nums; }
-.gtr-hairline { box-shadow: inset 0 0 0 1px var(--border); }
 .gtr-mono {
   font-family: 'SF Mono', ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
   font-feature-settings: 'tnum' on;
@@ -306,15 +305,3 @@
   background: var(--surface-muted);
 }
 
-/* indeterminate progress bar (S129 H-3: 시즌 배너 업로드) */
-@keyframes gtr-admin-indet {
-  0%   { transform: translateX(-100%); }
-  50%  { transform: translateX(0%); }
-  100% { transform: translateX(100%); }
-}
-.gtr-admin-progress-indet {
-  position: absolute;
-  inset: 0;
-  background: var(--primary);
-  animation: gtr-admin-indet 1.4s ease-in-out infinite;
-}

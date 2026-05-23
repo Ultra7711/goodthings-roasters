@@ -275,25 +275,6 @@
   border-right: 1px solid var(--color-border-surface);
   border-bottom: 1px solid var(--color-border-surface);
 }
-.st-map-overlay-close {
-  position: absolute;
-  top: 14px;
-  right: 10px;
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: #6B6963;
-  cursor: pointer;
-  border-radius: 4px;
-}
-.st-map-overlay-close:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #1C1B19;
-}
 .st-map-overlay-name {
   font-family: var(--font-kr);
   font-size: 16px;

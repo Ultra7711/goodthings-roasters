@@ -22,36 +22,6 @@
   box-sizing: border-box;
 }
 
-.search-input-row {
-  display: flex; align-items: center; gap: var(--gap-sm);
-  height: 60px;
-  padding-bottom: 20px;
-}
-.search-input-row input {
-  flex: 1;
-  height: 40px;
-  background: transparent; border: none; outline: none;
-  font-family: var(--font-kr);
-  font-size: var(--type-heading-m-size);
-  color: var(--color-text-primary);
-  letter-spacing: var(--ls-body);
-}
-.search-input-row input::placeholder { color: var(--color-text-tertiary); }
-.search-input-row .search-icon {
-  width: 24px; height: 24px; color: var(--color-text-primary); flex-shrink: 0;
-}
-.search-clear-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  padding: 0;
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-@media (hover: hover) { .search-clear-btn:hover { color: var(--color-icon-default); } }
-
 .search-query-label {
   font-family: var(--font-kr);
   font-size: var(--type-price-m-size);
