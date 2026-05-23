@@ -132,13 +132,18 @@
 .sr-card { cursor: pointer; }
 
 /* ── S280 legal 결과 카드 — 이미지 없는 텍스트 카드 ────────────────────
-   sp-card 의 thumb 자리를 FileText 아이콘 + 옅은 배경으로 채움.
-   description 은 sp-card-price 자리에 표시 (작은 텍스트 · 2줄 ellipsis). */
-.sr-card-legal-thumb {
+   sp-card 의 thumb 자리를 FileText 아이콘 + 따뜻한 stone 배경으로 채움 (S283 갱신).
+   stone-light = GTR Warm-shifted B&W 계열 · 문서/안내 도메인에 어울림.
+
+   ⚠ specificity 주의: SearchPage 가 ShopPage.css 도 import 하는데 그쪽
+   `.sp-card-thumb { background: #eaeaea }` (0,1,0) 가 cascade 후순위로 우선
+   적용됨. chained class `.sp-card-thumb.sr-card-legal-thumb` (0,2,0) 로
+   specificity 강화 — !important 회피 + 명시적 우선순위. */
+.sp-card-thumb.sr-card-legal-thumb {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface-secondary, #f5f5f4);
+  background: var(--color-surface-stone-light);
   color: var(--color-text-tertiary);
 }
 
