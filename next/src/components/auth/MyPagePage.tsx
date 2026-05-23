@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 import type { AuthClaims } from '@/lib/auth/getClaims';
 import type { Subscription } from '@/types/subscription';
 import type { Order } from '@/types/order';
+import type { Product } from '@/lib/products';
 import { useToast } from '@/hooks/useToast';
 import { useSubscriptionsQuery } from '@/hooks/useSubscriptions';
 import OverscrollTop from '@/components/ui/OverscrollTop';
@@ -48,6 +49,10 @@ type MyPagePageProps = {
   /** S253: 사이드 nav + HeroGreeting 카운트 표시용 (count-only RPC 결과).
      마이페이지 안에서 주문 mutation 발생 안 함 — stale 위험 0. */
   initialOrdersCount: number;
+  /** S263 follow-up: 신규 사용자 (orders=0+subs=0) SSR pick. WelcomeCard 가
+     mount 즉시 <Image placeholder=blur> 렌더. 일반 사용자 = null
+     (manual 'welcome' 클릭 시 WelcomeCard client fetch fallback). */
+  showcaseProduct: Product | null;
 };
 
 export default function MyPagePage({
@@ -55,6 +60,7 @@ export default function MyPagePage({
   initialSubscriptions,
   initialHeroOrder,
   initialOrdersCount,
+  showcaseProduct,
 }: MyPagePageProps) {
   const router = useRouter();
   const { show: toast } = useToast();
@@ -236,7 +242,7 @@ export default function MyPagePage({
               />
             );
           }
-          return <WelcomeCard userName={displayName} />;
+          return <WelcomeCard userName={displayName} showcaseProduct={showcaseProduct} />;
         })()}
 
         <div className="mp-grid">

@@ -25,8 +25,10 @@ import {
   getOrdersCountForUser,
 } from '@/lib/repositories/orderRepo';
 import { toOrder } from '@/lib/orders/toOrder';
+import { fetchProducts } from '@/lib/productsServer';
 import type { Subscription } from '@/types/subscription';
 import type { Order } from '@/types/order';
+import type { Product } from '@/lib/products';
 import MyPagePage from '@/components/auth/MyPagePage';
 import MyPageSkeleton from '@/components/auth/MyPageSkeleton';
 
@@ -38,8 +40,10 @@ async function MyPageAuthed() {
   /* S253 마이페이지 최적화 — server prefetch 축소:
      - orders: 20건 → 1건 (RecentOrderCard hero 1건만 사용 · OrderHistory 펼침은 client lazy)
      - ordersCount: count-only RPC (head:true · row payload 없음)
-     - showcaseProducts: 폐기 — WelcomeCard 가 mount 후 server action 으로 자체 fetch
-       (신규 사용자 5% 만 호출 · 95% 기존 사용자 RSC dead prop 제거) */
+
+     S263 follow-up: 신규 사용자 (orders=0 + subs=0) 일 때만 showcase 상품 SSR 결정.
+     WelcomeCard 가 mount 즉시 <Image placeholder=blur> 렌더 → 빈 영역 단계 제거.
+     일반 사용자 prop=null (manual 'welcome' 클릭 케이스는 WelcomeCard 가 client fetch fallback). */
   const [subscriptions, heroOrders, ordersCount] = await Promise.all([
     findSubscriptionsForUser()
       .then((rows) => rows.map(toSubscription))
@@ -59,12 +63,27 @@ async function MyPageAuthed() {
     }),
   ]);
 
+  const isNewUser = subscriptions.length === 0 && ordersCount === 0;
+  let showcaseProduct: Product | null = null;
+  if (isNewUser) {
+    try {
+      const products = await fetchProducts();
+      const pool = products.filter((p) => p.status !== '품절' && p.images.length > 0);
+      if (pool.length > 0) {
+        showcaseProduct = pool[Math.floor(Math.random() * pool.length)];
+      }
+    } catch (err) {
+      console.error('[mypage.prefetch] showcase product failed', err);
+    }
+  }
+
   return (
     <MyPagePage
       initialClaims={claims}
       initialSubscriptions={subscriptions}
       initialHeroOrder={heroOrders[0] ?? null}
       initialOrdersCount={ordersCount}
+      showcaseProduct={showcaseProduct}
     />
   );
 }

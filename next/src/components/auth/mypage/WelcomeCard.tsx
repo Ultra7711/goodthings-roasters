@@ -3,7 +3,9 @@
    환영 카피 + "원두 둘러보기 →" CTA. sand 패널 layout 은 NextDeliveryCard.css 와 공유.
    S198: 빈 image 영역 → PRODUCTS 풀에서 랜덤 상품 1종 푸시.
    S253: products prop 폐기 → 자체 server action 호출 (mount 후).
-   신규 사용자 5% 만 호출 → 95% 기존 사용자의 RSC dead prop 제거.
+   S263 follow-up: 신규 사용자에 한해 SSR 단계에서 showcaseProduct prop 결정 →
+   mount 즉시 <Image placeholder=blur>. prop 없으면 (manual 'welcome' override 케이스)
+   client fetch fallback 유지.
    ══════════════════════════════════════════ */
 
 'use client';
@@ -19,15 +21,17 @@ import './WelcomeCard.css';
 type Props = {
   /** 사용자 표시명 (인사 카피 활용) */
   userName: string;
+  /** SSR 단계에서 결정된 showcase 상품. 신규 사용자만 set, 그 외 null. */
+  showcaseProduct?: Product | null;
 };
 
-export default function WelcomeCard({ userName }: Props) {
-  /* SSR/CSR hydration mismatch 회피 — 클라이언트 mount 후 server action 호출 → 랜덤 결정.
-     첫 frame 은 placeholder 노출 후 이미지로 swap.
+export default function WelcomeCard({ userName, showcaseProduct = null }: Props) {
+  /* prop 우선 사용 (신규 사용자 SSR pick). prop 없으면 client mount 후 fetch (manual override).
      fetchProducts 는 'use cache' (cacheTag=products) → 보통 cache hit (수십 ms). */
-  const [pick, setPick] = useState<Product | null>(null);
+  const [pick, setPick] = useState<Product | null>(showcaseProduct);
 
   useEffect(() => {
+    if (showcaseProduct) return;
     let cancelled = false;
     void (async () => {
       const products = await getShowcaseProducts();
@@ -40,7 +44,7 @@ export default function WelcomeCard({ userName }: Props) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showcaseProduct]);
 
   return (
     <section className="mp-next-card mp-next-card--welcome" aria-label="환영합니다">
