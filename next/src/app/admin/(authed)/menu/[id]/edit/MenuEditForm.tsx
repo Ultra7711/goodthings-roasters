@@ -44,6 +44,7 @@ import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 import { Textarea } from '@/components/admin/ui/textarea';
 import { cn } from '@/lib/utils';
+import { describeError } from '@/lib/admin/errorDescribe';
 import type { CafeMenuItemRow } from '@/types/cafeMenu';
 import { createCafeMenuAction, updateCafeMenuAction } from '../../actions';
 
@@ -263,15 +264,7 @@ export default function MenuEditForm(props: Props) {
         const { id: _id, ...createInput } = values;
         const result = await createCafeMenuAction(createInput);
         if (!result.ok) {
-          const msg =
-            result.error === 'unauthorized'
-              ? '권한이 없습니다. 다시 로그인해 주세요.'
-              : result.error === 'validation_failed'
-                ? `입력값을 확인해 주세요. (${result.detail ?? ''})`
-                : result.error === 'id_conflict'
-                  ? '같은 ID 의 메뉴가 이미 있습니다. 다시 시도해 주세요.'
-                  : '처리 중 오류가 발생했습니다.';
-          toast.error(msg);
+          toast.error(describeError(result.error, result.detail));
           return;
         }
         toast.success('메뉴를 등록했습니다');
@@ -289,15 +282,7 @@ export default function MenuEditForm(props: Props) {
     startTransition(async () => {
       const result = await updateCafeMenuAction(editInput);
       if (!result.ok) {
-        const msg =
-          result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해 주세요.'
-            : result.error === 'validation_failed'
-              ? `입력값을 확인해 주세요. (${result.detail ?? ''})`
-              : result.error === 'not_found'
-                ? '메뉴를 찾을 수 없습니다.'
-                : '처리 중 오류가 발생했습니다.';
-        toast.error(msg);
+        toast.error(describeError(result.error, result.detail));
         return;
       }
       toast.success('메뉴 정보를 저장했습니다');

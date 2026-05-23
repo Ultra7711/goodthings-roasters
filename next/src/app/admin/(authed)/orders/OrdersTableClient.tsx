@@ -23,6 +23,7 @@ import { exportOrdersCsvAction } from './actions';
 import { buildOrdersColumns } from './ordersColumns';
 import OrdersFilterBar from './OrdersFilterBar';
 import { downloadXlsxFromBase64 } from '@/lib/admin/clientDownload';
+import { describeError } from '@/lib/admin/errorDescribe';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminTabsNav } from '@/components/admin/AdminTabsNav';
@@ -70,12 +71,7 @@ export default function OrdersTableClient({ rows, total, counts, filters, isOwne
         q: filters.q,
       });
       if (!result.ok) {
-        const map: Record<string, string> = {
-          unauthorized: '권한이 없습니다.',
-          validation_failed: '입력값이 잘못되었습니다.',
-          server_error: '내보내는 중 오류가 발생했습니다.',
-        };
-        toast.error(map[result.error] ?? '오류가 발생했습니다.');
+        toast.error(describeError(result.error));
         return;
       }
       if (result.rowCount === 0) {

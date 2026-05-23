@@ -27,6 +27,7 @@ import {
   updateProductImageActiveAction,
   uploadProductImageAction,
 } from '../../imageActions';
+import { describeError, describeUploadError } from '@/lib/admin/errorDescribe';
 import { cn } from '@/lib/utils';
 import { usePdpDirty } from './PdpDirtyContext';
 
@@ -108,17 +109,7 @@ export default function ProductImageReorderClient({
 
       const result = await uploadProductImageAction(formData);
       if (!result.ok) {
-        const msg =
-          result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해 주세요.'
-            : result.error === 'invalid_image'
-              ? '이미지 파일을 읽을 수 없습니다.'
-              : result.error === 'validation_failed'
-                ? result.detail === 'file_too_large'
-                  ? '파일 크기는 5MB 이하만 가능합니다.'
-                  : `입력값이 올바르지 않습니다. (${result.detail ?? ''})`
-                : '업로드 중 오류가 발생했습니다.';
-        toast.error(`${file.name} — ${msg}`);
+        toast.error(`${file.name} — ${describeUploadError(result.error, result.detail)}`);
         continue;
       }
       appended.push({
@@ -159,13 +150,7 @@ export default function ProductImageReorderClient({
       });
       if (!result.ok) {
         setImages(prev);
-        const msg =
-          result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해 주세요.'
-            : result.error === 'not_found'
-              ? '이미지를 찾을 수 없습니다.'
-              : '처리 중 오류가 발생했습니다.';
-        toast.error(msg);
+        toast.error(describeError(result.error, result.detail));
         return;
       }
       toast.success(
@@ -190,13 +175,7 @@ export default function ProductImageReorderClient({
       const result = await deleteProductImageAction({ imageId: img.id });
       if (!result.ok) {
         setImages(prev);
-        const msg =
-          result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해 주세요.'
-            : result.error === 'not_found'
-              ? '이미지를 찾을 수 없습니다.'
-              : '삭제 중 오류가 발생했습니다.';
-        toast.error(msg);
+        toast.error(describeError(result.error, result.detail));
         setDeleteTargetIdx(null);
         return;
       }

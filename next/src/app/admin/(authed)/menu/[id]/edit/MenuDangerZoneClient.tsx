@@ -15,6 +15,7 @@ import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/admin/ui/button';
 import ConfirmModal from '@/components/admin/ConfirmModal';
+import { describeError } from '@/lib/admin/errorDescribe';
 import { deleteCafeMenuAction } from '../../actions';
 
 type Props = {
@@ -37,13 +38,7 @@ export default function MenuDangerZoneClient({
     startTransition(async () => {
       const result = await deleteCafeMenuAction({ id: menuId });
       if (!result.ok) {
-        const msg =
-          result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해 주세요.'
-            : result.error === 'not_found'
-              ? '메뉴를 찾을 수 없습니다.'
-              : '삭제 중 오류가 발생했습니다.';
-        toast.error(msg);
+        toast.error(describeError(result.error, result.detail));
         return;
       }
       setOpen(false);

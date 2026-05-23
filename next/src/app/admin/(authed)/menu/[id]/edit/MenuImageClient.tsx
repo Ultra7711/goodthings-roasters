@@ -19,6 +19,7 @@ import { useRef, useState, useTransition } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { Button } from '@/components/admin/ui/button';
+import { describeUploadError } from '@/lib/admin/errorDescribe';
 import { uploadCafeMenuImageAction } from '../../actions';
 
 type Props = {
@@ -64,15 +65,7 @@ export default function MenuImageClient({ menuId, initialImage }: Props) {
     startTransition(async () => {
       const result = await uploadCafeMenuImageAction(formData);
       if (!result.ok) {
-        const msg =
-          result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해 주세요.'
-            : result.error === 'invalid_image'
-              ? '이미지 처리에 실패했습니다. 다른 파일을 시도해 주세요.'
-              : result.error === 'validation_failed'
-                ? `입력값을 확인해 주세요. (${result.detail ?? ''})`
-                : '처리 중 오류가 발생했습니다.';
-        toast.error(msg);
+        toast.error(describeUploadError(result.error, result.detail));
         return;
       }
       toast.success('이미지를 교체했습니다');

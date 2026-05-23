@@ -14,6 +14,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/admin/ui/switch';
+import { describeError } from '@/lib/admin/errorDescribe';
 import { toggleProductActiveAction } from '../../productActions';
 
 type Props = {
@@ -43,15 +44,7 @@ export default function ProductActiveToggleClient({
       });
       if (!result.ok) {
         setOptimisticActive(!next);
-        const msg =
-          result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해 주세요.'
-            : result.error === 'not_found'
-              ? '상품을 찾을 수 없습니다.'
-              : result.error === 'validation_failed'
-                ? '입력값이 올바르지 않습니다.'
-                : '처리 중 오류가 발생했습니다.';
-        toast.error(msg);
+        toast.error(describeError(result.error, result.detail));
         return;
       }
       toast.success(

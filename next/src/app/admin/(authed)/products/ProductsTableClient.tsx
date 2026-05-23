@@ -39,6 +39,7 @@ import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import { Switch } from '@/components/admin/ui/switch';
 import type { AdminProductListItem } from '@/types/product';
 import type { ProductStatus } from '@/lib/products';
+import { describeError } from '@/lib/admin/errorDescribe';
 import { reorderProductsAction, toggleProductActiveAction } from './productActions';
 
 type Props = {
@@ -221,15 +222,7 @@ export default function ProductsTableClient({ rows }: Props) {
         orderedProductIds,
       });
       if (!result.ok) {
-        const msg =
-          result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해 주세요.'
-            : result.error === 'mismatch'
-              ? '상품 목록이 일치하지 않습니다. 페이지를 새로고침해 주세요.'
-              : result.error === 'validation_failed'
-                ? '입력값이 올바르지 않습니다.'
-                : '처리 중 오류가 발생했습니다.';
-        toast.error(msg);
+        toast.error(describeError(result.error, result.detail));
         return;
       }
       toast.success('상품 순서를 저장했습니다');
@@ -537,15 +530,7 @@ function ProductActiveSwitch({ row }: { row: AdminProductListItem }) {
       });
       if (!result.ok) {
         setOptimisticActive(!next);
-        const msg =
-          result.error === 'unauthorized'
-            ? '권한이 없습니다. 다시 로그인해 주세요.'
-            : result.error === 'not_found'
-              ? '상품을 찾을 수 없습니다.'
-              : result.error === 'validation_failed'
-                ? '입력값이 올바르지 않습니다.'
-                : '처리 중 오류가 발생했습니다.';
-        toast.error(msg);
+        toast.error(describeError(result.error, result.detail));
         return;
       }
       toast.success(

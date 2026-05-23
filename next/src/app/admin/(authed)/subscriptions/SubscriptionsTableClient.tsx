@@ -75,6 +75,7 @@ import {
   type AuditLogEntry,
 } from './actions';
 import { downloadXlsxFromBase64 } from '@/lib/admin/clientDownload';
+import { describeError } from '@/lib/admin/errorDescribe';
 
 type CountsShape = Record<StatusTabKey, number>;
 
@@ -112,12 +113,7 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters,
         q: filters.q,
       });
       if (!result.ok) {
-        const map: Record<string, string> = {
-          unauthorized: '권한이 없습니다.',
-          validation_failed: '입력값이 잘못되었습니다.',
-          server_error: '내보내는 중 오류가 발생했습니다.',
-        };
-        toast.error(map[result.error] ?? '오류가 발생했습니다.');
+        toast.error(describeError(result.error));
         return;
       }
       if (result.rowCount === 0) {

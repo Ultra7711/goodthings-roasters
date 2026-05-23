@@ -53,6 +53,7 @@ import {
   updateProductMetaAction,
 } from '../../productActions';
 import { reorderProductImagesAction } from '../../imageActions';
+import { describeError } from '@/lib/admin/errorDescribe';
 import type { ProductWithRelationsRow } from '@/types/product';
 import { cn } from '@/lib/utils';
 import { usePdpDirty } from './PdpDirtyContext';
@@ -442,15 +443,7 @@ export default function ProductEditForm(props: Props) {
         const { id: _id, ...createInput } = values;
         const result = await createProductAction(createInput);
         if (!result.ok) {
-          const msg =
-            result.error === 'unauthorized'
-              ? '권한이 없습니다. 다시 로그인해 주세요.'
-              : result.error === 'validation_failed'
-                ? `입력값을 확인해 주세요. (${result.detail ?? ''})`
-                : result.error === 'slug_conflict'
-                  ? '같은 슬러그의 상품이 이미 있습니다. 슬러그를 변경해 주세요.'
-                  : '처리 중 오류가 발생했습니다.';
-          toast.error(msg);
+          toast.error(describeError(result.error, result.detail));
           return;
         }
         toast.success('상품을 등록했습니다');
@@ -474,15 +467,7 @@ export default function ProductEditForm(props: Props) {
       if (needFormSave) {
         const result = await updateProductMetaAction(editInput);
         if (!result.ok) {
-          const msg =
-            result.error === 'unauthorized'
-              ? '권한이 없습니다. 다시 로그인해 주세요.'
-              : result.error === 'validation_failed'
-                ? `입력값을 확인해 주세요. (${result.detail ?? ''})`
-                : result.error === 'not_found'
-                  ? '상품을 찾을 수 없습니다.'
-                  : '처리 중 오류가 발생했습니다.';
-          toast.error(msg);
+          toast.error(describeError(result.error, result.detail));
           return;
         }
       }
@@ -494,14 +479,7 @@ export default function ProductEditForm(props: Props) {
           orderedImageIds: imageDraftOrder,
         });
         if (!reorderResult.ok) {
-          const msg =
-            reorderResult.error === 'unauthorized'
-              ? '권한이 없습니다. 다시 로그인해 주세요.'
-              : reorderResult.error === 'mismatch'
-                ? '이미지 목록이 일치하지 않습니다. 페이지를 새로고침해 주세요.'
-                : reorderResult.error === 'validation_failed'
-                  ? '입력값이 올바르지 않습니다.'
-                  : '처리 중 오류가 발생했습니다.';
+          const msg = describeError(reorderResult.error, reorderResult.detail);
           toast.error(
             needFormSave
               ? `상품 정보는 저장됐지만 이미지 순서 저장 실패: ${msg}`
