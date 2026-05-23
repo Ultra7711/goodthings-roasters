@@ -175,12 +175,17 @@ export type ListedUserOrder = {
   totalAmount: number;
 };
 
-/** admin_audit 1행 (역할 변경 이력 · S232 set_admin_level 추가) */
+/** admin_audit 1행 (역할 변경 이력 · S232 set_admin_level + S258 P2 탈퇴 액션 추가) */
 export type AdminAuditEntry = {
   id: string;
   actorId: string | null;
   actorEmail: string | null;       /* JOIN profiles.email */
-  action: 'grant_admin' | 'revoke_admin' | 'set_admin_level';
+  action:
+    | 'grant_admin'
+    | 'revoke_admin'
+    | 'set_admin_level'
+    | 'self_delete_account'
+    | 'force_delete_account';
   reason: string | null;
   createdAtIso: string;
 };

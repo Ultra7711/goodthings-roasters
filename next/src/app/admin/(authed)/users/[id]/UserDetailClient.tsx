@@ -46,9 +46,11 @@ import {
   type StatusTone,
 } from '@/lib/admin/orders';
 import {
+  forceDeleteAccountAction,
   grantAdminAction,
   revokeAdminAction,
   setAdminLevelAction,
+  type ForceDeleteAccountResult,
   type UserRoleActionResult,
 } from '../actions';
 import { cn } from '@/lib/utils';
@@ -118,6 +120,11 @@ export default function UserDetailClient({
   const [levelDialogOpen, setLevelDialogOpen] = useState(false);
   const [levelReason, setLevelReason] = useState('');
   const [isLevelPending, startLevelTransition] = useTransition();
+  /* S258 P4: 운영자 직권 탈퇴 다이얼로그 상태 */
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [emailConfirm, setEmailConfirm] = useState('');
+  const [isDeletePending, startDeleteTransition] = useTransition();
   const router = useRouter();
 
   /* 변경 후 새 admin_level (현재가 owner면 → staff, staff면 → owner) */
@@ -206,6 +213,54 @@ export default function UserDetailClient({
       );
       setLevelDialogOpen(false);
       router.refresh();
+    });
+  }
+
+  /* S258 P4: 운영자 직권 탈퇴 — 사유 필수 + 이메일 재확인 + RPC + audit + auth.delete */
+  function openDeleteDialog() {
+    setDeleteReason('');
+    setEmailConfirm('');
+    setDeleteDialogOpen(true);
+  }
+
+  function closeDeleteDialog() {
+    if (isDeletePending) return;
+    setDeleteDialogOpen(false);
+  }
+
+  const deleteReasonTrim = deleteReason.trim();
+  const emailConfirmTrim = emailConfirm.trim();
+  const canSubmitDelete =
+    deleteReasonTrim.length > 0 &&
+    emailConfirmTrim === profile.email &&
+    !isDeletePending;
+
+  function submitDelete() {
+    if (!canSubmitDelete) return;
+    startDeleteTransition(async () => {
+      const result: ForceDeleteAccountResult = await forceDeleteAccountAction({
+        targetId: profile.id,
+        reason: deleteReasonTrim,
+      });
+      if (!result.ok) {
+        const map: Record<string, string> = {
+          unauthorized: '관리자 권한이 필요합니다.',
+          validation_failed: '입력값을 확인해 주세요.',
+          self_action: '본인 계정은 어드민에서 탈퇴 처리할 수 없습니다.',
+          not_found: '대상 회원을 찾을 수 없습니다.',
+          target_is_admin: '어드민 계정은 강제 탈퇴할 수 없습니다. 먼저 권한을 해제하세요.',
+          subscription_active:
+            '활성 정기배송이 있어 탈퇴할 수 없습니다. 먼저 정기배송을 해지해 주세요.',
+          server_error: '탈퇴 처리 중 오류가 발생했습니다.',
+        };
+        toast.error(map[result.error] ?? '탈퇴 처리에 실패했습니다.');
+        return;
+      }
+      toast.success(
+        `회원을 탈퇴 처리했습니다 (주문 ${result.ordersAnonymized}건 익명화, 구독 ${result.subscriptionsDeleted}건 삭제)`,
+      );
+      setDeleteDialogOpen(false);
+      router.push('/admin/users');
     });
   }
 
@@ -543,6 +598,121 @@ export default function UserDetailClient({
             </table>
           )}
         </section>
+
+        {/* 카드 4: 위험 영역 (S258 P4 · 운영자 직권 탈퇴) — non-admin target 만 + owner only */}
+        {!isAdminTarget && !isSelf && (
+          <section
+            className="bg-card border rounded-[var(--radius)] overflow-hidden"
+            style={{ borderColor: 'var(--danger)' }}
+          >
+            <header
+              className="px-6 py-4 border-b text-sm font-medium"
+              style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }}
+            >
+              위험 영역
+            </header>
+            <div className="px-6 py-5 text-sm">
+              <div className="text-muted-foreground leading-relaxed mb-3">
+                <strong className="text-foreground">운영자 직권 탈퇴</strong> — 약관 위반·부정 이용 등이 확인된 경우에만 사용합니다.
+                회원 정보는 즉시 파기되며, 주문 거래 기록은 익명화 후 5년간 보존됩니다.
+                활성 정기배송이 있으면 처리되지 않습니다 (선 해지 후 재시도).
+              </div>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                className="!h-8"
+                onClick={openDeleteDialog}
+                disabled={!isOwner || isDeletePending}
+                title={!isOwner ? '관리자(owner) 권한 필요' : undefined}
+              >
+                회원 탈퇴 처리
+              </Button>
+            </div>
+          </section>
+        )}
+
+        {/* S258 P4: 운영자 직권 탈퇴 다이얼로그 */}
+        <Dialog
+          open={deleteDialogOpen}
+          onOpenChange={(o) => (o ? setDeleteDialogOpen(true) : closeDeleteDialog())}
+        >
+          <DialogContent className="max-w-[480px] p-0 gap-0">
+            <DialogHeader className="px-6 pt-5 pb-0">
+              <DialogTitle className="text-base font-medium" style={{ color: 'var(--danger)' }}>
+                회원 탈퇴 처리
+              </DialogTitle>
+              <DialogDescription className="text-xs mt-1">
+                <strong>{profile.email}</strong> 회원을 영구 탈퇴 처리합니다. 회원 정보는 즉시 파기되며,
+                주문 거래 기록은 익명화 후 5년간 보존됩니다. 이 작업은 되돌릴 수 없습니다.
+                <br />
+                <span className="text-[var(--foreground-subtle)]">
+                  사유는 감사 로그에 기록되며 5년간 보존됩니다 (PIPA §29 · §39-7).
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="px-6 py-5 flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="force-delete-reason" className="text-xs text-muted-foreground">
+                  사유 <span className="text-[var(--danger)]">(필수, 최대 500자)</span>
+                </label>
+                <Textarea
+                  id="force-delete-reason"
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value.slice(0, 500))}
+                  disabled={isDeletePending}
+                  placeholder="예: 약관 위반 (반복적 어뷰징 신고)"
+                  rows={3}
+                />
+                <div className="text-xs text-[var(--foreground-subtle)] text-right">
+                  {deleteReason.length} / 500
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="force-delete-email" className="text-xs text-muted-foreground">
+                  이메일 재확인 <span className="text-[var(--danger)]">(필수)</span>
+                </label>
+                <input
+                  id="force-delete-email"
+                  type="email"
+                  value={emailConfirm}
+                  onChange={(e) => setEmailConfirm(e.target.value)}
+                  disabled={isDeletePending}
+                  placeholder={profile.email}
+                  className="h-9 px-3 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                  autoComplete="off"
+                />
+                <div className="text-xs text-[var(--foreground-subtle)]">
+                  탈퇴 대상 이메일을 정확히 입력해야 처리됩니다.
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="px-6 pb-5 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="!h-7"
+                onClick={closeDeleteDialog}
+                disabled={isDeletePending}
+              >
+                취소
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                className="!h-7"
+                onClick={submitDelete}
+                disabled={!canSubmitDelete}
+              >
+                {isDeletePending ? '처리 중…' : '탈퇴 처리'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );
@@ -592,8 +762,17 @@ function StatusBadge({ tone, children }: { tone: StatusTone; children: React.Rea
   );
 }
 
-function ActionBadge({ action }: { action: 'grant_admin' | 'revoke_admin' | 'set_admin_level' }) {
-  /* S232: set_admin_level 액션도 표시 (owner ↔ staff 변경 이력). */
+function ActionBadge({
+  action,
+}: {
+  action:
+    | 'grant_admin'
+    | 'revoke_admin'
+    | 'set_admin_level'
+    | 'self_delete_account'
+    | 'force_delete_account';
+}) {
+  /* S232: set_admin_level (owner ↔ staff). S258 P2: 탈퇴 2종. */
   if (action === 'set_admin_level') {
     return (
       <ShadcnBadge
@@ -602,6 +781,28 @@ function ActionBadge({ action }: { action: 'grant_admin' | 'revoke_admin' | 'set
         style={{ background: 'var(--info-soft)', color: 'var(--info)' }}
       >
         권한 단계 변경
+      </ShadcnBadge>
+    );
+  }
+  if (action === 'self_delete_account') {
+    return (
+      <ShadcnBadge
+        variant="outline"
+        className="border-transparent"
+        style={{ background: 'var(--neutral-soft)', color: 'var(--neutral-soft-fg)' }}
+      >
+        회원 자기 탈퇴
+      </ShadcnBadge>
+    );
+  }
+  if (action === 'force_delete_account') {
+    return (
+      <ShadcnBadge
+        variant="outline"
+        className="border-transparent"
+        style={{ background: 'var(--warning-soft)', color: 'var(--warning)' }}
+      >
+        운영자 직권 탈퇴
       </ShadcnBadge>
     );
   }

@@ -30,6 +30,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { fetchAdminUsersForExport } from '@/lib/admin/usersServer';
 import {
   describeProvider,
@@ -317,4 +318,151 @@ export async function exportUsersCsvAction(
     });
     return { ok: false, error: 'server_error' };
   }
+}
+
+/* ── forceDeleteAccountAction (S258 P4 · 운영자 직권 탈퇴) ────────────────
+   - owner 전용 가드 (staff 차단)
+   - reason 필수 (PIPA §39-7 시정조치 정당성 기록)
+   - self 차단 (본인 본인 탈퇴 금지 — admin 0명 회피)
+   - target 이 admin 이면 차단 (admin 끼리 강제 탈퇴 금지)
+   - delete_account RPC (015) — 활성 구독 차단 + orders 익명화
+   - admin_audit insert force_delete_account + target_email_snapshot (070)
+   - auth.admin.deleteUser — profiles/addresses CASCADE
+   ──────────────────────────────────────────────────────────────────── */
+
+const ForceDeleteAccountInputSchema = z.object({
+  targetId: UuidSchema,
+  /** 사유 필수 (운영자 강제 탈퇴는 PIPA §39-7 시정조치 정당성 기록 의무). */
+  reason: z.string().trim().min(1).max(500),
+});
+
+export type ForceDeleteAccountInput = z.input<typeof ForceDeleteAccountInputSchema>;
+
+export type ForceDeleteAccountResult =
+  | {
+      ok: true;
+      targetId: string;
+      ordersAnonymized: number;
+      subscriptionsDeleted: number;
+    }
+  | {
+      ok: false;
+      error:
+        | 'unauthorized'
+        | 'validation_failed'
+        | 'self_action'
+        | 'not_found'
+        | 'target_is_admin'
+        | 'subscription_active'
+        | 'server_error';
+      detail?: string;
+    };
+
+export async function forceDeleteAccountAction(
+  input: ForceDeleteAccountInput,
+): Promise<ForceDeleteAccountResult> {
+  /* owner 전용 — staff 차단 */
+  const claims = await getAdminOwnerClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const parsed = ForceDeleteAccountInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: 'validation_failed', detail: flattenZodError(parsed.error) };
+  }
+
+  /* self 차단 — 본인 본인 탈퇴 시 admin 0명 위험 */
+  if (parsed.data.targetId === claims.userId) {
+    return { ok: false, error: 'self_action' };
+  }
+
+  const admin = getSupabaseAdmin();
+
+  /* target 조회 — email (audit snapshot 용) + role (admin 차단 가드) */
+  const { data: target, error: targetErr } = await admin
+    .from('profiles')
+    .select('id, email, role')
+    .eq('id', parsed.data.targetId)
+    .maybeSingle();
+
+  if (targetErr) {
+    console.error('[forceDeleteAccountAction] target lookup failed', {
+      code: targetErr.code,
+      message: targetErr.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+  if (!target) return { ok: false, error: 'not_found' };
+
+  /* admin 끼리 강제 탈퇴 금지 — 권한 분쟁 회피 (admin 강등 후 다시 탈퇴는 가능) */
+  if (target.role === 'admin') {
+    return { ok: false, error: 'target_is_admin' };
+  }
+
+  const targetEmailSnapshot = (target.email as string | null) ?? null;
+
+  /* delete_account RPC (015) — 활성 구독 차단 + orders 익명화 + cancelled/expired subs DELETE */
+  const { data: rpcData, error: rpcError } = await admin.rpc('delete_account', {
+    p_user_id: parsed.data.targetId,
+  });
+
+  if (rpcError) {
+    const msg = rpcError.message ?? '';
+    if (msg.includes('subscription_active')) {
+      return { ok: false, error: 'subscription_active' };
+    }
+    console.error('[forceDeleteAccountAction] rpc failed', {
+      code: rpcError.code,
+      message: msg.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+
+  /* admin_audit insert — auth.users 삭제 전에 수행 (target_user_id 보존). */
+  const { error: auditErr } = await admin
+    .from('admin_audit')
+    .insert({
+      actor_id: claims.userId,
+      target_user_id: parsed.data.targetId,
+      action: 'force_delete_account',
+      reason: parsed.data.reason,
+      target_email_snapshot: targetEmailSnapshot,
+    });
+
+  if (auditErr) {
+    /* audit insert 실패는 치명. force delete 는 책임 추적 필수 — 작업 중단. */
+    console.error('[forceDeleteAccountAction] admin_audit insert failed', {
+      code: auditErr.code,
+      message: auditErr.message?.slice(0, 200),
+    });
+    return { ok: false, error: 'server_error' };
+  }
+
+  /* auth.users 삭제 — profiles/addresses CASCADE */
+  const { error: deleteAuthErr } = await admin.auth.admin.deleteUser(parsed.data.targetId);
+
+  if (deleteAuthErr) {
+    /* orphan: orders 익명화 완료 + audit 기록 완료, auth.users 만 잔존.
+       안전 방향 (PII 이미 파기) — 운영자 수동 복구 가능. */
+    console.error('[forceDeleteAccountAction] auth.deleteUser failed — ORPHAN', {
+      userId: parsed.data.targetId,
+      code: deleteAuthErr.status,
+    });
+    return { ok: false, error: 'server_error' };
+  }
+
+  revalidatePath('/admin/users');
+  revalidatePath(`/admin/users/${parsed.data.targetId}`);
+  revalidatePath('/admin/audit');
+
+  const rpcResult = (rpcData ?? {}) as {
+    orders_anonymized?: number;
+    subscriptions_deleted?: number;
+  };
+
+  return {
+    ok: true,
+    targetId: parsed.data.targetId,
+    ordersAnonymized: rpcResult.orders_anonymized ?? 0,
+    subscriptionsDeleted: rpcResult.subscriptions_deleted ?? 0,
+  };
 }
