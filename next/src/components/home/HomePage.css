@@ -160,13 +160,6 @@
 #cafe-menu-blk { margin-top: 0; }
 
 /* ══ 공통 블록 헤더 ══ */
-.blk-header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-xs);
-  max-width: 1440px;
-  margin: 0 auto;
-}
 .blk-label {
   font-family: var(--font-en);
   font-size: var(--type-body-s-size);
@@ -175,27 +168,6 @@
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
 }
-.blk-heading {
-  font-family: var(--font-kr);
-  font-size: var(--type-h3-size);
-  font-weight: var(--type-h3-weight);
-  color: var(--color-text-primary);
-  letter-spacing: var(--ls-body);
-  line-height: var(--lh-h3);
-  margin-top: 2px;
-}
-
-/* ══ Editorial Heading Utility (design-interaction-plan §4 ②) ══
-   기존 --type-h2-size 보다 대형 스케일로 에디토리얼 임팩트 강화.
-   .phil-h · .roastery-h 등 기존 섹션 타이틀 클래스와 병용.
-   font-weight 은 기존 셀렉터 값 유지 (300). .ed-h2 는 크기·간격만 책임. */
-.ed-h2 {
-  font-family: var(--font-kr);
-  font-size: var(--type-h2-editorial-size);
-  letter-spacing: var(--ls-heading);
-  line-height: var(--lh-h2-editorial);
-}
-
 /* ══ 카테고리 카드 그리드 ══ */
 .cat-grid {
   display: grid;
