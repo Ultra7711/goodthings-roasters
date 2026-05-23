@@ -28,53 +28,10 @@
   justify-content: flex-start;
   flex-direction: column;
 }
-/* PR-C/D/E 진입 전 임시 fallback — 1440 + 좌측 정렬. PR 진행마다 점차 zone 으로 대체. */
-.ocp-temp-fallback {
-  width: 100%;
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 60px 120px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-/* Eyebrow — V2 §editorial confirmation. 메인 .blk-label 톤 차용 (font-en uppercase + 32px gold ::before).
-   cross-route 결합 회피 위해 OCP 자체 정의 — 토큰만 공유. */
-.ocp-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--font-en);
-  font-size: var(--type-body-s-size);
-  font-weight: 500;
-  color: var(--color-label-on-white);
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
-  margin-bottom: 24px;
-}
-.ocp-eyebrow::before {
-  content: '';
-  display: inline-block;
-  width: 32px;
-  height: 2px;
-  background: var(--color-accent-gold);
-}
 /* 타이틀 */
 .ocp-title {
   font-family: var(--font-kr); font-size: var(--type-h2-size); font-weight: var(--type-h2-weight);
   letter-spacing: var(--ls-display); text-align: center; line-height: var(--lh-h2);
-}
-/* 주문번호 */
-.ocp-order-num {
-  margin-top: 32px;
-  font-family: var(--font-kr); font-size: var(--type-body-l-size); font-weight: 400;
-  color: var(--color-text-secondary);
-  display: flex; align-items: baseline; gap: 6px;
-}
-.ocp-order-num strong {
-  font-family: var(--font-en); font-size: var(--type-body-l-size); font-weight: 500;
-  color: var(--color-text-primary); cursor: pointer;
 }
 /* 안내 */
 .ocp-subtitle {
@@ -82,25 +39,6 @@
   color: var(--color-text-caption); text-align: center;
   margin-top: 12px;
 }
-/* Email 안내 — subtitle 직후. 더 작은 톤(body-s + tertiary)으로 위계 분리. */
-.ocp-email-notice {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
-  font-weight: 400;
-  color: var(--color-text-tertiary);
-  text-align: center;
-  line-height: 22px;
-  margin-top: 8px;
-}
-.ocp-copy-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  align-self: center;
-  width: 24px; height: 24px; border: none; background: transparent;
-  color: var(--color-text-caption); cursor: pointer; flex-shrink: 0;
-  transition: color var(--duration-hover) linear;
-}
-.ocp-copy-btn:hover { color: var(--color-icon-default); }
-
 /* CTA */
 .ocp-actions { width: 100%; margin-top: 48px; display: flex; flex-direction: column; align-items: center; gap: var(--gap-xl); }
 .ocp-btn-primary {
@@ -128,13 +66,9 @@
 }
 .ocp-btn-secondary:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 
-/* 진입 연출 — stagger.
-   centered fallback 분기 (.ocp-eyebrow 등) 와 자문 D editorial 분기 (.oc-hero-*) 를 모두 cover. */
-.ocp-enter .ocp-eyebrow { animation: staggerUp .5s var(--ease-spring) .05s both; }
+/* 진입 연출 — stagger (자문 D editorial 분기 .oc-hero-*). */
 .ocp-enter .ocp-title { animation: staggerUp .5s var(--ease-spring) .15s both; }
-.ocp-enter .ocp-order-num { animation: staggerUp .5s var(--ease-spring) .25s both; }
 .ocp-enter .ocp-subtitle { animation: staggerUp .5s var(--ease-spring) .3s both; }
-.ocp-enter .ocp-email-notice { animation: staggerUp .5s var(--ease-spring) .35s both; }
 .ocp-enter .oc-hero-eyebrow { animation: staggerUp .5s var(--ease-spring) .05s both; }
 .ocp-enter .oc-hero-title { animation: staggerUp .5s var(--ease-spring) .15s both; }
 .ocp-enter .oc-hero-body { animation: staggerUp .5s var(--ease-spring) .25s both; }
@@ -145,11 +79,9 @@
 /* ══ OrderComplete — Mobile (≤767) 정규화 (라우트 단독) ══
    - ocp-body 상/하 패딩 축소 · ocp-inner max-width 해제
    - ocp-summary min-height 0
-   - ocp-order-num flex-wrap 허용
    공유 자산 (.ocp-item / .ocp-item-img / .ocp-item-badges) 은
    globals.css 의 모바일 미디어쿼리에 잔류. */
 @media (max-width: 767px) {
   .ocp-body { padding-top: 60px; padding-bottom: 80px; }
   .ocp-inner { max-width: 100%; }
-  .ocp-order-num { flex-wrap: wrap; }
 }

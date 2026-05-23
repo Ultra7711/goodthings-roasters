@@ -86,11 +86,6 @@
 .mp-section-body {
   position: relative;
 }
-.mp-section-title {
-  font-family: var(--font-en); font-size: var(--type-body-l-size); font-weight: 500;
-  color: var(--color-text-primary); letter-spacing: var(--ls-heading);
-  margin-bottom: 24px;
-}
 
 /* 정보 행 — 정기배송/주문내역 (20px) 와 padding 통일 */
 .mp-info-row {
@@ -128,7 +123,6 @@
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 500;
   color: var(--color-text-secondary); white-space: nowrap; min-width: 60px;
 }
-.mp-addr-empty { font-weight: var(--type-body-m-weight); }
 .mp-info-value {
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: var(--type-body-m-weight);
   color: var(--color-text-primary); text-align: right;
@@ -461,29 +455,6 @@
 }
 .mp-order-card.open .mp-order-items { max-height: 1200px; opacity: 1; }
 .mp-order-items-inner { padding-top: 0; margin-top: 0; }
-
-/* 구독 해지 — subtle 밑줄 링크 토큰 */
-.mp-sub-unsubscribe {
-  margin-left: auto;
-  padding: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: var(--text-link-font-weight);
-  letter-spacing: var(--text-link-letter-spacing);
-  color: var(--text-link-subtle-color);
-  text-decoration: underline;
-  text-decoration-color: var(--color-border-primary);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  height: auto; line-height: 1;
-  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
-  white-space: nowrap;
-  align-self: center;
-}
-.mp-sub-unsubscribe:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 
 /* 회원 탈퇴 확인 모달 */
 /* 회원 탈퇴 모달 오버레이 + 쉐이킹 */
