@@ -25,21 +25,25 @@ type Props = {
 };
 
 type Group = {
-  key: 'cafe' | 'bean' | 'drip';
+  key: 'cafe' | 'bean' | 'drip' | 'legal';
   eyebrow: string;
   results: SearchResult[];
 };
 
-/* S199 V2 §6.9 — 결과를 카테고리별 그룹화. 메뉴 순서: Cafe Menu → Coffee Beans → Drip Bag.
+/* S199 V2 §6.9 — 결과를 카테고리별 그룹화. 메뉴 순서: Cafe Menu → Coffee Beans → Drip Bag → 정책·안내.
+   S280: legal 그룹 추가 (맨 마지막 · 상품 결과 우선 노출).
    각 그룹 내 점수 정렬은 useSearch 가 이미 처리 (그룹 내 순서 = 원본 results 순서). */
 function groupResults(items: SearchResult[]): Group[] {
   const cafe: SearchResult[] = [];
   const bean: SearchResult[] = [];
   const drip: SearchResult[] = [];
+  const legal: SearchResult[] = [];
 
   for (const r of items) {
     if (r.kind === 'cafe') {
       cafe.push(r);
+    } else if (r.kind === 'legal') {
+      legal.push(r);
     } else if (r.item.category === 'Coffee Bean') {
       bean.push(r);
     } else if (r.item.category === 'Drip Bag') {
@@ -51,6 +55,7 @@ function groupResults(items: SearchResult[]): Group[] {
     { key: 'cafe' as const, eyebrow: 'Cafe Menu', results: cafe },
     { key: 'bean' as const, eyebrow: 'Coffee Beans', results: bean },
     { key: 'drip' as const, eyebrow: 'Drip Bag', results: drip },
+    { key: 'legal' as const, eyebrow: '정책 · 안내', results: legal },
   ].filter((g) => g.results.length > 0);
 }
 
@@ -86,7 +91,7 @@ export default function SearchPage({ initialData }: Props) {
                 <div className="sr-grid">
                   {g.results.map((r) => (
                     <SearchResultCard
-                      key={`${r.kind}-${r.kind === 'product' ? r.item.slug : r.item.id}`}
+                      key={`${r.kind}-${r.kind === 'legal' ? r.item.slug : r.kind === 'product' ? r.item.slug : r.item.id}`}
                       result={r}
                     />
                   ))}

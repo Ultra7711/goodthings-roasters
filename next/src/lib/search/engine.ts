@@ -10,7 +10,7 @@ import type { Product } from '@/lib/products';
 import { CAT_LABEL } from './constants';
 import { buildIndexedField, matchEntry } from './matcher';
 import { extractChosung } from './chosung';
-import type { SearchIndexEntry, SearchResult } from './types';
+import type { LegalSearchItem, SearchIndexEntry, SearchResult } from './types';
 
 /**
  * nameOnly 통합 초성 문자열 계산 — L4 초성 검색 최적화용.
@@ -57,17 +57,36 @@ function indexCafeMenu(c: CafeMenuItem): SearchIndexEntry {
   };
 }
 
+/** Legal doc 을 인덱스 엔트리로 변환 (S280).
+ *  - legalTitle (가중치 80) — 페이지 제목 (예: "개인정보처리방침")
+ *  - legalBody (가중치 10) — description + sections 본문 전체
+ *  초성 검색은 title 만 (본문 초성은 노이즈 가능성 큼). */
+function indexLegal(l: LegalSearchItem): SearchIndexEntry {
+  return {
+    kind: 'legal',
+    item: l,
+    fields: [
+      buildIndexedField('legalTitle', l.title),
+      buildIndexedField('legalBody', l.body),
+    ],
+    nameChosung: computeNameChosung(l.title),
+  };
+}
+
 /**
  * 모든 검색 대상을 한 번에 인덱싱.
  * 모듈 스코프에서 호출하여 싱글톤으로 사용하거나, 테스트에서 커스텀 데이터로 호출 가능.
+ * S280: legal docs 인덱싱 추가.
  */
 export function buildSearchIndex(
   products: readonly Product[],
   cafeMenu: readonly CafeMenuItem[],
+  legal: readonly LegalSearchItem[] = [],
 ): SearchIndexEntry[] {
   return [
     ...products.map((p) => indexProduct(p)),
     ...cafeMenu.map((c) => indexCafeMenu(c)),
+    ...legal.map((l) => indexLegal(l)),
   ];
 }
 
@@ -94,9 +113,18 @@ export function search(
         layer: r.layer,
         spans: r.spans,
       });
-    } else {
+    } else if (entry.kind === 'cafe') {
       results.push({
         kind: 'cafe',
+        item: entry.item,
+        score: r.score,
+        layer: r.layer,
+        spans: r.spans,
+      });
+    } else {
+      /* legal (S280) */
+      results.push({
+        kind: 'legal',
         item: entry.item,
         score: r.score,
         layer: r.layer,

@@ -20,7 +20,10 @@ export type FieldKey =
   | 'noteTags'
   | 'specs'
   | 'desc'
-  | 'menuDesc';
+  | 'menuDesc'
+  /* S280: legal 도메인 — title (높은 가중치) + body (낮은 가중치 · 본문 전체). */
+  | 'legalTitle'
+  | 'legalBody';
 
 /** 매치된 span — 원본 텍스트(raw) 기준 오프셋. `<mark>` 렌더링용. */
 export type MatchSpan = {
@@ -41,8 +44,18 @@ export type MatchResult =
       spans: MatchSpan[];
     };
 
-/** 검색 대상 도메인 */
-export type SearchItemKind = 'product' | 'cafe';
+/** 검색 대상 도메인 (S280: legal 추가) */
+export type SearchItemKind = 'product' | 'cafe' | 'legal';
+
+/** Legal 검색 결과 아이템 — slug + title + description + body 텍스트.
+ *  body 는 인덱싱 전용, 결과 카드 표시는 description 사용. */
+export type LegalSearchItem = {
+  slug: string;
+  title: string;
+  description: string;
+  /** 모든 section 의 paragraphs + bullets + definitions concat (인덱싱 전용). */
+  body: string;
+};
 
 /** 인덱스된 필드 — 쿼리 시마다 정규화 재계산을 방지하기 위한 캐시 */
 export type IndexedField = {
@@ -65,7 +78,7 @@ export type IndexedField = {
   weight: number;
 };
 
-/** 검색 인덱스 엔트리 — Product/CafeMenuItem 은 union */
+/** 검색 인덱스 엔트리 — Product/CafeMenuItem/LegalSearchItem union (S280) */
 export type SearchIndexEntry = {
   kind: 'product';
   item: Product;
@@ -77,12 +90,18 @@ export type SearchIndexEntry = {
   item: CafeMenuItem;
   fields: IndexedField[];
   nameChosung: string;
+} | {
+  kind: 'legal';
+  item: LegalSearchItem;
+  fields: IndexedField[];
+  nameChosung: string;
 };
 
-/** 검색 인덱스 원본 데이터 (S215) — buildSearchIndex 입력 + SSR prefetch 직렬화용 */
+/** 검색 인덱스 원본 데이터 (S215 + S280 legal) — buildSearchIndex 입력 + SSR prefetch 직렬화용 */
 export type SearchIndexData = {
   products: Product[];
   cafeMenu: CafeMenuItem[];
+  legal: LegalSearchItem[];
 };
 
 /** 검색 결과 — 스코어 내림차순 정렬된 상태로 반환 */
@@ -97,6 +116,13 @@ export type SearchResult =
   | {
       kind: 'cafe';
       item: CafeMenuItem;
+      score: number;
+      layer: SearchLayer;
+      spans: MatchSpan[];
+    }
+  | {
+      kind: 'legal';
+      item: LegalSearchItem;
       score: number;
       layer: SearchLayer;
       spans: MatchSpan[];

@@ -2,6 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { buildSearchIndex, search } from './engine';
 import type { Product } from '@/lib/products';
 import type { CafeMenuItem } from '@/lib/cafeMenu';
+import type { SearchResult } from './types';
+
+/** S280: test 픽스처가 product/cafe 만 다루므로 legal 결과는 unexpected.
+ *  union narrow 헬퍼 — `result.item.name` 안전 접근. */
+function nonLegal(r: SearchResult): Product | CafeMenuItem {
+  if (r.kind === 'legal') throw new Error('unexpected legal result in fixture');
+  return r.item;
+}
 
 /* ── 테스트 픽스처 ───────────────────────────────── */
 
@@ -117,7 +125,7 @@ describe('search — Layer 별 매치', () => {
   it('L1 직접 매치 — 상품명 일부', () => {
     const results = search(idx, '가을');
     expect(results.length).toBeGreaterThan(0);
-    expect(results[0].item.name).toBe('가을의 밤 Autumn Night');
+    expect(nonLegal(results[0]).name).toBe('가을의 밤 Autumn Night');
     expect(results[0].layer).toBe(1);
   });
 
@@ -131,19 +139,19 @@ describe('search — Layer 별 매치', () => {
   it('L2 동의어 — "아아" → "아이스아메리카노" 매치', () => {
     const results = search(idx, '아아');
     expect(results.length).toBeGreaterThan(0);
-    expect(results[0].item.name).toBe('아이스 아메리카노');
+    expect(nonLegal(results[0]).name).toBe('아이스 아메리카노');
     expect(results[0].layer).toBe(2);
   });
 
   it('L3 음운 매치 — "라테" → "라떼"', () => {
     const results = search(idx, '라테');
-    expect(results.some((r) => r.item.name === '말차 라떼')).toBe(true);
+    expect(results.some((r) => nonLegal(r).name === '말차 라떼')).toBe(true);
   });
 
   it('L4 초성 — "ㅇㄱㄹㅇ" → "얼그레이"', () => {
     const results = search(idx, 'ㅇㄱㄹㅇ');
     expect(results.length).toBeGreaterThan(0);
-    expect(results[0].item.name).toBe('얼그레이');
+    expect(nonLegal(results[0]).name).toBe('얼그레이');
     expect(results[0].layer).toBe(4);
   });
 });
@@ -159,16 +167,16 @@ describe('search — 단음절 가드 회귀 방지', () => {
     const customIdx = buildSearchIndex([...PRODUCTS, withTiInDesc], CAFE);
     const results = search(customIdx, '티');
     // desc 의 "티" 는 매치되지 않아야 함
-    expect(results.some((r) => r.item.name === '블렌드X')).toBe(false);
+    expect(results.some((r) => nonLegal(r).name === '블렌드X')).toBe(false);
     // 하지만 name 에 "티" 가 들어있는 항목은 매치됨 (자몽 허니 블랙티, 얼그레이 제외)
-    expect(results.some((r) => r.item.name === '자몽 허니 블랙티')).toBe(true);
+    expect(results.some((r) => nonLegal(r).name === '자몽 허니 블랙티')).toBe(true);
   });
 
   it('"티" 쿼리가 "디카페인" 으로 L3 오매칭 차단', () => {
     const decaf = mkProduct({ name: '디카페인 블렌드', slug: 'decaf' });
     const customIdx = buildSearchIndex([...PRODUCTS, decaf], CAFE);
     const results = search(customIdx, '티');
-    expect(results.some((r) => r.item.name === '디카페인 블렌드')).toBe(false);
+    expect(results.some((r) => nonLegal(r).name === '디카페인 블렌드')).toBe(false);
   });
 });
 
@@ -178,7 +186,7 @@ describe('search — 랭킹 개선 (A+C)', () => {
   it('name 매치가 desc 매치보다 먼저 나온다', () => {
     // "자몽" — name 에 포함된 "자몽 허니 블랙티" vs desc 에 "자몽향" 포함된 경우
     const results = search(idx, '자몽');
-    expect(results[0].item.name).toBe('자몽 허니 블랙티');
+    expect(nonLegal(results[0]).name).toBe('자몽 허니 블랙티');
   });
 
   it('exact name 매치가 prefix/substring 보다 높은 스코어', () => {
@@ -187,9 +195,9 @@ describe('search — 랭킹 개선 (A+C)', () => {
     const substring = mkProduct({ name: '스페셜커피', slug: 'coffee-sub' });
     const customIdx = buildSearchIndex([substring, prefix, exact], []);
     const results = search(customIdx, '커피');
-    expect(results[0].item.name).toBe('커피');
-    expect(results[1].item.name).toBe('커피빈');
-    expect(results[2].item.name).toBe('스페셜커피');
+    expect(nonLegal(results[0]).name).toBe('커피');
+    expect(nonLegal(results[1]).name).toBe('커피빈');
+    expect(nonLegal(results[2]).name).toBe('스페셜커피');
   });
 });
 
@@ -206,6 +214,6 @@ describe('search — 하이라이트 span (E)', () => {
     if (!span) return;
     // raw name: '가을의 밤 Autumn Night'
     //                     ^ index 6
-    expect(top.item.name.slice(span.start, span.end).toLowerCase()).toBe('autumn');
+    expect(nonLegal(top).name.slice(span.start, span.end).toLowerCase()).toBe('autumn');
   });
 });

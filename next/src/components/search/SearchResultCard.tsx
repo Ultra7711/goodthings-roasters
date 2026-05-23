@@ -9,6 +9,7 @@
 'use client';
 
 import Image from 'next/image';
+import { FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import HighlightText from './HighlightText';
 import { extractKrName } from '@/lib/utils';
@@ -22,6 +23,38 @@ type Props = {
 
 export default function SearchResultCard({ result }: Props) {
   const router = useRouter();
+
+  /* S280: legal 결과 — 이미지 없는 텍스트 카드 (제목 + description + slug link).
+     legal 페이지는 /legal/[slug] 라우트로 이동. */
+  if (result.kind === 'legal') {
+    const l = result.item;
+    const onClick = () => router.push(`/legal/${l.slug}`);
+    const onKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onClick();
+      }
+    };
+    return (
+      <button
+        type="button"
+        className="sp-card sp-visible sr-card sr-card--legal"
+        onClick={onClick}
+        onKeyDown={onKey}
+        aria-label={`${l.title} 페이지로 이동`}
+      >
+        <div className="sp-card-thumb sr-card-legal-thumb" aria-hidden>
+          <FileText size={32} strokeWidth={1.5} />
+        </div>
+        <div className="sp-card-info">
+          <p className="sp-card-name">
+            <HighlightText text={l.title} spans={result.spans} field="legalTitle" />
+          </p>
+          <p className="sp-card-price sr-card-legal-desc">{l.description}</p>
+        </div>
+      </button>
+    );
+  }
 
   if (result.kind === 'product') {
     const p = result.item;

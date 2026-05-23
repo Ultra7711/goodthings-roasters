@@ -131,6 +131,10 @@ export const FIELD_WEIGHTS: Readonly<Record<FieldKey, number>> = {
   specs: 20,
   desc: 15,
   menuDesc: 15,
+  /* S280 legal — title 은 상품 name 보다 약간 낮춰 상품 결과 우선 노출 (사용자
+     의도 = 상품 검색이 보통). body 는 본문 전체라 가중치 낮음. */
+  legalTitle: 80,
+  legalBody: 10,
 };
 
 /**

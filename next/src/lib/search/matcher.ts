@@ -18,8 +18,9 @@ import type {
   SearchLayer,
 } from './types';
 
-/** 필드별 nameOnly 플래그 (초성 검색 대상 여부) */
-const NAME_ONLY_FIELDS: ReadonlySet<FieldKey> = new Set(['name', 'category']);
+/** 필드별 nameOnly 플래그 (초성 검색 대상 여부).
+ *  S280: legalTitle 도 초성 검색 대상 ("ㄱㅇㅈㅂ" → "개인정보처리방침"). */
+const NAME_ONLY_FIELDS: ReadonlySet<FieldKey> = new Set(['name', 'category', 'legalTitle']);
 
 /* ── 동의어 reverse index 빌드 ──────────────────────────────
    equivalence class 의 모든 토큰을 양방향으로 연결.

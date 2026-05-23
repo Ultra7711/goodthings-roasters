@@ -21,19 +21,26 @@ import 'server-only';
 
 import { fetchProducts } from './productsServer';
 import { fetchCafeMenu } from './cafeMenuServer';
+import { LEGAL_SEARCH_ITEMS } from './legal/searchIndex';
 import type { SearchIndexData } from './search/types';
 
 export type { SearchIndexData };
 
 /**
- * 검색 인덱스 데이터 통합 fetch — products + cafe_menu 병렬.
+ * 검색 인덱스 데이터 통합 fetch — products + cafe_menu 병렬 + legal docs.
  * sub-fetch 가 각자 'use cache' + cacheTag 를 사용하므로 본 함수는 캐시 비적용.
  * 실패한 도메인은 빈 배열로 fallback (sub-fetch 가 graceful) → 부분 결과라도 노출.
+ *
+ * S280: legal docs (6 페이지) 정적 import — 모듈 로드 시점 평가. DB 호출 없음.
  */
 export async function fetchSearchIndex(): Promise<SearchIndexData> {
   const [products, cafeMenu] = await Promise.all([
     fetchProducts(),
     fetchCafeMenu(),
   ]);
-  return { products, cafeMenu };
+  return {
+    products,
+    cafeMenu,
+    legal: [...LEGAL_SEARCH_ITEMS],
+  };
 }

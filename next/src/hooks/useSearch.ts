@@ -52,10 +52,11 @@ export function useSearch(
     initialData,
   });
 
-  /* data 참조가 동일하면 인덱스 재빌드 없음. SSR initialData 는 stable identity 유지. */
+  /* data 참조가 동일하면 인덱스 재빌드 없음. SSR initialData 는 stable identity 유지.
+     S280: legal docs 도 인덱스에 포함 (정적 데이터 · 모듈 import 시점 평가). */
   const index = useMemo(() => {
     if (!data) return [];
-    return buildSearchIndex(data.products, data.cafeMenu);
+    return buildSearchIndex(data.products, data.cafeMenu, data.legal);
   }, [data]);
 
   /* 빈 쿼리 fast-return — search(index, '') 도 빈 배열이지만 명시적 단락으로 명확화. */
