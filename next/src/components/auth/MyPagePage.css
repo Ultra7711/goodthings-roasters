@@ -174,7 +174,8 @@
   font-size: var(--type-body-m-size);
   font-weight: var(--type-body-m-weight);
   color: var(--color-text-primary);
-  line-height: 1.5;
+  /* S253: hardcode 1.5 → 토큰. 15 × 1.5 = 22.5px sub-pixel 차단. */
+  line-height: var(--lh-kr-body-15);
 }
 .mp-info-addr-line--detail {
   white-space: nowrap;

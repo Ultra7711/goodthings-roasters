@@ -545,7 +545,7 @@ export default function BizInquiryPage() {
             onClear={() => handleTextChange('message', '')}
           />
 
-          {/* 개인정보 수집·이용 동의 (PIPA 필수 · S243-A-2) */}
+          {/* 개인정보 수집·이용 동의 (PIPA 필수 · S243-A-2 · S253 디자인 통일 옵션 B) */}
           <label
             className={`bi-consent-row${warns.has('consent') ? ' bi-consent-warn' : ''}`}
           >
@@ -565,6 +565,23 @@ export default function BizInquiryPage() {
                 }
               }}
             />
+            <span
+              className={`bi-consent-icon${consent ? ' checked' : ''}`}
+              aria-hidden="true"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5,12l5,5,9-9" />
+              </svg>
+            </span>
             <span className="bi-consent-text">
               {/* S252: prefix 는 모바일에서 hide (bi-consent-prefix). 데스크탑은
                   full 문구 유지. JSX leading 공백 의존 회피 위해 Link 와 suffix

@@ -316,19 +316,54 @@
   cursor: pointer;
   user-select: none;
 }
+/* S253 옵션 B: native input 은 시각적으로 hidden (접근성 위해 label 클릭으로
+   토글). 디자인은 .bi-consent-icon 이 담당 — chp-check-icon (AgreementSection)
+   디자인 토큰 답습 (20×20 / radius 3 / border 1.5 / brown fill on checked). */
 .bi-consent-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.bi-consent-icon {
   flex-shrink: 0;
   margin-top: 2px;
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: var(--color-btn-primary-bg);
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1.5px solid var(--color-border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background var(--duration-transition) ease,
+              border-color var(--duration-transition) ease;
+}
+.bi-consent-icon svg {
+  opacity: 0;
+  transition: opacity var(--duration-transition) ease;
+}
+.bi-consent-icon.checked {
+  background: var(--color-btn-primary-bg);
+  border-color: var(--color-btn-primary-bg);
+}
+.bi-consent-icon.checked svg {
+  opacity: 1;
+}
+.bi-consent-warn .bi-consent-icon:not(.checked) {
+  border-color: var(--color-error);
 }
 .bi-consent-text {
   font-family: var(--font-kr);
   font-size: var(--type-body-m-size);
   color: var(--color-text-secondary);
-  line-height: 1.5;
+  /* S253: hardcode 1.5 → 토큰. 15 × 1.5 = 22.5px sub-pixel 차단. */
+  line-height: var(--lh-kr-body-15);
 }
 .bi-consent-warn .bi-consent-text {
   color: var(--color-error);
