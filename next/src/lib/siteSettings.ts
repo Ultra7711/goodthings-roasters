@@ -160,7 +160,7 @@ export const SignatureSettingsSchema = z.object({
 export type SignatureSettings = z.infer<typeof SignatureSettingsSchema>;
 
 /** 코드 default — DB row 없을 때 fallback. enabled=false → chapter hide. */
-export const SIGNATURE_DEFAULTS: SignatureSettings = {
+const SIGNATURE_DEFAULTS: SignatureSettings = {
   enabled: false,
   custom_html_path: '',
   image_path_desktop: '',
@@ -203,7 +203,7 @@ export const HomeFeaturedSettingsSchema = z.object({
 
 export type HomeFeaturedSettings = z.infer<typeof HomeFeaturedSettingsSchema>;
 
-export const HOME_FEATURED_DEFAULTS: HomeFeaturedSettings = {
+const HOME_FEATURED_DEFAULTS: HomeFeaturedSettings = {
   menu_ids: [],
 };
 
@@ -259,29 +259,6 @@ export const NOTICE_COLOR_THEMES = [
   ['#FAF6EE', '#1A1A1A'],
 ] as const satisfies ReadonlyArray<readonly [string, string]>;
 
-/**
- * 변경 영역 카운트 — "저장되지 않은 변경 N개" 뱃지용.
- * 영역별 객체 비교 (얕은 동등) — 한 영역 내 어떤 필드라도 다르면 1로 카운트.
- */
-export function countDirtyAreas(
-  initial: SiteSettings,
-  current: SiteSettings,
-): number {
-  let n = 0;
-  if (!shallowEqual(initial.notice, current.notice)) n += 1;
-  if (!shallowEqual(initial.shipping, current.shipping)) n += 1;
-  if (!shallowEqual(initial.signature, current.signature)) n += 1;
-  return n;
-}
-
-function shallowEqual<T extends Record<string, unknown>>(a: T, b: T): boolean {
-  const keys = Object.keys(a) as Array<keyof T>;
-  if (keys.length !== Object.keys(b).length) return false;
-  for (const k of keys) {
-    if (a[k] !== b[k]) return false;
-  }
-  return true;
-}
 
 /* ── 공지 텍스트 합성 ────────────────────────────────────────────────── */
 

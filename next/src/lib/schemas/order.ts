@@ -33,7 +33,7 @@ const EmailSchema = z.string().email({ message: 'invalid_email' }).max(255);
 
 import { SUBSCRIPTION_CYCLES } from '@/lib/subscription/cycles';
 
-export const OrderItemInputSchema = z
+const OrderItemInputSchema = z
   .object({
     productSlug: z.string().min(1).max(80),
     /** 상품의 volumes[].label — 서버에서 PRODUCTS 로부터 단가 조회 */
@@ -58,7 +58,7 @@ export type OrderItemInput = z.infer<typeof OrderItemInputSchema>;
 
 /* ── 배송지 ──────────────────────────────────────────────────────────── */
 
-export const ShippingSchema = z
+const ShippingSchema = z
   .object({
     name: z.string().min(1).max(80),
     phone: PhoneSchema,
@@ -80,7 +80,7 @@ export type ShippingInput = z.infer<typeof ShippingSchema>;
 
 /* ── 결제수단 ────────────────────────────────────────────────────────── */
 
-export const PaymentSchema = z.discriminatedUnion('method', [
+const PaymentSchema = z.discriminatedUnion('method', [
   z.object({ method: z.literal('card') }),
   z.object({
     method: z.literal('transfer'),
@@ -94,7 +94,7 @@ export type PaymentInput = z.infer<typeof PaymentSchema>;
 /* ── 약관 동의 ───────────────────────────────────────────────────────── */
 
 /** 필수 2종: 이용약관 + 개인정보. literal(true) 로 동의 없이는 검증 실패. */
-export const AgreementSchema = z.object({
+const AgreementSchema = z.object({
   terms: z.literal(true),
   privacy: z.literal(true),
 });

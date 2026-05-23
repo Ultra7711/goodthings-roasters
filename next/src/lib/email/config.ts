@@ -40,8 +40,6 @@ function resolveMode(raw: string | undefined, nodeEnv: string | undefined, apiKe
 /**
  * 환경변수 파싱 + 검증. 부트 타임에 최초 호출되어 cached 에 저장된다.
  * 프로덕션 + live 모드에서 API 키 누락 시 즉시 throw → 침묵 실패 방지.
- *
- * 테스트에서 env 변경을 반영하려면 resetEmailConfigForTests() 후 재호출.
  */
 export function getEmailConfig(): EmailConfig {
   if (cached) return cached;
@@ -88,9 +86,4 @@ export function getEmailConfig(): EmailConfig {
 
   cached = { mode, apiKey, fromEmail, replyTo, rps };
   return cached;
-}
-
-/** 테스트 전용 — 캐시 초기화. 프로덕션 코드에서 호출 금지. */
-export function resetEmailConfigForTests(): void {
-  cached = null;
 }

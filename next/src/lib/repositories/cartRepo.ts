@@ -51,7 +51,7 @@ export type UpsertCartItemParams = {
 };
 
 /** quantity 합산 시 상한 (cart_items_quantity_range CHECK 와 동일) */
-export const CART_MAX_QTY = 99;
+const CART_MAX_QTY = 99;
 
 /* ══════════════════════════════════════════
    Public API
@@ -224,19 +224,3 @@ export async function bulkMergeCartItems(
   return typeof data === 'number' ? data : 0;
 }
 
-/**
- * 특정 사용자의 카트 아이템 전체 삭제 (결제 완료 후 호출 예정 — Session 14+).
- *
- * @param userId — 삭제 대상 사용자 UUID. 반드시 인증 세션의 user.id 와 일치해야 함.
- *   RLS 정책 `cart_items_delete_own` 이 `auth.uid() = user_id` 로 제한하지만,
- *   방어적으로 WHERE 절에도 명시 — service_role 컨텍스트 또는 RLS 변경 시 안전장치.
- */
-export async function clearCartItems(userId: string): Promise<void> {
-  const supabase = await createRouteHandlerClient();
-  const { error } = await supabase
-    .from('cart_items')
-    .delete()
-    .eq('user_id', userId);
-
-  if (error) throw error;
-}

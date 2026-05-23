@@ -14,16 +14,6 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 /**
- * confirm API 경로 — `confirm:{paymentKey}`
- *
- * 012 마이그레이션 `confirm_payment` RPC 가 동일 규칙으로 INSERT 하므로
- * 앱 레이어와 DB 레이어의 키 포맷이 일치해야 한다.
- */
-export function confirmIdempotencyKey(paymentKey: string): string {
-  return `confirm:${paymentKey}`;
-}
-
-/**
  * 카드 PAYMENT_STATUS_CHANGED 웹훅 (일반 · PARTIAL_CANCELED 제외)
  *  — `webhook:{paymentKey}:{lastTransactionKey}`
  */
@@ -77,7 +67,7 @@ export function unknownWebhookIdempotencyKey(
  * 멱등성 키 UNIQUE 를 두 번째 INSERT 가 위반할 때 Supabase PostgrestError 의
  * `code` 필드가 '23505' 로 올라온다. 호출자가 이 코드를 catch 해 silent 200 처리.
  */
-export const PG_UNIQUE_VIOLATION = '23505';
+const PG_UNIQUE_VIOLATION = '23505';
 
 /**
  * Supabase PostgrestError 인지 여부를 얄팍하게 판별.

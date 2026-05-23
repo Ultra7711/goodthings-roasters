@@ -14,13 +14,13 @@ export const PHONE_RE = /^(02-\d{3,4}-\d{4}|0[1-9]\d-\d{3,4}-\d{4})$/;
 export const ZIPCODE_RE = /^\d{5}$/;
 
 /** 주문번호 (GT-YYYYMMDD-NNNNN[N]) — 011 하드닝으로 5~6자리 시퀀스 허용 */
-export const ORDER_NUMBER_RE = /^GT-\d{8}-\d{5,6}$/;
+const ORDER_NUMBER_RE = /^GT-\d{8}-\d{5,6}$/;
 
 /** 비밀번호 최소 길이 (회원가입 · 비회원 주문용) */
-export const PASSWORD_MIN_LENGTH = 6;
+const PASSWORD_MIN_LENGTH = 6;
 
 /** 비밀번호 최대 길이 */
-export const PASSWORD_MAX_LENGTH = 16;
+const PASSWORD_MAX_LENGTH = 16;
 
 /** 비회원 주문 비밀번호 최소 길이 — 서버 GUEST_PIN_MIN(4)과 일치 */
 export const GUEST_PASSWORD_MIN_LENGTH = 4;

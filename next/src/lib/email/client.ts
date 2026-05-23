@@ -40,9 +40,3 @@ export function getRateLimiter(): TokenBucket {
   }
   return bucket;
 }
-
-/** 테스트 전용 — 싱글톤 초기화. 프로덕션 코드에서 호출 금지. */
-export function resetEmailClientForTests(): void {
-  resendClient = null;
-  bucket = null;
-}

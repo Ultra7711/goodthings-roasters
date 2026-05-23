@@ -11,7 +11,7 @@
    ══════════════════════════════════════════ */
 
 /** 가상 이메일 서픽스 — 실도메인과 충돌 방지용 internal TLD */
-export const SYNTHETIC_EMAIL_SUFFIX = '-oauth.internal';
+const SYNTHETIC_EMAIL_SUFFIX = '-oauth.internal';
 
 /** 이메일 문자열이 가상 이메일 패턴인지 검사 */
 export function isSyntheticEmail(email: string | null | undefined): boolean {

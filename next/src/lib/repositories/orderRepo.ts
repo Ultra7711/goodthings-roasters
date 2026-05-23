@@ -307,57 +307,6 @@ export async function findGuestOrderWithHash(
   return data ?? null;
 }
 
-/* ══════════════════════════════════════════
-   018 — public_token 기반 lookup (Session 8 보안 #3)
-
-   고객 대면 URL/이메일에서 order_number 대신 UUID v4 public_token 을
-   사용하기 위한 조회 경로. 기존 order_number lookup 과 병행 (스펙 §4.4 - 4a).
-   ══════════════════════════════════════════ */
-
-/**
- * 회원 본인 주문 조회 — public_token 기반 (018).
- * RLS `orders_select_own` 에 의해 타인 주문은 자동 차단.
- */
-export async function findOrderForUserByToken(
-  publicToken: string,
-): Promise<OrderRow | null> {
-  const supabase = await createRouteHandlerClient();
-  const { data, error } = await supabase
-    .from('orders')
-    .select(ORDER_SELECT)
-    .eq('public_token', publicToken)
-    .neq('status', 'pending')
-    .maybeSingle<OrderRow>();
-
-  if (error) throw error;
-  return data ?? null;
-}
-
-/**
- * 게스트 주문 조회 — public_token + email 로 교차검증 (018).
- *
- * - `findGuestOrderWithHash` 의 token 변형. 로직/방어층은 동일.
- * - UUID token 은 URL enumeration 내성이 확보되어 있지만, guest_email 교차검증을
- *   유지해 이메일+PIN 이 알려진 상태에서의 표적 공격도 차단한다.
- */
-export async function findGuestOrderByTokenWithHash(
-  publicToken: string,
-  email: string,
-): Promise<(OrderRow & { guest_lookup_pin_hash: string | null }) | null> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin
-    .from('orders')
-    .select(`${ORDER_SELECT}, guest_lookup_pin_hash`)
-    .eq('public_token', publicToken)
-    .eq('guest_email', email)
-    .is('user_id', null)
-    .neq('status', 'pending')
-    .maybeSingle<OrderRow & { guest_lookup_pin_hash: string | null }>();
-
-  if (error) throw error;
-  return data ?? null;
-}
-
 /* ── ABANDON (DELETE) ─────────────────────────────────────────────────────
 
    S173: pending 주문은 결제 미완료 흔적 → row 보존 가치 없음.

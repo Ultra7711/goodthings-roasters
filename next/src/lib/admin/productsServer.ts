@@ -12,7 +12,6 @@ import 'server-only';
      productsServer.ts = admin only.
 
    역할:
-   - listProductsAdmin()        — settings 페이지 (Product[] 형태)
    - listAdminProductsLite()    — /admin/products 목록 (AdminProductListItem[])
    - fetchAdminProductRawBySlug — /admin/products/[slug]/edit (raw row)
 
@@ -30,42 +29,13 @@ import 'server-only';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import {
   mapAdminProductListItem,
-  mapProductRow,
   type AdminProductListItem,
   type ProductWithRelationsRow,
 } from '@/types/product';
-import type { Product } from '@/lib/products';
 
 /** 1 쿼리 nested select 절 — admin fetch 공통 사용 (B2C lib/productsServer 답습) */
 const PRODUCT_SELECT =
   '*, product_volumes(*), product_images(*), product_recipes(*)';
-
-/**
- * 어드민 전체 목록 (is_active 무관) — UI Product 매핑.
- * cache 미사용. 정렬: sort_order asc → updated_at desc.
- *
- * settings 페이지 등 기존 Product[] 형태가 필요한 곳에서 사용.
- * /admin/products 목록 페이지는 listAdminProductsLite() 사용.
- */
-export async function listProductsAdmin(): Promise<Product[]> {
-  const client = await createRouteHandlerClient();
-  const { data, error } = await client
-    .from('products')
-    .select(PRODUCT_SELECT)
-    .order('sort_order', { ascending: true })
-    .order('updated_at', { ascending: false });
-
-  if (error) {
-    console.error('[listProductsAdmin] query failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
-    return [];
-  }
-  if (!data) return [];
-
-  return (data as ProductWithRelationsRow[]).map(mapProductRow);
-}
 
 /**
  * /admin/products 목록 페이지 전용 (S218).

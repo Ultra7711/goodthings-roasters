@@ -7,16 +7,13 @@
    ══════════════════════════════════════════ */
 
 /** 진입 스프링 오버슈트 — Roast 마커 slide / Flavor 꼭지점 팝 공용 */
-export const EASE_BACK = [0.4, 1.3, 0.5, 1] as const;
-
-/** 진입용 cubic-bezier CSS 문자열 */
-export const EASE_BACK_CSS = `cubic-bezier(${EASE_BACK.join(',')})`;
+const EASE_BACK = [0.4, 1.3, 0.5, 1] as const;
 
 /**
  * 1D cubic-bezier 평가기. x(시간) → y(진행률) 반환.
  * Newton-Raphson 6회로 충분히 수렴.
  */
-export function cubicBezier(
+function cubicBezier(
   x1: number,
   y1: number,
   x2: number,
@@ -46,6 +43,3 @@ export function cubicBezier(
 
 /** Roast 마커 + Flavor 꼭지점 진입 공용 — EASE_BACK 기반 오버슈트 */
 export const easeBack = cubicBezier(...EASE_BACK);
-
-/** 호버 확장/축소 공용 — CSS ease-out 을 JS 에서 근사 (quadratic) */
-export const easeHoverOut = (t: number): number => 1 - (1 - t) * (1 - t);

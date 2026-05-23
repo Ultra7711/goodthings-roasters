@@ -2,40 +2,6 @@
    Site Constants
    ══════════════════════════════════════════ */
 
-import type { NavItem, FooterColumn } from '@/types/navigation';
-
-/* ── 메인 내비게이션 ── */
-export const NAV_ITEMS: NavItem[] = [
-  { key: 'story',     label: 'The Story',  href: '/story' },
-  { key: 'menu',      label: 'Menu',       href: '/menu' },
-  { key: 'shop',      label: 'Shop',       href: '/shop' },
-  { key: 'gooddays',  label: 'Good Days',  href: '/gooddays' },
-];
-
-/* ── 푸터 컬럼 ── */
-export const FOOTER_COLUMNS: FooterColumn[] = [
-  {
-    title: 'The Story',
-    links: [
-      { label: 'The Story',  href: '/story' },
-      { label: 'Location',   href: '/story#location' },
-    ],
-  },
-  {
-    title: 'Shop',
-    links: [
-      { label: 'Featured Beans', href: '/shop' },
-      { label: 'Cafe Menu',     href: '/menu' },
-    ],
-  },
-  {
-    title: 'Contact',
-    links: [
-      { label: 'Wholesale', href: '/contact/wholesale' },
-    ],
-  },
-];
-
 /* ── 사업자 정보 ──
    환경변수에서 주입 (전자상거래법 §13 의무 표시).
    .env.local 미설정 시 빈 문자열 — 푸터 렌더 시 시각적 누락 → 누락 즉시 인지.
@@ -53,13 +19,6 @@ export const BUSINESS_INFO = {
   /* 전자상거래법 §13 표시 권고 (예: "Vercel Inc."). */
   hostingProvider: process.env.NEXT_PUBLIC_BUSINESS_HOSTING_PROVIDER ?? '',
 } as const;
-
-/* ── 어나운스 바 ── */
-export const ANNOUNCEMENT_TEXT = '30,000원 이상 구매 시 무료 배송';
-export const ANNOUNCEMENT_TEXT_EN = 'Specialty Coffee For All';
-
-/* ── SNS ── */
-export const INSTAGRAM_URL = 'https://www.instagram.com/goodthings_roasters/';
 
 /* ── UI 인터랙션 ── */
 export const SCROLL_REVEAL_THRESHOLD = 0.15;

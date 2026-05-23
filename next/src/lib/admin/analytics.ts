@@ -18,8 +18,8 @@ import { formatKrw } from './dashboard';
 /* ── 상수 ────────────────────────────────────────────────────────────── */
 
 /** Readiness 임계값 (시안 carousel: 50건 OR 14일) */
-export const READY_THRESHOLD_ORDERS = 50;
-export const READY_THRESHOLD_DAYS = 14;
+const READY_THRESHOLD_ORDERS = 50;
+const READY_THRESHOLD_DAYS = 14;
 
 /** 기간 필터 옵션 */
 export const ANALYTICS_PERIOD_OPTIONS = [
@@ -91,7 +91,7 @@ export type Readiness = {
  * - first_order_at IS NULL (주문 0건) → daysCur=0
  * - 두 임계값 중 하나라도 충족하면 ready=true.
  */
-export function evaluateReadiness(
+function evaluateReadiness(
   totalOrders: number,
   firstOrderAtIso: string | null,
   now: Date = new Date(),

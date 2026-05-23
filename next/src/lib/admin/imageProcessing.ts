@@ -84,7 +84,7 @@ export async function processAdminImage(
 }
 
 /** WCAG luminance 단순 근사 (0.299R + 0.587G + 0.114B > 128 = light). */
-export function isLightHex(hex: string): boolean {
+function isLightHex(hex: string): boolean {
   const m = hex.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
   if (!m) return true;
   const r = parseInt(m[1], 16);
