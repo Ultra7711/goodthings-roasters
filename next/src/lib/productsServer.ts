@@ -6,7 +6,9 @@ import 'server-only';
    역할 (B2C only — S227 DEC-16 분리):
    - fetchProducts() — 메인 사이트 SSR fetch (is_active=true, sort_order asc)
    - fetchProductBySlug(slug) — PDP / 결제 / 카트 메타 조회
-   - searchProducts(q) — 검색 결과 (S215 searchServer 통합 시 이관)
+
+   S259: searchProducts(q) 폐기 — dead code (caller 0건). 실제 검색은
+   lib/searchServer.fetchSearchIndex + client engine.ts 매칭으로 처리됨.
 
    admin variant (listProductsAdmin / listAdminProductsLite /
    fetchAdminProductRawBySlug) 는 lib/admin/productsServer.ts 분리 (ADR-009).
@@ -115,38 +117,3 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
   return mapProductRow(data as ProductWithRelationsRow);
 }
 
-/**
- * 검색 결과 — name / note_tags / note_tags_en / description ilike OR.
- * pg_trgm GIN 인덱스로 wildcard pattern matching 가속됨 (046 스키마).
- * S215 통합 시 searchServer 로 이관 + ranking 강화 예정.
- */
-export async function searchProducts(query: string): Promise<Product[]> {
-  const trimmed = query.trim();
-  if (trimmed.length === 0) return [];
-
-  const client = getAnonClient();
-  // ilike OR escape — 사용자 입력에서 % / , / 공백 안전 처리
-  const safe = trimmed.replace(/[,%]/g, ' ');
-  const pattern = `%${safe}%`;
-
-  const { data, error } = await client
-    .from('products')
-    .select(PRODUCT_SELECT)
-    .eq('is_active', true)
-    .or(
-      `name.ilike.${pattern},note_tags.ilike.${pattern},note_tags_en.ilike.${pattern},description.ilike.${pattern}`,
-    )
-    .order('sort_order', { ascending: true });
-
-  if (error) {
-    console.error('[searchProducts] query failed', {
-      queryLen: trimmed.length,
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
-    return [];
-  }
-  if (!data) return [];
-
-  return (data as ProductWithRelationsRow[]).map(mapProductRow);
-}
