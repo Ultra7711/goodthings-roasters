@@ -2085,18 +2085,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   }
 }
 
-/* BUG-144 (2) — 메인 카드 (.cat-card) hover 효과 3종 차단:
-   이미지 scale(1.03) · overlay darken(.82) · 화살표 fade-in + slide. */
-@media (hover: none) {
-  .cat-card:hover .cat-img-inner {
-    transform: none;
-  }
-  .cat-card:hover .cat-arrow {
-    opacity: 0;
-    animation: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .st-map-overlay-btn::after, .st-map-overlay-btn--primary::after { transition: none; }
 }
@@ -2199,7 +2187,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    ══════════════════════════════════════════ */
 @media (max-width: 767px) {
   .hero-c,
-  .cat-grid,
   .two-col,
   #sp-body,
   #cm-body,

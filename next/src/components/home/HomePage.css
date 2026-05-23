@@ -398,11 +398,6 @@
   }
 }
 
-/* 배경 이미지 */
-.img-coffee    { background: url('/images/cafe-menu/cm_img_milk_coffee.webp') center/cover no-repeat; }
-.img-beverage  { background: url('/images/sections/img_cafemenu_beverage_main.webp') center/cover no-repeat; }
-.img-dessert   { background: url('/images/sections/img_cafemenu_dessert_main.webp') center/cover no-repeat; }
-
 /* ══ V2 §2.6 — Story + GoodDays Cream → Dark ══
    Stage 1 (cream): The Story 텍스트 + 좌측 이미지
    Stage 2 (dark · --ink-section): GoodDays 4컷 그리드
