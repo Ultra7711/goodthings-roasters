@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "gen:image-blur": "node scripts/generate-image-blur.mjs",
     "seed:cafe-menu": "npx tsx scripts/seed-cafe-menu.ts",
     "normalize:allergens": "npx tsx scripts/normalize-allergens.ts",
@@ -56,6 +57,7 @@
     "zod": "^4.4.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
