@@ -39,11 +39,22 @@ export function escapeCsvField(value: string | number | null | undefined): strin
 }
 
 /**
- * headers + rows → CSV 문자열 (UTF-8 BOM + CRLF + 안내 주석 첫 행).
+ * headers + rows → CSV 문자열 (UTF-8 BOM + Excel sep directive + CRLF + 안내 주석).
  *
- * - 첫 행: # 굳띵즈 로스터스 내부 운영 자료 — 외부 공유 금지 (KST 시각)
- * - 둘째 행: 헤더
- * - 셋째 행~: 데이터
+ * 구조:
+ * - BOM (UTF-8 인식 1차 hint)
+ * - 첫 행: `sep=,` Excel directive (UTF-8 sniffing 강화 · 2차 hint)
+ * - 둘째 행: # 굳띵즈 로스터스 내부 운영 자료 — 외부 공유 금지 (KST 시각)
+ * - 셋째 행: 헤더
+ * - 넷째 행~: 데이터
+ *
+ * sep directive 도입 배경 (S255-B 후속 · orders CSV 깨짐 fix):
+ * Excel 은 BOM 외에도 첫 chunk 의 byte 분포로 인코딩 추론. orders 같이
+ * ASCII (주문번호/날짜/이메일/전화) 비중 높은 데이터는 sniffing 실패 →
+ * 시스템 로케일(CP949) fallback → 한글 mojibake. `sep=,` 는 Microsoft
+ * 인식 magic directive 로 separator 명시 + UTF-8 sniffing 우선순위 강화.
+ * Google Sheets / Numbers 는 첫 행에 'sep=,' 셀이 한 줄 추가되어 보이는
+ * 정도 — 운영 안내문과 동일 무시 대상이라 영향 미미.
  */
 export function buildCsv(
   headers: readonly string[],
@@ -52,10 +63,11 @@ export function buildCsv(
 ): string {
   const BOM = '﻿';
   const CRLF = '\r\n';
+  const sepDirective = 'sep=,';
   const notice = `# 굳띵즈 로스터스 ${meta.domain} 내부 운영 자료 — 외부 공유 금지 · 생성 ${meta.generatedAtKst}`;
   const headerLine = headers.map(escapeCsvField).join(',');
   const dataLines = rows.map((row) => row.map(escapeCsvField).join(','));
-  return BOM + [notice, headerLine, ...dataLines].join(CRLF) + CRLF;
+  return BOM + [sepDirective, notice, headerLine, ...dataLines].join(CRLF) + CRLF;
 }
 
 /* ── KST 포맷 헬퍼 ───────────────────────────────────────────────────── */
