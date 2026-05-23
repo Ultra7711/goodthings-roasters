@@ -3,37 +3,62 @@
 import { useEffect } from 'react';
 import { getTopColor, getBottomColor } from './overscrollState';
 
-/* S263 B-1 v2 — 회귀 원인:
-   - OverscrollTop 의 setBottomColor 가 글로벌 변수에 저장. 4 페이지가 bottom="#FBF8F3"
-     (warm white) 설정 → unmount cleanup race / SPA navigation 타이밍으로 stale 잔존
-     가능. mypage 의 OverscrollTop 은 bottom 미지정 → 이전 페이지의 warm white 가
-     bottomColor 변수에 남아 footer 진입 후 사용자가 본 "웜화이트 물결".
-   - BOTTOM_THRESHOLD=50 scroll 트리거 외 IntersectionObserver 로 footer 진입 감지.
-   - footer 의 실제 computed background-color 를 read 해서 우선 사용 → 전역 변수
-     race 차단. footer 가 없는 페이지 (예: order-complete) 는 기존 getBottomColor()
-     variable 동작 유지 (페이지가 명시한 색). */
+/* S263 B-1 v3 — fix v2 (footer.bg read) 적용 후에도 iOS Safari + Chrome 에서
+   "footer 끝~viewport 바닥" 영역에 warm white 잔존 보고 (mypage 만).
+
+   원인 (cafe-nutri S246 fix 답습 패턴):
+   - html bg 만 토글 시 iOS 의 body transparent 영역에서 noise 잔존 → body 도 토글
+   - theme-color meta default → iOS Chrome/Safari 의 viewport extra area 가 white
+   - URL 바 transition 시 visualViewport resize → scroll 이벤트 안 발화 → stale
+
+   다층 방어:
+   1. html + body 동시 토글 (cafe-nutri 패턴 답습)
+   2. theme-color meta 동기화 (iOS Chrome bottom URL 바 + Safari status bar)
+   3. visualViewport resize listener (URL 바 transition 대응) */
 const BOTTOM_THRESHOLD = 50;
 
 export default function OverscrollColor() {
   useEffect(() => {
-    const el = document.documentElement;
+    const html = document.documentElement;
+    const body = document.body;
     let footerInView = false;
     let footerBg: string | null = null;
 
+    let metaEl = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    let metaCreated = false;
+    if (!metaEl) {
+      metaEl = document.createElement('meta');
+      metaEl.name = 'theme-color';
+      document.head.appendChild(metaEl);
+      metaCreated = true;
+    }
+
+    const apply = (color: string) => {
+      html.style.backgroundColor = color;
+      body.style.backgroundColor = color;
+      if (metaEl) metaEl.content = color;
+    };
+
     const update = () => {
+      /* modal/sheet open 시 (body.overflow:hidden) skip — cafe-nutri 등 자체 색
+         처리 컴포넌트와 충돌 차단. body.bg / theme-color meta 가 시트 자체 값 유지. */
+      if (body.style.overflow === 'hidden') return;
       const atBottom =
-        window.scrollY + window.innerHeight >= el.scrollHeight - BOTTOM_THRESHOLD;
+        window.scrollY + window.innerHeight >= html.scrollHeight - BOTTOM_THRESHOLD;
       if (footerInView && footerBg) {
-        el.style.backgroundColor = footerBg;
+        apply(footerBg);
       } else if (atBottom) {
-        el.style.backgroundColor = getBottomColor();
+        apply(getBottomColor());
       } else {
-        el.style.backgroundColor = getTopColor();
+        apply(getTopColor());
       }
     };
 
     update();
     window.addEventListener('scroll', update, { passive: true });
+    /* iOS Safari/Chrome URL 바 transition: window.resize 발화 안 됨. visualViewport
+       resize 만 발화 → update 누락 차단. */
+    window.visualViewport?.addEventListener('resize', update);
 
     const setupFooterObserver = (footer: HTMLElement): IntersectionObserver => {
       footerBg = window.getComputedStyle(footer).backgroundColor;
@@ -74,8 +99,10 @@ export default function OverscrollColor() {
 
     return () => {
       window.removeEventListener('scroll', update);
+      window.visualViewport?.removeEventListener('resize', update);
       observer?.disconnect();
       mutationObs.disconnect();
+      if (metaCreated && metaEl) metaEl.remove();
     };
   }, []);
 
