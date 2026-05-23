@@ -22,9 +22,11 @@ import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import {
   HomeFeaturedSettingsSchema,
   NoticeSettingsSchema,
+  parseSiteSettingsRows,
   ShippingSettingsSchema,
   SignatureSettingsSchema,
   type SiteSettingKey,
+  type SiteSettings,
 } from '@/lib/siteSettings';
 import { SITE_SETTINGS_CACHE_TAG } from '@/lib/siteSettingsServer';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
@@ -39,7 +41,18 @@ const SaveInputSchema = z.object({
 export type SaveSettingsInput = z.input<typeof SaveInputSchema>;
 
 export type SaveSettingsResult =
-  | { ok: true; updatedKeys: SiteSettingKey[] }
+  | {
+      ok: true;
+      updatedKeys: SiteSettingKey[];
+      /**
+       * S255-A HIGH-4: 저장 직후 DB 로부터 다시 읽어 Zod transform 까지 적용한
+       * fresh 값. 클라이언트가 setSavedSettings + setSettings 동시에 반영하여
+       * "client 측 값 ≠ server-normalized 값" 으로 인한 dirty 잔존 해소.
+       * (예외) fresh SELECT 자체가 실패하면 undefined — client 가 자신의
+       * settings 로 fallback.
+       */
+      savedSettings?: SiteSettings;
+    }
   | {
       ok: false;
       error: 'unauthorized' | 'validation_failed' | 'server_error' | 'no_changes';
@@ -117,5 +130,30 @@ export async function saveSiteSettingsAction(
     revalidatePath('/');
   }
 
-  return { ok: true, updatedKeys: updates.map((u) => u.key) };
+  /* 6) S255-A HIGH-4: fresh SELECT 로 server-normalized 전체 settings 반환.
+        클라이언트가 setSavedSettings + setSettings 동시 반영하여 stale cache /
+        Zod transform 미세 차이로 인한 dirty 잔존 차단. 'use cache' 우회를 위해
+        fetchSiteSettings 대신 inline SELECT 사용 (revalidateTag 직후 cache miss
+        race 회피). */
+  const updatedKeys = updates.map((u) => u.key);
+  const { data: freshRows, error: fetchErr } = await supabase
+    .from('site_settings')
+    .select('key, value');
+
+  if (fetchErr || !freshRows) {
+    /* fresh fetch 실패해도 upsert 자체는 성공. client 가 자체 settings 로 fallback. */
+    console.warn('[saveSiteSettingsAction] post-save fetch failed', {
+      code: fetchErr?.code,
+      message: fetchErr?.message?.slice(0, 200),
+    });
+    return { ok: true, updatedKeys };
+  }
+
+  return {
+    ok: true,
+    updatedKeys,
+    savedSettings: parseSiteSettingsRows(
+      freshRows as ReadonlyArray<{ key: string; value: unknown }>,
+    ),
+  };
 }

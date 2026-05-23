@@ -287,15 +287,17 @@ export default function SettingsForm({ initialSettings, isOwner, cafeMenus }: Se
     startTransition(async () => {
       const result = await saveSiteSettingsAction(payload);
       if (result.ok) {
-        setSavedSettings(settings);
+        /* S255-A HIGH-4: server 가 upsert 후 fresh SELECT 한 savedSettings 로
+           saved + current 동시 동기화. Zod transform / cache stale 미세 차이로
+           인한 dirty 잔존 차단. fresh fetch 자체가 실패한 경우 (undefined) 는
+           client 측 settings 로 fallback. (router.refresh 미사용 — 동일 페이지
+           머무는 사용자도 즉시 server-normalized 값을 받음.) */
+        const next = result.savedSettings ?? settings;
+        setSavedSettings(next);
+        if (result.savedSettings) setSettings(next);
         toast.success('설정을 저장했습니다', {
           description: `사이트에 즉시 반영됩니다 · ${describeUpdatedKeys(result.updatedKeys)}`,
         });
-        /* router.refresh() 제거 — fresh initialSettings props 가 사용자가 막 저장한
-           settings 와 미세 차이 (Zod transform / cache stale) 발생 시 useEffect 의
-           setSavedSettings(initialSettings) 가 dirty 를 잔존시킴. admin 만 변경하는
-           single-tenant 영역이라 self-call 후 외부 fresh fetch 불필요. 다음 페이지
-           진입 시 자연스럽게 최신값 fetch. */
       } else {
         toast.error(describeError(result.error, result.detail));
       }
