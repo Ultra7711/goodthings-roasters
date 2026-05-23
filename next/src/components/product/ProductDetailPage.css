@@ -124,14 +124,6 @@
     padding: 0 var(--layout-padding-x);
   }
 }
-/* chapter 첫 자식이 .pd-info-section 인 경우 (Roasting · RecipeGuide · DripBagSteps):
-   상단 hairline + padding-top 48 제거 — chapter 시작점에 hairline 그어지면 어색.
-   chapter 자체 spacing (#pd-info padding-bottom 0 → ② chapter 첫 컴포넌트 사이 자연 호흡 부족) 보정 위해
-   chapter 자체 padding-top 48 부여. */
-.pd-chapter > .pd-info-section:first-child {
-  padding-top: 0;
-  box-shadow: none;
-}
 /* ③ Brewing chapter — Advisory C §7.1 heading + 콘텐츠 */
 .pd-chapter-brewing {
   padding-top: 80px;
@@ -212,12 +204,6 @@
   }
   /* 1024+ 면책 분기: inline 표시, after 숨김 */
   .pd-tasting-disclaimer--after { display: none; }
-}
-/* sand 위에서 .pd-info-section 의 hairline·상단 padding 제거 */
-.pd-chapter-tasting .pd-info-section {
-  padding-top: 0;
-  box-shadow: none;
-  margin-bottom: 0;
 }
 /* heading row 1 풀폭 / 좌 col (Roasting+Flavor) row 2 / 우 col (레이더) row 2 / 면책 row 3 풀폭 */
 .pd-tasting-info {
@@ -660,13 +646,6 @@
 .pd-sub-box--checked .pd-sub-toggle-label {
   font-weight: 500;
 }
-.pd-sub-cycle-preview {
-  font-family: var(--font-kr);
-  font-size: var(--pd-input-font-size);
-  color: var(--color-text-tertiary);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
 .pd-sub-cycle-trigger {
   display: inline-flex;
   align-items: center;
@@ -739,33 +718,6 @@
   border-color: var(--color-control-border-selected);
 }
 
-/* 드롭다운 트리거 버튼 (용량 / 주기) */
-.pd-input-box-trigger {
-  width: 100%;
-  height: 100%;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--gap-xs);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-en);
-  font-size: var(--type-body-m-size);
-  font-weight: 500;
-  color: var(--color-text-primary);
-  text-align: left;
-}
-#pd-cycle-btn.pd-input-box-trigger {
-  font-family: var(--font-kr);
-}
-.pd-input-box-trigger > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
 .pd-input-box-chevron {
   width: 24px;
   height: 24px;
@@ -798,16 +750,6 @@
   opacity: var(--state-disabled-opacity-chip);
 }
 .pd-dropdown-option.sold-out:hover { background: transparent; }
-
-/* 품절 뱃지 — 드롭다운 옵션 우측 중앙정렬 */
-.pd-dropdown-option-soldout {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-s-size);
-  font-weight: 500;
-  color: var(--color-text-caption);
-  letter-spacing: var(--ls-body);
-  flex-shrink: 0;
-}
 
 /* 수량 스테퍼 — 양쪽 정사각 버튼(W=H) + 가운데 num (OrderItemRow .oir__stepper 와 시각 동일 톤) */
 .pd-qty-stepper {
@@ -920,23 +862,6 @@
    상세 설명(#pd-detail-body)·spec 블록(#pd-detail-specs)은 PR 1 에서 제거.
    설명은 #pd-name 아래 #pd-desc 로 이동, 블렌드/원산지 표기는 폐기.
    ══════════════════════════════════════════ */
-
-/* ── 공통: 우측 섹션 구분선 (로스팅/노트/레시피 상단) ── */
-.pd-info-section {
-  margin-bottom: 48px;
-  padding-top: 48px;
-  box-shadow: inset 0 1px 0 0 var(--color-border-tertiary);
-}
-/* 상세 본문 바로 다음(#pd-roast-section)은 detail-body 하단 마진과 중복되므로
-   상단 border 는 유지하되 padding-top 만 동일하게 맞춤 */
-.pd-section-title {
-  font-family: var(--font-en);
-  font-size: var(--type-body-l-size);
-  font-weight: 400;
-  letter-spacing: var(--ls-heading);
-  color: var(--color-text-secondary);
-  margin-bottom: 18px;
-}
 
 /* ── 로스팅 게이지 (Advisory C §2.2 · S163 PR-2) ──
    그라디언트 track + cream/ink 핀 · 5-tick · KO/EN 라벨 row · 설명
@@ -1060,16 +985,6 @@
   display: block;
 }
 
-/* ── 섹션 intro (Roasting/Flavor/Recipe 공통) ── */
-.pd-section-intro {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: 400;
-  color: var(--color-text-secondary);
-  line-height: 24px;
-  margin: -6px 0 24px;
-  white-space: pre-line;
-}
 
 /* ── 레시피 가이드 (Coffee Bean) ── */
 /* ══════════════════════════════════════════════════════════════
@@ -1366,44 +1281,11 @@
 }
 
 /* ── 레시피 가이드 (Drip Bag) ── */
-.pd-drip-icons {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  margin-bottom: 44px;
-}
-.pd-drip-icon-item {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-.pd-drip-icon-item svg {
-  width: 80px;
-  height: 80px;
-  color: var(--color-text-secondary);
-}
 .pd-drip-step {
   display: flex;
   gap: var(--gap-lg);
   margin-bottom: 8px;
   align-items: baseline;
-}
-.pd-drip-step-num {
-  font-family: var(--font-en);
-  font-size: var(--type-body-m-size);
-  font-weight: 500;
-  letter-spacing: var(--ls-step);
-  white-space: nowrap;
-  color: var(--color-text-primary);
-  width: 5em;
-  flex-shrink: 0;
-}
-.pd-drip-step-text {
-  font-family: var(--font-kr);
-  font-size: var(--type-heading-s-size);
-  color: var(--color-text-secondary);
-  line-height: 28px;
-  font-weight: 400;
 }
 .pd-drip-tip {
   /* 드립 카드 그리드의 4번째 셀 — 전체 폭 사용 */
@@ -1443,7 +1325,6 @@
   font-weight: 400;
 }
 @media (max-width: 767px) {
-  .pd-drip-step-num,
   .pd-drip-tip-label {
     flex-shrink: 1;
     min-width: 0;
