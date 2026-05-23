@@ -1213,10 +1213,6 @@ body.gd-route-transition.gd-route-transition--fade::before {
   }
   .chp-left { padding-top: 24px; }
 }
-@media (max-width: 767px) {
-  .chp-field-row { grid-template-columns: 1fr; }
-}
-
 /* 좌측 폼 */
 .chp-left { padding-top: 48px; }
 .chp-section { margin-bottom: 56px; padding-top: 56px; }
@@ -1228,19 +1224,6 @@ body.gd-route-transition.gd-route-transition--fade::before {
   letter-spacing: var(--ls-heading); color: var(--color-text-primary); margin-bottom: 20px;
 }
 .chp-section-header .chp-section-title { margin-bottom: 0; }
-.chp-link {
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size); font-weight: var(--text-link-font-weight);
-  letter-spacing: var(--text-link-letter-spacing);
-  color: var(--text-link-color); cursor: pointer;
-  line-height: 1;
-  text-decoration: underline;
-  text-decoration-color: var(--color-border-primary);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
-}
-.chp-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 .chp-section-desc {
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: 400;
   color: var(--color-text-secondary); margin-bottom: 16px; line-height: 28px;
@@ -1249,7 +1232,6 @@ body.gd-route-transition.gd-route-transition--fade::before {
 
 /* 폼 필드 */
 .chp-field { position: relative; margin-bottom: 24px; }
-.chp-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-sm); }
 .chp-input {
   width: 100%; height: 56px; padding: 20px 0 4px;
   border: none;
@@ -1352,7 +1334,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .chp-dropdown-trigger:focus,
 .chp-dropdown-trigger[data-state="open"] { box-shadow: inset 0 -1px 0 0 var(--color-text-primary); }
-.chp-dropdown-value { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chp-dropdown-arrow {
   flex-shrink: 0; width: 24px; height: 24px; margin-left: 8px;
   color: var(--color-text-caption);
@@ -1370,29 +1351,12 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   top: 4px; transform: translateY(0) scale(.75); color: var(--color-text-caption);
 }
 .chp-dropdown-field:has([data-state="open"]) .chp-floating-label { color: var(--color-text-primary); }
-/* 드롭다운 목록 */
-.chp-dropdown-list {
-  display: none; position: absolute; top: 100%; left: 0; right: 0;
-  background: var(--color-input-box-bg);
-  border: 1px solid var(--color-input-box-border-hover);
-  box-shadow: var(--shadow-dropdown);
-  z-index: var(--z-float);
-}
-.chp-dropdown-field.open .chp-dropdown-list { display: block; }
 .chp-dropdown-title {
   padding: 10px 16px;
   font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 400;
   color: var(--color-text-caption);
   border-bottom: 1px solid var(--color-input-box-border);
 }
-.chp-dropdown-option {
-  padding: 12px 16px; cursor: pointer;
-  font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 400;
-  color: var(--color-text-primary);
-  transition: background var(--duration-hover) ease;
-}
-.chp-dropdown-option:hover { background: var(--color-background-secondary); }
-.chp-dropdown-option.active { font-weight: 500; }
 /* Radix Select Content / Item */
 .chp-select-content {
   width: var(--radix-select-trigger-width);
@@ -1432,9 +1396,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .chp-field:has(.chp-input-actions) .chp-input { padding-right: 64px; }
 .chp-field .chp-input { padding-right: 36px; }
-
-.chp-error-msg { display: none; font-family: var(--font-kr); font-size: var(--type-caption-size); color: var(--color-error); margin-top: 6px; }
-.chp-field.input-warn .chp-error-msg { display: block; }
 
 /* 우편번호 + 기본주소 한 줄 */
 .chp-addr-inline { display: grid; grid-template-columns: 3fr 1fr; gap: var(--gap-md); }
@@ -1605,13 +1566,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 /* S202: .chp-sum-item* 정의 제거. OrderSummary 는 OrderItemRow (.oir readonly) 로 마이그레이션 완료. */
 
-.chp-coupon-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 0; box-shadow: inset 0 -1px 0 0 var(--color-border-secondary);
-  font-family: var(--font-kr); font-size: var(--type-body-ui-size); font-weight: var(--type-body-ui-weight);
-  color: var(--color-text-secondary); cursor: pointer; margin-top: 8px;
-}
-.chp-coupon-arrow { color: var(--color-icon-default); display: flex; align-items: center; }
 .chp-summary-totals { padding-top: 16px; }
 .chp-sum-row {
   display: flex; align-items: center; justify-content: space-between;
