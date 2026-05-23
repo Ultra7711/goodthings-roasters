@@ -148,16 +148,21 @@ export async function getAdminClaims(): Promise<AdminClaims | null> {
   if (adminRes.data !== true) return null;
 
   if (profileRes.error) {
-    /* 프로필이 없거나 조회 실패해도 admin 인증 자체는 통과 — null fallback.
-       admin_level 누락 시 보수적 'staff' 처리. */
-    console.warn('[getAdminClaims] profile fetch failed', {
+    /* S255-A HIGH-5: profile fetch 실패 시 'staff' fallback 은 owner 가 의도치
+       않게 권한을 잃는 운영 위험. is_admin RPC 는 이미 통과한 상태이므로
+       null 반환하여 재로그인을 유도한다. (보안 측면은 less-privilege 방향이라
+       안전 — 권한 우회 위험 X, 운영 안전성만 강화) */
+    console.warn('[getAdminClaims] profile fetch failed — forcing re-auth', {
       code: profileRes.error.code,
       message: profileRes.error.message,
     });
+    return null;
   }
 
   /* admin_level 은 055 CHECK constraint 상 admin 이면 NOT NULL.
-     이론상 NULL 불가능하지만 TS narrow 위해 'staff' fallback. */
+     이론상 NULL 불가능하지만 TS narrow 위해 'staff' fallback.
+     (profileRes.error 없이 data 만 누락된 케이스 — admin RPC 통과 + profile row 정상이면
+     admin_level 도 NOT NULL 보장. 이 fallback 은 안전망.) */
   const adminLevel: AdminLevel =
     profileRes.data?.admin_level === 'owner' ? 'owner' : 'staff';
 
