@@ -15,7 +15,7 @@ import NewsletterSection from '@/components/home/NewsletterSection';
 export default function HomePage() {
   return (
     <div id="home-body">
-      <OverscrollTop top="#1E1B16" />
+      <OverscrollTop top="#1E1B16" bottom="#4A4845" />
       {/* #hero-blk margin-top:-96px는 globals.css에서 적용 */}
       <HeroSection />
       <SignatureChapter />

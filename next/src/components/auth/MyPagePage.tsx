@@ -208,7 +208,7 @@ export default function MyPagePage({
          메인 페이지와 동일 패턴 — 페이지 콘텐츠 영역 (mp-body #FBF8F3) 위/아래로 노출되는
          오버스크롤이 ann-bar / footer 와 시각적으로 연속되게. BUG-165 에서 #FBF8F3 단일색
          적용했던 결정 회귀 (사용자 디자인 변경). */}
-      <OverscrollTop top="#1E1B16" />
+      <OverscrollTop top="#1E1B16" bottom="#4A4845" />
 
       {/* ── V2 §3.2 재구조화 본문 ── */}
       <div className="mp-body" ref={setBodyEl}>
