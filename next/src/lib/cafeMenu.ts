@@ -99,8 +99,6 @@ export const CAFE_FILTER_TABS: { key: CafeFilterKey; label: string; titleKr: str
 export const CM_PER_PAGE_DESKTOP = 24;
 export const CM_PER_PAGE_TABLET = 20;
 export const CM_PER_PAGE_MOBILE = 10;
-/** Legacy alias — 기존 CM_PER_PAGE 호출처 호환. 태블릿 값과 동일. */
-export const CM_PER_PAGE = CM_PER_PAGE_TABLET;
 
 /**
  * 시그니처 메뉴 prefix 처리 (S245-P20 후속).

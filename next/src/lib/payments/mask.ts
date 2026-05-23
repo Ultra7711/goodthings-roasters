@@ -32,7 +32,7 @@
  * - 길이 10 미만: 전부 `*`
  * - 그 외: 앞 6 + 중간 `*`…* + 뒤 4
  */
-export function maskCardNumber(input: string | null | undefined): string | null {
+function maskCardNumber(input: string | null | undefined): string | null {
   if (!input) return input ?? null;
   const digits = input.replace(/\D/g, '');
   if (digits.length < 10) return '*'.repeat(digits.length || 0);
@@ -48,7 +48,7 @@ export function maskCardNumber(input: string | null | undefined): string | null 
  * 계좌번호는 앞 3자리 · 뒤 3자리 만 남긴다.
  * - 길이 6 미만: 전부 `*`
  */
-export function maskAccountNumber(input: string | null | undefined): string | null {
+function maskAccountNumber(input: string | null | undefined): string | null {
   if (!input) return input ?? null;
   const digits = input.replace(/\D/g, '');
   if (digits.length < 6) return '*'.repeat(digits.length || 0);
@@ -70,7 +70,7 @@ import { maskEmailAddress } from '../utils/maskEmail';
  *   규칙이 달라 공용 유틸 (`j***@example.com`) 로 일원화. tail 자리 제거는
  *   PII 재식별 위험을 낮추는 방향이라 DB 저장 측면에서도 수용 가능.
  */
-export function maskEmail(input: string | null | undefined): string | null {
+function maskEmail(input: string | null | undefined): string | null {
   if (!input) return input ?? null;
   return maskEmailAddress(input);
 }
@@ -81,7 +81,7 @@ export function maskEmail(input: string | null | undefined): string | null {
  * 한국 휴대폰 11자리(010XXXXYYYY) → `010-****-YYYY`.
  * 자릿수 판독이 애매하면 중간 4자리를 `*` 로 가린다.
  */
-export function maskPhoneNumber(input: string | null | undefined): string | null {
+function maskPhoneNumber(input: string | null | undefined): string | null {
   if (!input) return input ?? null;
   const digits = input.replace(/\D/g, '');
   if (digits.length < 7) return '*'.repeat(digits.length);
