@@ -71,7 +71,6 @@ export default function AccountDeleteSection({ onLoggedOut }: Props) {
           className="mp-icon-btn"
           type="button"
           aria-label="회원 탈퇴"
-          style={{ position: 'relative', top: 4 }}
           onClick={() => {
             setAddrOpen(false);
             setPwOpen(false);
