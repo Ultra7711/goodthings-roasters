@@ -194,13 +194,13 @@
 .mp-form-reveal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-sm); margin-top: 12px; }
 .mp-form-reveal-actions > .mp-save-btn,
 .mp-form-reveal-actions > .mp-cancel-btn { width: 100%; min-width: 0; padding: 0; }
-/* 일시정지 안내 */
+/* 일시정지 안내 — S253: border-left (AI 디자인 느낌) 폐기 → 단일 배경 패치 + radius */
 .mp-sub-paused-notice {
   display: flex; align-items: center; gap: 8px;
   font-family: var(--font-kr); font-size: var(--type-body-ui-size); color: var(--color-text-tertiary);
   padding: 10px 12px; margin-bottom: 8px;
   background: var(--color-background-secondary);
-  border-left: 2px solid var(--color-border-primary);
+  border-radius: 6px;
 }
 /* 배송 주기 변경 — 한 줄 인라인 표시 (변경된 값에만 골드 강조) */
 .mp-sub-cycle-change {

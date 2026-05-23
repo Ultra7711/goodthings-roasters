@@ -57,11 +57,12 @@
   gap: var(--space-1); /* 4px 행간 (token) */
 }
 
-/* Category eyebrow — 위계: name > meta > category (라벨은 wayfinding 보조) */
+/* Category eyebrow — 위계: name > meta > category (라벨은 wayfinding 보조).
+   S253: 13 → 12 (--type-card-label-size · 사이트 카드 라벨 SoT). */
 .oir__category {
   font-family: var(--font-en);
-  font-size: var(--type-body-s-size);
-  font-weight: 400;
+  font-size: var(--type-card-label-size);
+  font-weight: var(--type-card-label-weight);
   letter-spacing: var(--ls-uppercase);
   text-transform: uppercase;
   color: var(--color-text-caption);

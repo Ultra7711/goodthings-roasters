@@ -30,7 +30,8 @@
 
 .order-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .order-item-category {
-  font-family: var(--font-en); font-size: var(--type-body-ui-size); font-weight: 400;
+  /* S253: 14 → 12 (--type-card-label-size · 사이트 카드 라벨 SoT). */
+  font-family: var(--font-en); font-size: var(--type-card-label-size); font-weight: var(--type-card-label-weight);
   letter-spacing: var(--ls-uppercase); text-transform: uppercase; color: var(--color-text-caption);
 }
 .order-item-name {
@@ -74,7 +75,8 @@
 .order-item-card[data-variant="detailed"] .order-item-img {
   width: 80px; height: 80px; cursor: pointer; position: relative;
 }
-.order-item-card[data-variant="detailed"] .order-item-category { font-size: 12px; }
+/* S253: base 가 이미 --type-card-label-size (12px) 라 override 불필요. 명시성 유지 위해 토큰 참조. */
+.order-item-card[data-variant="detailed"] .order-item-category { font-size: var(--type-card-label-size); }
 .order-item-card[data-variant="detailed"] .order-item-name {
   font-size: var(--type-body-l-size); margin-top: 4px;
 }
@@ -119,7 +121,8 @@
   .order-item-card[data-variant="detailed"] .order-item-info { display: contents; }
   .order-item-card[data-variant="detailed"] .order-item-category {
     grid-row: 1; grid-column: 2 / 4;
-    align-self: center; font-size: 12px; line-height: 1;
+    /* S253: 12px hardcode → 토큰. */
+    align-self: center; font-size: var(--type-card-label-size); line-height: 1;
   }
   .order-item-card[data-variant="detailed"] .order-item-name {
     grid-row: 2; grid-column: 2 / 4;

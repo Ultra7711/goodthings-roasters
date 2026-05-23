@@ -254,6 +254,9 @@
   --type-body-reading-size: var(--type-body-m-size);
   --type-body-reading-weight: var(--type-body-m-weight);
   --type-body-ui-size: 14px;        --type-body-ui-weight: 400;
+  /* S253: 상품/주문 카드 라벨 (eyebrow) — OrderItemCard·OrderItemRow 공통.
+     카드 좁은 공간 정합 12px 단일 SoT. 페이지 헤더 eyebrow (13px) 와 별 컨벤션. */
+  --type-card-label-size: 12px;     --type-card-label-weight: 400;
   --font-kr-align-fix: 0px;
 
   /* ── 한글 본문 별도 토큰 (S140 D-19 PR-1 · Q3 외부 표준) ──
