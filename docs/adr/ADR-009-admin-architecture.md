@@ -180,3 +180,122 @@ S229~S231 (마스터 plan §3 답습):
 - `zoom-out` — domain module map + caller 분포
 
 향후 admin sprint 진입 시 동일 skill 답습 — `feedback_diagnose_first_meta_rule.md` 와 함께 standard procedure.
+
+## §10 — S256-A SettingsForm 분리 (DEC-18 잠금)
+
+> **Date:** 2026-05-23 · **Session:** S256-A · **Trigger:** `memory/audit_s254_architecture.md` 의 god component 식별 (SettingsForm 1670 lines / 4 섹션 + 10 useState · CRITICAL)
+
+### Context
+
+S227 본 ADR 의 6 컴포넌트 추출은 **테이블/페이지 헤더/페이지네이션** 같은 가로 leverage 였다. 이후 S232~S253 어드민 기능 확장으로 settings 페이지의 단일 폼이 4 영역 (Shipping/Notice/Signature/HomeFeatured) 으로 누적. S237 시그니처 iframe 모델 도입 후 Signature 영역만 270 lines + 4 upload state + 4 refs + iframe postMessage listener 보유. S248 HomeFeatured 추가로 1670 lines 도달.
+
+audit_s254_architecture.md 의 architect agent 결과:
+- 단일 파일 SettingsForm 1670 lines (CRITICAL)
+- 같은 패턴이 ProductEditForm 1513 (MEDIUM · 3탭 분리 됨)
+- 신규 설계 원칙 후보 (파일 800 lines · props 8 · useState 5 임계값)
+
+### Decision
+
+#### D1. 4 SubForm + `_shared/` 디렉터리 분리
+
+```
+settings/
+  page.tsx                      (변경 없음 · server)
+  actions.ts                    (변경 없음 · S255-A HIGH-4 fresh fetch 유지)
+  SettingsForm.tsx              Orchestrator (~280 lines)
+  sections/
+    ShippingSubForm.tsx         ~90 lines
+    NoticeSubForm.tsx           ~150 lines  (shipping read-only prop · composeNoticeText)
+    SignatureSubForm.tsx        ~640 lines  (Section 3 + ImageUploadSlot + AspectInput)
+    HomeFeaturedSubForm.tsx     ~380 lines  (Slot/Add/MenuPicker/MetaBadges 통합)
+  _shared/
+    SettingsCard.tsx · SubCard.tsx · Badge.tsx · FormField.tsx · FormInput.tsx
+    helpers.ts                  (shallowEqual* 4종 · format · describe* · buildPreviewSrc 등)
+```
+
+#### D2. State Ownership 원칙
+
+| 카테고리 | Owner | 근거 |
+|---|---|---|
+| `savedSettings` / `settings` / `isPending` / `dirtyCount` | **Orchestrator** | save/reset 의 SoT · 영역 간 dirty 비교 필요 |
+| Section 1/2/4 의 sub-state | 없음 (props only) | 영역 단순 — 자체 state 불필요 |
+| Section 3 upload state (`htmlUpload` / `desktopUpload` / `tabletUpload` / `mobileUpload`) | **SignatureSubForm** | upload 진행/에러 표시 — orchestrator 가 알 필요 없음 |
+| Section 3 refs (`htmlInputRef` 등 4종) | **SignatureSubForm** | input click 트리거 전용 |
+| Section 3 htmlText/htmlTextOpen | **SignatureSubForm** | 토글 + 텍스트 임시 보관 |
+| Preview state (`previewBrk` / `previewSrc` / `previewHeight`) | **Orchestrator** | Preview iframe 위치 유지 (D3) — orchestrator 가 직접 렌더 |
+| Signature debounce effect + iframe postMessage listener | **Orchestrator** | Preview iframe owner = listener owner |
+
+#### D3. Signature Preview iframe 위치 유지
+
+Preview iframe (810~867 lines) 는 **현재 위치 (Section 4 HomeFeatured 다음) 그대로 유지**. orchestrator 가 직접 렌더하고 `previewBrk/Src/Height` state + signature debounce + postMessage listener 도 orchestrator 보유. **이유:**
+- 시각 변경 0 (회귀 risk 차단)
+- SignatureSubForm 인터페이스 단순화 (Preview state 를 props 로 안 받음)
+- iframe + parent state sync 가 별 ADR 만들 만큼 복잡하지 않음 (단순 listener)
+
+대안 (Preview 를 Section 3 안으로 통합 · cohesion 우선) 은 거부 — 분리 작업의 시각 회귀 risk 가 cohesion 이득보다 큼.
+
+#### D4. 신규 설계 임계값 (DEC-18)
+
+다음 sprint 부터 자동 분리 후보 신호:
+
+| 신호 | 임계값 | 액션 |
+|---|---|---|
+| 파일 lines | > 800 | 분리 후보 등록 |
+| 컴포넌트 props | > 8 | Discriminated Union / config object 검토 |
+| 내부 useState | > 5 | 섹션/sub-component 분리 신호 |
+
+audit 시 위 신호 발견 → architect agent + ADR 등록 후 분리. **기준 위반 = 즉시 분리 의무 아님** — ROI/risk 평가 후 sprint 분할.
+
+### Consequences
+
+#### 긍정
+
+- **Locality** — Section 3 의 upload state + handlers + UI 가 단일 모듈에 집중. 변경 영역 visibility ↑.
+- **Test surface** — 각 SubForm 단위 테스트 가능 (현재 SettingsForm 통째 mount 만 가능).
+- **Deletion test ✅** — 4 SubForm + _shared 5 컴포넌트 삭제 시 1670 lines god component 재출현 = real seam.
+- **재사용 가능성** — _shared/ 의 SettingsCard/SubCard/Badge/FormField/FormInput 은 다른 admin 폼에서도 활용 가능. (현재는 settings 전용 — 향후 caller 등장 시 `components/admin/` 으로 승격.)
+- **DEC-18 임계값 reference** — ProductEditForm 1513 등 후속 분리 작업의 진입 기준 박음.
+
+#### 부정
+
+- **파일 수 증가** — 1 파일 → 10 파일. 디렉터리 nesting (`sections/` + `_shared/`) 학습 비용.
+- **state lift drilling** — `onChange={updateNotice}` 같은 callback 4종 props 통과. (단 patch 패턴이라 type-safe.)
+- **Signature debounce / postMessage 가 orchestrator 잔존** — Preview 위치 유지 (D3) 의 trade-off. cohesion 측 sub-optimal 이지만 시각 변경 0 우선.
+
+### Implementation Order
+
+```
+1. _shared/helpers.ts + 5 공용 UI 컴포넌트 (다른 모듈이 의존하므로 먼저)
+2. sections/ShippingSubForm.tsx + NoticeSubForm.tsx (단순)
+3. sections/SignatureSubForm.tsx (가장 큼 · 4 upload state)
+4. sections/HomeFeaturedSubForm.tsx (S248 답습 통합)
+5. SettingsForm.tsx orchestrator 재작성 (모두 import)
+6. npx tsc --noEmit + npx vitest run + 1440 시각 회귀
+7. commit (refactor(admin/settings): SettingsForm 4 SubForm 분리 (S256-A))
+```
+
+### Alternatives Considered
+
+#### (A) Context API 도입 (settings + setters 모두 context 로)
+
+- 4 SubForm 이 useContext 로 settings 접근. props drilling 0.
+- **거부 이유:** dirty 계산이 orchestrator 책임 + 4 SubForm 모두 settings.* 한 영역만 사용 → context 불필요 over-engineering. patch callback 4종이 명시적이고 type-safe.
+
+#### (B) Preview 를 SignatureSubForm 안으로 통합
+
+- cohesion 측 자연스러움.
+- **거부 이유:** 시각 변경 (Preview 가 Section 4 위로 이동) → 회귀 risk + 사용자 confirm 시 추천 거부.
+
+#### (C) ADR-005 신설 (admin-form-decomposition)
+
+- SettingsForm + ProductEditForm + 향후 다른 god component 분리 공통 원칙 ADR.
+- **거부 이유 (사용자 결정):** ADR-009 가 이미 admin-architecture sweep 의 SoT. §10 후속 섹션으로 sprawl 회피. 임계값 DEC-18 도 본 §10 안에 잠금.
+
+### 향후 적용 후보
+
+| 대상 | lines | 우선순위 | sprint |
+|------|-------|---------|--------|
+| **SettingsForm** | 1670 | 본 sprint | S256-A ✅ |
+| ProductEditForm | 1513 | MEDIUM (3탭 분리 됨) | S260 후보 |
+| OrdersTableClient | 584 | MEDIUM | S256-C ✅ 완료 |
+| products/actions.ts | 1095 | HIGH | S256-B ✅ 완료 |
