@@ -311,7 +311,6 @@
 }
 /* 색상 variants — 기존 sp-card-badge variant 답습 */
 .cm-meta-badge--new { background: var(--color-status-new); }
-.cm-meta-badge--signature { background: #8A4F6E; } /* 시그니처 — 웜 플럼 */
 .cm-meta-badge--popular { background: var(--color-error); } /* status='인기' (운영자 명시) */
 .cm-meta-badge--season { background: var(--color-info); }
 .cm-meta-badge--sold { background: var(--color-badge-sold-out); }
@@ -785,11 +784,6 @@
   white-space: nowrap;
 }
 
-/* S245-P20 정리: 기존 .cns-head-top { flex-direction: column } 폐기 —
-   line 497 의 새 룰 (flex row + 좌 stack + 우 좋아요 세로 중앙) 이 source order
-   후순위 이 룰에 override 되던 버그 fix (lessons §4 cascade 함정). */
-.cns-title-badge { display: none; }
-
 /* 모바일(<480) — 풀스크린 시트 + collapsing hero 패턴 (S203).
    height 100dvh (모바일 address bar 안정), 시트 자체 스크롤 → hero (1:1 풀폭) 가
    콘텐츠 스크롤 시 위로 빠짐. 핸들 제거 + close sticky (panel 우상단 고정).
@@ -822,8 +816,6 @@
   .cns-image-wrap { display: block; }
 
   .cns-content { padding: 32px calc(24px + var(--scrollbar-w, 0px)) calc(32px + env(safe-area-inset-bottom, 0px)) 24px; }
-  /* 모바일 헤더 인라인 온도뱃지 폐기 — 시트는 영양 정보에 집중. */
-  .cns-title-badge { display: none; }
 }
 
 /* 페이지네이션 — shop 의 .sp-pg-* 재사용 (프로토타입 동일 패턴) */
