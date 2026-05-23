@@ -241,6 +241,23 @@ export async function findOrdersForUser(limit = 20, offset = 0): Promise<OrderRo
 }
 
 /**
+ * 회원 본인 주문 개수 (사이드 nav 카운트용 · S253 마이페이지 최적화).
+ * `head: true` + `count: 'exact'` → row 데이터 fetch 없이 count 만 반환.
+ * RLS `orders_select_own` 적용 → 본인 주문만 카운트.
+ * pending 제외 — findOrdersForUser 와 정합.
+ */
+export async function getOrdersCountForUser(): Promise<number> {
+  const supabase = await createRouteHandlerClient();
+  const { count, error } = await supabase
+    .from('orders')
+    .select('id', { count: 'exact', head: true })
+    .neq('status', 'pending');
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/**
  * 회원 본인 주문 조회.
  * RLS `orders_select_own` 에 의해 타인 주문은 자동 차단(= null 반환).
  * pending 제외 (S171): URL 조작으로도 결제 미확정 row 노출 차단.

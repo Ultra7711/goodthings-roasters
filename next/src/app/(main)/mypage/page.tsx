@@ -20,12 +20,13 @@ import {
   findSubscriptionsForUser,
   toSubscription,
 } from '@/lib/repositories/subscriptionRepo';
-import { findOrdersForUser } from '@/lib/repositories/orderRepo';
+import {
+  findOrdersForUser,
+  getOrdersCountForUser,
+} from '@/lib/repositories/orderRepo';
 import { toOrder } from '@/lib/orders/toOrder';
-import { fetchProducts } from '@/lib/productsServer';
 import type { Subscription } from '@/types/subscription';
 import type { Order } from '@/types/order';
-import type { Product } from '@/lib/products';
 import MyPagePage from '@/components/auth/MyPagePage';
 import MyPageSkeleton from '@/components/auth/MyPageSkeleton';
 
@@ -34,23 +35,27 @@ export const metadata = { title: '마이 페이지 — good things' };
 async function MyPageAuthed() {
   const claims = await requireAuth();
 
-  /* server prefetch — Promise.all 로 병렬 fetch. 부분 실패 무시 (catch → 빈 array) */
-  const [subscriptions, orders, showcaseProducts] = await Promise.all([
+  /* S253 마이페이지 최적화 — server prefetch 축소:
+     - orders: 20건 → 1건 (RecentOrderCard hero 1건만 사용 · OrderHistory 펼침은 client lazy)
+     - ordersCount: count-only RPC (head:true · row payload 없음)
+     - showcaseProducts: 폐기 — WelcomeCard 가 mount 후 server action 으로 자체 fetch
+       (신규 사용자 5% 만 호출 · 95% 기존 사용자 RSC dead prop 제거) */
+  const [subscriptions, heroOrders, ordersCount] = await Promise.all([
     findSubscriptionsForUser()
       .then((rows) => rows.map(toSubscription))
       .catch((err): Subscription[] => {
         console.error('[mypage.prefetch] subscriptions failed', err);
         return [];
       }),
-    findOrdersForUser(20, 0)
+    findOrdersForUser(1, 0)
       .then((rows) => rows.map(toOrder))
       .catch((err): Order[] => {
-        console.error('[mypage.prefetch] orders failed', err);
+        console.error('[mypage.prefetch] hero order failed', err);
         return [];
       }),
-    fetchProducts().catch((err): Product[] => {
-      console.error('[mypage.prefetch] products failed', err);
-      return [];
+    getOrdersCountForUser().catch((err): number => {
+      console.error('[mypage.prefetch] orders count failed', err);
+      return 0;
     }),
   ]);
 
@@ -58,8 +63,8 @@ async function MyPageAuthed() {
     <MyPagePage
       initialClaims={claims}
       initialSubscriptions={subscriptions}
-      initialOrders={orders}
-      showcaseProducts={showcaseProducts}
+      initialHeroOrder={heroOrders[0] ?? null}
+      initialOrdersCount={ordersCount}
     />
   );
 }

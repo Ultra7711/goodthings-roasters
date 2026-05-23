@@ -17,10 +17,8 @@ import { supabase } from '@/lib/supabase';
 import type { AuthClaims } from '@/lib/auth/getClaims';
 import type { Subscription } from '@/types/subscription';
 import type { Order } from '@/types/order';
-import type { Product } from '@/lib/products';
 import { useToast } from '@/hooks/useToast';
 import { useSubscriptionsQuery } from '@/hooks/useSubscriptions';
-import { useOrdersQuery } from '@/hooks/useOrders';
 import OverscrollTop from '@/components/ui/OverscrollTop';
 import HeroGreeting from '@/components/auth/mypage/HeroGreeting';
 import NextDeliveryCard from '@/components/auth/mypage/NextDeliveryCard';
@@ -42,20 +40,21 @@ import AccountView from '@/components/auth/mypage/views/AccountView';
 
 type MyPagePageProps = {
   initialClaims: AuthClaims;
-  /** SSR prefetch 데이터 — TanStack Query initialData 로 주입 (S197 PR-2 §2.6).
-     SSR HTML 이 정확한 카드(NextDelivery / RecentOrder / Welcome)로 즉시 렌더되어
-     hydration 후 점진 채워지는 flash 차단. */
+  /** SSR prefetch — 정기배송 전체 (TanStack initialData 로 주입 · flash 차단) */
   initialSubscriptions: Subscription[];
-  initialOrders: Order[];
-  /** WelcomeCard 장식 이미지 풀 — server prefetch */
-  showcaseProducts: Product[];
+  /** S253: Hero RecentOrderCard 용 1건 (orders[0] 대체).
+     OrderHistory 패널이 mount 후 useOrdersQuery 가 자체 fetch 로 전체 가져옴. */
+  initialHeroOrder: Order | null;
+  /** S253: 사이드 nav + HeroGreeting 카운트 표시용 (count-only RPC 결과).
+     마이페이지 안에서 주문 mutation 발생 안 함 — stale 위험 0. */
+  initialOrdersCount: number;
 };
 
 export default function MyPagePage({
   initialClaims,
   initialSubscriptions,
-  initialOrders,
-  showcaseProducts,
+  initialHeroOrder,
+  initialOrdersCount,
 }: MyPagePageProps) {
   const router = useRouter();
   const { show: toast } = useToast();
@@ -136,10 +135,13 @@ export default function MyPagePage({
     else if (id === 'profile') setManualHeroCard('welcome');
   }, []);
 
-  /* ── 데이터: 정기배송 + 주문 (counts + Next 카드)
-     initialData = SSR prefetch (page.tsx) → flash 차단 */
+  /* ── 데이터: 정기배송 (SSR initialData) + 주문 (S253 lazy)
+     - subscriptions: SSR prefetch initialData (flash 차단)
+     - orders: useOrdersQuery 호출은 OrderHistory 컴포넌트가 담당 (lazy mount).
+       MyPagePage 에서 호출 안 함 — 중복 fetch 트리거 회피.
+       카운트 표시는 SSR 의 initialOrdersCount 사용. 마이페이지 안에서 주문 mutation
+       발생 안 함 (= stale 위험 0). */
   const { subscriptions } = useSubscriptionsQuery(initialSubscriptions);
-  const { orders } = useOrdersQuery(initialOrders);
 
   const activeSubsCount = useMemo(
     () => subscriptions.filter((s) => s.status === 'active').length,
@@ -148,10 +150,10 @@ export default function MyPagePage({
 
   const counts = useMemo<Partial<Record<MyPageNavId, number>>>(
     () => ({
-      orders: orders.length,
+      orders: initialOrdersCount,
       subscription: subscriptions.length,
     }),
-    [orders.length, subscriptions.length],
+    [initialOrdersCount, subscriptions.length],
   );
 
   /* Next 카드: nextDate 가 가장 가까운 활성 정기배송 1건 */
@@ -206,17 +208,18 @@ export default function MyPagePage({
       <div className="mp-body" ref={setBodyEl}>
         <HeroGreeting
           name={displayName}
-          ordersCount={orders.length}
+          ordersCount={initialOrdersCount}
           activeSubscriptionsCount={activeSubsCount}
           membershipText={membershipText}
           onLogout={() => void handleLogout()}
           onNavigate={handleHeroNavigate}
         />
 
-        {/* PR-2 §2.3 + §2.13: Hero 카드 분기 — manual override (메타 클릭) ?? auto */}
+        {/* PR-2 §2.3 + §2.13: Hero 카드 분기 — manual override (메타 클릭) ?? auto.
+           S253: orders[0] → initialHeroOrder (SSR 1건 fetch · OrderHistory 펼침 무관 즉시 노출). */}
         {(() => {
           const heroType: HeroCardType =
-            manualHeroCard ?? (nextSub ? 'next' : orders.length > 0 ? 'recent' : 'welcome');
+            manualHeroCard ?? (nextSub ? 'next' : initialHeroOrder ? 'recent' : 'welcome');
           if (heroType === 'next' && nextSub) {
             return (
               <NextDeliveryCard
@@ -225,15 +228,15 @@ export default function MyPagePage({
               />
             );
           }
-          if (heroType === 'recent' && orders.length > 0) {
+          if (heroType === 'recent' && initialHeroOrder) {
             return (
               <RecentOrderCard
-                order={orders[0]}
+                order={initialHeroOrder}
                 onViewOrders={() => handleNavWithScroll('orders')}
               />
             );
           }
-          return <WelcomeCard userName={displayName} products={showcaseProducts} />;
+          return <WelcomeCard userName={displayName} />;
         })()}
 
         <div className="mp-grid">

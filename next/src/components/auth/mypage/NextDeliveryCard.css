@@ -31,10 +31,13 @@
 }
 
 /* 상품명 옆 메타 (· 용량) — h3 옆 보조 정보 위계 분리.
-   사이즈 h3→body-l + weight 500→400 만으로 충분한 시각 위계 (opacity 미사용). */
+   사이즈 h3→body-l + weight 500→400 만으로 충분한 시각 위계 (opacity 미사용).
+   S253: line-height:1 명시 — font-size 16 + inherit lh 32 에서 inline 자식 metric 이
+   부모 h3 line box 를 +2 확장 (32→34) 하는 부작용 차단. h2 baseline 정렬 유지. */
 .mp-next-volume {
   font-size: var(--type-body-l-size);
   font-weight: 400;
+  line-height: 1;
 }
 
 .mp-next-meta {
