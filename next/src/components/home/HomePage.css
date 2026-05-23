@@ -40,17 +40,9 @@
   50%  { opacity: 1;  transform: translateY(4px); }
   100% { opacity: .3; transform: translateY(0); }
 }
-@keyframes cat-arrow-in {
-  from { opacity: 0; transform: translateX(-16px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
 @keyframes cat-arrow-slide {
   from { transform: translateX(-16px); }
   to   { transform: translateX(0); }
-}
-@keyframes cat-arrow-slide-r2 {
-  from { transform: translateX(-16px); }
-  to   { transform: translateX(2px); }
 }
 
 /* ══ #home-body — 홈 페이지 진입 페이드인 (BUG-178 동일 패턴)
@@ -168,30 +160,6 @@
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
 }
-/* ══ 카테고리 카드 그리드 ══ */
-.cat-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--gap-lg);
-  border: none;
-  outline: none;
-  margin-top: 26px;
-  padding: 0 60px;
-  max-width: 1440px;
-  margin-left: auto;
-  margin-right: auto;
-}
-.cat-card { position: relative; cursor: pointer; overflow: hidden; margin: 0; padding: 0; }
-.cat-card-clip {
-  opacity: 0;
-  filter: blur(12px);
-  transition: opacity 0.9s ease-out, filter 0.9s ease-out;
-}
-.cat-card.sr--visible .cat-card-clip { opacity: 1; filter: blur(0); }
-.cat-grid .cat-card:nth-child(1) .cat-card-clip { transition-delay: 0ms; }
-.cat-grid .cat-card:nth-child(2) .cat-card-clip { transition-delay: 150ms; }
-.cat-grid .cat-card:nth-child(3) .cat-card-clip { transition-delay: 300ms; }
-
 /* 카페 메뉴 섹션 */
 .cafe-menu-blk {
   padding-bottom: 120px;
@@ -252,28 +220,8 @@
   background: transparent;
 }
 
-.cat-img {
-  width: 100%;
-  aspect-ratio: 4/5;
-  overflow: hidden;
-  position: relative;
-  display: block;
-  font-size: 0;
-  line-height: 0;
-  margin: 0;
-  padding: 0;
-}
-/* <768: 카페 메뉴 카드 1열 스택 + 가로형 비율로 높이 축소 +
-   블록 헤더 좌우 padding 24px (시즌 배너와 좌측 라인 정렬) */
+/* <768: 카페 메뉴 카드 1열 스택 + 블록 헤더 좌우 padding 24px (시즌 배너와 좌측 라인 정렬) */
 @media (max-width: 767px) {
-  .cat-grid {
-    grid-template-columns: 1fr;
-    padding: 0 24px;
-    gap: 16px;
-  }
-  .cat-img {
-    aspect-ratio: 3/2;
-  }
   .cafe-menu-head {
     /* S241: head bottom 40 → 32 (모바일 viewport 대비 보정 — 합산 64) */
     padding: 72px 24px 32px;
@@ -450,70 +398,6 @@
   }
 }
 
-.cat-img::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.18) 55%, transparent 100%);
-  pointer-events: none;
-  z-index: 1;
-  transition: opacity .5s ease-out;
-}
-.cat-img-inner {
-  display: block;
-  width: 100%;
-  height: 100%;
-  transition: transform 1.2s cubic-bezier(.25,.1,.25,1);
-}
-.cat-card:hover .cat-img-inner { transform: scale(1.03); }
-.cat-card:hover .cat-img::before { opacity: .82; }
-.cat-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 26px 28px;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 0;
-}
-.cat-arrow {
-  width: 48px;
-  height: 48px;
-  color: var(--color-text-inverse);
-  opacity: 0;
-  transform: translateX(0);
-  /* hover-out: opacity만 서서히 fade (transform은 animation 전용 → 충돌 없음) */
-  transition: opacity 350ms ease;
-  margin-bottom: 32px;
-  /* SVG 내부 좌측 여백(x=10) 보정 — 애니메이션 종료 시 화살표 시각적 좌측이 텍스트와 정렬 */
-  margin-left: -10px;
-}
-.cat-card:hover .cat-arrow {
-  opacity: 1;
-  transform: translateX(2px);
-  transition: opacity var(--duration-fade) ease-out;
-  animation: cat-arrow-slide-r2 var(--duration-fade) ease-out;
-}
-.cat-title {
-  font-family: var(--font-en);
-  font-size: var(--type-price-m-size);
-  font-weight: 300;
-  color: var(--color-text-inverse);
-  letter-spacing: var(--ls-editorial);
-  text-transform: uppercase;
-  margin-bottom: 22px;
-}
-.cat-desc {
-  font-family: var(--font-kr);
-  font-size: var(--type-heading-s-size);
-  font-weight: 400;
-  color: var(--on-dark-secondary);
-  line-height: 24px;
-}
 /* 배경 이미지 */
 .img-coffee    { background: url('/images/cafe-menu/cm_img_milk_coffee.webp') center/cover no-repeat; }
 .img-beverage  { background: url('/images/sections/img_cafemenu_beverage_main.webp') center/cover no-repeat; }

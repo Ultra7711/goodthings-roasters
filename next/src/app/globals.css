@@ -666,13 +666,11 @@ body {
 /* Phase 3 Step 1 — 섹션 배경 3단계 로테이션 (warm paper 단계) */
 .blk--bg-secondary { background: var(--color-background-secondary); }
 .blk--bg-tertiary  { background: var(--color-background-tertiary); }
-.blk--bg-warm      { background: var(--color-surface-warm); }
 
 /* ══ 콘텐츠 최대폭 1440px 중앙 제한 ══
    프로토타입 라인 248–261 이식 */
 .hdr,
 .hero-c,
-.cat-grid,
 .f-inner {
   max-width: 1440px;
   margin-left: auto;
@@ -2117,22 +2115,6 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    base rule 의 `transition: transform 350ms var(--sr-easing)` 자동 상속. */
 [data-gtr-tap].is-tapping::after {
   transform: scaleX(1);
-}
-
-/* cat-card 탭: 이미지 줌 + 오버레이 + 화살표 350ms 완성 */
-.cat-card.is-tapping .cat-img-inner {
-  transform: scale(1.03);
-  transition: transform var(--duration-tap) cubic-bezier(.25,.1,.25,1);
-}
-.cat-card.is-tapping .cat-img::before {
-  opacity: .82;
-  transition: opacity var(--duration-tap) ease;
-}
-.cat-card.is-tapping .cat-arrow {
-  opacity: 1;
-  transform: translateX(2px);
-  transition: opacity var(--duration-tap) ease;
-  animation: cat-arrow-slide-r2 var(--duration-tap) ease-out;
 }
 
 /* ══ Step 3-A-5: 섹션 eyebrow gold rule ══
