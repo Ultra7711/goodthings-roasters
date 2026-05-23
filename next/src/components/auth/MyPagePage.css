@@ -542,6 +542,21 @@
   margin-top: 18px;
 }
 
+/* S263 B-3 — 개인정보 권리 행사 안내 문구 (회원 탈퇴 아래).
+   inline edit 행이 아닌 정보 텍스트로 시각 분리: hairline 없음 · muted color · Body S. */
+.mp-rights-note {
+  margin: 16px 0 0;
+  font-size: var(--type-body-s-size);
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+.mp-rights-note a {
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.mp-rights-note a:hover { color: var(--color-text-primary); }
+
 /* ══ MyPage — Mobile (≤767) 정규화 ══
    데스크탑 2단(7fr 5fr) → 1단 스택 · 주문 내역 sticky 해제
    · 타이틀 H1→H2 · 아코디언 액션 세로 · 주문 카드 min-width 해제 · 모달 폭 축소 */
