@@ -35,12 +35,13 @@ export default function HeroGreeting({
   onNavigate,
 }: Props) {
   /* 메타 항목 순서 = 사이드바 nav 순서 (orders → subscription → profile) 고정.
-     카운트 0 인 항목은 숨김. 가입 N 은 membershipText 있을 때 항상 표시 (마지막). */
+     카운트 0 인 항목은 숨김. 가입 N 은 membershipText 있을 때 항상 표시 (마지막).
+     S264 H-1: 사이드바 라벨 통일 ("주문내역" 붙여쓰기 — 사이드바 다른 항목 정합). */
   const metaParts: MetaPart[] = [];
   if (ordersCount > 0) {
     metaParts.push({
       key: 'orders',
-      label: `최근 주문 ${ordersCount}`,
+      label: `주문내역 ${ordersCount}`,
       navId: 'orders',
     });
   }

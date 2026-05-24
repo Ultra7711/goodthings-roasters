@@ -11,24 +11,15 @@
    ══════════════════════════════════════════ */
 
 import { Suspense } from 'react';
-import { requireAuth } from '@/lib/auth/getClaims';
-/* ChipsPreview / Skeleton fallback 의 css 보장 (server component chunk 의존) */
+import { requireAuth, getAdminClaims, type AdminLevel } from '@/lib/auth/getClaims';
+/* Skeleton fallback / ChipsPreview 의 css 보장 (server component chunk 의존) */
 import '@/components/auth/MyPagePage.css';
-import '@/components/auth/mypage/NextDeliveryCard.css';
-import '@/components/auth/mypage/RecentOrderCard.css';
 import {
   findSubscriptionsForUser,
   toSubscription,
 } from '@/lib/repositories/subscriptionRepo';
-import {
-  findOrdersForUser,
-  getOrdersCountForUser,
-} from '@/lib/repositories/orderRepo';
-import { toOrder } from '@/lib/orders/toOrder';
-import { fetchProducts } from '@/lib/productsServer';
+import { getOrdersCountForUser } from '@/lib/repositories/orderRepo';
 import type { Subscription } from '@/types/subscription';
-import type { Order } from '@/types/order';
-import type { Product } from '@/lib/products';
 import MyPagePage from '@/components/auth/MyPagePage';
 import MyPageSkeleton from '@/components/auth/MyPageSkeleton';
 
@@ -37,53 +28,36 @@ export const metadata = { title: '마이 페이지 — good things' };
 async function MyPageAuthed() {
   const claims = await requireAuth();
 
-  /* S253 마이페이지 최적화 — server prefetch 축소:
-     - orders: 20건 → 1건 (RecentOrderCard hero 1건만 사용 · OrderHistory 펼침은 client lazy)
-     - ordersCount: count-only RPC (head:true · row payload 없음)
-
-     S263 follow-up: 신규 사용자 (orders=0 + subs=0) 일 때만 showcase 상품 SSR 결정.
-     WelcomeCard 가 mount 즉시 <Image placeholder=blur> 렌더 → 빈 영역 단계 제거.
-     일반 사용자 prop=null (manual 'welcome' 클릭 케이스는 WelcomeCard 가 client fetch fallback). */
-  const [subscriptions, heroOrders, ordersCount] = await Promise.all([
+  /* S253 마이페이지 최적화 — server prefetch:
+     - subscriptions: 전체 (정기 카드는 SubscriptionView 에서 렌더 · TanStack initialData)
+     - ordersCount: count-only RPC (사이드 nav + HeroGreeting 카운트 표시)
+     - adminLevel: admin 인 경우 'owner' | 'staff' (HeroGreeting 라벨 표시용 · 일반 사용자 null)
+     S264 H-1: Hero Card 제거됨 → orders/showcase fetch 폐기. */
+  const [subscriptions, ordersCount, adminClaims] = await Promise.all([
     findSubscriptionsForUser()
       .then((rows) => rows.map(toSubscription))
       .catch((err): Subscription[] => {
         console.error('[mypage.prefetch] subscriptions failed', err);
         return [];
       }),
-    findOrdersForUser(1, 0)
-      .then((rows) => rows.map(toOrder))
-      .catch((err): Order[] => {
-        console.error('[mypage.prefetch] hero order failed', err);
-        return [];
-      }),
     getOrdersCountForUser().catch((err): number => {
       console.error('[mypage.prefetch] orders count failed', err);
       return 0;
     }),
+    getAdminClaims().catch((err): null => {
+      console.error('[mypage.prefetch] admin claims failed', err);
+      return null;
+    }),
   ]);
 
-  const isNewUser = subscriptions.length === 0 && ordersCount === 0;
-  let showcaseProduct: Product | null = null;
-  if (isNewUser) {
-    try {
-      const products = await fetchProducts();
-      const pool = products.filter((p) => p.status !== '품절' && p.images.length > 0);
-      if (pool.length > 0) {
-        showcaseProduct = pool[Math.floor(Math.random() * pool.length)];
-      }
-    } catch (err) {
-      console.error('[mypage.prefetch] showcase product failed', err);
-    }
-  }
+  const adminLevel: AdminLevel | null = adminClaims?.adminLevel ?? null;
 
   return (
     <MyPagePage
       initialClaims={claims}
       initialSubscriptions={subscriptions}
-      initialHeroOrder={heroOrders[0] ?? null}
       initialOrdersCount={ordersCount}
-      showcaseProduct={showcaseProduct}
+      adminLevel={adminLevel}
     />
   );
 }

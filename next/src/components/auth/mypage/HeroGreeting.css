@@ -6,19 +6,14 @@
    - 메타 라인 + 로그아웃 row 는 자체 mp-hero-meta-row 유지 (subtitle 패턴과 의미 다름)
    ══════════════════════════════════════════ */
 
-/* page-title-area 답습. 단 mp-hero 컨텍스트에서는 NextCard 와 한 묶음(상단)으로 묶기 위해
-   margin-bottom 을 16px 로 override (PageTitle.css 의 default 48 / 모바일 28). */
+/* page-title-area 답습. S264 H-1: hero-wrap 단일 컴포넌트라 자체 margin-bottom 폐기
+   (mp-hero-inner padding 이 분리 담당). */
 .page-title-area.mp-hero {
   display: flex;
   flex-direction: column;
   gap: 16px; /* page-title ↔ subtitle 간격 다른 sub-page 와 통일 (PageTitle.css .page-subtitle margin-top: 16) */
   padding: 0;
-  margin-bottom: 32px;
-}
-@media (max-width: 767px) {
-  .page-title-area.mp-hero {
-    margin-bottom: 24px;
-  }
+  margin-bottom: 0;
 }
 
 /* page-title 의 SSR 초기 상태 (opacity 0 + translateY 20) → 진입 연출은 MyPagePage.css 의

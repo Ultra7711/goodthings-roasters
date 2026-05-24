@@ -18,8 +18,38 @@
 /* S197 PR-2 §2.2: 패널 박스 폐기 → BUG-164 (mp-section-body autofill bg #F5F1EA override) 제거.
    페이지 bg (#FBF8F3) 와 정합하도록 일반 autofill 룰(forms.css)이 적용됨. */
 
-/* S197 PR-2 §2.1: 본문 padding — 다른 sub-page (Shop/Menu/GoodDays/BizInquiry) 와 정합.
-   sticky header(64) 아래 안전 여백 100 + bottom 120 통일. */
+/* S264 H-1: mp-page = hero-wrap + mp-body 묶는 wrapper.
+   진입 연출 (is-loaded) 트리거 root.
+   min-height: 100vh 답습 (Shop/Legal/GoodDays 정합) — 페이지 길이 = 최소 viewport
+   → footer 가 viewport bottom 부근. 탭 간 이동 시 길이 일정 보장. */
+.mp-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* ── Hero 풀블리드 영역 (S264 H-1) ──
+   mp-body 외부 sibling → viewport 풀폭 sand (1440 이상 viewport 에서도 풀블리드 보장).
+   inner = max-width 1440 + 좌우 padding → mp-body 와 시각 정렬.
+   sticky 는 사이드바 (mp-side-nav) 만 — hero greeting 자연 흐름. */
+.mp-hero-wrap {
+  width: 100%;
+  background: var(--brand-sand);
+}
+
+.mp-hero-inner {
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  /* header(64) 아래 안전 여백 100 + bottom 32 (mp-body 와 분리 gap) */
+  padding: 100px 60px 32px;
+}
+
+/* S197 PR-2 §2.1: 본문 padding — 다른 sub-page (Shop/Menu/GoodDays/BizInquiry) 정합.
+   S264 H-1: hero 가 외부 sibling 으로 분리 → mp-body padding-top 32 (hero 와 분리 gap 의 절반).
+   flex: 1 → mp-page 의 남은 공간 모두 차지 → mp-grid sticky 컨테이너 확장 기반. */
 .mp-body {
   flex: 1;
   display: flex;
@@ -27,41 +57,37 @@
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  padding: 100px 60px 120px;
+  padding: 32px 60px 120px;
 }
 
 /* S197 PR-2 §2.11: Hero 진입 연출 — Shop/Menu/GoodDays 패턴 답습.
    page-title 은 PageTitle.css 의 SSR 초기 상태 (opacity 0 + translateY 20) 활용.
-   meta-row / next-card / mp-grid 도 동일 초기 상태 + stagger delay. */
-.mp-body .page-title,
-.mp-body .mp-hero-meta-row,
-.mp-body .mp-next-card,
-.mp-body .mp-grid {
+   meta-row / mp-grid 도 동일 초기 상태 + stagger delay.
+   S264 H-1: 셀렉터 mp-body → mp-page (hero-wrap 외부 분리 후 root 변경). */
+.mp-page .page-title,
+.mp-page .mp-hero-meta-row,
+.mp-page .mp-grid {
   transition: opacity .6s ease-out, transform .6s ease-out;
 }
-.mp-body .mp-hero-meta-row,
-.mp-body .mp-next-card,
-.mp-body .mp-grid {
+.mp-page .mp-hero-meta-row,
+.mp-page .mp-grid {
   opacity: 0;
   transform: translateY(20px);
 }
-.mp-body.is-loaded .page-title,
-.mp-body.is-loaded .mp-hero-meta-row,
-.mp-body.is-loaded .mp-next-card,
-.mp-body.is-loaded .mp-grid {
+.mp-page.is-loaded .page-title,
+.mp-page.is-loaded .mp-hero-meta-row,
+.mp-page.is-loaded .mp-grid {
   opacity: 1;
   transform: none;
 }
-.mp-body.is-loaded .mp-hero-meta-row { transition-delay: 80ms; }
-.mp-body.is-loaded .mp-next-card     { transition-delay: 160ms; }
-.mp-body.is-loaded .mp-grid          { transition-delay: 240ms; }
+.mp-page.is-loaded .mp-hero-meta-row { transition-delay: 80ms; }
+.mp-page.is-loaded .mp-grid          { transition-delay: 160ms; }
 
 /* reduced-motion 가드 — 즉시 노출, 트랜지션 0ms */
 @media (prefers-reduced-motion: reduce) {
-  .mp-body .page-title,
-  .mp-body .mp-hero-meta-row,
-  .mp-body .mp-next-card,
-  .mp-body .mp-grid {
+  .mp-page .page-title,
+  .mp-page .mp-hero-meta-row,
+  .mp-page .mp-grid {
     transition: none;
     opacity: 1;
     transform: none;
@@ -75,9 +101,12 @@
   display: grid;
   grid-template-columns: var(--mp-nav-width) minmax(0, 1fr);
   gap: var(--gap-2xl);
-  /* 히어로 묶음 ↔ 사이드바+패널 분리 (PR-2 §2.4 사용자 결정) — 32 → 64. */
-  margin-top: 64px;
+  /* S264 H-1: hero ↔ grid 분리는 hero-inner padding-bottom 32 + mp-body padding-top 32 = 64. */
+  margin-top: 0;
   align-items: start;
+  /* 데스크탑: mp-body 의 남은 공간 모두 차지 → grid height = viewport - hero - padding.
+     sidebar sticky 컨테이너 확장 (panel content 짧아도 sticky 유지). */
+  flex: 1;
 }
 
 /* S197 PR-2 §2.2: 패널 박스 폐기 — bg/radius/bleed 제거, 단순 컨테이너로 단순화.
@@ -568,23 +597,24 @@
    · 타이틀 H1→H2 · 아코디언 액션 세로 · 주문 카드 min-width 해제 · 모달 폭 축소 */
 @media (max-width: 767px) {
   /* S197 PR-2 모바일 padding override — 좌우만 24 로 축소 (60 → 24, 콘텐츠 폭 확보).
-     padding-top 56: BUG-134 / S96 정책 통일 (S198 — 다른 페이지와 헤더↔타이틀 간격 일관).
-     position: relative + overflow-x: hidden — 자식 absolute 의 containing block 을
-     mp-body 로 잡아 overflow-x 차단 효과 보장 (chevron / dropdown 탈출 + 가로 드래그 차단). */
+     S264 H-1: hero 외부 분리 → mp-body padding-top 24 (gap 보존).
+     overflow-x: clip — mp-side-nav sticky 자식 보장 (S198). */
   .mp-body {
-    padding-top: 56px;
+    padding-top: 24px;
     padding-left: 24px;
     padding-right: 24px;
     position: relative;
-    /* overflow-x: clip — hidden 은 scroll container 형성 → 자식 mp-side-nav sticky 차단.
-       clip 은 자식 clip 효과 동일하지만 scroll container 미형성 → sticky 정상 동작 (S198). */
     overflow-x: clip;
   }
+  /* S264 H-1: hero-inner 모바일 padding (header 안전 56 + bottom 24 gap). */
+  .mp-hero-inner {
+    padding: 56px 24px 24px;
+  }
   /* mp-grid: 1단 stack (sub-nav 가로 row + 패널). minmax(0, 1fr) overflow 차단 동일 적용.
-     scrollIntoView 가 아닌 hero bottom 기준 직접 scrollTo 방식으로 변경 (S198) → scroll-margin-top 폐기. */
+     S264 H-1: 탭바 ↔ 첫 컨텐츠 거리 = gap (12) + item padding (20) = 32 (panel-title 제거 정합). */
   .mp-grid {
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--gap-xl);
+    gap: 12px;
     margin-top: 24px;
   }
 

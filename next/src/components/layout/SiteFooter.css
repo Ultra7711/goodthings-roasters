@@ -10,28 +10,9 @@ footer.blk {
   background-color: var(--color-surface-stone);
 }
 
-/* S263 B-1 v4 — iOS 26 Safari Liquid Glass toolbar tinting fix.
-   viewport bottom 6px 영역에 fixed positioned stone bg element → Safari 26 의
-   sampling 알고리즘이 이 element 의 background-color (stone) 를 toolbar tint
-   로 사용. mypage 등 사용자 보고 "footer 끝~viewport 바닥 흰색" 회귀 차단.
-
-   조건 (search 결과 가이드 정합):
-   - 100% width (좌우 viewport 전체)
-   - min-height 6px (sampling 최소 임계값)
-   - position: fixed (viewport edge 에 고정)
-   - background-color 명시 (sampling 대상)
-   - pseudo-element (::before) 불가 — 별 명시적 element 필요
-   - pointer-events: none + z-index 낮음 → 시각/interaction 영향 0 */
-.footer-tint {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background-color: var(--color-surface-stone);
-  z-index: 0;
-  pointer-events: none;
-}
+/* S264 H-1 후속: .footer-tint (S263 B-1 v4) 폐기 — 모든 모바일 페이지 viewport bottom
+   에 6px stone 띠가 항상 떠 보이는 회귀. iOS 26 toolbar tint 는 .page-bg (cream)
+   sampling 으로 자연 처리 (mypage hero sticky 도 폐기되어 sand sampling 없음). */
 .footer {
   background: var(--color-surface-stone);
   padding: 0;

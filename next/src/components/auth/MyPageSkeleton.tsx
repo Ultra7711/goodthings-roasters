@@ -1,11 +1,11 @@
 /* ══════════════════════════════════════════
-   MyPageSkeleton — V2 §3 신구조 (S197 PR-2 · S253 정밀화)
+   MyPageSkeleton — V2 §3 신구조 (S264 H-1 갱신)
    /mypage Suspense fallback. requireAuth + hydration 동안 노출.
 
-   설계 원칙 (S253):
+   설계 원칙 (S253 · S264 H-1):
    - 실제 컴포넌트 layout 1:1 답습 → swap 시 layout shift 최소화
    - HeroGreeting: h1 2 줄 + meta row (실제 안녕하세요. / {name} 님)
-   - Hero card (mp-next-card): info(name/meta/cta) + image 1:1
+   - Hero card 제거 (S264 H-1) — Hero Card 분기 폐기, hero-wrap 풀블리드 sand 만 보유
    - OrderHistory: mp-order-card × 3 stack (hairline border + meta/content row)
    - mp-side-nav: 4 항목
 
@@ -17,16 +17,11 @@
 import './MyPagePage.css';
 import '@/components/ui/PageTitle.css';
 import '@/components/auth/mypage/HeroGreeting.css';
-import '@/components/auth/mypage/NextDeliveryCard.css';
 import '@/components/auth/mypage/MyPageSideNav.css';
 import '@/components/auth/mypage/MyPagePanel.css';
 
-/* placeholder height — line-height 토큰 활용 (viewport 분기 자동 정합).
-   - H1 (page-title) → var(--lh-h1) (mobile 40 / tablet 44 / desktop 52)
-   - H3 (mp-next-name) → var(--lh-h3) (mobile 20 / tablet 20 / desktop 32 line-height)
-   - body-* 는 line-height 토큰 없음 → 컴포넌트 CSS 의 line-height 명시 값과 정합 */
+/* placeholder height — line-height 토큰 활용 (viewport 분기 자동 정합). */
 const H_PAGE_TITLE = 'var(--lh-h1)';
-const H_H3 = 'var(--lh-h3)';
 const H_BODY_L = 28;
 const H_BODY_M = 24;
 const H_BODY_UI = 21;
@@ -75,66 +70,55 @@ function OrderCardSkeleton({ isLast = false }: { isLast?: boolean }) {
 
 export default function MyPageSkeleton() {
   return (
-    <div className="mp-body is-loaded">
-      {/* HeroGreeting placeholder — h1 한 줄 ("안녕하세요. {name} 님" inline) + meta row */}
-      <header className="page-title-area mp-hero">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <SkelBox height={H_PAGE_TITLE} width={140} />
-          <SkelBox height={H_PAGE_TITLE} width={180} />
+    <div className="mp-page is-loaded">
+      {/* Hero 풀블리드 영역 placeholder — mp-body 외부 sibling (viewport 풀폭 sand) */}
+      <div className="mp-hero-wrap">
+        <div className="mp-hero-inner">
+          <header className="page-title-area mp-hero">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <SkelBox height={H_PAGE_TITLE} width={140} />
+              <SkelBox height={H_PAGE_TITLE} width={180} />
+            </div>
+            <div className="mp-hero-meta-row">
+              <SkelBox height={H_BODY_L} width={200} />
+              <SkelBox height={H_BODY_L} width={64} />
+            </div>
+          </header>
         </div>
-        <div className="mp-hero-meta-row">
-          <SkelBox height={H_BODY_L} width={200} />
-          <SkelBox height={H_BODY_L} width={64} />
-        </div>
-      </header>
+      </div>
 
-      {/* Hero card placeholder — mp-next-card · info(gap 12) + image 1:1 */}
-      <section className="mp-next-card" aria-hidden="true">
-        <div className="mp-next-info">
-          <SkelBox height={H_H3} width="60%" />
-          <SkelBox height={H_BODY_UI} width="40%" />
-          <div style={{ marginTop: 16 }}>
-            <SkelBox height={H_BODY_M} width={120} />
-          </div>
-        </div>
-        <div className="mp-next-image">
-          <div className="mp-next-image-placeholder" />
-        </div>
-      </section>
+      {/* mp-body: max-width centered + padding · 내부 mp-grid */}
+      <div className="mp-body">
+        <div className="mp-grid">
+          <nav className="mp-side-nav" aria-hidden="true">
+            <ul className="mp-side-nav-list">
+              {[
+                { labelW: 64, hasCount: true },   // 주문내역 (4글자)
+                { labelW: 64, hasCount: true },   // 정기배송 (4글자)
+                { labelW: 48, hasCount: false },  // 프로필 (3글자)
+                { labelW: 64, hasCount: false },  // 계정관리 (4글자)
+              ].map((it, i) => (
+                <li key={i}>
+                  <div className="mp-side-nav-item" style={{ pointerEvents: 'none' }}>
+                    <SkelBox height={H_BODY_L} width={it.labelW} />
+                    {it.hasCount && <SkelBox height={H_BODY_S} width={16} />}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-      {/* mp-grid: side-nav + panel */}
-      <div className="mp-grid">
-        {/* Side nav placeholder — 실제 MyPageSideNav 답습.
-           ITEMS = [주문내역, 정기배송, 프로필, 계정관리] · orders/subscription 만 count.
-           CSS 가 viewport 자동 분기 (데스크탑 column / 모바일 horizontal tab bar 정합). */}
-        <nav className="mp-side-nav" aria-hidden="true">
-          <ul className="mp-side-nav-list">
-            {[
-              { labelW: 64, hasCount: true },   // 주문내역 (4글자)
-              { labelW: 64, hasCount: true },   // 정기배송 (4글자)
-              { labelW: 48, hasCount: false },  // 프로필 (3글자)
-              { labelW: 64, hasCount: false },  // 계정관리 (4글자)
-            ].map((it, i) => (
-              <li key={i}>
-                <div className="mp-side-nav-item" style={{ pointerEvents: 'none' }}>
-                  <SkelBox height={H_BODY_L} width={it.labelW} />
-                  {it.hasCount && <SkelBox height={H_BODY_S} width={16} />}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        {/* Panel placeholder — sub-title h2 + OrderHistory mp-order-card × 3 stack */}
-        <div className="mp-panel">
-          <div style={{ marginBottom: 24 }}>
-            <SkelBox height={28} width={120} />
-          </div>
-          <div className="mp-section-body">
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <OrderCardSkeleton />
-              <OrderCardSkeleton />
-              <OrderCardSkeleton isLast />
+          {/* Panel placeholder — sub-title h2 + OrderHistory mp-order-card × 3 stack */}
+          <div className="mp-panel">
+            <div style={{ marginBottom: 24 }}>
+              <SkelBox height={28} width={120} />
+            </div>
+            <div className="mp-section-body">
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <OrderCardSkeleton />
+                <OrderCardSkeleton />
+                <OrderCardSkeleton isLast />
+              </div>
             </div>
           </div>
         </div>

@@ -12,17 +12,9 @@ import FooterWholesaleLink from './FooterWholesaleLink';
 export default function SiteFooter() {
   return (
     <footer className="blk">
-      {/* S263 B-1 v4 — iOS 26 Safari Liquid Glass toolbar tinting fix.
-          Safari 26 가 viewport edge 의 fixed/sticky element 의 background-color 를
-          sampling 해서 toolbar tint 적용. footer 는 일반 flow → fallback body bg
-          (transparent) → 다음 layer (.page-bg warm white) → toolbar tint warm white
-          (mypage 사용자 보고 증상).
-          fix: 100% width + 6px height + stone bg fixed element 를 viewport bottom 에
-          상시 배치 → toolbar tint = stone 강제. footer 가 있는 페이지만 적용
-          (PDP/OCP/cart 처럼 FooterRoute 가 footer 비표시인 페이지는 자동 제외).
-          Pseudo-element (::before/::after) 는 tinting algorithm 가 무시 → 명시적
-          element 필요. */}
-      <div className="footer-tint" aria-hidden />
+      {/* S264 H-1 후속: .footer-tint (S263 B-1 v4) 폐기 — 모든 모바일 페이지 viewport
+          bottom 에 6px stone 띠가 항상 떠 보이는 회귀 발생. iOS 26 toolbar tint 는
+          .page-bg (cream) sampling 으로 자연 처리. */}
       <div className="footer">
         <div className="f-inner">
           {/* 브랜드 + SNS */}

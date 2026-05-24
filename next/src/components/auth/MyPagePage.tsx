@@ -14,17 +14,12 @@ import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { supabase } from '@/lib/supabase';
-import type { AuthClaims } from '@/lib/auth/getClaims';
+import type { AuthClaims, AdminLevel } from '@/lib/auth/getClaims';
 import type { Subscription } from '@/types/subscription';
-import type { Order } from '@/types/order';
-import type { Product } from '@/lib/products';
 import { useToast } from '@/hooks/useToast';
 import { useSubscriptionsQuery } from '@/hooks/useSubscriptions';
 import OverscrollTop from '@/components/ui/OverscrollTop';
 import HeroGreeting from '@/components/auth/mypage/HeroGreeting';
-import NextDeliveryCard from '@/components/auth/mypage/NextDeliveryCard';
-import RecentOrderCard from '@/components/auth/mypage/RecentOrderCard';
-import WelcomeCard from '@/components/auth/mypage/WelcomeCard';
 import MyPageSideNav, { type MyPageNavId } from '@/components/auth/mypage/MyPageSideNav';
 import MyPagePanel from '@/components/auth/mypage/MyPagePanel';
 
@@ -43,24 +38,19 @@ type MyPagePageProps = {
   initialClaims: AuthClaims;
   /** SSR prefetch — 정기배송 전체 (TanStack initialData 로 주입 · flash 차단) */
   initialSubscriptions: Subscription[];
-  /** S253: Hero RecentOrderCard 용 1건 (orders[0] 대체).
-     OrderHistory 패널이 mount 후 useOrdersQuery 가 자체 fetch 로 전체 가져옴. */
-  initialHeroOrder: Order | null;
-  /** S253: 사이드 nav + HeroGreeting 카운트 표시용 (count-only RPC 결과).
+  /** 사이드 nav + HeroGreeting 카운트 표시용 (count-only RPC 결과).
      마이페이지 안에서 주문 mutation 발생 안 함 — stale 위험 0. */
   initialOrdersCount: number;
-  /** S263 follow-up: 신규 사용자 (orders=0+subs=0) SSR pick. WelcomeCard 가
-     mount 즉시 <Image placeholder=blur> 렌더. 일반 사용자 = null
-     (manual 'welcome' 클릭 시 WelcomeCard client fetch fallback). */
-  showcaseProduct: Product | null;
+  /** S264 H-2: admin 인 경우 adminLevel 라벨 ("관리자"/"운영자") 표시.
+     일반 사용자 null → metaName / emailHandle 기존 로직. */
+  adminLevel: AdminLevel | null;
 };
 
 export default function MyPagePage({
   initialClaims,
   initialSubscriptions,
-  initialHeroOrder,
   initialOrdersCount,
-  showcaseProduct,
+  adminLevel,
 }: MyPagePageProps) {
   const router = useRouter();
   const { show: toast } = useToast();
@@ -71,7 +61,25 @@ export default function MyPagePage({
   const metaName = (meta.full_name as string | undefined) ?? (meta.name as string | undefined);
   const effectiveEmail = supabaseUser?.email ?? initialClaims.email;
   const emailHandle = effectiveEmail.split('@')[0];
-  const displayName = metaName ?? emailHandle ?? '';
+  /* S264 H-2: admin 계정은 metaName 미설정 시 emailHandle (예: "idealizer77+admin") 노출 회귀.
+     hero 인사말 displayName: 환영 컨텍스트라 adminLevel 라벨 ("관리자"/"운영자") 우선.
+     일반 사용자 = 기존 로직. */
+  const displayName =
+    adminLevel === 'owner'
+      ? '관리자'
+      : adminLevel === 'staff'
+        ? '운영자'
+        : (metaName ?? emailHandle ?? '');
+
+  /* S264 H-2 옵션 B: 프로필 영역은 본인 정보 영역 → 본명 우선 + fallback 라벨.
+     metaName 있으면 본명, 없으면 admin 라벨, 그것도 없으면 emailHandle. */
+  const profileDisplayName =
+    metaName ??
+    (adminLevel === 'owner'
+      ? '관리자'
+      : adminLevel === 'staff'
+        ? '운영자'
+        : (emailHandle ?? ''));
 
   /* 가입 기간 — < 30일 이면 일 단위, 이상이면 개월 단위 */
   const createdAtIso =
@@ -107,38 +115,27 @@ export default function MyPagePage({
   /* ── Side nav 활성 항목 ── */
   const [activeNavId, setActiveNavId] = useState<MyPageNavId>('orders');
 
-  /* ── 탭 전환 공통 핸들러 (Hero CTA + SideNav 탭바) — 모바일 스크롤 포함 (S198).
+  /* ── 탭 전환 공통 핸들러 (HeroGreeting 메타 + SideNav 탭바) — 모바일 스크롤 포함.
      데스크탑은 grid layout 으로 한 화면에 보여 스크롤 불필요.
-     모바일은 hero sand bg 의 bottom 이 sticky 헤더의 bottom 에 정확히 정렬되는 위치로 이동 —
-     "히어로 sand 배경 끝단과 헤더가 맞닿는 순간". querySelector(.mp-next-card) 로 hero card
-     element 의 viewport bottom 좌표 계산 후 window.scrollTo. */
+     모바일은 mp-side-nav 가 header 바로 아래에 stuck 되는 위치로 스크롤.
+     hero greeting 은 모바일에서 sticky 아니라 자연 스크롤 → 탭바만 sticky 로 유지. */
   const handleNavWithScroll = useCallback((target: MyPageNavId) => {
     setActiveNavId(target);
     if (typeof window === 'undefined') return;
     if (!window.matchMedia('(max-width: 767px)').matches) return;
     requestAnimationFrame(() => {
-      const card = document.querySelector<HTMLElement>('.mp-body .mp-next-card');
-      if (!card) return;
+      const sideNav = document.querySelector<HTMLElement>('.mp-side-nav');
+      if (!sideNav) return;
       const headerHeight =
         parseInt(
           getComputedStyle(document.documentElement).getPropertyValue('--header-height'),
           10,
         ) || 56;
-      const top = window.scrollY + card.getBoundingClientRect().bottom - headerHeight;
+      /* sideNav.top - headerHeight 만큼 스크롤 → 탭바가 header 바로 아래에 stuck.
+         이미 stuck 상태면 .top = headerHeight 라 변동 없음 (자연스럽게 idempotent). */
+      const top = window.scrollY + sideNav.getBoundingClientRect().top - headerHeight;
       window.scrollTo({ top, behavior: 'smooth' });
     });
-  }, []);
-
-  /* ── Hero 카드 수동 전환 (메타 항목 클릭 · S197 PR-2 §2.13).
-     null = 자동 분기 (정기 ≥1 → next / 주문 ≥1 → recent / 둘 다 0 → welcome).
-     사용자가 메타 클릭 시 override. */
-  type HeroCardType = 'next' | 'recent' | 'welcome';
-  const [manualHeroCard, setManualHeroCard] = useState<HeroCardType | null>(null);
-
-  const handleHeroNavigate = useCallback((id: MyPageNavId) => {
-    if (id === 'orders') setManualHeroCard('recent');
-    else if (id === 'subscription') setManualHeroCard('next');
-    else if (id === 'profile') setManualHeroCard('welcome');
   }, []);
 
   /* ── 데이터: 정기배송 (SSR initialData) + 주문 (S253 lazy)
@@ -161,16 +158,6 @@ export default function MyPagePage({
     }),
     [initialOrdersCount, subscriptions.length],
   );
-
-  /* Next 카드: nextDate 가 가장 가까운 활성 정기배송 1건 */
-  const nextSub = useMemo(() => {
-    const candidates = subscriptions.filter((s) => s.status !== 'paused');
-    if (candidates.length === 0) {
-      /* paused 만 있으면 paused 첫 번째 노출 (Next eyebrow 가 "일시정지 중") */
-      return subscriptions[0] ?? null;
-    }
-    return [...candidates].sort((a, b) => a.nextDate.localeCompare(b.nextDate))[0] ?? null;
-  }, [subscriptions]);
 
   /* ── 로그아웃 ── */
   const handleLogout = useCallback(async () => {
@@ -196,7 +183,7 @@ export default function MyPagePage({
       case 'subscription':
         return <SubscriptionView />;
       case 'profile':
-        return <ProfileView name={metaName ?? emailHandle ?? ''} email={effectiveEmail} />;
+        return <ProfileView name={profileDisplayName} email={effectiveEmail} />;
       case 'account':
         return <AccountView onLoggedOut={handleLoggedOut} />;
     }
@@ -205,53 +192,35 @@ export default function MyPagePage({
   return (
     <>
       {/* 모바일 오버스크롤 영역: 상단 = ann-bar 색 (#1E1B16) / 하단 = footer 색 (#4A4845 default).
-         메인 페이지와 동일 패턴 — 페이지 콘텐츠 영역 (mp-body #FBF8F3) 위/아래로 노출되는
-         오버스크롤이 ann-bar / footer 와 시각적으로 연속되게. BUG-165 에서 #FBF8F3 단일색
-         적용했던 결정 회귀 (사용자 디자인 변경). */}
+         hero-wrap 이 sticky sand 풀블리드라 상단 overscroll 은 ann-bar 가 보존. */}
       <OverscrollTop top="#1E1B16" bottom="#4A4845" />
 
-      {/* ── V2 §3.2 재구조화 본문 ── */}
-      <div className="mp-body" ref={setBodyEl}>
-        <HeroGreeting
-          name={displayName}
-          ordersCount={initialOrdersCount}
-          activeSubscriptionsCount={activeSubsCount}
-          membershipText={membershipText}
-          onLogout={() => void handleLogout()}
-          onNavigate={handleHeroNavigate}
-        />
+      {/* ── mp-page wrapper (S264 H-1) ──
+         hero-wrap (viewport 풀폭 sand) 와 mp-body (max-width 1440 centered) 를 묶음.
+         setBodyEl ref 는 mp-page 에 박아 진입 연출이 hero 와 grid 모두 트리거. */}
+      <div className="mp-page" ref={setBodyEl}>
+        <div className="mp-hero-wrap">
+          <div className="mp-hero-inner">
+            <HeroGreeting
+              name={displayName}
+              ordersCount={initialOrdersCount}
+              activeSubscriptionsCount={activeSubsCount}
+              membershipText={membershipText}
+              onLogout={() => void handleLogout()}
+              onNavigate={handleNavWithScroll}
+            />
+          </div>
+        </div>
 
-        {/* PR-2 §2.3 + §2.13: Hero 카드 분기 — manual override (메타 클릭) ?? auto.
-           S253: orders[0] → initialHeroOrder (SSR 1건 fetch · OrderHistory 펼침 무관 즉시 노출). */}
-        {(() => {
-          const heroType: HeroCardType =
-            manualHeroCard ?? (nextSub ? 'next' : initialHeroOrder ? 'recent' : 'welcome');
-          if (heroType === 'next' && nextSub) {
-            return (
-              <NextDeliveryCard
-                sub={nextSub}
-                onManage={() => handleNavWithScroll('subscription')}
-              />
-            );
-          }
-          if (heroType === 'recent' && initialHeroOrder) {
-            return (
-              <RecentOrderCard
-                order={initialHeroOrder}
-                onViewOrders={() => handleNavWithScroll('orders')}
-              />
-            );
-          }
-          return <WelcomeCard userName={displayName} showcaseProduct={showcaseProduct} />;
-        })()}
-
-        <div className="mp-grid">
-          <MyPageSideNav
-            activeId={activeNavId}
-            counts={counts}
-            onChange={handleNavWithScroll}
-          />
-          <MyPagePanel title={NAV_LABELS[activeNavId]}>{renderActiveView()}</MyPagePanel>
+        <div className="mp-body">
+          <div className="mp-grid">
+            <MyPageSideNav
+              activeId={activeNavId}
+              counts={counts}
+              onChange={handleNavWithScroll}
+            />
+            <MyPagePanel title={NAV_LABELS[activeNavId]}>{renderActiveView()}</MyPagePanel>
+          </div>
         </div>
       </div>
     </>

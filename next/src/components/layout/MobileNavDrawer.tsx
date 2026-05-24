@@ -22,6 +22,7 @@ import { useDrawer } from '@/hooks/useDrawer';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useCartQuery } from '@/hooks/useCart';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
+import { useAdminLevel } from '@/hooks/useAdminLevel';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
 import { BUSINESS_INFO } from '@/lib/constants';
@@ -63,16 +64,24 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
   const cartDrawer = useCartDrawer();
   const { totalQty } = useCartQuery();
   const { user: supabaseUser } = useSupabaseSession();
+  const adminLevel = useAdminLevel();
   const [mounted, setMounted] = useState(false);
   const [bizOpen, setBizOpen] = useState(false);
 
   /* 로그인 사용자 표시명: user_metadata.full_name → name → email handle.
-     MyPagePage 의 "{displayName}님, 환영합니다." 로직과 동일 (BUG-140 · S77). */
+     MyPagePage 의 "{displayName}님, 환영합니다." 로직과 동일 (BUG-140 · S77).
+     S264 H-2: admin 계정 (metaName 미설정 시 emailHandle 노출 회귀) → adminLevel 기반
+     라벨 "관리자" / "운영자" 우선. 일반 사용자 = 기존 metaName ?? emailHandle. */
   const meta = supabaseUser?.user_metadata ?? {};
   const metaName =
     (meta.full_name as string | undefined) ?? (meta.name as string | undefined);
   const emailHandle = supabaseUser?.email?.split('@')[0];
-  const displayName = metaName ?? emailHandle ?? null;
+  const displayName =
+    adminLevel === 'owner'
+      ? '관리자'
+      : adminLevel === 'staff'
+        ? '운영자'
+        : (metaName ?? emailHandle ?? null);
   /**
    * navigate 경로에서 transition 없이 즉시 닫기.
    * route 전환 후 #mobile-nav-bg opacity 1→0 fade (delay 80 + duration 250 = 330ms) 가

@@ -8,6 +8,8 @@
   flex: 1;
   min-width: 0;
   padding-top: 14px;
+  /* S264 H-1: panel 직접 min-height 폐기 — mp-page min-height: 100vh + mp-grid flex: 1
+     조합으로 sticky 컨테이너 확장 처리. panel 자체 stretch 는 grid default 가 담당. */
 }
 
 .mp-panel-title {
@@ -27,7 +29,15 @@
 }
 
 @media (max-width: 767px) {
+  /* S264 H-1: 탭바 ↔ 첫 컨텐츠 거리 정합 — mp-grid gap 12 + item padding 20 = 32.
+     panel 자체 padding-top 폐기 (gap 으로 흡수). min-height 모바일 탭바 sticky 패턴 다름. */
   .mp-panel {
-    padding-top: 24px;
+    padding-top: 0;
+    min-height: 0;
+  }
+  /* S264 H-1: 모바일에선 탭바 카테고리 라벨과 panel-title 중복 → 숨김.
+     데스크탑은 사이드바 항목 옆 별 panel sub-title 로 정보 가치 유지. */
+  .mp-panel-title {
+    display: none;
   }
 }

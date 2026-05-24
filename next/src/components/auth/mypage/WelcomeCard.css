@@ -1,7 +1,0 @@
-/* ══════════════════════════════════════════
-   WelcomeCard — 상태 D 카드 추가 룰 (S197 PR-2 §2.3, S198 image push)
-   sand 패널 base + cta 는 NextDeliveryCard.css 의 .mp-next-card / .mp-hero-cta 재사용.
-   image 영역 — S198 부터 PRODUCTS 랜덤 1종 푸시 (전 빈 div 였던 mp-next-image--empty 폐기).
-   info 정렬은 base .mp-next-card 의 align-items: center 상속 — NextDelivery /
-   RecentOrder 와 동일 (좌측 중앙).
-   ══════════════════════════════════════════ */
