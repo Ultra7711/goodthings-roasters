@@ -17,12 +17,13 @@
    - admin-design.md — Button / Switch / ConfirmModal 토큰
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Plus, Star, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Switch } from '@/components/admin/ui/switch';
 import ConfirmModal from '@/components/admin/ConfirmModal';
@@ -38,6 +39,8 @@ import {
 interface BannerListClientProps {
   initialCafeBanners: Banner[];
   initialSignatureBanners: Banner[];
+  initialKind?: BannerKind;
+  justCreated?: boolean;
 }
 
 const KIND_TABS: ReadonlyArray<{ key: BannerKind; label: string }> = [
@@ -48,15 +51,39 @@ const KIND_TABS: ReadonlyArray<{ key: BannerKind; label: string }> = [
 export default function BannerListClient({
   initialCafeBanners,
   initialSignatureBanners,
+  initialKind = 'cafe_event',
+  justCreated = false,
 }: BannerListClientProps) {
   const router = useRouter();
-  const [activeKind, setActiveKind] = useState<BannerKind>('cafe_event');
+  const [activeKind, setActiveKind] = useState<BannerKind>(initialKind);
   const [cafeBanners, setCafeBanners] = useState<Banner[]>(initialCafeBanners);
   const [signatureBanners, setSignatureBanners] = useState<Banner[]>(
     initialSignatureBanners,
   );
   const [pending, startTransition] = useTransition();
   const [deleteTarget, setDeleteTarget] = useState<Banner | null>(null);
+
+  /* server props 변경 시 client state 동기화 — 신규 등록 후 redirect 로 진입
+     시 server fetch 가 새 banner row 포함된 array reference 전달. mount 시
+     useState 초기값은 첫 reference 만 박힘 → 별도 동기화 필요 (S273-11). */
+  useEffect(() => {
+    setCafeBanners(initialCafeBanners);
+  }, [initialCafeBanners]);
+  useEffect(() => {
+    setSignatureBanners(initialSignatureBanners);
+  }, [initialSignatureBanners]);
+
+  /* 신규 등록 후 server-side redirect 로 진입한 경우 toast + URL clean.
+     createBannerAction 의 redirect 가 ?just_created=1 박음. strict mode dev
+     double-invocation 회피 위해 useRef 가드. */
+  const justCreatedShownRef = useRef(false);
+  useEffect(() => {
+    if (justCreated && !justCreatedShownRef.current) {
+      justCreatedShownRef.current = true;
+      toast.success('배너를 등록했습니다');
+      router.replace(`/admin/banners?kind=${initialKind}`);
+    }
+  }, [justCreated, initialKind, router]);
 
   const currentBanners = activeKind === 'cafe_event' ? cafeBanners : signatureBanners;
   const setCurrentBanners =
@@ -168,13 +195,23 @@ export default function BannerListClient({
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      {/* kind 탭 + 신규 버튼 */}
-      <div className="flex items-center justify-between gap-2">
+    <>
+      {/* 상단 topbar 우측 actions 슬롯 — menu/products list 답습 (S273-12). */}
+      <AdminTopbarActions>
+        <Button asChild size="sm" className="!h-7">
+          <Link href={`/admin/banners/new?kind=${activeKind}`}>
+            <Plus size={14} />
+            신규 등록
+          </Link>
+        </Button>
+      </AdminTopbarActions>
+
+      <div className="flex flex-col gap-4 p-4">
+        {/* kind 탭 */}
         <div
           role="tablist"
           aria-label="배너 종류"
-          className="inline-flex items-center gap-1 p-1 rounded-md bg-muted"
+          className="inline-flex items-center gap-1 p-1 rounded-md bg-muted self-start"
         >
           {KIND_TABS.map((tab) => (
             <button
@@ -194,13 +231,6 @@ export default function BannerListClient({
             </button>
           ))}
         </div>
-        <Button asChild size="sm" className="!h-8">
-          <Link href={`/admin/banners/new?kind=${activeKind}`}>
-            <Plus size={14} />
-            신규 등록
-          </Link>
-        </Button>
-      </div>
 
       {sortedBanners.length === 0 ? (
         <div className="px-4 py-16 text-center text-sm text-muted-foreground bg-muted rounded-md border border-dashed border-border">
@@ -385,17 +415,18 @@ export default function BannerListClient({
         </>
       )}
 
-      <ConfirmModal
-        open={deleteTarget !== null}
-        variant="danger"
-        title="배너를 삭제하시겠습니까?"
-        description="이 배너는 영원히 사라지며, 되돌릴 수 없습니다."
-        confirmLabel="삭제"
-        pending={pending}
-        onCancel={() => setDeleteTarget(null)}
-        onConfirm={handleDeleteConfirm}
-      />
-    </div>
+        <ConfirmModal
+          open={deleteTarget !== null}
+          variant="danger"
+          title="배너를 삭제하시겠습니까?"
+          description="이 배너는 영원히 사라지며, 되돌릴 수 없습니다."
+          confirmLabel="삭제"
+          pending={pending}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={handleDeleteConfirm}
+        />
+      </div>
+    </>
   );
 }
 

@@ -290,12 +290,10 @@ export default function BannerEditForm({
     startTransition(async () => {
       if (isNew) {
         const { id: _, ...input } = draft;
+        /* createBannerAction success → server-side redirect (NEXT_REDIRECT throw)
+           → 자동 navigate + ?just_created=1. result 는 실패 시만 반환. */
         const result = await createBannerAction(input);
-        if (result.ok) {
-          toast.success('배너를 등록했습니다');
-          router.push(`/admin/banners?kind=${kind}`);
-          router.refresh();
-        } else {
+        if (!result.ok) {
           toast.error(describeError(result.error, result.detail));
         }
       } else {
@@ -319,8 +317,9 @@ export default function BannerEditForm({
       if (result.ok) {
         toast.success('배너를 삭제했습니다');
         setDeleteConfirmOpen(false);
-        router.push(`/admin/banners?kind=${kind}`);
-        router.refresh();
+        /* router.push 가 stale RSC payload 사용하는 회귀 회피 — full reload.
+           편집 → 삭제 → list 진입 흐름은 빈도 낮음 (SPA 손상 미미). */
+        window.location.href = `/admin/banners?kind=${kind}`;
       } else {
         toast.error(describeError(result.error, result.detail));
       }

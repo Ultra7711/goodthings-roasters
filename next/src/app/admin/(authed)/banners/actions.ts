@@ -19,6 +19,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getAdminClaims } from '@/lib/auth/getClaims';
 import { BannerSchema, BannerKindSchema, type BannerKind } from '@/lib/banners';
@@ -149,7 +150,10 @@ export async function createBannerAction(
 
   revalidateBanner(parsed.data.kind);
 
-  return { ok: true, id: data.id };
+  /* 성공 시 server-side redirect — client router.push 가 prefetch 된 stale RSC
+     payload 사용하는 회귀 회피. NEXT_REDIRECT throw 로 client 자동 navigate +
+     모든 cache 무효화. ?just_created flag 로 list 페이지가 toast 띄움. */
+  redirect(`/admin/banners?kind=${parsed.data.kind}&just_created=1`);
 }
 
 export async function updateBannerAction(
