@@ -30,6 +30,7 @@ import {
   processAdminImage,
 } from '@/lib/admin/imageProcessing';
 import { GOODDAYS_CACHE_TAG } from '@/lib/gooddaysServer';
+import { logActionError } from '@/lib/admin/logActionError';
 
 const BUCKET_ID = 'gooddays-images';
 
@@ -130,9 +131,7 @@ export async function uploadGoodDaysImageAction(
       upsert: false,
     });
   if (uploadErr) {
-    console.error('[uploadGoodDaysImageAction] storage upload failed', {
-      message: uploadErr.message?.slice(0, 200),
-    });
+    logActionError('[uploadGoodDaysImageAction] storage upload failed', uploadErr);
     return { ok: false, error: 'server_error' };
   }
 
@@ -146,7 +145,7 @@ export async function uploadGoodDaysImageAction(
     .limit(1)
     .maybeSingle();
   if (maxErr) {
-    console.error('[uploadGoodDaysImageAction] max sort_order failed', maxErr.message);
+    logActionError('[uploadGoodDaysImageAction] max sort_order failed', maxErr);
     /* Storage 객체 cleanup */
     await admin.storage.from(BUCKET_ID).remove([filename]);
     return { ok: false, error: 'server_error' };
@@ -169,7 +168,7 @@ export async function uploadGoodDaysImageAction(
     .select('id')
     .single();
   if (insertErr || !inserted) {
-    console.error('[uploadGoodDaysImageAction] insert failed', insertErr?.message);
+    logActionError('[uploadGoodDaysImageAction] insert failed', insertErr);
     await admin.storage.from(BUCKET_ID).remove([filename]);
     return { ok: false, error: 'server_error' };
   }
@@ -216,7 +215,7 @@ export async function updateGoodDaysImageAction(input: {
     .select('id')
     .maybeSingle();
   if (error) {
-    console.error('[updateGoodDaysImageAction] update failed', error.message);
+    logActionError('[updateGoodDaysImageAction] update failed', error, { id: parsed.data.id });
     return { ok: false, error: 'server_error' };
   }
   if (!data) return { ok: false, error: 'not_found' };
@@ -261,10 +260,7 @@ export async function reorderGoodDaysImagesAction(input: {
       .update({ sort_order: -(i + 1), updated_by: claims.userId })
       .eq('id', ids[i]);
     if (error) {
-      console.error('[reorderGoodDaysImagesAction] pass1 failed', {
-        idx: i,
-        message: error.message?.slice(0, 200),
-      });
+      logActionError('[reorderGoodDaysImagesAction] pass1 failed', error, { idx: i });
       return { ok: false, error: 'server_error', detail: `pass1_idx_${i}` };
     }
   }
@@ -276,10 +272,7 @@ export async function reorderGoodDaysImagesAction(input: {
       .update({ sort_order: i + 1, updated_by: claims.userId })
       .eq('id', ids[i]);
     if (error) {
-      console.error('[reorderGoodDaysImagesAction] pass2 failed', {
-        idx: i,
-        message: error.message?.slice(0, 200),
-      });
+      logActionError('[reorderGoodDaysImagesAction] pass2 failed', error, { idx: i });
       return { ok: false, error: 'server_error', detail: `pass2_idx_${i}` };
     }
   }
@@ -313,7 +306,7 @@ export async function deleteGoodDaysImageAction(input: {
     .eq('id', parsed.data.id)
     .maybeSingle();
   if (selErr) {
-    console.error('[deleteGoodDaysImageAction] select failed', selErr.message);
+    logActionError('[deleteGoodDaysImageAction] select failed', selErr, { id: parsed.data.id });
     return { ok: false, error: 'server_error' };
   }
   if (!row) return { ok: false, error: 'not_found' };
@@ -325,8 +318,8 @@ export async function deleteGoodDaysImageAction(input: {
     const { error: rmErr } = await admin.storage.from(BUCKET_ID).remove([storagePath]);
     if (rmErr) {
       /* Storage 삭제 실패는 로그만 — DB row 삭제는 진행 (orphan storage 는 carry-over) */
-      console.error('[deleteGoodDaysImageAction] storage remove failed', {
-        message: rmErr.message?.slice(0, 200),
+      logActionError('[deleteGoodDaysImageAction] storage remove failed', rmErr, {
+        path: storagePath,
       });
     }
   }
@@ -336,7 +329,7 @@ export async function deleteGoodDaysImageAction(input: {
     .delete()
     .eq('id', parsed.data.id);
   if (delErr) {
-    console.error('[deleteGoodDaysImageAction] delete failed', delErr.message);
+    logActionError('[deleteGoodDaysImageAction] delete failed', delErr, { id: parsed.data.id });
     return { ok: false, error: 'server_error' };
   }
 

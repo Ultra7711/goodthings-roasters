@@ -30,6 +30,7 @@ import {
 } from '@/lib/siteSettings';
 import { SITE_SETTINGS_CACHE_TAG } from '@/lib/siteSettingsServer';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
+import { logActionError } from '@/lib/admin/logActionError';
 
 const SaveInputSchema = z.object({
   notice: NoticeSettingsSchema.optional(),
@@ -110,10 +111,8 @@ export async function saveSiteSettingsAction(
     );
 
   if (error) {
-    // eslint-disable-next-line no-console
-    console.error('[saveSiteSettingsAction] upsert failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
+    logActionError('[saveSiteSettingsAction] upsert failed', error, {
+      keys: updates.map((u) => u.key),
     });
     return { ok: false, error: 'server_error' };
   }

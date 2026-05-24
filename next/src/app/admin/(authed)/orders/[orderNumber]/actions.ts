@@ -22,6 +22,7 @@ import { dispatchOrder, type DispatchResult } from '@/lib/admin/dispatch';
 import { getAdminClaims } from '@/lib/auth/getClaims';
 import { OrderNumberSchema } from '@/lib/schemas/order';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { logActionError } from '@/lib/admin/logActionError';
 
 export type DispatchActionResult =
   | DispatchResult
@@ -102,10 +103,7 @@ export async function updateAdminNotesAction(input: {
     .maybeSingle();
 
   if (error) {
-    console.error('[updateAdminNotesAction] update failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError('[updateAdminNotesAction] update failed', error, { orderNumber });
     return { ok: false, error: 'server_error' };
   }
   if (!data) return { ok: false, error: 'not_found' };

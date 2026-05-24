@@ -247,7 +247,7 @@ export async function updateProductMetaAction(
     })),
   });
   if (volSyncErr) {
-    console.error('[updateProductMetaAction] volumes sync failed', volSyncErr);
+    logActionError('[updateProductMetaAction] volumes sync failed', { message: volSyncErr });
     return { ok: false, error: 'server_error', detail: 'volumes sync 실패' };
   }
 
@@ -268,7 +268,7 @@ export async function updateProductMetaAction(
     })),
   });
   if (recipeSyncErr) {
-    console.error('[updateProductMetaAction] recipes sync failed', recipeSyncErr);
+    logActionError('[updateProductMetaAction] recipes sync failed', { message: recipeSyncErr });
     return { ok: false, error: 'server_error', detail: 'recipes sync 실패' };
   }
 
