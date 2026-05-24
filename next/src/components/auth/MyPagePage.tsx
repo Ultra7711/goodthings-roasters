@@ -9,13 +9,14 @@
 'use client';
 
 import './MyPagePage.css';
-import { useCallback, useState, useMemo } from 'react';
+import { useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { supabase } from '@/lib/supabase';
 import type { AuthClaims, AdminLevel } from '@/lib/auth/getClaims';
 import type { Subscription } from '@/types/subscription';
+import type { Product } from '@/lib/products';
 import { useToast } from '@/hooks/useToast';
 import { useSubscriptionsQuery } from '@/hooks/useSubscriptions';
 import OverscrollTop from '@/components/ui/OverscrollTop';
@@ -44,6 +45,8 @@ type MyPagePageProps = {
   /** S264 H-2: admin 인 경우 adminLevel 라벨 ("관리자"/"운영자") 표시.
      일반 사용자 null → metaName / emailHandle 기존 로직. */
   adminLevel: AdminLevel | null;
+  /** S267: SubscriptionItem 아코디언 카드 표시용 (category/price/imageBg 매핑) */
+  initialProducts: Product[];
 };
 
 export default function MyPagePage({
@@ -51,6 +54,7 @@ export default function MyPagePage({
   initialSubscriptions,
   initialOrdersCount,
   adminLevel,
+  initialProducts,
 }: MyPagePageProps) {
   const router = useRouter();
   const { show: toast } = useToast();
@@ -102,14 +106,79 @@ export default function MyPagePage({
     return `가입 ${Math.max(months, 1)}개월`;
   }, [createdAtIso]);
 
-  /* ── Hero 진입 연출 (PR-2 §2.11) — callback ref 직접 처리.
+  /* ── Hero 진입 연출 + 모바일 scroll progress (S266) ──
      매 element mount 시 ref 호출 → classList reset → reflow → add 로 transition 재발화.
-     useState + useEffect 패턴은 navigate 시 instance reuse 로 재실행 안 되는 케이스 차단. */
+     useState + useEffect 패턴은 navigate 시 instance reuse 로 재실행 안 되는 케이스 차단.
+     S266: 동일 ref 가 mp-page root 의 보관도 담당 — scroll listener 가 --mp-scroll-p
+     를 inline style 로 갱신. */
+  const pageRef = useRef<HTMLDivElement | null>(null);
   const setBodyEl = useCallback((el: HTMLDivElement | null) => {
+    pageRef.current = el;
     if (!el) return;
     el.classList.remove('is-loaded');
     void el.offsetHeight;
     el.classList.add('is-loaded');
+  }, []);
+
+  /* S266 — 모바일 hero collapsed/expanded binary snap (hysteresis).
+     scroll 진입 임계점 120 / 복귀 60 → data-collapsed attribute toggle.
+     CSS 가 transition 250ms ease 로 부드러운 snap 전환 (점진 보간 폐기).
+     hysteresis: threshold 채터링 방지 (사용자가 임계점 근처 멈춰도 안정).
+     데스크탑은 listener 자체 미부착 — 항상 'false'. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mql = window.matchMedia('(max-width: 767px)');
+    const HYST_ENTER = 120;
+    const HYST_EXIT = 60;
+
+    let raf = 0;
+    let attached = false;
+    let isCollapsed = false;
+
+    const apply = () => {
+      raf = 0;
+      const el = pageRef.current;
+      if (!el) return;
+      if (!mql.matches) {
+        isCollapsed = false;
+        el.dataset.collapsed = 'false';
+        return;
+      }
+      const y = window.scrollY;
+      if (!isCollapsed && y >= HYST_ENTER) isCollapsed = true;
+      else if (isCollapsed && y < HYST_EXIT) isCollapsed = false;
+      el.dataset.collapsed = isCollapsed ? 'true' : 'false';
+    };
+
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(apply);
+    };
+
+    const attach = () => {
+      if (attached) return;
+      attached = true;
+      window.addEventListener('scroll', onScroll, { passive: true });
+      apply();
+    };
+    const detach = () => {
+      if (!attached) return;
+      attached = false;
+      window.removeEventListener('scroll', onScroll);
+      isCollapsed = false;
+      const el = pageRef.current;
+      if (el) el.dataset.collapsed = 'false';
+    };
+
+    if (mql.matches) attach();
+    const onChange = (e: MediaQueryListEvent) => (e.matches ? attach() : detach());
+    mql.addEventListener('change', onChange);
+
+    return () => {
+      mql.removeEventListener('change', onChange);
+      detach();
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
 
   /* ── Side nav 활성 항목 ── */
@@ -117,23 +186,25 @@ export default function MyPagePage({
 
   /* ── 탭 전환 공통 핸들러 (HeroGreeting 메타 + SideNav 탭바) — 모바일 스크롤 포함.
      데스크탑은 grid layout 으로 한 화면에 보여 스크롤 불필요.
-     모바일은 mp-side-nav 가 header 바로 아래에 stuck 되는 위치로 스크롤.
-     hero greeting 은 모바일에서 sticky 아니라 자연 스크롤 → 탭바만 sticky 로 유지. */
+     S266 분기 (사용자 결정):
+     - expanded (히어로 온전히 보임 · data-collapsed!='true'): 자동 스크롤 X.
+       페이지 레이아웃 그대로 panel content 만 swap.
+     - collapsed (sticky 진입 후): mp-grid in-flow top 으로 강제 스크롤 →
+       sticky 유지하면서 panel 첫 행이 stickybar bottom 바로 아래 정렬. */
   const handleNavWithScroll = useCallback((target: MyPageNavId) => {
     setActiveNavId(target);
     if (typeof window === 'undefined') return;
     if (!window.matchMedia('(max-width: 767px)').matches) return;
+    if (pageRef.current?.dataset.collapsed !== 'true') return;
     requestAnimationFrame(() => {
-      const sideNav = document.querySelector<HTMLElement>('.mp-side-nav');
-      if (!sideNav) return;
+      const grid = document.querySelector<HTMLElement>('.mp-grid');
+      if (!grid) return;
       const headerHeight =
         parseInt(
           getComputedStyle(document.documentElement).getPropertyValue('--header-height'),
           10,
         ) || 56;
-      /* sideNav.top - headerHeight 만큼 스크롤 → 탭바가 header 바로 아래에 stuck.
-         이미 stuck 상태면 .top = headerHeight 라 변동 없음 (자연스럽게 idempotent). */
-      const top = window.scrollY + sideNav.getBoundingClientRect().top - headerHeight;
+      const top = window.scrollY + grid.getBoundingClientRect().top - headerHeight;
       window.scrollTo({ top, behavior: 'smooth' });
     });
   }, []);
@@ -181,7 +252,7 @@ export default function MyPagePage({
       case 'orders':
         return <OrdersView />;
       case 'subscription':
-        return <SubscriptionView />;
+        return <SubscriptionView products={initialProducts} />;
       case 'profile':
         return <ProfileView name={profileDisplayName} email={effectiveEmail} />;
       case 'account':
@@ -214,11 +285,32 @@ export default function MyPagePage({
 
         <div className="mp-body">
           <div className="mp-grid">
-            <MyPageSideNav
-              activeId={activeNavId}
-              counts={counts}
-              onChange={handleNavWithScroll}
-            />
+            {/* S266 — 모바일 sticky bar wrapper. 데스크탑 = display:contents
+               (자식이 grid item 으로 직접 동작 · 기존 grid 레이아웃 보존).
+               모바일 = sticky 단일 컨테이너 (collapsed greeting + 탭바 묶음).
+               탭 변경 시 stickybar height 일정 → 컨텐츠 위치 안정.
+               sticky bar 의 bg 는 absolute child 로 분리 (iOS 26 Liquid Glass tinting fix). */}
+            <div className="mp-mobile-stickybar">
+              <div className="mp-mobile-stickybar-bg" aria-hidden />
+              <div className="mp-mobile-greeting" aria-hidden>
+                <span className="mp-mobile-greeting-text">
+                  안녕하세요, {displayName} 님.
+                </span>
+                <button
+                  type="button"
+                  className="mp-mobile-greeting-logout"
+                  onClick={() => void handleLogout()}
+                  data-gtr-tap
+                >
+                  로그아웃
+                </button>
+              </div>
+              <MyPageSideNav
+                activeId={activeNavId}
+                counts={counts}
+                onChange={handleNavWithScroll}
+              />
+            </div>
             <MyPagePanel title={NAV_LABELS[activeNavId]}>{renderActiveView()}</MyPagePanel>
           </div>
         </div>

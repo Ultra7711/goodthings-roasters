@@ -29,10 +29,9 @@
 }
 
 @media (max-width: 767px) {
-  /* S264 H-1: 탭바 ↔ 첫 컨텐츠 거리 정합 — mp-grid gap 12 + item padding 20 = 32.
-     panel 자체 padding-top 폐기 (gap 으로 흡수). min-height 모바일 탭바 sticky 패턴 다름. */
+  /* S266: panel padding-top 16 (sticky bar ↔ 첫 컨텐츠 일정 간격) 은 MyPagePage.css 에서
+     명시. 본 파일은 min-height 만 폐기 (모바일 탭바 sticky 패턴 다름). */
   .mp-panel {
-    padding-top: 0;
     min-height: 0;
   }
   /* S264 H-1: 모바일에선 탭바 카테고리 라벨과 panel-title 중복 → 숨김.

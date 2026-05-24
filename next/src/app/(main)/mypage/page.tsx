@@ -19,7 +19,9 @@ import {
   toSubscription,
 } from '@/lib/repositories/subscriptionRepo';
 import { getOrdersCountForUser } from '@/lib/repositories/orderRepo';
+import { fetchProducts } from '@/lib/productsServer';
 import type { Subscription } from '@/types/subscription';
+import type { Product } from '@/lib/products';
 import MyPagePage from '@/components/auth/MyPagePage';
 import MyPageSkeleton from '@/components/auth/MyPageSkeleton';
 
@@ -32,8 +34,10 @@ async function MyPageAuthed() {
      - subscriptions: 전체 (정기 카드는 SubscriptionView 에서 렌더 · TanStack initialData)
      - ordersCount: count-only RPC (사이드 nav + HeroGreeting 카운트 표시)
      - adminLevel: admin 인 경우 'owner' | 'staff' (HeroGreeting 라벨 표시용 · 일반 사용자 null)
+     - products: SubscriptionItem 아코디언 카드 표시용 (S267 — category/price/imageBg 매핑).
+       subscriptions 의 product_slug 가 snapshot 이라 FK 없음 → server join 대신 별 fetch.
      S264 H-1: Hero Card 제거됨 → orders/showcase fetch 폐기. */
-  const [subscriptions, ordersCount, adminClaims] = await Promise.all([
+  const [subscriptions, ordersCount, adminClaims, products] = await Promise.all([
     findSubscriptionsForUser()
       .then((rows) => rows.map(toSubscription))
       .catch((err): Subscription[] => {
@@ -48,6 +52,10 @@ async function MyPageAuthed() {
       console.error('[mypage.prefetch] admin claims failed', err);
       return null;
     }),
+    fetchProducts().catch((err): Product[] => {
+      console.error('[mypage.prefetch] products failed', err);
+      return [];
+    }),
   ]);
 
   const adminLevel: AdminLevel | null = adminClaims?.adminLevel ?? null;
@@ -58,6 +66,7 @@ async function MyPageAuthed() {
       initialSubscriptions={subscriptions}
       initialOrdersCount={ordersCount}
       adminLevel={adminLevel}
+      initialProducts={products}
     />
   );
 }

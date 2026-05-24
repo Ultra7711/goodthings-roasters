@@ -109,6 +109,21 @@
   flex: 1;
 }
 
+/* S266 — 모바일 sticky wrapper.
+   데스크탑: display: contents — 자식 (mp-mobile-greeting 0px / .mp-mobile-stickybar-bg
+   none / MyPageSideNav) 이 mp-grid 의 grid item 으로 직접 동작 → 기존 데스크탑
+   grid 레이아웃 (사이드바 col 1 + panel col 2) 완전 보존.
+   모바일: position: sticky 단일 wrapper (아래 미디어 쿼리). */
+.mp-mobile-stickybar {
+  display: contents;
+}
+.mp-mobile-stickybar-bg {
+  display: none;
+}
+.mp-mobile-greeting {
+  display: none;
+}
+
 /* S197 PR-2 §2.2: 패널 박스 폐기 — bg/radius/bleed 제거, 단순 컨테이너로 단순화.
    .mp-section / .mp-section--no-border wrapper 폐기 (PR-2 §2.13 통일).
    position: relative 만 유지 (자식 absolute pd-dropdown-panel 의존). */
@@ -214,6 +229,51 @@
 }
 .mp-form-reveal.open { max-height: 600px; opacity: 1; display: block !important; overflow: visible; }
 .mp-form-reveal-inner { padding: 24px 0 16px; }
+/* S267 — SubscriptionItem 아코디언만 padding 폐기 (OrderItemCard 가 첫 child 라
+   상단 24 / 하단 16 이 중복 시각 분리). Address/Password 는 기본 padding 유지. */
+.mp-form-reveal--sub .mp-form-reveal-inner { padding: 0; }
+/* S267 — SubscriptionItem 안 OrderItemCard 하단 hairline 폐기.
+   정기배송은 아이템 1개 단독 컨텍스트 (목록 X) → 구분선 불필요. */
+.mp-form-reveal--sub .order-item-card::after { display: none; }
+/* S267 — SubscriptionItem 영역 간격 압축 (옵션 B):
+   - chp-field 의 globals.css margin-bottom: 24 폐기 (CycleDropdown ↔ info-row 간격 = info-row 자체 padding 20 만)
+   - mp-form-reveal-actions 의 margin-top: 12 폐기 (info-row ↔ CTA 간격 = info-row 자체 padding 20 만)
+   결과: 모든 stack 사이 간격이 mp-info-row 의 padding 20 으로 통일. */
+.mp-form-reveal--sub .mp-cycle-dropdown-wrap { margin-bottom: 0; }
+.mp-form-reveal--sub .mp-form-reveal-actions { margin-top: 0; }
+/* S267 — 카드 wrap + 우측 카테고리/이름 묶음 vertical center 에 absolute 구독 해지 버튼.
+   헤더의 mp-sub-cancel-inline 텍스트 링크 폐기 → 카드 우측으로 이관.
+   카드 vertical center + right 0 — 카테고리 라벨과 상품이름 두 line 사이에 위치.
+   스타일은 카트 .oir__delete 답습 (size 26 · svg 16 · color icon-default · opacity 0.7→1). */
+.mp-sub-card-wrap { position: relative; }
+.mp-sub-cancel-icon-btn {
+  position: absolute;
+  top: 16px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--color-icon-default);
+  opacity: 0.7;
+  cursor: pointer;
+  z-index: 2;
+  transition: opacity var(--duration-hover) ease;
+}
+@media (max-width: 767px) {
+  /* 모바일 OrderItemCard padding 20 0 → 카테고리 top = 20 */
+  .mp-sub-cancel-icon-btn { top: 20px; }
+}
+.mp-sub-cancel-icon-btn:hover { opacity: 1; }
+.mp-sub-cancel-icon-btn:focus { outline: none; }
+.mp-sub-cancel-icon-btn:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
+}
 .mp-form-reveal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-sm); margin-top: 12px; }
 .mp-form-reveal-actions > .mp-save-btn,
 .mp-form-reveal-actions > .mp-cancel-btn { width: 100%; min-width: 0; padding: 0; }
@@ -239,20 +299,6 @@
 .mp-sub-next-right {
   display: inline-flex; align-items: baseline; gap: 12px;
 }
-.mp-sub-apply-link {
-  background: none; border: none; padding: 0; cursor: pointer;
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: var(--text-link-font-weight);
-  letter-spacing: var(--text-link-letter-spacing);
-  color: var(--color-text-tertiary);
-  text-decoration: underline;
-  text-decoration-color: var(--color-border-secondary);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
-}
-.mp-sub-apply-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
 /* 구독 해지 text link — 정기배송 아이템 토글 좌측 인라인 (편집 모드 진입 시 노출).
    mp-sub-controls 그룹으로 X 아이콘과 묶어 우측 정렬. */
 .mp-sub-controls {
@@ -610,12 +656,151 @@
   .mp-hero-inner {
     padding: 56px 24px 24px;
   }
-  /* mp-grid: 1단 stack (sub-nav 가로 row + 패널). minmax(0, 1fr) overflow 차단 동일 적용.
-     S264 H-1: 탭바 ↔ 첫 컨텐츠 거리 = gap (12) + item padding (20) = 32 (panel-title 제거 정합). */
+  /* mp-grid: 1단 stack — stickybar (greeting + 탭바) + 패널. minmax(0, 1fr) overflow 차단.
+     S266: gap 0 — stickybar 와 panel 간격은 panel padding-top 으로 명시 (탭별 일관).
+     S266 fix: flex: 1 (데스크탑과 동일 — viewport 남은 공간까지 grid 확장) 유지 →
+     sticky 컨테이너 (mp-mobile-stickybar) 가 footer 직전까지 stuck.
+     align-content: start — grid 안 row 들 (greeting/side-nav/panel) 을 위에서부터
+     정렬. 남는 공간은 grid 아래 (sticky 가 그 위에서 stuck · panel stretch X).
+     이전 시도 (flex: 0 0 auto) 는 panel stretch 폐기됐지만 grid height 도 짧아져
+     sticky 가 footer 영역에서 풀리는 부작용 — legal sub-nav 답습 정합 X. */
   .mp-grid {
     grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    gap: 0;
     margin-top: 24px;
+    align-content: start;
+  }
+
+  /* ── S266 진입 연출 모바일 폐기 ──
+     데스크탑 진입 연출 (.mp-page .mp-grid { opacity 0 → 1 · translateY 20 → 0 })
+     이 모바일에선 탭 전환 시 (panel children swap + 자동 scrollTo 조합)
+     재발화하면서 grid 가 안쪽으로 들어갔다 원위치 돌아오는 "바운스" 발생.
+     원래 mount 1회 발화 의도였음 (S197 PR-2 §2.11 Shop/Menu/GoodDays 답습).
+     모바일은 진입 연출 폐기 — mp-grid 항상 정상 상태. page-title 은 hero-wrap
+     안 이미 자연스러운 위치라 진입 연출 누락 영향 최소. */
+  .mp-page .mp-grid,
+  .mp-page.is-loaded .mp-grid {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ── S266 모바일 sticky wrapper ──
+     하나의 컨테이너 안에 collapsed greeting + 탭바 묶음 = 단일 sticky.
+     wrapper 자체 background 미부착 (iOS 26 Liquid Glass toolbar tinting fix).
+     bg 는 absolute child (.mp-mobile-stickybar-bg) 가 담당.
+     collapsed 시 위쪽 padding 추가 (header 와 분리 시각 여백). */
+  .mp-mobile-stickybar {
+    display: block;
+    position: sticky;
+    top: var(--header-height);
+    z-index: 5;
+    /* mp-body padding 24 bleed — 좌우 viewport edge 까지 stickybar 확장 */
+    margin-left: -24px;
+    margin-right: -24px;
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-top: 0;
+    background: transparent;
+    /* GPU compositor — sticky paint jitter 방어 (S263 carry) */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: padding-top 250ms ease;
+  }
+  .mp-page[data-collapsed="true"] .mp-mobile-stickybar {
+    padding-top: 36px;
+  }
+  .mp-mobile-stickybar-bg {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: var(--color-background-primary);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* ── S266 collapsed greeting (1줄 인사 + 우측 끝 로그아웃) ──
+     S266 hysteresis binary snap — data-collapsed attribute 기준 toggle.
+     expanded (default): max-height/opacity/padding 0 — 자리 안 차지 + 안 보임.
+     collapsed: max-height 40 (text) + padding-bottom 16 (탭바와 간격) + opacity 1.
+     transition 250ms ease 로 부드러운 snap (중간 단계 없음). */
+  .mp-mobile-greeting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    max-height: 0;
+    opacity: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    transition: max-height 250ms ease, opacity 250ms ease, padding-bottom 250ms ease;
+  }
+  .mp-page[data-collapsed="true"] .mp-mobile-greeting {
+    max-height: 40px;
+    opacity: 1;
+    padding-bottom: 12px;
+  }
+  .mp-mobile-greeting-text {
+    font-family: var(--font-kr);
+    /* 탭바 라벨과 동일 크기 (var(--type-body-l-size) + weight 500) */
+    font-size: var(--type-body-l-size);
+    font-weight: 500;
+    letter-spacing: var(--ls-neutral);
+    color: var(--color-text-primary);
+    line-height: 1.4;
+    /* nowrap — 이름 길어도 한 줄 유지 + ellipsis */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
+  }
+  .mp-mobile-greeting-logout {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-family: var(--font-kr);
+    font-size: var(--type-body-l-size);
+    font-weight: 400;
+    letter-spacing: var(--ls-neutral);
+    color: var(--text-link-color);
+    cursor: pointer;
+    line-height: 1.4;
+    text-decoration: underline;
+    text-decoration-color: var(--color-border-primary);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
+  }
+  .mp-mobile-greeting-logout:hover {
+    color: var(--color-accent-gold);
+    text-decoration-color: var(--color-accent-gold);
+  }
+
+  /* ── S266 큰 hero (expanded) — binary snap fade-out ──
+     expanded (default): opacity 1.
+     collapsed: opacity 0 + translateY(-8px) — 위로 사라지는 자연스러운 모션.
+     자리는 그대로 차지 — 자연 스크롤로 화면 밖으로 밀려남.
+     transition 250ms ease 로 hero ↔ collapsed-greeting cross-fade. */
+  .mp-hero-wrap {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 250ms ease, transform 250ms ease;
+  }
+  .mp-page[data-collapsed="true"] .mp-hero-wrap {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  /* ── S266 panel padding-top ──
+     모든 view 의 첫 element 가 자체 padding 20 (mp-info-row / mp-order-card /
+     mp-sub-item) 또는 그에 준하는 시각 padding 을 가짐 → panel padding 14 +
+     element padding 20 = 시각 첫 행 위치 34 통일.
+     MyPagePanel.css default (.mp-panel { padding-top: 14px }) 와 동일 14
+     적용 (모바일 override 폐기). */
+  .mp-panel {
+    padding-top: 14px;
   }
 
   /* S197 PR-2 §2.2: 패널 박스 폐기 → 모바일 bleed 제거 (margin/padding/radius 모두 제거) */

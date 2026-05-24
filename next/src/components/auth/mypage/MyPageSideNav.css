@@ -89,42 +89,25 @@
   color: var(--color-text-secondary);
 }
 
-/* 모바일: 가로 row + sticky + edge fade mask (Shop 답습).
-   mp-body padding 24 bleed (margin -24 + padding 24) → mp-side-nav 가 viewport 폭까지 차지하지만
-   padding 24 는 mp-side-nav 측에 두고 list 는 padding 0 → baseline / fade mask 가 padding 안쪽에만 적용. */
+/* 모바일: 가로 row + edge fade mask (Shop 답습).
+   S266: 모바일 sticky 폐기 — mp-mobile-stickybar wrapper 가 sticky 담당.
+   wrapper 의 bleed (margin -24 + padding 24) 가 적용되므로 mp-side-nav 자체는
+   width auto + 자체 margin/padding 미부착. iOS 26 toolbar tint fix 도 wrapper
+   의 .mp-mobile-stickybar-bg 가 담당 → 본 .mp-side-nav-bg 는 모바일 미사용. */
 @media (max-width: 767px) {
   .mp-side-nav {
     width: auto;
-    margin-left: -24px;
-    margin-right: -24px;
-    padding-left: 24px;
-    padding-right: 24px;
-    position: sticky;
-    /* 헤더 바로 아래 sticky — 공지바는 자연 흐름이라 스크롤 시 사라지므로
-       sticky-offset(헤더+공지바) 사용 시 공지바 사라진 후 탭바와 헤더 사이 빈 영역
-       발생 → 본문 비침 (S198 fix · LegalSideNav 와 동일). */
-    top: var(--header-height);
-    z-index: 5;
-    align-self: stretch;
-    /* S263 B-1 v5 — Safari 26 Liquid Glass toolbar tinting fix:
-       sticky element 자체에 background-color 부착 금지 (Safari 가 toolbar tint
-       로 sampling). visual bg 는 absolute child (.mp-side-nav-bg) 로 분리. */
+    margin: 0;
+    padding: 0;
+    position: static;
+    z-index: auto;
+    align-self: auto;
     background: transparent;
-    /* S263 follow-up: 모바일 sticky + 자식 mask-image 조합에서 iOS Safari paint
-       cycle jitter (미세 떨림) 발생. GPU compositor layer 강제 → paint 안정화.
-       ⚠ iOS 26 sticky paint cycle bug (WebKit Bug 297779 동일 패턴) Apple 미해결.
-       transform 만으론 완전 해결 불가 — carry. */
-    transform: translateZ(0);
-    will-change: transform;
+    transform: none;
+    will-change: auto;
   }
-  /* S263 B-1 v5 — sticky bg 를 absolute child 로 분리. Safari 26 tinting algorithm
-     은 absolute element 의 bg 를 sampling 대상에서 제외 → toolbar tint 추출 차단. */
   .mp-side-nav-bg {
-    position: absolute;
-    inset: 0;
-    background: var(--color-background-primary);
-    z-index: -1;
-    pointer-events: none;
+    display: none;
   }
   .mp-side-nav-list {
     flex-direction: row;

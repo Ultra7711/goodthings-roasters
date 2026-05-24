@@ -30,10 +30,16 @@ import {
 } from '@/lib/myPageUiStore';
 import { useScrollLockOnModal } from '@/hooks/useScrollLockOnModal';
 import { useSubscriptionActions } from '@/hooks/useSubscriptionActions';
+import type { Product } from '@/lib/products';
 import SubscriptionItem from './SubscriptionItem';
 import ConfirmModal from './ConfirmModal';
 
-export default function SubscriptionEditor() {
+type Props = {
+  /** S267: SubscriptionItem 아코디언 카드 표시용 (category/price/imageBg 매핑) */
+  products?: Product[];
+};
+
+export default function SubscriptionEditor({ products = [] }: Props) {
   const { subscriptions, isLoading } = useSubscriptionsQuery();
 
   const subEditId = useMyPageSubEditId();
@@ -64,10 +70,12 @@ export default function SubscriptionEditor() {
             ) : (
               subscriptions.map((sub) => {
                 const isEditing = subEditId === sub.id;
+                const product = products.find((p) => p.slug === sub.slug);
                 return (
                   <SubscriptionItem
                     key={sub.id}
                     sub={sub}
+                    product={product}
                     isEditing={isEditing}
                     onToggleAccordion={() => {
                       if (isEditing) {
