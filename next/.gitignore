@@ -44,8 +44,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# playwright auth state (Session 33 baseline capture)
+# playwright auth state (Session 33 baseline capture + S264-D admin E2E)
 scripts/.auth-state.json
+/tests/e2e/.auth/
 
 # diagnose skill artifacts (mattpocock-skills diagnose 출력물)
 /_diagnose/
