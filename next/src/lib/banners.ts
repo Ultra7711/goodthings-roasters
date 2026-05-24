@@ -1,18 +1,22 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   lib/banners.ts — Y1 통합 배너 헬퍼 (S269)
+   lib/banners.ts — 통합 배너 헬퍼 (S273 단순화)
 
    배경:
-   - cafe_events (035 + 060 + 061 + 064 + 068) 와 site_settings.signature
-     (062 + 063 + 068) 가 14 공통 필드 100% 동일.
-   - 071 마이그로 banners 통합 테이블 + kind enum ('cafe_event' | 'signature')
-     신설. 본 모듈이 그 단일 테이블의 read-side 헬퍼.
+   - S270 ~ S272 = 통합 schema (071/072) + 어드민 2 페이지 분리.
+   - S273 = 운영 검증 결과 두 kind 모두 multi row + active 1 모델로 통합.
+     · partial UNIQUE (signature 단일) 폐기
+     · CHECK (cafe_event type 필수) 폐기
+     · cafe_event_type enum + banners.type 컬럼 폐기
+     · banners.internal_label 신설 (운영자 식별 자유 텍스트)
+     · selectActiveBanner = enabled + period(NULL=무제한) + sort_order ASC
+       → 어드민 list 화살표로 1번 위치에 둔 카드가 메인 노출 (직관 정합)
 
    역할:
-   - discriminated union Zod schema (kind 분기)
+   - 단일 Banner Zod schema (kind 만 분기 인자)
    - DB row ↔ 코드 객체 변환 (parseBannerRow)
-   - active 1 row 선택 헬퍼 (selectActiveBanner · kind 별 분기)
-   - cafe_event 우선순위 / 시즌 라벨
-   - 날짜 유틸 (todayIsoSeoul · addDaysIso · dateOrEmpty)
+   - active 1 row 선택 헬퍼 (selectActiveBanner)
+   - Coming Soon 헬퍼 (selectComingBanner) — sort_order ASC
+   - 날짜 유틸 (todayIsoSeoul · dateOrEmpty)
 
    설계:
    - client-safe — 어드민 폼 + B2C SSR 양쪽에서 import.
@@ -20,7 +24,7 @@
 
    참조:
    - supabase/migrations/071_banners_unified.sql (테이블 + kind enum)
-   - supabase/migrations/072_banners_data_migration.sql (data 이전)
+   - supabase/migrations/073_banners_unify_simplify.sql (S273 단순화)
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { z } from 'zod';
@@ -31,43 +35,10 @@ export const BANNER_KINDS = ['cafe_event', 'signature'] as const;
 export const BannerKindSchema = z.enum(BANNER_KINDS);
 export type BannerKind = z.infer<typeof BannerKindSchema>;
 
-/* ── 2. cafe_event type enum + 우선순위 ────────────────────────────────── */
+/* ── 2. 공통 schema (Banner 단일) ──────────────────────────────────────── */
 
-export const CAFE_EVENT_TYPES = [
-  'campaign',
-  'collab',
-  'seasonal',
-  'new_item',
-  'oneplus',
-] as const;
-
-export const CafeEventTypeSchema = z.enum(CAFE_EVENT_TYPES);
-export type CafeEventType = z.infer<typeof CafeEventTypeSchema>;
-
-/**
- * 자문 §5.3 + S149 결정 — 복수 active 시 type 우선순위.
- * 작은 인덱스가 우선 (campaign 가장 높음).
- */
-export const CAFE_EVENT_TYPE_PRIORITY: Record<CafeEventType, number> = {
-  campaign: 0,
-  collab: 1,
-  seasonal: 2,
-  new_item: 3,
-  oneplus: 4,
-};
-
-/** 어드민 폼 select 라벨 — 운영자 친화 한글 (S234 DEC-4 답습). */
-export const CAFE_EVENT_TYPE_LABELS: Record<CafeEventType, string> = {
-  campaign: '캠페인',
-  collab: '콜라보',
-  seasonal: '시즌 한정',
-  new_item: '신메뉴',
-  oneplus: '1+1',
-};
-
-/* ── 3. 공통 필드 schema (BannerBaseShape) ────────────────────────────── */
-
-/* DB date 컬럼은 NULL 또는 ISO "YYYY-MM-DD" 문자열. 둘 다 빈 문자열로 정규화. */
+/* DB date 컬럼은 NULL 또는 ISO "YYYY-MM-DD" 문자열. 둘 다 빈 문자열로 정규화.
+   selectActiveBanner 는 빈 문자열 = "범위 무관" 으로 해석. */
 const dateOrEmpty = z
   .union([z.string(), z.null()])
   .transform((v) => {
@@ -76,12 +47,13 @@ const dateOrEmpty = z
     return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? trimmed : '';
   });
 
-/**
- * 14 공통 필드 + 기간/정렬 — cafe_event / signature 모두 동일.
- */
-const BannerBaseShape = {
+export const BannerSchema = z.object({
   id: z.string().uuid(),
+  kind: BannerKindSchema,
   enabled: z.boolean().default(true),
+
+  /** 운영자 자유 식별 텍스트 — 어드민 list 카드 라벨. 사이트 노출 없음. */
+  internal_label: z.string().trim().max(120).default(''),
 
   /** 운영자 .html 파일 Storage URL — 빈 값이면 chapter 렌더 skip. */
   custom_html_path: z.string().trim().max(500).default(''),
@@ -107,38 +79,22 @@ const BannerBaseShape = {
   cta_text: z.string().trim().max(30).default(''),
   cta_href: z.string().trim().max(500).default(''),
 
-  /* 기간 — 빈 값 = "범위 무관" (signature 무입력 시 영구 active 자연 동작) */
+  /* 기간 — 빈 값 = "범위 무관" (NULL=무제한 유효). */
   start_date: dateOrEmpty.default(''),
   end_date: dateOrEmpty.default(''),
+
+  /* 어드민 화살표 reorder 결과. 작은 값 우선 (1번 = 노출 배너). */
   sort_order: z.number().int().default(0),
-} as const;
-
-/* ── 4. discriminated union Banner schema ─────────────────────────────── */
-
-/** cafe_event 분기 — type (5-enum) 필수. */
-export const CafeEventBannerSchema = z.object({
-  kind: z.literal('cafe_event'),
-  type: CafeEventTypeSchema,
-  ...BannerBaseShape,
 });
 
-/** signature 분기 — type 없음 (DB 에선 NULL · Zod 에선 무시). */
-export const SignatureBannerSchema = z.object({
-  kind: z.literal('signature'),
-  ...BannerBaseShape,
-});
-
-/** discriminated union — kind 로 분기. */
-export const BannerSchema = z.discriminatedUnion('kind', [
-  CafeEventBannerSchema,
-  SignatureBannerSchema,
-]);
-
-export type CafeEventBanner = z.infer<typeof CafeEventBannerSchema>;
-export type SignatureBanner = z.infer<typeof SignatureBannerSchema>;
 export type Banner = z.infer<typeof BannerSchema>;
 
-/* ── 5. DB row 변환 ───────────────────────────────────────────────────── */
+/* 폐기된 type alias 들 — caller 일괄 Banner 로 변경 후 본 alias 제거.
+   S273 진행 중 임시 backward compat 용. */
+export type CafeEventBanner = Banner;
+export type SignatureBanner = Banner;
+
+/* ── 3. DB row 변환 ───────────────────────────────────────────────────── */
 
 /**
  * Supabase row (snake_case) → Banner.
@@ -150,7 +106,7 @@ export function parseBannerRow(raw: unknown): Banner | null {
   return result.success ? result.data : null;
 }
 
-/* ── 6. active 1 row 선택 (kind 별 분기) ──────────────────────────────── */
+/* ── 4. active 1 row 선택 ─────────────────────────────────────────────── */
 
 export interface SelectActiveBannerOptions {
   /** ISO date "YYYY-MM-DD" — 기본은 today (Asia/Seoul) */
@@ -160,20 +116,15 @@ export interface SelectActiveBannerOptions {
 /**
  * banners 배열에서 kind 매치 + active 1 row 선택.
  *
- * cafe_event 정렬 우선순위 (자문 §5.3):
- *   1. enabled=true
- *   2. start_date ≤ today ≤ end_date (빈 값은 "범위 무관" 처리)
- *   3. start_date 최신
- *   4. type 우선순위 (campaign > collab > seasonal > new_item > oneplus)
- *   5. sort_order (작은 값 우선)
+ * S273 정렬 룰 (사용자 시그널 정합):
+ *   1. kind 일치
+ *   2. enabled = true
+ *   3. start_date ≤ today (빈 값 = 무제한 통과)
+ *   4. end_date ≥ today (빈 값 = 무제한 통과)
+ *   5. sort_order ASC (작은 값 우선 = 어드민 list 1번 카드)
+ *   6. tie-break: created_at 오래된 row 우선 (id ASC 로 deterministic)
  *
- * signature 정렬:
- *   1. enabled=true
- *   2. start_date ≤ today ≤ end_date (빈 값 = 영구)
- *   3. start_date 최신 (시즌 갱신 시 새 row 가 우선)
- *   4. sort_order (작은 값 우선)
- *
- * partial UNIQUE 가 signature 1 row 보장하지만 방어적으로 정렬 적용.
+ * 어드민 list 에서 화살표로 1번 위치에 둔 카드가 곧 메인 노출 배너.
  */
 export function selectActiveBanner(
   banners: ReadonlyArray<Banner>,
@@ -194,21 +145,16 @@ export function selectActiveBanner(
   if (active.length === 1) return active[0]!;
 
   return [...active].sort((a, b) => {
-    if (a.start_date !== b.start_date) {
-      return a.start_date > b.start_date ? -1 : 1;
-    }
-    if (a.kind === 'cafe_event' && b.kind === 'cafe_event') {
-      const pa = CAFE_EVENT_TYPE_PRIORITY[a.type];
-      const pb = CAFE_EVENT_TYPE_PRIORITY[b.type];
-      if (pa !== pb) return pa - pb;
-    }
-    return a.sort_order - b.sort_order;
+    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+    return a.id < b.id ? -1 : 1;
   })[0]!;
 }
 
 /**
- * 자문 §5.3 — active 0 + 7일 내 시작 예정 banner 있으면 Coming 반환.
- * cafe_event 만 의미 있음 (signature 는 보통 영구 active).
+ * active 0 + 7일 내 시작 예정 banner 있으면 Coming 반환.
+ * 호출부는 active=null 인 경우에만 추가 호출 (주로 cafe_event chapter).
+ *
+ * 정렬: start_date ASC (가장 빨리 시작) → sort_order ASC.
  */
 export function selectComingBanner(
   banners: ReadonlyArray<Banner>,
@@ -232,16 +178,12 @@ export function selectComingBanner(
     if (a.start_date !== b.start_date) {
       return a.start_date < b.start_date ? -1 : 1;
     }
-    if (a.kind === 'cafe_event' && b.kind === 'cafe_event') {
-      const pa = CAFE_EVENT_TYPE_PRIORITY[a.type];
-      const pb = CAFE_EVENT_TYPE_PRIORITY[b.type];
-      if (pa !== pb) return pa - pb;
-    }
-    return a.sort_order - b.sort_order;
+    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+    return a.id < b.id ? -1 : 1;
   })[0]!;
 }
 
-/* ── 7. 날짜 유틸 (Asia/Seoul 기준) ─────────────────────────────────────── */
+/* ── 5. 날짜 유틸 (Asia/Seoul 기준) ─────────────────────────────────────── */
 
 /** Asia/Seoul 기준 today (ISO "YYYY-MM-DD"). */
 export function todayIsoSeoul(): string {

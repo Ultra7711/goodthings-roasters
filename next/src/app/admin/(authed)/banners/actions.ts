@@ -1,58 +1,48 @@
 'use server';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   /admin banners server actions (S270 Phase 3b · 071 통합)
+   /admin banners server actions (S273 통합 단순화)
 
    책임:
    1) getAdminClaims 가드 — 비admin 차단 (CRUD)
-   2) Zod 검증 — discriminated union (kind 별 분기)
+   2) Zod 검증 — 단일 BannerSchema (S273 · discriminated union 폐기)
    3) INSERT / UPDATE / DELETE banners — service_role 불필요 (RLS admin write 허용)
-   4) revalidateTag(bannerCacheTag(kind), 'max') — B2C kind 별 캐시 무효화
+   4) reorderBannersAction(kind, orderedIds[]) — 화살표 reorder 일괄 sort_order commit
+   5) revalidateTag(bannerCacheTag(kind), 'max') — B2C kind 별 캐시 무효화
 
-   설계:
-   - cafe-events/actions.ts (S151 PR-2a) + settings/actions.ts signature 분기 통합.
-   - discriminated input — kind 로 분기 + type narrowing (cafe_event 만 type 필수).
-   - signature delete reject (DEC-S270 정책) — 운영자 실수 방지. enabled=false 권장.
-   - 빈 문자열 date → NULL 변환 (DB date 컬럼은 빈 문자열 reject).
+   S273 변경:
+   - discriminated union → 단일 BannerSchema
+   - type 필드 제거 (마이그 073 DROP)
+   - internal_label 추가
+   - signature delete reject 해제 — multi row 전제 (1번 카드가 노출 = 화살표 reorder)
+   - reorderBannersAction 신설
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { getAdminClaims } from '@/lib/auth/getClaims';
-import {
-  CafeEventBannerSchema,
-  SignatureBannerSchema,
-  BannerKindSchema,
-  type BannerKind,
-} from '@/lib/banners';
+import { BannerSchema, BannerKindSchema, type BannerKind } from '@/lib/banners';
 import { bannerCacheTag } from '@/lib/bannersServer';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { logActionError } from '@/lib/admin/logActionError';
 
-/* ── Schemas ──────────────────────────────────────────────────────────── */
+/* ── Schemas (non-exported · 'use server' const export 금지 답습) ─────── */
 
-/** create — id 는 DB 가 gen_random_uuid 로 생성. discriminated union 각 분기 omit. */
-const CreateCafeEventInputSchema = CafeEventBannerSchema.omit({ id: true });
-const CreateSignatureInputSchema = SignatureBannerSchema.omit({ id: true });
-const CreateBannerInputSchema = z.discriminatedUnion('kind', [
-  CreateCafeEventInputSchema,
-  CreateSignatureInputSchema,
-]);
-
-/** update — id 필수. */
-const UpdateBannerInputSchema = z.discriminatedUnion('kind', [
-  CafeEventBannerSchema,
-  SignatureBannerSchema,
-]);
-
+const CreateBannerInputSchema = BannerSchema.omit({ id: true });
+const UpdateBannerInputSchema = BannerSchema;
 const DeleteBannerInputSchema = z.object({
   id: z.string().uuid(),
   kind: BannerKindSchema,
+});
+const ReorderBannersInputSchema = z.object({
+  kind: BannerKindSchema,
+  orderedIds: z.array(z.string().uuid()).min(1).max(50),
 });
 
 export type CreateBannerInput = z.input<typeof CreateBannerInputSchema>;
 export type UpdateBannerInput = z.input<typeof UpdateBannerInputSchema>;
 export type DeleteBannerInput = z.input<typeof DeleteBannerInputSchema>;
+export type ReorderBannersInput = z.input<typeof ReorderBannersInputSchema>;
 
 export type BannerActionResult =
   | { ok: true; id: string }
@@ -62,19 +52,24 @@ export type BannerActionResult =
         | 'unauthorized'
         | 'validation_failed'
         | 'server_error'
-        | 'not_found'
-        | 'signature_delete_blocked';
+        | 'not_found';
+      detail?: string;
+    };
+
+export type ReorderResult =
+  | { ok: true }
+  | {
+      ok: false;
+      error: 'unauthorized' | 'validation_failed' | 'server_error';
       detail?: string;
     };
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
-/** DB date 컬럼은 "" reject → NULL 변환. */
 function emptyToNull(s: string): string | null {
   return s === '' ? null : s;
 }
 
-/** Zod 에러 → 짧은 detail 문자열. */
 function flattenZodError(err: z.ZodError): string {
   const fields = err.flatten().fieldErrors;
   return Object.entries(fields)
@@ -83,11 +78,13 @@ function flattenZodError(err: z.ZodError): string {
     .slice(0, 200);
 }
 
-/** Zod-parsed banner (id 유무 무관) → DB row payload. */
-function toDbRow(b: z.infer<typeof UpdateBannerInputSchema> | z.infer<typeof CreateBannerInputSchema>) {
-  const base = {
+function toDbRow(
+  b: z.infer<typeof UpdateBannerInputSchema> | z.infer<typeof CreateBannerInputSchema>,
+) {
+  return {
     kind: b.kind,
     enabled: b.enabled,
+    internal_label: b.internal_label,
     custom_html_path: b.custom_html_path,
     image_path_desktop: b.image_path_desktop,
     image_path_tablet: b.image_path_tablet,
@@ -106,21 +103,12 @@ function toDbRow(b: z.infer<typeof UpdateBannerInputSchema> | z.infer<typeof Cre
     start_date: emptyToNull(b.start_date),
     end_date: emptyToNull(b.end_date),
     sort_order: b.sort_order,
-    /* type 은 cafe_event 분기일 때만. signature 는 DB NULL (CHECK constraint). */
-    type: b.kind === 'cafe_event' ? b.type : null,
   };
-  return base;
 }
 
 function revalidateBanner(kind: BannerKind) {
-  /* Next.js 16 revalidateTag 는 profile 두 번째 인자 mandatory.
-     'max' = stale-while-revalidate (다음 요청 시 fresh fetch). */
   revalidateTag(bannerCacheTag(kind), 'max');
-  if (kind === 'cafe_event') {
-    revalidatePath('/admin/cafe-events');
-  } else {
-    revalidatePath('/admin/signatures');
-  }
+  revalidatePath('/admin/banners');
   /* B2C 메인 페이지도 무효화 (chapter 즉시 반영). */
   revalidatePath('/');
 }
@@ -221,13 +209,7 @@ export async function deleteBannerAction(
     };
   }
 
-  /* DEC-S270 — signature delete 차단. 운영자는 enabled=false 로 비활성만 가능.
-     이유: signature partial UNIQUE (071) 가 1 row 보장 + 운영 멘탈 모델 = signature 는
-     단일 인스턴스 (시즌 갱신은 같은 row 값 갈아끼움). 삭제 시 chapter 사라짐 사고 가능성. */
-  if (parsed.data.kind === 'signature') {
-    return { ok: false, error: 'signature_delete_blocked' };
-  }
-
+  /* S273 — signature delete reject 해제. multi row 운영 모델 전제 (시즌별 갈아끼움). */
   const supabase = await createRouteHandlerClient();
   const { error } = await supabase
     .from('banners')
@@ -245,4 +227,52 @@ export async function deleteBannerAction(
   revalidateBanner(parsed.data.kind);
 
   return { ok: true, id: parsed.data.id };
+}
+
+/**
+ * 어드민 화살표 reorder — orderedIds 배열 순서대로 sort_order 0..N-1 일괄 commit.
+ * 1번 (sort_order=0) 카드가 selectActiveBanner 의 노출 배너.
+ */
+export async function reorderBannersAction(
+  input: ReorderBannersInput,
+): Promise<ReorderResult> {
+  const claims = await getAdminClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const parsed = ReorderBannersInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: 'validation_failed',
+      detail: flattenZodError(parsed.error),
+    };
+  }
+
+  const { kind, orderedIds } = parsed.data;
+  const supabase = await createRouteHandlerClient();
+
+  /* 각 id 의 sort_order 를 index 값으로 UPDATE.
+     RLS admin write 허용 — service_role 불필요.
+     N=50 max → 50 round-trip. 일반적 운영 row 수 (1~10) 에서는 미체감. */
+  for (let i = 0; i < orderedIds.length; i += 1) {
+    const id = orderedIds[i]!;
+    const { error } = await supabase
+      .from('banners')
+      .update({ sort_order: i, updated_by: claims.userId })
+      .eq('id', id)
+      .eq('kind', kind);
+
+    if (error) {
+      logActionError('[reorderBannersAction] update failed', error, {
+        kind,
+        id,
+        targetIndex: i,
+      });
+      return { ok: false, error: 'server_error' };
+    }
+  }
+
+  revalidateBanner(kind);
+
+  return { ok: true };
 }

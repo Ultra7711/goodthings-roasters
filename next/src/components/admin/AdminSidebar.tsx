@@ -29,7 +29,6 @@ import {
   PanelLeftOpen,
   Settings,
   ShoppingBag,
-  Sparkles,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -44,12 +43,12 @@ type NavItem = {
 type NavGroup = { label: string; items: NavItem[] };
 
 /* S233-fu: 감사 로그는 owner 만 노출. NAV_GROUPS 를 admin_level 별 함수로.
-   S270 Phase 3b: 카페 이벤트 + 시그니처 = banners 통합 → [설정] 그룹으로 이동. */
+   S270 Phase 3b: 카페 이벤트 + 시그니처 = banners 통합 → [설정] 그룹으로 이동.
+   S273: 두 페이지 폐기 + /admin/banners 통합 → '배너' 1 메뉴 (kind 탭 내장). */
 function buildNavGroups(adminLevel: 'owner' | 'staff'): NavGroup[] {
   const settingsItems: NavItem[] = [
     { href: '/admin/settings', label: '사이트 설정', icon: Settings },
-    { href: '/admin/cafe-events', label: '카페 배너', icon: Megaphone },
-    { href: '/admin/signatures', label: '시그니처 배너', icon: Sparkles },
+    { href: '/admin/banners', label: '배너', icon: Megaphone },
   ];
   if (adminLevel === 'owner') {
     settingsItems.push({ href: '/admin/audit', label: '감사 로그', icon: ClipboardClock });

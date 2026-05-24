@@ -1,25 +1,21 @@
 'use client';
 
-/* ══════════════════════════════════════════
-   SignaturesForm — /admin/signatures single row (S270 Phase 3b · 071 통합)
+/* ══════════════════════════════════════════════════════════════════════════
+   BannerEditForm — /admin/banners/new + /admin/banners/[id]/edit 공용 (S273)
 
    책임:
-   - signature kind 1 row 편집 폼 (partial UNIQUE 가 1 row 보장)
-   - 운영자 .html 파일 업로드 (custom_html_path)
-   - 이미지 3종 (desktop/tablet/mobile) 업로드 (banners/signature/images/{brk}/)
-   - aspect-ratio 자동 측정 (이미지 dimension 기반)
-   - 4 brk iframe 라이브 미리보기
+   - 단일 Banner row 의 폼 — kind 무관 (cafe_event / signature 동일)
+   - 이미지 3종 + HTML 업로드 + 검색/접근성 메타 + 기간 + internal_label
+   - 4 brk iframe 라이브 미리보기 (/preview/banner?kind=...)
+   - 저장/삭제/취소 → /admin/banners?kind=... 복귀
 
-   답습 source:
-   - CafeEventsForm.tsx (master-detail · list 부분 제거 · type 필드 제거)
-   - 폐기된 SignatureSubForm.tsx (settings 의 signature 카드)
+   답습:
+   - CafeEventsForm.tsx detail 영역 (line 488~872) + helper 컴포넌트
+   - master-detail 제거 / type chip 제거 / activeConflict 제거
+   - internal_label 입력 필드 신설
+   ══════════════════════════════════════════════════════════════════════════ */
 
-   설계:
-   - initialSignature null 시 신규 등록 (createBannerAction).
-   - 존재 시 updateBannerAction. delete 차단 (DEC-S270 · enabled=false 만 가능).
-   ══════════════════════════════════════════ */
-
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Copy, Trash2 } from 'lucide-react';
@@ -29,17 +25,19 @@ import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Checkbox } from '@/components/admin/ui/checkbox';
+import ConfirmModal from '@/components/admin/ConfirmModal';
+import type { Banner, BannerKind } from '@/lib/banners';
+import { uploadBannerHtml } from '@/lib/admin/uploadBannerHtml';
+import { buildBannerAiPrompt } from '@/lib/admin/aiPrompt';
 import {
   uploadBannerImage,
   type BannerBreakpoint,
 } from '@/lib/admin/uploadBannerImage';
-import { uploadBannerHtml } from '@/lib/admin/uploadBannerHtml';
-import { buildBannerAiPrompt } from '@/lib/admin/aiPrompt';
-import type { SignatureBanner } from '@/lib/banners';
 import {
   createBannerAction,
   updateBannerAction,
-} from '../banners/actions';
+  deleteBannerAction,
+} from './actions';
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
 
@@ -55,30 +53,9 @@ const PREVIEW_BRK_OPTIONS: ReadonlyArray<{
   { key: 'mobile', label: 'Mobile', width: 360 },
 ];
 
-const TEMP_ID = 'temp:signature';
-
-/** 신규 등록 시 default. SignatureSettingsSchema (구) defaults 답습. */
-const SIGNATURE_DEFAULTS: Omit<SignatureBanner, 'id'> = {
-  kind: 'signature',
-  enabled: false,
-  custom_html_path: '',
-  image_path_desktop: '',
-  image_path_tablet: '',
-  image_path_mobile: '',
-  image_blur_desktop: '',
-  image_blur_tablet: '',
-  image_blur_mobile: '',
-  aspect_desktop: '1320/600',
-  aspect_tablet: '1024/520',
-  aspect_mobile: '390/520',
-  image_alt: '',
-  headline_text: '',
-  subhead_text: '',
-  cta_text: '',
-  cta_href: '',
-  start_date: '',
-  end_date: '',
-  sort_order: 0,
+const KIND_LABEL: Record<BannerKind, string> = {
+  cafe_event: '카페 배너',
+  signature: '시그니처 배너',
 };
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
@@ -88,43 +65,52 @@ type UploadState =
   | { status: 'uploading'; fileName: string }
   | { status: 'error'; message: string };
 
-type DraftSignature = SignatureBanner;
+type Draft = Banner;
 
-interface SignaturesFormProps {
-  initialSignature: SignatureBanner | null;
+interface BannerEditFormProps {
+  mode: 'create' | 'edit';
+  kind: BannerKind;
+  /** mode='edit' 시 필수 / mode='create' 시 null. */
+  banner: Banner | null;
+  /** mode='create' 시 list 의 마지막+1 으로 자동 부여될 sort_order. */
+  defaultSortOrder?: number;
 }
 
 /* ── Component ─────────────────────────────────────────────────────────── */
 
-export default function SignaturesForm({ initialSignature }: SignaturesFormProps) {
+export default function BannerEditForm({
+  mode,
+  kind,
+  banner,
+  defaultSortOrder = 0,
+}: BannerEditFormProps) {
   const router = useRouter();
-  const isNew = initialSignature === null;
-  const [savedSignature, setSavedSignature] = useState<SignatureBanner | null>(
-    initialSignature,
-  );
-  const [draft, setDraft] = useState<DraftSignature>(
-    initialSignature ?? { id: TEMP_ID, ...SIGNATURE_DEFAULTS },
-  );
+  const isNew = mode === 'create';
+  const initialDraft: Draft = banner ?? createEmptyBanner(kind, defaultSortOrder);
+
+  const [draft, setDraft] = useState<Draft>(initialDraft);
+  const [original] = useState<Draft>(initialDraft);
   const [isPending, startTransition] = useTransition();
   const [htmlUpload, setHtmlUpload] = useState<UploadState>({ status: 'idle' });
   const [desktopUpload, setDesktopUpload] = useState<UploadState>({ status: 'idle' });
   const [tabletUpload, setTabletUpload] = useState<UploadState>({ status: 'idle' });
   const [mobileUpload, setMobileUpload] = useState<UploadState>({ status: 'idle' });
-
-  /* HTML 텍스트 직접 입력 (AI 결과 코드 블록 붙여넣기용) */
   const [htmlTextOpen, setHtmlTextOpen] = useState(false);
   const [htmlText, setHtmlText] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const [previewBrk, setPreviewBrk] = useState<PreviewBrk>('desktop');
   const [previewSrc, setPreviewSrc] = useState<string>(() => buildPreviewSrc(draft));
-  const [previewHeight, setPreviewHeight] = useState<number>(720);
+  const [previewHeight, setPreviewHeight] = useState<number>(480);
 
   const htmlInputRef = useRef<HTMLInputElement | null>(null);
   const desktopInputRef = useRef<HTMLInputElement | null>(null);
   const tabletInputRef = useRef<HTMLInputElement | null>(null);
   const mobileInputRef = useRef<HTMLInputElement | null>(null);
 
-  /* draft 변경 시 300ms debounce 후 iframe src 갱신 */
+  const isDirty = !shallowEqual(original, draft);
+
+  /* draft 변경 시 300ms debounce 후 preview src 갱신. */
   useEffect(() => {
     const timer = setTimeout(() => {
       setPreviewSrc(buildPreviewSrc(draft));
@@ -132,7 +118,7 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
     return () => clearTimeout(timer);
   }, [draft]);
 
-  /* iframe 으로부터 chapter height 수신 (postMessage) */
+  /* iframe height postMessage 수신. */
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.origin !== window.location.origin) return;
@@ -153,35 +139,18 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
     return () => window.removeEventListener('message', onMessage);
   }, []);
 
-  /* server fresh fetch → savedSignature 동기화. */
-  useEffect(() => {
-    setSavedSignature(initialSignature);
-  }, [initialSignature]);
-
-  const isDirty = useMemo(() => {
-    if (isNew) {
-      /* 신규 등록 시 default 와 다르면 dirty. */
-      return !shallowEqualSignature(
-        { id: TEMP_ID, ...SIGNATURE_DEFAULTS },
-        draft,
-      );
-    }
-    if (!savedSignature) return false;
-    return !shallowEqualSignature(savedSignature, draft);
-  }, [savedSignature, draft, isNew]);
-
   /* ── Handlers ─────────────────────────────────────────────────────── */
 
-  function updateDraft<K extends keyof DraftSignature>(
-    key: K,
-    value: DraftSignature[K],
-  ) {
+  function updateDraft<K extends keyof Draft>(key: K, value: Draft[K]) {
     setDraft((prev) => ({ ...prev, [key]: value }));
   }
 
   function handleReset() {
-    if (savedSignature) setDraft(savedSignature);
-    else setDraft({ id: TEMP_ID, ...SIGNATURE_DEFAULTS });
+    if (isNew) {
+      router.push(`/admin/banners?kind=${kind}`);
+      return;
+    }
+    setDraft(original);
   }
 
   async function handleImageUpload(
@@ -193,61 +162,67 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
     if (!file) return;
 
     const setState =
-      brk === 'desktop'
-        ? setDesktopUpload
-        : brk === 'tablet'
-          ? setTabletUpload
-          : setMobileUpload;
+      brk === 'desktop' ? setDesktopUpload : brk === 'tablet' ? setTabletUpload : setMobileUpload;
     const fieldKey =
-      brk === 'desktop'
-        ? 'image_path_desktop'
-        : brk === 'tablet'
-          ? 'image_path_tablet'
-          : 'image_path_mobile';
+      brk === 'desktop' ? 'image_path_desktop' : brk === 'tablet' ? 'image_path_tablet' : 'image_path_mobile';
     const blurKey =
-      brk === 'desktop'
-        ? 'image_blur_desktop'
-        : brk === 'tablet'
-          ? 'image_blur_tablet'
-          : 'image_blur_mobile';
+      brk === 'desktop' ? 'image_blur_desktop' : brk === 'tablet' ? 'image_blur_tablet' : 'image_blur_mobile';
     const aspectKey =
-      brk === 'desktop'
-        ? 'aspect_desktop'
-        : brk === 'tablet'
-          ? 'aspect_tablet'
-          : 'aspect_mobile';
+      brk === 'desktop' ? 'aspect_desktop' : brk === 'tablet' ? 'aspect_tablet' : 'aspect_mobile';
 
     setState({ status: 'uploading', fileName: file.name });
-    /* 이미지 dimension 측정 — aspect 자동 입력. 실패 시 기본값 유지. */
     const aspect = await measureImageAspect(file).catch(() => null);
-    try {
-      const result = await uploadBannerImage(file, 'signature', brk);
-      if (result.ok) {
-        updateDraft(fieldKey, result.publicUrl);
-        updateDraft(blurKey, result.blurDataURL ?? '');
-        if (aspect) updateDraft(aspectKey, aspect);
-        setState({ status: 'idle' });
-        toast.success('이미지를 등록했습니다', {
-          description: aspect
-            ? `비율 ${aspect} 자동 입력 · 변경사항 저장 후 사이트에 반영됩니다`
-            : '변경사항 저장 후 사이트에 반영됩니다',
-        });
-      } else {
-        const message = describeUploadError(result.error, result.detail);
-        setState({ status: 'error', message });
-        toast.error(message);
-      }
-    } catch (err) {
-      /* S264-F L-1 답습 — Supabase storage / 네트워크 예외 시 status 영구
-         'uploading' 잔존 방지. */
-      const message = '업로드 중 예기치 못한 오류가 발생했습니다';
+    const result = await uploadBannerImage(file, kind, brk);
+    if (result.ok) {
+      updateDraft(fieldKey, result.publicUrl);
+      updateDraft(blurKey, result.blurDataURL ?? '');
+      if (aspect) updateDraft(aspectKey, aspect);
+      setState({ status: 'idle' });
+      toast.success('이미지를 등록했습니다', {
+        description: aspect
+          ? `비율 ${aspect} 자동 입력 · 저장 후 사이트 반영`
+          : '저장 후 사이트 반영',
+      });
+    } else {
+      const message = describeUploadError(result.error, result.detail);
       setState({ status: 'error', message });
       toast.error(message);
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[SignaturesForm] image upload threw', err);
-      }
     }
+  }
+
+  /**
+   * HTML 텍스트로부터 SEO 메타 자동 추출 → 빈 필드만 채움.
+   * 운영자 입력 보존 — 이미 값이 있는 필드는 건드리지 않음.
+   * 적용 후 채워진 항목 list 반환 (toast 안내용).
+   */
+  function autofillMetaFromHtml(html: string): string[] {
+    const extracted = extractMetaFromHtml(html);
+    const filled: string[] = [];
+    setDraft((prev) => {
+      const next = { ...prev };
+      if (!prev.image_alt.trim() && extracted.image_alt) {
+        next.image_alt = extracted.image_alt;
+        filled.push('alt');
+      }
+      if (!prev.headline_text.trim() && extracted.headline_text) {
+        next.headline_text = extracted.headline_text;
+        filled.push('헤드라인');
+      }
+      if (!prev.subhead_text.trim() && extracted.subhead_text) {
+        next.subhead_text = extracted.subhead_text;
+        filled.push('부제');
+      }
+      if (!prev.cta_text.trim() && extracted.cta_text) {
+        next.cta_text = extracted.cta_text;
+        filled.push('CTA 라벨');
+      }
+      if (!prev.cta_href.trim() && extracted.cta_href) {
+        next.cta_href = extracted.cta_href;
+        filled.push('CTA 링크');
+      }
+      return next;
+    });
+    return filled;
   }
 
   async function handleHtmlUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -256,31 +231,31 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
     if (!file) return;
 
     setHtmlUpload({ status: 'uploading', fileName: file.name });
+    /* 업로드 전에 HTML 텍스트 read — 자동 추출용. */
+    let htmlContent = '';
     try {
-      const result = await uploadBannerHtml(file, 'signature');
-      if (result.ok) {
-        updateDraft('custom_html_path', result.publicUrl);
-        setHtmlUpload({ status: 'idle' });
-        toast.success('HTML 파일을 등록했습니다', {
-          description: '변경사항 저장 후 사이트에 반영됩니다',
-        });
-      } else {
-        const message = describeUploadError(result.error, result.detail);
-        setHtmlUpload({ status: 'error', message });
-        toast.error(message);
-      }
-    } catch (err) {
-      const message = '업로드 중 예기치 못한 오류가 발생했습니다';
+      htmlContent = await file.text();
+    } catch {
+      /* read 실패해도 업로드는 계속. 자동 추출만 skip. */
+    }
+    const result = await uploadBannerHtml(file, kind);
+    if (result.ok) {
+      updateDraft('custom_html_path', result.publicUrl);
+      setHtmlUpload({ status: 'idle' });
+      const filled = htmlContent ? autofillMetaFromHtml(htmlContent) : [];
+      toast.success('HTML 파일을 등록했습니다', {
+        description:
+          filled.length > 0
+            ? `${filled.join(' · ')} 자동 입력`
+            : undefined,
+      });
+    } else {
+      const message = describeUploadError(result.error, result.detail);
       setHtmlUpload({ status: 'error', message });
       toast.error(message);
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[SignaturesForm] html upload threw', err);
-      }
     }
   }
 
-  /* AI 결과 코드 블록 텍스트 → Blob → File 변환 후 기존 업로드 경로 재사용. */
   async function handleHtmlTextUpload() {
     const text = htmlText.trim();
     if (!text) {
@@ -291,29 +266,23 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
     const file = new File([blob], 'banner.html', { type: 'text/html' });
 
     setHtmlUpload({ status: 'uploading', fileName: file.name });
-    try {
-      const result = await uploadBannerHtml(file, 'signature');
-      if (result.ok) {
-        updateDraft('custom_html_path', result.publicUrl);
-        setHtmlUpload({ status: 'idle' });
-        setHtmlText('');
-        setHtmlTextOpen(false);
-        toast.success('HTML 텍스트를 등록했습니다', {
-          description: '변경사항 저장 후 사이트에 반영됩니다',
-        });
-      } else {
-        const message = describeUploadError(result.error, result.detail);
-        setHtmlUpload({ status: 'error', message });
-        toast.error(message);
-      }
-    } catch (err) {
-      const message = '업로드 중 예기치 못한 오류가 발생했습니다';
+    const result = await uploadBannerHtml(file, kind);
+    if (result.ok) {
+      updateDraft('custom_html_path', result.publicUrl);
+      setHtmlUpload({ status: 'idle' });
+      const filled = autofillMetaFromHtml(text);
+      setHtmlText('');
+      setHtmlTextOpen(false);
+      toast.success('HTML 텍스트를 등록했습니다', {
+        description:
+          filled.length > 0
+            ? `${filled.join(' · ')} 자동 입력`
+            : undefined,
+      });
+    } else {
+      const message = describeUploadError(result.error, result.detail);
       setHtmlUpload({ status: 'error', message });
       toast.error(message);
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[SignaturesForm] html text upload threw', err);
-      }
     }
   }
 
@@ -323,10 +292,8 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
         const { id: _, ...input } = draft;
         const result = await createBannerAction(input);
         if (result.ok) {
-          toast.success('시그니처를 등록했습니다');
-          /* TEMP_ID → 실 UUID 로 교체 + savedSignature 동기화. */
-          setDraft((prev) => ({ ...prev, id: result.id }));
-          setSavedSignature({ ...draft, id: result.id });
+          toast.success('배너를 등록했습니다');
+          router.push(`/admin/banners?kind=${kind}`);
           router.refresh();
         } else {
           toast.error(describeError(result.error, result.detail));
@@ -334,14 +301,28 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
       } else {
         const result = await updateBannerAction(draft);
         if (result.ok) {
-          toast.success('시그니처를 저장했습니다', {
+          toast.success('배너를 저장했습니다', {
             description: '사이트에 즉시 반영됩니다',
           });
-          setSavedSignature(draft);
           router.refresh();
         } else {
           toast.error(describeError(result.error, result.detail));
         }
+      }
+    });
+  }
+
+  function confirmDelete() {
+    if (isNew) return;
+    startTransition(async () => {
+      const result = await deleteBannerAction({ id: draft.id, kind: draft.kind });
+      if (result.ok) {
+        toast.success('배너를 삭제했습니다');
+        setDeleteConfirmOpen(false);
+        router.push(`/admin/banners?kind=${kind}`);
+        router.refresh();
+      } else {
+        toast.error(describeError(result.error, result.detail));
       }
     });
   }
@@ -356,62 +337,58 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
           variant="outline"
           size="sm"
           className="!h-7"
-          disabled={!isDirty || isPending}
+          disabled={isPending}
           onClick={handleReset}
         >
-          변경 취소
+          {isNew ? '취소' : '변경 취소'}
         </Button>
         <Button
           type="button"
           size="sm"
           className="!h-7"
-          disabled={!isDirty || isPending}
+          disabled={!isNew && !isDirty}
           onClick={handleSave}
         >
-          {isPending
-            ? isNew
-              ? '등록 중…'
-              : '저장 중…'
-            : isNew
-              ? '시그니처 등록'
-              : '변경사항 저장'}
+          {isPending ? (isNew ? '등록 중…' : '저장 중…') : isNew ? '배너 등록' : '변경사항 저장'}
         </Button>
       </AdminTopbarActions>
 
       <AdminPageHeader
-        title="시그니처 배너 관리"
-        subtitle="메인 §2.2 sand 단독 chapter · 운영자 HTML + 이미지 3종 · iframe sandbox 임베드 · 단일 row (영구 1개)"
+        title={isNew ? `${KIND_LABEL[kind]} 등록` : `${KIND_LABEL[kind]} 편집`}
+        subtitle={
+          isNew
+            ? '이미지 + HTML 업로드 후 등록하면 list 가장 뒤에 추가됩니다. 노출 순서는 list 페이지에서 화살표로 조정합니다.'
+            : '편집한 내용은 저장 시 즉시 사이트에 반영됩니다.'
+        }
         className="mb-6"
       />
 
-      <div className="flex flex-col gap-3 min-w-0">
+      <div className="flex flex-col gap-3 min-w-0 p-4">
         {/* 기본 정보 카드 */}
-        <Card title="기본 정보" subtitle="활성 · 노출 정렬">
+        <Card title="기본 정보" subtitle="식별 라벨 (운영자용) + 활성 여부">
           <div className="flex flex-col gap-3">
-            <div className="flex gap-6 items-start flex-wrap">
-              <FormField label="활성">
-                <label className="flex gap-2 items-center h-[34px] cursor-pointer">
-                  <Checkbox
-                    checked={draft.enabled}
-                    onCheckedChange={(v) => updateDraft('enabled', v === true)}
-                  />
-                  <span className="text-sm">
-                    {draft.enabled ? '활성 (B2C 노출)' : '비활성 (저장만)'}
-                  </span>
-                </label>
-              </FormField>
-              <FormField label="정렬 순서" hint="향후 복수 row 대비 (현재 단일 row)">
-                <div className="w-24">
-                  <FormInput
-                    type="number"
-                    value={String(draft.sort_order)}
-                    onChange={(e) =>
-                      updateDraft('sort_order', parseInt(e.target.value, 10) || 0)
-                    }
-                  />
-                </div>
-              </FormField>
-            </div>
+            <FormField
+              label="운영자 식별 라벨"
+              hint="list 카드에 표시 · 사이트에는 노출되지 않습니다. 예: 봄 시즌 콜라보 2026"
+            >
+              <FormInput
+                value={draft.internal_label}
+                maxLength={120}
+                onChange={(e) => updateDraft('internal_label', e.target.value)}
+                placeholder="예: 봄 시즌 콜라보 2026"
+              />
+            </FormField>
+            <FormField label="활성">
+              <label className="flex gap-2 items-center h-[34px] cursor-pointer">
+                <Checkbox
+                  checked={draft.enabled}
+                  onCheckedChange={(v) => updateDraft('enabled', v === true)}
+                />
+                <span className="text-sm">
+                  {draft.enabled ? '활성 (사이트 노출 후보)' : '비활성 (저장만)'}
+                </span>
+              </label>
+            </FormField>
           </div>
         </Card>
 
@@ -435,16 +412,14 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
               className="!h-7 !text-xs"
               onClick={async () => {
                 const prompt = buildBannerAiPrompt({
-                  kind: 'signature',
+                  kind: kind === 'cafe_event' ? 'cafe-event' : 'signature',
                   aspectDesktop: draft.aspect_desktop,
                   aspectTablet: draft.aspect_tablet,
                   aspectMobile: draft.aspect_mobile,
                 });
                 try {
                   await navigator.clipboard.writeText(prompt);
-                  toast.success('AI prompt 를 복사했습니다', {
-                    description: 'Gemini · ChatGPT image 등에 원본 배너 이미지를 함께 첨부해 사용하세요.',
-                  });
+                  toast.success('AI prompt 를 복사했습니다');
                 } catch {
                   toast.error('복사에 실패했습니다 — 수동으로 복사해 주세요');
                 }
@@ -503,9 +478,9 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
             <>
               2단계 — 1단계 배경 이미지 위에 텍스트를 입힌 production HTML 을 등록합니다.
               <br />
-              디자이너가 작성한 responsive.html (모든 BP 시각 검증된 데모) 을 별도 Claude Code 인스턴스에서 production HTML 로 변환해 주세요. iframe sandbox 모델 + 미디어쿼리 + placeholder 4종을 자동 적용하는 변환 규칙입니다.
+              디자이너가 작성한 responsive.html (모든 BP 시각 검증된 데모) 을 별도 Claude Code 인스턴스에서 production HTML 로 변환해 주세요.
               <br />
-              받은 코드는 .html 파일로 저장해 올리거나, 코드를 그대로 복사해서 '텍스트 붙여넣기' 로 등록할 수 있어요. 이미지가 들어갈 자리는 등록 후 자동으로 채워지고, 보안을 위해 외부 스크립트는 차단됩니다.
+              받은 코드는 .html 파일로 저장해 올리거나, 그대로 복사해서 '텍스트 붙여넣기' 로 등록할 수 있어요. 보안을 위해 외부 스크립트는 차단됩니다.
             </>
           }
         >
@@ -596,23 +571,23 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
                     variant="ghost"
                     size="sm"
                     className="!h-8 !text-xs"
-                    onClick={() => { setHtmlText(''); setHtmlTextOpen(false); }}
+                    onClick={() => {
+                      setHtmlText('');
+                      setHtmlTextOpen(false);
+                    }}
                   >
                     취소
                   </Button>
-                  <span className="text-xs text-[var(--foreground-muted)] ml-auto">
-                    AI 작성 코드 블록 복사 후 그대로 붙여넣기
-                  </span>
                 </div>
               </div>
             )}
           </div>
         </Card>
 
-        {/* aspect-ratio 카드 · read-only */}
+        {/* aspect 카드 */}
         <Card
           title="iframe 컨테이너 비율"
-          subtitle="이미지를 등록하면 자동으로 측정·입력됩니다. 표시 전용이라 직접 수정할 수 없어요."
+          subtitle="이미지를 등록하면 자동으로 측정·입력됩니다."
         >
           <div className="grid grid-cols-3 gap-3">
             <AspectInput label="Desktop (≥1024px)" value={draft.aspect_desktop} />
@@ -621,16 +596,10 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
           </div>
         </Card>
 
-        {/* 검색·접근성 메타 카드 — iframe 외부 sr-only 출력 + alt */}
+        {/* 검색·접근성 메타 카드 */}
         <Card
           title="검색 · 접근성 메타 텍스트"
-          subtitle={
-            <>
-              iframe 안 텍스트는 검색엔진과 스크린리더에서 분리된 영역으로 인식돼요.
-              <br />
-              같은 내용을 여기 별도로 입력하면 화면에는 변화 없이 검색·낭독에서만 인식됩니다. 빈 값은 출력되지 않아요.
-            </>
-          }
+          subtitle="iframe 안 텍스트는 검색·낭독에서 분리됩니다. 동일 내용을 여기 입력하면 화면 변화 없이 검색·낭독에서만 인식됩니다."
         >
           <div className="flex flex-col gap-3">
             <FormField label="대체 텍스트 (alt · iframe title)" required>
@@ -638,7 +607,7 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
                 value={draft.image_alt}
                 maxLength={120}
                 onChange={(e) => updateDraft('image_alt', e.target.value)}
-                placeholder="예: 2026 SS 시그니처 — 산뜻한 오후 패키지 디자인 소개"
+                placeholder="예: UBE 시리즈 배너"
               />
             </FormField>
             <FormField label="헤드라인 (검색용 h2)">
@@ -646,7 +615,6 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
                 value={draft.headline_text}
                 maxLength={80}
                 onChange={(e) => updateDraft('headline_text', e.target.value)}
-                placeholder="예: 한 잔의 평온함"
               />
             </FormField>
             <FormField label="부제 (검색용 p)">
@@ -654,7 +622,6 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
                 value={draft.subhead_text}
                 maxLength={200}
                 onChange={(e) => updateDraft('subhead_text', e.target.value)}
-                placeholder="예: 겨울에 어울리는 단일 원두 4종"
               />
             </FormField>
             <div className="grid grid-cols-[1fr_2fr] gap-3">
@@ -663,7 +630,6 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
                   value={draft.cta_text}
                   maxLength={30}
                   onChange={(e) => updateDraft('cta_text', e.target.value)}
-                  placeholder="예: 둘러보기"
                 />
               </FormField>
               <FormField label="CTA 링크">
@@ -671,24 +637,24 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
                   value={draft.cta_href}
                   maxLength={500}
                   onChange={(e) => updateDraft('cta_href', e.target.value)}
-                  placeholder="예: /shop · 비워두면 텍스트만 노출"
+                  placeholder="예: /cafe · 비워두면 텍스트만 노출"
                 />
               </FormField>
             </div>
           </div>
         </Card>
 
-        {/* 기간 카드 — signature 무입력 = 영구 active */}
-        <Card title="기간" subtitle="ISO 날짜 (YYYY-MM-DD) · 빈 값 = 영구 활성">
+        {/* 기간 카드 */}
+        <Card title="기간" subtitle="ISO 날짜 (YYYY-MM-DD) · 빈 값 = 무제한">
           <div className="grid grid-cols-2 gap-3">
-            <FormField label="시작일" hint="비워두면 영구 활성">
+            <FormField label="시작일" hint="비워두면 무제한 시작">
               <FormInput
                 type="date"
                 value={draft.start_date}
                 onChange={(e) => updateDraft('start_date', e.target.value)}
               />
             </FormField>
-            <FormField label="종료일" hint="비워두면 영구 활성">
+            <FormField label="종료일" hint="비워두면 무제한 종료">
               <FormInput
                 type="date"
                 value={draft.end_date}
@@ -706,12 +672,214 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
           previewHeight={previewHeight}
           isDirty={isDirty}
         />
+
+        {/* 삭제 (편집 모드만) */}
+        {!isNew && (
+          <div className="flex justify-end pt-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="!h-8 !text-[var(--danger)] hover:!bg-[var(--danger-soft)]"
+              disabled={isPending}
+              onClick={() => setDeleteConfirmOpen(true)}
+            >
+              <Trash2 size={14} />
+              이 배너 삭제
+            </Button>
+          </div>
+        )}
       </div>
+
+      <ConfirmModal
+        open={deleteConfirmOpen}
+        variant="danger"
+        title="배너를 삭제하시겠습니까?"
+        description="이 배너는 영원히 사라지며, 되돌릴 수 없습니다."
+        confirmLabel="삭제"
+        pending={isPending}
+        onCancel={() => setDeleteConfirmOpen(false)}
+        onConfirm={confirmDelete}
+      />
     </>
   );
 }
 
-/* ── Image Upload Slot ──────────────────────────────────────────────────── */
+/* ── Helpers ───────────────────────────────────────────────────────────── */
+
+function createEmptyBanner(kind: BannerKind, sortOrder: number): Banner {
+  return {
+    id: '00000000-0000-0000-0000-000000000000',
+    kind,
+    enabled: true,
+    internal_label: '',
+    custom_html_path: '',
+    image_path_desktop: '',
+    image_path_tablet: '',
+    image_path_mobile: '',
+    image_blur_desktop: '',
+    image_blur_tablet: '',
+    image_blur_mobile: '',
+    aspect_desktop: kind === 'cafe_event' ? '1320/480' : '1320/600',
+    aspect_tablet: '1024/520',
+    aspect_mobile: kind === 'cafe_event' ? '390/640' : '390/520',
+    image_alt: '',
+    headline_text: '',
+    subhead_text: '',
+    cta_text: '',
+    cta_href: '',
+    start_date: '',
+    end_date: '',
+    sort_order: sortOrder,
+  };
+}
+
+function shallowEqual(a: Banner, b: Banner): boolean {
+  return (
+    a.id === b.id &&
+    a.kind === b.kind &&
+    a.enabled === b.enabled &&
+    a.internal_label === b.internal_label &&
+    a.custom_html_path === b.custom_html_path &&
+    a.image_path_desktop === b.image_path_desktop &&
+    a.image_path_tablet === b.image_path_tablet &&
+    a.image_path_mobile === b.image_path_mobile &&
+    a.image_blur_desktop === b.image_blur_desktop &&
+    a.image_blur_tablet === b.image_blur_tablet &&
+    a.image_blur_mobile === b.image_blur_mobile &&
+    a.aspect_desktop === b.aspect_desktop &&
+    a.aspect_tablet === b.aspect_tablet &&
+    a.aspect_mobile === b.aspect_mobile &&
+    a.image_alt === b.image_alt &&
+    a.headline_text === b.headline_text &&
+    a.subhead_text === b.subhead_text &&
+    a.cta_text === b.cta_text &&
+    a.cta_href === b.cta_href &&
+    a.start_date === b.start_date &&
+    a.end_date === b.end_date &&
+    a.sort_order === b.sort_order
+  );
+}
+
+function buildPreviewSrc(draft: Banner): string {
+  const params = new URLSearchParams({
+    kind: draft.kind,
+    enabled: String(draft.enabled),
+    custom_html_path: draft.custom_html_path,
+    image_path_desktop: draft.image_path_desktop,
+    image_path_tablet: draft.image_path_tablet,
+    image_path_mobile: draft.image_path_mobile,
+    aspect_desktop: draft.aspect_desktop,
+    aspect_tablet: draft.aspect_tablet,
+    aspect_mobile: draft.aspect_mobile,
+    image_alt: draft.image_alt,
+    headline_text: draft.headline_text,
+    subhead_text: draft.subhead_text,
+    cta_text: draft.cta_text,
+    cta_href: draft.cta_href,
+  });
+  return `/preview/banner?${params.toString()}`;
+}
+
+function measureImageAspect(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { naturalWidth: w, naturalHeight: h } = img;
+      if (w > 0 && h > 0) resolve(`${w}/${h}`);
+      else reject(new Error('invalid dimension'));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('image load failed'));
+    };
+    img.src = url;
+  });
+}
+
+function summarizeUrl(url: string): string {
+  const parts = url.split('/');
+  const name = parts[parts.length - 1] ?? url;
+  return name.length > 36 ? `${name.slice(0, 32)}…` : name;
+}
+
+interface ExtractedMeta {
+  image_alt: string;
+  headline_text: string;
+  subhead_text: string;
+  cta_text: string;
+  cta_href: string;
+}
+
+/**
+ * 운영자 production HTML 에서 SEO 메타 자동 추출.
+ * 빈 문자열이면 caller 가 자동 채우기 skip — 기존 입력 보존.
+ *
+ * 추출 규칙:
+ *   - h1 또는 h2 의 첫 element textContent → headline_text
+ *   - h1/h2 직후의 p (또는 가장 첫 p) → subhead_text
+ *   - a 의 첫 element textContent → cta_text · href → cta_href
+ *   - img[alt] 첫 alt 속성 → image_alt
+ */
+function extractMetaFromHtml(html: string): ExtractedMeta {
+  if (typeof window === 'undefined') {
+    return { image_alt: '', headline_text: '', subhead_text: '', cta_text: '', cta_href: '' };
+  }
+  let doc: Document | null = null;
+  try {
+    doc = new DOMParser().parseFromString(html, 'text/html');
+  } catch {
+    return { image_alt: '', headline_text: '', subhead_text: '', cta_text: '', cta_href: '' };
+  }
+  if (!doc) {
+    return { image_alt: '', headline_text: '', subhead_text: '', cta_text: '', cta_href: '' };
+  }
+
+  const heading = doc.querySelector('h1, h2');
+  const headline = heading?.textContent?.trim() ?? '';
+
+  /* heading 직후 형제 p 우선 — 아니면 가장 첫 p. */
+  let subhead = '';
+  if (heading) {
+    let sib = heading.nextElementSibling;
+    while (sib) {
+      if (sib.tagName === 'P') {
+        subhead = sib.textContent?.trim() ?? '';
+        break;
+      }
+      sib = sib.nextElementSibling;
+    }
+  }
+  if (!subhead) {
+    subhead = doc.querySelector('p')?.textContent?.trim() ?? '';
+  }
+
+  const anchor = doc.querySelector('a');
+  const ctaText = anchor?.textContent?.trim() ?? '';
+  const ctaHref = anchor?.getAttribute('href')?.trim() ?? '';
+
+  const imgWithAlt = doc.querySelector('img[alt]');
+  const imageAlt = imgWithAlt?.getAttribute('alt')?.trim() ?? '';
+
+  return {
+    image_alt: imageAlt,
+    headline_text: headline,
+    subhead_text: subhead,
+    cta_text: ctaText,
+    cta_href: ctaHref,
+  };
+}
+
+function formatAspectDisplay(value: string): string {
+  if (!value) return '—';
+  const m = /^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/.exec(value);
+  if (!m) return value;
+  return `${m[1]}px x ${m[2]}px`;
+}
+
+/* ── Sub-components ───────────────────────────────────────────────────── */
 
 function ImageUploadSlot({
   label,
@@ -781,11 +949,7 @@ function ImageUploadSlot({
         onClick={() => inputRef.current?.click()}
         disabled={uploadState.status === 'uploading'}
       >
-        {uploadState.status === 'uploading'
-          ? '업로드 중…'
-          : imagePath
-            ? '이미지 변경'
-            : '파일 선택'}
+        {uploadState.status === 'uploading' ? '업로드 중…' : imagePath ? '이미지 변경' : '파일 선택'}
       </Button>
       {uploadState.status === 'error' && (
         <div className="px-2.5 py-2 rounded-md bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
@@ -796,14 +960,12 @@ function ImageUploadSlot({
   );
 }
 
-/* ── Aspect Display (read-only) ─────────────────────────────────────────── */
-
 function AspectInput({ label, value }: { label: string; value: string }) {
   const display = formatAspectDisplay(value);
   return (
     <FormField
       label={label}
-      hint={value ? '이미지 업로드 시 자동 측정된 값입니다.' : '이미지를 먼저 등록해 주세요.'}
+      hint={value ? '이미지 업로드 시 자동 측정' : '이미지를 먼저 등록해 주세요'}
     >
       <div className="px-3 py-2 rounded-md border border-input bg-[var(--surface-muted)] text-sm font-mono text-foreground select-text">
         {display}
@@ -811,8 +973,6 @@ function AspectInput({ label, value }: { label: string; value: string }) {
     </FormField>
   );
 }
-
-/* ── Preview Pane ──────────────────────────────────────────────────────── */
 
 function PreviewPane({
   previewBrk,
@@ -831,9 +991,9 @@ function PreviewPane({
     <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
       <div className="px-4 py-3 border-b border-border flex items-center gap-3 flex-wrap">
         <div className="flex-1 min-w-[200px]">
-          <h3 className="m-0 text-sm font-medium">시그니처 chapter 미리보기</h3>
+          <h3 className="m-0 text-sm font-medium">미리보기</h3>
           <div className="text-xs text-[var(--foreground-muted)] mt-0.5">
-            발행 전 4 brk 검증 · 편집 중 즉시 반영
+            저장 전 4 brk 검증 · 편집 중 즉시 반영
           </div>
         </div>
         <div className="flex gap-1">
@@ -868,7 +1028,7 @@ function PreviewPane({
       <div className="p-4 bg-[var(--surface-muted)] overflow-x-auto overflow-y-hidden flex justify-start">
         <iframe
           src={previewSrc}
-          title={`시그니처 chapter 미리보기 — ${previewBrk}`}
+          title={`배너 미리보기 — ${previewBrk}`}
           style={{
             width: PREVIEW_BRK_OPTIONS.find((o) => o.key === previewBrk)?.width ?? 1440,
             height: previewHeight,
@@ -882,91 +1042,6 @@ function PreviewPane({
     </div>
   );
 }
-
-/* ── Helpers ───────────────────────────────────────────────────────────── */
-
-function shallowEqualSignature(a: DraftSignature, b: DraftSignature): boolean {
-  return (
-    a.id === b.id &&
-    a.enabled === b.enabled &&
-    a.custom_html_path === b.custom_html_path &&
-    a.image_path_desktop === b.image_path_desktop &&
-    a.image_path_tablet === b.image_path_tablet &&
-    a.image_path_mobile === b.image_path_mobile &&
-    a.image_blur_desktop === b.image_blur_desktop &&
-    a.image_blur_tablet === b.image_blur_tablet &&
-    a.image_blur_mobile === b.image_blur_mobile &&
-    a.aspect_desktop === b.aspect_desktop &&
-    a.aspect_tablet === b.aspect_tablet &&
-    a.aspect_mobile === b.aspect_mobile &&
-    a.image_alt === b.image_alt &&
-    a.headline_text === b.headline_text &&
-    a.subhead_text === b.subhead_text &&
-    a.cta_text === b.cta_text &&
-    a.cta_href === b.cta_href &&
-    a.start_date === b.start_date &&
-    a.end_date === b.end_date &&
-    a.sort_order === b.sort_order
-  );
-}
-
-/** DraftSignature → /preview/signature URL. URLSearchParams 가 자동 encode. */
-function buildPreviewSrc(draft: DraftSignature): string {
-  const params = new URLSearchParams({
-    enabled: String(draft.enabled),
-    custom_html_path: draft.custom_html_path,
-    image_path_desktop: draft.image_path_desktop,
-    image_path_tablet: draft.image_path_tablet,
-    image_path_mobile: draft.image_path_mobile,
-    image_blur_desktop: draft.image_blur_desktop,
-    image_blur_tablet: draft.image_blur_tablet,
-    image_blur_mobile: draft.image_blur_mobile,
-    aspect_desktop: draft.aspect_desktop,
-    aspect_tablet: draft.aspect_tablet,
-    aspect_mobile: draft.aspect_mobile,
-    image_alt: draft.image_alt,
-    headline_text: draft.headline_text,
-    subhead_text: draft.subhead_text,
-    cta_text: draft.cta_text,
-    cta_href: draft.cta_href,
-  });
-  return `/preview/signature?${params.toString()}`;
-}
-
-/** File 의 naturalWidth/Height 측정 → "W/H" 문자열. 실패 시 reject. */
-function measureImageAspect(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const { naturalWidth: w, naturalHeight: h } = img;
-      if (w > 0 && h > 0) resolve(`${w}/${h}`);
-      else reject(new Error('invalid dimension'));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('image load failed'));
-    };
-    img.src = url;
-  });
-}
-
-function summarizeUrl(url: string): string {
-  const parts = url.split('/');
-  const name = parts[parts.length - 1] ?? url;
-  return name.length > 36 ? `${name.slice(0, 32)}…` : name;
-}
-
-/** "2008/783" → "2008px x 783px" · 빈 값 → "—" · 형식 오류 → 원본 그대로. */
-function formatAspectDisplay(value: string): string {
-  if (!value) return '—';
-  const m = /^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/.exec(value);
-  if (!m) return value;
-  return `${m[1]}px x ${m[2]}px`;
-}
-
-/* ── 공용 컴포넌트 (CafeEventsForm 답습) ─────────────────────────── */
 
 function Card({
   title,
@@ -984,7 +1059,9 @@ function Card({
       <div className="px-4 py-3 border-b border-border flex items-start gap-3">
         <div className="flex-1 min-w-0">
           <h3 className="m-0 text-sm font-medium">{title}</h3>
-          <div className="text-xs text-[var(--foreground-muted)] mt-0.5 leading-relaxed">{subtitle}</div>
+          <div className="text-xs text-[var(--foreground-muted)] mt-0.5 leading-relaxed">
+            {subtitle}
+          </div>
         </div>
         {action && <div className="shrink-0">{action}</div>}
       </div>
@@ -1011,22 +1088,15 @@ function FormField({
         {required && <span className="text-[var(--primary)]">*</span>}
       </label>
       {children}
-      {hint && (
-        <div className="pl-2.5 text-xs text-[var(--foreground-muted)]">{hint}</div>
-      )}
+      {hint && <div className="pl-2.5 text-xs text-[var(--foreground-muted)]">{hint}</div>}
     </div>
   );
 }
 
-function FormInput({
-  prefix,
-  suffix,
-  ...rest
-}: React.InputHTMLAttributes<HTMLInputElement> & {
-  prefix?: string;
-  suffix?: string;
-}) {
-  const disabled = rest.disabled === true;
+function FormInput(
+  props: React.InputHTMLAttributes<HTMLInputElement>,
+) {
+  const disabled = props.disabled === true;
   return (
     <div
       className={cn(
@@ -1035,16 +1105,10 @@ function FormInput({
         disabled ? 'bg-[var(--surface-muted)] opacity-70' : 'bg-[var(--surface)]',
       )}
     >
-      {prefix && (
-        <span className="text-[var(--foreground-muted)] text-sm">{prefix}</span>
-      )}
       <input
-        {...rest}
+        {...props}
         className="flex-1 min-w-0 border-none outline-none bg-transparent text-sm text-[var(--foreground)] p-0 h-full shadow-none ring-0"
       />
-      {suffix && (
-        <span className="text-[var(--foreground-muted)] text-xs">{suffix}</span>
-      )}
     </div>
   );
 }

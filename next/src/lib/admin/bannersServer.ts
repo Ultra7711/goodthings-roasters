@@ -29,7 +29,7 @@ import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { parseBannerRow, type Banner, type BannerKind } from '@/lib/banners';
 
 const SELECT_COLS =
-  'id, kind, type, enabled, ' +
+  'id, kind, enabled, internal_label, ' +
   'custom_html_path, image_path_desktop, image_path_tablet, image_path_mobile, ' +
   'image_blur_desktop, image_blur_tablet, image_blur_mobile, ' +
   'aspect_desktop, aspect_tablet, aspect_mobile, ' +
@@ -43,7 +43,8 @@ export async function listBannersAdmin(kind: BannerKind): Promise<Banner[]> {
       .from('banners')
       .select(SELECT_COLS)
       .eq('kind', kind)
-      .order('start_date', { ascending: false, nullsFirst: false });
+      .order('sort_order', { ascending: true })
+      .order('id', { ascending: true });
 
     if (error) {
       const msg = error.message ?? '';
