@@ -13,7 +13,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { getActiveCafeEvent, getComingCafeEvent } from '@/lib/cafeEventsServer';
+import { getActiveBanner, getComingBanner } from '@/lib/bannersServer';
+import type { CafeEventBanner } from '@/lib/banners';
 import { fetchCafeMenu } from '@/lib/cafeMenuServer';
 import { fetchSiteSettings } from '@/lib/siteSettingsServer';
 import type { CafeMenuItem } from '@/lib/cafeMenu';
@@ -48,13 +49,19 @@ export default async function CafeMenuSection() {
   /* 059 overlay 재설계 — eyebrow/h4 등 텍스트는 운영자 CSS 가 처리.
        Active 또는 7일 내 Coming → 동일 EventBanner 렌더 (이미지 + custom CSS).
        비활성 → EventBanner 미렌더. */
-  const [activeEvent, cafeItems, siteSettings] = await Promise.all([
-    getActiveCafeEvent(),
+  const [activeBanner, cafeItems, siteSettings] = await Promise.all([
+    getActiveBanner('cafe_event'),
     fetchCafeMenu(),
     fetchSiteSettings(),
   ]);
   const FEATURED_ITEMS = pickFeatured(cafeItems, siteSettings.home_featured.menu_ids);
-  const comingEvent = activeEvent ? null : await getComingCafeEvent();
+  /* discriminated union → kind='cafe_event' narrowing. selectActiveBanner 가 kind
+     필터링 이미 적용했지만 type narrowing 위해 명시. */
+  const activeEvent: CafeEventBanner | null =
+    activeBanner?.kind === 'cafe_event' ? activeBanner : null;
+  const comingBanner = activeEvent ? null : await getComingBanner('cafe_event');
+  const comingEvent: CafeEventBanner | null =
+    comingBanner?.kind === 'cafe_event' ? comingBanner : null;
   const displayEvent = activeEvent ?? comingEvent;
 
   return (

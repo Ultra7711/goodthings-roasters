@@ -20,12 +20,12 @@
    참조: lib/siteSettings.ts SignatureSettingsSchema
    ══════════════════════════════════════════ */
 
-import type { SignatureSettings } from '@/lib/siteSettings';
+import type { SignatureBanner } from '@/lib/banners';
 import IframeBanner from './IframeBanner';
 import './SignatureChapterView.css';
 
 interface SignatureChapterViewProps {
-  signature: SignatureSettings;
+  signature: SignatureBanner;
 }
 
 /** "W/H" / "W : H" / 공백 변형 → "W / H" 정규화. */

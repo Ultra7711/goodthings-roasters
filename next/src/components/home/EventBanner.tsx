@@ -13,10 +13,10 @@
    - iframe srcDoc 으로 inline 임베드 → cross-origin 이슈 회피.
    ══════════════════════════════════════════ */
 
-import type { CafeEvent } from '@/lib/cafeEvents';
+import type { CafeEventBanner } from '@/lib/banners';
 import IframeBanner from './IframeBanner';
 
-type Props = { event: CafeEvent };
+type Props = { event: CafeEventBanner };
 
 /** "W/H" / "W : H" / 공백 변형 → "W / H" 정규화. */
 function normalizeAspect(s: string, fallback: string): string {

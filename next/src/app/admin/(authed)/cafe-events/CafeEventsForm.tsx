@@ -31,20 +31,20 @@ import {
   CAFE_EVENT_TYPES,
   CAFE_EVENT_TYPE_LABELS,
   todayIsoSeoul,
-  type CafeEvent,
+  type CafeEventBanner,
   type CafeEventType,
-} from '@/lib/cafeEvents';
-import { uploadCafeEventHtml } from '@/lib/admin/uploadCafeEventHtml';
+} from '@/lib/banners';
+import { uploadBannerHtml } from '@/lib/admin/uploadBannerHtml';
 import { buildBannerAiPrompt } from '@/lib/admin/aiPrompt';
 import {
-  uploadCafeEventImage,
-  type CafeEventBreakpoint,
-} from '@/lib/admin/uploadCafeEventImage';
+  uploadBannerImage,
+  type BannerBreakpoint,
+} from '@/lib/admin/uploadBannerImage';
 import {
-  createCafeEventAction,
-  updateCafeEventAction,
-  deleteCafeEventAction,
-} from './actions';
+  createBannerAction,
+  updateBannerAction,
+  deleteBannerAction,
+} from '../banners/actions';
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
 
@@ -70,20 +70,20 @@ type UploadState =
   | { status: 'uploading'; fileName: string }
   | { status: 'error'; message: string };
 
-type DraftEvent = CafeEvent & {
+type DraftEvent = CafeEventBanner & {
   /** "temp:..." prefix → 신규 (DB INSERT 전). UUID → 기존 row. */
   id: string;
 };
 
 interface CafeEventsFormProps {
-  initialEvents: CafeEvent[];
+  initialEvents: CafeEventBanner[];
 }
 
 /* ── Component ─────────────────────────────────────────────────────────── */
 
 export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
   const router = useRouter();
-  const [events, setEvents] = useState<CafeEvent[]>(initialEvents);
+  const [events, setEvents] = useState<CafeEventBanner[]>(initialEvents);
   const [selectedId, setSelectedId] = useState<string | null>(
     initialEvents[0]?.id ?? null,
   );
@@ -192,6 +192,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     const tempId = `${TEMP_ID_PREFIX}${Date.now()}`;
     const newDraft: DraftEvent = {
       id: tempId,
+      kind: 'cafe_event',
       type: 'campaign',
       enabled: true,
       custom_html_path: '',
@@ -258,7 +259,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
 
   async function handleImageUpload(
     e: React.ChangeEvent<HTMLInputElement>,
-    brk: CafeEventBreakpoint,
+    brk: BannerBreakpoint,
   ) {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -292,7 +293,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     setState({ status: 'uploading', fileName: file.name });
     /* 이미지 dimension 측정 — aspect 자동 입력. 실패 시 기본값 유지. */
     const aspect = await measureImageAspect(file).catch(() => null);
-    const result = await uploadCafeEventImage(file, brk);
+    const result = await uploadBannerImage(file, 'cafe_event', brk);
     if (result.ok) {
       updateDraft(fieldKey, result.publicUrl);
       /* S246: LQIP — 업로드 핸들러가 server action 으로 생성. 실패 시 빈 문자열. */
@@ -317,7 +318,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     if (!file) return;
 
     setHtmlUpload({ status: 'uploading', fileName: file.name });
-    const result = await uploadCafeEventHtml(file);
+    const result = await uploadBannerHtml(file, 'cafe_event');
     if (result.ok) {
       updateDraft('custom_html_path', result.publicUrl);
       setHtmlUpload({ status: 'idle' });
@@ -342,7 +343,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     const file = new File([blob], 'banner.html', { type: 'text/html' });
 
     setHtmlUpload({ status: 'uploading', fileName: file.name });
-    const result = await uploadCafeEventHtml(file);
+    const result = await uploadBannerHtml(file, 'cafe_event');
     if (result.ok) {
       updateDraft('custom_html_path', result.publicUrl);
       setHtmlUpload({ status: 'idle' });
@@ -363,7 +364,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     startTransition(async () => {
       if (isNew) {
         const { id: _, ...input } = draft;
-        const result = await createCafeEventAction(input);
+        const result = await createBannerAction(input);
         if (result.ok) {
           toast.success('이벤트를 등록했습니다');
           setSelectedId(result.id);
@@ -374,7 +375,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
           toast.error(describeError(result.error, result.detail));
         }
       } else {
-        const result = await updateCafeEventAction(draft);
+        const result = await updateBannerAction(draft);
         if (result.ok) {
           toast.success('이벤트를 저장했습니다', {
             description: '사이트에 즉시 반영됩니다',
@@ -395,7 +396,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
   function confirmDelete() {
     if (!draft || isNew) return;
     startTransition(async () => {
-      const result = await deleteCafeEventAction(draft.id);
+      const result = await deleteBannerAction({ id: draft.id, kind: 'cafe_event' });
       if (result.ok) {
         toast.success('이벤트를 삭제했습니다');
         setDeleteConfirmOpen(false);
@@ -1019,7 +1020,7 @@ function ListRow({
   onClick,
   onDelete,
 }: {
-  event: CafeEvent;
+  event: CafeEventBanner;
   selected: boolean;
   isNew: boolean;
   isPending: boolean;
@@ -1175,7 +1176,7 @@ function PreviewPane({
 
 /* ── Helpers ───────────────────────────────────────────────────────────── */
 
-function shallowEqualEvent(a: CafeEvent, b: CafeEvent): boolean {
+function shallowEqualEvent(a: CafeEventBanner, b: CafeEventBanner): boolean {
   return (
     a.id === b.id &&
     a.type === b.type &&

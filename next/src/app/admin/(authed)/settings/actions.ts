@@ -1,11 +1,12 @@
 'use server';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   actions.ts — /admin/settings server actions (S129 Group H)
+   actions.ts — /admin/settings server actions (S129 Group H · S270 Phase 3b)
 
    책임:
    1) getAdminClaims 가드 — 비admin 차단
-   2) Zod 검증 — notice / shipping / signature 영역별
+   2) Zod 검증 — notice / shipping / home_featured 영역별
+      (signature 는 S270 에서 banners 테이블로 이전 → /admin/banners/actions.ts)
    3) UPDATE 실 변경된 영역만 (dirty diff 는 클라이언트가 보냄)
    4) revalidatePath — /admin/settings + 메인 사이트 영역(/, /menu 등)
 
@@ -24,7 +25,6 @@ import {
   NoticeSettingsSchema,
   parseSiteSettingsRows,
   ShippingSettingsSchema,
-  SignatureSettingsSchema,
   type SiteSettingKey,
   type SiteSettings,
 } from '@/lib/siteSettings';
@@ -34,7 +34,6 @@ import { createRouteHandlerClient } from '@/lib/supabaseServer';
 const SaveInputSchema = z.object({
   notice: NoticeSettingsSchema.optional(),
   shipping: ShippingSettingsSchema.optional(),
-  signature: SignatureSettingsSchema.optional(),
   home_featured: HomeFeaturedSettingsSchema.optional(),
 });
 
@@ -63,7 +62,7 @@ export type SaveSettingsResult =
  * 어드민이 /admin/settings 에서 [변경사항 저장] 누를 때 호출.
  *
  * @param input 변경된 영역만 포함된 부분 payload.
- *              예) { notice: {...} } — season/shipping 은 미변경
+ *              예) { notice: {...} } — shipping 은 미변경
  */
 export async function saveSiteSettingsAction(
   input: SaveSettingsInput,
@@ -91,7 +90,6 @@ export async function saveSiteSettingsAction(
   const updates: Array<{ key: SiteSettingKey; value: unknown }> = [];
   if (data.notice) updates.push({ key: 'notice', value: data.notice });
   if (data.shipping) updates.push({ key: 'shipping', value: data.shipping });
-  if (data.signature) updates.push({ key: 'signature', value: data.signature });
   if (data.home_featured) updates.push({ key: 'home_featured', value: data.home_featured });
 
   if (updates.length === 0) {
@@ -112,6 +110,7 @@ export async function saveSiteSettingsAction(
     );
 
   if (error) {
+    // eslint-disable-next-line no-console
     console.error('[saveSiteSettingsAction] upsert failed', {
       code: error.code,
       message: error.message?.slice(0, 200),
@@ -130,11 +129,7 @@ export async function saveSiteSettingsAction(
     revalidatePath('/');
   }
 
-  /* 6) S255-A HIGH-4: fresh SELECT 로 server-normalized 전체 settings 반환.
-        클라이언트가 setSavedSettings + setSettings 동시 반영하여 stale cache /
-        Zod transform 미세 차이로 인한 dirty 잔존 차단. 'use cache' 우회를 위해
-        fetchSiteSettings 대신 inline SELECT 사용 (revalidateTag 직후 cache miss
-        race 회피). */
+  /* 6) S255-A HIGH-4: fresh SELECT 로 server-normalized 전체 settings 반환. */
   const updatedKeys = updates.map((u) => u.key);
   const { data: freshRows, error: fetchErr } = await supabase
     .from('site_settings')
@@ -142,6 +137,7 @@ export async function saveSiteSettingsAction(
 
   if (fetchErr || !freshRows) {
     /* fresh fetch 실패해도 upsert 자체는 성공. client 가 자체 settings 로 fallback. */
+    // eslint-disable-next-line no-console
     console.warn('[saveSiteSettingsAction] post-save fetch failed', {
       code: fetchErr?.code,
       message: fetchErr?.message?.slice(0, 200),

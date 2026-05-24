@@ -1,21 +1,32 @@
 /* ══════════════════════════════════════════
-   SignatureChapter — server data fetcher (S237 iframe 모델 · 062)
+   SignatureChapter — server data fetcher (S237 iframe 모델 · 062 · S270 Phase 3b)
 
    책임:
-   - fetchSiteSettings 으로 signature 영역 fetch
+   - getActiveBanner('signature') 으로 banners 테이블에서 signature row fetch
    - SignatureChapterView 에 위임 (presentational)
+
+   S270 Phase 3b — banners 통합:
+   - 이전: fetchSiteSettings().signature (site_settings.signature row)
+   - 이후: getActiveBanner('signature') (banners 테이블 · partial UNIQUE 1 row)
+   - signature row 가 없거나 비활성이면 SignatureChapterView 가 null 반환.
 
    미리보기 / 메인 페이지 의 분기 위치:
    - 메인 페이지 (`/`) → 본 SignatureChapter (DB fetch)
-   - /preview/signature (어드민) → SignatureChapterView 직접 호출 (URL 파라미터 → SignatureSettings)
+   - /preview/signature (어드민) → SignatureChapterView 직접 호출
 
    참조: SignatureChapterView.tsx · EventBanner.tsx (답습)
    ══════════════════════════════════════════ */
 
-import { fetchSiteSettings } from '@/lib/siteSettingsServer';
+import { getActiveBanner } from '@/lib/bannersServer';
+import type { SignatureBanner } from '@/lib/banners';
 import SignatureChapterView from './SignatureChapterView';
 
 export default async function SignatureChapter() {
-  const { signature } = await fetchSiteSettings();
+  const banner = await getActiveBanner('signature');
+  /* discriminated union → kind='signature' narrowing. selectActiveBanner 가 kind
+     필터링 이미 적용했지만 type narrowing 위해 명시. */
+  const signature: SignatureBanner | null =
+    banner?.kind === 'signature' ? banner : null;
+  if (!signature) return null;
   return <SignatureChapterView signature={signature} />;
 }

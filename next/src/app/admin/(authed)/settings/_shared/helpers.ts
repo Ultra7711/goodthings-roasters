@@ -1,21 +1,20 @@
 /* ══════════════════════════════════════════
-   _shared/helpers.ts — settings 폼 공용 헬퍼 (S256-A 분리)
+   _shared/helpers.ts — settings 폼 공용 헬퍼 (S256-A 분리 · S270 Phase 3b)
 
    - format/parse/summarize: 입력 표현 보조
-   - measureImageAspect: Signature 이미지 업로드 시 naturalWidth/Height 측정
-   - shallowEqual* 4종: orchestrator dirty 계산
-   - buildPreviewSrc: Signature Preview iframe URL 빌드 (orchestrator)
+   - shallowEqual* 3종: orchestrator dirty 계산 (signature 는 S270 에서 분리)
    - describeUpdatedKeys: 저장 성공 시 갱신 영역 라벨
-   - formatAspectDisplay: AspectInput read-only 표시
 
    S257: describeError · describeUploadError 는 lib/admin/errorDescribe.ts 로 이관.
+   S270 Phase 3b: shallowEqualSignature · buildPreviewSrc · measureImageAspect ·
+                  summarizeUrl · formatAspectDisplay 는 /admin/signatures 페이지로
+                  이전 (SignaturesForm 내부 inline).
    ══════════════════════════════════════════ */
 
 import type {
   HomeFeaturedSettings,
   NoticeSettings,
   ShippingSettings,
-  SignatureSettings,
 } from '@/lib/siteSettings';
 
 /* ── Number format ────────────────────────────────────────────── */
@@ -29,43 +28,6 @@ export function parseNumber(s: string): number {
   if (cleaned === '') return 0;
   const n = Number.parseInt(cleaned, 10);
   return Number.isFinite(n) ? n : 0;
-}
-
-/* ── URL summarize ────────────────────────────────────────────── */
-
-export function summarizeUrl(url: string): string {
-  const parts = url.split('/');
-  const name = parts[parts.length - 1] ?? url;
-  return name.length > 36 ? `${name.slice(0, 32)}…` : name;
-}
-
-/* ── Image aspect 측정 ────────────────────────────────────────── */
-
-/** File 의 naturalWidth/Height 측정 → "W/H" 문자열. 실패 시 reject. */
-export function measureImageAspect(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const { naturalWidth: w, naturalHeight: h } = img;
-      if (w > 0 && h > 0) resolve(`${w}/${h}`);
-      else reject(new Error('invalid dimension'));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('image load failed'));
-    };
-    img.src = url;
-  });
-}
-
-/** "2008/783" → "2008px x 783px" · 빈 값 → "—" · 형식 오류 → 원본 그대로. */
-export function formatAspectDisplay(value: string): string {
-  if (!value) return '—';
-  const m = /^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/.exec(value);
-  if (!m) return value;
-  return `${m[1]}px x ${m[2]}px`;
 }
 
 /* ── Shallow equal (영역별 dirty 비교) ────────────────────────── */
@@ -100,58 +62,13 @@ export function shallowEqualHomeFeatured(
   return true;
 }
 
-export function shallowEqualSignature(a: SignatureSettings, b: SignatureSettings): boolean {
-  return (
-    a.enabled === b.enabled &&
-    a.custom_html_path === b.custom_html_path &&
-    a.image_path_desktop === b.image_path_desktop &&
-    a.image_path_tablet === b.image_path_tablet &&
-    a.image_path_mobile === b.image_path_mobile &&
-    a.image_blur_desktop === b.image_blur_desktop &&
-    a.image_blur_tablet === b.image_blur_tablet &&
-    a.image_blur_mobile === b.image_blur_mobile &&
-    a.aspect_desktop === b.aspect_desktop &&
-    a.aspect_tablet === b.aspect_tablet &&
-    a.aspect_mobile === b.aspect_mobile &&
-    a.image_alt === b.image_alt &&
-    a.headline_text === b.headline_text &&
-    a.subhead_text === b.subhead_text &&
-    a.cta_text === b.cta_text &&
-    a.cta_href === b.cta_href
-  );
-}
-
-/* ── Preview URL 빌드 (orchestrator) ───────────────────────────── */
-
-/** SignatureSettings → /preview/signature URL. */
-export function buildPreviewSrc(s: SignatureSettings): string {
-  const params = new URLSearchParams({
-    enabled: String(s.enabled),
-    custom_html_path: s.custom_html_path,
-    image_path_desktop: s.image_path_desktop,
-    image_path_tablet: s.image_path_tablet,
-    image_path_mobile: s.image_path_mobile,
-    aspect_desktop: s.aspect_desktop,
-    aspect_tablet: s.aspect_tablet,
-    aspect_mobile: s.aspect_mobile,
-    image_alt: s.image_alt,
-    headline_text: s.headline_text,
-    subhead_text: s.subhead_text,
-    cta_text: s.cta_text,
-    cta_href: s.cta_href,
-  });
-  return `/preview/signature?${params.toString()}`;
-}
-
 /* ── Toast 메시지 ──────────────────────────────────────────────── */
 
 export function describeUpdatedKeys(keys: ReadonlyArray<string>): string {
   const labels: Record<string, string> = {
     notice: '공지 배너',
     shipping: '무료 배송 정책',
-    signature: '시그니처 섹션',
     home_featured: '메인 노출 메뉴',
   };
   return keys.map((k) => labels[k] ?? k).join(' · ');
 }
-

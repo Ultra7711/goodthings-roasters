@@ -18,7 +18,7 @@
 
 import { redirect } from 'next/navigation';
 import { getAdminClaims } from '@/lib/auth/getClaims';
-import { CafeEventSchema } from '@/lib/cafeEvents';
+import { CafeEventBannerSchema } from '@/lib/banners';
 import EventBanner from '@/components/home/EventBanner';
 import '@/components/home/HomePage.css';
 
@@ -43,14 +43,18 @@ export default async function PreviewCafeEventPage({
   /* placeholder UUID — preview 는 schema 통과만 필요, DB 저장 X */
   const PLACEHOLDER_UUID = '00000000-0000-0000-0000-000000000000';
 
-  const parsed = CafeEventSchema.safeParse({
+  const parsed = CafeEventBannerSchema.safeParse({
     id: PLACEHOLDER_UUID,
+    kind: 'cafe_event',
     type: asString(params.type) || 'campaign',
     enabled: asString(params.enabled) === 'true',
     custom_html_path: asString(params.custom_html_path),
     image_path_desktop: asString(params.image_path_desktop),
     image_path_tablet: asString(params.image_path_tablet),
     image_path_mobile: asString(params.image_path_mobile),
+    image_blur_desktop: '',
+    image_blur_tablet: '',
+    image_blur_mobile: '',
     aspect_desktop: asString(params.aspect_desktop) || '1320/480',
     aspect_tablet: asString(params.aspect_tablet) || '1024/400',
     aspect_mobile: asString(params.aspect_mobile) || '390/640',

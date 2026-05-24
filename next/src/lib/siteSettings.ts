@@ -2,24 +2,29 @@
    lib/siteSettings.ts — 사이트 설정 (site_settings) 순수 헬퍼 (S129 Group H)
 
    역할:
-   - 영역별 Zod schema (notice · shipping · signature)
+   - 영역별 Zod schema (notice · shipping · home_featured)
    - 기본값 (DB seed 와 동일 — 프론트에서도 fallback 으로 사용)
-   - 영역 ID 상수 + 라벨 매핑
+   - 영역 ID 상수
 
    설계:
    - client-safe — 어드민 페이지(client) 와 메인 사이트(server) 양쪽에서 import.
    - DB row(value JSONB) ↔ 코드 객체 변환은 Zod parse 로.
    - 위치는 lib/admin 이 아닌 lib/ 직속 — 메인 사이트도 사용.
 
+   S270 Phase 3b — signature 분리:
+   - signature 는 banners 통합 테이블 + lib/banners.ts 로 이전.
+   - site_settings.signature row 는 legacy 보존 (별 sprint 에서 074 마이그로 삭제).
+
    참조:
    - 032_site_settings.sql (테이블 + seed)
+   - 071_banners_unified.sql (signature 통합 이전)
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { z } from 'zod';
 
 /* ── 영역 상수 ────────────────────────────────────────────────────────── */
 
-export const SITE_SETTING_KEYS = ['notice', 'shipping', 'signature', 'home_featured'] as const;
+export const SITE_SETTING_KEYS = ['notice', 'shipping', 'home_featured'] as const;
 export type SiteSettingKey = (typeof SITE_SETTING_KEYS)[number];
 
 /* ── 1. 공지 배너 (notice) ────────────────────────────────────────────── */
@@ -68,123 +73,12 @@ export const SHIPPING_DEFAULTS: ShippingSettings = {
   base_fee: 3500,
 };
 
-/* ── 3. 시그니처 chapter (signature) — S237 iframe HTML 모델 (062) ────── */
-
-/**
- * cafe-events (060/061) 답습 — 운영자가 .html 1 + 이미지 3 (desktop/tablet/mobile)
- * 을 업로드하면 SignatureChapter 가 placeholder 치환 후 <iframe sandbox srcDoc>
- * 으로 임베드. 디자인·텍스트·SVG·폰트 모두 운영자 HTML 내부에서 처리.
- *
- * Zod nullable() — site_settings.value 의 jsonb 에 NULL 키가 섞일 수 있는
- * 가능성 대비 (S235 학습 #3 cafe-events 답습).
- */
-export const SignatureSettingsSchema = z.object({
-  enabled: z.boolean().default(false),
-
-  /** 운영자 .html 파일 Storage URL (season-banners/signature/html/*) — 필수.
-      빈 값이면 chapter hide. SignatureChapter 가 fetch → placeholder 치환 →
-      <iframe srcDoc sandbox="allow-same-origin"> 임베드. */
-  custom_html_path: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(500),
-  ).default(''),
-
-  /** 데스크탑 이미지 Storage URL. HTML 안 {{IMAGE_DESKTOP}} placeholder 치환. */
-  image_path_desktop: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(500),
-  ).default(''),
-  /** 태블릿 이미지 — 비어있으면 desktop fallback. {{IMAGE_TABLET}} 치환. */
-  image_path_tablet: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(500),
-  ).default(''),
-  /** 모바일 이미지 — 비어있으면 desktop fallback. {{IMAGE_MOBILE}} 치환. */
-  image_path_mobile: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(500),
-  ).default(''),
-
-  /* ── LQIP base64 dataURL (S246) ────────────────────────────────────────
-     068 마이그. 업로드 시 generateImageBlurAction 으로 자동 생성. 운영자 HTML 의
-     {{IMAGE_BLUR_DESKTOP/TABLET/MOBILE}} placeholder 치환에 사용. base64 dataURL
-     은 길이 ~2KB 라 z.string() max 5000 으로 여유. */
-  image_blur_desktop: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(5000),
-  ).default(''),
-  image_blur_tablet: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(5000),
-  ).default(''),
-  image_blur_mobile: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(5000),
-  ).default(''),
-
-  /** iframe 컨테이너 aspect-ratio (>=1024px). CSS aspect-ratio 형식 "W/H". */
-  aspect_desktop: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(40),
-  ).default('1320/600'),
-  /** iframe 컨테이너 aspect-ratio (768~1023px). */
-  aspect_tablet: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(40),
-  ).default('1024/520'),
-  /** iframe 컨테이너 aspect-ratio (<768px). */
-  aspect_mobile: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(40),
-  ).default('390/520'),
-
-  /** iframe title 속성 + 접근성 description. */
-  image_alt: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(120),
-  ).default(''),
-
-  /* ── SEO 메타 슬롯 (063) ───────────────────────────────────────────────
-     iframe srcDoc 안 텍스트는 검색엔진/스크린리더에서 분리된 document 로
-     인식되어 SEO/a11y 진입이 약함. 운영자가 iframe 안 텍스트와 동일한 텍스트를
-     별도 입력 → SignatureChapterView 가 iframe 외부에 sr-only `<h2>/<p>/<a>`
-     로 출력. 빈 값이면 해당 슬롯 미출력. */
-
-  /** 검색용 헤드라인 (iframe 외부 sr-only `<h2>`). 빈 값 = 미출력. */
-  headline_text: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(80),
-  ).default(''),
-  /** 검색용 부제 (iframe 외부 sr-only `<p>`). 빈 값 = 미출력. */
-  subhead_text: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(200),
-  ).default(''),
-  /** 검색용 CTA 라벨 (iframe 외부 sr-only `<a>` 텍스트). 빈 값 = 미출력. */
-  cta_text: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(30),
-  ).default(''),
-  /** CTA 링크. cta_text 없으면 무시. 빈 값 + cta_text 있으면 `<span>` 으로 출력. */
-  cta_href: z.union([z.string(), z.null()]).transform((v) => v ?? '').pipe(
-    z.string().trim().max(500),
-  ).default(''),
-});
-
-export type SignatureSettings = z.infer<typeof SignatureSettingsSchema>;
-
-/** 코드 default — DB row 없을 때 fallback. enabled=false → chapter hide. */
-const SIGNATURE_DEFAULTS: SignatureSettings = {
-  enabled: false,
-  custom_html_path: '',
-  image_path_desktop: '',
-  image_path_tablet: '',
-  image_path_mobile: '',
-  image_blur_desktop: '',
-  image_blur_tablet: '',
-  image_blur_mobile: '',
-  aspect_desktop: '1320/600',
-  aspect_tablet: '1024/520',
-  aspect_mobile: '390/520',
-  image_alt: '',
-  headline_text: '',
-  subhead_text: '',
-  cta_text: '',
-  cta_href: '',
-};
-
-/* ── 4. 메인 노출 카페 메뉴 슬롯 (home_featured) — S248 (069) ───────────── */
+/* ── 3. 메인 노출 카페 메뉴 슬롯 (home_featured) — S248 (069) ───────────── */
 
 /**
  * 메인 페이지 §2.5 CafeMenuSection 의 시그니처 메뉴 3종 노출 슬롯.
  *
- * 운영자가 `/admin/settings` Section 4 에서 `cafe_menus` 전체 (is_active=true ·
+ * 운영자가 `/admin/settings` 에서 `cafe_menus` 전체 (is_active=true ·
  * status 무관) 중 0~3 종을 명시 선택. 순서 = 노출 순서.
  *
  * 빈 배열·미설정 시 CafeMenuSection 이 기존 `status='시그니처' .slice(0,3)` 으로
@@ -212,20 +106,19 @@ const HOME_FEATURED_DEFAULTS: HomeFeaturedSettings = {
 export interface SiteSettings {
   notice: NoticeSettings;
   shipping: ShippingSettings;
-  signature: SignatureSettings;
   home_featured: HomeFeaturedSettings;
 }
 
 export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   notice: NOTICE_DEFAULTS,
   shipping: SHIPPING_DEFAULTS,
-  signature: SIGNATURE_DEFAULTS,
   home_featured: HOME_FEATURED_DEFAULTS,
 };
 
 /**
  * DB rows ([{key, value}, ...]) → SiteSettings 객체.
  * 누락된 영역은 DEFAULTS 로 채움. parse 실패 시 해당 영역만 DEFAULTS.
+ * site_settings.signature 같은 legacy row 는 자연 무시.
  */
 export function parseSiteSettingsRows(
   rows: ReadonlyArray<{ key: string; value: unknown }>,
@@ -242,7 +135,6 @@ export function parseSiteSettingsRows(
   return {
     notice: safeParse(NoticeSettingsSchema, map.get('notice'), NOTICE_DEFAULTS),
     shipping: safeParse(ShippingSettingsSchema, map.get('shipping'), SHIPPING_DEFAULTS),
-    signature: safeParse(SignatureSettingsSchema, map.get('signature'), SIGNATURE_DEFAULTS),
     home_featured: safeParse(HomeFeaturedSettingsSchema, map.get('home_featured'), HOME_FEATURED_DEFAULTS),
   };
 }

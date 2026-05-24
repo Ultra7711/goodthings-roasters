@@ -1,36 +1,47 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   uploadSignatureHtml.ts — signature 운영자 HTML 파일 업로드 (S237 · 062)
+   uploadBannerHtml.ts — banners 통합 운영자 HTML 파일 업로드 (S270 Phase 3b · 071)
 
    책임:
    - .html 파일 사이즈/MIME 사전 검증 (UX — 실제 enforcement 는 RLS)
-   - season-banners 버킷 + prefix 'signature/html/' (062 마이그)
-   - public URL 반환 (custom_html_path 로 site_settings.signature payload 에 저장)
+   - banners 버킷 + prefix '{kind-slug}/html/' (071 마이그)
+   - public URL 반환 (custom_html_path 컬럼에 저장)
 
    설계:
-   - uploadCafeEventHtml.ts 답습. 버킷·prefix 만 변경.
-   - 062 마이그가 season-banners 버킷의 allowed_mime_types 에 text/html 추가.
-   - SignatureChapter 가 <iframe sandbox="allow-same-origin"> 으로 임베드 →
-     운영자 HTML 의 <script> 차단.
+   - uploadBannerImage 의 prefix 규칙 답습 (kind enum → URL-safe hyphen).
+   - uploadCafeEventHtml + uploadSignatureHtml 통합본 (S270 Phase 3b).
+   - EventBanner / SignatureChapterView 가 <iframe sandbox="allow-same-origin">
+     으로 임베드 → 운영자 HTML 의 <script> 차단.
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { supabase } from '@/lib/supabase';
-import { SEASON_BANNER_BUCKET, MAX_FILE_BYTES } from './imageUploadShared';
+import { MAX_FILE_BYTES } from './imageUploadShared';
 import type { UploadResult } from './imageUploadShared';
+import type { BannerKind } from '@/lib/banners';
 
+const BANNERS_BUCKET = 'banners';
 const HTML_MIME = ['text/html'] as const;
 const HTML_EXT_RE = /\.html?$/i;
 
-function buildObjectPath(file: File): string {
+/** kind enum (underscore) → Storage prefix (hyphen · 071 마이그 규약). */
+const KIND_STORAGE_PREFIX: Record<BannerKind, string> = {
+  cafe_event: 'cafe-event',
+  signature: 'signature',
+};
+
+function buildObjectPath(file: File, kind: BannerKind): string {
   const ts = Date.now();
   const safe = file.name
     .toLowerCase()
     .replace(/[^a-z0-9.\-_]/g, '-')
     .replace(/-+/g, '-')
     .slice(-60);
-  return `signature/html/${ts}-${safe}`;
+  return `${KIND_STORAGE_PREFIX[kind]}/html/${ts}-${safe}`;
 }
 
-export async function uploadSignatureHtml(file: File): Promise<UploadResult> {
+export async function uploadBannerHtml(
+  file: File,
+  kind: BannerKind,
+): Promise<UploadResult> {
   /* 1) 사전 검증 — 크기 + MIME + 확장자 */
   if (file.size > MAX_FILE_BYTES) {
     return {
@@ -51,9 +62,9 @@ export async function uploadSignatureHtml(file: File): Promise<UploadResult> {
   }
 
   /* 2) Storage upload */
-  const path = buildObjectPath(file);
+  const path = buildObjectPath(file, kind);
   const { error: uploadError } = await supabase.storage
-    .from(SEASON_BANNER_BUCKET)
+    .from(BANNERS_BUCKET)
     .upload(path, file, {
       cacheControl: '3600',
       contentType: 'text/html',
@@ -69,7 +80,7 @@ export async function uploadSignatureHtml(file: File): Promise<UploadResult> {
   }
 
   /* 3) public URL */
-  const { data } = supabase.storage.from(SEASON_BANNER_BUCKET).getPublicUrl(path);
+  const { data } = supabase.storage.from(BANNERS_BUCKET).getPublicUrl(path);
   if (!data?.publicUrl) {
     return { ok: false, error: 'public_url_failed' };
   }
