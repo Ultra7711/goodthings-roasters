@@ -41,10 +41,11 @@ import {
 import {
   MAX_EXPORT_ROWS,
   buildExportFilename,
-  logCsvExportAudit,
+  logExportAudit,
   nowKstDisplay,
 } from '@/lib/admin/csvExport';
 import { buildXlsxBuffer, bufferToBase64 } from '@/lib/admin/xlsxExport';
+import { logActionError } from '@/lib/admin/logActionError';
 
 /* ── Schemas ──────────────────────────────────────────────────────────── */
 
@@ -112,10 +113,7 @@ async function callRoleRpc(
     if (error.code === '42501') {
       return { ok: false, error: 'unauthorized' };
     }
-    console.error(`[${fn}Action] rpc failed`, {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError(`[${fn}Action] rpc failed`, error);
     return { ok: false, error: 'server_error' };
   }
 
@@ -217,10 +215,7 @@ export async function setAdminLevelAction(
     if (error.code === 'P0002' || /not found/i.test(error.message ?? '')) {
       return { ok: false, error: 'not_found' };
     }
-    console.error('[setAdminLevelAction] rpc failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError('[setAdminLevelAction] rpc failed', error);
     return { ok: false, error: 'server_error' };
   }
 
@@ -229,9 +224,9 @@ export async function setAdminLevelAction(
   return { ok: true, targetId: parsed.data.targetId };
 }
 
-/* ── exportUsersCsvAction (S255-B · Users CSV export) ─────────────────
+/* ── exportUsersXlsxAction (S255-B · S255-C Users Excel export) ───────
    orders / subscriptions 답습. owner 가드 + Zod + fetchAdminUsersForExport
-   + buildCsv + audit log. UsersTableClient 의 handleExport 가 호출.
+   + buildXlsxBuffer + audit log. UsersTableClient 의 handleExport 가 호출.
    ──────────────────────────────────────────────────────────────────── */
 
 const ExportUsersInputSchema = z.object({
@@ -242,7 +237,7 @@ const ExportUsersInputSchema = z.object({
 
 export type ExportUsersInput = z.input<typeof ExportUsersInputSchema>;
 
-export type ExportUsersCsvResult =
+export type ExportUsersXlsxResult =
   | {
       ok: true;
       filename: string;
@@ -253,10 +248,10 @@ export type ExportUsersCsvResult =
     }
   | { ok: false; error: 'unauthorized' | 'validation_failed' | 'server_error' };
 
-export async function exportUsersCsvAction(
+export async function exportUsersXlsxAction(
   input: ExportUsersInput,
-): Promise<ExportUsersCsvResult> {
-  /* owner (관리자) 만 CSV 내보내기. staff (운영자) 는 차단. */
+): Promise<ExportUsersXlsxResult> {
+  /* owner (관리자) 만 내보내기. staff (운영자) 는 차단. */
   const claims = await getAdminOwnerClaims();
   if (!claims) return { ok: false, error: 'unauthorized' };
 
@@ -297,7 +292,7 @@ export async function exportUsersCsvAction(
     });
     const filename = buildExportFilename('users', 'xlsx');
 
-    await logCsvExportAudit({
+    await logExportAudit({
       domain: 'users',
       actorId: claims.userId,
       filters: parsed.data,
@@ -313,9 +308,10 @@ export async function exportUsersCsvAction(
       truncated,
     };
   } catch (err: unknown) {
-    console.error('[exportUsersCsvAction] failed', {
-      message: err instanceof Error ? err.message.slice(0, 200) : 'unknown',
-    });
+    logActionError(
+      '[exportUsersXlsxAction] failed',
+      err instanceof Error ? err : null,
+    );
     return { ok: false, error: 'server_error' };
   }
 }
@@ -385,10 +381,7 @@ export async function forceDeleteAccountAction(
     .maybeSingle();
 
   if (targetErr) {
-    console.error('[forceDeleteAccountAction] target lookup failed', {
-      code: targetErr.code,
-      message: targetErr.message?.slice(0, 200),
-    });
+    logActionError('[forceDeleteAccountAction] target lookup failed', targetErr);
     return { ok: false, error: 'server_error' };
   }
   if (!target) return { ok: false, error: 'not_found' };
@@ -410,10 +403,7 @@ export async function forceDeleteAccountAction(
     if (msg.includes('subscription_active')) {
       return { ok: false, error: 'subscription_active' };
     }
-    console.error('[forceDeleteAccountAction] rpc failed', {
-      code: rpcError.code,
-      message: msg.slice(0, 200),
-    });
+    logActionError('[forceDeleteAccountAction] rpc failed', rpcError);
     return { ok: false, error: 'server_error' };
   }
 
@@ -430,10 +420,7 @@ export async function forceDeleteAccountAction(
 
   if (auditErr) {
     /* audit insert 실패는 치명. force delete 는 책임 추적 필수 — 작업 중단. */
-    console.error('[forceDeleteAccountAction] admin_audit insert failed', {
-      code: auditErr.code,
-      message: auditErr.message?.slice(0, 200),
-    });
+    logActionError('[forceDeleteAccountAction] admin_audit insert failed', auditErr);
     return { ok: false, error: 'server_error' };
   }
 
@@ -442,11 +429,13 @@ export async function forceDeleteAccountAction(
 
   if (deleteAuthErr) {
     /* orphan: orders 익명화 완료 + audit 기록 완료, auth.users 만 잔존.
-       안전 방향 (PII 이미 파기) — 운영자 수동 복구 가능. */
-    console.error('[forceDeleteAccountAction] auth.deleteUser failed — ORPHAN', {
-      userId: parsed.data.targetId,
-      code: deleteAuthErr.status,
-    });
+       안전 방향 (PII 이미 파기) — 운영자 수동 복구 가능.
+       AuthError status 는 number → logActionError code 는 string 기대 → cast. */
+    logActionError(
+      '[forceDeleteAccountAction] auth.deleteUser failed — ORPHAN',
+      { code: String(deleteAuthErr.status ?? ''), message: deleteAuthErr.message ?? null },
+      { userId: parsed.data.targetId },
+    );
     return { ok: false, error: 'server_error' };
   }
 

@@ -4,9 +4,9 @@
    actions.ts — /admin/audit Server Actions (S233-fu Step 4)
 
    책임:
-   - exportAuditCsvAction: 감사 로그 통합 타임라인 CSV 내보내기
+   - exportAuditXlsxAction: 감사 로그 통합 타임라인 Excel (xlsx) 내보내기
    - owner 가드 (감사 로그 자체 접근 owner-only · /admin/audit 페이지 정합)
-   - logCsvExportAudit (재귀 audit · 057 마이그 'audit' enum 답습)
+   - logExportAudit (재귀 audit · 057 마이그 'audit' enum 답습)
 
    사용 사례:
    - 정부 · KISA 컴플라이언스 측 PII 조회 기록 제출 자료
@@ -14,7 +14,7 @@
 
    참조:
    - lib/admin/auditServer.ts (fetchAdminAuditEvents)
-   - lib/admin/csvExport.ts (helper)
+   - lib/admin/csvExport.ts (helper · 모듈명 historical)
    - subscriptions/actions.ts · orders/actions.ts (답습 source)
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -23,12 +23,13 @@ import { fetchAdminAuditEvents } from '@/lib/admin/auditServer';
 import { describeAuditAction, formatAuditKstDateTime, describeExportFilters } from '@/lib/admin/audit';
 import {
   buildExportFilename,
-  logCsvExportAudit,
+  logExportAudit,
   nowKstDisplay,
 } from '@/lib/admin/csvExport';
 import { buildXlsxBuffer, bufferToBase64 } from '@/lib/admin/xlsxExport';
+import { logActionError } from '@/lib/admin/logActionError';
 
-export type ExportCsvResult =
+export type ExportXlsxResult =
   | {
       ok: true;
       filename: string;
@@ -39,7 +40,7 @@ export type ExportCsvResult =
     }
   | { ok: false; error: 'unauthorized' | 'server_error' };
 
-export async function exportAuditCsvAction(): Promise<ExportCsvResult> {
+export async function exportAuditXlsxAction(): Promise<ExportXlsxResult> {
   const claims = await getAdminOwnerClaims();
   if (!claims) return { ok: false, error: 'unauthorized' };
 
@@ -87,7 +88,7 @@ export async function exportAuditCsvAction(): Promise<ExportCsvResult> {
     const filename = buildExportFilename('audit', 'xlsx');
 
     /* 재귀 audit — 감사 로그 내보내기 행위 자체도 기록 (057 마이그 'audit' enum 답습) */
-    await logCsvExportAudit({
+    await logExportAudit({
       domain: 'audit',
       actorId: claims.userId,
       filters: {},
@@ -103,9 +104,10 @@ export async function exportAuditCsvAction(): Promise<ExportCsvResult> {
       truncated: false,
     };
   } catch (err: unknown) {
-    console.error('[exportAuditCsvAction] failed', {
-      message: err instanceof Error ? err.message.slice(0, 200) : 'unknown',
-    });
+    logActionError(
+      '[exportAuditXlsxAction] failed',
+      err instanceof Error ? err : null,
+    );
     return { ok: false, error: 'server_error' };
   }
 }

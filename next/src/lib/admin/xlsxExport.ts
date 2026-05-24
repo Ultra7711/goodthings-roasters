@@ -19,7 +19,7 @@ import 'server-only';
 
    재사용:
    - MAX_EXPORT_ROWS / nowKstDisplay / formatKstDate* / buildExportFilename /
-     logCsvExportAudit 은 csvExport.ts 의 helper 그대로.
+     logExportAudit 은 csvExport.ts 의 helper (S268 rename).
    ══════════════════════════════════════════════════════════════════════════ */
 
 import ExcelJS from 'exceljs';

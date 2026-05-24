@@ -6,7 +6,7 @@
    책임 (orchestrator):
    - state: selected (selection state) · searchValue · isExporting
    - URL builder + 검색 debounce + 페이지 변경 시 선택 초기화
-   - handleExport (Excel xlsx) — exportOrdersCsvAction + clientDownload
+   - handleExport (Excel xlsx) — exportOrdersXlsxAction + clientDownload
    - layout 조립: AdminTopbarActions / AdminPageHeader / AdminTabsNav /
      OrdersFilterBar / AdminDataTable + footer
 
@@ -19,7 +19,7 @@
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { exportOrdersCsvAction } from './actions';
+import { exportOrdersXlsxAction } from './actions';
 import { buildOrdersColumns } from './ordersColumns';
 import OrdersFilterBar from './OrdersFilterBar';
 import { downloadXlsxFromBase64 } from '@/lib/admin/clientDownload';
@@ -64,7 +64,7 @@ export default function OrdersTableClient({ rows, total, counts, filters, isOwne
   /* Excel 내보내기 — 현재 status/period/payment/q 필터 적용. truncated 시 안내. */
   function handleExport() {
     startExport(async () => {
-      const result = await exportOrdersCsvAction({
+      const result = await exportOrdersXlsxAction({
         status: filters.status,
         period: filters.period,
         payment: filters.payment,

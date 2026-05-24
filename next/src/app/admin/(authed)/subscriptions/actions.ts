@@ -37,11 +37,12 @@ import {
   resolveUserName,
 } from '@/lib/admin/subscriptions';
 import { fetchAdminSubscriptionsForExport } from '@/lib/admin/subscriptionsServer';
+import { logActionError } from '@/lib/admin/logActionError';
 import {
   MAX_EXPORT_ROWS,
   buildExportFilename,
   formatKstDateCell,
-  logCsvExportAudit,
+  logExportAudit,
   nowKstDisplay,
 } from '@/lib/admin/csvExport';
 import { buildXlsxBuffer, bufferToBase64 } from '@/lib/admin/xlsxExport';
@@ -160,10 +161,7 @@ async function insertAuditLog(
     new_value: params.newValue,
   });
   if (error) {
-    console.error('[insertAuditLog] failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError('[insertAuditLog] failed', error);
   }
 }
 
@@ -210,10 +208,7 @@ export async function updateSubscriptionNextDeliveryAction(
     .maybeSingle();
 
   if (fetchErr) {
-    console.error('[updateSubscriptionNextDeliveryAction] fetch failed', {
-      code: fetchErr.code,
-      message: fetchErr.message?.slice(0, 200),
-    });
+    logActionError('[updateSubscriptionNextDeliveryAction] fetch failed', fetchErr);
     return { ok: false, error: 'server_error' };
   }
   if (!current) return { ok: false, error: 'not_found' };
@@ -232,10 +227,7 @@ export async function updateSubscriptionNextDeliveryAction(
     if (error.code === '42501') {
       return { ok: false, error: 'unauthorized' };
     }
-    console.error('[updateSubscriptionNextDeliveryAction] update failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError('[updateSubscriptionNextDeliveryAction] update failed', error);
     return { ok: false, error: 'server_error' };
   }
 
@@ -287,10 +279,7 @@ export async function updateSubscriptionCycleAction(
     .maybeSingle();
 
   if (fetchErr) {
-    console.error('[updateSubscriptionCycleAction] fetch failed', {
-      code: fetchErr.code,
-      message: fetchErr.message?.slice(0, 200),
-    });
+    logActionError('[updateSubscriptionCycleAction] fetch failed', fetchErr);
     return { ok: false, error: 'server_error' };
   }
   if (!current) return { ok: false, error: 'not_found' };
@@ -318,10 +307,7 @@ export async function updateSubscriptionCycleAction(
 
   if (error) {
     if (error.code === '42501') return { ok: false, error: 'unauthorized' };
-    console.error('[updateSubscriptionCycleAction] update failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError('[updateSubscriptionCycleAction] update failed', error);
     return { ok: false, error: 'server_error' };
   }
   if (!data) return { ok: false, error: 'not_found' };
@@ -374,10 +360,7 @@ export async function updateSubscriptionStatusAction(
     .maybeSingle();
 
   if (fetchErr) {
-    console.error('[updateSubscriptionStatusAction] fetch failed', {
-      code: fetchErr.code,
-      message: fetchErr.message?.slice(0, 200),
-    });
+    logActionError('[updateSubscriptionStatusAction] fetch failed', fetchErr);
     return { ok: false, error: 'server_error' };
   }
   if (!current) return { ok: false, error: 'not_found' };
@@ -433,10 +416,7 @@ export async function updateSubscriptionStatusAction(
 
   if (error) {
     if (error.code === '42501') return { ok: false, error: 'unauthorized' };
-    console.error('[updateSubscriptionStatusAction] update failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError('[updateSubscriptionStatusAction] update failed', error);
     return { ok: false, error: 'server_error' };
   }
   if (!data) return { ok: false, error: 'not_found' };
@@ -479,10 +459,7 @@ export async function fetchSubscriptionAuditLogAction(
     .limit(10);
 
   if (error) {
-    console.error('[fetchSubscriptionAuditLogAction] failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError('[fetchSubscriptionAuditLogAction] failed', error);
     return { ok: false, error: 'server_error' };
   }
 
@@ -497,18 +474,18 @@ export async function fetchSubscriptionAuditLogAction(
   return { ok: true, entries };
 }
 
-/* ── Export CSV (S232) ────────────────────────────────────────────── */
+/* ── Export Xlsx (S232 · S255-C) ──────────────────────────────────── */
 
 /**
- * 현재 필터에 일치하는 구독 목록을 CSV 로 내보낸다.
+ * 현재 필터에 일치하는 구독 목록을 Excel (xlsx) 로 내보낸다.
  *
  * - admin 가드
  * - PAGE_SIZE 무시 + MAX_EXPORT_ROWS (10,000) 한도
  * - PII 평문 (DEC-export-4): 운영 목적 (회계 / CS / 배송)
  * - actor / 필터 / 행 수 audit (console 구조화 · Vercel log 보존)
  *
- * 반환: csv 본문 + 파일명 + truncated 신호.
- *       client 에서 Blob 다운로드 + truncated 시 안내 toast.
+ * 반환: xlsx Buffer base64 + 파일명 + truncated 신호.
+ *       client 에서 디코딩 후 Blob 다운로드 + truncated 시 안내 toast.
  */
 const ExportSubscriptionsInputSchema = z.object({
   status: z.enum(['all', 'active', 'paused', 'cancelled', 'expired']).default('all'),
@@ -517,7 +494,7 @@ const ExportSubscriptionsInputSchema = z.object({
 
 export type ExportSubscriptionsInput = z.input<typeof ExportSubscriptionsInputSchema>;
 
-export type ExportCsvResult =
+export type ExportXlsxResult =
   | {
       ok: true;
       filename: string;
@@ -528,10 +505,10 @@ export type ExportCsvResult =
     }
   | { ok: false; error: 'unauthorized' | 'validation_failed' | 'server_error' };
 
-export async function exportSubscriptionsCsvAction(
+export async function exportSubscriptionsXlsxAction(
   input: ExportSubscriptionsInput,
-): Promise<ExportCsvResult> {
-  /* S232: owner (관리자) 만 CSV 내보내기. staff (운영자) 는 차단. */
+): Promise<ExportXlsxResult> {
+  /* S232: owner (관리자) 만 내보내기. staff (운영자) 는 차단. */
   const claims = await getAdminOwnerClaims();
   if (!claims) return { ok: false, error: 'unauthorized' };
 
@@ -576,7 +553,7 @@ export async function exportSubscriptionsCsvAction(
     });
     const filename = buildExportFilename('subscriptions', 'xlsx');
 
-    await logCsvExportAudit({
+    await logExportAudit({
       domain: 'subscriptions',
       actorId: claims.userId,
       filters: { status: parsed.data.status, q: parsed.data.q },
@@ -592,9 +569,10 @@ export async function exportSubscriptionsCsvAction(
       truncated,
     };
   } catch (err: unknown) {
-    console.error('[exportSubscriptionsCsvAction] failed', {
-      message: err instanceof Error ? err.message.slice(0, 200) : 'unknown',
-    });
+    logActionError(
+      '[exportSubscriptionsXlsxAction] failed',
+      err instanceof Error ? err : null,
+    );
     return { ok: false, error: 'server_error' };
   }
 }

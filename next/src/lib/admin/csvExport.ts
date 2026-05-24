@@ -1,12 +1,12 @@
 import 'server-only';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   csvExport.ts — admin 도메인 내보내기 공통 helper (S232 · S255-C 갱신)
+   csvExport.ts — admin 도메인 내보내기 공통 helper (S232 · S255-C · S268 갱신)
 
    책임 (S255-C):
    - 파일명 패턴 (KST 시각 + 확장자)
    - KST 셀 포맷 (formatKstDateCell / formatKstDateTimeCell · 도메인 actions 가 재사용)
-   - audit log (logCsvExportAudit — admin_export_log INSERT + console 구조화)
+   - audit log (logExportAudit — admin_export_log INSERT + console 구조화)
    - 내보내기 행 상한 (MAX_EXPORT_ROWS)
 
    DEC (S232 잠금):
@@ -21,12 +21,19 @@ import 'server-only';
    - buildExportFilename 의 확장자 인자화 (default 'xlsx').
    - audit_log enum 'csv_*' 은 backward compat 으로 유지 (라벨만 'XX 내보내기' 로
      갱신 — describeAuditAction).
-   - 파일명 의미 변경 (csv → xlsx) — 함수 이름은 historical 'csvExport' 그대로.
+   - 파일명 의미 변경 (csv → xlsx) — 모듈 파일명만 historical 'csvExport' 그대로.
+
+   S268 변경:
+   - logCsvExportAudit → logExportAudit (csv/xlsx 무관 generic naming)
+   - console log prefix '[admin.export.csv]' → '[admin.export]' (xlsx 전환 반영)
+   - 내부 console.error → logActionError 표준 prefix
 
    PII 정책:
    - 운영 목적 (회계 / CS / 배송) 평문 허용. 외부 공유 금지 표기.
-   - 다운로드 행위는 logCsvExportAudit 으로 console 구조화 기록 (Vercel log 보존).
+   - 다운로드 행위는 logExportAudit 으로 console 구조화 기록 (Vercel log 보존).
    ══════════════════════════════════════════════════════════════════════════ */
+
+import { logActionError } from './logActionError';
 
 /** DEC-export-3: 내보내기 행 수 상한 */
 export const MAX_EXPORT_ROWS = 10_000;
@@ -96,7 +103,7 @@ export function nowKstDisplay(nowIso: string = new Date().toISOString()): string
  * RLS: admin_export_log_insert_admin_self — admin 본인 행만 INSERT 허용.
  * INSERT 실패해도 caller 의 다운로드 자체는 영향 없음 (best-effort).
  */
-export async function logCsvExportAudit(params: {
+export async function logExportAudit(params: {
   domain: 'subscriptions' | 'orders' | 'users' | 'products' | 'audit';
   actorId: string;
   filters: Record<string, unknown>;
@@ -104,7 +111,7 @@ export async function logCsvExportAudit(params: {
   truncated: boolean;
 }): Promise<void> {
   /* eslint-disable-next-line no-console */
-  console.log('[admin.export.csv]', JSON.stringify({
+  console.log('[admin.export]', JSON.stringify({
     domain: params.domain,
     actor_id: params.actorId,
     filters: params.filters,
@@ -124,14 +131,12 @@ export async function logCsvExportAudit(params: {
       truncated: params.truncated,
     });
     if (error) {
-      console.error('[logCsvExportAudit] insert failed', {
-        code: error.code,
-        message: error.message?.slice(0, 200),
-      });
+      logActionError('[logExportAudit] insert failed', error);
     }
   } catch (err: unknown) {
-    console.error('[logCsvExportAudit] caught', {
-      message: err instanceof Error ? err.message.slice(0, 200) : 'unknown',
-    });
+    logActionError(
+      '[logExportAudit] caught',
+      err instanceof Error ? err : null,
+    );
   }
 }

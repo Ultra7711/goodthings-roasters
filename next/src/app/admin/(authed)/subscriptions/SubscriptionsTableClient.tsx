@@ -71,7 +71,7 @@ import {
   updateSubscriptionCycleAction,
   updateSubscriptionStatusAction,
   fetchSubscriptionAuditLogAction,
-  exportSubscriptionsCsvAction,
+  exportSubscriptionsXlsxAction,
   type AuditLogEntry,
 } from './actions';
 import { downloadXlsxFromBase64 } from '@/lib/admin/clientDownload';
@@ -84,7 +84,7 @@ type Props = {
   total: number;
   counts: CountsShape;
   filters: AdminSubscriptionsSearchParams;
-  /** S232: owner (관리자) 만 CSV 내보내기 활성. staff (운영자) 는 disabled. */
+  /** S232: owner (관리자) 만 내보내기 활성. staff (운영자) 는 disabled. */
   isOwner: boolean;
 };
 
@@ -105,10 +105,10 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters,
     setSearchValue(filters.q);
   }, [filters.q]);
 
-  /* CSV 내보내기 — 현재 status / q 필터 적용. truncated 시 안내 toast. */
+  /* xlsx 내보내기 — 현재 status / q 필터 적용. truncated 시 안내 toast. */
   function handleExport() {
     startExport(async () => {
-      const result = await exportSubscriptionsCsvAction({
+      const result = await exportSubscriptionsXlsxAction({
         status: filters.status,
         q: filters.q,
       });

@@ -22,7 +22,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { exportUsersCsvAction } from './actions';
+import { exportUsersXlsxAction } from './actions';
 import { downloadXlsxFromBase64 } from '@/lib/admin/clientDownload';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
@@ -78,7 +78,7 @@ export default function UsersTableClient({ rows, total, counts, filters, isOwner
      S255-B: orders/subscriptions handleExport 답습. */
   function handleExport() {
     startExport(async () => {
-      const result = await exportUsersCsvAction({
+      const result = await exportUsersXlsxAction({
         role: filters.role,
         provider: filters.provider,
         q: filters.q,

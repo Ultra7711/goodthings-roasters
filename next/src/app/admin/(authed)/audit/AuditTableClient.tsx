@@ -29,7 +29,7 @@ import {
   type AuditTone,
 } from '@/lib/admin/audit';
 import type { AdminAuditEvent } from '@/lib/admin/auditServer';
-import { exportAuditCsvAction } from './actions';
+import { exportAuditXlsxAction } from './actions';
 import { downloadXlsxFromBase64 } from '@/lib/admin/clientDownload';
 
 const TONES: Record<AuditTone, { bg: string; fg: string; dot: string }> = {
@@ -50,7 +50,7 @@ export default function AuditTableClient({ events }: Props) {
   /* Excel 내보내기 — 컴플라이언스 자료 (정부 · KISA PII 조회 기록 제출용). */
   function handleExport() {
     startExport(async () => {
-      const result = await exportAuditCsvAction();
+      const result = await exportAuditXlsxAction();
       if (!result.ok) {
         const map: Record<string, string> = {
           unauthorized: '관리자 권한이 필요합니다.',
