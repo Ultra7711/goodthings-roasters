@@ -39,11 +39,12 @@ const TONES: Record<StatusTone, { bg: string; fg: string; dot: string }> = {
   primary: { bg: 'var(--primary-soft)', fg: 'var(--primary-soft-fg)', dot: 'var(--primary)' },
 };
 
-/* TODO: URL 확인 필요 — Toss 콘솔 결제 내역 경로 미검증 */
-const TOSS_CONSOLE_URL = 'https://my.tosspayments.com/sales-history';
-/* TODO: URL 확인 필요 — docs.tosspayments.com 경로 변경됨 */
+/* 상점관리자 (app.tosspayments.com) — 공식 docs glossary 의 official 진입점 (S264-E LOW-1).
+   sales-history 직접 path 는 SPA 라 deep-link 불가 — 로그인 후 매출/정산 메뉴로 이동. */
+const TOSS_CONSOLE_URL = 'https://app.tosspayments.com/';
+/* 결제 취소하기 v2 가이드 — 부분 환불 + 가상계좌 환불계좌 처리 (S264-E LOW-1). */
 const TOSS_REFUND_GUIDE_URL =
-  'https://docs.tosspayments.com/guides/v2/payment-widget/refund';
+  'https://docs.tosspayments.com/guides/v2/cancel-payment';
 
 export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
   const [shipOpen, setShipOpen] = useState(false);
