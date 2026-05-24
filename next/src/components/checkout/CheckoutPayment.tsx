@@ -27,6 +27,8 @@ import {
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/utils';
 
+/* Toss 결제위젯 클라이언트 키 (NEXT_PUBLIC 으로 빌드 타임 인라인).
+   미설정 시 빈 문자열 → 컴포넌트는 즉시 loadFailed 폴백 UI 로 진입. */
 const CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ?? '';
 
 type CheckoutPaymentProps = {

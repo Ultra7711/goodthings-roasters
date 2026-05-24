@@ -8,6 +8,7 @@
 
 'use client';
 
+import { useMemo } from 'react';
 import OrderItemRow from '@/components/order/OrderItemRow';
 import type { CartItem } from '@/types/cart';
 import { formatPrice } from '@/lib/utils';
@@ -29,6 +30,17 @@ export default function OrderSummary({
   totalPrice,
   hasSubscription,
 }: OrderSummaryProps) {
+  /* 정기배송 합계 — hasSubscription=true 일 때만 노출. items 동일 참조 시 재계산 회피. */
+  const subscriptionTotal = useMemo(
+    () =>
+      hasSubscription
+        ? items
+            .filter((i) => i.type === 'subscription')
+            .reduce((s, i) => s + i.priceNum * i.qty, 0)
+        : 0,
+    [items, hasSubscription],
+  );
+
   return (
     <div className="chp-right">
       <div className="chp-right-title">주문 요약</div>
@@ -68,9 +80,7 @@ export default function OrderSummary({
         {hasSubscription && (
           <div className="chp-sum-sub-block">
             <span>정기배송 금액</span>
-            <span>
-              {formatPrice(items.filter((i) => i.type === 'subscription').reduce((s, i) => s + i.priceNum * i.qty, 0))}
-            </span>
+            <span>{formatPrice(subscriptionTotal)}</span>
           </div>
         )}
       </div>

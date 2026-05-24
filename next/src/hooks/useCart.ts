@@ -46,6 +46,13 @@ export const MIN_QUANTITY = 1;
 
 export const CART_QUERY_KEY = ['cart'] as const;
 
+/* 카트 mutation 실패 시 사용자 toast 메시지. action 별 일관 톤 + 유지보수성. */
+const CART_ERROR_MESSAGES = {
+  add: '장바구니 추가에 실패했습니다. 다시 시도해 주세요.',
+  update: '수량 변경에 실패했습니다. 다시 시도해 주세요.',
+  remove: '상품 삭제에 실패했습니다. 다시 시도해 주세요.',
+} as const;
+
 /* ══════════════════════════════════════════
    내부 유틸
    ══════════════════════════════════════════ */
@@ -252,7 +259,7 @@ export function useAddCartItem() {
     },
     onError: (err, _payload, context) => {
       if (process.env.NODE_ENV === 'development') console.error('[useAddCartItem] failed', err);
-      showToast('장바구니 추가에 실패했습니다. 다시 시도해 주세요.');
+      showToast(CART_ERROR_MESSAGES.add);
       if (context?.previous !== undefined) {
         queryClient.setQueryData(CART_QUERY_KEY, context.previous);
         if (!context.wasLoggedIn) writeGuestCart(context.previous);
@@ -312,7 +319,7 @@ export function useUpdateCartQty() {
     },
     onError: (err, _vars, context) => {
       if (process.env.NODE_ENV === 'development') console.error('[useUpdateCartQty] failed', err);
-      showToast('수량 변경에 실패했습니다. 다시 시도해 주세요.');
+      showToast(CART_ERROR_MESSAGES.update);
       if (context?.previous !== undefined) {
         queryClient.setQueryData(CART_QUERY_KEY, context.previous);
         if (!context.wasLoggedIn) writeGuestCart(context.previous);
@@ -354,7 +361,7 @@ export function useRemoveCartItem() {
     },
     onError: (err, _id, context) => {
       if (process.env.NODE_ENV === 'development') console.error('[useRemoveCartItem] failed', err);
-      showToast('상품 삭제에 실패했습니다. 다시 시도해 주세요.');
+      showToast(CART_ERROR_MESSAGES.remove);
       if (context?.previous !== undefined) {
         queryClient.setQueryData(CART_QUERY_KEY, context.previous);
         if (!context.wasLoggedIn) writeGuestCart(context.previous);

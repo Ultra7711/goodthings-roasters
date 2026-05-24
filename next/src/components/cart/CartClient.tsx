@@ -39,6 +39,9 @@ export default function CartClient({ initialItems }: CartClientProps = {}) {
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement | null>(null);
 
+  /* 진입 연출 재트리거 — remove → 강제 reflow (offsetHeight) → add 로
+     hydration 시 className 이 이미 박혀있어도 CSS 애니메이션 재생 보장.
+     (Shop/Story/CafeMenu 등 14 파일 동일 패턴 — 추출 후보지만 위치 다양해 보류) */
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
