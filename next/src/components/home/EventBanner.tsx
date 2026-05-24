@@ -135,7 +135,7 @@ export default async function EventBanner({ event }: Props) {
             className="ev-banner-iframe sr-img"
             data-event-id={event.id}
             srcDoc={filledHtml}
-            title={event.image_alt || '카페 이벤트 배너'}
+            title={event.image_alt || '카페 배너'}
           />
         </div>
       </div>

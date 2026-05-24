@@ -4,8 +4,8 @@
    CafeEventsForm — /admin/cafe-events master-detail (S234 후속 · 060 iframe 진화)
 
    책임:
-   - 좌측 list (이벤트 N개 — type pill + 상태 라벨)
-   - 우측 edit form (선택된 이벤트 또는 신규 임시 row)
+   - 좌측 list (배너 N개 — type pill + 상태 라벨)
+   - 우측 edit form (선택된 배너 또는 신규 임시 row)
    - 운영자 .html 파일 업로드 (custom_html_path)
    - brk 별 aspect-ratio 3 입력 (1320/480 형식)
    - 4 brk iframe 라이브 미리보기
@@ -366,7 +366,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
         const { id: _, ...input } = draft;
         const result = await createBannerAction(input);
         if (result.ok) {
-          toast.success('이벤트를 등록했습니다');
+          toast.success('배너를 등록했습니다');
           setSelectedId(result.id);
           /* TEMP_ID → 실 UUID 로 교체 — isNew 해제 + list 의 신규/실 row 중복 방지 */
           setDraft((prev) => (prev ? { ...prev, id: result.id } : prev));
@@ -377,7 +377,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       } else {
         const result = await updateBannerAction(draft);
         if (result.ok) {
-          toast.success('이벤트를 저장했습니다', {
+          toast.success('배너를 저장했습니다', {
             description: '사이트에 즉시 반영됩니다',
           });
           router.refresh();
@@ -398,7 +398,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
     startTransition(async () => {
       const result = await deleteBannerAction({ id: draft.id, kind: 'cafe_event' });
       if (result.ok) {
-        toast.success('이벤트를 삭제했습니다');
+        toast.success('배너를 삭제했습니다');
         setDeleteConfirmOpen(false);
         setDraft(null);
         setSelectedId(null);
@@ -436,23 +436,23 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
               ? '등록 중…'
               : '저장 중…'
             : isNew
-              ? '이벤트 등록'
+              ? '배너 등록'
               : '변경사항 저장'}
         </Button>
       </AdminTopbarActions>
 
       <AdminPageHeader
-        title="카페 이벤트 관리"
-        subtitle="메인 §2.5 카페 메뉴 chapter 의 이벤트 배너 · iframe HTML 임베드 · 동시 활성 max 1"
+        title="카페 배너 관리"
+        subtitle="메인 §2.5 카페 메뉴 chapter 의 배너 배너 · iframe HTML 임베드 · 동시 활성 max 1"
         className="mb-6"
       />
 
-      {/* 이벤트 목록 — 상단 수평 스크롤 스트립 */}
+      {/* 배너 목록 — 상단 수평 스크롤 스트립 */}
       <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden mb-4">
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-          <div className="flex-1 text-sm font-medium">등록중인 이벤트</div>
+          <div className="flex-1 text-sm font-medium">등록중인 배너</div>
           <Button type="button" variant="outline" size="sm" className="!h-7" onClick={handleNew}>
-            + 새 이벤트
+            + 새 배너
           </Button>
         </div>
         <div className="flex gap-2 p-3 overflow-x-auto">
@@ -467,7 +467,7 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
           )}
           {events.length === 0 && !draft && (
             <div className="py-3 text-xs text-[var(--foreground-muted)]">
-              아직 등록된 이벤트가 없습니다.
+              아직 등록된 배너가 없습니다.
             </div>
           )}
           {events.map((ev) => (
@@ -488,23 +488,23 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       <div className="flex flex-col gap-3 min-w-0">
         {!draft ? (
           <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] py-12 px-10 text-center text-sm text-[var(--foreground-muted)]">
-            위에서 이벤트를 선택하거나 [+ 새 이벤트] 를 눌러주세요.
+            위에서 배너를 선택하거나 [+ 새 배너] 를 눌러주세요.
           </div>
         ) : (
           <>
             {/* 동시 활성 충돌 경고 */}
             {activeConflict && (
               <div className="px-3 py-2.5 rounded-md bg-[var(--warning-soft)] text-[var(--warning)] border border-[var(--warning)] text-xs">
-                ⚠ 활성 충돌 — 같은 기간에 다른 이벤트
+                ⚠ 활성 충돌 — 같은 기간에 다른 배너
                 ({CAFE_EVENT_TYPE_LABELS[activeConflict.type]}) 가 이미 활성 상태입니다.
                 동시 활성 max 1 (자문 §5.3) — 우선순위 높은 1개만 노출됩니다.
               </div>
             )}
 
             {/* 기본 정보 카드 */}
-            <Card title="기본 정보" subtitle="이벤트 type · 활성 · 노출 정렬">
+            <Card title="기본 정보" subtitle="배너 type · 활성 · 노출 정렬">
               <div className="flex flex-col gap-3">
-                <FormField label="이벤트 type" required>
+                <FormField label="배너 type" required>
                   <div className="flex gap-1.5 flex-wrap">
                     {CAFE_EVENT_TYPES.map((t) => {
                       const sel = draft.type === t;
@@ -873,13 +873,13 @@ export default function CafeEventsForm({ initialEvents }: CafeEventsFormProps) {
       <ConfirmModal
         open={deleteConfirmOpen}
         variant="danger"
-        title="이벤트를 삭제하시겠습니까?"
+        title="배너를 삭제하시겠습니까?"
         description={
           <>
             <strong className="text-foreground">
               {draft ? CAFE_EVENT_TYPE_LABELS[draft.type] : ''}
             </strong>{' '}
-            이벤트가 영원히 사라지며, 되돌릴 수 없습니다.
+            배너가 영원히 사라지며, 되돌릴 수 없습니다.
           </>
         }
         confirmLabel="삭제"

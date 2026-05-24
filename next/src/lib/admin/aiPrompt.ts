@@ -34,7 +34,7 @@ interface BuildPromptOptions {
 
 const KIND_LABEL: Record<BannerKind, string> = {
   'signature': '시그니처 chapter (메인 페이지 진입 영역)',
-  'cafe-event': '카페 이벤트 배너 (카페 메뉴 chapter)',
+  'cafe-event': '카페 배너 (메인 §2.5 카페 메뉴 chapter)',
 };
 
 /**
