@@ -63,8 +63,8 @@ export default function HeroGreeting({
   return (
     <header className="page-title-area mp-hero">
       <h1 className="page-title">
-        <span className="mp-hero-greeting-line">안녕하세요.</span>{' '}
-        <span className="mp-hero-greeting-line">{name} 님</span>
+        <span className="mp-hero-greeting-line">안녕하세요,</span>{' '}
+        <span className="mp-hero-greeting-line">{name}님.</span>
       </h1>
       <div className="mp-hero-meta-row">
         <p className="mp-hero-meta">

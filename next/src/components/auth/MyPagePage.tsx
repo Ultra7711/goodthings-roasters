@@ -294,7 +294,7 @@ export default function MyPagePage({
               <div className="mp-mobile-stickybar-bg" aria-hidden />
               <div className="mp-mobile-greeting" aria-hidden>
                 <span className="mp-mobile-greeting-text">
-                  안녕하세요, {displayName} 님.
+                  안녕하세요, {displayName}님.
                 </span>
                 <button
                   type="button"
