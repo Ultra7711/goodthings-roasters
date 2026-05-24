@@ -106,19 +106,20 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
   const currentCycleLabel =
     SUB_CYCLES.find((c) => c.value === cycle)?.label ?? '2주마다 배송';
 
-  /* 용량 chip 옵션 변환 */
-  const volumeOptions: ReadonlyArray<OptionChipItem<string>> = product.volumes.map((v) => ({
+  /* 용량 chip 옵션 변환 — value 는 인덱스(string).
+     라벨 변경/중복 시 매핑 깨짐 방지 (audit L-2). 라벨은 displayonly. */
+  const volumeOptions: ReadonlyArray<OptionChipItem<string>> = product.volumes.map((v, i) => ({
     label: v.label,
     sublabel: `${v.price.toLocaleString('ko-KR')}원`,
-    value: v.label,
+    value: String(i),
     disabled: v.soldOut,
   }));
 
-  const currentVolValue = hasVolumes ? product.volumes[volIdx].label : '';
+  const currentVolValue = hasVolumes ? String(volIdx) : '';
 
   function handleVolumeChange(value: string) {
-    const i = product.volumes.findIndex((v) => v.label === value);
-    if (i >= 0) onVolChange(i);
+    const i = Number(value);
+    if (Number.isInteger(i) && i >= 0 && i < product.volumes.length) onVolChange(i);
   }
 
   return (

@@ -16,6 +16,8 @@ import {
 } from '@/lib/products';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
+/* V2 §4.1 grid 컬럼 — sp-grid--bean / sp-grid--drip CSS grid-template-columns 와 동기.
+   값 변경 시 ShopPage.css 의 grid 정의 + imgPriority 가드 (i < COLS_*) 동시 갱신 필요. */
 const COLS_BEAN = 2;
 const COLS_DRIP = 4;
 const CARD_BASE_DELAY_INIT = 420; // 초기 로드: 탭(0.3s) 등장 후 카드 시작 (ms)
