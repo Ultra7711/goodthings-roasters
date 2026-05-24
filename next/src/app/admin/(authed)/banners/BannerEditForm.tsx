@@ -34,6 +34,7 @@ import {
   type BannerBreakpoint,
 } from '@/lib/admin/uploadBannerImage';
 import {
+  convertResponsiveHtmlAction,
   createBannerAction,
   updateBannerAction,
   deleteBannerAction,
@@ -97,6 +98,9 @@ export default function BannerEditForm({
   const [mobileUpload, setMobileUpload] = useState<UploadState>({ status: 'idle' });
   const [htmlTextOpen, setHtmlTextOpen] = useState(false);
   const [htmlText, setHtmlText] = useState('');
+  const [responsiveText, setResponsiveText] = useState('');
+  const [responsiveOpen, setResponsiveOpen] = useState(false);
+  const [autoConvert, setAutoConvert] = useState<UploadState>({ status: 'idle' });
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const [previewBrk, setPreviewBrk] = useState<PreviewBrk>('desktop');
@@ -104,6 +108,7 @@ export default function BannerEditForm({
   const [previewHeight, setPreviewHeight] = useState<number>(480);
 
   const htmlInputRef = useRef<HTMLInputElement | null>(null);
+  const responsiveInputRef = useRef<HTMLInputElement | null>(null);
   const desktopInputRef = useRef<HTMLInputElement | null>(null);
   const tabletInputRef = useRef<HTMLInputElement | null>(null);
   const mobileInputRef = useRef<HTMLInputElement | null>(null);
@@ -223,6 +228,80 @@ export default function BannerEditForm({
       return next;
     });
     return filled;
+  }
+
+  /**
+   * 디자이너 responsive HTML 텍스트 → server action 자동 변환 → production HTML 저장.
+   * - 성공 시 custom_html_path 자동 채움 + autofill 동시 실행
+   * - warnings (BP wrap 누락 등) toast.warning 으로 안내 (실패 아님)
+   * - 변환 실패 시 기존 manual 경로 (HTML 파일 선택 / 텍스트 붙여넣기) fallback 안내
+   */
+  async function handleResponsiveConvert(responsiveHtml: string) {
+    const trimmed = responsiveHtml.trim();
+    if (!trimmed) {
+      toast.error('responsive HTML 을 입력해 주세요');
+      return;
+    }
+    setAutoConvert({ status: 'uploading', fileName: 'responsive.html' });
+    const result = await convertResponsiveHtmlAction(trimmed);
+    if (!result.ok) {
+      const message =
+        result.detail ||
+        (result.error === 'unauthorized'
+          ? '권한이 없습니다'
+          : result.error === 'too_large'
+          ? '파일이 너무 큽니다'
+          : result.error === 'invalid_input'
+          ? '입력 텍스트가 부족합니다'
+          : '변환에 실패했습니다');
+      setAutoConvert({ status: 'error', message });
+      toast.error(message, {
+        description: '아래 manual 경로 (HTML 파일 선택 / 텍스트 붙여넣기) 로 직접 등록할 수 있습니다',
+      });
+      return;
+    }
+
+    const blob = new Blob([result.productionHtml], { type: 'text/html' });
+    const file = new File([blob], 'banner.html', { type: 'text/html' });
+    const upload = await uploadBannerHtml(file, kind);
+    if (!upload.ok) {
+      const message = describeUploadError(upload.error, upload.detail);
+      setAutoConvert({ status: 'error', message });
+      toast.error(message);
+      return;
+    }
+
+    updateDraft('custom_html_path', upload.publicUrl);
+    setAutoConvert({ status: 'idle' });
+    setResponsiveText('');
+    setResponsiveOpen(false);
+
+    const filled = autofillMetaFromHtml(trimmed);
+    const baseDescription =
+      filled.length > 0
+        ? `${filled.join(' · ')} 자동 입력 · 미리보기에 즉시 반영`
+        : '미리보기에 즉시 반영 · SEO 메타는 빈 채로 남아 있습니다';
+    if (result.warnings.length > 0) {
+      toast.warning('자동 변환 완료 (경고 포함)', {
+        description: `${baseDescription}\n경고: ${result.warnings.join(' · ')}`,
+      });
+    } else {
+      toast.success('자동 변환 완료', { description: baseDescription });
+    }
+  }
+
+  async function handleResponsiveFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    let text = '';
+    try {
+      text = await file.text();
+    } catch {
+      toast.error('파일을 읽지 못했습니다');
+      return;
+    }
+    await handleResponsiveConvert(text);
   }
 
   async function handleHtmlUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -486,16 +565,105 @@ export default function BannerEditForm({
           </div>
         </Card>
 
+        {/* responsive HTML 자동 변환 카드 (S275) */}
+        <Card
+          title="responsive HTML 자동 변환 (선택)"
+          subtitle={
+            <>
+              디자이너 4 BP responsive HTML 을 production HTML 로 자동 변환합니다.
+              <br />
+              변환 성공 시 아래 'production HTML' 영역에 자동 저장됩니다 — 운영자가 코드를 직접 손볼 필요 없습니다.
+              <br />
+              디자이너 가이드 답습이 안 된 경우 변환 한계 안내가 표시됩니다. 실패 시 아래 manual 업로드로 직접 등록할 수 있어요.
+            </>
+          }
+        >
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <input
+                ref={responsiveInputRef}
+                type="file"
+                accept=".html,.htm,text/html"
+                onChange={handleResponsiveFileUpload}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="!h-8"
+                onClick={() => responsiveInputRef.current?.click()}
+                disabled={autoConvert.status === 'uploading'}
+              >
+                {autoConvert.status === 'uploading' ? '변환 중…' : 'responsive HTML 파일 선택'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="!h-8"
+                onClick={() => setResponsiveOpen((v) => !v)}
+                disabled={autoConvert.status === 'uploading'}
+              >
+                {responsiveOpen ? '텍스트 입력 닫기' : '또는 텍스트 붙여넣기'}
+              </Button>
+              <span className="text-xs text-[var(--foreground-muted)]">
+                4 BP wrap (landscape-max / landscape-min / portrait-max / portrait-min) · 2MB 이하
+              </span>
+            </div>
+            {autoConvert.status === 'error' && (
+              <div className="px-2.5 py-2 rounded-md bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)] text-xs">
+                {autoConvert.message}
+              </div>
+            )}
+            {responsiveOpen && (
+              <div className="flex flex-col gap-2 mt-1">
+                <textarea
+                  value={responsiveText}
+                  onChange={(e) => setResponsiveText(e.target.value)}
+                  placeholder="<!DOCTYPE html>&#10;<html>&#10;  <head> ... </head>&#10;  <body>&#10;    <div class=&quot;banner-wrap landscape-max-wrap&quot;> ... </div>&#10;    ..."
+                  rows={10}
+                  spellCheck={false}
+                  className="font-mono text-xs px-3 py-2 rounded-md border border-input bg-[var(--surface)] resize-y min-h-[200px]"
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="!h-8"
+                    onClick={() => handleResponsiveConvert(responsiveText)}
+                    disabled={autoConvert.status === 'uploading' || !responsiveText.trim()}
+                  >
+                    {autoConvert.status === 'uploading' ? '변환 중…' : '자동 변환 실행'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="!h-8 !text-xs"
+                    onClick={() => {
+                      setResponsiveText('');
+                      setResponsiveOpen(false);
+                    }}
+                  >
+                    취소
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+
         {/* HTML 카드 */}
         <Card
           title="배너 HTML 파일"
           subtitle={
             <>
-              2단계 — 1단계 배경 이미지 위에 텍스트를 입힌 production HTML 을 등록합니다.
+              위 자동 변환을 사용하지 않거나 디자이너에게 직접 production HTML 을 받은 경우 여기에 등록합니다.
               <br />
-              디자이너가 작성한 responsive.html (모든 BP 시각 검증된 데모) 을 별도 Claude Code 인스턴스에서 production HTML 로 변환해 주세요.
+              운영자가 작성한 .html 파일 또는 텍스트를 그대로 붙여넣기 할 수 있어요. 보안을 위해 외부 스크립트는 차단됩니다.
               <br />
-              받은 코드는 .html 파일로 저장해 올리거나, 그대로 복사해서 '텍스트 붙여넣기' 로 등록할 수 있어요. 보안을 위해 외부 스크립트는 차단됩니다.
+              자동 변환 결과는 위 영역에서 처리되며, 이 영역의 등록값은 자동 변환 시 덮어쓰여집니다.
             </>
           }
         >

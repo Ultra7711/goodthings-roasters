@@ -26,6 +26,10 @@ import { BannerSchema, BannerKindSchema, type BannerKind } from '@/lib/banners';
 import { bannerCacheTag } from '@/lib/bannersServer';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { logActionError } from '@/lib/admin/logActionError';
+import {
+  buildProductionHtml,
+  parseResponsiveHtml,
+} from '@/lib/admin/bannerConvert';
 
 /* ── Schemas (non-exported · 'use server' const export 금지 답습) ─────── */
 
@@ -64,6 +68,16 @@ export type ReorderResult =
       error: 'unauthorized' | 'validation_failed' | 'server_error';
       detail?: string;
     };
+
+export type ConvertResponsiveResult =
+  | { ok: true; productionHtml: string; warnings: string[] }
+  | {
+      ok: false;
+      error: 'unauthorized' | 'invalid_input' | 'parse_failed' | 'too_large';
+      detail?: string;
+    };
+
+const MAX_RESPONSIVE_HTML_BYTES = 2 * 1024 * 1024;
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
@@ -231,6 +245,48 @@ export async function deleteBannerAction(
   revalidateBanner(parsed.data.kind);
 
   return { ok: true, id: parsed.data.id };
+}
+
+/**
+ * 디자이너 responsive HTML → production HTML 자동 변환 (S275 Phase 2).
+ *
+ * - 디자이너 4 BP stacked responsive.html 텍스트 입력
+ * - lib/admin/bannerConvert.ts 의 결정론적 변환 (cheerio + cascade resolver + clamp 산수)
+ * - 출력 production HTML + 변환 경고 (BP wrap 누락 등) 반환
+ * - 운영자는 client 에서 결과를 받아 uploadBannerHtml 로 Storage 저장
+ * - 변환 실패 시 manual upload fallback 보존 (기존 흐름)
+ *
+ * 보안:
+ * - admin 가드 (운영자만 변환 가능)
+ * - 2MB upper bound (메모리 보호)
+ * - sandbox 차단된 script / viewport meta 는 변환 단계에서 어차피 제거됨
+ */
+export async function convertResponsiveHtmlAction(
+  responsiveHtml: string,
+): Promise<ConvertResponsiveResult> {
+  const claims = await getAdminClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  if (typeof responsiveHtml !== 'string' || responsiveHtml.trim().length < 100) {
+    return {
+      ok: false,
+      error: 'invalid_input',
+      detail: 'responsive HTML 텍스트가 너무 짧습니다 (100자 이상)',
+    };
+  }
+  if (responsiveHtml.length > MAX_RESPONSIVE_HTML_BYTES) {
+    return { ok: false, error: 'too_large', detail: '2MB 이하만 허용됩니다' };
+  }
+
+  try {
+    const parsed = parseResponsiveHtml(responsiveHtml);
+    const { html, warnings } = buildProductionHtml(parsed);
+    return { ok: true, productionHtml: html, warnings: [...warnings] };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'unknown';
+    logActionError('[convertResponsiveHtmlAction] convert failed', { message });
+    return { ok: false, error: 'parse_failed', detail: message };
+  }
 }
 
 /**
