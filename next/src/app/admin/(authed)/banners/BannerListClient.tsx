@@ -23,6 +23,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Plus, Star, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminTabsNav } from '@/components/admin/AdminTabsNav';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Switch } from '@/components/admin/ui/switch';
@@ -206,40 +208,36 @@ export default function BannerListClient({
         </Button>
       </AdminTopbarActions>
 
-      <div className="flex flex-col gap-4 p-4">
-        {/* kind 탭 */}
-        <div
-          role="tablist"
-          aria-label="배너 종류"
-          className="inline-flex items-center gap-1 p-1 rounded-md bg-muted self-start"
-        >
-          {KIND_TABS.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              role="tab"
-              aria-selected={activeKind === tab.key}
-              onClick={() => setActiveKind(tab.key)}
-              className={cn(
-                'px-3 py-1.5 text-sm font-medium rounded transition-colors',
-                activeKind === tab.key
-                  ? 'bg-[var(--surface)] !text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:!text-foreground',
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <AdminPageHeader
+        title="배너 관리"
+        subtitle={
+          <>
+            총 {(cafeBanners.length + signatureBanners.length).toLocaleString()}건의 배너 · 카페 {cafeBanners.length.toLocaleString()}건 · 시그니처 {signatureBanners.length.toLocaleString()}건
+          </>
+        }
+      />
+
+      {/* kind 탭 — 주문 페이지 AdminTabsNav 답습 + count badge */}
+      <AdminTabsNav
+        mode="state"
+        tabs={KIND_TABS.map((tab) => ({
+          id: tab.key,
+          label: tab.label,
+          count:
+            tab.key === 'cafe_event' ? cafeBanners.length : signatureBanners.length,
+        }))}
+        active={activeKind}
+        onChange={(id) => setActiveKind(id as BannerKind)}
+      />
 
       {sortedBanners.length === 0 ? (
         <div className="px-4 py-16 text-center text-sm text-muted-foreground bg-muted rounded-md border border-dashed border-border">
           등록된 배너가 없습니다. 우측 상단 "신규 등록" 버튼으로 추가해 주세요.
         </div>
       ) : (
-        <>
+        <div className="flex flex-col gap-3">
           <div className="text-xs text-muted-foreground">
-            1번 카드 (★) 가 사이트에 노출되는 배너입니다. 화살표로 순서를 변경하면 즉시 반영됩니다.
+            1번 카드가 사이트에 노출되며, 비활성·기간 만료 시 다음 카드로 자동 넘어갑니다. 화살표로 순서를 변경하면 즉시 반영됩니다.
           </div>
           <div
             className={cn(
@@ -412,20 +410,19 @@ export default function BannerListClient({
               );
             })}
           </div>
-        </>
+        </div>
       )}
 
-        <ConfirmModal
-          open={deleteTarget !== null}
-          variant="danger"
-          title="배너를 삭제하시겠습니까?"
-          description="이 배너는 영원히 사라지며, 되돌릴 수 없습니다."
-          confirmLabel="삭제"
-          pending={pending}
-          onCancel={() => setDeleteTarget(null)}
-          onConfirm={handleDeleteConfirm}
-        />
-      </div>
+      <ConfirmModal
+        open={deleteTarget !== null}
+        variant="danger"
+        title="배너를 삭제하시겠습니까?"
+        description="이 배너는 영원히 사라지며, 되돌릴 수 없습니다."
+        confirmLabel="삭제"
+        pending={pending}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+      />
     </>
   );
 }

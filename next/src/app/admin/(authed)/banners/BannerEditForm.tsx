@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 import { Copy, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { describeError, describeUploadError } from '@/lib/admin/errorDescribe';
-import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminBackLink } from '@/components/admin/AdminBackLink';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { Button } from '@/components/admin/ui/button';
 import { Checkbox } from '@/components/admin/ui/checkbox';
@@ -329,14 +329,14 @@ export default function BannerEditForm({
   /* ── Render ──────────────────────────────────────────────────────── */
 
   return (
-    <>
+    <div>
       <AdminTopbarActions>
         <Button
           type="button"
           variant="outline"
           size="sm"
           className="!h-7"
-          disabled={isPending}
+          disabled={(!isNew && !isDirty) || isPending}
           onClick={handleReset}
         >
           {isNew ? '취소' : '변경 취소'}
@@ -345,24 +345,40 @@ export default function BannerEditForm({
           type="button"
           size="sm"
           className="!h-7"
-          disabled={!isNew && !isDirty}
+          disabled={(!isNew && !isDirty) || isPending}
           onClick={handleSave}
         >
           {isPending ? (isNew ? '등록 중…' : '저장 중…') : isNew ? '배너 등록' : '변경사항 저장'}
         </Button>
       </AdminTopbarActions>
 
-      <AdminPageHeader
-        title={isNew ? `${KIND_LABEL[kind]} 등록` : `${KIND_LABEL[kind]} 편집`}
-        subtitle={
-          isNew
-            ? '이미지 + HTML 업로드 후 등록하면 list 가장 뒤에 추가됩니다. 노출 순서는 list 페이지에서 화살표로 조정합니다.'
-            : '편집한 내용은 저장 시 즉시 사이트에 반영됩니다.'
-        }
-        className="mb-6"
+      <AdminBackLink
+        href={`/admin/banners?kind=${kind}`}
+        label="배너 목록으로"
       />
 
-      <div className="flex flex-col gap-3 min-w-0 p-4">
+      {/* 헤더 — 타이틀 좌 / 식별 라벨 우 (PDP/menu edit 답습) */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-baseline gap-3 flex-wrap min-w-0">
+            <h2 className="m-0 text-2xl font-medium tracking-tight">
+              {isNew ? `${KIND_LABEL[kind]} 등록` : `${KIND_LABEL[kind]} 편집`}
+            </h2>
+            {!isNew && draft.internal_label.trim() && (
+              <span className="gtr-mono text-sm text-muted-foreground">
+                {draft.internal_label}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="mt-1 text-sm text-muted-foreground">
+          {isNew
+            ? '이미지 + HTML 등록 후 list 가장 뒤에 추가됩니다. 1번 카드가 사이트에 노출되며 순서는 list 페이지에서 화살표로 조정합니다.'
+            : '편집한 내용은 저장 시 즉시 사이트에 반영됩니다.'}
+        </div>
+      </div>
+
+      <div className="min-w-0">
         {/* 기본 정보 카드 */}
         <Card title="기본 정보" subtitle="식별 라벨 (운영자용) + 활성 여부">
           <div className="flex flex-col gap-3">
@@ -384,7 +400,7 @@ export default function BannerEditForm({
                   onCheckedChange={(v) => updateDraft('enabled', v === true)}
                 />
                 <span className="text-sm">
-                  {draft.enabled ? '활성 (사이트 노출 후보)' : '비활성 (저장만)'}
+                  {draft.enabled ? '활성 (1번 카드일 때 사이트 노출)' : '비활성 (사이트 미노출)'}
                 </span>
               </label>
             </FormField>
@@ -598,7 +614,13 @@ export default function BannerEditForm({
         {/* 검색·접근성 메타 카드 */}
         <Card
           title="검색 · 접근성 메타 텍스트"
-          subtitle="iframe 안 텍스트는 검색·낭독에서 분리됩니다. 동일 내용을 여기 입력하면 화면 변화 없이 검색·낭독에서만 인식됩니다."
+          subtitle={
+            <>
+              iframe 안 텍스트는 검색·낭독에서 분리됩니다. 동일 내용을 여기 입력하면 화면 변화 없이 검색·낭독에서만 인식됩니다.
+              <br />
+              HTML 등록 시 빈 항목은 자동으로 채워집니다.
+            </>
+          }
         >
           <div className="flex flex-col gap-3">
             <FormField label="대체 텍스트 (alt · iframe title)" required>
@@ -700,7 +722,7 @@ export default function BannerEditForm({
         onCancel={() => setDeleteConfirmOpen(false)}
         onConfirm={confirmDelete}
       />
-    </>
+    </div>
   );
 }
 
@@ -987,7 +1009,7 @@ function PreviewPane({
   isDirty: boolean;
 }) {
   return (
-    <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
+    <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden mb-5">
       <div className="px-4 py-3 border-b border-border flex items-center gap-3 flex-wrap">
         <div className="flex-1 min-w-[200px]">
           <h3 className="m-0 text-sm font-medium">미리보기</h3>
@@ -1054,7 +1076,7 @@ function Card({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden">
+    <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)] overflow-hidden mb-5">
       <div className="px-4 py-3 border-b border-border flex items-start gap-3">
         <div className="flex-1 min-w-0">
           <h3 className="m-0 text-sm font-medium">{title}</h3>
