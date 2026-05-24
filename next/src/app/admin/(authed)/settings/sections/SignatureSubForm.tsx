@@ -91,25 +91,36 @@ export function SignatureSubForm({ value, onChange }: SignatureSubFormProps) {
     setState({ status: 'uploading', fileName: file.name });
     /* 이미지 dimension 측정 — aspect 자동 입력. 실패 시 기본값 유지. */
     const aspect = await measureImageAspect(file).catch(() => null);
-    const result = await uploadSignatureImage(file, brk);
-    if (result.ok) {
-      onChange({
-        [fieldKey]: result.publicUrl,
-        /* S246: LQIP — 업로드 핸들러가 server action 으로 생성. 실패 시 빈 문자열
-           (운영자 HTML 측 fallback). */
-        [blurKey]: result.blurDataURL ?? '',
-        ...(aspect ? { [aspectKey]: aspect } : {}),
-      });
-      setState({ status: 'idle' });
-      toast.success('이미지를 등록했습니다', {
-        description: aspect
-          ? `비율 ${aspect} 자동 입력 · 변경사항 저장 후 사이트에 반영됩니다`
-          : '변경사항 저장 후 사이트에 반영됩니다',
-      });
-    } else {
-      const message = describeUploadError(result.error, result.detail);
+    try {
+      const result = await uploadSignatureImage(file, brk);
+      if (result.ok) {
+        onChange({
+          [fieldKey]: result.publicUrl,
+          /* S246: LQIP — 업로드 핸들러가 server action 으로 생성. 실패 시 빈 문자열
+             (운영자 HTML 측 fallback). */
+          [blurKey]: result.blurDataURL ?? '',
+          ...(aspect ? { [aspectKey]: aspect } : {}),
+        });
+        setState({ status: 'idle' });
+        toast.success('이미지를 등록했습니다', {
+          description: aspect
+            ? `비율 ${aspect} 자동 입력 · 변경사항 저장 후 사이트에 반영됩니다`
+            : '변경사항 저장 후 사이트에 반영됩니다',
+        });
+      } else {
+        const message = describeUploadError(result.error, result.detail);
+        setState({ status: 'error', message });
+        toast.error(message);
+      }
+    } catch (err) {
+      /* S264-F L-1 — Supabase storage / 네트워크 예외 시 status 영구 'uploading' 잔존 방지. */
+      const message = '업로드 중 예기치 못한 오류가 발생했습니다';
       setState({ status: 'error', message });
       toast.error(message);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[SignatureSubForm] image upload threw', err);
+      }
     }
   }
 
@@ -119,17 +130,28 @@ export function SignatureSubForm({ value, onChange }: SignatureSubFormProps) {
     if (!file) return;
 
     setHtmlUpload({ status: 'uploading', fileName: file.name });
-    const result = await uploadSignatureHtml(file);
-    if (result.ok) {
-      onChange({ custom_html_path: result.publicUrl });
-      setHtmlUpload({ status: 'idle' });
-      toast.success('HTML 파일을 등록했습니다', {
-        description: '변경사항 저장 후 사이트에 반영됩니다',
-      });
-    } else {
-      const message = describeUploadError(result.error, result.detail);
+    try {
+      const result = await uploadSignatureHtml(file);
+      if (result.ok) {
+        onChange({ custom_html_path: result.publicUrl });
+        setHtmlUpload({ status: 'idle' });
+        toast.success('HTML 파일을 등록했습니다', {
+          description: '변경사항 저장 후 사이트에 반영됩니다',
+        });
+      } else {
+        const message = describeUploadError(result.error, result.detail);
+        setHtmlUpload({ status: 'error', message });
+        toast.error(message);
+      }
+    } catch (err) {
+      /* S264-F L-1 — exception path 'uploading' 잔존 방지. */
+      const message = '업로드 중 예기치 못한 오류가 발생했습니다';
       setHtmlUpload({ status: 'error', message });
       toast.error(message);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[SignatureSubForm] html upload threw', err);
+      }
     }
   }
 
@@ -144,19 +166,30 @@ export function SignatureSubForm({ value, onChange }: SignatureSubFormProps) {
     const file = new File([blob], 'banner.html', { type: 'text/html' });
 
     setHtmlUpload({ status: 'uploading', fileName: file.name });
-    const result = await uploadSignatureHtml(file);
-    if (result.ok) {
-      onChange({ custom_html_path: result.publicUrl });
-      setHtmlUpload({ status: 'idle' });
-      setHtmlText('');
-      setHtmlTextOpen(false);
-      toast.success('HTML 텍스트를 등록했습니다', {
-        description: '변경사항 저장 후 사이트에 반영됩니다',
-      });
-    } else {
-      const message = describeUploadError(result.error, result.detail);
+    try {
+      const result = await uploadSignatureHtml(file);
+      if (result.ok) {
+        onChange({ custom_html_path: result.publicUrl });
+        setHtmlUpload({ status: 'idle' });
+        setHtmlText('');
+        setHtmlTextOpen(false);
+        toast.success('HTML 텍스트를 등록했습니다', {
+          description: '변경사항 저장 후 사이트에 반영됩니다',
+        });
+      } else {
+        const message = describeUploadError(result.error, result.detail);
+        setHtmlUpload({ status: 'error', message });
+        toast.error(message);
+      }
+    } catch (err) {
+      /* S264-F L-1 — exception path 'uploading' 잔존 방지. */
+      const message = '업로드 중 예기치 못한 오류가 발생했습니다';
       setHtmlUpload({ status: 'error', message });
       toast.error(message);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[SignatureSubForm] html text upload threw', err);
+      }
     }
   }
 
