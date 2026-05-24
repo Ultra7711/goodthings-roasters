@@ -11,18 +11,16 @@
    - discriminated union Zod schema (kind 분기)
    - DB row ↔ 코드 객체 변환 (parseBannerRow)
    - active 1 row 선택 헬퍼 (selectActiveBanner · kind 별 분기)
-   - cafe_event 우선순위 / 시즌 라벨 (cafeEvents.ts 에서 흡수)
+   - cafe_event 우선순위 / 시즌 라벨
    - 날짜 유틸 (todayIsoSeoul · addDaysIso · dateOrEmpty)
 
    설계:
    - client-safe — 어드민 폼 + B2C SSR 양쪽에서 import.
    - server-only fetch / cache 는 lib/bannersServer.ts 분리.
-   - 향후 cafeEvents.ts / siteSettings.signature 폐기 시 본 모듈이 owner.
 
    참조:
    - supabase/migrations/071_banners_unified.sql (테이블 + kind enum)
    - supabase/migrations/072_banners_data_migration.sql (data 이전)
-   - lib/cafeEvents.ts (답습 source · S269 carry · 별 sprint 폐기 예정)
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { z } from 'zod';
@@ -33,7 +31,7 @@ export const BANNER_KINDS = ['cafe_event', 'signature'] as const;
 export const BannerKindSchema = z.enum(BANNER_KINDS);
 export type BannerKind = z.infer<typeof BannerKindSchema>;
 
-/* ── 2. cafe_event type enum + 우선순위 (cafeEvents.ts 답습) ──────────── */
+/* ── 2. cafe_event type enum + 우선순위 ────────────────────────────────── */
 
 export const CAFE_EVENT_TYPES = [
   'campaign',
@@ -80,7 +78,6 @@ const dateOrEmpty = z
 
 /**
  * 14 공통 필드 + 기간/정렬 — cafe_event / signature 모두 동일.
- * (cafeEvents.ts CafeEventSchema 의 공통 필드와 1:1 대응)
  */
 const BannerBaseShape = {
   id: z.string().uuid(),

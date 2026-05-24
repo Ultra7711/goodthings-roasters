@@ -14,7 +14,7 @@ import 'server-only';
    - 호출 실패 시 [] 반환 (graceful — /gooddays 빈 그리드 + placeholder).
 
    참조:
-   - lib/cafeEventsServer.ts (동일 패턴)
+   - lib/bannersServer.ts (동일 패턴)
    - 036_gooddays_gallery.sql
    ══════════════════════════════════════════════════════════════════════════ */
 

@@ -12,7 +12,7 @@ import 'server-only';
    - listBannersAdmin(kind) — /admin/cafe-events + /admin/signatures 목록 fetch
      (kind 별 + start_date desc · NULL 후순 · enabled 무관)
 
-   설계 (lib/admin/cafeEventsServer 답습):
+   설계 (lib/admin/productsServer 답습 · ADR-009 DEC-16):
    - createRouteHandlerClient — 어드민 페이지 일관 패턴
    - cache 미사용 — 어드민 항상 최신
    - 실패 시 [] graceful fallback

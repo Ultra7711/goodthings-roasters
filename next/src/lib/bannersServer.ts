@@ -18,7 +18,6 @@ import 'server-only';
    - 호출 실패 시 null/[] 반환 (메인 사이트 graceful 표시).
 
    참조:
-   - lib/cafeEventsServer.ts (답습 source · S269 carry · 별 sprint 폐기 예정)
    - 071_banners_unified.sql · 072_banners_data_migration.sql
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -68,8 +67,7 @@ const SELECT_COLS =
   'start_date, end_date, sort_order';
 
 /* Next.js 16 dev 환경의 Supabase fetch AbortError 가 RSC streaming timing
-   이슈로 간헐 발생 → 최대 2회 retry. production 영향 없음.
-   (cafeEventsServer.ts 답습) */
+   이슈로 간헐 발생 → 최대 2회 retry. production 영향 없음. */
 async function fetchEnabledByKind(kind: BannerKind): Promise<Banner[]> {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const client = getAnonClient();

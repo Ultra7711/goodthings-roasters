@@ -22,7 +22,7 @@ import 'server-only';
    - 호출 실패 시 [] / null 반환 (graceful fallback — 메인 사이트 깨지지 않게).
 
    참조:
-   - lib/cafeEventsServer.ts / lib/gooddaysServer.ts (동일 패턴)
+   - lib/bannersServer.ts / lib/gooddaysServer.ts (동일 패턴)
    - lib/admin/productsServer.ts (admin variant)
    - 046_products_schema.sql
    - types/product.ts (mapProductRow)

@@ -13,7 +13,7 @@
    참조:
    - app/preview/signature/page.tsx
    - components/home/EventBanner.tsx
-   - lib/cafeEvents.ts CafeEventSchema
+   - lib/banners.ts CafeEventBannerSchema
    ══════════════════════════════════════════ */
 
 import { redirect } from 'next/navigation';
