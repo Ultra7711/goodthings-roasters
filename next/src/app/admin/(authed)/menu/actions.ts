@@ -39,7 +39,9 @@ import {
   fetchAdminNextCafeMenuSortOrder,
   type CafeMenuIdPrefix,
 } from '@/lib/admin/cafeMenuServer';
+import { logActionError } from '@/lib/admin/logActionError';
 import { normalizeAllergen, syncHighCaffeineMarker } from '@/lib/allergenSort';
+import { CafeMenuCategoryEnum } from '@/lib/cafeMenu/categories';
 import { CAFE_MENU_CACHE_TAG } from '@/lib/cafeMenuServer';
 import { MENU_LIKES_CACHE_TAG } from '@/lib/menuLikesServer';
 
@@ -95,10 +97,7 @@ export async function toggleCafeMenuActiveAction(input: {
     .maybeSingle();
 
   if (error) {
-    console.error('[toggleCafeMenuActiveAction] update failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError('[toggleCafeMenuActiveAction] update failed', error);
     return { ok: false, error: 'server_error' };
   }
   if (!data) return { ok: false, error: 'not_found' };
@@ -148,7 +147,7 @@ export async function deleteCafeMenuAction(input: {
     .eq('id', input.id)
     .maybeSingle();
   if (selErr) {
-    console.error('[deleteCafeMenuAction] select failed', selErr.message);
+    logActionError('[deleteCafeMenuAction] select failed', selErr);
     return { ok: false, error: 'server_error' };
   }
   if (!row) return { ok: false, error: 'not_found' };
@@ -159,20 +158,16 @@ export async function deleteCafeMenuAction(input: {
     .from(MENU_IMAGES_BUCKET)
     .list(input.id);
   if (listErr) {
-    console.error('[deleteCafeMenuAction] storage list failed', {
-      id: input.id,
-      message: listErr.message?.slice(0, 200),
-    });
+    logActionError('[deleteCafeMenuAction] storage list failed', listErr, { id: input.id });
   } else if (files && files.length > 0) {
     const paths = files.map((f) => `${input.id}/${f.name}`);
     const { error: rmErr } = await admin.storage
       .from(MENU_IMAGES_BUCKET)
       .remove(paths);
     if (rmErr) {
-      console.error('[deleteCafeMenuAction] storage remove failed', {
+      logActionError('[deleteCafeMenuAction] storage remove failed', rmErr, {
         id: input.id,
         count: paths.length,
-        message: rmErr.message?.slice(0, 200),
       });
     }
   }
@@ -183,7 +178,7 @@ export async function deleteCafeMenuAction(input: {
     .delete()
     .eq('id', input.id);
   if (delErr) {
-    console.error('[deleteCafeMenuAction] delete failed', delErr.message);
+    logActionError('[deleteCafeMenuAction] delete failed', delErr);
     return { ok: false, error: 'server_error' };
   }
 
@@ -200,8 +195,7 @@ export async function deleteCafeMenuAction(input: {
    공통 Schema — Create / Update 양쪽에서 사용
    ══════════════════════════════════════════════════════════════════════════ */
 
-const CatEnum = z.enum(['brewing', 'tea', 'non-coffee', 'dessert']);
-
+/* CatEnum 은 lib/cafeMenu/categories.ts CafeMenuCategoryEnum 으로 통합 (S264-D LOW-B). */
 const StatusEnum = z.enum([
   '',
   '시그니처',
@@ -218,7 +212,7 @@ const HexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
 
 const MenuMetaSchema = z.object({
   name: z.string().min(1).max(60),
-  cat: CatEnum,
+  cat: CafeMenuCategoryEnum,
   status: StatusEnum,
   temp: TempEnum,
   badge2: z.string().max(20),
@@ -360,10 +354,7 @@ export async function createCafeMenuAction(
     if (insErr.code === '23505') {
       return { ok: false, error: 'id_conflict', detail: id };
     }
-    console.error('[createCafeMenuAction] insert failed', {
-      code: insErr.code,
-      message: insErr.message?.slice(0, 200),
-    });
+    logActionError('[createCafeMenuAction] insert failed', insErr);
     return { ok: false, error: 'server_error' };
   }
 
@@ -423,10 +414,7 @@ export async function updateCafeMenuAction(
     .maybeSingle();
 
   if (error) {
-    console.error('[updateCafeMenuAction] update failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError('[updateCafeMenuAction] update failed', error);
     return { ok: false, error: 'server_error' };
   }
   if (!data) return { ok: false, error: 'not_found' };
@@ -497,7 +485,7 @@ export async function uploadCafeMenuImageAction(
     .eq('id', id)
     .maybeSingle();
   if (selErr) {
-    console.error('[uploadCafeMenuImageAction] select failed', selErr.message);
+    logActionError('[uploadCafeMenuImageAction] select failed', selErr);
     return { ok: false, error: 'server_error' };
   }
   if (!existingRow) return { ok: false, error: 'not_found' };
@@ -520,9 +508,7 @@ export async function uploadCafeMenuImageAction(
       upsert: false,
     });
   if (uploadErr) {
-    console.error('[uploadCafeMenuImageAction] storage upload failed', {
-      message: uploadErr.message?.slice(0, 200),
-    });
+    logActionError('[uploadCafeMenuImageAction] storage upload failed', uploadErr);
     return { ok: false, error: 'server_error' };
   }
 
@@ -545,7 +531,7 @@ export async function uploadCafeMenuImageAction(
     .eq('id', id);
 
   if (updErr) {
-    console.error('[uploadCafeMenuImageAction] update failed', updErr.message);
+    logActionError('[uploadCafeMenuImageAction] update failed', updErr);
     /* 업로드 rollback (best-effort) */
     await admin.storage.from(MENU_IMAGES_BUCKET).remove([storagePath]);
     return { ok: false, error: 'server_error' };
@@ -562,9 +548,8 @@ export async function uploadCafeMenuImageAction(
         .from(MENU_IMAGES_BUCKET)
         .remove([match[1]]);
       if (rmErr) {
-        console.error('[uploadCafeMenuImageAction] prev cleanup failed', {
+        logActionError('[uploadCafeMenuImageAction] prev cleanup failed', rmErr, {
           path: match[1],
-          message: rmErr.message?.slice(0, 200),
         });
       }
     }
@@ -652,10 +637,7 @@ export async function reorderCafeMenusAction(input: {
     .in('id', orderedMenuIds);
 
   if (ownErr) {
-    console.error('[reorderCafeMenusAction] ownership check failed', {
-      code: ownErr.code,
-      message: ownErr.message?.slice(0, 200),
-    });
+    logActionError('[reorderCafeMenusAction] ownership check failed', ownErr);
     return { ok: false, error: 'server_error' };
   }
   if (!owned || owned.length !== orderedMenuIds.length) {
@@ -674,10 +656,7 @@ export async function reorderCafeMenusAction(input: {
   );
   const firstErr = updates.find((r) => r.error);
   if (firstErr?.error) {
-    console.error('[reorderCafeMenusAction] update failed', {
-      code: firstErr.error.code,
-      message: firstErr.error.message?.slice(0, 200),
-    });
+    logActionError('[reorderCafeMenusAction] update failed', firstErr.error);
     return { ok: false, error: 'server_error' };
   }
 

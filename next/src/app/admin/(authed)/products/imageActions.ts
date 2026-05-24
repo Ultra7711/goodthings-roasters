@@ -27,6 +27,7 @@ import {
   buildAdminImageFilename,
   processAdminImage,
 } from '@/lib/admin/imageProcessing';
+import { logActionError } from '@/lib/admin/logActionError';
 import { PRODUCTS_CACHE_TAG } from '@/lib/productsServer';
 import { PRODUCT_IMAGES_BUCKET } from './_constants';
 
@@ -94,10 +95,7 @@ export async function reorderProductImagesAction(input: {
     .in('id', orderedImageIds);
 
   if (ownErr) {
-    console.error('[reorderProductImagesAction] ownership check failed', {
-      code: ownErr.code,
-      message: ownErr.message?.slice(0, 200),
-    });
+    logActionError('[reorderProductImagesAction] ownership check failed', ownErr);
     return { ok: false, error: 'server_error' };
   }
   if (!owned || owned.length !== orderedImageIds.length) {
@@ -116,10 +114,7 @@ export async function reorderProductImagesAction(input: {
   );
   const firstErr = updates.find((r) => r.error);
   if (firstErr?.error) {
-    console.error('[reorderProductImagesAction] update failed', {
-      code: firstErr.error.code,
-      message: firstErr.error.message?.slice(0, 200),
-    });
+    logActionError('[reorderProductImagesAction] update failed', firstErr.error);
     return { ok: false, error: 'server_error' };
   }
 
@@ -201,9 +196,7 @@ export async function uploadProductImageAction(
       upsert: false,
     });
   if (uploadErr) {
-    console.error('[uploadProductImageAction] storage upload failed', {
-      message: uploadErr.message?.slice(0, 200),
-    });
+    logActionError('[uploadProductImageAction] storage upload failed', uploadErr);
     return { ok: false, error: 'server_error' };
   }
 
@@ -220,7 +213,7 @@ export async function uploadProductImageAction(
     .limit(1)
     .maybeSingle();
   if (maxErr) {
-    console.error('[uploadProductImageAction] max sort_order failed', maxErr.message);
+    logActionError('[uploadProductImageAction] max sort_order failed', maxErr);
     await admin.storage.from(PRODUCT_IMAGES_BUCKET).remove([storagePath]);
     return { ok: false, error: 'server_error' };
   }
@@ -243,7 +236,7 @@ export async function uploadProductImageAction(
     .select('id, src, blur_data_url, is_active')
     .single();
   if (insErr || !inserted) {
-    console.error('[uploadProductImageAction] insert failed', insErr?.message);
+    logActionError('[uploadProductImageAction] insert failed', insErr);
     await admin.storage.from(PRODUCT_IMAGES_BUCKET).remove([storagePath]);
     return { ok: false, error: 'server_error' };
   }
@@ -301,7 +294,7 @@ export async function updateProductImageActiveAction(input: {
     .select('id, product_id, products!inner(slug)')
     .maybeSingle();
   if (error) {
-    console.error('[updateProductImageActiveAction] update failed', error.message);
+    logActionError('[updateProductImageActiveAction] update failed', error);
     return { ok: false, error: 'server_error' };
   }
   if (!data) return { ok: false, error: 'not_found' };
@@ -360,7 +353,7 @@ export async function deleteProductImageAction(input: {
     .eq('id', input.imageId)
     .maybeSingle();
   if (selErr) {
-    console.error('[deleteProductImageAction] select failed', selErr.message);
+    logActionError('[deleteProductImageAction] select failed', selErr);
     return { ok: false, error: 'server_error' };
   }
   if (!row) return { ok: false, error: 'not_found' };
@@ -378,8 +371,7 @@ export async function deleteProductImageAction(input: {
       .remove([storagePath]);
     if (rmErr) {
       /* Storage 삭제 실패는 로그만 — DB row 삭제는 진행 (orphan storage 는 carry) */
-      console.error('[deleteProductImageAction] storage remove failed', {
-        message: rmErr.message?.slice(0, 200),
+      logActionError('[deleteProductImageAction] storage remove failed', rmErr, {
         storagePath,
       });
     }
@@ -390,7 +382,7 @@ export async function deleteProductImageAction(input: {
     .delete()
     .eq('id', input.imageId);
   if (delErr) {
-    console.error('[deleteProductImageAction] delete failed', delErr.message);
+    logActionError('[deleteProductImageAction] delete failed', delErr);
     return { ok: false, error: 'server_error' };
   }
 

@@ -21,6 +21,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { getAdminClaims, getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { logActionError } from '@/lib/admin/logActionError';
 import { PRODUCTS_CACHE_TAG } from '@/lib/productsServer';
 import { PRODUCT_IMAGES_BUCKET } from './_constants';
 
@@ -119,10 +120,7 @@ export async function toggleProductActiveAction(input: {
     .maybeSingle();
 
   if (error) {
-    console.error('[toggleProductActiveAction] update failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError('[toggleProductActiveAction] update failed', error);
     return { ok: false, error: 'server_error' };
   }
   if (!data) return { ok: false, error: 'not_found' };
@@ -230,10 +228,7 @@ export async function updateProductMetaAction(
     .maybeSingle();
 
   if (error) {
-    console.error('[updateProductMetaAction] update failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    logActionError('[updateProductMetaAction] update failed', error);
     return { ok: false, error: 'server_error' };
   }
   if (!data) return { ok: false, error: 'not_found' };
@@ -461,10 +456,7 @@ export async function createProductAction(
     if (rpcErr.code === '23505') {
       return { ok: false, error: 'slug_conflict' };
     }
-    console.error('[createProductAction] RPC failed', {
-      code: rpcErr.code,
-      message: rpcErr.message?.slice(0, 200),
-    });
+    logActionError('[createProductAction] RPC failed', rpcErr);
     return { ok: false, error: 'server_error' };
   }
 
@@ -513,7 +505,7 @@ export async function deleteProductAction(input: {
     .eq('id', input.id)
     .maybeSingle();
   if (prodSelErr) {
-    console.error('[deleteProductAction] select failed', prodSelErr.message);
+    logActionError('[deleteProductAction] select failed', prodSelErr);
     return { ok: false, error: 'server_error' };
   }
   if (!prodRow) return { ok: false, error: 'not_found' };
@@ -524,20 +516,16 @@ export async function deleteProductAction(input: {
     .from(PRODUCT_IMAGES_BUCKET)
     .list(prodSlug);
   if (listErr) {
-    console.error('[deleteProductAction] storage list failed', {
-      slug: prodSlug,
-      message: listErr.message?.slice(0, 200),
-    });
+    logActionError('[deleteProductAction] storage list failed', listErr, { slug: prodSlug });
   } else if (files && files.length > 0) {
     const paths = files.map((f) => `${prodSlug}/${f.name}`);
     const { error: rmErr } = await admin.storage
       .from(PRODUCT_IMAGES_BUCKET)
       .remove(paths);
     if (rmErr) {
-      console.error('[deleteProductAction] storage remove failed', {
+      logActionError('[deleteProductAction] storage remove failed', rmErr, {
         slug: prodSlug,
         count: paths.length,
-        message: rmErr.message?.slice(0, 200),
       });
     }
   }
@@ -548,7 +536,7 @@ export async function deleteProductAction(input: {
     .delete()
     .eq('id', input.id);
   if (delErr) {
-    console.error('[deleteProductAction] delete failed', delErr.message);
+    logActionError('[deleteProductAction] delete failed', delErr);
     return { ok: false, error: 'server_error' };
   }
 
@@ -617,10 +605,7 @@ export async function reorderProductsAction(input: {
     .in('id', orderedProductIds);
 
   if (ownErr) {
-    console.error('[reorderProductsAction] ownership check failed', {
-      code: ownErr.code,
-      message: ownErr.message?.slice(0, 200),
-    });
+    logActionError('[reorderProductsAction] ownership check failed', ownErr);
     return { ok: false, error: 'server_error' };
   }
   if (!owned || owned.length !== orderedProductIds.length) {
@@ -639,10 +624,7 @@ export async function reorderProductsAction(input: {
   );
   const firstErr = updates.find((r) => r.error);
   if (firstErr?.error) {
-    console.error('[reorderProductsAction] update failed', {
-      code: firstErr.error.code,
-      message: firstErr.error.message?.slice(0, 200),
-    });
+    logActionError('[reorderProductsAction] update failed', firstErr.error);
     return { ok: false, error: 'server_error' };
   }
 

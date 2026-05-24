@@ -45,17 +45,16 @@ import { Input } from '@/components/admin/ui/input';
 import { Textarea } from '@/components/admin/ui/textarea';
 import { cn } from '@/lib/utils';
 import { describeError } from '@/lib/admin/errorDescribe';
+import {
+  CAFE_MENU_CATEGORIES,
+  CafeMenuCategoryEnum,
+} from '@/lib/cafeMenu/categories';
 import type { CafeMenuItemRow } from '@/types/cafeMenu';
 import { createCafeMenuAction, updateCafeMenuAction } from '../../actions';
 
 /* ── 상수 ─────────────────────────────────────────────────────────────── */
 
-const CAT_OPTIONS = [
-  { value: 'brewing', label: 'Brewing (브루잉)' },
-  { value: 'tea', label: 'Tea (티)' },
-  { value: 'non-coffee', label: 'Non-Coffee (논커피)' },
-  { value: 'dessert', label: 'Dessert (디저트)' },
-] as const;
+/* CAT_OPTIONS 는 lib/cafeMenu/categories.ts CAFE_MENU_CATEGORIES 로 통합 (S264-D LOW-B). */
 
 /** 047 check constraint 와 일치 — '' 포함 (미표시) */
 const STATUS_OPTIONS = [
@@ -85,7 +84,7 @@ type TabId = (typeof TABS)[number]['id'];
 
 /* ── Zod Schema ───────────────────────────────────────────────────────── */
 
-const CatEnum = z.enum(['brewing', 'tea', 'non-coffee', 'dessert']);
+/* CatEnum 은 CafeMenuCategoryEnum 으로 통합 (S264-D LOW-B). */
 
 const StatusEnum = z.enum([
   '',
@@ -107,7 +106,7 @@ const FormSchema = z.object({
   /* mode='edit' 시 row.id · mode='create' 시 빈 문자열 (action 에서 자동 생성) */
   id: z.string(),
   name: z.string().min(1, '메뉴명을 입력해 주세요').max(60, '최대 60자'),
-  cat: CatEnum,
+  cat: CafeMenuCategoryEnum,
   status: StatusEnum,
   temp: TempEnum,
   badge2: z.string().max(20),
@@ -389,7 +388,7 @@ export default function MenuEditForm(props: Props) {
                   {...register('cat')}
                   className={ADMIN_SELECT_CLASS}
                 >
-                  {CAT_OPTIONS.map((o) => (
+                  {CAFE_MENU_CATEGORIES.map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}
                     </option>
