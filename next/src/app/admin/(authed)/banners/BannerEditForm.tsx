@@ -18,7 +18,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Copy, Trash2 } from 'lucide-react';
+import { Copy, Download, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { describeError, describeUploadError } from '@/lib/admin/errorDescribe';
 import { AdminBackLink } from '@/components/admin/AdminBackLink';
@@ -28,7 +28,7 @@ import { Checkbox } from '@/components/admin/ui/checkbox';
 import ConfirmModal from '@/components/admin/ConfirmModal';
 import type { Banner, BannerKind } from '@/lib/banners';
 import { uploadBannerHtml } from '@/lib/admin/uploadBannerHtml';
-import { buildBannerAiPrompt } from '@/lib/admin/aiPrompt';
+import { buildBannerAiPrompt, buildStage2Prompt } from '@/lib/admin/aiPrompt';
 import {
   uploadBannerImage,
   type BannerBreakpoint,
@@ -287,6 +287,64 @@ export default function BannerEditForm({
       });
     } else {
       toast.success('자동 변환 완료', { description: baseDescription });
+    }
+  }
+
+  /**
+   * Stage 2 AI prompt (S276) clipboard 복사.
+   * 운영자가 Claude.ai 에 prompt + Stage 1 결과 이미지를 던지면 responsive HTML 생성.
+   * 결과를 위 "responsive HTML 자동 변환" 카드에 붙여넣기 → production HTML 자동 저장.
+   */
+  async function handleStage2PromptCopy() {
+    const prompt = buildStage2Prompt({
+      kind: kind === 'cafe_event' ? 'cafe-event' : 'signature',
+      aspectDesktop: draft.aspect_desktop,
+      aspectTablet: draft.aspect_tablet,
+      aspectMobile: draft.aspect_mobile,
+      headlineText: draft.headline_text,
+      subheadText: draft.subhead_text,
+      ctaText: draft.cta_text,
+      imageAlt: draft.image_alt,
+    });
+    try {
+      await navigator.clipboard.writeText(prompt);
+      toast.success('Stage 2 prompt 를 복사했습니다', {
+        description: 'Claude.ai 에 prompt + Stage 1 배경 이미지 던지기 → responsive HTML 받기 → 위 자동 변환에 붙여넣기',
+      });
+    } catch {
+      toast.error('복사에 실패했습니다 — 수동으로 복사해 주세요');
+    }
+  }
+
+  /**
+   * 현재 등록된 production HTML 을 .html 파일로 다운로드 (디자이너 검수 옵션).
+   * Storage 의 custom_html_path 를 fetch 후 blob 다운로드.
+   */
+  async function handleHtmlDownload() {
+    const url = draft.custom_html_path.trim();
+    if (!url) {
+      toast.error('등록된 HTML 이 없습니다');
+      return;
+    }
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      const blob = new Blob([text], { type: 'text/html;charset=utf-8' });
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `banner-${kind}-${Date.now()}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+      toast.success('HTML 을 다운로드했습니다', {
+        description: '디자이너 검수 후 다시 위 자동 변환 또는 수동 업로드로 등록해 주세요',
+      });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : '다운로드 실패';
+      toast.error(`HTML 다운로드 실패 — ${message}`);
     }
   }
 
@@ -565,17 +623,29 @@ export default function BannerEditForm({
           </div>
         </Card>
 
-        {/* responsive HTML 자동 변환 카드 (S275) */}
+        {/* responsive HTML 자동 변환 카드 (S275 + S276 Stage 2 prompt) */}
         <Card
           title="responsive HTML 자동 변환 (선택)"
           subtitle={
             <>
               디자이너 4 BP responsive HTML 을 production HTML 로 자동 변환합니다.
               <br />
-              변환 성공 시 아래 'production HTML' 영역에 자동 저장됩니다 — 운영자가 코드를 직접 손볼 필요 없습니다.
+              디자이너에게 의뢰하는 대신 'Stage 2 AI prompt 복사' 버튼으로 Claude.ai 에 의뢰할 수도 있어요.
               <br />
-              디자이너 가이드 답습이 안 된 경우 변환 한계 안내가 표시됩니다. 실패 시 아래 manual 업로드로 직접 등록할 수 있어요.
+              변환 성공 시 아래 'production HTML' 영역에 자동 저장됩니다. 실패 시 아래 manual 업로드로 직접 등록할 수 있어요.
             </>
+          }
+          action={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="!h-7 !text-xs"
+              onClick={handleStage2PromptCopy}
+            >
+              <Copy size={14} />
+              Stage 2 AI prompt 복사
+            </Button>
           }
         >
           <div className="flex flex-col gap-3">
@@ -665,6 +735,20 @@ export default function BannerEditForm({
               <br />
               자동 변환 결과는 위 영역에서 처리되며, 이 영역의 등록값은 자동 변환 시 덮어쓰여집니다.
             </>
+          }
+          action={
+            draft.custom_html_path ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="!h-7 !text-xs"
+                onClick={handleHtmlDownload}
+              >
+                <Download size={14} />
+                HTML 다운로드
+              </Button>
+            ) : undefined
           }
         >
           <div className="flex flex-col gap-3">

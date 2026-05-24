@@ -1,25 +1,28 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   lib/admin/aiPrompt.ts — 운영자 AI 배너 제작 표준 prompt (S239 B-1b)
+   lib/admin/aiPrompt.ts — 운영자 AI 배너 제작 표준 prompt (S239 B-1b · S276 Stage 2)
 
    목적:
-   - 운영자가 AI 에게 배너 이미지를 의뢰할 때 사용할 표준 prompt.
-   - **Stage 1 only** — 원본 이미지 → 텍스트/요소 제거 + BP 별 배경 이미지.
-     (이미지 처리 AI · Gemini 2.5 / ChatGPT GPT-4o image / Imagen 추천)
+   - 운영자가 AI 에게 배너 자산을 의뢰할 때 사용할 두 표준 prompt:
+     - **Stage 1**: 원본 이미지 → 텍스트/요소 제거 + BP 별 배경 이미지
+       (이미지 처리 AI · Gemini 2.5 / ChatGPT GPT-4o image / Imagen 추천)
+     - **Stage 2 (S276)**: 시즌 컨셉 + 배경 이미지 → 4 BP responsive.html
+       (Claude Opus 4.7 권장 · S274 fair test 결과 사이트 톤 가장 정합)
 
-   배너 제작 워크플로우 (운영자 가이드):
+   배너 제작 워크플로우 (운영자 가이드 · S276 chain 완성):
    1. 시즌 컨셉 결정
    2. AI 로 배너 원본 이미지 생성 (텍스트 + 디자인 요소 포함된 완성본)
-   3. **Stage 1 prompt** → 이미지 AI 에게 전달 → 배경 이미지 (Desktop · Mobile) + 안전 영역 메타
-   4. 디자이너가 responsive.html 작성 (모든 BP 시각 검증된 데모)
-   5. 별도 Claude Code 인스턴스로 production.html 변환 (iframe sandbox 모델)
-   6. admin 업로드 → 이미지 + .html + SEO 메타 텍스트 + alt
-   7. /preview 검증 → enabled=true 활성화
+   3. **Stage 1 prompt** → 이미지 AI → 배경 이미지 (Desktop · Mobile) + 안전 영역 메타
+   4. **Stage 2 prompt** → Claude Opus 4.7 (또는 디자이너) → responsive.html
+   5. admin "responsive HTML 자동 변환" (S275 Phase 2) → production.html 자동 저장
+   6. SEO 메타 자동 채움 (autofill) + 4 BP iframe preview 시각 검증
+   7. enabled=true 활성화
 
-   Stage 2 (HTML 생성 AI) 는 폐기: 시각 → 코드 변환 정확도 한계로 검증된
-   responsive → production 변환 모델 채택.
+   디자이너 옵션 (안전망): Stage 2 결과를 "HTML 다운로드" → 디자이너 검수 + 보정
+   → 다시 업로드 → 자동 변환.
 
    설계:
-   - signature 와 cafe-events 가 거의 동일한 모델이라 단일 builder + 영역 라벨만 분기.
+   - signature 와 cafe-events 가 거의 동일한 모델이라 단일 builder + 영역 라벨만 분기
+   - Stage 2 는 spec-heavy (운영 규칙 박음) — 외부 AI 의 사이트 톤 정합 보장
    ══════════════════════════════════════════════════════════════════════════ */
 
 export type BannerKind = 'signature' | 'cafe-event';
@@ -168,7 +171,248 @@ export function buildBannerAiPrompt(options: BuildPromptOptions): string {
     '',
     '## 다음 단계 안내',
     '- 결과 이미지를 admin "이미지 (반응형)" 슬롯에 업로드',
-    '- 영역 메타데이터를 디자이너에게 전달하여 responsive.html 작성 진행',
-    '  (메인 비주얼·feature 바 위치가 텍스트 배치 기준)',
+    '- 영역 메타데이터를 **Stage 2 prompt** (admin "Stage 2 AI prompt 복사" 버튼) 에 함께 전달',
+    '  → Claude Opus 4.7 가 responsive.html 작성',
+    '  → admin "responsive HTML 자동 변환" 카드에 붙여넣기 → production HTML 자동 저장',
+  ].join('\n');
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Stage 2 — responsive.html 생성 prompt (S276)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+interface BuildStage2Options {
+  kind: BannerKind;
+  /** Stage 1 결과 이미지 aspect (운영자 admin 폼에서 자동 측정). */
+  aspectDesktop?: string;
+  aspectTablet?: string;
+  aspectMobile?: string;
+  /** 운영자가 입력한 SEO 메타 — Stage 2 AI 가 prompt 안에서 그대로 사용. */
+  headlineText?: string;
+  subheadText?: string;
+  ctaText?: string;
+  imageAlt?: string;
+}
+
+/** aspect '1440/504' → wrap width × height 추정 (BP 별 base width 기준). */
+function aspectToWh(aspect: string | undefined, baseWidth: number): string {
+  const fallback = `${baseWidth}px (height 미지정)`;
+  if (!aspect) return fallback;
+  const m = /^\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*$/.exec(aspect);
+  if (!m) return fallback;
+  const w = Number(m[1]);
+  const h = Number(m[2]);
+  if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
+    return fallback;
+  }
+  const targetHeight = Math.round((baseWidth * h) / w);
+  return `${baseWidth}px × ${targetHeight}px (원본 ${w}:${h})`;
+}
+
+/**
+ * Stage 2 AI 에게 전달할 spec-heavy prompt — 4 BP responsive.html 생성.
+ *
+ * S274 fair test 결과 (3 모델 비교):
+ *   - Claude Opus 4.7 가 사이트 디자인 톤 가장 정합 → default 권장
+ *   - 시스템 제약 만으로는 운영 규칙 (좌측 패딩 60/48/48/32 등) 모름
+ *   - spec-heavy prompt (운영 규칙 박음) 가 일관성 보장에 필수
+ *
+ * 운영자가 admin "Stage 2 AI prompt 복사" 버튼 클릭 시 clipboard 복사.
+ * AI 결과 = responsive.html → admin "responsive HTML 자동 변환" (S275) → production.html.
+ */
+export function buildStage2Prompt(options: BuildStage2Options): string {
+  const {
+    kind,
+    aspectDesktop,
+    aspectMobile,
+    headlineText,
+    subheadText,
+    ctaText,
+    imageAlt,
+  } = options;
+  const label = KIND_LABEL[kind];
+
+  const wrapWh = [
+    '  - .landscape-max-wrap: ' + aspectToWh(aspectDesktop, 1440),
+    '  - .landscape-min-wrap: ' + aspectToWh(aspectDesktop, 768),
+    '  - .portrait-max-wrap:  ' + aspectToWh(aspectMobile, 767),
+    '  - .portrait-min-wrap:  ' + aspectToWh(aspectMobile, 360),
+  ].join('\n');
+
+  const userText =
+    [
+      headlineText && `- 헤드라인: "${headlineText}"`,
+      subheadText && `- 부제: "${subheadText}"`,
+      ctaText && `- CTA 라벨: "${ctaText}"`,
+      imageAlt && `- 이미지 alt: "${imageAlt}"`,
+    ]
+      .filter(Boolean)
+      .join('\n') ||
+    '  (운영자 입력 없음 — AI 가 컨셉 이미지 기반으로 임의 텍스트 작성. 한글 본문 + 영문 라벨 혼용 권장)';
+
+  return [
+    `# ${label} responsive.html 생성 (Stage 2)`,
+    '',
+    '추천 AI: **Claude Opus 4.7** (S274 fair test 결과 사이트 톤 가장 정합).',
+    'Gemini 2.5 / ChatGPT 도 사용 가능하나 일관성 보장 위해 본 prompt 의 운영 규칙을 정확히 따를 것.',
+    '',
+    '## 🎯 이 작업의 본질',
+    '',
+    '디자이너가 4 BP 양 끝점 (가로형 1440 + 768 + 세로형 767 + 360) 에서 폰트/패딩/위치를 결정한 **stacked 시각 데모 HTML** 을 작성하는 작업입니다.',
+    '',
+    '결과 = 4 wrap (.landscape-max-wrap / .landscape-min-wrap / .portrait-max-wrap / .portrait-min-wrap) 이 body 안에 세로로 쌓인 단일 .html 파일.',
+    '',
+    '운영자는 결과를 admin "responsive HTML 자동 변환" 에 붙여넣기 → cascade resolver 가 자동으로 production.html (단일 .banner-wrap + container query + cqw clamp fluid) 로 변환합니다.',
+    '',
+    '## 📋 시스템 제약 (변경 절대 금지)',
+    '',
+    '### 1. 4 BP wrap class 명명 + 크기',
+    '각 BP 별 wrap div 의 class 명과 width × height 는 정확히 다음을 따를 것 (변경 시 자동 변환 깨짐):',
+    '',
+    wrapWh,
+    '',
+    'wrap 의 HTML 구조:',
+    '```html',
+    '<div class="banner-wrap landscape-max-wrap" style="width: ...; height: ...;">',
+    '  <img class="bg" src="ube_banner_desktop.png" alt="..." />',
+    '  <div class="banner-text"> ...콘텐츠... </div>',
+    '</div>',
+    '```',
+    '- 가로형 max + min 은 `*_desktop.png` 재사용 (Stage 1 출력)',
+    '- 세로형 max + min 은 `*_mobile.png` 재사용 (Stage 1 출력)',
+    '- Tablet 별 이미지 별도 생성 X — Desktop 자동 사용 (Stage 1 권장)',
+    '',
+    '### 2. 폰트 시스템 (Pretendard + Inter 두 패밀리만)',
+    '`<head>` 에 다음 정확히 포함:',
+    '```html',
+    '<link rel="preconnect" href="https://fonts.googleapis.com">',
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+    '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>',
+    '<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">',
+    '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">',
+    '```',
+    '`:root` 토큰:',
+    '```css',
+    ':root {',
+    "  --font-en: 'Inter', sans-serif;",
+    "  --font-kr: 'Pretendard Variable', 'Pretendard', sans-serif;",
+    '}',
+    '```',
+    '🚫 **금지**: Noto Sans KR · Outfit · Montserrat 등 추가 패밀리. 사이트 다른 페이지 폰트 정합 깨짐.',
+    '',
+    '### 3. 한/영 매핑 규칙 (각 텍스트 요소 클래스에 font-family 명시)',
+    '- **한글 문자 포함 (한/영 혼용 포함)** → `font-family: var(--font-kr)`',
+    '  - 예: 부제, 메뉴 한글명, 본문, 캡션',
+    '- **순수 영문 (대문자 라벨 · 헤드라인 · 시리즈명)** → `font-family: var(--font-en)`',
+    '  - 예: "Good Things UBE Series", "UBE MILK", 영문 헤드라인',
+    '🚫 **금지**: body inherit 만 의존하고 클래스에 font-family 명시 안 함 (영문 라벨이 Pretendard 로 떨어지는 회귀).',
+    '',
+    '## 📐 운영 규칙 (사이트 톤 정합 의무)',
+    '',
+    '### 1. 좌측 패딩 표준 (외부 페이지 정렬 의무)',
+    '배너는 풀블리드로 노출되므로 외부 페이지 콘텐츠 영역과 좌측 정렬을 맞춰야 합니다:',
+    '- `.landscape-max-wrap` 좌측 패딩: **60px**',
+    '- `.landscape-min-wrap` 좌측 패딩: **48px**',
+    '- `.portrait-max-wrap` 좌측 패딩 (텍스트): **48px**',
+    '- `.portrait-min-wrap` 좌측 패딩 (텍스트): **32px**',
+    '🚫 **금지**: 임의 패딩 (72px · 120px 등). 디자이너 자유 영역 아님.',
+    '',
+    '### 2. 폰트 크기 가이드 (양 끝점 모델 — production clamp 식의 양 끝점)',
+    '각 클래스의 4 BP 별 값이 production clamp 식의 양 끝점이 되므로, 양 끝점만 잘 결정하면 중간 viewport 는 자동 보간:',
+    '',
+    '| 요소 | landscape-max (1440) | landscape-min (768) | portrait-max (767) | portrait-min (360) |',
+    '|------|----------------------|---------------------|--------------------|--------------------|',
+    '| 헤드라인 (영문) | 56~64px | 32~40px | 48~64px | 28~36px |',
+    '| 부제 (한글) | 18~22px | 13~16px | 18~22px | 13~15px |',
+    '| 시리즈 라벨 (영문) | 13~15px | 10~12px | 13~15px | 10~12px |',
+    '| 메뉴 한글 | 15~17px | 11~13px | 14~16px | 11~13px |',
+    '| 메뉴 영문 | 10~12px | 9~11px | 10~12px | 9~11px |',
+    '| 메뉴 설명 (한글) | 12~14px | 9~11px | 11~13px | 10~12px |',
+    '| 배지 라벨 | 13~15px | 8~10px | 13~15px | 6~8px |',
+    '',
+    '값은 시즌 컨셉에 따라 가이드 범위 안에서 자유. 단 양 끝점 차이 너무 크면 (예: 64 → 16) 중간 viewport 가 어색하니 가이드 범위 안 유지.',
+    '',
+    '### 3. 사이트 디자인 톤 (절제 · 단순화)',
+    '- **배경**: sand bg + 보라/브라운 컬러 팔레트 (제품 컬러 톤 답습)',
+    '- **레이아웃**: 좌측 stack (상단 헤드라인 + 하단 메뉴 리스트) · 우상단 원형 배지. 카드형 grid X.',
+    '- **mobile 메뉴**: 하단 bar (3-col grid 자연스러움) · 카드 형 X',
+    '- **분리선/구분선**: 미세한 gradient line (예: `linear-gradient(to right, rgba(74,37,128,.2) 0%, rgba(74,37,128,.2) 60%, transparent 80%)` · background-size: 100% 1px)',
+    '🚫 **금지**: feature 바 / 강조 박스 / 카드 형 메뉴 / 화려한 그라데이션 / 작은 부가 요소 (원본 이미지에 있어도 단순화).',
+    '',
+    '### 4. 단순화 의도 (원본 모든 요소 재현 X)',
+    '컨셉 이미지에 4종 feature 바 같은 부가 요소가 있어도 **재현 금지**. 디자이너의 단순화 의도 답습:',
+    '- 헤드라인 + 부제 + 시리즈 라벨 + 메뉴 리스트 + 배지 (5종) 만',
+    '- 부가 정보 (영양 정보 / 가격 / 매장 안내 등) 는 본문에 분리',
+    '',
+    '## 📝 입력 자산 (운영자가 채팅에 첨부)',
+    '',
+    '1. **Stage 1 결과 배경 이미지** — Desktop · Mobile 각 1장 (필수)',
+    '2. **Stage 1 안전 영역 메타데이터** — 텍스트/메인 비주얼/feature 바 좌표 (참고)',
+    '3. **운영자 입력 SEO 메타** (있으면 그대로 사용 · 없으면 AI 가 컨셉 기반 작성):',
+    userText,
+    '',
+    '## 📦 출력 형식 (단일 .html 파일)',
+    '',
+    '```html',
+    '<!DOCTYPE html>',
+    '<html lang="ko">',
+    '<head>',
+    '  <meta charset="UTF-8">',
+    '  <meta name="viewport" content="width=device-width, initial-scale=1.0">',
+    '  <title>{시즌명} Banner — fluid scaling endpoints</title>',
+    '  <link rel="preconnect" href="...">',
+    '  <link href="...pretendardvariable.min.css" rel="stylesheet">',
+    '  <link href="...family=Inter:wght@300..900" rel="stylesheet">',
+    '  <style>',
+    '    /* :root 토큰 (font 시스템 + color 팔레트) */',
+    '    /* body 데모 layout (stacked · padding · gap · background sand) */',
+    '    /* .section / .label / .banner-wrap 데모 wrapper rules */',
+    '    /* 가로형 max 기본값 (.headline · .subheadline 등) */',
+    '    /* .landscape-min-wrap .X { ... } override (가로형 min 값) */',
+    '    /* .portrait-max-wrap .X { ... } override (세로형 max 값) */',
+    '    /* .portrait-min-wrap .X { ... } override (세로형 min 값) */',
+    '  </style>',
+    '</head>',
+    '<body>',
+    '  <div class="section"><p class="label">🖥 가로형 최대 — 1440px</p>',
+    '    <div class="banner-wrap landscape-max-wrap" style="width: 1440px; height: ...">',
+    '      <img class="bg" src="..._desktop.png" alt="...">',
+    '      <div class="banner-text"> ...콘텐츠... </div>',
+    '    </div></div>',
+    '  <div class="section"><p class="label">📟 가로형 최소 — 768px</p>',
+    '    <div class="banner-wrap landscape-min-wrap" style="width: 768px; height: ...">',
+    '      <img class="bg" src="..._desktop.png" alt="...">',
+    '      <div class="banner-text"> ...콘텐츠... </div>',
+    '    </div></div>',
+    '  <div class="section"><p class="label">📱 세로형 최대 — 767px</p>',
+    '    <div class="banner-wrap portrait-max-wrap" style="width: 767px; height: ...">',
+    '      <img class="bg" src="..._mobile.png" alt="...">',
+    '      <div class="banner-text"> ...콘텐츠... </div>',
+    '    </div></div>',
+    '  <div class="section"><p class="label">📱 세로형 최소 — 360px</p>',
+    '    <div class="banner-wrap portrait-min-wrap" style="width: 360px; height: ...">',
+    '      <img class="bg" src="..._mobile.png" alt="...">',
+    '      <div class="banner-text"> ...콘텐츠... </div>',
+    '    </div></div>',
+    '</body>',
+    '</html>',
+    '```',
+    '',
+    '## 🔍 자가 검증 체크리스트 (출력 전 모두 확인)',
+    '',
+    '- [ ] 4 wrap class 명명 정확 (.landscape-max-wrap / .landscape-min-wrap / .portrait-max-wrap / .portrait-min-wrap)',
+    '- [ ] 각 wrap 의 width × height 가 위 시스템 제약 표와 일치',
+    '- [ ] 좌측 패딩 60 / 48 / 48 / 32 정확 (임의 패딩 금지)',
+    '- [ ] 폰트 패밀리 = Pretendard + Inter 만 (Noto Sans / Outfit 등 추가 패밀리 0)',
+    '- [ ] 각 텍스트 클래스에 font-family 명시 (한글 → --font-kr · 영문 → --font-en)',
+    '- [ ] 부가 요소 (feature 바 등) 단순화 — 5종 (헤드라인 + 부제 + 시리즈 라벨 + 메뉴 리스트 + 배지) 만',
+    '- [ ] 폰트 크기가 위 가이드 범위 안',
+    '- [ ] 4 BP wrap CSS 패턴 정확 (base + wrap class prefix override) — production 자동 변환 호환',
+    '',
+    '## 다음 단계 안내',
+    '',
+    '결과 .html 파일을 다운로드 또는 텍스트로 복사 → admin "responsive HTML 자동 변환" 카드 (또는 "텍스트 붙여넣기") → 자동 변환 실행 → production.html 자동 저장 → 4 BP iframe preview 시각 검증.',
+    '',
+    '디자이너 검수 옵션: admin "HTML 다운로드" 버튼으로 저장된 production.html 을 디자이너에게 전달 → 손본 후 다시 업로드.',
   ].join('\n');
 }
