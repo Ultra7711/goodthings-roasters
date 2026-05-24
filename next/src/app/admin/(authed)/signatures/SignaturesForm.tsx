@@ -379,7 +379,7 @@ export default function SignaturesForm({ initialSignature }: SignaturesFormProps
       </AdminTopbarActions>
 
       <AdminPageHeader
-        title="시그니처 섹션"
+        title="시그니처 배너 관리"
         subtitle="메인 §2.2 sand 단독 chapter · 운영자 HTML + 이미지 3종 · iframe sandbox 임베드 · 단일 row (영구 1개)"
         className="mb-6"
       />

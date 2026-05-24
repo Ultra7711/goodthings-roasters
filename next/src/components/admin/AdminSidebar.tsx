@@ -49,7 +49,7 @@ function buildNavGroups(adminLevel: 'owner' | 'staff'): NavGroup[] {
   const settingsItems: NavItem[] = [
     { href: '/admin/settings', label: '사이트 설정', icon: Settings },
     { href: '/admin/cafe-events', label: '카페 이벤트', icon: Megaphone },
-    { href: '/admin/signatures', label: '시그니처', icon: Sparkles },
+    { href: '/admin/signatures', label: '시그니처 배너', icon: Sparkles },
   ];
   if (adminLevel === 'owner') {
     settingsItems.push({ href: '/admin/audit', label: '감사 로그', icon: ClipboardClock });
