@@ -22,17 +22,33 @@ import type { AdminLevel } from '@/lib/auth/getClaims';
 
 let cached: { userId: string; level: AdminLevel | null } | null = null;
 
-/* USER_UPDATED 이벤트 (예: 관리자가 staff 승격 후 user_metadata refresh) 시 invalidate.
-   SIGNED_OUT 은 useEffect 의 !user 분기가 처리. 별 listener 등록은 1회 (module scope). */
-let authListenerSubscribed = false;
-function ensureAuthInvalidationListener() {
-  if (authListenerSubscribed) return;
-  authListenerSubscribed = true;
+/* invalidate 메커니즘 3종 (모두 module scope · 1회 등록):
+   1. supabase onAuthStateChange USER_UPDATED / TOKEN_REFRESHED — user_metadata 변경 시
+   2. window focus / visibilitychange — 다른 탭에서 admin 권한 부여 후 복귀 시 (95% 케이스)
+   3. invalidateAdminLevelCache() — 외부 trigger (admin 액션 직후 client 측 호출 가능)
+   refresh 트리거: cached=null 후 모든 subscriber 의 setState 호출 → useEffect 재 fetch. */
+const refreshListeners = new Set<() => void>();
+
+function notifyRefresh() {
+  cached = null;
+  refreshListeners.forEach((l) => l());
+}
+
+let invalidationListenersSubscribed = false;
+function ensureInvalidationListeners() {
+  if (invalidationListenersSubscribed) return;
+  invalidationListenersSubscribed = true;
   supabase.auth.onAuthStateChange((event) => {
     if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
-      cached = null;
+      notifyRefresh();
     }
   });
+  if (typeof window !== 'undefined') {
+    window.addEventListener('focus', notifyRefresh);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') notifyRefresh();
+    });
+  }
 }
 
 export function useAdminLevel(): AdminLevel | null {
@@ -41,9 +57,20 @@ export function useAdminLevel(): AdminLevel | null {
     if (cached && user?.id === cached.userId) return cached.level;
     return null;
   });
+  /* refresh trigger — focus/visibilitychange/auth 이벤트 시 module level notifyRefresh 호출 →
+     이 setter 가 의존성으로 useEffect 재 fetch 트리거. */
+  const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
-    ensureAuthInvalidationListener();
+    const listener = () => setRefreshTick((t) => t + 1);
+    refreshListeners.add(listener);
+    return () => {
+      refreshListeners.delete(listener);
+    };
+  }, []);
+
+  useEffect(() => {
+    ensureInvalidationListeners();
     if (!user) {
       setLevel(null);
       cached = null;
@@ -88,12 +115,12 @@ export function useAdminLevel(): AdminLevel | null {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, refreshTick]);
 
   return level;
 }
 
 /** 외부 트리거용 cache invalidator. 어드민이 권한 변경 직후 client 측에서 호출 가능. */
 export function invalidateAdminLevelCache(): void {
-  cached = null;
+  notifyRefresh();
 }
