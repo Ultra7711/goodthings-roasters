@@ -50,6 +50,8 @@ export default function CheckoutPage() {
 
   /* ── 마운트 가드: SSR/클라이언트 초기 렌더 일치 (hydration mismatch 방지) */
   const [mounted, setMounted] = useState(false);
+  // mount guard — hydration mismatch 방지 (의도된 setState in effect)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => { preloadPostcode(); }, []);

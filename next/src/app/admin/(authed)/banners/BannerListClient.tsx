@@ -1,5 +1,12 @@
 'use client';
 
+/* eslint-disable react-hooks/set-state-in-effect */
+/*
+ * server props sync useEffect (S279-C-2 답습) = 의도된 setState in effect.
+ * banner / products / menu / gooddays 4 도메인 동일 옵션 C 패턴.
+ * ESLint 룰 false positive — carry: lint cleanup 별 sprint.
+ */
+
 /* ══════════════════════════════════════════════════════════════════════════
    BannerListClient — /admin/banners list + 화살표 reorder (S273 통합 · S279-C dirty save)
 

@@ -60,6 +60,8 @@ export default function ProductRoastStage({ roastStage, roastDesc }: Props) {
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
+    // IntersectionObserver reset — el 변경 시 animation 재시작 (의도된 setState in effect)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAnimated(false);
     const io = new IntersectionObserver(
       (entries) => {

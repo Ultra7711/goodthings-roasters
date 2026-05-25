@@ -1,9 +1,11 @@
 'use client';
 
-/* eslint-disable react-hooks/set-state-in-effect
-   server props sync useEffect (S279-C-2 답습) = 의도된 setState in effect.
-   banner / products / menu / gooddays 4 도메인 동일 옵션 C 패턴.
-   ESLint 룰 false positive — carry: lint cleanup 별 sprint. */
+/* eslint-disable react-hooks/set-state-in-effect */
+/*
+ * server props sync useEffect (S279-C-2 답습) = 의도된 setState in effect.
+ * banner / products / menu / gooddays 4 도메인 동일 옵션 C 패턴.
+ * ESLint 룰 false positive — carry: lint cleanup 별 sprint.
+ */
 
 /* ══════════════════════════════════════════════════════════════════════════
    AdminGoodDaysClient — /admin/gooddays 갤러리 운영 UI (S167 J-4)

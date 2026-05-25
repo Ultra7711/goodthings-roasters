@@ -62,6 +62,8 @@ export default function ShippingDialog({ open, onClose, orderNumber, customerNam
   /* 다이얼로그 open 시 초기화 + 포커스 (shadcn Dialog ESC + outside click + body lock 자동) */
   useEffect(() => {
     if (!open) return;
+    // dialog open reset — open 변화 시 form 초기화 (의도된 setState in effect)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCarrierSel('CJ대한통운');
     setCarrierCustom('');
     setTracking('');

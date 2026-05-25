@@ -12,10 +12,12 @@
    - 페이지네이션 ❌ (카탈로그 ~35종 작음 · products 답습)
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* eslint-disable react-hooks/set-state-in-effect
-   server props sync useEffect (S279-C-2 답습) = 의도된 setState in effect.
-   banner / products / menu / gooddays 4 도메인 동일 옵션 C 패턴.
-   ESLint 룰 false positive — carry: lint cleanup 별 sprint. */
+/* eslint-disable react-hooks/set-state-in-effect */
+/*
+ * server props sync useEffect (S279-C-2 답습) = 의도된 setState in effect.
+ * banner / products / menu / gooddays 4 도메인 동일 옵션 C 패턴.
+ * ESLint 룰 false positive — carry: lint cleanup 별 sprint.
+ */
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';

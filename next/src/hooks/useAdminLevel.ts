@@ -71,6 +71,8 @@ export function useAdminLevel(): AdminLevel | null {
 
   useEffect(() => {
     ensureInvalidationListeners();
+    // user state sync — user 변경 시 admin level 동기 (의도된 setState in effect)
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (!user) {
       setLevel(null);
       cached = null;
@@ -80,6 +82,7 @@ export function useAdminLevel(): AdminLevel | null {
       setLevel(cached.level);
       return;
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
     let cancelled = false;
     (async () => {
       try {

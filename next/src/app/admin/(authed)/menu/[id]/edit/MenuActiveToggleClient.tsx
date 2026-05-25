@@ -24,6 +24,8 @@ export default function MenuActiveToggleClient({
   const [optimisticActive, setOptimisticActive] = useState(initialActive);
 
   useEffect(() => {
+    // server props sync — optimistic toggle pending guard (의도된 setState in effect)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!pending) setOptimisticActive(initialActive);
   }, [initialActive, pending]);
 

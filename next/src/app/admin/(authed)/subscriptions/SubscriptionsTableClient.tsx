@@ -901,6 +901,8 @@ function HistorySection({ subscriptionId }: { subscriptionId: string }) {
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
+    // data fetch reset — subscriptionId 변경 시 audit log 재요청 (의도된 setState in effect)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEntries(null);
     setLoadError(false);
     fetchSubscriptionAuditLogAction(subscriptionId).then((result) => {

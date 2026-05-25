@@ -95,6 +95,8 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
 
   // 드로어가 다시 열릴 때 snap 모드 리셋 — 다음 close 가 기본 fade 복구
   useEffect(() => {
+    // drawer reset — open 변화 시 snap mode 리셋 (의도된 setState in effect)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (open) setSnapClose(false);
   }, [open]);
 

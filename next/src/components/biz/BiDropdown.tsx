@@ -44,12 +44,15 @@ export function BiDropdown({
   const optionId = (idx: number) => `${id}-option-${idx}`;
 
   useEffect(() => {
+    // dropdown focus sync — open 변화 시 focus index 설정 (의도된 setState in effect)
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (open) {
       const idx = options.findIndex((o) => o.value === value);
       setFocusedIndex(idx >= 0 ? idx : 0);
     } else {
       setFocusedIndex(-1);
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [open, options, value]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {

@@ -23,6 +23,7 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    "**/.next/**", // S282-C-4 — nested .next/ (historic 잔여 next/next/.next/ + 미래 안전망)
     "out/**",
     "build/**",
     "next-env.d.ts",

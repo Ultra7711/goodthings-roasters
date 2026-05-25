@@ -67,9 +67,12 @@ export default function FooterBottom() {
   // FooterBottom 은 레이아웃에 위치해 언마운트되지 않으므로 open=true + rAF 루프가
   // 새 페이지에서도 계속 실행 → NavigationScrollReset 이후 최종 scrollBy 가 발사되는 버그.
   useEffect(() => {
+    // route change cleanup — pathname 변경 시 open 닫기 (의도된 setState in effect)
+    /* eslint-disable react-hooks/set-state-in-effect */
     cancelAnimationFrame(rafIdRef.current);
     scrollTokenRef.current++;
     setOpen(false);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [pathname]);
 
   useEffect(() => {

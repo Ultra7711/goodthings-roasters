@@ -121,6 +121,8 @@ export default function AdminSidebar({ email, displayName, title, adminLevel }: 
   useEffect(() => {
     try {
       const saved = localStorage.getItem(COLLAPSED_STORAGE_KEY);
+      // localStorage hydration — mount 후 saved state 복원 (SSR 분리)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (saved === '1') setCollapsed(true);
     } catch {
       /* localStorage 접근 불가 (private mode 등) — 기본 false 유지 */

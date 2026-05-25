@@ -47,6 +47,8 @@ export function BiMultiDropdown({
   /* multi 는 Enter 후에도 열린 상태 유지 — values 변경 시 focusedIndex 가 reset 되지
      않도록 functional setter 로 valid 한 prev 보존 (S243-B fix). */
   useEffect(() => {
+    // dropdown focus sync — open 변화 시 focus index 설정 (의도된 setState in effect)
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (!open) {
       setFocusedIndex(-1);
       return;
@@ -56,6 +58,7 @@ export function BiMultiDropdown({
       const firstChecked = options.findIndex((o) => values.includes(o.value));
       return firstChecked >= 0 ? firstChecked : 0;
     });
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [open, options, values]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {

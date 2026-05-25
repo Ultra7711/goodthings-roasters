@@ -87,6 +87,8 @@ export default function SiteHeader() {
   const closeMobileNav = useCallback(() => setIsMobileNavOpen(false), []);
 
   useEffect(() => {
+    // route change cleanup — pathname 변경 시 nav/search 닫기 (의도된 setState in effect)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobileNavOpen(false);
     closeSearch();
   }, [pathname, closeSearch]);

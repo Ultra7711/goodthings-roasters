@@ -68,6 +68,8 @@ export default function ConfirmModal({
 
   /* open 갱신 시 입력 초기화 */
   useEffect(() => {
+    // dialog close reset — open=false 시 입력 초기화 (의도된 setState in effect)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!open) setEntered('');
   }, [open]);
 

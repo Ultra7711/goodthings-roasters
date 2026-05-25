@@ -1,10 +1,12 @@
 'use client';
 
-/* eslint-disable react-hooks/set-state-in-effect
-   server props sync useEffect (S279-C-2 답습) = 의도된 setState in effect.
-   banner / products / menu / gooddays 4 도메인 동일 옵션 C 패턴.
-   ESLint 룰 false positive — carry: lint cleanup 별 sprint (룰 config 조정 또는
-   server props sync pattern 표준화). 본 sprint scope 외. */
+/* eslint-disable react-hooks/set-state-in-effect */
+/*
+ * server props sync useEffect (S279-C-2 답습) = 의도된 setState in effect.
+ * banner / products / menu / gooddays 4 도메인 동일 옵션 C 패턴.
+ * ESLint 룰 false positive — carry: lint cleanup 별 sprint (룰 config 조정 또는
+ * server props sync pattern 표준화). 본 sprint scope 외.
+ */
 
 /* ══════════════════════════════════════════════════════════════════════════
    ProductsTableClient — /admin/products 인터랙티브 본체 (S218 Phase 1)

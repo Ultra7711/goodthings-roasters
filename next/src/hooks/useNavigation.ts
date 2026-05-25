@@ -33,10 +33,13 @@ export function useNavigation() {
   useEffect(() => () => clearTimer(), [clearTimer]);
 
   useEffect(() => {
+    // route change cleanup — pathname 변경 시 pending 정리 (의도된 setState in effect · S281 carry)
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (!pendingRef.current) return;
     pendingRef.current = false;
     clearTimer();
     setNavigatingTo(null);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [pathname, clearTimer]);
 
   /* navigate 는 pathname 의존 → pathname 변경마다 새 레퍼런스. effect deps 직접 포함 금지. */

@@ -55,6 +55,8 @@ export default function CheckoutPayment({
   const widgetsRef = useRef<TossPaymentsWidgets | null>(null);
   /* amount는 위젯 초기화 후에도 변경될 수 있으므로 ref로 최신값 유지 */
   const amountRef = useRef(amount);
+  // render body 에서 ref mutation — TossPayments widget 콜백에 최신 amount 전달 (의도된 ref sync)
+  // eslint-disable-next-line react-hooks/refs
   amountRef.current = amount;
   const [ready, setReady] = useState(false);
   const [requesting, setRequesting] = useState(false);

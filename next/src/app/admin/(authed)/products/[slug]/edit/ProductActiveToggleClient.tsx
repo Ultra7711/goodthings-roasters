@@ -31,6 +31,8 @@ export default function ProductActiveToggleClient({
 
   /* SSR 재진입 시 외부 상태 sync (pending 아닐 때만) */
   useEffect(() => {
+    // server props sync — optimistic toggle pending guard (의도된 setState in effect)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!pending) setOptimisticActive(initialActive);
   }, [initialActive, pending]);
 
