@@ -24,7 +24,6 @@ import {
   cleanupProductImages,
   listProductImageRows,
   listProductStorageFiles,
-  E2E_PRODUCT_SLUG,
   type SeedProduct,
 } from './fixtures/product-seed';
 

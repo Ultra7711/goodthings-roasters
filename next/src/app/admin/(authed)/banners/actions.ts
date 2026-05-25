@@ -120,6 +120,7 @@ function toDbRow(
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function revalidateBanner(_kind: BannerKind) {
   /* getActiveBanner / getComingBanner 는 'use cache' 미사용 (bannersServer.ts) →
    * 매 요청 DB fetch. cacheTag invalidate 불필요. revalidatePath 만 호출하여

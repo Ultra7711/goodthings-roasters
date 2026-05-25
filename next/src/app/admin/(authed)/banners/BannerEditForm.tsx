@@ -426,6 +426,7 @@ export default function BannerEditForm({
   function handleSave() {
     startTransition(async () => {
       if (isNew) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id: _, ...input } = draft;
         /* createBannerAction success → server-side redirect (NEXT_REDIRECT throw)
            → 자동 navigate + ?just_created=1. result 는 실패 시만 반환. */
@@ -555,7 +556,7 @@ export default function BannerEditForm({
             <>
               원본 배너 이미지에서 텍스트와 작은 디자인 요소를 제거한 깨끗한 배경 이미지를 등록합니다.
               <br />
-              우측 'AI prompt 복사' 버튼으로 Gemini 같은 이미지 AI 에 의뢰하실 때 원본 배너 이미지 1장을 함께 첨부해 주시면 AI 가 배경 이미지를 만들어줍니다.
+              우측 &apos;AI prompt 복사&apos; 버튼으로 Gemini 같은 이미지 AI 에 의뢰하실 때 원본 배너 이미지 1장을 함께 첨부해 주시면 AI 가 배경 이미지를 만들어줍니다.
               <br />
               데스크탑 · 모바일 2장만 등록하시는 것을 권장해요. 태블릿은 비우면 데스크탑 이미지를 자동으로 사용합니다.
             </>
@@ -634,9 +635,9 @@ export default function BannerEditForm({
             <>
               디자이너 4 BP responsive HTML 을 production HTML 로 자동 변환합니다.
               <br />
-              디자이너에게 의뢰하는 대신 'Stage 2 AI prompt 복사' 버튼으로 Claude.ai 에 의뢰할 수도 있어요.
+              디자이너에게 의뢰하는 대신 &apos;Stage 2 AI prompt 복사&apos; 버튼으로 Claude.ai 에 의뢰할 수도 있어요.
               <br />
-              변환 성공 시 아래 'production HTML' 영역에 자동 저장됩니다. 실패 시 아래 manual 업로드로 직접 등록할 수 있어요.
+              변환 성공 시 아래 &apos;production HTML&apos; 영역에 자동 저장됩니다. 실패 시 아래 manual 업로드로 직접 등록할 수 있어요.
               <br />
               <span className="text-[var(--warning)]">
                 ⚠ AI 출력은 운영자 입력 외 element (.divider · .accent-line · 임의 &lt;br&gt; 등) 를 자체 추가할 수 있어요. &apos;HTML 다운로드&apos; 로 디자이너 검수 또는 텍스트 수동 trim 권장 (DEC-S278-4).

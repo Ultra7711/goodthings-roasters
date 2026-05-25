@@ -24,10 +24,7 @@ import { useHistoryDismiss } from '@/hooks/useHistoryDismiss';
 import { ClearIcon } from '@/components/ui/InputIcons';
 import MobileNavDrawer from '@/components/layout/MobileNavDrawer';
 
-/* ── 모듈 스코프 상수 — 렌더마다 재생성 방지 ───────────────
-   검색 패널 실제 렌더 높이 60px (border 제거됨 — 공지바/헤더 hairline 일괄 제거와 일관).
-   dim-top = headerBottom + 60 로 gap 0 맞춤. */
-const SEARCH_PANEL_HEIGHT = 60;
+/* ── 모듈 스코프 상수 — 렌더마다 재생성 방지 ─────────────── */
 /** 헤더 높이 기본값 — getBoundingClientRect 실패 시 fallback (CSS 헤더 높이와 동기화) */
 const HEADER_HEIGHT_FALLBACK = 60;
 /** 검색 쿼리 최대 길이 — DoS 가드 (브라우저 메인 스레드 정지 방지) */

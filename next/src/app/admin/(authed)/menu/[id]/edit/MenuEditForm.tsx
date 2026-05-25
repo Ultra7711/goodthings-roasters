@@ -260,6 +260,7 @@ export default function MenuEditForm(props: Props) {
   const onSubmit: SubmitHandler<MenuFormValues> = (values) => {
     if (isCreate) {
       startTransition(async () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id: _id, ...createInput } = values;
         const result = await createCafeMenuAction(createInput);
         if (!result.ok) {

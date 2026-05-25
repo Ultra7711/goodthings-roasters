@@ -40,7 +40,7 @@ import {
   type CafeMenuIdPrefix,
 } from '@/lib/admin/cafeMenuServer';
 import { logActionError } from '@/lib/admin/logActionError';
-import { normalizeAllergen, syncHighCaffeineMarker } from '@/lib/allergenSort';
+import { syncHighCaffeineMarker } from '@/lib/allergenSort';
 import { CafeMenuCategoryEnum } from '@/lib/cafeMenu/categories';
 import { CAFE_MENU_CACHE_TAG } from '@/lib/cafeMenuServer';
 import { MENU_LIKES_CACHE_TAG } from '@/lib/menuLikesServer';

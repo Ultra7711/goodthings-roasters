@@ -22,6 +22,7 @@ export const ADMIN_STORAGE_STATE = path.resolve(
   '.auth/admin.json',
 );
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default async function globalSetup(_config: FullConfig): Promise<void> {
   /* .env.local 우선 로드, 없으면 .env */
   loadDotenv({ path: path.resolve(__dirname, '../../.env.local') });

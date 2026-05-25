@@ -239,6 +239,7 @@ export function BasicTab({
 
 function ColorField({
   name,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   register: _register,
   control,
 }: {

@@ -357,12 +357,12 @@ export default function BannerListClient({
 
       {sortedBanners.length === 0 ? (
         <div className="px-4 py-16 text-center text-sm text-muted-foreground bg-muted rounded-md border border-dashed border-border">
-          등록된 배너가 없습니다. 우측 상단 "신규 등록" 버튼으로 추가해 주세요.
+          등록된 배너가 없습니다. 우측 상단 &quot;신규 등록&quot; 버튼으로 추가해 주세요.
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           <div className="text-xs text-muted-foreground">
-            1번 카드가 사이트에 노출되며, 비활성·기간 만료 시 다음 카드로 자동 넘어갑니다. 화살표 변경은 미리보기이며, 우측 상단 "변경사항 저장" 버튼을 눌러야 사이트에 반영됩니다.
+            1번 카드가 사이트에 노출되며, 비활성·기간 만료 시 다음 카드로 자동 넘어갑니다. 화살표 변경은 미리보기이며, 우측 상단 &quot;변경사항 저장&quot; 버튼을 눌러야 사이트에 반영됩니다.
           </div>
           <div
             className={cn(

@@ -15,7 +15,6 @@
 import './LoginPage.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { useLoginForm } from '@/hooks/useLoginForm';
 import { useRegisterForm } from '@/hooks/useRegisterForm';
 import { useInputNav } from '@/hooks/useInputNav';

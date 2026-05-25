@@ -168,6 +168,7 @@ export default function ProductEditForm(props: Props) {
   const onSubmit: SubmitHandler<FormValues> = (values) => {
     if (isCreate) {
       startTransition(async () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id: _id, ...createInput } = values;
         const result = await createProductAction(createInput);
         if (!result.ok) {

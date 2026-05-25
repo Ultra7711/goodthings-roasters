@@ -6,7 +6,6 @@
    - eyebrow = 카테고리 영문명 (D-26 SKU 카운트 폐기 — specialty coffee editorial 톤 부합).
    ══════════════════════════════════════════ */
 
-import { preload } from 'react-dom';
 import type { Product } from '@/lib/products';
 import { fetchProducts } from '@/lib/productsServer';
 import ShopCard from '@/components/shop/ShopCard';

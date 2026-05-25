@@ -18,14 +18,12 @@ import { ADMIN_READONLY_FIELD } from '@/components/admin/NativeSelectWrap';
 import { Button } from '@/components/admin/ui/button';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
 import {
-  describePayment,
   describeShippingMessage,
   describeStatus,
   formatJoinedAt,
   formatKstDateTime,
   formatKstDateTimeWithSeconds,
   formatKstFullDate,
-  type DbOrderStatus,
   type StatusTone,
 } from '@/lib/admin/orders';
 import type { OrderDetail } from '@/lib/admin/ordersServer';
