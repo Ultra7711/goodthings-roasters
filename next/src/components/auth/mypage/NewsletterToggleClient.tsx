@@ -16,18 +16,43 @@
 import { useCallback, useEffect, useState, useTransition } from 'react';
 import { Switch as SwitchPrimitive } from 'radix-ui';
 import { useToast } from '@/hooks/useToast';
-import { getNewsletterStatus, setNewsletterSubscription } from '@/lib/newsletter';
+import {
+  getNewsletterStatus,
+  setNewsletterSubscription,
+  type NewsletterStatusResult,
+} from '@/lib/newsletter';
 
 type LoadState = 'loading' | 'loaded' | 'hidden';
 
-export default function NewsletterToggleClient() {
+type Props = {
+  /* S283: SSR prefetch 결과 (mypage page.tsx Promise.all). 제공 시 client fetch 폐기 →
+     view 전환마다 "불러오는 중…" 노출 사라짐. fallback (undefined) 은 기존 mount fetch. */
+  initialStatus?: NewsletterStatusResult;
+};
+
+/* SSR initialStatus → (loadState, enabled) 초기값 도출.
+   undefined → loading (client fetch fallback).
+   ok=true → loaded + enabled = (status === 'active').
+   ok=false → hidden (unauthenticated/db_error). */
+function deriveInitialState(
+  initial: NewsletterStatusResult | undefined,
+): { loadState: LoadState; enabled: boolean } {
+  if (!initial) return { loadState: 'loading', enabled: false };
+  if (initial.ok) return { loadState: 'loaded', enabled: initial.status === 'active' };
+  return { loadState: 'hidden', enabled: false };
+}
+
+export default function NewsletterToggleClient({ initialStatus }: Props = {}) {
   const { show: toast } = useToast();
-  const [loadState, setLoadState] = useState<LoadState>('loading');
-  const [enabled, setEnabled] = useState(false);
+  const initial = deriveInitialState(initialStatus);
+  const [loadState, setLoadState] = useState<LoadState>(initial.loadState);
+  const [enabled, setEnabled] = useState(initial.enabled);
   const [isPending, startTransition] = useTransition();
 
-  /* 마운트 시 현재 status 조회. RLS owner_select 통과 (authenticated · user_id 매치). */
+  /* SSR prefetch 미제공(initialStatus === undefined) 시에만 client fetch fallback.
+     RLS owner_select 통과 (authenticated · user_id 매치). */
   useEffect(() => {
+    if (initialStatus) return;
     let cancelled = false;
     getNewsletterStatus().then((res) => {
       if (cancelled) return;
@@ -44,7 +69,7 @@ export default function NewsletterToggleClient() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialStatus]);
 
   const isLoading = loadState === 'loading';
 

@@ -20,6 +20,7 @@ import {
 } from '@/lib/repositories/subscriptionRepo';
 import { findOrdersForUser, getOrdersCountForUser } from '@/lib/repositories/orderRepo';
 import { toOrder } from '@/lib/orders/toOrder';
+import { getNewsletterStatus, type NewsletterStatusResult } from '@/lib/newsletter';
 import type { Subscription } from '@/types/subscription';
 import type { Order } from '@/types/order';
 import MyPagePage from '@/components/auth/MyPagePage';
@@ -40,7 +41,7 @@ async function MyPageAuthed() {
      - ordersCount: count-only RPC (HeroGreeting + SideNav 카운트)
      - adminLevel: admin 인 경우 'owner' | 'staff' (HeroGreeting 라벨)
      - products: S282-P2 — SubscriptionView lazy fetch (server action) · 90% dead fetch 회피. */
-  const [subscriptions, orders, ordersCount, adminClaims] = await Promise.all([
+  const [subscriptions, orders, ordersCount, adminClaims, newsletterStatus] = await Promise.all([
     findSubscriptionsForUser()
       .then((rows) => rows.map(toSubscription))
       .catch((err): Subscription[] => {
@@ -61,6 +62,12 @@ async function MyPageAuthed() {
       console.error('[mypage.prefetch] admin claims failed', err);
       return null;
     }),
+    /* S283: newsletter status SSR prefetch — ProfileView 진입 시 client fetch "불러오는 중…" 폐기.
+       view 전환마다 remount → useEffect 재발화 → 매번 fetch UX 어색함 회피. */
+    getNewsletterStatus().catch((err): NewsletterStatusResult => {
+      console.error('[mypage.prefetch] newsletter status failed', err);
+      return { ok: false, error: 'db_error' };
+    }),
   ]);
 
   const adminLevel: AdminLevel | null = adminClaims?.adminLevel ?? null;
@@ -72,6 +79,7 @@ async function MyPageAuthed() {
       initialOrders={orders}
       initialOrdersCount={ordersCount}
       adminLevel={adminLevel}
+      initialNewsletterStatus={newsletterStatus}
     />
   );
 }

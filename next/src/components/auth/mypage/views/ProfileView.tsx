@@ -9,6 +9,7 @@
 import { useCallback } from 'react';
 import { useToast } from '@/hooks/useToast';
 import type { UserAddress } from '@/types/address';
+import type { NewsletterStatusResult } from '@/lib/newsletter';
 import { useDefaultAddressQuery, useSaveDefaultAddress } from '@/hooks/useDefaultAddress';
 import { setAddrOpen } from '@/lib/myPageUiStore';
 import AccountInfoRow from '../AccountInfoRow';
@@ -17,9 +18,11 @@ import AddressSection from '../AddressSection';
 type Props = {
   name: string;
   email: string;
+  /* S283: newsletter status SSR prefetch — view 전환 시 "불러오는 중…" 폐기. */
+  initialNewsletterStatus?: NewsletterStatusResult;
 };
 
-export default function ProfileView({ name, email }: Props) {
+export default function ProfileView({ name, email, initialNewsletterStatus }: Props) {
   const { show: toast } = useToast();
   const { data: addressData, isPending: isAddressLoading } = useDefaultAddressQuery();
   const saveAddress = useSaveDefaultAddress();
@@ -42,7 +45,7 @@ export default function ProfileView({ name, email }: Props) {
 
   return (
     <div className="mp-section-body">
-      <AccountInfoRow name={name} email={email} />
+      <AccountInfoRow name={name} email={email} initialNewsletterStatus={initialNewsletterStatus} />
       <AddressSection
         initialAddress={addressData ?? null}
         isLoading={isAddressLoading}

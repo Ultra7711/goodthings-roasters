@@ -98,6 +98,8 @@ describe('getAdminClaims', () => {
           },
           error: null,
         })),
+        /* S282-P3: getAdminClaims 가 JWT app_metadata 직독을 시도 — session null → DB fallback. */
+        getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
       },
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     } as any);
@@ -125,6 +127,8 @@ describe('getAdminClaims', () => {
           },
           error: null,
         })),
+        /* S282-P3: JWT 직독 시도 — session null → DB fallback (profiles.admin_level). */
+        getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
       },
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     } as any);
@@ -162,6 +166,8 @@ describe('getAdminClaims', () => {
           },
           error: null,
         })),
+        /* S282-P3: JWT 직독 시도 — session null → DB fallback (admin_level='staff'). */
+        getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
       },
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     } as any);

@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 import type { AuthClaims, AdminLevel } from '@/lib/auth/getClaims';
 import type { Subscription } from '@/types/subscription';
 import type { Order } from '@/types/order';
+import type { NewsletterStatusResult } from '@/lib/newsletter';
 import { useToast } from '@/hooks/useToast';
 import { useSubscriptionsQuery } from '@/hooks/useSubscriptions';
 import { resetMyPageUi } from '@/lib/myPageUiStore';
@@ -49,6 +50,8 @@ type MyPagePageProps = {
   /** S264 H-2: admin 인 경우 adminLevel 라벨 ("관리자"/"운영자") 표시.
      일반 사용자 null → metaName / emailHandle 기존 로직. */
   adminLevel: AdminLevel | null;
+  /** S283: newsletter status SSR prefetch — ProfileView 진입 시 즉시 표시 (loading 폐기). */
+  initialNewsletterStatus: NewsletterStatusResult;
 };
 
 export default function MyPagePage({
@@ -57,6 +60,7 @@ export default function MyPagePage({
   initialOrders,
   initialOrdersCount,
   adminLevel,
+  initialNewsletterStatus,
 }: MyPagePageProps) {
   const router = useRouter();
   const { show: toast } = useToast();
@@ -322,7 +326,13 @@ export default function MyPagePage({
       case 'subscription':
         return <SubscriptionView />;
       case 'profile':
-        return <ProfileView name={profileDisplayName} email={effectiveEmail} />;
+        return (
+          <ProfileView
+            name={profileDisplayName}
+            email={effectiveEmail}
+            initialNewsletterStatus={initialNewsletterStatus}
+          />
+        );
       case 'account':
         return <AccountView onLoggedOut={handleLoggedOut} />;
     }
@@ -332,6 +342,7 @@ export default function MyPagePage({
     profileDisplayName,
     effectiveEmail,
     handleLoggedOut,
+    initialNewsletterStatus,
   ]);
 
   return (
