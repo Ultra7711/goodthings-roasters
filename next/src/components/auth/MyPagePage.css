@@ -139,11 +139,13 @@
   box-shadow: inset 0 -1px 0 0 var(--color-border-hairline);
 }
 .mp-info-row:last-child { box-shadow: none; }
-/* 배송지: column stretch + 내부 chevron top:6 → baseline 정렬에서 약 6.2px 위로 확장.
-   다른 행과 시각 정렬을 위해 padding-top 8px 차감 (16→8 보정). */
-.mp-info-row--addr { flex-direction: column; align-items: stretch; border-bottom: none; padding-top: 12px; }
-/* 안전망: 라인 1 (label + zip + chevron) wrap 발생 시 chevron 이 상단 고정 */
-.mp-info-row--addr .mp-info-row-top { align-items: flex-start; }
+/* 배송지: column stretch — S197 PR-2 에서 chevron top offset 폐기 + align-items:center 정합
+   확보 → 다른 row 와 동일 padding(20px 0) 통일. (S283 padding-top 12px 보정 폐기) */
+.mp-info-row--addr { flex-direction: column; align-items: stretch; border-bottom: none; }
+/* S283: 일반 row (이름·이메일) 와 visual 정합 — center 정렬로 line 내부 텍스트가
+   셀 세로 중앙 위치. wrap 발생 시 (드문 edge) chevron 도 함께 center 정렬 — 시각적으로
+   더 자연스러움. */
+.mp-info-row--addr .mp-info-row-top { align-items: center; }
 /* 아코디언 chevron 통일 (S197 PR-2) — top offset 모두 폐기, parent flex align center 로 vertical 정합 */
 .mp-addr-icon-btn,
 .mp-icon-btn {
@@ -316,16 +318,20 @@
   transform: translateY(2px);
 }
 /* 정기배송 토글: chevron `>` ↔ X 아이콘 cross-fade + rotate */
-.mp-sub-edit-btn svg { overflow: visible; }
-.mp-sub-toggle-chevron,
-.mp-sub-toggle-close {
+/* S283: 마이페이지 아코디언 공통 toggle 아이콘 (chevron ▶ ↔ X close).
+   SubscriptionItem 패턴 일반화 → OrderHistory / AddressSection / PasswordChangeForm 통일.
+   ToggleIcon 컴포넌트의 wrap span (.mp-toggle-icon) 의 .open class 토글 시 발화. */
+.mp-toggle-icon { display: inline-flex; align-items: center; justify-content: center; }
+.mp-toggle-icon svg { overflow: visible; width: 24px; height: 24px; }
+.mp-toggle-chevron,
+.mp-toggle-close {
   transform-origin: center;
   transition: opacity .2s ease, transform .2s ease;
 }
-.mp-sub-toggle-chevron { opacity: 1; transform: rotate(0); }
-.mp-sub-toggle-close { opacity: 0; transform: rotate(-90deg); }
-.mp-sub-edit-btn.open .mp-sub-toggle-chevron { opacity: 0; transform: rotate(90deg); }
-.mp-sub-edit-btn.open .mp-sub-toggle-close { opacity: 1; transform: rotate(0); }
+.mp-toggle-chevron { opacity: 1; transform: rotate(0); }
+.mp-toggle-close { opacity: 0; transform: rotate(-90deg); }
+.mp-toggle-icon.open .mp-toggle-chevron { opacity: 0; transform: rotate(90deg); }
+.mp-toggle-icon.open .mp-toggle-close { opacity: 1; transform: rotate(0); }
 .mp-cancel-link {
   background: none; border: none; padding: 0; cursor: pointer;
   font-family: var(--font-kr);
@@ -549,7 +555,8 @@
 }
 .mp-order-toggle svg { width: 24px; height: 24px; }
 .mp-order-card:hover .mp-order-toggle { color: var(--color-icon-default); }
-.mp-order-card.open .mp-order-toggle { transform: rotate(90deg); }
+/* S283: mp-order-card.open .mp-order-toggle rotate 90° 폐기 — ToggleIcon 의 opacity 토글 패턴 답습.
+   SubscriptionItem / AddressSection / PasswordChangeForm 와 chevron↔X 일관성. */
 .mp-order-items {
   max-height: 0; overflow: hidden; opacity: 0;
   transition: max-height var(--duration-drawer) ease, opacity var(--duration-transition) ease;

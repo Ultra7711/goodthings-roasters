@@ -30,6 +30,7 @@ import OrderItemCard, {
   type OrderItemCardData,
 } from '@/components/order/OrderItemCard';
 import CycleDropdown from './CycleDropdown';
+import ToggleIcon from './ToggleIcon';
 
 interface SubscriptionItemProps {
   sub: Subscription;
@@ -135,23 +136,9 @@ export default function SubscriptionItem({
           )}
         </div>
         <div className="mp-sub-controls">
-          <span
-            className={`mp-icon-btn mp-sub-edit-btn${isEditing ? ' open' : ''}`}
-            aria-hidden="true"
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path className="mp-sub-toggle-chevron" d="M9 6l6 6-6 6" />
-              <path className="mp-sub-toggle-close" d="M6 6l12 12M18 6L6 18" />
-            </svg>
+          {/* S283: 공통 ToggleIcon (chevron ↔ X) — 마이페이지 아코디언 4 컴포넌트 통일. */}
+          <span className="mp-icon-btn mp-sub-edit-btn" aria-hidden="true">
+            <ToggleIcon open={isEditing} />
           </span>
         </div>
       </div>

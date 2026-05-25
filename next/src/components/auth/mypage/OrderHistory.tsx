@@ -10,6 +10,7 @@ import { useOrdersQuery } from '@/hooks/useOrders';
 import { useMyPageOpenOrders, toggleOrder } from '@/lib/myPageUiStore';
 import type { Order, OrderStatus } from '@/types/order';
 import OrderItemCard from '@/components/order/OrderItemCard';
+import ToggleIcon from './ToggleIcon';
 
 type OrderHistoryProps = {
   /** S282-P1: SSR prefetch initialOrders → useOrdersQuery initialData.
@@ -84,19 +85,9 @@ export default function OrderHistory({ initialOrders }: OrderHistoryProps = {}) 
                       </button>
                     </div>
                   </div>
+                  {/* S283: 공통 ToggleIcon (chevron ↔ X) — 마이페이지 아코디언 통일. */}
                   <span className="mp-order-toggle">
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M9,6l6,6-6,6" />
-                    </svg>
+                    <ToggleIcon open={openOrders.has(order.number)} />
                   </span>
                 </div>
                 <div className="mp-order-content">

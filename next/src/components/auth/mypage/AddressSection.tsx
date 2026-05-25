@@ -8,7 +8,7 @@ import { useInputNav } from '@/hooks/useInputNav';
 import { shakeFields } from '@/lib/shakeFields';
 import { TextField } from '@/components/ui/TextField';
 import { SearchIcon } from '@/components/ui/InputIcons';
-import { ChevronRight } from '@/components/ui/Icons';
+import ToggleIcon from './ToggleIcon';
 import { useMyPageAddrOpen, setAddrOpen } from '@/lib/myPageUiStore';
 
 type Props = {
@@ -82,10 +82,9 @@ export default function AddressSection({
                 >
                   {fallbackText}
                 </span>
+                {/* S283: 공통 ToggleIcon (chevron ↔ X) — 마이페이지 아코디언 통일. */}
                 <span className="mp-addr-icon-btn" aria-hidden="true">
-                  <span className={`mp-chevron${isAddrOpen ? ' open' : ''}`}>
-                    <ChevronRight />
-                  </span>
+                  <ToggleIcon open={isAddrOpen} />
                 </span>
               </>
             )}

@@ -12,7 +12,7 @@ import { usePasswordChangeForm } from '@/hooks/usePasswordChangeForm';
 import { shakeFields } from '@/lib/shakeFields';
 import { useInputNav } from '@/hooks/useInputNav';
 import { TextField } from '@/components/ui/TextField';
-import { ChevronRight } from '@/components/ui/Icons';
+import ToggleIcon from './ToggleIcon';
 import { useMyPagePwOpen, setPwOpen } from '@/lib/myPageUiStore';
 
 export default function PasswordChangeForm() {
@@ -62,10 +62,9 @@ export default function PasswordChangeForm() {
         }}
       >
         <span className="mp-info-label">비밀번호 변경</span>
+        {/* S283: 공통 ToggleIcon (chevron ↔ X) — 마이페이지 아코디언 통일. */}
         <span className="mp-icon-btn" aria-hidden="true">
-          <span className={`mp-chevron${isPwOpen ? ' open' : ''}`}>
-            <ChevronRight />
-          </span>
+          <ToggleIcon open={isPwOpen} />
         </span>
       </div>
       <div className={`mp-form-reveal${isPwOpen ? ' open' : ''}`}>
