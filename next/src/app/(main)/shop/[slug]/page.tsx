@@ -6,15 +6,21 @@
    ══════════════════════════════════════════ */
 
 import { notFound } from 'next/navigation';
+import { connection } from 'next/server';
 import { extractKrName } from '@/lib/products';
-import { fetchProductBySlug, fetchProducts } from '@/lib/productsServer';
+import {
+  fetchAllProductSlugs,
+  fetchProductBySlug,
+} from '@/lib/productsServer';
 import ProductDetailPage from '@/components/product/ProductDetailPage';
 
 type RouteParams = { slug: string };
 
 export async function generateStaticParams(): Promise<RouteParams[]> {
-  const products = await fetchProducts();
-  return products.map((p) => ({ slug: p.slug }));
+  /* S279-D · DEC-S279-D-1: build-time 안전 lightweight variant.
+     fetchProducts 는 caller 측 connection() 요구 — build-time 호출 불가. */
+  const slugs = await fetchAllProductSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<RouteParams> }) {
@@ -32,6 +38,9 @@ export default async function ProductDetailRoute({
 }: {
   params: Promise<RouteParams>;
 }) {
+  /* S279-D · DEC-S279-D-1: productsServer 'use cache' 폐기로 caller 측
+     connection() 명시 — admin 변경 즉시 PDP 반영 보장. */
+  await connection();
   const { slug } = await params;
   const product = await fetchProductBySlug(slug);
   if (!product) notFound();

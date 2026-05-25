@@ -14,6 +14,7 @@
    ══════════════════════════════════════════ */
 
 import { Suspense } from 'react';
+import { connection } from 'next/server';
 import CartClient from '@/components/cart/CartClient';
 import CartSkeleton from '@/components/cart/CartSkeleton';
 import { getClaims } from '@/lib/auth/getClaims';
@@ -23,6 +24,9 @@ import { fetchProducts } from '@/lib/productsServer';
 import type { CartItem } from '@/types/cart';
 
 async function CartWithPrefetch() {
+  /* S279-D · DEC-S279-D-1: productsServer 'use cache' 폐기로 caller 측
+     connection() 명시. getClaims() 의 cookies() 호출과 idempotent — 안전망. */
+  await connection();
   const claims = await getClaims();
 
   if (!claims) {

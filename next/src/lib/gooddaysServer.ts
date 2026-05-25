@@ -7,22 +7,24 @@ import 'server-only';
    - fetchGoodDaysGallery() — /gooddays SSR fetch (is_active=true, sort_order asc)
    - listGoodDaysGalleryAdmin() — 어드민 전체 (is_active 무관)
 
-   설계:
+   설계 (S279-D · banners 답습 — DEC-S279-D-1):
    - server-only 격리.
-   - cookies() 무관 anon 클라이언트 (RLS public SELECT 허용).
-   - 'use cache' + cacheTag('gooddays-gallery') — 어드민 변경 시 revalidateTag.
+   - 'use cache' 미사용 — admin 변경 즉시 /gooddays 반영 보장
+     (S167 admin 즉시 반영 incident · S278 banners 회귀 답습 차단).
+   - cachedClient singleton 패턴 폐기 — dev HMR closure 회귀 차단.
+   - global.fetch override 로 cache: 'no-store' 강제.
+   - connection() 는 caller (/gooddays default export) 책임.
    - 호출 실패 시 [] 반환 (graceful — /gooddays 빈 그리드 + placeholder).
 
    참조:
-   - lib/bannersServer.ts (동일 패턴)
+   - lib/bannersServer.ts (S278 ground truth 패턴)
    - 036_gooddays_gallery.sql
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { cacheTag } from 'next/cache';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { GdImageWithBlur } from './gooddays';
 
-/** revalidateTag 로 무효화. 어드민 actions 와 일치. */
+/** revalidateTag 로 무효화 — 운영 일치 위해 export 보존. admin actions 호출. */
 export const GOODDAYS_CACHE_TAG = 'gooddays-gallery';
 
 export type GoodDaysGalleryRow = GdImageWithBlur & {
@@ -33,22 +35,22 @@ export type GoodDaysGalleryRow = GdImageWithBlur & {
   featured: boolean;
 };
 
-let cachedClient: SupabaseClient | null = null;
-
+/* singleton 패턴 폐기 — dev HMR 회귀 차단 (S278 학습 #4). */
 function getAnonClient(): SupabaseClient {
-  if (!cachedClient) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !anonKey) {
-      throw new Error(
-        '[gooddaysServer] NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY 미설정',
-      );
-    }
-    cachedClient = createClient(url, anonKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
+    throw new Error(
+      '[gooddaysServer] NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY 미설정',
+    );
   }
-  return cachedClient;
+  return createClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      fetch: (input, init) =>
+        fetch(input as RequestInfo, { ...(init as RequestInit), cache: 'no-store' }),
+    },
+  });
 }
 
 type RawRow = {
@@ -79,12 +81,9 @@ function toRow(raw: RawRow): GoodDaysGalleryRow {
 
 /**
  * /gooddays SSR fetch — is_active = true 만, sort_order asc.
- * 빌드 타임 캐시 + revalidateTag 무효화.
+ * caller 페이지의 default export 에서 await connection() 호출 책임.
  */
 export async function fetchGoodDaysGallery(): Promise<GoodDaysGalleryRow[]> {
-  'use cache';
-  cacheTag(GOODDAYS_CACHE_TAG);
-
   const client = getAnonClient();
   const { data, error } = await client
     .from('gooddays_gallery')
@@ -93,6 +92,7 @@ export async function fetchGoodDaysGallery(): Promise<GoodDaysGalleryRow[]> {
     .order('sort_order', { ascending: true });
 
   if (error) {
+    // eslint-disable-next-line no-console
     console.error('[fetchGoodDaysGallery] query failed', {
       code: error.code,
       message: error.message?.slice(0, 200),
@@ -104,6 +104,7 @@ export async function fetchGoodDaysGallery(): Promise<GoodDaysGalleryRow[]> {
 
 /**
  * /admin/gooddays 전체 목록 (is_active 무관). cache 미사용 — 어드민 항상 최신.
+ * admin context 는 이미 cookies()/auth 로 dynamic.
  */
 export async function listGoodDaysGalleryAdmin(): Promise<GoodDaysGalleryRow[]> {
   const client = getAnonClient();
@@ -113,6 +114,7 @@ export async function listGoodDaysGalleryAdmin(): Promise<GoodDaysGalleryRow[]> 
     .order('sort_order', { ascending: true });
 
   if (error) {
+    // eslint-disable-next-line no-console
     console.error('[listGoodDaysGalleryAdmin] query failed', {
       code: error.code,
       message: error.message?.slice(0, 200),

@@ -13,22 +13,37 @@ import 'server-only';
    admin variant (listProductsAdmin / listAdminProductsLite /
    fetchAdminProductRawBySlug) 는 lib/admin/productsServer.ts 분리 (ADR-009).
 
-   설계:
+   설계 (S279-D · banners 답습 — DEC-S279-D-1):
    - server-only 격리.
-   - cookies() 무관 anon 클라이언트 (RLS public SELECT 허용).
-   - 'use cache' + cacheTag('products') — 어드민 변경 시 revalidateTag.
+   - 'use cache' 미사용 — admin 변경 즉시 메인 반영 보장
+     (Next.js 16 revalidateTag/updateTag 가 dev 환경 invalidate 회귀 발견 후 폐기).
+   - cachedClient singleton 패턴 폐기 — dev HMR 후 옛 client closure 가 fetch
+     override 누락 회귀 발견 (S278 학습 #4).
+   - global.fetch override 로 cache: 'no-store' 강제 — Next.js 16 cacheComponents
+     환경에서 Supabase REST GET 이 default cache 잡히는 회귀 차단 (S278 학습 #5/6).
    - 1 쿼리 nested select (`*, product_volumes(*), product_images(*),
      product_recipes(*)`) 로 N+1 회피.
    - 호출 실패 시 [] / null 반환 (graceful fallback — 메인 사이트 깨지지 않게).
 
+   connection() 책임 분리 (banners 와 차이 — DEC-S279-D-1):
+   - banners (S278 bannersServer.ts) = helper 안 await connection() 호출
+     · generateStaticParams 같은 build-time caller 없음 → 안전
+   - 3-domain (products / cafe-menu / gooddays) = caller 측 책임
+     · /shop/[slug]/generateStaticParams (build-time · HTTP request 없음) 가
+       fetchProducts 호출 → helper 안 connection() 호출 시 build error
+     · 해결: helper connection() 제거 + SSR 페이지 default export caller 가
+       명시적 await connection() 호출 (5 페이지 모두 적용)
+     · generateStaticParams 는 fetchAllProductSlugs() lightweight variant 사용
+   - 향후 통일 검토 = S280+ carry (banners 도 caller 측 책임으로 이전 가능 ·
+     ADR-008 후보)
+
    참조:
-   - lib/bannersServer.ts / lib/gooddaysServer.ts (동일 패턴)
+   - lib/bannersServer.ts (S278 ground truth 패턴)
    - lib/admin/productsServer.ts (admin variant)
    - 046_products_schema.sql
    - types/product.ts (mapProductRow)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { cacheTag } from 'next/cache';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import {
   mapProductRow,
@@ -36,39 +51,41 @@ import {
 } from '@/types/product';
 import type { Product } from './products';
 
-/** revalidateTag 로 무효화. 어드민 actions 와 일치. */
+/** revalidateTag 로 무효화 — 운영 일치 위해 export 보존. admin actions 호출. */
 export const PRODUCTS_CACHE_TAG = 'products';
 
 /** 1 쿼리 nested select 절 — fetch* 공통 사용 */
 const PRODUCT_SELECT =
   '*, product_volumes(*), product_images(*), product_recipes(*)';
 
-let cachedClient: SupabaseClient | null = null;
-
+/* singleton 패턴 폐기 — dev HMR 후 옛 client 가 closure 로 잡혀 fetch override
+   적용 안 되는 회귀 발견 (S278). 매 호출 새 createClient (Supabase JS 인스턴스 비용 미미). */
 function getAnonClient(): SupabaseClient {
-  if (!cachedClient) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !anonKey) {
-      throw new Error(
-        '[productsServer] NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY 미설정',
-      );
-    }
-    cachedClient = createClient(url, anonKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
+    throw new Error(
+      '[productsServer] NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY 미설정',
+    );
   }
-  return cachedClient;
+  /* Next.js 16 cacheComponents:true 환경에서 GET 요청 fetch 가 default cache
+     잡혀 운영자 변경 후 메인 stale. Supabase REST 요청 = GET 형태 → 명시적
+     cache: 'no-store' 강제로 매 호출 fresh fetch 보장. */
+  return createClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      fetch: (input, init) =>
+        fetch(input as RequestInfo, { ...(init as RequestInit), cache: 'no-store' }),
+    },
+  });
 }
 
 /**
  * 메인 사이트 SSR fetch — is_active=true 만, sort_order asc.
- * 빌드 타임 캐시 + revalidateTag 무효화.
+ * caller 페이지의 default export 에서 await connection() 호출 책임
+ * (generateStaticParams 같은 build-time caller 와 분리).
  */
 export async function fetchProducts(): Promise<Product[]> {
-  'use cache';
-  cacheTag(PRODUCTS_CACHE_TAG);
-
   const client = getAnonClient();
   const { data, error } = await client
     .from('products')
@@ -78,6 +95,7 @@ export async function fetchProducts(): Promise<Product[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
+    // eslint-disable-next-line no-console
     console.error('[fetchProducts] query failed', {
       code: error.code,
       message: error.message?.slice(0, 200),
@@ -92,11 +110,9 @@ export async function fetchProducts(): Promise<Product[]> {
 /**
  * PDP / 카트 / 결제 prefill 용 단건 조회.
  * is_active=false 인 경우에도 slug 매칭 시 반환 (어드민 미리보기·소급 카트 보호).
+ * caller 페이지의 default export 에서 await connection() 호출 책임.
  */
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
-  'use cache';
-  cacheTag(PRODUCTS_CACHE_TAG);
-
   const client = getAnonClient();
   const { data, error } = await client
     .from('products')
@@ -105,6 +121,7 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
     .maybeSingle();
 
   if (error) {
+    // eslint-disable-next-line no-console
     console.error('[fetchProductBySlug] query failed', {
       slug,
       code: error.code,
@@ -117,3 +134,25 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
   return mapProductRow(data as ProductWithRelationsRow);
 }
 
+/**
+ * /shop/[slug] generateStaticParams 전용 — slug 만 lightweight fetch.
+ * connection() 미사용 (build-time generateStaticParams 안전).
+ * runtime SSR caller 는 fetchProducts/fetchProductBySlug 사용.
+ */
+export async function fetchAllProductSlugs(): Promise<string[]> {
+  const client = getAnonClient();
+  const { data, error } = await client
+    .from('products')
+    .select('slug')
+    .eq('is_active', true);
+
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('[fetchAllProductSlugs] query failed', {
+      code: error.code,
+      message: error.message?.slice(0, 200),
+    });
+    return [];
+  }
+  return (data ?? []).map((row) => (row as { slug: string }).slug);
+}

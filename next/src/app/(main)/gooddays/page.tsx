@@ -9,6 +9,7 @@
    ══════════════════════════════════════════ */
 
 import { Suspense } from 'react';
+import { connection } from 'next/server';
 import GoodDaysPage from '@/components/gooddays/GoodDaysPage';
 import { fetchGoodDaysGallery } from '@/lib/gooddaysServer';
 
@@ -19,6 +20,10 @@ type Props = {
 };
 
 async function GoodDaysContent({ searchParams }: Props) {
+  /* S279-D · DEC-S279-D-1: gooddaysServer 'use cache' 폐기로 caller 측
+     connection() 명시 — admin 변경 즉시 /gooddays 반영 보장. searchParams
+     의 dynamic 과 idempotent — 안전망. */
+  await connection();
   const [params, gallery] = await Promise.all([searchParams, fetchGoodDaysGallery()]);
   return <GoodDaysPage initialImgSrc={params.img ?? null} gallery={gallery} />;
 }

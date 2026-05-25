@@ -11,6 +11,7 @@
    ══════════════════════════════════════════ */
 
 import { Suspense } from 'react';
+import { connection } from 'next/server';
 import { fetchCafeMenu } from '@/lib/cafeMenuServer';
 import { fetchMenuLikesCountsSnapshot } from '@/lib/menuLikesServer';
 import CafeMenuPage from '@/components/cafe/CafeMenuPage';
@@ -19,7 +20,10 @@ import CafeMenuSkeleton from '@/components/cafe/CafeMenuSkeleton';
 export const metadata = { title: '카페 메뉴 — good things' };
 
 export default async function CafeMenuRoute() {
-  /* 음료 메뉴 + likes counts Promise.all (둘 다 'use cache' — 페이지 static). */
+  /* S279-D · DEC-S279-D-1: cafeMenuServer 'use cache' 폐기로 caller 측
+     connection() 명시 — admin 변경 즉시 /menu 반영 보장. likes counts 는
+     fetchMenuLikesCountsSnapshot 의 별 정책 ('use cache' 보존). */
+  await connection();
   const [items, likesCounts] = await Promise.all([
     fetchCafeMenu(),
     fetchMenuLikesCountsSnapshot(),
