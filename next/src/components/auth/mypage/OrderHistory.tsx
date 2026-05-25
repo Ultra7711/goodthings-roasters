@@ -8,8 +8,14 @@ import { useSiteSettings } from '@/components/providers/SiteSettingsProvider';
 import { CopyIcon } from '@/components/ui/Icons';
 import { useOrdersQuery } from '@/hooks/useOrders';
 import { useMyPageOpenOrders, toggleOrder } from '@/lib/myPageUiStore';
-import type { OrderStatus } from '@/types/order';
+import type { Order, OrderStatus } from '@/types/order';
 import OrderItemCard from '@/components/order/OrderItemCard';
+
+type OrderHistoryProps = {
+  /** S282-P1: SSR prefetch initialOrders → useOrdersQuery initialData.
+     첫 진입 시 client fetch spinner 폐기 (orders mutation 0 — stale 위험 0). */
+  initialOrders?: Order[];
+};
 
 /* status → 뱃지 클래스 매핑 (S172: paid·refund_* 노출 추가, S173: cancelled 추가) */
 const STATUS_CLASS: Record<OrderStatus, string> = {
@@ -22,7 +28,7 @@ const STATUS_CLASS: Record<OrderStatus, string> = {
   '환불완료': 'mp-order-status--refunded',
 };
 
-export default function OrderHistory() {
+export default function OrderHistory({ initialOrders }: OrderHistoryProps = {}) {
   const router = useRouter();
   const { show: toast } = useToast();
   const { shipping: shippingPolicy } = useSiteSettings();
@@ -30,7 +36,7 @@ export default function OrderHistory() {
     ? shippingPolicy.free_threshold
     : Infinity;
 
-  const { orders, isLoading } = useOrdersQuery();
+  const { orders, isLoading } = useOrdersQuery(initialOrders);
   const openOrders = useMyPageOpenOrders();
 
   const copyOrderNumber = useCallback(async (num: string) => {

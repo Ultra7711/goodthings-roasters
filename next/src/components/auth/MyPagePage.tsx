@@ -16,6 +16,7 @@ import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { supabase } from '@/lib/supabase';
 import type { AuthClaims, AdminLevel } from '@/lib/auth/getClaims';
 import type { Subscription } from '@/types/subscription';
+import type { Order } from '@/types/order';
 import type { Product } from '@/lib/products';
 import { useToast } from '@/hooks/useToast';
 import { useSubscriptionsQuery } from '@/hooks/useSubscriptions';
@@ -39,6 +40,9 @@ type MyPagePageProps = {
   initialClaims: AuthClaims;
   /** SSR prefetch — 정기배송 전체 (TanStack initialData 로 주입 · flash 차단) */
   initialSubscriptions: Subscription[];
+  /** S282-P1: orders limit 20 SSR prefetch (default tab=orders client fetch spinner 폐기).
+     마이페이지 안 주문 mutation 0 → stale 위험 0. */
+  initialOrders: Order[];
   /** 사이드 nav + HeroGreeting 카운트 표시용 (count-only RPC 결과).
      마이페이지 안에서 주문 mutation 발생 안 함 — stale 위험 0. */
   initialOrdersCount: number;
@@ -52,6 +56,7 @@ type MyPagePageProps = {
 export default function MyPagePage({
   initialClaims,
   initialSubscriptions,
+  initialOrders,
   initialOrdersCount,
   adminLevel,
   initialProducts,
@@ -246,11 +251,11 @@ export default function MyPagePage({
     router.replace('/');
   }, [bypassRedirect, router]);
 
-  /* ── 활성 view 렌더 ── */
-  const renderActiveView = () => {
+  /* ── 활성 view 렌더 (S282-P1: useMemo · 탭 전환 INP 단축) ── */
+  const activeView = useMemo(() => {
     switch (activeNavId) {
       case 'orders':
-        return <OrdersView />;
+        return <OrdersView initialOrders={initialOrders} />;
       case 'subscription':
         return <SubscriptionView products={initialProducts} />;
       case 'profile':
@@ -258,7 +263,14 @@ export default function MyPagePage({
       case 'account':
         return <AccountView onLoggedOut={handleLoggedOut} />;
     }
-  };
+  }, [
+    activeNavId,
+    initialOrders,
+    initialProducts,
+    profileDisplayName,
+    effectiveEmail,
+    handleLoggedOut,
+  ]);
 
   return (
     <>
@@ -311,7 +323,7 @@ export default function MyPagePage({
                 onChange={handleNavWithScroll}
               />
             </div>
-            <MyPagePanel title={NAV_LABELS[activeNavId]}>{renderActiveView()}</MyPagePanel>
+            <MyPagePanel title={NAV_LABELS[activeNavId]}>{activeView}</MyPagePanel>
           </div>
         </div>
       </div>

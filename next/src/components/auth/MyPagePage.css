@@ -652,9 +652,11 @@
     position: relative;
     overflow-x: clip;
   }
-  /* S264 H-1: hero-inner 모바일 padding (header 안전 56 + bottom 24 gap). */
+  /* S264 H-1: hero-inner 모바일 padding (header 안전 56 + bottom 24 gap).
+     S282-P1: iPhone notch (iOS X+) 안전영역 가산 — env(safe-area-inset-top) 폴백 0px.
+     hero sand 색이 notch 위 영역까지 자연 확장 (overflow X · padding 확장만). */
   .mp-hero-inner {
-    padding: 56px 24px 24px;
+    padding: calc(56px + env(safe-area-inset-top, 0px)) 24px 24px;
   }
   /* mp-grid: 1단 stack — stickybar (greeting + 탭바) + 패널. minmax(0, 1fr) overflow 차단.
      S266: gap 0 — stickybar 와 panel 간격은 panel padding-top 으로 명시 (탭별 일관).

@@ -44,6 +44,11 @@ export default defineConfig({
         viewport: { width: 1440, height: 900 },
       },
     },
+    {
+      name: 'chromium-mypage-audit',
+      testMatch: /mypage-e2e\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 360, height: 800 } },
+    },
   ],
   webServer: {
     command: 'npm run dev',

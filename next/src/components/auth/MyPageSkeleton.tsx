@@ -39,8 +39,22 @@ function SkelBox({ height, width = '100%' }: BoxProps) {
 
 /* OrderHistory mp-order-card 1개 답습.
    .mp-order-card padding: 20 0 + hairline border-bottom.
-   내부: meta(date + number + status) + content(summary/detail + chevron). */
-function OrderCardSkeleton({ isLast = false }: { isLast?: boolean }) {
+   내부: meta(date + number + status) + content(summary/detail + chevron).
+   S282-P1 (variant): 카드 다양성 답습 — orders 마다 status 배지 폭 / summary 폭 / detail 유무 차이.
+   동일 3개 stack 폐기 → 실제 카드 다양성 1:1 답습으로 swap 시 layout shift ↓. */
+type CardVariant = {
+  statusW: number;
+  summaryW: string;
+  detailW: string | null; // null = detail row 폭 0 (단일 상품 주문 답습)
+};
+
+function OrderCardSkeleton({
+  isLast = false,
+  variant,
+}: {
+  isLast?: boolean;
+  variant: CardVariant;
+}) {
   return (
     <div
       style={{
@@ -54,19 +68,27 @@ function OrderCardSkeleton({ isLast = false }: { isLast?: boolean }) {
           <SkelBox height={H_BODY_S} width={90} />
           <SkelBox height={H_BODY_M} width={140} />
         </div>
-        <SkelBox height={H_CHIP} width={60} />
+        <SkelBox height={H_CHIP} width={variant.statusW} />
       </div>
       {/* content row: summary/detail 좌 · chevron 우 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12 }}>
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <SkelBox height={H_BODY_M} width="70%" />
-          <SkelBox height={H_BODY_UI} width="50%" />
+          <SkelBox height={H_BODY_M} width={variant.summaryW} />
+          {variant.detailW && <SkelBox height={H_BODY_UI} width={variant.detailW} />}
         </div>
         <SkelBox height={24} width={24} />
       </div>
     </div>
   );
 }
+
+/* S282-P1: 실제 orders 다양성 답습 — status 배지 폭 (배송준비 / 배송중 / 배송완료 등 4~5 글자 = 50~70px),
+   summary 폭 (단일 상품 vs "외 N건" · 30~80%), detail 유무 (단일 상품 = null · 다품목 = volume "외 N건"). */
+const CARD_VARIANTS: readonly CardVariant[] = [
+  { statusW: 56, summaryW: '60%', detailW: '45%' },  // 배송완료 · 다품목
+  { statusW: 48, summaryW: '40%', detailW: null },   // 배송중 · 단일
+  { statusW: 64, summaryW: '75%', detailW: '55%' },  // 배송준비 · 다품목 (긴 이름)
+] as const;
 
 export default function MyPageSkeleton() {
   return (
@@ -115,9 +137,13 @@ export default function MyPageSkeleton() {
             </div>
             <div className="mp-section-body">
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <OrderCardSkeleton />
-                <OrderCardSkeleton />
-                <OrderCardSkeleton isLast />
+                {CARD_VARIANTS.map((v, i) => (
+                  <OrderCardSkeleton
+                    key={i}
+                    variant={v}
+                    isLast={i === CARD_VARIANTS.length - 1}
+                  />
+                ))}
               </div>
             </div>
           </div>
