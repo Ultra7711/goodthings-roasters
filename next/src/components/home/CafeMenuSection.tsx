@@ -90,7 +90,9 @@ export default async function CafeMenuSection() {
       {/* PR-1c — 매장 사진 + 시그니처 메뉴 3종
           썸네일 사진 세로 가득 / 사진 내부 MENU 세로탭 (스크롤 좌상→우하 이동) */}
       <div className="cafe-menu-split">
-        <div className="cafe-menu-split__photo">
+        {/* S283: data-sr + sr-img — 사진 영역 blur fade-in (다른 섹션 정합).
+            cafe-menu-head 와 별 data-sr 로 독립 발화 (사진 진입 시점 != 헤더). */}
+        <div className="cafe-menu-split__photo sr-img" data-sr>
           <Image
             src="/images/gallery/cafe.webp"
             alt="굳띵즈 인의동 1호점 매장 내부"
@@ -110,12 +112,14 @@ export default async function CafeMenuSection() {
         </div>
         <div className="cafe-menu-split__items">
           {FEATURED_ITEMS.map((item) => (
+            /* S283: row 자체 data-sr + thumb sr-img — row 별 진입 시점에 독립 발화. */
             <Link
               key={item.id}
               href={`/menu?item=${encodeURIComponent(item.id)}`}
               className="cmsplit-row"
+              data-sr
             >
-              <div className="cmsplit-thumb">
+              <div className="cmsplit-thumb sr-img">
                 <Image
                   src={item.img}
                   alt={item.name}

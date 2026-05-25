@@ -104,13 +104,15 @@ export default function NavigationVisibilityGate() {
       const main = document.getElementById('main-content');
       if (main) main.setAttribute('data-transitioning', 'true');
       // 접근 B: 다크 라우트 진입 시 .root 배경 즉시 다크 전환 (BUG-178)
+      // S283-B: html.dest-dark class 도 동기 (라이트 라우트 이동 시 stale 차단).
       const root = document.querySelector<HTMLElement>('.root');
-      if (root) {
-        if (DARK_ROUTES.has(href)) {
-          root.setAttribute('data-dest-dark', 'true');
-        } else {
-          root.removeAttribute('data-dest-dark');
-        }
+      const html = document.documentElement;
+      if (DARK_ROUTES.has(href)) {
+        root?.setAttribute('data-dest-dark', 'true');
+        html.classList.add('dest-dark');
+      } else {
+        root?.removeAttribute('data-dest-dark');
+        html.classList.remove('dest-dark');
       }
       // 접근 C: 헤더 테마 클래스 선제 토글 (BUG-130, S96)
       // React state 경로(2 render cycle 지연) 없이 배경과 동일 tick에 전환.
@@ -157,9 +159,20 @@ export default function NavigationVisibilityGate() {
   useLayoutEffect(() => {
     const main = document.getElementById('main-content');
     if (main) main.removeAttribute('data-transitioning');
-    // 비다크 라우트 진입 시에만 즉시 제거. 다크 라우트는 pageEnter 완료 후 제거 (↓ useEffect)
+    /* S283 fix: 초기 진입 (URL 직접 / 새로고침 / dev hard reload) = click event 발화 X →
+       data-dest-dark 박힘 안 됨 → .root default light bg 비춰 보임 → #home-body stFadeIn
+       opacity 0~1 동안 흰 플래시. mount 시점에도 DARK_ROUTES 면 강제 set.
+       S283-B: html.dest-dark class 도 동기 (<head> inline script 가 첫 mount 만 박음 →
+       SPA navigation 시 stale → 라이트 라우트도 다크 비춰 보임). */
     const root = document.querySelector<HTMLElement>('.root');
-    if (root && !DARK_ROUTES.has(pathname)) root.removeAttribute('data-dest-dark');
+    const html = document.documentElement;
+    if (DARK_ROUTES.has(pathname)) {
+      root?.setAttribute('data-dest-dark', 'true');
+      html.classList.add('dest-dark');
+    } else {
+      root?.removeAttribute('data-dest-dark');
+      html.classList.remove('dest-dark');
+    }
     // 접근 C: hdr-instant 제거 → 이후 React re-render부터 transition 복원
     const header = document.getElementById('site-hdr-wrap');
     if (header) header.classList.remove(HDR_INSTANT);

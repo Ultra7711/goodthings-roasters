@@ -782,11 +782,16 @@ textarea:focus-visible {
    클래스명·속성값 원본 그대로 이식
    ════════════════════════════════════════════ */
 
-/* ══ 스크롤 리빌 베이스 ══ */
+/* ══ 스크롤 리빌 베이스 ══
+   S283: sr-img 도 sr-txt 와 동일 translateY 효과 (일관성 · 사용자 결정).
+   사진/iframe 영역이 blur fade-in 만 받던 기존 표준 → translateY slide-up 추가. */
 .sr-img {
   opacity: 0;
   filter: blur(var(--sr-blur-img));
-  transition: opacity var(--sr-duration-img) var(--sr-easing), filter var(--sr-duration-img) var(--sr-easing);
+  transform: translateY(var(--sr-translate-txt));
+  transition: opacity var(--sr-duration-img) var(--sr-easing),
+              filter var(--sr-duration-img) var(--sr-easing),
+              transform var(--sr-duration-img) var(--sr-easing);
 }
 .sr-txt {
   opacity: 0;
@@ -798,7 +803,7 @@ textarea:focus-visible {
 .sr-txt--d3 { transition-delay: calc(var(--sr-stagger) * 2); }
 .sr-txt--d4 { transition-delay: calc(var(--sr-stagger) * 3); }
 .sr--visible .sr-img,
-.sr-img.sr--visible { opacity: 1; filter: blur(0); }
+.sr-img.sr--visible { opacity: 1; filter: blur(0); transform: translateY(0); }
 .sr--visible .sr-txt,
 .sr-txt.sr--visible { opacity: 1; transform: translateY(0); }
 
@@ -1723,8 +1728,11 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   visibility: hidden;
 }
 /* BUG-178 접근 B — 다크 라우트(/·/story) 진입 시 .root 배경 즉시 다크 전환.
-   #main-content visibility:hidden 중 흰색 배경 노출 차단. */
-.root[data-dest-dark="true"] {
+   #main-content visibility:hidden 중 흰색 배경 노출 차단.
+   S283: html.dest-dark 추가 — <head> inline script 가 body parse 전 박음 →
+   첫 paint 시 이미 다크 (useLayoutEffect/click 흐름 보다 더 빠름). */
+.root[data-dest-dark="true"],
+html.dest-dark .root {
   background: var(--color-background-inverse);
 }
 .error-page {

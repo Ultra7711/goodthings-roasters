@@ -21,10 +21,12 @@ type RowProps = {
 
 function LineupRow({ kind, eyebrow, heading, products, aspect }: RowProps) {
   return (
-    <div className={`lineup-row lineup-row--${kind}`}>
+    /* S283: data-sr + sr-txt 스테거만 (라인 없는 eyebrow · gold rule + slide-in 마스크 폐기).
+       SRInitializer 의 IO 발화 시 부모 sr--visible → 자식 sr-txt 가 fade-in + translateY. */
+    <div className={`lineup-row lineup-row--${kind}`} data-sr>
       <header className="lineup-header">
-        <span className="lineup-eyebrow">{eyebrow}</span>
-        <h2 className="lineup-heading">{heading}</h2>
+        <span className="lineup-eyebrow sr-txt sr-txt--d1">{eyebrow}</span>
+        <h2 className="lineup-heading sr-txt sr-txt--d2">{heading}</h2>
       </header>
       <div className={`lineup-grid lineup-grid--${kind}`}>
         {products.map((p, i) => (

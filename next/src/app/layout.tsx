@@ -60,6 +60,14 @@ export default async function RootLayout({
         <link rel="preload" as="image" href="/images/hero/hero-poster.jpg" fetchPriority="high" />
         {/* iOS Safari 데이터 디텍터 — 이메일·전화번호 자동 링크 변환 방지 */}
         <meta name="format-detection" content="telephone=no, email=no, address=no" />
+        {/* S283: <head> 안 inline script — body parse 전 발화 → <html> 에 class 박음.
+           다크 라우트 (/·/story) 첫 진입 시 .root light bg 비춰 보이는 흰 플래시 차단.
+           useLayoutEffect / NavigationVisibilityGate 는 hydration 이후라 첫 paint 미coverage. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var d=['/','/story'];if(d.indexOf(location.pathname)>=0){document.documentElement.classList.add('dest-dark');}})();`,
+          }}
+        />
       </head>
       {/* Providers: QueryClientProvider + CartDrawerProvider (ADR-004 Step B).
           AuthSyncProvider: Supabase 세션 → Zustand 동기화 브리지 (P0-2) +
