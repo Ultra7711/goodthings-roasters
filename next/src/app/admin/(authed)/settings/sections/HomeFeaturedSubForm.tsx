@@ -349,7 +349,7 @@ function MenuPickerInline({
                         setQuery('');
                       }}
                       disabled={disabled}
-                      aria-selected={isCurrent}
+                      data-current={isCurrent || undefined}
                       className={cn(
                         'w-full px-3 py-2 text-sm text-left flex items-center gap-2 transition-colors',
                         isCurrent

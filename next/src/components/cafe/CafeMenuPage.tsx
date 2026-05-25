@@ -209,6 +209,7 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
   // 전체 메뉴 이미지 프리로드 — 최초 마운트에 1회.
   // 탭 전환 시 새로 mount 되는 카드가 네트워크에서 이미지를 받느라 배경색만 잠깐
   // 보이는 깜빡임 방지. 브라우저 캐시에 올려두면 이후 탭 전환은 즉시 표시됨.
+  // items 의존성 의도적 누락 — mount 시 한 번만 prefetch (이후 items 변경 시 재호출 불필요).
   useEffect(() => {
     items.forEach((item) => {
       if (item.img) {
@@ -216,7 +217,7 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
         img.src = item.img;
       }
     });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* 페이지 진입 연출 — ShopPage 와 동등 패턴.
      - 초기 로드: cm-cards-entering 없음. IO + transitionDelay 만으로 stagger.

@@ -156,14 +156,16 @@ export default function LegalPage({ doc }: Props) {
      ref 콜백이 박힌 firstMarkRef.current 를 effect 가 덮어쓰는 race 회피 (S281 학습). */
   const firstMarkRef = useRef<HTMLElement | null>(null);
 
+  // captured = closure 변수 (doc/query 변경 시 new closure 생성으로 자동 reset).
+  // 별 reset effect 금지 — ref 콜백이 박힌 firstMarkRef.current 를 effect 가 덮어쓰는 race 회피 (S281 학습).
   const registerFirstMark = useMemo(() => {
     let captured = false;
     return (el: HTMLElement | null) => {
       if (!el || captured) return;
       firstMarkRef.current = el;
-      captured = true;
+      captured = true; // eslint-disable-line react-hooks/immutability
     };
-  }, [doc, query]);
+  }, [doc, query]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* 렌더 직후 첫 mark 가 캡처되면 scrollIntoView (smooth · 중앙). */
   useEffect(() => {

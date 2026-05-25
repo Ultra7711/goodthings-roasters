@@ -41,6 +41,8 @@ export function AdminTopbarSlotAnchor({
 }) {
   const ctx = useContext(TopbarSlotContext);
   if (!ctx) return null;
+  // ref callback = setState dispatch (mount/unmount 시점 호출 · commit 단계 안전).
+  // eslint-disable-next-line react-hooks/refs
   return <div ref={ctx.setEl} className={className} style={style} />;
 }
 

@@ -50,9 +50,10 @@ export default function MobileZoneTap({ isMobile, isZoomed }: Props) {
           next();
         }}
       />
-      {/* key 로 동일 dir 연타 시에도 animation 재시작 */}
+      {/* key 로 동일 dir 연타 시에도 animation 재시작 — ref 의도적 render 접근. */}
       {flashDir && (
         <div
+          // eslint-disable-next-line react-hooks/refs
           key={`${flashDir}-${flashTimerRef.current}`}
           className={`gd-tap-flash gd-tap-flash--${flashDir}`}
           aria-hidden="true"

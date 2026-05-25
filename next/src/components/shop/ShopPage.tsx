@@ -107,6 +107,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
 
   // 전체 상품 이미지 프리로드 — 최초 마운트에 1회.
   // 탭 전환 시 새 카드 mount 로 인한 이미지 로드 깜빡임 방지.
+  // products 의존성 의도적 누락 — mount 시 한 번만 prefetch (이후 products 변경 시 재호출 불필요).
   useEffect(() => {
     products.forEach((p) => {
       p.images.forEach((im) => {
@@ -116,7 +117,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
         }
       });
     });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* 페이지 진입 연출 — bodyEl 이 붙는 순간 재생 + window 'gtr:route-change'
      event 로 재진입 감지.
