@@ -122,13 +122,60 @@ export type AdminClaims = AuthClaims & {
  *
  * S124: profiles.display_name + profiles.title 도 함께 fetch (UI 표시용).
  * S232: profiles.admin_level 도 함께 fetch (권한 분기용).
- * is_admin RPC 와 profile select 를 Promise.all 로 병렬화.
+ *
+ * S282-P3: JWT app_metadata.admin_level fast-path —
+ *   마이그 074 의 custom_access_token_hook 이 발급한 JWT 안 admin_level 직독.
+ *   일반 사용자 95% = app_metadata.admin_level undefined → RPC + SELECT skip (-300~600ms).
+ *   admin = SELECT 1회만 (is_admin RPC skip).
+ *   Hook 미적용 환경 fallback = 기존 is_admin RPC + profile select (backward compat 1~2주).
+ *   Security: JWT 변조 = Supabase 서명 검증으로 차단 · 실제 권한 검증은 server action RLS 로 backup.
  */
 export async function getAdminClaims(): Promise<AdminClaims | null> {
-  const claims = await getClaims();
-  if (!claims) return null;
-
   const supabase = await createRouteHandlerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const claims: AuthClaims = {
+    userId: user.id,
+    email: user.email ?? '',
+    metadata: (user.user_metadata ?? {}) as Record<string, unknown>,
+  };
+
+  /* ── S282-P3 fast-path: JWT app_metadata.admin_level 직독 ─────────────────
+     custom_access_token_hook (074) 가 박은 claim. owner/staff 외 값은 무시 (security). */
+  const appMetadata = (user.app_metadata ?? {}) as Record<string, unknown>;
+  const hookAdminLevel = appMetadata.admin_level;
+  if (hookAdminLevel === 'owner' || hookAdminLevel === 'staff') {
+    /* admin 사용자: profile SELECT 만 (display_name, title) — is_admin RPC + admin_level SELECT skip */
+    const { data: profile, error: profileErr } = await supabase
+      .from('profiles')
+      .select('display_name, title')
+      .eq('id', claims.userId)
+      .maybeSingle();
+    if (profileErr) {
+      console.warn('[getAdminClaims] profile fetch failed (fast-path) — forcing re-auth', {
+        code: profileErr.code,
+        message: profileErr.message,
+      });
+      return null;
+    }
+    return {
+      ...claims,
+      role: 'admin',
+      adminLevel: hookAdminLevel,
+      displayName: profile?.display_name ?? null,
+      title: profile?.title ?? null,
+    };
+  }
+
+  /* ── Hook 미적용 / 일반 사용자 분기 ──────────────────────────────────
+     JWT 안 admin_level 없음 = 두 경우:
+       (1) 일반 사용자 — admin_level 자체 NULL (95%)
+       (2) Hook 미적용 admin 사용자 — backward compat fallback (1~2주 carry · 모두 적용 후 RPC 제거)
+     fallback: is_admin RPC + profile select (기존 동작). */
   const [adminRes, profileRes] = await Promise.all([
     supabase.rpc('is_admin', { uid: claims.userId }),
     supabase
@@ -139,7 +186,7 @@ export async function getAdminClaims(): Promise<AdminClaims | null> {
   ]);
 
   if (adminRes.error) {
-    console.error('[getAdminClaims] is_admin error', {
+    console.error('[getAdminClaims] is_admin error (fallback)', {
       code: adminRes.error.code,
       message: adminRes.error.message,
     });
@@ -150,19 +197,14 @@ export async function getAdminClaims(): Promise<AdminClaims | null> {
   if (profileRes.error) {
     /* S255-A HIGH-5: profile fetch 실패 시 'staff' fallback 은 owner 가 의도치
        않게 권한을 잃는 운영 위험. is_admin RPC 는 이미 통과한 상태이므로
-       null 반환하여 재로그인을 유도한다. (보안 측면은 less-privilege 방향이라
-       안전 — 권한 우회 위험 X, 운영 안전성만 강화) */
-    console.warn('[getAdminClaims] profile fetch failed — forcing re-auth', {
+       null 반환하여 재로그인을 유도. */
+    console.warn('[getAdminClaims] profile fetch failed (fallback) — forcing re-auth', {
       code: profileRes.error.code,
       message: profileRes.error.message,
     });
     return null;
   }
 
-  /* admin_level 은 055 CHECK constraint 상 admin 이면 NOT NULL.
-     이론상 NULL 불가능하지만 TS narrow 위해 'staff' fallback.
-     (profileRes.error 없이 data 만 누락된 케이스 — admin RPC 통과 + profile row 정상이면
-     admin_level 도 NOT NULL 보장. 이 fallback 은 안전망.) */
   const adminLevel: AdminLevel =
     profileRes.data?.admin_level === 'owner' ? 'owner' : 'staff';
 
