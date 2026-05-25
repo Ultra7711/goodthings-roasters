@@ -222,7 +222,15 @@ describe('buildStage2Prompt (S276)', () => {
     const p = buildStage2Prompt({ kind: 'signature' });
     expect(p).toMatch(/자가 검증 체크리스트/);
     expect(p).toMatch(/responsive HTML 자동 변환/);
-    expect(p).toMatch(/디자이너 검수 옵션/);
+    expect(p).toMatch(/디자이너 검수/);
+  });
+
+  it('element invention 잔존 안내 (DEC-S278-4 운영 가이드)', () => {
+    const p = buildStage2Prompt({ kind: 'signature' });
+    expect(p).toMatch(/element invention 잔존/);
+    expect(p).toMatch(/DEC-S278-4/);
+    expect(p).toMatch(/디자이너 검수 \(권장\)/);
+    expect(p).toMatch(/운영자 수동 trim/);
   });
 
   it('폰트 크기 가이드 표 포함 (양 끝점 모델 — production clamp 식의 양 끝점)', () => {

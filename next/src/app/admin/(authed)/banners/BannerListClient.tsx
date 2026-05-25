@@ -20,6 +20,12 @@
    - 변경 취소 = currentBanners ← originalSnapshot (즉시)
    - 카드 reorder = batch commit 1회 → revalidateTag 1회
 
+   S279-C-2 multi-운영자 보강:
+   - lastServerOrderedIdsRef 박음 — server reorder vs 다른 필드 변경 구분
+   - server reorder 감지 시 = 항상 server 채택 + 로컬 dirty 있으면 warn toast
+   - server reorder 없으면 = mergePreservingReorder 로 로컬 sort_order 보존 (enabled 토글 등)
+   - 다른 운영자 변경 무시 위험 차단 (carry: products 답습 원본도 동일 한계 — 별 sprint)
+
    답습:
    - ProductsTableClient.tsx — 옵션 C preview + 저장 패턴 (DEC-R-1~3)
    - admin-design.md — Button / Switch / ConfirmModal 토큰
@@ -80,20 +86,63 @@ export default function BannerListClient({
   const [savePending, startSaveTransition] = useTransition();
   const [deleteTarget, setDeleteTarget] = useState<Banner | null>(null);
 
+  /* 직전 server commit 의 ordered ids — multi-운영자 reorder 충돌 감지용 (S279-C-2).
+     본인 save 직후 router.refresh() = committedSnapshot 과 server props 동일 → no-op.
+     다른 운영자 reorder = server ordered ids 가 prev 와 다름 → 로컬 dirty 가 있으면 conflict warn.
+     useRef = mount 시점 한 번만 초기화. 이후 useEffect 안에서만 갱신 (render phase 쓰기 금지). */
+  const lastServerOrderedIdsRef = useRef<Record<BannerKind, string>>({
+    cafe_event: orderedIdsKey(initialCafeBanners),
+    signature: orderedIdsKey(initialSignatureBanners),
+  });
+
   /* server props 변경 시 client state 동기화 — 신규 등록 후 redirect 로 진입 시
      server fetch 가 새 banner row 포함된 array reference 전달. mount 시
      useState 초기값은 첫 reference 만 박힘 → 별도 동기화 필요 (S273-11).
-     dirty 보존 (S279-C · products 답습): prev 의 sort_order 가 server 와
-     다르면 (= reorder dirty) prev 의 sort_order 유지, 다른 필드만 server 값 채택.
-     enabled 토글 / 신규 row 등 외부 변경은 자연스럽게 반영. */
+
+     S279-C-2 multi-운영자 보강:
+     - server ordered ids 가 ref 와 다르면 = server reorder 발생 (본인 save 또는 다른 운영자).
+       로컬 ordered ids 가 server / prev server 둘 다와 다르면 = 다른 운영자 conflict → warn + server 채택.
+       로컬 ordered ids === server = 본인 save 결과 → 무영향.
+     - server ordered ids 가 ref 와 같으면 = enabled 토글 등 다른 필드만 변경.
+       mergePreservingReorder 로 로컬 sort_order dirty 보존 + 다른 필드 server 채택.
+     - dep 에 activeKind 포함 = toast 활성 kind 분기 fresh 캡처 (탭 전환 시 useEffect 재실행되지만
+       내부 분기 모두 idempotent — no-op 안전). */
   useEffect(() => {
+    const newIds = orderedIdsKey(initialCafeBanners);
+    const prevIds = lastServerOrderedIdsRef.current.cafe_event;
+    lastServerOrderedIdsRef.current.cafe_event = newIds;
     setOriginalCafe(initialCafeBanners);
-    setCafeBanners((prev) => mergePreservingReorder(prev, initialCafeBanners));
-  }, [initialCafeBanners]);
+
+    if (prevIds !== newIds) {
+      setCafeBanners((prev) => {
+        const localIds = orderedIdsKey(prev);
+        if (localIds !== newIds && localIds !== prevIds && activeKind === 'cafe_event') {
+          toast.warning('다른 운영자가 배너 순서를 변경했어요. 로컬 변경이 폐기됩니다.');
+        }
+        return initialCafeBanners;
+      });
+    } else {
+      setCafeBanners((prev) => mergePreservingReorder(prev, initialCafeBanners));
+    }
+  }, [initialCafeBanners, activeKind]);
   useEffect(() => {
+    const newIds = orderedIdsKey(initialSignatureBanners);
+    const prevIds = lastServerOrderedIdsRef.current.signature;
+    lastServerOrderedIdsRef.current.signature = newIds;
     setOriginalSig(initialSignatureBanners);
-    setSignatureBanners((prev) => mergePreservingReorder(prev, initialSignatureBanners));
-  }, [initialSignatureBanners]);
+
+    if (prevIds !== newIds) {
+      setSignatureBanners((prev) => {
+        const localIds = orderedIdsKey(prev);
+        if (localIds !== newIds && localIds !== prevIds && activeKind === 'signature') {
+          toast.warning('다른 운영자가 배너 순서를 변경했어요. 로컬 변경이 폐기됩니다.');
+        }
+        return initialSignatureBanners;
+      });
+    } else {
+      setSignatureBanners((prev) => mergePreservingReorder(prev, initialSignatureBanners));
+    }
+  }, [initialSignatureBanners, activeKind]);
 
   /* 신규 등록 후 server-side redirect 로 진입한 경우 toast + URL clean.
      createBannerAction 의 redirect 가 ?just_created=1 박음. strict mode dev
@@ -516,10 +565,20 @@ function bySortOrderThenId(a: Banner, b: Banner): number {
   return a.id < b.id ? -1 : 1;
 }
 
+/* ordered ids = sort_order ASC join (',') — multi-운영자 conflict 감지 키 (S279-C-2).
+   id 는 UUID 라 ',' 충돌 X. */
+function orderedIdsKey(banners: Banner[]): string {
+  return [...banners].sort(bySortOrderThenId).map((b) => b.id).join(',');
+}
+
 /* server props 갱신 시 dirty (sort_order) 보존 + 다른 필드 server 값 채택 (S279-C · products 답습).
    prev 의 sort_order 가 server 와 다르면 (= reorder dirty) prev 의 sort_order 유지,
    다른 필드 (enabled, internal_label 등) 는 server 의 최신 값 채택.
-   prev 에 없는 신규 row 는 server 의 sort_order 그대로. */
+   prev 에 없는 신규 row 는 server 의 sort_order 그대로.
+
+   S279-C-2 정합: 본 helper 는 **server reorder 없을 때만 호출** (caller useEffect 에서
+   prev vs new server ordered ids 비교 분기). server reorder 시점 = 항상 server 채택 +
+   conflict warn (caller 책임) — 다른 운영자 변경 무시 위험 차단. */
 function mergePreservingReorder(prev: Banner[], server: Banner[]): Banner[] {
   const prevById = new Map(prev.map((b) => [b.id, b]));
   const wasDirty = server.some((b) => {

@@ -473,6 +473,12 @@ export function buildStage2Prompt(options: BuildStage2Options): string {
     '',
     '결과 .html 파일을 다운로드 또는 텍스트로 복사 → admin "responsive HTML 자동 변환" 카드 (또는 "텍스트 붙여넣기") → 자동 변환 실행 → production.html 자동 저장 → 4 BP iframe preview 시각 검증.',
     '',
-    '디자이너 검수 옵션: admin "HTML 다운로드" 버튼으로 저장된 production.html 을 디자이너에게 전달 → 손본 후 다시 업로드.',
+    '## ⚠ element invention 잔존 가능 (DEC-S278-4)',
+    '',
+    'fair test 결과 (S278) AI 가 위 invention 금지 룰을 읽은 후에도 시각 디자인 보완 본능으로 .divider / .accent-line / `<br>` 분리선 등 1~2개 element 를 자체 추가하는 경향이 잔존합니다. prompt 강화만으로는 100% 차단 어려움. 운영자 또는 디자이너가 출력 후 1회 점검 권장:',
+    '',
+    '- **디자이너 검수 (권장)**: admin "HTML 다운로드" 버튼으로 production.html 을 디자이너에게 전달 → invention element trim + 손본 후 다시 업로드',
+    '- **운영자 수동 trim**: responsive.html 텍스트에서 운영자 입력 외 요소 (`<div class="divider">` / `<span class="accent-line">` / 임의 `<br>` 등) 직접 삭제 후 자동 변환',
+    '- 자동 변환 단계는 위 invention element 를 그대로 통과시킴 (decorative wrap 등 정당한 element 와 구분 모호 — DEC-S282-B 옵션 B validation gate 도입 carry)',
   ].join('\n');
 }

@@ -637,6 +637,10 @@ export default function BannerEditForm({
               디자이너에게 의뢰하는 대신 'Stage 2 AI prompt 복사' 버튼으로 Claude.ai 에 의뢰할 수도 있어요.
               <br />
               변환 성공 시 아래 'production HTML' 영역에 자동 저장됩니다. 실패 시 아래 manual 업로드로 직접 등록할 수 있어요.
+              <br />
+              <span className="text-[var(--warning)]">
+                ⚠ AI 출력은 운영자 입력 외 element (.divider · .accent-line · 임의 &lt;br&gt; 등) 를 자체 추가할 수 있어요. &apos;HTML 다운로드&apos; 로 디자이너 검수 또는 텍스트 수동 trim 권장 (DEC-S278-4).
+              </span>
             </>
           }
           action={
