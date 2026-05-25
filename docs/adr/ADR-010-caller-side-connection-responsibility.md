@@ -63,9 +63,44 @@ cafe-menu / gooddays 는 build-time caller 없음 → Pattern A 도 가능했지
 - `CafeMenuSection.tsx` (line 54) — `await connection()` 호출 후 `getActiveBanner('cafe_event')` / `getComingBanner('cafe_event')`
 - `SignatureChapter.tsx` (line 29) — `await connection()` 호출 후 `getActiveBanner('signature')`
 
-### 2. site-settings 예외 (DEC-S279-D-2)
+### 2. site-settings 예외 (DEC-S279-D-2 · S281-A 보강)
 
 `fetchSiteSettings` 는 root `layout.tsx` 에서 호출 → caller 측 connection() 추가 시 모든 페이지 PPR shell 폐기 + BUG-006 D-007 회귀 + 모바일 LCP 악화. **별 정책 유지** (`'use cache'` + `revalidateTag('site-settings', 'max')`).
+
+**Trade-off 정량 분석** (S281-A):
+
+| 항목 | banners 답습 시 | 현재 유지 (carry) |
+|------|---|---|
+| **모바일 3G/4G LCP** | 악화 (TTFB 증가) | 유지 (CDN edge cache hit) |
+| **모든 페이지 CDN cache hit ratio** | 0% (dynamic header) | 80~95% |
+| **server origin 부담** | 매 요청 처리 + DB hit | 캐시 hit |
+| **운영자 변경 즉시 반영** | ✅ 매 요청 fresh | ❌ stale-while-revalidate (1회 stale 가능) |
+| **BUG-006 D-007 정합** | ❌ X 수용 회귀 | ✅ PPR shell prerender 유지 |
+
+**carry 일감 트리거 조건** (S281-A 명문화):
+
+다음 중 하나 발생 시 site-settings 정책 재검토 (별 sprint):
+1. **production 환경 운영자 변경 stale 1회 이상 보고** — 운영자가 "변경했는데 한참 뒤에 반영" 시각 보고
+2. **변경 빈도 증가** — site-settings 변경이 주 1회 이상 → stale 1회 누적 영향 증가
+3. **layout 분리 가능 시점** — Suspense boundary 안 fetchSiteSettings 격리 가능한 React 19+ 패턴 등장
+
+**재검토 시 옵션** (carry 일감 메뉴):
+- (a) `revalidateTag` → `updateTag` 마이그 — server action 내 read-your-own-writes (단 S278 학습 = dev 환경 inconsistent · production 신뢰 불확실)
+- (b) root layout 외부 fetch 분리 — Suspense + per-page fetch (큰 리팩터)
+- (c) `'force-cache'` profile 변경 — revalidateTag('site-settings', 'default') 시도 (Next.js 16 동작 검증 필요)
+
+### 4. menu-likes 부분 답습 (S281-B)
+
+`fetchMenuLikesCountsSnapshot` 은 `'use cache'` 유지 + cachedClient singleton 폐기 + `cache: 'no-store'` fetch override 만 적용.
+
+**유지 이유**:
+- 사용자 좋아요 count = stale 1회 수용 가능 (다른 사용자의 좋아요 직후 본인 화면 즉시 반영 요구 낮음)
+- 본인 좋아요 = client `menuLikesStore` optimistic update 로 즉시 반영 (caller 측 별 메커니즘)
+- `/api/menu-likes/[menuId]` POST/DELETE 시 `revalidateTag('menu-likes', 'max')` 호출 → 다음 요청 fresh
+
+**부분 답습 정합 (S281-B)**:
+- 'use cache' = caller `/menu` 가 dynamic 인 환경에서 fetchMenuLikesCountsSnapshot 정적 캐시 (DB 부담 감소)
+- cachedClient singleton 폐기 + fetch override = dev HMR closure / Supabase REST default cache 회귀 차단 (S278 학습 #4/#5 답습)
 
 ### 3. lightweight variant 분리 (S279-D 답습)
 
@@ -119,9 +154,21 @@ build-time caller (generateStaticParams / generateMetadata) 가 server fetch hel
 - `/menu/page.tsx` 에서 fetchCafeMenu 와 Promise.all 호출
 - 현재 `'use cache'` 유지 — 운영자 즉시 반영 요구 발생 시 답습 fix 검토
 
-### S281-C — admin variant helper (lib/admin/*Server.ts)
-- 본 ADR 은 메인 사이트 (B2C) helper 한정
-- admin variant (예: `lib/admin/productsServer.ts`) 는 admin context 가 이미 cookies()/auth 로 dynamic — 별 검토 불필요 (확인 의무)
+### S281-C — admin variant helper (lib/admin/*Server.ts) — ✅ 완료 (audit 결과 안전)
+
+**audit 일시**: 2026-05-25 (S281-C)
+**대상**: `lib/admin/*Server.ts` 10 파일 (analyticsServer / auditServer / bannersServer / cafeMenuServer / dashboardServer / newsletterServer / ordersServer / productsServer / subscriptionsServer / usersServer)
+
+**검토 결과**:
+| 검토 항목 | 결과 |
+|----------|------|
+| `'use cache'` 사용 | ❌ 0건 |
+| `cachedClient` singleton 패턴 | ❌ 0건 |
+| `new Date()` 의존 helper | ❌ 0건 |
+| `connection()` 호출 | ❌ 0건 (불필요) |
+| dynamic 강제 패턴 | ✅ `createRouteHandlerClient` (lib/supabaseServer.ts) → `await cookies()` 자동 강제 |
+
+→ 답습 위험 0건. **코드 변경 0**. admin context 가 `createRouteHandlerClient` → `cookies()` 호출로 자동 dynamic 강제 = ADR-010 의 caller-side 책임 패턴 정합 (admin route 의 server component / actions 가 모두 cookies() 의존).
 
 ## 관련 메모리
 
