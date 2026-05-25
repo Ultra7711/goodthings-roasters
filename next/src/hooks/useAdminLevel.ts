@@ -83,6 +83,18 @@ export function useAdminLevel(): AdminLevel | null {
       return;
     }
     /* eslint-enable react-hooks/set-state-in-effect */
+
+    /* ── S282-P3 fast-path: JWT app_metadata.admin_level 직독 (마이그 074 Hook 적용 시) ──
+       owner/staff 매치 시 RPC + profile SELECT skip (-300~600ms client-side).
+       일반 사용자 = undefined → fallback (기존 RPC) 동작. */
+    const appMetadata = (user.app_metadata ?? {}) as Record<string, unknown>;
+    const hookAdminLevel = appMetadata.admin_level;
+    if (hookAdminLevel === 'owner' || hookAdminLevel === 'staff') {
+      cached = { userId: user.id, level: hookAdminLevel };
+      setLevel(hookAdminLevel);
+      return;
+    }
+
     let cancelled = false;
     (async () => {
       try {
