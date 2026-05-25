@@ -1,18 +1,20 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   lib/admin/aiPrompt.ts — 운영자 AI 배너 제작 표준 prompt (S239 B-1b · S276 Stage 2)
+   lib/admin/aiPrompt.ts — 운영자 AI 배너 제작 표준 prompt (S239 B-1b · S276 Stage 2 · S277 정정)
 
    목적:
    - 운영자가 AI 에게 배너 자산을 의뢰할 때 사용할 두 표준 prompt:
      - **Stage 1**: 원본 이미지 → 텍스트/요소 제거 + BP 별 배경 이미지
        (이미지 처리 AI · Gemini 2.5 / ChatGPT GPT-4o image / Imagen 추천)
-     - **Stage 2 (S276)**: 시즌 컨셉 + 배경 이미지 → 4 BP responsive.html
-       (Claude Opus 4.7 권장 · S274 fair test 결과 사이트 톤 가장 정합)
+     - **Stage 2 (S276 · S277 정정)**: 시즌 컨셉 + 배경 이미지 → 4 BP responsive.html
+       (범용 멀티모달 AI — Claude · GPT · Gemini 동등 사용 가능)
 
    배너 제작 워크플로우 (운영자 가이드 · S276 chain 완성):
    1. 시즌 컨셉 결정
    2. AI 로 배너 원본 이미지 생성 (텍스트 + 디자인 요소 포함된 완성본)
    3. **Stage 1 prompt** → 이미지 AI → 배경 이미지 (Desktop · Mobile) + 안전 영역 메타
-   4. **Stage 2 prompt** → Claude Opus 4.7 (또는 디자이너) → responsive.html
+      (S277: 안전영역 = 디테일 0 단색/그라데이션 비움 강제)
+   4. **Stage 2 prompt** → 범용 멀티모달 AI (또는 디자이너) → responsive.html
+      (S277: 사이트 톤 강제 폐기 · 디자인 자유 + 컨셉 추출 + invention 금지)
    5. admin "responsive HTML 자동 변환" (S275 Phase 2) → production.html 자동 저장
    6. SEO 메타 자동 채움 (autofill) + 4 BP iframe preview 시각 검증
    7. enabled=true 활성화
@@ -22,7 +24,9 @@
 
    설계:
    - signature 와 cafe-events 가 거의 동일한 모델이라 단일 builder + 영역 라벨만 분기
-   - Stage 2 는 spec-heavy (운영 규칙 박음) — 외부 AI 의 사이트 톤 정합 보장
+   - Stage 2 는 spec-heavy (시스템 정합 강제) 이지만 디자인 결정은 컨셉에서 추출 (S277)
+   - "시스템 정합" (4 BP wrap / 패딩 60·48·48·32 / 폰트 시스템 / 한영 매핑) = 변경 금지
+   - "디자인 자유" (색상 / 배지 / divider / 레이아웃 / 오브젝트) = 컨셉에서 추출
    ══════════════════════════════════════════════════════════════════════════ */
 
 export type BannerKind = 'signature' | 'cafe-event';
@@ -119,6 +123,20 @@ export function buildBannerAiPrompt(options: BuildPromptOptions): string {
     '   - 메인 비주얼 (상품 사진) 이 feature 바·텍스트 영역에 의해 잘리는지 확인',
     '   - 잘림 발생 시 → 이미지 컴포지션 재조정 (메인 비주얼 위치/크기 변경)',
     '',
+    '4-A. **안전영역 = 비주얼 디테일 0 (필수 · 최우선 규칙)**',
+    '   메인 비주얼은 한쪽으로 몰고 반대편을 의도적으로 비웁니다 — HTML 텍스트/요소가 들어갈 자리.',
+    '',
+    '   - **가로형**: 우측 50~60% 메인 비주얼 / **좌측 40~50% = 단색 또는 부드러운 그라데이션만 (디테일 0)**',
+    '   - **세로형**: 하단 55~60% 메인 비주얼 / **상단 40~45% = 동일하게 단색/그라데이션 비움**',
+    '',
+    '   비움 색상 = 비주얼 톤과 정합되는 단색 또는 자연 ease-out fade (시각 주체에서 안전영역으로).',
+    '',
+    '   🚫 **안전영역 안에 절대 두지 말 것**: 코코넛 / 원두 / 잎 / 식재료 / 소품 / 작은 그림자 / 부분 텍스처 / 컬러 점 / 어떤 형태의 디테일도 금지.',
+    '',
+    '   ✅ **자가 검증**: "안전영역에 텍스트를 흰색 + 검정 두 가지로 가상 배치했을 때 둘 다 읽히는가?" → 둘 다 OK 여야 통과. 한쪽만 OK 면 비주얼 톤 단순화 부족 → 다시 재구성.',
+    '',
+    '   ⚠️ **이유**: 안전영역에 디테일이 남으면 Stage 2 가 텍스트 가독성 위해 어두운 overlay (`::after` 그라데이션) 를 깔게 되고 → 비주얼 시각 주체가 가려지는 운영 회귀가 발생합니다. 본 규칙으로 원천 차단.',
+    '',
     '5. **안전 영역 메타데이터 출력** — 각 BP 별 다음 정보를 좌표(%) 로 표기',
     '   - **텍스트 안전 영역**: 헤드라인/부제/CTA 가 들어갈 위치',
     '   - **메인 비주얼 영역**: 상품 사진이 표시되는 위치 (잘리면 안 되는 영역)',
@@ -212,10 +230,12 @@ function aspectToWh(aspect: string | undefined, baseWidth: number): string {
 /**
  * Stage 2 AI 에게 전달할 spec-heavy prompt — 4 BP responsive.html 생성.
  *
- * S274 fair test 결과 (3 모델 비교):
- *   - Claude Opus 4.7 가 사이트 디자인 톤 가장 정합 → default 권장
- *   - 시스템 제약 만으로는 운영 규칙 (좌측 패딩 60/48/48/32 등) 모름
- *   - spec-heavy prompt (운영 규칙 박음) 가 일관성 보장에 필수
+ * 모델 정책 (S277 정정):
+ *   - 범용 멀티모달 AI 사용 가능 (Claude · GPT · Gemini 동등)
+ *   - 시스템 제약 만으로는 운영 규칙 (좌측 패딩 60/48/48/32 등) 모름 → spec-heavy 유지
+ *   - 단 디자인 결정 (색상 / 배지 / divider / 레이아웃) 은 원본 컨셉에서 추출 (사이트 톤 강제 폐기)
+ *   - S274 fair test 결과 ("Claude 1위") = 강제 prompt 환경 한정 의의 — S277 정정으로 평가 축이
+ *     "컨셉 추출 충실도 + invention 자제력" 으로 바뀜 → 재평가 필요 (DEC-S277-P6)
  *
  * 운영자가 admin "Stage 2 AI prompt 복사" 버튼 클릭 시 clipboard 복사.
  * AI 결과 = responsive.html → admin "responsive HTML 자동 변환" (S275) → production.html.
@@ -253,8 +273,9 @@ export function buildStage2Prompt(options: BuildStage2Options): string {
   return [
     `# ${label} responsive.html 생성 (Stage 2)`,
     '',
-    '추천 AI: **Claude Opus 4.7** (S274 fair test 결과 사이트 톤 가장 정합).',
-    'Gemini 2.5 / ChatGPT 도 사용 가능하나 일관성 보장 위해 본 prompt 의 운영 규칙을 정확히 따를 것.',
+    '추천 AI: **범용 멀티모달 AI** (Claude · GPT · Gemini 동등 사용 가능). 본 prompt 의 운영 규칙을 정확히 따를 것.',
+    '',
+    '(참고: 이전 S274 fair test 에서 Claude Opus 4.7 가 사이트 톤 정합 1위였으나, 그건 "사이트 톤 강제 prompt" 환경 한정 의의. S277 정정으로 디자인 강제 폐기 → 평가 축이 "컨셉 추출 충실도 + invention 자제력" 으로 바뀜. 모든 모델 재평가 권장.)',
     '',
     '## 🎯 이 작업의 본질',
     '',
@@ -332,17 +353,54 @@ export function buildStage2Prompt(options: BuildStage2Options): string {
     '',
     '값은 시즌 컨셉에 따라 가이드 범위 안에서 자유. 단 양 끝점 차이 너무 크면 (예: 64 → 16) 중간 viewport 가 어색하니 가이드 범위 안 유지.',
     '',
-    '### 3. 사이트 디자인 톤 (절제 · 단순화)',
-    '- **배경**: sand bg + 보라/브라운 컬러 팔레트 (제품 컬러 톤 답습)',
-    '- **레이아웃**: 좌측 stack (상단 헤드라인 + 하단 메뉴 리스트) · 우상단 원형 배지. 카드형 grid X.',
-    '- **mobile 메뉴**: 하단 bar (3-col grid 자연스러움) · 카드 형 X',
-    '- **분리선/구분선**: 미세한 gradient line (예: `linear-gradient(to right, rgba(74,37,128,.2) 0%, rgba(74,37,128,.2) 60%, transparent 80%)` · background-size: 100% 1px)',
-    '🚫 **금지**: feature 바 / 강조 박스 / 카드 형 메뉴 / 화려한 그라데이션 / 작은 부가 요소 (원본 이미지에 있어도 단순화).',
+    '### 3. 디자인 언어 추출 (사이트 톤 강제 X · 원본 컨셉에서 추출 · S277 정정)',
     '',
-    '### 4. 단순화 의도 (원본 모든 요소 재현 X)',
-    '컨셉 이미지에 4종 feature 바 같은 부가 요소가 있어도 **재현 금지**. 디자이너의 단순화 의도 답습:',
-    '- 헤드라인 + 부제 + 시리즈 라벨 + 메뉴 리스트 + 배지 (5종) 만',
-    '- 부가 정보 (영양 정보 / 가격 / 매장 안내 등) 는 본문에 분리',
+    '본 prompt 는 디자인 톤을 강제하지 않습니다. 원본 컨셉 이미지를 분석해서 다음을 **추출** 한 후 HTML 로 재현하세요:',
+    '',
+    '1. **색상 팔레트** — 배경 톤 / 텍스트 톤 / 강조 색상 (운영자 시즌 컨셉 그대로 답습 · 사이트 다른 페이지와 정합 안 해도 OK)',
+    '2. **레이아웃 패턴** — 좌측 stack / 중앙 정렬 / 카드 그리드 / 리스트 등 (원본 컨셉에 있는 형태 그대로)',
+    '3. **오브젝트 종류** — 배지 / divider / marker / icon / 그라데이션 line 등 (원본 컨셉에 있을 때만 재현)',
+    '4. **폰트 무드** — 본문 weight / 헤드라인 style / 자간 등 (원본 컨셉 톤)',
+    '',
+    '🚫 **금지**: 원본 컨셉에 없는 element/색상/오브젝트 자체 추가 (= invention).',
+    '✅ **허용**: 원본 컨셉에 있는 element 를 시스템 정합 패딩/폰트 가이드로 재현 (단 텍스트는 운영자 입력만).',
+    '',
+    '⚠️ **이전 prompt 의 "사이트 톤 강제" (sand bg / 보라·브라운 / 좌측 stack / 우상단 원형 배지 / mobile 하단 bar)** 는 특정 시즌의 디자인 결정을 일반 룰로 격상시킨 것이라 폐기. 시즌별 디자인 결정 ≠ 일반 디자인 룰.',
+    '',
+    '### 4. invention 금지 (element + 단어 양쪽 · S277 정정)',
+    '',
+    '운영자가 입력한 텍스트와 원본 컨셉 이미지에 있는 element 만 사용하세요. 빈 슬롯을 채우려고 다음을 추가하지 마세요:',
+    '',
+    '**element invention 금지**:',
+    '- 배지 (border-radius:50% / stamp / circle label / backdrop-blur 등)',
+    '- divider / hr / 색상 강조 1px 라인',
+    '- ingredient-marker 같은 글머리표 line',
+    '- `::after` / `::before` 어두운 그라데이션 overlay (텍스트 가독 마스크)',
+    '- 카드 그리드 / 4분할 정보 박스 / 메뉴 카드',
+    '- 하단/측면 메뉴 bar (특정 시즌 패턴 · 일반 룰 아님)',
+    '- 아이콘 / SVG (운영자 미입력)',
+    '- `<em>` italic 강조 색상 변형 / gradient text',
+    '',
+    '**단어 invention 금지** (운영자 입력 외 자동 생성 금지):',
+    '- 마케팅 일반 단어: "New" / "Signature" / "Limited" / "Exclusive" / "Premium" / "Best" / "Hot" / "Pick"',
+    '- 한글 마케팅: "시즌 한정" / "한정" / "신상" / "신메뉴" / "베스트" / "추천" / "프리미엄"',
+    '- 시리즈명/시즌명 자동 추가',
+    '- 헤드라인 영문/한글 자동 변환 또는 병기 추가',
+    '- 부제 BP 별 자동 축약/번역/변형 (운영자가 BP 별 별도 입력 안 했으면 동일 텍스트 사용)',
+    '',
+    '**안전영역 부족 대응**:',
+    '- 폰트 크기 축소 (가이드 범위 안) 또는 줄바꿈으로 해결',
+    '- **새 영역 발명 금지** (검정 overlay / 카드 분할 / 정보 박스 추가 등)',
+    '- 그래도 안 들어가면 → "Stage 1 안전영역이 부족하다" 운영자에게 알림 (HTML 주석으로)',
+    '',
+    '### 5. portrait (768 미만) 강조 — 침범 위험 더 큼',
+    '',
+    '본 §3 (디자인 추출) + §4 (invention 금지) + §1 (좌측 패딩) 룰은 **4 BP 모두 (landscape-max / landscape-min / portrait-max / portrait-min) 동일 적용**.',
+    '',
+    'portrait 는 폭이 좁아 텍스트 침범 위험이 더 큽니다:',
+    '- 시각 주체가 화면 중앙/전체 가까이면 텍스트는 상단 또는 하단 줄에 분리 배치',
+    '- Stage 1 안전영역 비율 (상단 40~45%) 엄수 — Stage 1 결과 이미지가 안전영역 안 비웠으면 운영자에게 재요청',
+    '- 텍스트 양 많으면 BP 별 별도 입력 받기 (운영자 입력 슬롯 한계 · 별도 운영 결정)',
     '',
     '## 📝 입력 자산 (운영자가 채팅에 첨부)',
     '',
@@ -405,9 +463,15 @@ export function buildStage2Prompt(options: BuildStage2Options): string {
     '- [ ] 좌측 패딩 60 / 48 / 48 / 32 정확 (임의 패딩 금지)',
     '- [ ] 폰트 패밀리 = Pretendard + Inter 만 (Noto Sans / Outfit 등 추가 패밀리 0)',
     '- [ ] 각 텍스트 클래스에 font-family 명시 (한글 → --font-kr · 영문 → --font-en)',
-    '- [ ] 부가 요소 (feature 바 등) 단순화 — 5종 (헤드라인 + 부제 + 시리즈 라벨 + 메뉴 리스트 + 배지) 만',
+    '- [ ] 색상 팔레트 = 원본 컨셉 이미지에서 추출 (사이트 다른 페이지 톤 강요 X)',
+    '- [ ] invention 0 — 원본 컨셉에 없는 element (배지/divider/marker/overlay/카드 그리드 등) 추가 안 함',
+    '- [ ] invention 0 — 운영자 입력 외 단어 (New / Signature / 시즌 한정 등) 자동 생성 안 함',
+    '- [ ] 부제 BP 별 자동 축약/번역 0 (운영자 미입력이면 동일 텍스트 사용)',
+    '- [ ] 헤드라인 `<em>` italic 변형 / 색상 변형 / gradient text 0',
+    '- [ ] `::after` / `::before` 어두운 overlay 0 (Stage 1 안전영역이 비어 있으면 불필요)',
     '- [ ] 폰트 크기가 위 가이드 범위 안',
     '- [ ] 4 BP wrap CSS 패턴 정확 (base + wrap class prefix override) — production 자동 변환 호환',
+    '- [ ] portrait (768 미만) 도 동일 룰 적용 (안전영역 / invention 금지 / 디자인 추출)',
     '',
     '## 다음 단계 안내',
     '',
