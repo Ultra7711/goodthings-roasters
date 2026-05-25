@@ -19,6 +19,7 @@ import type { Subscription } from '@/types/subscription';
 import type { Order } from '@/types/order';
 import { useToast } from '@/hooks/useToast';
 import { useSubscriptionsQuery } from '@/hooks/useSubscriptions';
+import { resetMyPageUi } from '@/lib/myPageUiStore';
 import OverscrollTop from '@/components/ui/OverscrollTop';
 import HeroGreeting from '@/components/auth/mypage/HeroGreeting';
 import MyPageSideNav, { type MyPageNavId } from '@/components/auth/mypage/MyPageSideNav';
@@ -113,6 +114,10 @@ export default function MyPagePage({
      S266: 동일 ref 가 mp-page root 의 보관도 담당 — scroll listener 가 --mp-scroll-p
      를 inline style 로 갱신. */
   const pageRef = useRef<HTMLDivElement | null>(null);
+  /* S282-P3-M: navLockRef = scroll listener + handleNavWithScroll 공유 lock.
+     탭 클릭 시 hero state 강제 결정 + scrollTo → lock 활성 → scroll listener apply skip → oscillation/모호 상태 차단. */
+  const navLockRef = useRef(false);
+  const navLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setBodyEl = useCallback((el: HTMLDivElement | null) => {
     pageRef.current = el;
     if (!el) return;
@@ -121,34 +126,54 @@ export default function MyPagePage({
     el.classList.add('is-loaded');
   }, []);
 
-  /* S266 — 모바일 hero collapsed/expanded binary snap (hysteresis).
+  /* S266 → S282-P3-M — 모바일 hero collapsed/expanded binary snap (hysteresis + transition lock).
      scroll 진입 임계점 120 / 복귀 60 → data-collapsed attribute toggle.
-     CSS 가 transition 250ms ease 로 부드러운 snap 전환 (점진 보간 폐기).
+     CSS 가 transition 250ms ease 로 부드러운 snap 전환.
      hysteresis: threshold 채터링 방지 (사용자가 임계점 근처 멈춰도 안정).
+
+     S282-P3-M transition lock: hero height 변환 (expanded ↔ collapsed) 시 layout reflow 발생 →
+     페이지 height 변동 → scrollY 자동 조정 → 임계 사이 oscillation 발생.
+     lock = data-collapsed 토글 후 400ms 동안 apply skip → layout 안정 후 정상 동작 재개.
+
      데스크탑은 listener 자체 미부착 — 항상 'false'. */
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const mql = window.matchMedia('(max-width: 767px)');
     const HYST_ENTER = 120;
     const HYST_EXIT = 60;
+    const TRANSITION_LOCK_MS = 400; // CSS transition 250ms + buffer 150ms
 
     let raf = 0;
     let attached = false;
-    let isCollapsed = false;
 
     const apply = () => {
       raf = 0;
       const el = pageRef.current;
       if (!el) return;
       if (!mql.matches) {
-        isCollapsed = false;
         el.dataset.collapsed = 'false';
         return;
       }
+      /* navLockRef 활성 중엔 임계 체크 skip — scroll listener / handleNavWithScroll 공유 lock.
+         oscillation (scrollY 자동 조정) + 탭 클릭 후 모호 상태 둘 다 차단. */
+      if (navLockRef.current) return;
+      const cur = el.dataset.collapsed === 'true';
       const y = window.scrollY;
-      if (!isCollapsed && y >= HYST_ENTER) isCollapsed = true;
-      else if (isCollapsed && y < HYST_EXIT) isCollapsed = false;
-      el.dataset.collapsed = isCollapsed ? 'true' : 'false';
+      const next = !cur && y >= HYST_ENTER
+        ? true
+        : cur && y < HYST_EXIT
+          ? false
+          : cur;
+      if (next !== cur) {
+        el.dataset.collapsed = next ? 'true' : 'false';
+        /* 토글 후 lock — layout reflow + scrollY 자동 조정 시간 buffer */
+        navLockRef.current = true;
+        if (navLockTimerRef.current) clearTimeout(navLockTimerRef.current);
+        navLockTimerRef.current = setTimeout(() => {
+          navLockRef.current = false;
+          navLockTimerRef.current = null;
+        }, TRANSITION_LOCK_MS);
+      }
     };
 
     const onScroll = () => {
@@ -166,7 +191,11 @@ export default function MyPagePage({
       if (!attached) return;
       attached = false;
       window.removeEventListener('scroll', onScroll);
-      isCollapsed = false;
+      if (navLockTimerRef.current) {
+        clearTimeout(navLockTimerRef.current);
+        navLockTimerRef.current = null;
+      }
+      navLockRef.current = false;
       const el = pageRef.current;
       if (el) el.dataset.collapsed = 'false';
     };
@@ -179,34 +208,72 @@ export default function MyPagePage({
       mql.removeEventListener('change', onChange);
       detach();
       if (raf) cancelAnimationFrame(raf);
+      if (navLockTimerRef.current) clearTimeout(navLockTimerRef.current);
     };
   }, []);
 
   /* ── Side nav 활성 항목 ── */
   const [activeNavId, setActiveNavId] = useState<MyPageNavId>('orders');
 
-  /* ── 탭 전환 공통 핸들러 (HeroGreeting 메타 + SideNav 탭바) — 모바일 스크롤 포함.
-     데스크탑은 grid layout 으로 한 화면에 보여 스크롤 불필요.
-     S266 분기 (사용자 결정):
-     - expanded (히어로 온전히 보임 · data-collapsed!='true'): 자동 스크롤 X.
-       페이지 레이아웃 그대로 panel content 만 swap.
-     - collapsed (sticky 진입 후): mp-grid in-flow top 으로 강제 스크롤 →
-       sticky 유지하면서 panel 첫 행이 stickybar bottom 바로 아래 정렬. */
+  /* ── S282-P3-M: 초기화 이벤트 2종 (옵션 C · A+B 둘 다) ──
+     (A) `app:mypage-reset` — 동일 라우트 재클릭 시 dispatch (Shop/Menu/GoodDays 답습 · lessons.md §8):
+         SiteHeader (데스크탑 아이콘) + MobileNavDrawer (모바일 링크) 에서 발화.
+         → activeNavId 'orders' + resetMyPageUi() + scrollY 0
+     (B) `gtr:route-change` — 다른 페이지 이동 후 복귀 시도 초기화:
+         myPageUiStore 는 이미 store reset 박혀 있음. activeNavId 는 별 local state 라 동기 추가.
+         leave-reset 패턴: mypage→other 이동 시 setActiveNavId('orders') → 다음 mypage 진입 시 default. */
+  useEffect(() => {
+    function onMypageReset() {
+      setActiveNavId('orders');
+      resetMyPageUi();
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    }
+    function onRouteChange() {
+      /* leave-reset — mypage 떠날 때 activeNavId 'orders' 로 reset.
+         myPageUiStore 의 store reset 과 동기 → 다음 진입 시 완전 default. */
+      setActiveNavId('orders');
+    }
+    window.addEventListener('app:mypage-reset', onMypageReset);
+    window.addEventListener('gtr:route-change', onRouteChange);
+    return () => {
+      window.removeEventListener('app:mypage-reset', onMypageReset);
+      window.removeEventListener('gtr:route-change', onRouteChange);
+    };
+  }, []);
+
+  /* ── 탭 전환 공통 핸들러 — S282-P3-M (사용자 결정 · 옵션 a 초기 상태 통일).
+     매 탭 클릭 = 페이지 top (scrollY 0) + hero expanded 강제.
+     - dataset.collapsed = 'false' 강제 (hero expanded)
+     - scrollTo 0 smooth
+     - navLockRef 400ms 활성 (smooth scrollTo 중 임계 체크 skip).
+     데스크탑은 grid layout 이라 스크롤 불필요 → mql 가드. */
   const handleNavWithScroll = useCallback((target: MyPageNavId) => {
     setActiveNavId(target);
     if (typeof window === 'undefined') return;
     if (!window.matchMedia('(max-width: 767px)').matches) return;
-    if (pageRef.current?.dataset.collapsed !== 'true') return;
+    const el = pageRef.current;
+    if (!el) return;
+
+    /* hero state 강제 expanded (초기 상태) */
+    el.dataset.collapsed = 'false';
+
+    /* navLock 활성 — scroll listener 임계 체크 skip */
+    navLockRef.current = true;
+    if (navLockTimerRef.current) clearTimeout(navLockTimerRef.current);
+    navLockTimerRef.current = setTimeout(() => {
+      navLockRef.current = false;
+      navLockTimerRef.current = null;
+    }, 400);
+
+    /* 페이지 top 으로 smooth scrollTo — double rAF 안 호출 (React commit + MyPageSideNav 의
+       activeId useEffect 안 scrollIntoView 호출 후 마지막에 우리 scrollTo 발화 → final position 보장).
+       scrollIntoView 가 vertical 영향 가능성 (block: 'nearest') → 우리가 마지막 적용. */
     requestAnimationFrame(() => {
-      const grid = document.querySelector<HTMLElement>('.mp-grid');
-      if (!grid) return;
-      const headerHeight =
-        parseInt(
-          getComputedStyle(document.documentElement).getPropertyValue('--header-height'),
-          10,
-        ) || 56;
-      const top = window.scrollY + grid.getBoundingClientRect().top - headerHeight;
-      window.scrollTo({ top, behavior: 'smooth' });
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
     });
   }, []);
 
@@ -292,26 +359,13 @@ export default function MyPagePage({
 
         <div className="mp-body">
           <div className="mp-grid">
-            {/* S266 — 모바일 sticky bar wrapper. 데스크탑 = display:contents
+            {/* S266 → S282-P3-M: 모바일 sticky bar wrapper. 데스크탑 = display:contents
                (자식이 grid item 으로 직접 동작 · 기존 grid 레이아웃 보존).
-               모바일 = sticky 단일 컨테이너 (collapsed greeting + 탭바 묶음).
-               탭 변경 시 stickybar height 일정 → 컨텐츠 위치 안정.
+               모바일 = SideNav 만 sticky (hero 가 별 sticky 영역으로 stack).
+               S282-P3-M: mp-mobile-greeting 폐기 — hero-wrap 자체가 sticky + collapsed 1줄로 변환.
                sticky bar 의 bg 는 absolute child 로 분리 (iOS 26 Liquid Glass tinting fix). */}
             <div className="mp-mobile-stickybar">
               <div className="mp-mobile-stickybar-bg" aria-hidden />
-              <div className="mp-mobile-greeting" aria-hidden>
-                <span className="mp-mobile-greeting-text">
-                  안녕하세요, {displayName}님.
-                </span>
-                <button
-                  type="button"
-                  className="mp-mobile-greeting-logout"
-                  onClick={() => void handleLogout()}
-                  data-gtr-tap
-                >
-                  로그아웃
-                </button>
-              </div>
               <MyPageSideNav
                 activeId={activeNavId}
                 counts={counts}

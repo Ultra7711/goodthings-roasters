@@ -146,7 +146,9 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
     const targetPath = isLoggedIn ? '/mypage' : '/login';
     if (pathname === targetPath) {
       e.preventDefault();
-      handleSamePathReset();
+      /* S282-P3-M: 동일 마이페이지 재클릭 시 reset 이벤트 dispatch
+         (login 페이지는 reset 이벤트 없음 — undefined 전달 시 dispatchEvent skip). */
+      handleSamePathReset(isLoggedIn ? 'app:mypage-reset' : undefined);
       return;
     }
     setSnapClose(true);

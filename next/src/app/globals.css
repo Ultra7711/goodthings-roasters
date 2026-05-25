@@ -2060,27 +2060,44 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 
 /* PR-1c 통일 완료 — 옛 gold underline ::after 시스템 전체 폐기 (BUG-144 (1) 그룹 + opacity:1 / position relative overflow hidden / disabled::after 모두 정리됨) */
 
-/* PR-1c-1~7 — Blue Bottle 패턴 통일 모바일 sticky hover 차단 */
+/* PR-1c-1~7 — Blue Bottle 패턴 통일 모바일 sticky hover 차단.
+   S282-P3-M: :active 도 차단 추가 — modal 표시 시 button 의 :active 가 잔존하여 hover 처럼
+   보이는 mobile touch sticky 버그 fix. modal open 시 touch end event 못 받음 → :active 유지. */
 @media (hover: none) {
-  /* primary filled: hover bg darken 차단 → default bg 유지 */
+  /* primary filled: hover/active bg darken 차단 → default bg 유지 */
   #pd-cart-btn:not(.disabled):hover,
+  #pd-cart-btn:not(.disabled):active,
   .lp-submit-btn:not(:disabled):hover,
+  .lp-submit-btn:not(:disabled):active,
   .chp-submit-btn:not(:disabled):hover,
+  .chp-submit-btn:not(:disabled):active,
   .chp-login-primary-btn:hover,
+  .chp-login-primary-btn:active,
   .cp-order-btn:not(:disabled):hover,
+  .cp-order-btn:not(:disabled):active,
   .ocp-btn-primary:not(:disabled):hover,
+  .ocp-btn-primary:not(:disabled):active,
   .mp-save-btn:not(:disabled):hover,
+  .mp-save-btn:not(:disabled):active,
   .mp-modal-confirm:not(:disabled):hover,
+  .mp-modal-confirm:not(:disabled):active,
   .bi-submit-btn:not(:disabled):hover,
+  .bi-submit-btn:not(:disabled):active,
   .cta-btn-light-filled:not(:disabled):hover,
-  .st-map-overlay-btn--primary:hover {
+  .cta-btn-light-filled:not(:disabled):active,
+  .st-map-overlay-btn--primary:hover,
+  .st-map-overlay-btn--primary:active {
     background: var(--color-btn-primary-bg);
   }
-  /* secondary outline: hover 2px 차단 → 1px 유지 */
+  /* secondary outline: hover/active 2px 차단 → 1px 유지 */
   .mp-cancel-btn:not(:disabled):hover,
+  .mp-cancel-btn:not(:disabled):active,
   .mp-modal-cancel:not(:disabled):hover,
+  .mp-modal-cancel:not(:disabled):active,
   .cta-btn-light-outline:not(:disabled):hover,
-  .st-map-overlay-btn:hover {
+  .cta-btn-light-outline:not(:disabled):active,
+  .st-map-overlay-btn:hover,
+  .st-map-overlay-btn:active {
     box-shadow: inset 0 0 0 1px var(--color-btn-primary-bg);
   }
 }

@@ -86,6 +86,15 @@ export default function SiteHeader() {
 
   const closeMobileNav = useCallback(() => setIsMobileNavOpen(false), []);
 
+  /* S282-P3-M: 데스크탑 마이페이지 아이콘 동일 라우트 재클릭 시 reset 이벤트.
+     MobileNavDrawer 의 handleAccountClick 패턴 답습 (데스크탑 헤더 아이콘은 별 위치 라 동일 헬퍼 사용 X). */
+  const handleAccountIconClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (isLoggedIn && pathname === '/mypage') {
+      e.preventDefault();
+      window.dispatchEvent(new Event('app:mypage-reset'));
+    }
+  }, [isLoggedIn, pathname]);
+
   useEffect(() => {
     // route change cleanup — pathname 변경 시 nav/search 닫기 (의도된 setState in effect)
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -375,6 +384,7 @@ export default function SiteHeader() {
               className="hdr-icon-btn hdr-icon-user"
               aria-label={mounted && !sessionLoading && isLoggedIn ? '마이페이지' : '로그인'}
               style={{ visibility: mounted && sessionLoading ? 'hidden' : 'visible' }}
+              onClick={handleAccountIconClick}
             >
               {/* 비로그인 아이콘 */}
               <svg

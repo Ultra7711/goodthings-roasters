@@ -19,11 +19,13 @@
 /* page-title 의 SSR 초기 상태 (opacity 0 + translateY 20) → 진입 연출은 MyPagePage.css 의
    .mp-body.is-loaded ... rule 에서 통합 처리 (mp-body 단일 클래스 트리거). */
 
-/* 인사말 / 이름 분리 wrap — 폭 부족 시 두 line 사이에서만 줄바꿈 (각 line 자체는 nowrap) */
+/* 인사말 / 이름 분리 wrap — 폭 부족 시 두 line 사이에서만 줄바꿈 (각 line 자체는 nowrap).
+   S282-P3-M: font-weight 400 명시 — collapsed 시 page-title 상속 500 회피 (가볍게). */
 .mp-hero-greeting-line {
   display: inline-block;
   white-space: nowrap;
   word-break: keep-all;
+  font-weight: 400;
 }
 
 .mp-hero-meta-row {

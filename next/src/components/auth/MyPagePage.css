@@ -28,6 +28,9 @@
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
+  /* S282-P3-M: browser native scroll anchor 차단 — sticky element height 변동 시
+     scrollY 자동 조정 차단 (oscillation 근본 원인 차단 · web research 결합). */
+  overflow-anchor: none;
 }
 
 /* ── Hero 풀블리드 영역 (S264 H-1) ──
@@ -120,9 +123,7 @@
 .mp-mobile-stickybar-bg {
   display: none;
 }
-.mp-mobile-greeting {
-  display: none;
-}
+/* S282-P3-M: mp-mobile-greeting 폐기 — hero-wrap 자체가 sticky + collapsed 1줄로 변환. */
 
 /* S197 PR-2 §2.2: 패널 박스 폐기 — bg/radius/bleed 제거, 단순 컨테이너로 단순화.
    .mp-section / .mp-section--no-border wrapper 폐기 (PR-2 §2.13 통일).
@@ -370,11 +371,15 @@
   letter-spacing: var(--btn-letter-spacing);
   transition: background 200ms ease;
 }
-.mp-save-btn:not(:disabled):hover {
-  background: var(--color-btn-primary-bg-hover);
-}
-.mp-save-btn:not(:disabled):active {
-  background: var(--color-btn-primary-bg-active);
+/* S282-P3-M (옵션 b · 전체 CTA 일관): :hover/:active 모두 hover 지원 디바이스만 —
+   모바일 click 후 :hover/:active 잔존 시각 차단 (modal 표시 시 default 시각 보장). */
+@media (hover: hover) {
+  .mp-save-btn:not(:disabled):hover {
+    background: var(--color-btn-primary-bg-hover);
+  }
+  .mp-save-btn:not(:disabled):active {
+    background: var(--color-btn-primary-bg-active);
+  }
 }
 .mp-save-btn:disabled {
   opacity: 0.5;
@@ -392,9 +397,13 @@
   letter-spacing: var(--btn-letter-spacing);
   transition: box-shadow 200ms ease;
 }
-.mp-cancel-btn:not(:disabled):hover,
-.mp-cancel-btn:not(:disabled):active {
-  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+/* S282-P3-M (옵션 b · 전체 CTA 일관): :hover/:active 모두 hover 지원 디바이스만 —
+   모바일 click 후 :hover/:active 잔존 시각 차단. */
+@media (hover: hover) {
+  .mp-cancel-btn:not(:disabled):hover,
+  .mp-cancel-btn:not(:disabled):active {
+    box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+  }
 }
 .mp-cancel-btn:disabled {
   color: var(--color-text-caption);
@@ -601,9 +610,12 @@
   cursor: pointer;
   transition: box-shadow 200ms ease;
 }
-.mp-modal-cancel:not(:disabled):hover,
-.mp-modal-cancel:not(:disabled):active {
-  box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+/* S282-P3-M (옵션 b): :hover/:active 모두 hover 지원 디바이스만 — 모바일 잔존 차단. */
+@media (hover: hover) {
+  .mp-modal-cancel:not(:disabled):hover,
+  .mp-modal-cancel:not(:disabled):active {
+    box-shadow: inset 0 0 0 2px var(--color-btn-primary-bg);
+  }
 }
 /* PR-1c-5 — modal confirm: primary filled (background-inverse → btn-primary-bg 정합) */
 .mp-modal-confirm {
@@ -613,18 +625,23 @@
   color: var(--color-text-inverse); background-color: var(--color-btn-primary-bg);
   border: none; cursor: pointer; transition: background 200ms ease;
 }
-.mp-modal-confirm:not(:disabled):hover {
-  background-color: var(--color-btn-primary-bg-hover);
-}
-.mp-modal-confirm:not(:disabled):active {
-  background-color: var(--color-btn-primary-bg-active);
+/* S282-P3-M (옵션 b): :hover/:active 모두 hover 지원 디바이스만 — 모바일 잔존 차단. */
+@media (hover: hover) {
+  .mp-modal-confirm:not(:disabled):hover {
+    background-color: var(--color-btn-primary-bg-hover);
+  }
+  .mp-modal-confirm:not(:disabled):active {
+    background-color: var(--color-btn-primary-bg-active);
+  }
 }
 /* danger modifier — error 색상 유지, 새 hover/active 룰 base 와 정합 */
 .mp-modal-confirm--danger { background-color: var(--color-error); }
-.mp-modal-confirm--danger:not(:disabled):hover,
-.mp-modal-confirm--danger:not(:disabled):active {
-  background-color: var(--color-error);
-  filter: brightness(0.9);
+@media (hover: hover) {
+  .mp-modal-confirm--danger:not(:disabled):hover,
+  .mp-modal-confirm--danger:not(:disabled):active {
+    background-color: var(--color-error);
+    filter: brightness(0.9);
+  }
 }
 
 /* 비밀번호 펼침 시 회원 탈퇴 구분선 (버튼~구분선 간격 확보) */
@@ -675,14 +692,11 @@
   .mp-hero-inner {
     padding: calc(56px + env(safe-area-inset-top, 0px)) 24px 24px;
   }
-  /* mp-grid: 1단 stack — stickybar (greeting + 탭바) + 패널. minmax(0, 1fr) overflow 차단.
+  /* mp-grid: 1단 stack — stickybar + panel. minmax(0, 1fr) overflow 차단.
      S266: gap 0 — stickybar 와 panel 간격은 panel padding-top 으로 명시 (탭별 일관).
-     S266 fix: flex: 1 (데스크탑과 동일 — viewport 남은 공간까지 grid 확장) 유지 →
-     sticky 컨테이너 (mp-mobile-stickybar) 가 footer 직전까지 stuck.
-     align-content: start — grid 안 row 들 (greeting/side-nav/panel) 을 위에서부터
-     정렬. 남는 공간은 grid 아래 (sticky 가 그 위에서 stuck · panel stretch X).
-     이전 시도 (flex: 0 0 auto) 는 panel stretch 폐기됐지만 grid height 도 짧아져
-     sticky 가 footer 영역에서 풀리는 부작용 — legal sub-nav 답습 정합 X. */
+     flex 명시 X (default 0 1 auto) — grid 자연 height (자식 콘텐츠 합).
+     panel 콘텐츠 끝은 panel-body::after hairline 으로 visual 분리.
+     panel 짧을 시 viewport 안 footer 노출 = 자연 동작 (사용자 허용). */
   .mp-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
@@ -704,11 +718,10 @@
     transform: none;
   }
 
-  /* ── S266 모바일 sticky wrapper ──
-     하나의 컨테이너 안에 collapsed greeting + 탭바 묶음 = 단일 sticky.
+  /* ── 모바일 sticky bar wrapper (S266 → S282-P3-M) ──
+     S282-P3-M: SideNav 만 sticky · greeting 영역 폐기 (hero-wrap 자체가 sticky collapsed 1줄 변환 담당).
      wrapper 자체 background 미부착 (iOS 26 Liquid Glass toolbar tinting fix).
-     bg 는 absolute child (.mp-mobile-stickybar-bg) 가 담당.
-     collapsed 시 위쪽 padding 추가 (header 와 분리 시각 여백). */
+     bg 는 absolute child (.mp-mobile-stickybar-bg) 가 담당. */
   .mp-mobile-stickybar {
     display: block;
     position: sticky;
@@ -719,15 +732,10 @@
     margin-right: -24px;
     padding-left: 24px;
     padding-right: 24px;
-    padding-top: 0;
     background: transparent;
     /* GPU compositor — sticky paint jitter 방어 (S263 carry) */
     transform: translateZ(0);
     will-change: transform;
-    transition: padding-top 250ms ease;
-  }
-  .mp-page[data-collapsed="true"] .mp-mobile-stickybar {
-    padding-top: 36px;
   }
   .mp-mobile-stickybar-bg {
     display: block;
@@ -738,79 +746,95 @@
     pointer-events: none;
   }
 
-  /* ── S266 collapsed greeting (1줄 인사 + 우측 끝 로그아웃) ──
-     S266 hysteresis binary snap — data-collapsed attribute 기준 toggle.
-     expanded (default): max-height/opacity/padding 0 — 자리 안 차지 + 안 보임.
-     collapsed: max-height 40 (text) + padding-bottom 16 (탭바와 간격) + opacity 1.
-     transition 250ms ease 로 부드러운 snap (중간 단계 없음). */
-  .mp-mobile-greeting {
-    display: flex;
+  /* ── S282-P3-M 모바일 hero sticky collapse (옵션 A · CSS-first) ──
+     hero-wrap 항상 sticky · max-height 변환으로 reflow 영역 격리.
+     - max-height 600px (expanded · 자연 height 안전 maximum)
+     - max-height 64px (collapsed · 1줄 영역)
+     - transition: max-height 250ms ease → 부드러움 (height auto transition 불가 회피)
+     - overflow: hidden → 변환 중 inner 잘림 visual
+     - contain: layout → 자식 layout 영향 격리 (다른 영역 reflow 차단)
+     - mp-page overflow-anchor: none 결합 → browser scroll anchor 자동 조정 차단. */
+  .mp-hero-wrap {
+    position: sticky;
+    top: var(--header-height);
+    z-index: 6;
+    /* GPU compositor — sticky paint jitter 방어 (S263 carry) */
+    transform: translateZ(0);
+    will-change: transform;
+    /* 옵션 A: height 변환 격리 */
+    max-height: 600px;
+    overflow: hidden;
+    contain: layout;
+    transition: max-height 250ms ease;
+  }
+  .mp-page[data-collapsed="true"] .mp-hero-wrap {
+    max-height: 64px;
+  }
+  /* sidenav stack top — hero collapsed total 64px (padding 20+20 + line-height 24) 정확 정합 +
+     stickybar padding-top 8px (hero 와 분리 gap · bg primary 자동 확장).
+     시각: hero (sand 64) ↘ sticky bar (primary 8 padding + sidenav). */
+  .mp-page[data-collapsed="true"] .mp-mobile-stickybar {
+    top: calc(var(--header-height) + 64px);
+    padding-top: 8px;
+    transition: top 250ms ease, padding-top 250ms ease;
+  }
+
+  /* expanded → collapsed transition (hero-inner padding · page-title size · greeting-line display) */
+  .mp-hero-inner {
+    transition: padding 250ms ease;
+  }
+  .page-title-area.mp-hero {
+    transition: gap 250ms ease;
+  }
+  .page-title-area.mp-hero .page-title {
+    transition: font-size 250ms ease, line-height 250ms ease;
+  }
+  .mp-hero-meta-row .mp-hero-meta {
+    transition: max-height 250ms ease, opacity 250ms ease;
+    max-height: 40px;
+    opacity: 1;
+    overflow: hidden;
+  }
+
+  /* collapsed 상태 — 1줄 인사말 + logout 우측 */
+  .mp-page[data-collapsed="true"] .mp-hero-inner {
+    /* hero collapsed total = 20 + 24 (정수 line-height) + 20 = 64px (양쪽 대칭 padding 20).
+       sidenav top = header-height + 64 정확 정합 + sticky bar padding-top 8 (primary gap). */
+    padding-top: calc(20px + env(safe-area-inset-top, 0px));
+    padding-bottom: 20px;
+  }
+  .mp-page[data-collapsed="true"] .page-title-area.mp-hero {
+    /* expanded flex col → collapsed flex row · gap 12 · logout 우측 정렬 */
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    max-height: 0;
-    opacity: 0;
-    padding-bottom: 0;
-    overflow: hidden;
-    transition: max-height 250ms ease, opacity 250ms ease, padding-bottom 250ms ease;
   }
-  .mp-page[data-collapsed="true"] .mp-mobile-greeting {
-    max-height: 40px;
-    opacity: 1;
-    padding-bottom: 12px;
-  }
-  .mp-mobile-greeting-text {
-    font-family: var(--font-kr);
-    /* S282-P2: body-l → body-m hierarchy 명확화 (sticky bar 정보 밀도 ↓ · 탭바와 분리) */
-    font-size: var(--type-body-m-size);
+  .mp-page[data-collapsed="true"] .page-title-area.mp-hero .page-title {
+    /* S282-P3-M: 사용자 명시 18px (body-l 토큰 16px 와 별개 · sticky 가독성 우선).
+       line-height 24px (정수 · 18*1.33) → hero total 의 sub-pixel 차단.
+       weight 500. 자연 줄바꿈 허용 (이름 길어 한 줄 안 들어가면 wrap · ellipsis 폐기). */
+    font-size: 18px;
     font-weight: 500;
+    line-height: 24px;
     letter-spacing: var(--ls-neutral);
-    color: var(--color-text-primary);
-    line-height: 1.4;
-    /* nowrap — 이름 길어도 한 줄 유지 + ellipsis */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
     flex: 1;
+    min-width: 0;
   }
-  .mp-mobile-greeting-logout {
+  .mp-page[data-collapsed="true"] .mp-hero-greeting-line {
+    /* 2 span 을 inline 으로 합쳐 한 줄 (안녕하세요, OOO님.) */
+    display: inline;
+  }
+  .mp-page[data-collapsed="true"] .mp-hero-meta-row {
+    /* meta-row 자체 폭 0 — logout 만 표시 (meta display:none 으로 자식 1개) */
     flex-shrink: 0;
-    background: transparent;
-    border: none;
-    padding: 0;
-    font-family: var(--font-kr);
-    /* S282-P2: body-l → body-s + secondary tone — tertiary hierarchy (greeting 보다 약하게) */
-    font-size: var(--type-body-s-size);
-    font-weight: 400;
-    letter-spacing: var(--ls-neutral);
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    line-height: 1.4;
-    text-decoration: underline;
-    text-decoration-color: var(--color-border-primary);
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
-    transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
+    margin-top: 0;
+    gap: 0;
   }
-  .mp-mobile-greeting-logout:hover {
-    color: var(--color-accent-gold);
-    text-decoration-color: var(--color-accent-gold);
-  }
-
-  /* ── S266 큰 hero (expanded) — binary snap fade-out ──
-     expanded (default): opacity 1.
-     collapsed: opacity 0 + translateY(-8px) — 위로 사라지는 자연스러운 모션.
-     자리는 그대로 차지 — 자연 스크롤로 화면 밖으로 밀려남.
-     transition 250ms ease 로 hero ↔ collapsed-greeting cross-fade. */
-  .mp-hero-wrap {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 250ms ease, transform 250ms ease;
-  }
-  .mp-page[data-collapsed="true"] .mp-hero-wrap {
-    opacity: 0;
-    transform: translateY(-8px);
+  .mp-page[data-collapsed="true"] .mp-hero-meta-row .mp-hero-meta {
+    /* display: none — width 차지 X (page-title flex 1 가용 폭 확보 · 2줄 wrap 차단).
+       transition 폐기 — data-collapsed binary snap 이라 visual 부드러움 손실 작음. */
+    display: none;
   }
 
   /* ── S266 panel padding-top ──
