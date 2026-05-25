@@ -1,5 +1,11 @@
 'use client';
 
+/* eslint-disable react-hooks/set-state-in-effect
+   server props sync useEffect (S279-C-2 답습) = 의도된 setState in effect.
+   banner / products / menu / gooddays 4 도메인 동일 옵션 C 패턴.
+   ESLint 룰 false positive — carry: lint cleanup 별 sprint (룰 config 조정 또는
+   server props sync pattern 표준화). 본 sprint scope 외. */
+
 /* ══════════════════════════════════════════════════════════════════════════
    ProductsTableClient — /admin/products 인터랙티브 본체 (S218 Phase 1)
 
@@ -23,7 +29,7 @@
    - TableRow border-color = var(--border)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -111,25 +117,48 @@ export default function ProductsTableClient({ rows }: Props) {
   const [originalSnapshot, setOriginalSnapshot] = useState(rows);
   const [savePending, startSaveTransition] = useTransition();
 
-  /* rows props 갱신 시 sync. dirty (rowsState.sortOrder ≠ rows.sortOrder) 있으면
-     sortOrder 보존, 다른 필드는 새 rows 로 갱신 (active 토글 등 외부 변경 반영). */
+  /* 직전 server commit 의 ordered ids (카테고리 별) — multi-운영자 reorder conflict 감지 (S279-C-2 답습).
+     본인 save 직후 router.refresh() = committedSnapshot 과 server props 동일 → no-op.
+     다른 운영자 reorder = server ordered ids 가 ref 와 다름 → 활성 category 의 로컬 dirty 있으면 warn. */
+  const lastServerOrderedIdsRef = useRef<Record<'coffee_bean' | 'drip_bag', string>>({
+    coffee_bean: computeCategoryIdsKey(rows, 'coffee_bean'),
+    drip_bag: computeCategoryIdsKey(rows, 'drip_bag'),
+  });
+
+  /* rows props 갱신 시 sync. S279-C-2 답습 (banners):
+     - server reorder 있음 = 항상 server 채택 + 활성 category 의 로컬 dirty conflict warn
+     - server reorder 없음 = mergePreservingReorder (sortOrder dirty 보존 + 다른 필드 server 채택)
+     - 'all' 탭 = reorder 비활성 → ref 갱신 + server 채택만. */
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     setOriginalSnapshot(rows);
-    setRowsState((prev) => {
-      const prevSortMap = new Map(prev.map((r) => [r.id, r.sortOrder]));
-      const wasDirty = rows.some((r) => {
-        const ps = prevSortMap.get(r.id);
-        return ps !== undefined && ps !== r.sortOrder;
+
+    if (category !== 'coffee_bean' && category !== 'drip_bag') {
+      lastServerOrderedIdsRef.current.coffee_bean = computeCategoryIdsKey(rows, 'coffee_bean');
+      lastServerOrderedIdsRef.current.drip_bag = computeCategoryIdsKey(rows, 'drip_bag');
+      setRowsState(rows);
+      return;
+    }
+
+    const newIds = computeCategoryIdsKey(rows, category);
+    const prevIds = lastServerOrderedIdsRef.current[category];
+    lastServerOrderedIdsRef.current.coffee_bean = computeCategoryIdsKey(rows, 'coffee_bean');
+    lastServerOrderedIdsRef.current.drip_bag = computeCategoryIdsKey(rows, 'drip_bag');
+
+    if (prevIds !== newIds) {
+      setRowsState((prev) => {
+        const localIds = computeCategoryIdsKey(prev, category);
+        if (localIds !== newIds && localIds !== prevIds) {
+          toast.warning(
+            `다른 운영자가 ${CATEGORY_LABEL[category]} 순서를 변경했어요. 로컬 변경이 폐기됩니다.`,
+          );
+        }
+        return rows;
       });
-      if (!wasDirty) return rows;
-      return rows.map((r) => ({
-        ...r,
-        sortOrder: prevSortMap.has(r.id)
-          ? (prevSortMap.get(r.id) as number)
-          : r.sortOrder,
-      }));
-    });
-  }, [rows]);
+    } else {
+      setRowsState((prev) => mergePreservingReorder(prev, rows));
+    }
+  }, [rows, category]);
 
   const isOrderDirty = useMemo(() => {
     /* ordered id 배열 비교 — sortOrder 값이 아니라 카테고리 내 순서 자체가
@@ -691,4 +720,36 @@ function ChevronsUpIcon() {
       <path d="m7 17 5-5 5 5" />
     </svg>
   );
+}
+
+/* category 별 ordered ids — multi-운영자 conflict 감지 키 (S279-C-2 답습). */
+function computeCategoryIdsKey(
+  rows: AdminProductListItem[],
+  cat: 'coffee_bean' | 'drip_bag',
+): string {
+  return rows
+    .filter((r) => r.category === cat)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((r) => r.id)
+    .join(',');
+}
+
+/* server reorder 없을 때만 호출 — prev 의 sortOrder dirty 보존 + 다른 필드 server 채택.
+   server reorder 시점은 caller useEffect 에서 server 직접 채택 + conflict warn. */
+function mergePreservingReorder(
+  prev: AdminProductListItem[],
+  server: AdminProductListItem[],
+): AdminProductListItem[] {
+  const prevSortMap = new Map(prev.map((r) => [r.id, r.sortOrder]));
+  const wasDirty = server.some((r) => {
+    const ps = prevSortMap.get(r.id);
+    return ps !== undefined && ps !== r.sortOrder;
+  });
+  if (!wasDirty) return server;
+  return server.map((r) => ({
+    ...r,
+    sortOrder: prevSortMap.has(r.id)
+      ? (prevSortMap.get(r.id) as number)
+      : r.sortOrder,
+  }));
 }

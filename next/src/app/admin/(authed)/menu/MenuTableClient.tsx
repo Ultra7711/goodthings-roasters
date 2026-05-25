@@ -12,7 +12,12 @@
    - 페이지네이션 ❌ (카탈로그 ~35종 작음 · products 답습)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
+/* eslint-disable react-hooks/set-state-in-effect
+   server props sync useEffect (S279-C-2 답습) = 의도된 setState in effect.
+   banner / products / menu / gooddays 4 도메인 동일 옵션 C 패턴.
+   ESLint 룰 false positive — carry: lint cleanup 별 sprint. */
+
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -114,24 +119,52 @@ export default function MenuTableClient({ rows }: Props) {
   const [originalSnapshot, setOriginalSnapshot] = useState(rows);
   const [savePending, startSaveTransition] = useTransition();
 
-  /* rows props 갱신 시 sync. dirty 가 있으면 sortOrder 보존. */
+  /* 직전 server commit 의 ordered ids (cat 별) — multi-운영자 reorder conflict 감지 (S279-C-2 답습). */
+  const lastServerOrderedIdsRef = useRef<Record<ReorderableCat, string>>({
+    brewing: computeCatIdsKey(rows, 'brewing'),
+    tea: computeCatIdsKey(rows, 'tea'),
+    'non-coffee': computeCatIdsKey(rows, 'non-coffee'),
+    dessert: computeCatIdsKey(rows, 'dessert'),
+  });
+
+  /* rows props 갱신 시 sync. S279-C-2 답습 (banners):
+     - server reorder 있음 = 항상 server 채택 + 활성 cat 의 로컬 dirty conflict warn
+     - server reorder 없음 = mergePreservingReorder (sortOrder dirty 보존 + 다른 필드 server 채택)
+     - 'all' / 'signature' 탭 = reorder 비활성 → ref 갱신 + server 채택만. */
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     setOriginalSnapshot(rows);
-    setRowsState((prev) => {
-      const prevSortMap = new Map(prev.map((r) => [r.id, r.sortOrder]));
-      const wasDirty = rows.some((r) => {
-        const ps = prevSortMap.get(r.id);
-        return ps !== undefined && ps !== r.sortOrder;
+    const refreshRef = () => {
+      lastServerOrderedIdsRef.current.brewing = computeCatIdsKey(rows, 'brewing');
+      lastServerOrderedIdsRef.current.tea = computeCatIdsKey(rows, 'tea');
+      lastServerOrderedIdsRef.current['non-coffee'] = computeCatIdsKey(rows, 'non-coffee');
+      lastServerOrderedIdsRef.current.dessert = computeCatIdsKey(rows, 'dessert');
+    };
+
+    if (!isReorderableCat(tab)) {
+      refreshRef();
+      setRowsState(rows);
+      return;
+    }
+
+    const newIds = computeCatIdsKey(rows, tab);
+    const prevIds = lastServerOrderedIdsRef.current[tab];
+    refreshRef();
+
+    if (prevIds !== newIds) {
+      setRowsState((prev) => {
+        const localIds = computeCatIdsKey(prev, tab);
+        if (localIds !== newIds && localIds !== prevIds) {
+          toast.warning(
+            `다른 운영자가 ${CAT_LABEL[tab]} 순서를 변경했어요. 로컬 변경이 폐기됩니다.`,
+          );
+        }
+        return rows;
       });
-      if (!wasDirty) return rows;
-      return rows.map((r) => ({
-        ...r,
-        sortOrder: prevSortMap.has(r.id)
-          ? (prevSortMap.get(r.id) as number)
-          : r.sortOrder,
-      }));
-    });
-  }, [rows]);
+    } else {
+      setRowsState((prev) => mergePreservingReorder(prev, rows));
+    }
+  }, [rows, tab]);
 
   const isOrderDirty = useMemo(() => {
     /* ordered id 배열 비교 — sortOrder 값이 아니라 cat 내 순서 자체가
@@ -718,4 +751,36 @@ function ChevronsUpIcon() {
       <path d="m7 17 5-5 5 5" />
     </svg>
   );
+}
+
+/* cat 별 ordered ids — multi-운영자 conflict 감지 키 (S279-C-2 답습). */
+function computeCatIdsKey(
+  rows: AdminCafeMenuListItem[],
+  cat: ReorderableCat,
+): string {
+  return rows
+    .filter((r) => r.cat === cat)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((r) => r.id)
+    .join(',');
+}
+
+/* server reorder 없을 때만 호출 — prev 의 sortOrder dirty 보존 + 다른 필드 server 채택.
+   server reorder 시점은 caller useEffect 에서 server 직접 채택 + conflict warn. */
+function mergePreservingReorder(
+  prev: AdminCafeMenuListItem[],
+  server: AdminCafeMenuListItem[],
+): AdminCafeMenuListItem[] {
+  const prevSortMap = new Map(prev.map((r) => [r.id, r.sortOrder]));
+  const wasDirty = server.some((r) => {
+    const ps = prevSortMap.get(r.id);
+    return ps !== undefined && ps !== r.sortOrder;
+  });
+  if (!wasDirty) return server;
+  return server.map((r) => ({
+    ...r,
+    sortOrder: prevSortMap.has(r.id)
+      ? (prevSortMap.get(r.id) as number)
+      : r.sortOrder,
+  }));
 }

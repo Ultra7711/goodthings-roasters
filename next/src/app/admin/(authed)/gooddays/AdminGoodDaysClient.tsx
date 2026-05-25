@@ -1,5 +1,10 @@
 'use client';
 
+/* eslint-disable react-hooks/set-state-in-effect
+   server props sync useEffect (S279-C-2 답습) = 의도된 setState in effect.
+   banner / products / menu / gooddays 4 도메인 동일 옵션 C 패턴.
+   ESLint 룰 false positive — carry: lint cleanup 별 sprint. */
+
 /* ══════════════════════════════════════════════════════════════════════════
    AdminGoodDaysClient — /admin/gooddays 갤러리 운영 UI (S167 J-4)
 
@@ -100,21 +105,44 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
     setMounted(true);
   }, []);
 
+  /* 직전 server commit 의 ordered ids — multi-운영자 reorder conflict 감지 (S279-C-2 답습).
+     본인 save 직후 router.refresh() = committedSnapshot 과 server 동일 → no-op.
+     다른 운영자 reorder = server ids 가 ref 와 다름 → 로컬 dirty 있으면 warn. */
+  const lastServerOrderedIdsRef = useRef<string>(
+    initialItems.map((i) => i.id).join(','),
+  );
+
   /* router.refresh() 후 server fetch 결과 (initialItems prop) → state 동기화.
      mutation actions (upload/delete/update) 가 모두 router.refresh() 호출.
-     dirty (reorder 순서 다름) 인 경우 items 의 id 순서 보존, 다른 필드는 새 props. */
+
+     S279-C-2 답습 (banners):
+     - server reorder 있음 = 항상 server 채택 + 로컬 dirty conflict warn
+     - server reorder 없음 = dirty 보존 (alt/featured/isActive patch 후 router.refresh 정합) */
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
+    const newIds = initialItems.map((i) => i.id).join(',');
+    const prevIds = lastServerOrderedIdsRef.current;
+    lastServerOrderedIdsRef.current = newIds;
     setOriginalItems(initialItems);
-    setItems((prev) => {
-      const sameLength = prev.length === initialItems.length;
-      const prevIds = prev.map((i) => i.id).join(',');
-      const newIds = initialItems.map((i) => i.id).join(',');
-      const wasDirty = sameLength && prevIds !== newIds;
-      if (!wasDirty) return initialItems;
-      const initMap = new Map(initialItems.map((i) => [i.id, i]));
-      return prev.map((p) => initMap.get(p.id) ?? p).filter((i) => initMap.has(i.id));
-    });
+
+    if (prevIds !== newIds) {
+      setItems((prev) => {
+        const localIds = prev.map((i) => i.id).join(',');
+        if (localIds !== newIds && localIds !== prevIds) {
+          toast.warning('다른 운영자가 이미지 순서를 변경했어요. 로컬 변경이 폐기됩니다.');
+        }
+        return initialItems;
+      });
+    } else {
+      setItems((prev) => {
+        const sameLength = prev.length === initialItems.length;
+        const prevLocalIds = prev.map((i) => i.id).join(',');
+        const wasDirty = sameLength && prevLocalIds !== newIds;
+        if (!wasDirty) return initialItems;
+        const initMap = new Map(initialItems.map((i) => [i.id, i]));
+        return prev.map((p) => initMap.get(p.id) ?? p).filter((i) => initMap.has(i.id));
+      });
+    }
   }, [initialItems]);
 
   const isOrderDirty = useMemo(() => {
