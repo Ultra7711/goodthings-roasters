@@ -8,7 +8,7 @@
    2) Zod 검증 — 단일 BannerSchema (S273 · discriminated union 폐기)
    3) INSERT / UPDATE / DELETE banners — service_role 불필요 (RLS admin write 허용)
    4) reorderBannersAction(kind, orderedIds[]) — 화살표 reorder 일괄 sort_order commit
-   5) revalidateTag(bannerCacheTag(kind), 'max') — B2C kind 별 캐시 무효화
+   5) revalidatePath('/' + '/admin/banners') — B2C 메인 + admin list RSC 무효화
 
    S273 변경:
    - discriminated union → 단일 BannerSchema
@@ -18,12 +18,11 @@
    - reorderBannersAction 신설
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getAdminClaims } from '@/lib/auth/getClaims';
 import { BannerSchema, BannerKindSchema, type BannerKind } from '@/lib/banners';
-import { bannerCacheTag } from '@/lib/bannersServer';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { logActionError } from '@/lib/admin/logActionError';
 import {
@@ -121,10 +120,11 @@ function toDbRow(
   };
 }
 
-function revalidateBanner(kind: BannerKind) {
-  revalidateTag(bannerCacheTag(kind), 'max');
+function revalidateBanner(_kind: BannerKind) {
+  /* getActiveBanner / getComingBanner 는 'use cache' 미사용 (bannersServer.ts) →
+   * 매 요청 DB fetch. cacheTag invalidate 불필요. revalidatePath 만 호출하여
+   * RSC payload 새로 생성. */
   revalidatePath('/admin/banners');
-  /* B2C 메인 페이지도 무효화 (chapter 즉시 반영). */
   revalidatePath('/');
 }
 

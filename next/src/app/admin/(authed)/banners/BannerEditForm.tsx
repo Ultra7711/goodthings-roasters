@@ -90,7 +90,7 @@ export default function BannerEditForm({
   const initialDraft: Draft = banner ?? createEmptyBanner(kind, defaultSortOrder);
 
   const [draft, setDraft] = useState<Draft>(initialDraft);
-  const [original] = useState<Draft>(initialDraft);
+  const [original, setOriginal] = useState<Draft>(initialDraft);
   const [isPending, startTransition] = useTransition();
   const [htmlUpload, setHtmlUpload] = useState<UploadState>({ status: 'idle' });
   const [desktopUpload, setDesktopUpload] = useState<UploadState>({ status: 'idle' });
@@ -439,6 +439,10 @@ export default function BannerEditForm({
           toast.success('배너를 저장했습니다', {
             description: '사이트에 즉시 반영됩니다',
           });
+          /* 저장 직후 isDirty=false 로 [변경 취소] / [변경사항 저장] 버튼 비활성화.
+             router.refresh() 가 server data 새로 받아도 useState 로 잡힌 original 은
+             remount 없으면 갱신 안 됨 → 명시적 sync 필요. */
+          setOriginal(draft);
           router.refresh();
         } else {
           toast.error(describeError(result.error, result.detail));

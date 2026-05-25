@@ -11,6 +11,7 @@
      본문     = "원두를 마시는 또 다른 방법…"
    ══════════════════════════════════════════ */
 
+import { connection } from 'next/server';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getActiveBanner, getComingBanner } from '@/lib/bannersServer';
@@ -46,6 +47,12 @@ function pickFeatured(
 }
 
 export default async function CafeMenuSection() {
+  /* Next.js 16 cacheComponents:true 환경에서 PPR static shell 의 일부로
+     prerender 되는 회귀 차단 — connection() 호출이 본 segment 를 dynamic
+     으로 강제 (응답 Cache-Control: no-store + RSC payload 매 요청 새로).
+     운영자 admin 변경 즉시 메인 반영 보장. */
+  await connection();
+
   /* 059 overlay 재설계 — eyebrow/h4 등 텍스트는 운영자 CSS 가 처리.
        Active 또는 7일 내 Coming → 동일 EventBanner 렌더 (이미지 + custom CSS).
        비활성 → EventBanner 미렌더. */

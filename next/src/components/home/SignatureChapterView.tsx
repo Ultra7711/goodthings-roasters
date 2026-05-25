@@ -67,12 +67,12 @@ export default async function SignatureChapterView({
   const blurMobile = signature.image_blur_mobile || blurDesktop;
 
   /* HTML fetch — 운영자 .html 파일은 Storage public URL (season-banners/signature/html/*).
+     cache: 'no-store' — 운영자 admin 변경 시 즉시 반영 보장 (production HTML
+     변경 빈도 낮고 ~10KB 라 부담 미미. revalidate+tag 캐싱은 dev 환경 stale 발견).
      실패 시 chapter 렌더 skip (graceful). */
   let html = '';
   try {
-    const res = await fetch(signature.custom_html_path, {
-      next: { revalidate: 3600, tags: ['signature-html'] },
-    });
+    const res = await fetch(signature.custom_html_path, { cache: 'no-store' });
     if (!res.ok) return null;
     html = await res.text();
   } catch {
