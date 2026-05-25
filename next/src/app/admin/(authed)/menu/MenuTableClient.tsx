@@ -17,7 +17,7 @@
    banner / products / menu / gooddays 4 도메인 동일 옵션 C 패턴.
    ESLint 룰 false positive — carry: lint cleanup 별 sprint. */
 
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -211,8 +211,9 @@ export default function MenuTableClient({ rows }: Props) {
     setTab(next);
   }
 
-  /* ↑/↓/★ 클릭 = 미리보기 swap (server 호출 없음). */
-  function previewReorder(orderedMenuIds: string[]) {
+  /* ↑/↓/★ 클릭 = 미리보기 swap (server 호출 없음).
+     useCallback wrap = useMemo(columns) dep 정합 (S280 C-3 — preserve-manual-memoization). */
+  const previewReorder = useCallback((orderedMenuIds: string[]) => {
     if (!isReorderableCat(tab)) return;
     const idMap = new Map(orderedMenuIds.map((id, idx) => [id, idx]));
     setRowsState((prev) =>
@@ -220,32 +221,32 @@ export default function MenuTableClient({ rows }: Props) {
         idMap.has(r.id) ? { ...r, sortOrder: idMap.get(r.id) as number } : r,
       ),
     );
-  }
+  }, [tab]);
 
-  function handleMoveUp(menuId: string) {
+  const handleMoveUp = useCallback((menuId: string) => {
     const idx = orderedSameCategoryIds.indexOf(menuId);
     if (idx <= 0) return;
     const next = [...orderedSameCategoryIds];
     [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
     previewReorder(next);
-  }
+  }, [orderedSameCategoryIds, previewReorder]);
 
-  function handleMoveDown(menuId: string) {
+  const handleMoveDown = useCallback((menuId: string) => {
     const idx = orderedSameCategoryIds.indexOf(menuId);
     if (idx < 0 || idx >= orderedSameCategoryIds.length - 1) return;
     const next = [...orderedSameCategoryIds];
     [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
     previewReorder(next);
-  }
+  }, [orderedSameCategoryIds, previewReorder]);
 
-  function handleMoveToFront(menuId: string) {
+  const handleMoveToFront = useCallback((menuId: string) => {
     const idx = orderedSameCategoryIds.indexOf(menuId);
     if (idx <= 0) return;
     const next = [...orderedSameCategoryIds];
     const [id] = next.splice(idx, 1);
     next.unshift(id);
     previewReorder(next);
-  }
+  }, [orderedSameCategoryIds, previewReorder]);
 
   /* "순서 저장" — 현재 cat ordered ids 를 server 호출. */
   function handleSaveOrder() {
@@ -484,6 +485,9 @@ export default function MenuTableClient({ rows }: Props) {
     savePending,
     isReorderActive,
     searchValue,
+    handleMoveUp,
+    handleMoveDown,
+    handleMoveToFront,
   ]);
 
   return (

@@ -29,7 +29,7 @@
    - TableRow border-color = var(--border)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -201,8 +201,9 @@ export default function ProductsTableClient({ rows }: Props) {
     setCategory(next);
   }
 
-  /* ↑/↓/★ 클릭 = 미리보기 swap (server 호출 없음). */
-  function previewReorder(orderedProductIds: string[]) {
+  /* ↑/↓/★ 클릭 = 미리보기 swap (server 호출 없음).
+     useCallback wrap = useMemo(columns) dep 정합 (S280 C-3 — preserve-manual-memoization). */
+  const previewReorder = useCallback((orderedProductIds: string[]) => {
     if (category === 'all') return;
     const idMap = new Map(orderedProductIds.map((id, idx) => [id, idx]));
     setRowsState((prev) =>
@@ -210,32 +211,32 @@ export default function ProductsTableClient({ rows }: Props) {
         idMap.has(r.id) ? { ...r, sortOrder: idMap.get(r.id) as number } : r,
       ),
     );
-  }
+  }, [category]);
 
-  function handleMoveUp(productId: string) {
+  const handleMoveUp = useCallback((productId: string) => {
     const idx = orderedSameCategoryIds.indexOf(productId);
     if (idx <= 0) return;
     const next = [...orderedSameCategoryIds];
     [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
     previewReorder(next);
-  }
+  }, [orderedSameCategoryIds, previewReorder]);
 
-  function handleMoveDown(productId: string) {
+  const handleMoveDown = useCallback((productId: string) => {
     const idx = orderedSameCategoryIds.indexOf(productId);
     if (idx < 0 || idx >= orderedSameCategoryIds.length - 1) return;
     const next = [...orderedSameCategoryIds];
     [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
     previewReorder(next);
-  }
+  }, [orderedSameCategoryIds, previewReorder]);
 
-  function handleMoveToFront(productId: string) {
+  const handleMoveToFront = useCallback((productId: string) => {
     const idx = orderedSameCategoryIds.indexOf(productId);
     if (idx <= 0) return;
     const next = [...orderedSameCategoryIds];
     const [id] = next.splice(idx, 1);
     next.unshift(id);
     previewReorder(next);
-  }
+  }, [orderedSameCategoryIds, previewReorder]);
 
   /* "순서 저장" — 현재 카테고리 ordered ids 를 server 호출. */
   function handleSaveOrder() {
@@ -442,6 +443,9 @@ export default function ProductsTableClient({ rows }: Props) {
     savePending,
     isReorderActive,
     searchValue,
+    handleMoveUp,
+    handleMoveDown,
+    handleMoveToFront,
   ]);
 
   return (
