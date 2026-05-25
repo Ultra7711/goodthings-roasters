@@ -144,10 +144,29 @@ export async function getAdminClaims(): Promise<AdminClaims | null> {
     metadata: (user.user_metadata ?? {}) as Record<string, unknown>,
   };
 
-  /* ── S282-P3 fast-path: JWT app_metadata.admin_level 직독 ─────────────────
-     custom_access_token_hook (074) 가 박은 claim. owner/staff 외 값은 무시 (security). */
-  const appMetadata = (user.app_metadata ?? {}) as Record<string, unknown>;
-  const hookAdminLevel = appMetadata.admin_level;
+  /* ── S282-P3 fast-path: JWT 안 app_metadata.admin_level 직독 ─────────────
+     Supabase JS SDK 의 user.app_metadata 는 auth.users 테이블 값 (Hook claim 과 별개 source).
+     Hook 결과 = session.access_token decode 의 payload.app_metadata.admin_level.
+     owner/staff 외 값은 무시 (security). */
+  let hookAdminLevel: 'owner' | 'staff' | undefined;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) {
+    const parts = session.access_token.split('.');
+    if (parts.length >= 2) {
+      try {
+        const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(
+          Buffer.from(b64, 'base64').toString('utf8'),
+        ) as { app_metadata?: { admin_level?: string } };
+        const claim = payload.app_metadata?.admin_level;
+        if (claim === 'owner' || claim === 'staff') {
+          hookAdminLevel = claim;
+        }
+      } catch {
+        /* JWT decode 실패 = fallback (방어) */
+      }
+    }
+  }
   if (hookAdminLevel === 'owner' || hookAdminLevel === 'staff') {
     /* admin 사용자: profile SELECT 만 (display_name, title) — is_admin RPC + admin_level SELECT skip */
     const { data: profile, error: profileErr } = await supabase

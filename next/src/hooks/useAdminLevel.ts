@@ -84,20 +84,34 @@ export function useAdminLevel(): AdminLevel | null {
     }
     /* eslint-enable react-hooks/set-state-in-effect */
 
-    /* ── S282-P3 fast-path: JWT app_metadata.admin_level 직독 (마이그 074 Hook 적용 시) ──
+    /* ── S282-P3 fast-path: JWT 안 app_metadata.admin_level 직독 ──
+       Supabase JS SDK 의 user.app_metadata 는 auth.users 테이블 값 (Hook 가 박은 JWT claim 과 별개 source).
+       Hook 결과 직접 접근 = session.access_token decode 의 payload.app_metadata.
        owner/staff 매치 시 RPC + profile SELECT skip (-300~600ms client-side).
-       일반 사용자 = undefined → fallback (기존 RPC) 동작. */
-    const appMetadata = (user.app_metadata ?? {}) as Record<string, unknown>;
-    const hookAdminLevel = appMetadata.admin_level;
-    if (hookAdminLevel === 'owner' || hookAdminLevel === 'staff') {
-      cached = { userId: user.id, level: hookAdminLevel };
-      setLevel(hookAdminLevel);
-      return;
-    }
-
+       일반 사용자 / 마이그 074 미적용 = undefined → fallback (기존 RPC). */
     let cancelled = false;
     (async () => {
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!cancelled && session?.access_token) {
+          const parts = session.access_token.split('.');
+          if (parts.length >= 2) {
+            try {
+              const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+              const payload = JSON.parse(atob(b64)) as { app_metadata?: { admin_level?: string } };
+              const hookAdminLevel = payload.app_metadata?.admin_level;
+              if (hookAdminLevel === 'owner' || hookAdminLevel === 'staff') {
+                cached = { userId: user.id, level: hookAdminLevel };
+                setLevel(hookAdminLevel);
+                return;
+              }
+            } catch {
+              /* JWT decode 실패 = fallback (방어) */
+            }
+          }
+        }
+
+        /* ── fallback: 기존 RPC + profile select (마이그 074 미적용 환경 backward compat) ── */
         const { data: isAdminData, error: rpcErr } = await supabase.rpc('is_admin', {
           uid: user.id,
         });
