@@ -867,14 +867,14 @@ export default function BannerEditForm({
           </div>
         </Card>
 
-        {/* 검색·접근성 메타 카드 */}
+        {/* 배너 화면 텍스트 카드 */}
         <Card
-          title="검색 · 접근성 메타 텍스트"
+          title="배너 화면 텍스트 (검색·낭독 자동 활용)"
           subtitle={
             <>
-              iframe 안 텍스트는 검색·낭독에서 분리됩니다. 동일 내용을 여기 입력하면 화면 변화 없이 검색·낭독에서만 인식됩니다.
+              여기 입력한 텍스트가 배너 화면에 그대로 표시됩니다. 정확한 띄어쓰기·철자로 입력하세요.
               <br />
-              HTML 등록 시 빈 항목은 자동으로 채워집니다.
+              HTML 등록 시 비어 있으면 HTML 의 텍스트에서 자동 채움.
             </>
           }
         >
@@ -887,14 +887,14 @@ export default function BannerEditForm({
                 placeholder="예: UBE 시리즈 배너"
               />
             </FormField>
-            <FormField label="헤드라인 (검색용 h2)">
+            <FormField label="헤드라인 (화면 표시 · 검색 메타로도 활용)">
               <FormInput
                 value={draft.headline_text}
                 maxLength={80}
                 onChange={(e) => updateDraft('headline_text', e.target.value)}
               />
             </FormField>
-            <FormField label="부제 (검색용 p)">
+            <FormField label="부제 (화면 표시 · 검색 메타로도 활용)">
               <FormInput
                 value={draft.subhead_text}
                 maxLength={200}

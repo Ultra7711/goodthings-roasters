@@ -205,7 +205,7 @@ interface BuildStage2Options {
   aspectDesktop?: string;
   aspectTablet?: string;
   aspectMobile?: string;
-  /** 운영자가 입력한 SEO 메타 — Stage 2 AI 가 prompt 안에서 그대로 사용. */
+  /** 운영자가 입력한 배너 화면 텍스트 (검색·낭독에도 자동 활용) — Stage 2 AI 가 prompt 안에서 그대로 사용. */
   headlineText?: string;
   subheadText?: string;
   ctaText?: string;
@@ -402,7 +402,7 @@ export function buildStage2Prompt(options: BuildStage2Options): string {
     '',
     '1. **Stage 1 결과 배경 이미지** — Desktop · Mobile 각 1장 (필수)',
     '2. **Stage 1 안전 영역 메타데이터** — 텍스트/메인 비주얼/feature 바 좌표 (참고)',
-    '3. **운영자 입력 SEO 메타** (입력된 슬롯만 그대로 사용 · 미입력 슬롯은 출력에 텍스트 요소를 두지 않음 · 임의 단어/문장 자동 생성 금지):',
+    '3. **운영자 입력 배너 화면 텍스트** (검색·낭독에도 자동 활용 · 입력된 슬롯만 그대로 사용 · 미입력 슬롯은 출력에 텍스트 요소를 두지 않음 · 임의 단어/문장 자동 생성 금지):',
     userText,
     '',
     '## 📦 출력 형식 (단일 .html 파일)',

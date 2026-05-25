@@ -197,7 +197,7 @@ describe('buildStage2Prompt (S276)', () => {
     expect(p).toMatch(/상단 또는 하단 줄에 분리 배치/);
   });
 
-  it('운영자 입력 SEO 메타 → prompt 안에 그대로 박힘', () => {
+  it('운영자 입력 배너 화면 텍스트 → prompt 안에 그대로 박힘', () => {
     const p = buildStage2Prompt({
       kind: 'signature',
       headlineText: 'My Custom Title',
@@ -211,7 +211,7 @@ describe('buildStage2Prompt (S276)', () => {
     expect(p).toMatch(/"banner alt text"/);
   });
 
-  it('운영자 입력 SEO 메타 없으면 텍스트 표시 금지 안내 (S277 — invention 룰 정합)', () => {
+  it('운영자 입력 배너 화면 텍스트 없으면 텍스트 표시 금지 안내 (S277 — invention 룰 정합)', () => {
     const p = buildStage2Prompt({ kind: 'signature' });
     expect(p).toMatch(/운영자 입력 없음/);
     expect(p).toMatch(/텍스트 요소 표시 없이.*배경.*시각 주체만/);
