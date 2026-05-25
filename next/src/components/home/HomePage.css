@@ -68,7 +68,11 @@
 .hero-bg-placeholder {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #2A2420 0%, #1C1B16 50%, #0F0E0D 100%);
+  /* hero-poster.jpg LQIP (10x6 png base64 · ~0.4KB · S282-H)
+     0 RTT inline → 모바일에서 video poster 로드 전 다크 빈 화면 대신 사진 톤 blur.
+     생성: plaiceholder (size: 10) 1회 sharp. fallback color = 기존 placeholder 의
+     중간 톤 #1C1B16 (LQIP fetch 실패 시 dark gradient 대신 단일 톤). */
+  background: #1C1B16 url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAGCAIAAAB1kpiRAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAxUlEQVR4nAG6AEX/AEMxKnZfUH1kVJV9cn1kU1pJQ42FiPP//667wjM1OwBJOS1FNix2X0/XqoPqvozHpoPn1sjW0s5/hYwODQ4AjHNaSDYqcFRAUzgjkXJU5bWBvZx7pZSQgG9sY1BDALOagbuiirOZfC0lHwcAAK+QcZd9Y5yIeJuCboltUwDu2Lv85cf/68iOeV4gGhKbhnGKcVmIblalh2mOdVMAp4pmwqiC07iT28CYxKeDg2pOiXBYeF9Ih2pQq4tnXr9Y2SOuqMMAAAAASUVORK5CYII=') center / cover no-repeat;
   z-index: 0;
 }
 .hero-bg {
