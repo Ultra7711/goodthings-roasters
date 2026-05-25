@@ -1,19 +1,27 @@
 'use client';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   BannerListClient — /admin/banners list + 화살표 reorder (S273 통합)
+   BannerListClient — /admin/banners list + 화살표 reorder (S273 통합 · S279-C dirty save)
 
    책임:
-   - kind 탭 (카페 / 시그니처) 전환
+   - kind 탭 (카페 / 시그니처) 전환 — dirty 시 자동 폐기 + info toast
    - 카드 grid (sort_order ASC · 1번 = ★ 노출 배지)
-   - 화살표 [←][노출로][→] = 즉시 sort_order 일괄 commit
+   - 화살표 [←][노출로][→] = 미리보기 swap (server 호출 X · client state only)
+   - 우측 상단 [변경 취소][변경사항 저장] = dirty 시 swap (clean 시 [+ 신규 등록])
    - 활성 토글 (updateBannerAction · enabled 만 변경)
    - 삭제 (deleteBannerAction · ConfirmModal)
    - 신규 등록 → /admin/banners/new?kind=...
    - 카드 클릭 → /admin/banners/[id]/edit
 
+   S279-C 패턴 (옵션 C · ProductsTableClient 답습):
+   - {cafe,signature}Banners: UI 표시 (↑/↓/★ 클릭 시 즉시 swap · server X)
+   - original{Cafe,Sig}: 마지막 저장 snapshot (dirty 비교 + 변경 취소 기준)
+   - 저장 = reorderBannersAction (현재 활성 kind 만 commit)
+   - 변경 취소 = currentBanners ← originalSnapshot (즉시)
+   - 카드 reorder = batch commit 1회 → revalidateTag 1회
+
    답습:
-   - ProductImageReorderClient.tsx — moveUp/moveDown/moveToFront + 순서 배지 + ★ 배지
+   - ProductsTableClient.tsx — 옵션 C preview + 저장 패턴 (DEC-R-1~3)
    - admin-design.md — Button / Switch / ConfirmModal 토큰
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -58,21 +66,33 @@ export default function BannerListClient({
 }: BannerListClientProps) {
   const router = useRouter();
   const [activeKind, setActiveKind] = useState<BannerKind>(initialKind);
+  /* UI 표시 (↑/↓/★ 클릭 시 즉시 swap · server X). */
   const [cafeBanners, setCafeBanners] = useState<Banner[]>(initialCafeBanners);
   const [signatureBanners, setSignatureBanners] = useState<Banner[]>(
     initialSignatureBanners,
   );
+  /* 마지막 저장 snapshot (dirty 비교 + 변경 취소 기준 · S279-C). */
+  const [originalCafe, setOriginalCafe] = useState<Banner[]>(initialCafeBanners);
+  const [originalSig, setOriginalSig] = useState<Banner[]>(initialSignatureBanners);
+  /* toggle/delete transition (기존). */
   const [pending, startTransition] = useTransition();
+  /* reorder save transition — 분리 (products 답습 · save 중 toggle/delete disabled). */
+  const [savePending, startSaveTransition] = useTransition();
   const [deleteTarget, setDeleteTarget] = useState<Banner | null>(null);
 
-  /* server props 변경 시 client state 동기화 — 신규 등록 후 redirect 로 진입
-     시 server fetch 가 새 banner row 포함된 array reference 전달. mount 시
-     useState 초기값은 첫 reference 만 박힘 → 별도 동기화 필요 (S273-11). */
+  /* server props 변경 시 client state 동기화 — 신규 등록 후 redirect 로 진입 시
+     server fetch 가 새 banner row 포함된 array reference 전달. mount 시
+     useState 초기값은 첫 reference 만 박힘 → 별도 동기화 필요 (S273-11).
+     dirty 보존 (S279-C · products 답습): prev 의 sort_order 가 server 와
+     다르면 (= reorder dirty) prev 의 sort_order 유지, 다른 필드만 server 값 채택.
+     enabled 토글 / 신규 row 등 외부 변경은 자연스럽게 반영. */
   useEffect(() => {
-    setCafeBanners(initialCafeBanners);
+    setOriginalCafe(initialCafeBanners);
+    setCafeBanners((prev) => mergePreservingReorder(prev, initialCafeBanners));
   }, [initialCafeBanners]);
   useEffect(() => {
-    setSignatureBanners(initialSignatureBanners);
+    setOriginalSig(initialSignatureBanners);
+    setSignatureBanners((prev) => mergePreservingReorder(prev, initialSignatureBanners));
   }, [initialSignatureBanners]);
 
   /* 신규 등록 후 server-side redirect 로 진입한 경우 toast + URL clean.
@@ -90,18 +110,22 @@ export default function BannerListClient({
   const currentBanners = activeKind === 'cafe_event' ? cafeBanners : signatureBanners;
   const setCurrentBanners =
     activeKind === 'cafe_event' ? setCafeBanners : setSignatureBanners;
+  const currentOriginal = activeKind === 'cafe_event' ? originalCafe : originalSig;
 
   /* sort_order ASC → tie-break id ASC (selectActiveBanner 와 동일 룰). */
   const sortedBanners = useMemo<Banner[]>(() => {
-    return [...currentBanners].sort((a, b) => {
-      if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
-      return a.id < b.id ? -1 : 1;
-    });
+    return [...currentBanners].sort(bySortOrderThenId);
   }, [currentBanners]);
 
-  /* sort_order 일괄 commit. orderedIds 의 index → sort_order 값. */
-  function applyReorder(newOrderedIds: string[]) {
-    /* optimistic — 클라이언트 state 즉시 갱신 후 server commit. */
+  /* dirty 계산 — 현재 활성 kind 의 ordered ids 비교 (swap → swap-back 시 false). */
+  const isOrderDirty = useMemo(() => {
+    const origIds = [...currentOriginal].sort(bySortOrderThenId).map((b) => b.id).join(',');
+    const currIds = [...currentBanners].sort(bySortOrderThenId).map((b) => b.id).join(',');
+    return origIds !== currIds;
+  }, [currentOriginal, currentBanners]);
+
+  /* ↑/↓/★ 클릭 = 미리보기 swap (server 호출 X). */
+  function previewReorder(newOrderedIds: string[]) {
     const idToBanner = new Map(currentBanners.map((b) => [b.id, b]));
     const newBanners = newOrderedIds
       .map((id, idx) => {
@@ -110,36 +134,20 @@ export default function BannerListClient({
       })
       .filter((b): b is Banner => b !== null);
     setCurrentBanners(newBanners);
-
-    startTransition(async () => {
-      const result = await reorderBannersAction({
-        kind: activeKind,
-        orderedIds: newOrderedIds,
-      });
-      if (!result.ok) {
-        toast.error(describeError(result.error, result.detail));
-        /* rollback */
-        setCurrentBanners(
-          activeKind === 'cafe_event' ? initialCafeBanners : initialSignatureBanners,
-        );
-        return;
-      }
-      router.refresh();
-    });
   }
 
   function moveUp(idx: number) {
     if (idx === 0) return;
     const ids = sortedBanners.map((b) => b.id);
     [ids[idx - 1], ids[idx]] = [ids[idx]!, ids[idx - 1]!];
-    applyReorder(ids);
+    previewReorder(ids);
   }
 
   function moveDown(idx: number) {
     if (idx === sortedBanners.length - 1) return;
     const ids = sortedBanners.map((b) => b.id);
     [ids[idx], ids[idx + 1]] = [ids[idx + 1]!, ids[idx]!];
-    applyReorder(ids);
+    previewReorder(ids);
   }
 
   function moveToFront(idx: number) {
@@ -147,7 +155,47 @@ export default function BannerListClient({
     const ids = sortedBanners.map((b) => b.id);
     const [item] = ids.splice(idx, 1);
     if (item) ids.unshift(item);
-    applyReorder(ids);
+    previewReorder(ids);
+  }
+
+  /* "변경사항 저장" — 현재 활성 kind 의 ordered ids 를 server batch commit. */
+  function handleSaveOrder() {
+    if (!isOrderDirty) return;
+    const orderedIds = [...currentBanners].sort(bySortOrderThenId).map((b) => b.id);
+    const committedSnapshot = currentBanners;
+
+    startSaveTransition(async () => {
+      const result = await reorderBannersAction({
+        kind: activeKind,
+        orderedIds,
+      });
+      if (!result.ok) {
+        toast.error(describeError(result.error, result.detail));
+        return;
+      }
+      /* server commit 성공 → originalSnapshot 갱신 (dirty 해소). router.refresh()
+         후 useEffect props sync 가 새 reference 받지만 sort_order 동일하므로
+         dirty 보존 로직이 fall-through 됨. */
+      if (activeKind === 'cafe_event') setOriginalCafe(committedSnapshot);
+      else setOriginalSig(committedSnapshot);
+      toast.success('배너 순서를 저장했습니다');
+      router.refresh();
+    });
+  }
+
+  /* "변경 취소" — 즉시 currentBanners ← originalSnapshot. */
+  function handleCancelOrder() {
+    setCurrentBanners(currentOriginal);
+  }
+
+  /* kind 탭 전환 — dirty 시 자동 폐기 + info toast (products 답습). */
+  function handleKindChange(next: BannerKind) {
+    if (next === activeKind) return;
+    if (isOrderDirty) {
+      setCurrentBanners(currentOriginal);
+      toast.info('저장하지 않은 순서 변경이 폐기되었습니다');
+    }
+    setActiveKind(next);
   }
 
   function handleToggleActive(banner: Banner) {
@@ -196,16 +244,44 @@ export default function BannerListClient({
     });
   }
 
+  /* reorder save 중에는 toggle/delete 도 차단 (sequence 충돌 회피). */
+  const busy = pending || savePending;
+
   return (
     <>
-      {/* 상단 topbar 우측 actions 슬롯 — menu/products list 답습 (S273-12). */}
+      {/* 상단 topbar 우측 actions 슬롯 — menu/products list 답습 (S273-12 · S279-C swap toggle).
+          clean: [+ 신규 등록] / dirty: [변경 취소][변경사항 저장] (toggle). */}
       <AdminTopbarActions>
-        <Button asChild size="sm" className="!h-7">
-          <Link href={`/admin/banners/new?kind=${activeKind}`}>
-            <Plus size={14} />
-            신규 등록
-          </Link>
-        </Button>
+        {isOrderDirty ? (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="!h-7"
+              onClick={handleCancelOrder}
+              disabled={busy}
+            >
+              변경 취소
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="!h-7"
+              onClick={handleSaveOrder}
+              disabled={busy}
+            >
+              {savePending ? '저장 중…' : '변경사항 저장'}
+            </Button>
+          </>
+        ) : (
+          <Button asChild size="sm" className="!h-7">
+            <Link href={`/admin/banners/new?kind=${activeKind}`}>
+              <Plus size={14} />
+              신규 등록
+            </Link>
+          </Button>
+        )}
       </AdminTopbarActions>
 
       <AdminPageHeader
@@ -217,7 +293,7 @@ export default function BannerListClient({
         }
       />
 
-      {/* kind 탭 — 주문 페이지 AdminTabsNav 답습 + count badge */}
+      {/* kind 탭 — 주문 페이지 AdminTabsNav 답습 + count badge (S279-C dirty 자동 폐기). */}
       <AdminTabsNav
         mode="state"
         tabs={KIND_TABS.map((tab) => ({
@@ -227,7 +303,7 @@ export default function BannerListClient({
             tab.key === 'cafe_event' ? cafeBanners.length : signatureBanners.length,
         }))}
         active={activeKind}
-        onChange={(id) => setActiveKind(id as BannerKind)}
+        onChange={(id) => handleKindChange(id as BannerKind)}
       />
 
       {sortedBanners.length === 0 ? (
@@ -237,12 +313,12 @@ export default function BannerListClient({
       ) : (
         <div className="flex flex-col gap-3">
           <div className="text-xs text-muted-foreground">
-            1번 카드가 사이트에 노출되며, 비활성·기간 만료 시 다음 카드로 자동 넘어갑니다. 화살표로 순서를 변경하면 즉시 반영됩니다.
+            1번 카드가 사이트에 노출되며, 비활성·기간 만료 시 다음 카드로 자동 넘어갑니다. 화살표 변경은 미리보기이며, 우측 상단 "변경사항 저장" 버튼을 눌러야 사이트에 반영됩니다.
           </div>
           <div
             className={cn(
               'grid gap-3 transition-opacity duration-150 ease',
-              pending ? 'opacity-70' : 'opacity-100',
+              savePending ? 'opacity-70' : 'opacity-100',
             )}
             style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}
           >
@@ -346,7 +422,7 @@ export default function BannerListClient({
                         size="icon-sm"
                         className="!size-7"
                         onClick={() => moveUp(idx)}
-                        disabled={!canMoveUp || pending}
+                        disabled={!canMoveUp || busy}
                         aria-label="앞으로 이동"
                         title="앞으로 이동"
                       >
@@ -357,7 +433,7 @@ export default function BannerListClient({
                         variant="outline"
                         size="sm"
                         onClick={() => moveToFront(idx)}
-                        disabled={isFeatured || pending}
+                        disabled={isFeatured || busy}
                         aria-label="노출로 설정"
                         title="노출로 설정"
                         className="flex-1 !h-7"
@@ -371,7 +447,7 @@ export default function BannerListClient({
                         size="icon-sm"
                         className="!size-7"
                         onClick={() => moveDown(idx)}
-                        disabled={!canMoveDown || pending}
+                        disabled={!canMoveDown || busy}
                         aria-label="뒤로 이동"
                         title="뒤로 이동"
                       >
@@ -384,7 +460,7 @@ export default function BannerListClient({
                         <Switch
                           checked={banner.enabled}
                           onCheckedChange={() => handleToggleActive(banner)}
-                          disabled={pending}
+                          disabled={busy}
                           aria-label={banner.enabled ? '비공개로 전환' : '공개로 전환'}
                           className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
                         />
@@ -398,7 +474,7 @@ export default function BannerListClient({
                         size="sm"
                         className="!h-7 !text-[var(--danger)] hover:!bg-[var(--danger-soft)] !text-xs !px-2"
                         onClick={() => setDeleteTarget(banner)}
-                        disabled={pending}
+                        disabled={busy}
                         aria-label="배너 삭제"
                       >
                         <Trash2 size={14} />
@@ -432,4 +508,27 @@ function formatPeriod(start: string, end: string): string {
   if (start && !end) return `${start} ~`;
   if (!start && end) return `~ ${end}`;
   return `${start} ~ ${end}`;
+}
+
+/* sort_order ASC → tie-break id ASC (selectActiveBanner 와 동일 룰). */
+function bySortOrderThenId(a: Banner, b: Banner): number {
+  if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+  return a.id < b.id ? -1 : 1;
+}
+
+/* server props 갱신 시 dirty (sort_order) 보존 + 다른 필드 server 값 채택 (S279-C · products 답습).
+   prev 의 sort_order 가 server 와 다르면 (= reorder dirty) prev 의 sort_order 유지,
+   다른 필드 (enabled, internal_label 등) 는 server 의 최신 값 채택.
+   prev 에 없는 신규 row 는 server 의 sort_order 그대로. */
+function mergePreservingReorder(prev: Banner[], server: Banner[]): Banner[] {
+  const prevById = new Map(prev.map((b) => [b.id, b]));
+  const wasDirty = server.some((b) => {
+    const ps = prevById.get(b.id);
+    return ps !== undefined && ps.sort_order !== b.sort_order;
+  });
+  if (!wasDirty) return server;
+  return server.map((b) => {
+    const ps = prevById.get(b.id);
+    return ps ? { ...b, sort_order: ps.sort_order } : b;
+  });
 }
