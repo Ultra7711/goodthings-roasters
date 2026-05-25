@@ -426,7 +426,7 @@ export default function BannerEditForm({
   function handleSave() {
     startTransition(async () => {
       if (isNew) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
         const { id: _, ...input } = draft;
         /* createBannerAction success → server-side redirect (NEXT_REDIRECT throw)
            → 자동 navigate + ?just_created=1. result 는 실패 시만 반환. */

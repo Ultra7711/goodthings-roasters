@@ -380,7 +380,7 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
       {/* baseDelay 는 useRef 직접 read — ShopPage 패턴.
           첫 마운트 시 420ms, 이후엔 0. likes 비동기 리렌더가 inline style 을
           흔들지 않도록 likes 는 store 로 격리됨 (S116). */}
-      {/* eslint-disable react-hooks/refs */}
+      { }
       <CafeMenuGrid
         items={pageItems}
         filterKey={filter}
@@ -391,7 +391,7 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
         instant={!shouldAnimateCardsRef.current}
         onOpenNutrition={handleOpenNutrition}
       />
-      {/* eslint-enable react-hooks/refs */}
+      { }
 
       <CafeNutritionSheet item={nutriItem} onClose={handleCloseNutrition} />
 

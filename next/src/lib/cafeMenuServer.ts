@@ -61,7 +61,7 @@ export async function fetchCafeMenu(): Promise<CafeMenuItem[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
-    // eslint-disable-next-line no-console
+
     console.error('[fetchCafeMenu] query failed', {
       code: error.code,
       message: error.message?.slice(0, 200),

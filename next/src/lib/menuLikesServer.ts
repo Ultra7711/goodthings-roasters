@@ -68,7 +68,7 @@ export async function fetchMenuLikesCountsSnapshot(): Promise<
   const { data, error } = await client.from('menu_likes').select('menu_id');
 
   if (error) {
-    // eslint-disable-next-line no-console
+
     console.error('[fetchMenuLikesCountsSnapshot] query failed', {
       code: error.code,
       message: error.message?.slice(0, 200),

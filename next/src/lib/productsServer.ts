@@ -94,7 +94,7 @@ export async function fetchProducts(): Promise<Product[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
-    // eslint-disable-next-line no-console
+
     console.error('[fetchProducts] query failed', {
       code: error.code,
       message: error.message?.slice(0, 200),
@@ -120,7 +120,7 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
     .maybeSingle();
 
   if (error) {
-    // eslint-disable-next-line no-console
+
     console.error('[fetchProductBySlug] query failed', {
       slug,
       code: error.code,
@@ -146,7 +146,7 @@ export async function fetchAllProductSlugs(): Promise<string[]> {
     .eq('is_active', true);
 
   if (error) {
-    // eslint-disable-next-line no-console
+
     console.error('[fetchAllProductSlugs] query failed', {
       code: error.code,
       message: error.message?.slice(0, 200),

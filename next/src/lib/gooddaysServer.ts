@@ -92,7 +92,7 @@ export async function fetchGoodDaysGallery(): Promise<GoodDaysGalleryRow[]> {
     .order('sort_order', { ascending: true });
 
   if (error) {
-    // eslint-disable-next-line no-console
+
     console.error('[fetchGoodDaysGallery] query failed', {
       code: error.code,
       message: error.message?.slice(0, 200),
@@ -114,7 +114,7 @@ export async function listGoodDaysGalleryAdmin(): Promise<GoodDaysGalleryRow[]> 
     .order('sort_order', { ascending: true });
 
   if (error) {
-    // eslint-disable-next-line no-console
+
     console.error('[listGoodDaysGalleryAdmin] query failed', {
       code: error.code,
       message: error.message?.slice(0, 200),

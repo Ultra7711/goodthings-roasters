@@ -131,7 +131,7 @@ export default function MenuTableClient({ rows }: Props) {
      - server reorder 있음 = 항상 server 채택 + 활성 cat 의 로컬 dirty conflict warn
      - server reorder 없음 = mergePreservingReorder (sortOrder dirty 보존 + 다른 필드 server 채택)
      - 'all' / 'signature' 탭 = reorder 비활성 → ref 갱신 + server 채택만. */
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+
   useEffect(() => {
     setOriginalSnapshot(rows);
     const refreshRef = () => {

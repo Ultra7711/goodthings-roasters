@@ -27,7 +27,7 @@ export type ServerCartRow = {
 export function mapRowToCartItem(row: ServerCartRow, products: Product[]): CartItem | null {
   const product = products.find((p) => p.slug === row.product_slug);
   if (!product) {
-    // eslint-disable-next-line no-console
+
     console.warn('[cart] product not found: slug="%s"', row.product_slug);
     return null;
   }

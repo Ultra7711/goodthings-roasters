@@ -110,7 +110,7 @@ export async function logExportAudit(params: {
   rowCount: number;
   truncated: boolean;
 }): Promise<void> {
-  /* eslint-disable-next-line no-console */
+
   console.log('[admin.export]', JSON.stringify({
     domain: params.domain,
     actor_id: params.actorId,

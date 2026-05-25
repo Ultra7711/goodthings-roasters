@@ -39,6 +39,6 @@ export function logActionError(
     code: error?.code ?? null,
     message: error?.message ? error.message.slice(0, 200) : null,
   };
-  // eslint-disable-next-line no-console
+
   console.error(prefix, extra ? { ...base, ...extra } : base);
 }

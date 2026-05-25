@@ -100,7 +100,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
      hydration mismatch 발생. Grid 부분만 mounted 후에 render → SSR 시점 dnd-kit 회피.
      (S167 J-4 fix) */
   const [mounted, setMounted] = useState(false);
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -118,7 +118,7 @@ export default function AdminGoodDaysClient({ initialItems }: Props) {
      S279-C-2 답습 (banners):
      - server reorder 있음 = 항상 server 채택 + 로컬 dirty conflict warn
      - server reorder 없음 = dirty 보존 (alt/featured/isActive patch 후 router.refresh 정합) */
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+
   useEffect(() => {
     const newIds = initialItems.map((i) => i.id).join(',');
     const prevIds = lastServerOrderedIdsRef.current;

@@ -236,7 +236,7 @@ export default function SubscriptionsTableClient({ rows, total, counts, filters,
         </span>
       ),
     },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   ], []);
 
   return (

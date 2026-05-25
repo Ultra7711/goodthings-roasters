@@ -94,7 +94,7 @@ async function fetchEnabledByKind(kind: BannerKind): Promise<Banner[]> {
       const msg = error.message ?? '';
       const aborted = /abort/i.test(msg);
       if (aborted && attempt < 2) continue;
-      // eslint-disable-next-line no-console
+
       console.error('[bannersServer] query failed', {
         code: error.code,
         message: msg.slice(0, 200),

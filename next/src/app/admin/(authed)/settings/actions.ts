@@ -136,7 +136,7 @@ export async function saveSiteSettingsAction(
 
   if (fetchErr || !freshRows) {
     /* fresh fetch 실패해도 upsert 자체는 성공. client 가 자체 settings 로 fallback. */
-    // eslint-disable-next-line no-console
+
     console.warn('[saveSiteSettingsAction] post-save fetch failed', {
       code: fetchErr?.code,
       message: fetchErr?.message?.slice(0, 200),

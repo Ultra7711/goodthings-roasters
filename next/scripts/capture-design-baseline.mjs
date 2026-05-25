@@ -186,7 +186,7 @@ async function capture() {
   // 이유: roastStage·flavorNote 등 observer 기반 애니메이션이 뷰 이탈 시 리셋되어
   // fullPage 스크린샷에서 빈 상태로 찍히는 문제 방지.
   await context.addInitScript(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const OriginalIO = window.IntersectionObserver;
     // @ts-expect-error stub
     window.IntersectionObserver = class {

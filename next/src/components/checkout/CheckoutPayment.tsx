@@ -132,7 +132,7 @@ export default function CheckoutPayment({
         setReady(true);
       } catch (err) {
         if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
+
           console.error('[Toss Widget Load] failed:', err);
         }
         if (cancelled) return;
@@ -150,7 +150,7 @@ export default function CheckoutPayment({
       if (ag) ag.innerHTML = '';
     };
     // amountRef.current 로 초기값 참조 — amount prop 변경 시 별도 effect 에서 setAmount 호출
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   /* amount 변경 시 기존 위젯에만 setAmount 호출 — 위젯 remount 없이 결제수단 유지 */
@@ -160,7 +160,7 @@ export default function CheckoutPayment({
       .setAmount({ currency: 'KRW', value: amount })
       .catch((err) => {
         if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
+
           console.error('[Toss setAmount update] failed:', err);
         }
       });
@@ -195,7 +195,7 @@ export default function CheckoutPayment({
       /* S91 사고 진단: silent catch 가 에러를 삼켜 원인 파악 불가했음.
          사용자 취소 외 모든 에러를 콘솔에 노출. */
       if (name !== 'UserCancelError' && process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
+
         console.error('[Toss requestPayment] failed:', err);
       }
       if (name === 'UserCancelError') {
