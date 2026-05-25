@@ -26,13 +26,36 @@
   display: flex;
   flex-direction: column;
   gap: var(--gap-lg);
+  /* S282-P2: 탭 전환 fade-in (key 기반 재마운트 시 발화). */
+  animation: mp-panel-fadein 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes mp-panel-fadein {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* S282-P2: 모션 민감 사용자 = animation 비활성. */
+  .mp-panel-body {
+    animation: none;
+  }
 }
 
 @media (max-width: 767px) {
-  /* S266: panel padding-top 16 (sticky bar ↔ 첫 컨텐츠 일정 간격) 은 MyPagePage.css 에서
-     명시. 본 파일은 min-height 만 폐기 (모바일 탭바 sticky 패턴 다름). */
+  /* S266: panel padding-top 16 (sticky bar ↔ 첫 컨텐츠 일정 간격) 은 MyPagePage.css 에서 명시.
+     S282-P2: min-height 보장 — 탭 전환 시 panel 높이 변동 (orders 360 → subscription 600 등)으로
+     인한 mp-mobile-stickybar 풀림 + scroll position jump 차단.
+     viewport - header(56) - sticky(76) - mp-body padding(24) - hero(축약) ≈ ~580px 가용.
+     보수적으로 60vh (= 모바일 360x800 = 480px) 설정 → 작은 탭 콘텐츠 (profile/account) 도 sticky 유지. */
   .mp-panel {
-    min-height: 0;
+    min-height: 60svh;
   }
   /* S264 H-1: 모바일에선 탭바 카테고리 라벨과 panel-title 중복 → 숨김.
      데스크탑은 사이드바 항목 옆 별 panel sub-title 로 정보 가치 유지. */

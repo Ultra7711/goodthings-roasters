@@ -16,10 +16,12 @@ type Props = {
 };
 
 export default function MyPagePanel({ title, children }: Props) {
+  /* S282-P2: 탭 전환 250ms fade-in — title key 기반 div 재마운트 → animation 재발화.
+     prefers-reduced-motion 시 animation 자동 비활성 (CSS @media 가드). */
   return (
     <section className="mp-panel" aria-label={title}>
       {title && <h2 className="mp-panel-title">{title}</h2>}
-      <div className="mp-panel-body">{children}</div>
+      <div className="mp-panel-body" key={title}>{children}</div>
     </section>
   );
 }

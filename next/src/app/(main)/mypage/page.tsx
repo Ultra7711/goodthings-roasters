@@ -20,10 +20,8 @@ import {
 } from '@/lib/repositories/subscriptionRepo';
 import { findOrdersForUser, getOrdersCountForUser } from '@/lib/repositories/orderRepo';
 import { toOrder } from '@/lib/orders/toOrder';
-import { fetchProducts } from '@/lib/productsServer';
 import type { Subscription } from '@/types/subscription';
 import type { Order } from '@/types/order';
-import type { Product } from '@/lib/products';
 import MyPagePage from '@/components/auth/MyPagePage';
 import MyPageSkeleton from '@/components/auth/MyPageSkeleton';
 
@@ -36,13 +34,13 @@ export const metadata = { title: '마이 페이지 — good things' };
 async function MyPageAuthed() {
   const claims = await requireAuth();
 
-  /* S253 마이페이지 최적화 + S282-P1 재최적화 — server prefetch:
-     - subscriptions: 전체 (TanStack initialData 로 flash 차단)
-     - orders: limit 20 (DEC-S282-1) — default tab=orders 라 SSR initialData 가 client fetch spinner 폐기
+  /* S253 + S282-P1/P2 마이페이지 최적화 — server prefetch:
+     - subscriptions: 전체 (TanStack initialData · flash 차단)
+     - orders: limit 20 (DEC-S282-1) — default tab=orders 첫 진입 시 client fetch spinner 폐기
      - ordersCount: count-only RPC (HeroGreeting + SideNav 카운트)
      - adminLevel: admin 인 경우 'owner' | 'staff' (HeroGreeting 라벨)
-     - products: SubscriptionItem 카드 매핑 (S267) — Phase 2 에서 lazy 전환 carry. */
-  const [subscriptions, orders, ordersCount, adminClaims, products] = await Promise.all([
+     - products: S282-P2 — SubscriptionView lazy fetch (server action) · 90% dead fetch 회피. */
+  const [subscriptions, orders, ordersCount, adminClaims] = await Promise.all([
     findSubscriptionsForUser()
       .then((rows) => rows.map(toSubscription))
       .catch((err): Subscription[] => {
@@ -63,10 +61,6 @@ async function MyPageAuthed() {
       console.error('[mypage.prefetch] admin claims failed', err);
       return null;
     }),
-    fetchProducts().catch((err): Product[] => {
-      console.error('[mypage.prefetch] products failed', err);
-      return [];
-    }),
   ]);
 
   const adminLevel: AdminLevel | null = adminClaims?.adminLevel ?? null;
@@ -78,7 +72,6 @@ async function MyPageAuthed() {
       initialOrders={orders}
       initialOrdersCount={ordersCount}
       adminLevel={adminLevel}
-      initialProducts={products}
     />
   );
 }
