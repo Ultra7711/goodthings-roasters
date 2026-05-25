@@ -34,8 +34,7 @@ import 'server-only';
      · 해결: helper connection() 제거 + SSR 페이지 default export caller 가
        명시적 await connection() 호출 (5 페이지 모두 적용)
      · generateStaticParams 는 fetchAllProductSlugs() lightweight variant 사용
-   - 향후 통일 검토 = S280+ carry (banners 도 caller 측 책임으로 이전 가능 ·
-     ADR-008 후보)
+   - S280-B 부 banners 도 caller 측 책임으로 통일 (ADR-010).
 
    참조:
    - lib/bannersServer.ts (S278 ground truth 패턴)

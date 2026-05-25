@@ -11,19 +11,26 @@ import 'server-only';
    admin variant 는 별도 분리 가능 (현재 별도 admin fetch 불필요 — server action
    이 직접 admin client 로 query).
 
-   설계:
+   설계 (S280-B · DEC-S279-D-1 정합 — ADR-010):
    - server-only 격리.
    - anon 클라이언트 (RLS public SELECT 허용).
    - 'use cache' 미사용 — row 수 작아 부담 미미 + 운영자 변경 즉시 반영 보장
      (Next.js 16 revalidateTag/updateTag 가 dev 환경 invalidate 회귀 발견 후 폐기).
+   - cachedClient singleton 패턴 폐기 — dev HMR closure 회귀 차단 (S278 학습 #4).
+   - global.fetch override 로 cache: 'no-store' 강제.
+   - connection() 책임 = caller (SSR 페이지 server component) 측 명시 호출.
+     본 helper 는 connection() 호출 X — 3-domain (productsServer/cafeMenuServer/
+     gooddaysServer) 답습 패턴과 통일 (S280-B · ADR-008).
+     caller: CafeMenuSection.tsx / SignatureChapter.tsx (둘 다 helper 호출 전
+     `await connection()` 명시 — 이미 정합).
    - bannerCacheTag(kind) 함수는 export 보존 (향후 캐싱 재도입 시 활용).
    - 호출 실패 시 null/[] 반환 (메인 사이트 graceful 표시).
 
    참조:
    - 071_banners_unified.sql · 072_banners_data_migration.sql
+   - ADR-010 (caller-side connection responsibility · S280-B)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { connection } from 'next/server';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import {
   parseBannerRow,
@@ -118,12 +125,12 @@ async function fetchEnabledByKind(kind: BannerKind): Promise<Banner[]> {
  * 운영자가 admin 변경 직후 즉시 반영 보장 (revalidateTag/updateTag invalidate
  * 가 dev 환경에서 inconsistent 한 회귀 회피).
  *
- * connection() 의무: Next.js 16 cacheComponents 룰 — selectActiveBanner 가
- * `new Date()` 로 today 계산하므로 dynamic API 선행 호출 없으면 prerender 시점의
- * fixed time 으로 cache 되어 영원히 stale. connection() 으로 dynamic 강제.
+ * connection() 책임 = caller (CafeMenuSection / SignatureChapter) 측. Next.js 16
+ * cacheComponents 룰 — selectActiveBanner 가 `new Date()` 로 today 계산하므로
+ * caller 페이지 dynamic API 선행 호출 없으면 prerender 시점의 fixed time 으로 cache
+ * 되어 영원히 stale (DEC-S278-1). S280-B 부 helper connection() 제거 — ADR-010.
  */
 export async function getActiveBanner(kind: BannerKind): Promise<Banner | null> {
-  await connection();
   const banners = await fetchEnabledByKind(kind);
   return selectActiveBanner(banners, kind);
 }
@@ -131,9 +138,9 @@ export async function getActiveBanner(kind: BannerKind): Promise<Banner | null> 
 /**
  * 자문 §5.3 — active 0 + 7일 내 시작 예정 banner 있으면 Coming 표시.
  * 호출부는 active=null 인 경우에만 추가 호출 (주로 cafe_event 용).
+ * connection() 책임 = caller. S280-B 부 helper connection() 제거 — ADR-010.
  */
 export async function getComingBanner(kind: BannerKind): Promise<Banner | null> {
-  await connection();
   const banners = await fetchEnabledByKind(kind);
   return selectComingBanner(banners, kind);
 }
