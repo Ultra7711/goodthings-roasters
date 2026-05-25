@@ -73,7 +73,7 @@ describe('buildBannerAiPrompt (Stage 1)', () => {
   it('S277 — 안전영역 비움 이유 (Stage 2 overlay 회귀 차단)', () => {
     const p = buildBannerAiPrompt({ kind: 'signature' });
     expect(p).toMatch(/Stage 2 가 텍스트 가독성 위해 어두운 overlay/);
-    expect(p).toMatch(/원천 차단/);
+    expect(p).toMatch(/overlay 자체가 불필요/);
   });
 });
 
@@ -160,9 +160,9 @@ describe('buildStage2Prompt (S276)', () => {
   it('디자인 언어 추출 의무 (S277 신규 §3)', () => {
     const p = buildStage2Prompt({ kind: 'signature' });
     expect(p).toMatch(/디자인 언어 추출/);
-    expect(p).toMatch(/색상 팔레트.*추출|원본 컨셉.*추출/);
-    expect(p).toMatch(/사이트 톤 강제 X/);
-    expect(p).toMatch(/시즌별 디자인 결정.*≠.*일반 디자인 룰/);
+    expect(p).toMatch(/원본 컨셉 이미지에서.*추출/);
+    expect(p).toMatch(/특정 시즌의 디자인 결정.*일반 디자인 룰/);
+    expect(p).toMatch(/강요하지 않습니다/);
   });
 
   it('invention 금지 — element (S277 신규 §4)', () => {
@@ -211,10 +211,11 @@ describe('buildStage2Prompt (S276)', () => {
     expect(p).toMatch(/"banner alt text"/);
   });
 
-  it('운영자 입력 SEO 메타 없으면 안내 fallback', () => {
+  it('운영자 입력 SEO 메타 없으면 텍스트 표시 금지 안내 (S277 — invention 룰 정합)', () => {
     const p = buildStage2Prompt({ kind: 'signature' });
     expect(p).toMatch(/운영자 입력 없음/);
-    expect(p).toMatch(/AI 가 컨셉 이미지 기반/);
+    expect(p).toMatch(/텍스트 요소 표시 없이.*배경.*시각 주체만/);
+    expect(p).toMatch(/임의 단어\/문장 자동 생성 금지/);
   });
 
   it('자가 검증 체크리스트 + 다음 단계 안내', () => {

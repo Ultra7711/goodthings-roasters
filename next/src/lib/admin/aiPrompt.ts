@@ -135,7 +135,7 @@ export function buildBannerAiPrompt(options: BuildPromptOptions): string {
     '',
     '   ✅ **자가 검증**: "안전영역에 텍스트를 흰색 + 검정 두 가지로 가상 배치했을 때 둘 다 읽히는가?" → 둘 다 OK 여야 통과. 한쪽만 OK 면 비주얼 톤 단순화 부족 → 다시 재구성.',
     '',
-    '   ⚠️ **이유**: 안전영역에 디테일이 남으면 Stage 2 가 텍스트 가독성 위해 어두운 overlay (`::after` 그라데이션) 를 깔게 되고 → 비주얼 시각 주체가 가려지는 운영 회귀가 발생합니다. 본 규칙으로 원천 차단.',
+    '   ⚠️ **이유**: 안전영역에 디테일이 남으면 Stage 2 가 텍스트 가독성 위해 어두운 overlay (`::after` 그라데이션) 를 깔게 되어 비주얼 시각 주체가 가려집니다. 안전영역을 깨끗하게 비워두면 overlay 자체가 불필요해집니다.',
     '',
     '5. **안전 영역 메타데이터 출력** — 각 BP 별 다음 정보를 좌표(%) 로 표기',
     '   - **텍스트 안전 영역**: 헤드라인/부제/CTA 가 들어갈 위치',
@@ -268,14 +268,12 @@ export function buildStage2Prompt(options: BuildStage2Options): string {
     ]
       .filter(Boolean)
       .join('\n') ||
-    '  (운영자 입력 없음 — AI 가 컨셉 이미지 기반으로 임의 텍스트 작성. 한글 본문 + 영문 라벨 혼용 권장)';
+    '  (운영자 입력 없음 — 본 출력에 텍스트 요소 표시 없이 배경 + 시각 주체만 렌더하세요. 임의 단어/문장 자동 생성 금지.)';
 
   return [
     `# ${label} responsive.html 생성 (Stage 2)`,
     '',
     '추천 AI: **범용 멀티모달 AI** (Claude · GPT · Gemini 동등 사용 가능). 본 prompt 의 운영 규칙을 정확히 따를 것.',
-    '',
-    '(참고: 이전 S274 fair test 에서 Claude Opus 4.7 가 사이트 톤 정합 1위였으나, 그건 "사이트 톤 강제 prompt" 환경 한정 의의. S277 정정으로 디자인 강제 폐기 → 평가 축이 "컨셉 추출 충실도 + invention 자제력" 으로 바뀜. 모든 모델 재평가 권장.)',
     '',
     '## 🎯 이 작업의 본질',
     '',
@@ -353,11 +351,11 @@ export function buildStage2Prompt(options: BuildStage2Options): string {
     '',
     '값은 시즌 컨셉에 따라 가이드 범위 안에서 자유. 단 양 끝점 차이 너무 크면 (예: 64 → 16) 중간 viewport 가 어색하니 가이드 범위 안 유지.',
     '',
-    '### 3. 디자인 언어 추출 (사이트 톤 강제 X · 원본 컨셉에서 추출 · S277 정정)',
+    '### 3. 디자인 언어 추출 (원본 컨셉에서 추출)',
     '',
-    '본 prompt 는 디자인 톤을 강제하지 않습니다. 원본 컨셉 이미지를 분석해서 다음을 **추출** 한 후 HTML 로 재현하세요:',
+    '디자인 톤은 원본 컨셉 이미지에서 **추출** 한 후 HTML 로 재현하세요. 특정 시즌의 디자인 결정을 일반 디자인 룰처럼 강요하지 않습니다.',
     '',
-    '1. **색상 팔레트** — 배경 톤 / 텍스트 톤 / 강조 색상 (운영자 시즌 컨셉 그대로 답습 · 사이트 다른 페이지와 정합 안 해도 OK)',
+    '1. **색상 팔레트** — 배경 톤 / 텍스트 톤 / 강조 색상 (운영자 시즌 컨셉 그대로 답습)',
     '2. **레이아웃 패턴** — 좌측 stack / 중앙 정렬 / 카드 그리드 / 리스트 등 (원본 컨셉에 있는 형태 그대로)',
     '3. **오브젝트 종류** — 배지 / divider / marker / icon / 그라데이션 line 등 (원본 컨셉에 있을 때만 재현)',
     '4. **폰트 무드** — 본문 weight / 헤드라인 style / 자간 등 (원본 컨셉 톤)',
@@ -365,9 +363,7 @@ export function buildStage2Prompt(options: BuildStage2Options): string {
     '🚫 **금지**: 원본 컨셉에 없는 element/색상/오브젝트 자체 추가 (= invention).',
     '✅ **허용**: 원본 컨셉에 있는 element 를 시스템 정합 패딩/폰트 가이드로 재현 (단 텍스트는 운영자 입력만).',
     '',
-    '⚠️ **이전 prompt 의 "사이트 톤 강제" (sand bg / 보라·브라운 / 좌측 stack / 우상단 원형 배지 / mobile 하단 bar)** 는 특정 시즌의 디자인 결정을 일반 룰로 격상시킨 것이라 폐기. 시즌별 디자인 결정 ≠ 일반 디자인 룰.',
-    '',
-    '### 4. invention 금지 (element + 단어 양쪽 · S277 정정)',
+    '### 4. invention 금지 (element + 단어 양쪽)',
     '',
     '운영자가 입력한 텍스트와 원본 컨셉 이미지에 있는 element 만 사용하세요. 빈 슬롯을 채우려고 다음을 추가하지 마세요:',
     '',
@@ -395,7 +391,7 @@ export function buildStage2Prompt(options: BuildStage2Options): string {
     '',
     '### 5. portrait (768 미만) 강조 — 침범 위험 더 큼',
     '',
-    '본 §3 (디자인 추출) + §4 (invention 금지) + §1 (좌측 패딩) 룰은 **4 BP 모두 (landscape-max / landscape-min / portrait-max / portrait-min) 동일 적용**.',
+    '위의 모든 룰 (좌측 패딩 / 디자인 추출 / invention 금지) 은 **4 BP 모두 (landscape-max / landscape-min / portrait-max / portrait-min) 동일 적용**.',
     '',
     'portrait 는 폭이 좁아 텍스트 침범 위험이 더 큽니다:',
     '- 시각 주체가 화면 중앙/전체 가까이면 텍스트는 상단 또는 하단 줄에 분리 배치',
@@ -406,7 +402,7 @@ export function buildStage2Prompt(options: BuildStage2Options): string {
     '',
     '1. **Stage 1 결과 배경 이미지** — Desktop · Mobile 각 1장 (필수)',
     '2. **Stage 1 안전 영역 메타데이터** — 텍스트/메인 비주얼/feature 바 좌표 (참고)',
-    '3. **운영자 입력 SEO 메타** (있으면 그대로 사용 · 없으면 AI 가 컨셉 기반 작성):',
+    '3. **운영자 입력 SEO 메타** (입력된 슬롯만 그대로 사용 · 미입력 슬롯은 출력에 텍스트 요소를 두지 않음 · 임의 단어/문장 자동 생성 금지):',
     userText,
     '',
     '## 📦 출력 형식 (단일 .html 파일)',
