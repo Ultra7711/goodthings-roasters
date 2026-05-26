@@ -166,13 +166,18 @@
    label 텍스트가 hairline 에 가깝게 시프트됨 → align-items:center 로 통일하면
    비밀번호 변경 행 (mp-info-row--action) 과 동일한 시각 정렬 확보. */
 .mp-info-row.mp-info-row--withdraw { margin-top: 0; border-bottom: none; align-items: center; }
+/* S283: line-height 토큰 24px 통일 — 15px sub-pixel(22.5) 차단 + 배송지 row 정수 정합.
+   row 전체 = padding 20 + content 24 + padding 20 = 64px 정수.
+   배송지 row-top = max(label 24, value 24, icon-btn 24) = 24 → center 정렬 (24-24)/2 = 0. */
 .mp-info-label {
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 500;
   color: var(--color-text-secondary); white-space: nowrap; min-width: 60px;
+  line-height: var(--lh-kr-body-15);
 }
 .mp-info-value {
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: var(--type-body-m-weight);
   color: var(--color-text-primary); text-align: right;
+  line-height: var(--lh-kr-body-15);
 }
 /* Android 데이터 디텍터 안전망 — 자동 생성된 mailto 링크 스타일 초기화 */
 .mp-info-value a[href^="mailto"] {
