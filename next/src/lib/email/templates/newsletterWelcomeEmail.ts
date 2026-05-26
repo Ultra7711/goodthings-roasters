@@ -24,6 +24,9 @@
 import { esc } from './utils';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://goodthingsroasters.com';
+/* CARRY: 현재 production 도메인이 Vercel 배포 전 카페24 default 매핑이라
+   /images/icons/logo-email.png 404. Gmail 이 CSP 상 data: URI 도 차단하므로
+   inline base64 우회도 불가. Vercel 배포 시점에 production URL 자동 해결. */
 const LOGO_URL = `${APP_URL}/images/icons/logo-email.png`;
 const CONTACT_EMAIL = process.env.RESEND_REPLY_TO ?? 'hello@goodthingsroasters.com';
 
@@ -73,7 +76,8 @@ export function renderNewsletterWelcomeEmail(
           <tr>
             <td align="left" style="padding:0 40px 32px;">
               <p style="margin:0;font-size:16px;color:#4A4844;line-height:1.75;text-align:left;">
-                뉴스레터를 신청해 주셔서 감사합니다. 시즌 원두 출시, 매장 소식, 정기배송 안내를 가장 먼저 받아보실 수 있습니다.
+                뉴스레터를 신청해 주셔서 감사합니다.<br>
+                시즌 원두 출시, 매장 소식, 정기배송 안내를 가장 먼저 받아보실 수 있습니다.
               </p>
             </td>
           </tr>

@@ -145,12 +145,16 @@ export async function sendNewsletterWelcomeEmail(
   try {
     const { subject, html, text } = renderNewsletterWelcomeEmail({ unsubscribeToken });
     const safeKey = to.toLowerCase().replace(/[^a-z0-9._\-]/g, '_').slice(0, 120);
+    /* idempotencyKey 에 unsubscribeToken 일부 포함 — 동일 email 이 unsubscribe 후
+       재구독 시 새 token 생성되어 Resend 24h cache 충돌 회피.
+       같은 token 으로 중복 요청 시에는 여전히 idempotent (중복 메일 차단). */
+    const tokenPart = unsubscribeToken.replace(/[^a-z0-9]/gi, '').slice(0, 12);
     const result = await sendEmail({
       to,
       subject,
       html,
       text,
-      idempotencyKey: `newsletter-welcome:${safeKey}`,
+      idempotencyKey: `newsletter-welcome:${safeKey}:${tokenPart}`,
     });
     if (!result.ok) {
       console.error('[notifications] sendNewsletterWelcomeEmail FAIL', {
