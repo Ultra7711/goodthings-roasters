@@ -76,6 +76,21 @@
   background: linear-gradient(135deg, #2A2420 0%, #1C1B16 50%, #0F0E0D 100%);
   z-index: 0;
 }
+/* S-PND-5: poster 별도 layer — video preload 대기·metadata 의존 없이 즉시 표시.
+   stack: placeholder (z:0) < poster (z:0, DOM 후행) < video (z:1). onPlaying 시 fade out. */
+.hero-bg-poster {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/hero/hero-poster.jpg');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  transition: opacity 400ms ease-out;
+}
+.hero-bg-poster.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
 .hero-bg {
   position: absolute;
   inset: 0;

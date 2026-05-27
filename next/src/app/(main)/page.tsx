@@ -3,6 +3,7 @@
    1) Hero · 2) Signature · 3) Lineup · 4) CafeMenu · 5) StoryChapter (cream→dark)
    ══════════════════════════════════════════ */
 
+import { preload } from 'react-dom';
 import '@/components/home/HomePage.css';
 import HeroSection from '@/components/home/HeroSection';
 import OverscrollTop from '@/components/ui/OverscrollTop';
@@ -13,6 +14,9 @@ import StoryChapter from '@/components/home/StoryChapter';
 import NewsletterSection from '@/components/home/NewsletterSection';
 
 export default function HomePage() {
+  /* S-PND-5: hero MP4 page-scoped preload. layout.tsx 박힘 = 모든 페이지 비용 회피 — home 진입 시에만 fetch 시작. */
+  preload('/images/hero/hero-video.mp4', { as: 'video', fetchPriority: 'high' });
+
   return (
     <div id="home-body">
       <OverscrollTop top="#1E1B16" bottom="#4A4845" />

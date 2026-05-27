@@ -19,10 +19,12 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function HeroSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  /* S-PND-5: poster 별도 layer 가시성 — video 가 실제 첫 frame 표시 가능 시점에 fade out. */
+  const [posterHidden, setPosterHidden] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -123,20 +125,26 @@ export default function HeroSection() {
       <div className="hero">
         {/* 포스터 로드 전 gradient placeholder — 순수 다크에서 이미지로 전환 시 충격 완화 */}
         <div className="hero-bg-placeholder" aria-hidden="true" />
+        {/* S-PND-5: poster 별도 layer — video preload 대기 없이 즉시 표시. video playing 시 fade out. */}
+        <div
+          className={`hero-bg-poster${posterHidden ? ' is-hidden' : ''}`}
+          aria-hidden="true"
+        />
         <video
           ref={videoRef}
           className="hero-bg"
           autoPlay muted loop playsInline
-          preload="metadata"
+          preload="auto"
+          // @ts-expect-error — React 19 VideoHTMLAttributes 에 fetchPriority 미정의 (HTML 표준은 허용)
+          fetchPriority="high"
           poster="/images/hero/hero-poster.jpg"
+          onPlaying={() => setPosterHidden(true)}
         >
-          {/* S-PND-4: codec source 순서 = 효율 우선 (위에서부터 시도, 첫 호환 source 만 다운로드).
-              AV1 (4.8MB · SVT-AV1 CRF 35) = Chrome 70+ / Firefox 67+ / Safari 17.4+ native.
-              VP9 (5.6MB · CRF 36) = 구 Chrome/Firefox/Edge fallback.
-              H.264 (5.2MB · CRF 30 · faststart) = Safari < 17.4 fallback. */}
-          <source src="/images/hero/hero-video.av1.mp4" type='video/mp4; codecs="av01"' />
-          <source src="/images/hero/hero-video.webm" type="video/webm" />
+          {/* S-PND-5: source 순서 = MP4 1순위 (모든 환경 HW 가속 H.264) + AV1 2순위 fallback.
+              S-PND-4 의 AV1 1순위 → 디코딩 대기 + 빈 화면 길어짐 회귀 해소. WebM 자산 폐기.
+              MP4 (6.8MB · H.264 High · 720kbps 원본) / AV1 (7.45MB · CRF28 preset4 · 거의 미사용). */}
           <source src="/images/hero/hero-video.mp4" type="video/mp4" />
+          <source src="/images/hero/hero-video.av1.mp4" type='video/mp4; codecs="av01"' />
         </video>
         <div className="hero-bg-overlay" />
         <div className="grain-overlay" aria-hidden="true" />
