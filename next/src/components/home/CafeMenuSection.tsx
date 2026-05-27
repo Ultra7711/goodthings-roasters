@@ -24,7 +24,7 @@ import MenuName from '@/components/cafe/MenuName';
 import EventBanner from './EventBanner';
 import MenuTab from './MenuTab';
 
-const cafeWebpMeta = (galleryBlur as Record<string, { blurDataURL: string }>)['cafe.webp'];
+const cafeWebpMeta = (galleryBlur as Record<string, { blurDataURL: string }>)['img_cafemenu.webp'];
 
 /**
  * 메인 노출 카페 메뉴 3종 결정.
@@ -94,7 +94,7 @@ export default async function CafeMenuSection() {
             cafe-menu-head 와 별 data-sr 로 독립 발화 (사진 진입 시점 != 헤더). */}
         <div className="cafe-menu-split__photo sr-img" data-sr>
           <Image
-            src="/images/gallery/cafe.webp"
+            src="/images/gallery/img_cafemenu.webp"
             alt="굳띵즈 인의동 1호점 매장 내부"
             fill
             sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 640px"
