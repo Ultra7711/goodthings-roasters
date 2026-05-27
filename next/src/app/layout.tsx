@@ -10,7 +10,6 @@ import Providers from '@/components/providers/Providers';
 import { SiteSettingsProvider } from '@/components/providers/SiteSettingsProvider';
 import OverscrollColor from '@/components/ui/OverscrollColor';
 import TouchHoverGuard from '@/components/ui/TouchHoverGuard';
-import ErudaInjector from '@/components/dev/ErudaInjector';
 import { fetchSiteSettings } from '@/lib/siteSettingsServer';
 import './globals.css';
 import '@/styles/forms.css';
@@ -84,10 +83,6 @@ export default async function RootLayout({
         </Suspense>
         <Suspense fallback={null}>
           <TouchHoverGuard />
-        </Suspense>
-        {/* S289 진단 자산: ?eruda=1 쿼리 시 모바일 DevTools inject. 쿼리 없으면 0 작동. */}
-        <Suspense fallback={null}>
-          <ErudaInjector />
         </Suspense>
         <div className="page-bg">
           <SiteSettingsProvider initial={siteSettings}>
