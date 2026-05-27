@@ -95,6 +95,12 @@ export default function ProductGallery({ images, status }: Props) {
         carousel={{ finite: true, padding: 0, spacing: 0 }}
         animation={{ swipe: 250, fade: 0 }}
         controller={{ closeOnBackdropClick: false }}
+        /* S-PND-1 후속 (PDP 모바일 rubber-band white 회귀 fix):
+           yarl 의 NoScroll 컴포넌트 (default 활성) 가 body 에 `.yarl__no_scroll`
+           class 박음 → `overscroll-behavior: none` 적용 → iOS Safari rubber-band
+           영역 색이 body bg 가 아닌 user agent default white 로 표시.
+           inline plugin 은 modal 이 아니라 body scroll lock 불필요 → disabled. */
+        noScroll={{ disabled: true }}
         inline={{ className: 'pd-yarl-inline', style: inlineStyle }}
         thumbnails={
           showThumbnails
