@@ -94,6 +94,23 @@ export default function ProductDetailPage({ product }: Props) {
   return (
     <>
     <OverscrollTop top="#1E1B16" bottom="#FBF8F3" />
+    {/* S289 H-m: iOS 26 Safari rubber-band sample target — viewport bottom 5px
+        fixed element with 의도 sand 색. CafeNutritionSheet 의 fixed wrapper
+        메커니즘 답습 (#cafe-nutrition-sheet position:fixed inset:0). z-index:-1
+        + pointer-events:none → page 콘텐츠 아래 + 상호작용 영향 0. */}
+    <div
+      aria-hidden
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 5,
+        background: '#FBF8F3',
+        zIndex: -1,
+        pointerEvents: 'none',
+      }}
+    />
     <div id="pd-body" ref={pageRef}>
       <div id="pd-inner">
         {/* ① Hero — 좌: sticky 이미지 / 우: 정보 + 옵션 + CTA (V2 §5.2)
