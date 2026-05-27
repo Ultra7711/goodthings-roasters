@@ -626,7 +626,13 @@ html.is-touching *:hover {
 
 body {
   font-family: var(--font-en);
-  background: transparent;
+  /* S-PND-1 후속 (Vercel 실기기 white 회귀):
+     iOS Safari rubber-band 영역 색은 body bg 가 transparent 일 때 user agent
+     default white 로 fallback. OverscrollColor mount 전 (또는 production build
+     hydration timing) 에 white flash 가능 → globals 단계에서 dark default 박아
+     viewport 너머 영역 항상 dark 보장. OverscrollColor 의 inline body bg 가
+     cascade 최우선으로 페이지별 override (checkout 등 light page 정상 동작). */
+  background: var(--color-background-inverse);
   color: var(--color-text-primary);
   word-break: keep-all;
 }
