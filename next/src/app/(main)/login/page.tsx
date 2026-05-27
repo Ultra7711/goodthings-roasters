@@ -13,7 +13,7 @@
 import { Suspense } from 'react';
 import LoginPage from '@/components/auth/LoginPage';
 
-export const metadata = { title: '로그인 — good things' };
+export const metadata = { title: '로그인' };
 
 export default function LoginRoute() {
   return (

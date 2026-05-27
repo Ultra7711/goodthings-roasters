@@ -12,7 +12,7 @@ import SearchSkeleton from '@/components/search/SearchSkeleton';
 import { fetchSearchIndex } from '@/lib/searchServer';
 
 export const metadata = {
-  title: '검색 | Good Things Roasters',
+  title: '검색',
   description: '원두, 드립백, 카페 메뉴를 검색하세요.',
 };
 

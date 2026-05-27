@@ -29,8 +29,25 @@ const pretendard = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Good Things Roasters',
-  description: 'good things, simply roasted. — 스페셜티 커피 로스터리',
+  metadataBase: new URL('https://goodthingsroasters.com'),
+  title: {
+    default: '굳띵즈 로스터스 - Good Things Roasters',
+    template: '%s - 굳띵즈 로스터스',
+  },
+  description: 'good things, simply roasted. - 스페셜티 커피 로스터리',
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    siteName: '굳띵즈 로스터스',
+    title: '굳띵즈 로스터스 - Good Things Roasters',
+    description: 'good things, simply roasted. - 스페셜티 커피 로스터리',
+    url: '/',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '굳띵즈 로스터스 - Good Things Roasters',
+    description: 'good things, simply roasted. - 스페셜티 커피 로스터리',
+  },
 };
 
 /* S263 — iOS 26 Safari Liquid Glass toolbar tinting + safe-area 지원.
@@ -39,6 +56,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  themeColor: '#1E1B16',
 };
 
 export default async function RootLayout({

@@ -17,7 +17,7 @@ import { fetchMenuLikesCountsSnapshot } from '@/lib/menuLikesServer';
 import CafeMenuPage from '@/components/cafe/CafeMenuPage';
 import CafeMenuSkeleton from '@/components/cafe/CafeMenuSkeleton';
 
-export const metadata = { title: '카페 메뉴 — good things' };
+export const metadata = { title: '카페 메뉴' };
 
 export default async function CafeMenuRoute() {
   /* S279-D · DEC-S279-D-1: cafeMenuServer 'use cache' 폐기로 caller 측

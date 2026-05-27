@@ -13,7 +13,7 @@ import { connection } from 'next/server';
 import GoodDaysPage from '@/components/gooddays/GoodDaysPage';
 import { fetchGoodDaysGallery } from '@/lib/gooddaysServer';
 
-export const metadata = { title: '좋은 순간들 — good things' };
+export const metadata = { title: '좋은 순간들' };
 
 type Props = {
   searchParams: Promise<{ img?: string }>;

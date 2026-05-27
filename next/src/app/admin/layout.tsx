@@ -11,7 +11,10 @@ import { Toaster } from '@/components/admin/ui/sonner';
    여기서 별도 import 하면 중복 + Tailwind 외부 CSS 청크 처리되어 @theme 무효화 위험. */
 
 export const metadata: Metadata = {
-  title: 'Admin · Good Things Roasters',
+  title: {
+    default: '관리자',
+    template: '%s - 굳띵즈 로스터스',
+  },
   description: '어드민 — 운영 콘솔',
   robots: { index: false, follow: false },
 };

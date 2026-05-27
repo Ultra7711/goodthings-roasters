@@ -26,9 +26,9 @@ export async function generateStaticParams(): Promise<RouteParams[]> {
 export async function generateMetadata({ params }: { params: Promise<RouteParams> }) {
   const { slug } = await params;
   const product = await fetchProductBySlug(slug);
-  if (!product) return { title: '상품을 찾을 수 없습니다 — good things' };
+  if (!product) return { title: '상품을 찾을 수 없습니다' };
   return {
-    title: `${extractKrName(product.name)} — good things`,
+    title: extractKrName(product.name),
     description: product.desc.split('\n')[0],
   };
 }

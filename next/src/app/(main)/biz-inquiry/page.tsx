@@ -7,7 +7,7 @@
 
 import BizInquiryPage from '@/components/biz/BizInquiryPage';
 
-export const metadata = { title: '비즈니스 문의 — good things' };
+export const metadata = { title: '비즈니스 문의' };
 
 export default function BizInquiryRoute() {
   return <BizInquiryPage />;

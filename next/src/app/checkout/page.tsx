@@ -14,7 +14,7 @@
 import { Suspense } from 'react';
 import CheckoutPage from '@/components/checkout/CheckoutPage';
 
-export const metadata = { title: '주문·결제 — good things' };
+export const metadata = { title: '주문·결제' };
 
 export default function CheckoutRoute() {
   /* Suspense 경계: CheckoutPage 내부에서 useSearchParams() 호출.

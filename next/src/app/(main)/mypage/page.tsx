@@ -30,7 +30,7 @@ import MyPageSkeleton from '@/components/auth/MyPageSkeleton';
    대부분 사용자가 최신 주문만 조회 (페이지네이션 별도) → 20건 권고 (DEC-S282-1). */
 const ORDERS_SSR_LIMIT = 20;
 
-export const metadata = { title: '마이 페이지 — good things' };
+export const metadata = { title: '마이 페이지' };
 
 async function MyPageAuthed() {
   const claims = await requireAuth();

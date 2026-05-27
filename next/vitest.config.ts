@@ -18,6 +18,10 @@ export default defineConfig({
          vitest 환경에서는 패키지가 resolve 안 돼서 import 자체가 실패하므로 빈 stub 으로 alias.
          (S129 H-5: ordersServer · siteSettingsServer 가 import) */
       'server-only': path.resolve(__dirname, './src/__mocks__/server-only.ts'),
+      /* `next/og` 는 ESM-only server module. vitest dependency graph 분석 시
+         resolve 못 해 src/ 전체 import (alias 포함) 가 깨진다.
+         apple-icon / opengraph-image / twitter-image 는 .test 대상 아니므로 stub. */
+      'next/og': path.resolve(__dirname, './src/__mocks__/next-og.ts'),
     },
   },
 });

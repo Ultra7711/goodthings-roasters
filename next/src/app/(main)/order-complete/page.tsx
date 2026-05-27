@@ -26,7 +26,7 @@ import OrderCompletePage from '@/components/checkout/OrderCompletePage';
 import OverscrollTop from '@/components/ui/OverscrollTop';
 
 export const metadata: Metadata = {
-  title: '주문 완료 — good things',
+  title: '주문 완료',
   referrer: 'same-origin',
 };
 

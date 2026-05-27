@@ -13,7 +13,7 @@ import ShopPage from '@/components/shop/ShopPage';
 import ShopSkeleton from '@/components/shop/ShopSkeleton';
 import { fetchProducts } from '@/lib/productsServer';
 
-export const metadata = { title: '모든 상품 — good things' };
+export const metadata = { title: '모든 상품' };
 
 export default async function ShopRoute() {
   /* S279-D · DEC-S279-D-1: productsServer 의 'use cache' 폐기로

@@ -7,7 +7,7 @@
 
 import StoryPage from '@/components/story/StoryPage';
 
-export const metadata = { title: 'The Story — good things' };
+export const metadata = { title: '스토리' };
 
 export default function StoryRoute() {
   return <StoryPage />;

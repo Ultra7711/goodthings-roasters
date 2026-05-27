@@ -13,7 +13,7 @@ import { getAdminClaims } from '@/lib/auth/getClaims';
 import AdminLoginForm from './AdminLoginForm';
 
 export const metadata: Metadata = {
-  title: '관리자 로그인 · Good Things Roasters',
+  title: '관리자 로그인',
 };
 
 export default function AdminLoginPage() {

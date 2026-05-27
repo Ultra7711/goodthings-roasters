@@ -31,17 +31,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   if (!isLegalSlug(slug)) {
-    return { title: '문서를 찾을 수 없습니다 — good things' };
+    return { title: '문서를 찾을 수 없습니다' };
   }
   const doc = getLegalDoc(slug);
   return {
-    title: `${doc.title} — good things`,
+    title: doc.title,
     description: doc.description,
     alternates: {
       canonical: `/legal/${slug}`,
     },
     openGraph: {
-      title: `${doc.title} — good things`,
+      title: doc.title,
       description: doc.description,
       type: 'article',
     },
