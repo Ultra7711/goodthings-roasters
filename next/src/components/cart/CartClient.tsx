@@ -20,6 +20,7 @@ import {
 import type { CartItem } from '@/types/cart';
 import CartSkeleton from './CartSkeleton';
 import OrderItemRow from '@/components/order/OrderItemRow';
+import OverscrollTop from '@/components/ui/OverscrollTop';
 import { formatPrice } from '@/lib/utils';
 
 type CartClientProps = {
@@ -60,6 +61,10 @@ export default function CartClient({ initialItems }: CartClientProps = {}) {
   }
 
   return (
+    <>
+    {/* S-PND-1 후속: /cart 는 FOOTER_HIDDEN (FooterRoute.tsx) — default
+        bottom=#4A4845 stone footer 색이 부적합. page bg sand (#FBF8F3) 정합. */}
+    <OverscrollTop top="#1E1B16" bottom="#FBF8F3" />
     <div className="cp-root" ref={rootRef}>
       <div className="cp-page-header">
         <h1 className="cp-title-text">장바구니</h1>
@@ -147,5 +152,6 @@ export default function CartClient({ initialItems }: CartClientProps = {}) {
         </>
       )}
     </div>
+    </>
   );
 }
