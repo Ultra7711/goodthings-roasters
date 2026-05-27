@@ -1,9 +1,9 @@
 # 어드민 풀 구현 계획 (Admin Implementation Plan)
 
 > **작성일:** 2026-04-27 (Session 92)
-> **최종 업데이트:** 2026-05-22 (Session 248) — **plan 갱신** · S231~S247 결과 반영 + S248 메인 노출 메뉴 어드민 설정 신설 + S249+ 통계 강화 carry-over 박음.
-> **상태:** Group A/B/C/E/F/H/I/J/K ✅ / Group D 부분 / Group G 미완 / Architecture deepening (ADR-009) ✅.
-> **SoT 원칙:** 본 문서 = 어드민 진행 추적 SoT. 디자인 reference = `docs/admin-design.md`. ADR = `docs/adr/ADR-009-*.md`. detail spec = `memory/project_admin_*.md`.
+> **최종 업데이트:** 2026-05-28 (Session 290) — **§9 출시 차단 + 후속 일감 통합 audit 신설** · 어드민 외 항목 (S-PND production launch + 리뷰 게시판 + 폴리싱 carry) 통합 SoT 확장.
+> **상태:** Group A/B/C/E/F/H/I/J/K/L ✅ / Group D 부분 / Group G 미완 / Group M/N 어드민 미완 / Group O 리뷰 게시판 carry / Architecture deepening (ADR-009) ✅.
+> **SoT 원칙:** 본 문서 = 어드민 + 출시 차단 + 후속 일감 통합 SoT. 디자인 reference = `docs/admin-design.md`. ADR = `docs/adr/ADR-009-*.md`. detail spec = `memory/project_admin_*.md` · `memory/project_pending_sprints.md` · `memory/project_reviews_filtering_carryover.md`.
 
 ---
 
@@ -23,8 +23,9 @@
 | J 굿데이즈 | ✅ (036) | — | ✅ 100% | ✅ | ✅ — S234 Phase 2 폴리싱 + GoodDays UI 전수 점검 |
 | K cafe-events | ✅ (035+058~061+064) | ✅ lib/admin/cafeEvents 분리 (S235) | ✅ 100% | ✅ | ✅ — S235 iframe HTML 모델 + S237 signature 통합 + SEO meta |
 | **L RBAC + audit** | ✅ (055~057) | ✅ auditServer | ✅ 100% | — | ✅ — S233 owner/staff 분리 + /admin/audit |
-| **M 뉴스레터** | ✅ (065~066) | ✅ newsletter | 🟡 어드민 미완 | — | 🟡 — Phase 1+2+3 부분 (도메인 인증 carry) |
+| **M 뉴스레터** | ✅ (065~066) | ✅ newsletter | 🟡 어드민 미완 | — | 🟡 — Phase 1+2+3 + Phase 4 도메인 인증 ✅ (2026-05-26) · admin UI carry (구독자 목록 + bulk send + CSV) |
 | **N 비즈 문의** | ✅ (067) | ✅ bizSubmit | 🟡 어드민 미완 | — | 🟡 — S243 폼 신설 (어드민 목록 carry) |
+| **O 리뷰 게시판** | 📋 (미마이그) | 📋 (미구현) | 📋 carry | — | 📋 — DEC-R1~R3 잠금 · UI/AI 정책 사용자 confirm 후 진입 (S247 어드민 통계 완료 후 진입 조건 충족) |
 
 **범례:** ✅ 완료 · 🟡 부분 · 🔴 미완 · ⏸️ 결정 대기
 
@@ -266,9 +267,13 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | ID | 항목 | 시점 | 옵션 |
 |---|---|---|---|
 | **DEC-G1** | SOP 문서 범위 | S250-4 진입 전 | 사업자용 / 개발자용 / 양쪽 |
-| **DEC-newsletter-3** | 뉴스레터 도메인 인증 시점 | Google Workspace 결제 + Vercel 배포 시점 묶음 | 출시 후 1~2주 |
+| ~~DEC-newsletter-3~~ | 뉴스레터 도메인 인증 시점 | ✅ **완료 2026-05-26** — Google Workspace + Resend DKIM/SPF/DMARC 모두 PASS | `project_newsletter_phase4_complete.md` |
 | **DEC-S249-1** | 차트 라이브러리 선택 | S249+ 진입 전 | CSS-only / **recharts (권장)** / nivo / Tremor |
 | **DEC-S249-2** | Quick Win + Domain 묶음 동시 진입 vs 분리 | S249+ 진입 전 | 일괄 / Quick → 검증 → Domain |
+| **DEC-R1-UI** | 리뷰 UI 위치 | Group O Phase 1 진입 전 | PDP 안 섹션 / 카페 시트 안 / 별도 페이지 / 통합 (A+C) |
+| **DEC-R2-policy** | AI 필터링 차단 정책 | Group O Phase 2 진입 전 | 즉시 차단 / 어드민 검토 큐 / 자동 통과 + 사후 검토 |
+| **DEC-R2-vendor** | AI 필터링 옵션 | Group O Phase 2 진입 전 | OpenAI Moderation 단독 (무료) / Claude API 정밀 / Hybrid |
+| **DEC-R1-photo** | 리뷰 사진 업로드 포함 여부 | Group O Phase 1 Step 6 진입 전 | 포함 (+4~8h) / 제외 |
 
 ---
 
@@ -445,7 +450,121 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | 2026-05-11 | S209 | §0 진행률 신설 + 의존 audit 44개 + 출시 전 처리 확정 |
 | 2026-05-13 | S217 | DB 전환 / Admin UI 두 열 분리 + P0/P1/P2 분류 |
 | 2026-05-14 | S230 | 마스터 통합 재구성 — 모든 어드민 일감 SoT 일원화 / Sprint 카탈로그 S230~S234 + 별 / 폴리싱 sprint §2-4 + 최종 리뷰어 검토 sprint §2-5 신설 / memory carry-over link 박음 / 합계 추정 갱신 |
-| **2026-05-22** | **S248** | **plan 갱신** — §1 매트릭스에 Group L (RBAC+audit) · Group M (뉴스레터) · Group N (비즈 문의) 신설 / §1-2 DEC-19~27 + DEC-S248-1~8 박음 / §2 Sprint 카탈로그에 S231~S247 결과 row 추가 + S248 단계별 항목 박음 + S249+ 통계 강화 carry-over 신설 + S250+ 출시 차단 잔여 + S260 최종 리뷰어 / §3 출시 전 P1 재추정 (4.5~7h S248 + 23~37h S250 + 4~6h S260) + 출시 후 P2 통계 강화 묶음 / §4 마감 결정 분리 + DEC-G1·newsletter-3·S249-1·2 미확정 분리 / §6 전체 잔여 71.5~106h 재계산 |
+| 2026-05-22 | S248 | **plan 갱신** — §1 매트릭스에 Group L (RBAC+audit) · Group M (뉴스레터) · Group N (비즈 문의) 신설 / §1-2 DEC-19~27 + DEC-S248-1~8 박음 / §2 Sprint 카탈로그에 S231~S247 결과 row 추가 + S248 단계별 항목 박음 + S249+ 통계 강화 carry-over 신설 + S250+ 출시 차단 잔여 + S260 최종 리뷰어 / §3 출시 전 P1 재추정 (4.5~7h S248 + 23~37h S250 + 4~6h S260) + 출시 후 P2 통계 강화 묶음 / §4 마감 결정 분리 + DEC-G1·newsletter-3·S249-1·2 미확정 분리 / §6 전체 잔여 71.5~106h 재계산 |
+| **2026-05-28** | **S290** | **§9 출시 차단 + 후속 일감 통합 audit 신설** — 어드민 SoT 를 확장하여 어드민 외 항목 (S-PND production launch + Group O 리뷰 게시판 + 폴리싱 carry) 까지 단일 SoT 통합 / §1 매트릭스에 Group O (리뷰 게시판) 신설 / DEC-newsletter-3 ✅ 완료 마킹 (Phase 4) / DEC-R1-UI · DEC-R2-policy · DEC-R2-vendor · DEC-R1-photo 미확정 추가 / §9 도메인 5종 (A 어드민 / B 카페·상품 CSV / C 리뷰 / D 인프라·launch / E 폴리싱) + 우선순위 권장 진입 순서 + 전체 잔여 131~219h 재계산 |
+
+---
+
+## §9. 출시 차단 + 후속 일감 통합 audit (S290 · 2026-05-28)
+
+> 본 섹션은 어드민 외 항목 (production launch · 리뷰 게시판 · 폴리싱 carry) 까지 단일 SoT 통합. §1~§8 어드민 매트릭스 + carry-over 메모리 5종 통합 audit 결과.
+>
+> **읽기 순서:** §9-1 도메인별 매트릭스 → §9-2 우선순위 → §9-3 결정 대기 → §9-4 합계
+
+### §9-1. 도메인별 잔여 일감
+
+#### A. 어드민 미작업 (§1~§7 reference + 본 audit 갱신)
+
+| ID | 항목 | 상태 | 추정 | sprint |
+|----|------|------|------|--------|
+| D-2 | 정기배송 상세 페이지 | 🟡 70% | 4~6h | S250-1 |
+| G-1 | SOP 문서 (운영자/개발자) | ⏸️ 0% | 4~6h | S250-4 |
+| G-2 | E2E 테스트 critical flow | ⏸️ 0% | 6~10h | S250-5 |
+| M-admin | 뉴스레터 어드민 (구독자 목록 + 발송 이력 + bulk send UI + CSV + 검색/필터/페이지네이션) | 🟡 미완 | 4~6h | S250-2 |
+| N-admin | 비즈 문의 어드민 (목록 + 상세) | 🟡 미완 | 3~5h | S250-3 |
+| S248-2 | 메인 노출 카페 메뉴 어드민 (`site_settings.home_featured_menu_ids` 0~3 슬롯 · DEC-S248-3~8) | 📋 | 3~6h | S248 단계 2 |
+| §234 P3 | 어드민 페이지 폴리싱 carry (사이드바·인터랙션·a11y) | 📋 | 2~4h | S250-6 |
+| S260 | 최종 리뷰어 검토 (code + security + typescript + database 4 reviewer 일괄 + CRITICAL/HIGH fix) | 📋 | 4~6h + α | S260 |
+
+#### B. 카페 메뉴 / 상품 / 검색
+
+| ID | 항목 | 상태 | 추정 |
+|----|------|------|------|
+| E-CSV | Products CSV export | 📋 carry | — |
+| C-CSV | Users CSV (PII 정책 합의 후) | 📋 carry · S232-4 | — |
+| (자체 어드민) | products / cafe-menu CRUD + Storage + 영양시트 + sort_order 자동 + likes SSR | ✅ 100% (S231~S245) | — |
+
+#### C. 리뷰 게시판 (Group O · `project_reviews_filtering_carryover.md`)
+
+| Phase | 항목 | 추정 | 진입 조건 |
+|-------|------|------|----------|
+| Phase 1 Step 1 | UI 위치 결정 (DEC-R1-UI) | 결정 | 사용자 confirm |
+| Phase 1 Step 2 | DB 마이그 (069_user_reviews · RLS + check + target xor) | 4~8h | DEC-R1-UI 후 |
+| Phase 1 Step 3 | 작성 폼 + 별점 UI (Radix Slider 또는 직접 SVG 5개 · `useAuthGuard`) | 4~8h | — |
+| Phase 1 Step 4 | 카드 리스트 + 페이지네이션 + 메뉴/상품 카드 평균 별점 메타 | 4~8h | — |
+| Phase 1 Step 5 | 어드민 모더레이션 (`/admin/reviews` 목록 + 상태 변경 + CSV + owner-only) | 4~8h | — |
+| Phase 1 Step 6 (옵션) | 사진 업로드 (Storage + sharp webp · DEC-R1-photo) | +4~8h | DEC-R1-photo |
+| Phase 2 Step 1 | AI 필터링 정책 + vendor 결정 (DEC-R2-policy + DEC-R2-vendor) | 결정 | 사용자 confirm |
+| Phase 2 Step 2 | server action + audit log + `moderation_result` jsonb 컬럼 | 4~8h | — |
+| Phase 2 Step 3 | 어드민 검토 큐 UI (status='pending' 탭 + 'blocked' 탭) | 4~8h | — |
+
+**합계:** Phase 1 16~32h (사진 제외) / 20~40h (포함) · Phase 2 8~16h · 전체 24~48h (사진 제외) / 28~56h (포함)
+**DEC 잠금:** R1 최소 도입 · R2 무료 우선 (OpenAI Moderation) · R3 S247 어드민 통계 후 (✅ 충족)
+
+#### D. 인프라 · production launch (`project_pending_sprints.md`)
+
+| ID | 항목 | 우선순위 | 추정 |
+|----|------|---------|------|
+| S-PND-3 | 토스 결제 키 갱신 (사용자 외부 키 발급 후 30분) | 🔴 | 30분 |
+| S-PND-V1 | Vercel 배포 정리 (가입 + repo 연결 + 환경변수 + 도메인 NS 변경 + DNS 마이그 + 검증) | 🔴 production 핵심 | 6~12h |
+| S-PND-4 carry | Lighthouse LCP 측정 (Vercel 배포 후 PageSpeed Insights) | 🟡 진단 | 1h |
+| S-PND-V2 | Newsletter 로고 production URL 자동 확인 | 🟢 V1 후 자동 | 30분 |
+
+#### E. 폴리싱 / carry
+
+| ID | 항목 | 상태 | 추정 |
+|----|------|------|------|
+| S-PND-1+2 carry | PDP/cart 모바일 rubber-band white | carry · 진단 자산 확보 시 | L17 정합 (진단 자산 없으면 답습 차단) |
+| S-PND-5 | Hero 영상 품질 + 로딩 0 (Onyx Coffee Lab 레퍼런스 · 리서치/agent 선행 의무) | 🟡 | 4~10h |
+| CS AI 봇 | Claude API + tool use (주문 조회 / FAQ lookup) | 별도 sprint · 운영 데이터 누적 후 | 20~40h |
+| arch sweep | improve-codebase-architecture 최종 (S227~S260 결과 audit) | 출시 후 V2+ | 8~10h |
+
+### §9-2. 우선순위 권장 진입 순서
+
+1. **🔴 S-PND-3 토스 키 갱신** — 외부 키 발급 신호 시 즉시 (30분)
+2. **🔴 A. 어드민 미작업 출시 차단 묶음** (S248-2 + S250-1~6 + S260) — 22.5~35h · 1~1.5주
+3. **🔴 S-PND-V1 Vercel 배포** — 6~12h
+4. **🔴 후속 검증 묶음** (S-PND-3 결제 / S-PND-V2 로고 / Lighthouse LCP) — 1~2h
+5. **🟡 C. Group O 리뷰 게시판 Phase 1** — DEC-R1-UI confirm 후 16~32h
+6. **🟡 Group O Phase 2 AI 필터링** — DEC-R2-* confirm 후 8~16h
+7. **🟢 B. CSV PII 정책 + S249+ Quick Win** — 출시 후 1개월 14~22h
+8. **🟢 S249+ Domain Insight + CSV 추가** — 출시 후 2~3개월 11~19h
+9. **🟢 V2+ Deep Analysis + CS AI 봇 + arch sweep** — 출시 후 V2+ 52~80h
+
+### §9-3. 결정 대기 매트릭스
+
+§4-2 미확정 결정 cross-reference. 본 audit 진입 전 사용자 confirm 의무.
+
+| 우선순위 | DEC ID | 결정 시점 |
+|---------|--------|----------|
+| 🔴 출시 차단 | DEC-G1 (SOP 범위) | S250-4 진입 전 |
+| 🟡 출시 후 1개월 | DEC-S249-1 (차트 라이브러리) · DEC-S249-2 (Quick/Domain 묶음) | S249+ 진입 전 |
+| 🟡 리뷰 게시판 진입 | DEC-R1-UI · DEC-R1-photo · DEC-R2-policy · DEC-R2-vendor | Group O Phase 1/2 진입 전 |
+
+### §9-4. 전체 잔여 합계 재계산 (S290 audit)
+
+| 단계 | 합계 |
+|------|------|
+| 출시 차단 (A + D 핵심: S248-2 + S250 + S260 + S-PND-3 + S-PND-V1) | **~30~50h** (1~1.5주 풀타임) |
+| 리뷰 게시판 (C: Group O Phase 1+2 사진 제외) | **24~48h** |
+| 출시 후 1개월 (B + 어드민 통계 Quick Win) | **14~22h** |
+| 출시 후 2~3개월 (Domain Insight + CSV PII) | **11~19h** |
+| 출시 후 V2+ (Deep Analysis + arch sweep + CS AI 봇) | **52~80h** |
+| **전체 잔여** | **~131~219h** |
+
+### §9-5. carry-over 메모리 cross-reference
+
+본 §9 통합 audit 의 detail spec 메모리:
+
+| 메모리 파일 | 역할 |
+|-------------|------|
+| `memory/project_pending_sprints.md` | S-PND-1~5 + S-PND-V1~V3 카탈로그 (S290 갱신) |
+| `memory/project_reviews_filtering_carryover.md` | Group O 리뷰 게시판 Phase 1+2 spec |
+| `memory/project_newsletter_phase4_complete.md` | Newsletter Phase 4 도메인 인증 완료 스냅샷 |
+| `memory/project_session290_complete.md` | S290 favicon system + 본 §9 audit 진입 |
+| `memory/lesson_pdp_overscroll_thrash.md` | L1~L17 답습 차단 (S-PND-1+2 carry 진입 시) |
+| `memory/lesson_hero_video_thrash.md` | L6~L13 답습 차단 (S-PND-5 진입 시) |
+| `memory/carry_s_pnd_5_hero_video_plan.md` | S-PND-5 Phase 2 진입 자료 |
 
 ---
 
