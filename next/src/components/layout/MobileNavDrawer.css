@@ -18,6 +18,9 @@
   opacity: 1;
   pointer-events: auto;
 }
+#mobile-nav.open #mobile-nav-panel {
+  background: var(--drawer-bg);
+}
 #mobile-nav-panel {
   position: fixed;
   /* top/bottom inset stretch — fixed 의 inset 은 layout viewport 기준이라
@@ -31,7 +34,13 @@
   bottom: 0;
   right: calc(var(--scrollbar-w, 0px) * -1);
   width: var(--drawer-width);
-  background: var(--drawer-bg);
+  /* S-PND-1 후속 (iOS 26 Liquid Glass sampling fix · 1ar.io 권장):
+     closed 상태 (transform: translateX(100%)) 일 때도 iOS 가 fixed top:0 element
+     의 background-color 를 toolbar/rubber-band tinting 으로 sampling →
+     bg=#FBF8F3 (sand) light 색이 sample 되어 PDP/cart 등 light page 에서
+     viewport rubber-band 가 white-ish 로 보이는 회귀 원인.
+     default = transparent · .open 일 때만 sand bg 적용 → 닫힌 상태 시각 영향 0. */
+  background: transparent;
   z-index: calc(var(--z-drawer) + 1);
   display: flex;
   flex-direction: column;

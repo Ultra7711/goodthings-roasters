@@ -38,7 +38,9 @@
   bottom: 0;
   right: calc(var(--scrollbar-w, 0px) * -1);
   width: var(--drawer-width);
-  background: var(--drawer-bg);
+  /* S-PND-1 후속 (iOS 26 Liquid Glass sampling fix · 1ar.io 권장):
+     MobileNavDrawer 와 동일 패턴. closed 시 transparent + .open 시 sand. */
+  background: transparent;
   box-shadow: var(--drawer-shadow);
   z-index: calc(var(--z-drawer) + 11);
   display: flex;
@@ -47,7 +49,10 @@
   transition: transform var(--drawer-transition-duration) var(--drawer-transition-easing) 120ms;
   will-change: transform;
 }
-#cart-drawer.open #cart-drawer-panel { transform: translateX(0); }
+#cart-drawer.open #cart-drawer-panel {
+  transform: translateX(0);
+  background: var(--drawer-bg);
+}
 /* 모바일: <768 풀스크린 (Session 38 Step C) */
 @media (max-width: 767px) {
   #cart-drawer-panel { width: 100vw; right: 0; }
