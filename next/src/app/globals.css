@@ -626,7 +626,12 @@ html.is-touching *:hover {
 
 body {
   font-family: var(--font-en);
-  background: transparent;
+  /* S289 H-a: transparent → inverse. iOS Safari 26 가 first paint 시 body bg 를
+     sample 하여 rubber-band 색을 정함 (zulip #37367 · nasedk.in · ben frain).
+     transparent 시 user agent default white 가 sample → cached 가능성. 명시 색
+     설정으로 차단. inverse(#1E1B16) = html bg 와 동일 → dark 일관. .page-bg
+     wrapper 가 page bg primary 로 위 덮음 → 일반 사용자에 가시 영향 0. */
+  background: var(--color-background-inverse);
   color: var(--color-text-primary);
   word-break: keep-all;
 }
