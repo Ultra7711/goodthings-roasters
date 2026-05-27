@@ -57,7 +57,7 @@ export default async function RootLayout({
   return (
     <html lang="ko" className={`${inter.variable} ${pretendard.variable} antialiased`}>
       <head>
-        <link rel="preload" as="image" href="/images/hero/hero-poster.jpg" fetchPriority="high" />
+        <link rel="preload" as="image" href="/images/hero/hero-poster.webp" fetchPriority="high" />
         {/* iOS Safari 데이터 디텍터 — 이메일·전화번호 자동 링크 변환 방지 */}
         <meta name="format-detection" content="telephone=no, email=no, address=no" />
         {/* S283: <head> 안 inline script — body parse 전 발화 → <html> 에 class 박음.
