@@ -127,9 +127,14 @@ export default function HeroSection() {
           ref={videoRef}
           className="hero-bg"
           autoPlay muted loop playsInline
-          preload="auto"
+          preload="metadata"
           poster="/images/hero/hero-poster.jpg"
         >
+          {/* S-PND-4: codec source 순서 = 효율 우선 (위에서부터 시도, 첫 호환 source 만 다운로드).
+              AV1 (4.8MB · SVT-AV1 CRF 35) = Chrome 70+ / Firefox 67+ / Safari 17.4+ native.
+              VP9 (5.6MB · CRF 36) = 구 Chrome/Firefox/Edge fallback.
+              H.264 (5.2MB · CRF 30 · faststart) = Safari < 17.4 fallback. */}
+          <source src="/images/hero/hero-video.av1.mp4" type='video/mp4; codecs="av01"' />
           <source src="/images/hero/hero-video.webm" type="video/webm" />
           <source src="/images/hero/hero-video.mp4" type="video/mp4" />
         </video>

@@ -9,12 +9,19 @@
  * 출력 사용처:
  *   - cafe-menu-blur.json   ← getCafeImageMeta (CafeNutritionSheet · CafeMenuCard)
  *   - products-blur.json    ← getProductImageMeta (ShopCard · 검색결과 · LineupSection)
+ *   - story-blur.json       ← StoryPage 섹션 이미지
+ *   - gallery-blur.json     ← GoodDays 메인 갤러리
+ *   - cafe-events-blur.json ← 카페 이벤트 seed 이미지 (S-PND-4 · 075 migration UPDATE 에 사용)
  *
  * 사용법:
  *   cd next && npm run gen:image-blur
  *
  * 참고: GoodDays 어드민은 업로드 시점에 동일 처리 (admin/gooddays/actions.ts).
  *       cafe-menu / products 도 추후 admin 도입 시 동일 흐름으로 일관화 — carry-over.
+ *
+ * 제외 (S-PND-4 진단):
+ *   - hero/hero-poster.jpg → <video poster> HTML attribute (next/image 아님 · 42KB)
+ *   - sections/img_* → CSS background-image (placeholder 적용 불가) · 일부 dead asset 정리
  */
 
 import { readdir, readFile, writeFile, mkdir } from 'node:fs/promises';
@@ -26,7 +33,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, '..');
 
-/** @type {{ label: string; srcDir: string; outFile: string }[]} */
+/** @type {{ label: string; srcDir: string; outFile: string; ext?: RegExp }[]} */
 const BUILDS = [
   {
     label: 'cafe-menu',
@@ -48,13 +55,20 @@ const BUILDS = [
     srcDir: join(ROOT, 'public', 'images', 'gallery'),
     outFile: join(ROOT, 'src', 'lib', 'gallery-blur.json'),
   },
+  {
+    label: 'cafe-events',
+    srcDir: join(ROOT, 'public', 'images', 'cafe-events'),
+    outFile: join(ROOT, 'src', 'lib', 'cafe-events-blur.json'),
+    /* family-month .png + .webp 동시 보유 기간 — webp 만 처리. */
+  },
 ];
 
 /**
- * @param {{ label: string; srcDir: string; outFile: string }} build
+ * @param {{ label: string; srcDir: string; outFile: string; ext?: RegExp }} build
  */
-async function processBuild({ label, srcDir, outFile }) {
-  const files = (await readdir(srcDir)).filter((f) => /\.webp$/i.test(f));
+async function processBuild({ label, srcDir, outFile, ext }) {
+  const pattern = ext ?? /\.webp$/i;
+  const files = (await readdir(srcDir)).filter((f) => pattern.test(f));
   if (files.length === 0) {
     console.error(`[gen:image-blur][${label}] no .webp in ${srcDir}`);
     return;
