@@ -45,12 +45,12 @@
   to   { transform: translateX(0); }
 }
 
-/* ══ #home-body — 홈 페이지 진입 페이드인 (BUG-178 동일 패턴)
-     data-dest-dark 가 .root 배경을 dark 로 유지하는 400ms 동안
-     opacity:0→1 전환 → 히어로 영상 부드러운 등장 + 흰 플래시 차단. ══ */
-#home-body {
-  animation: stFadeIn var(--duration-drawer) var(--ease-spring) both;
-}
+/* ══ #home-body — S-PND-5 G1: stFadeIn animation 폐기.
+     이전 (BUG-178 패턴): 350ms 페이드인이 흰 플래시 차단 목적.
+     S283 의 html.dest-dark + .root { background: dark } 가 흰 플래시 차단 = 이중 안전망 중복.
+     stFadeIn 동안 hero video 가 home-body opacity 0 으로 가려져 사용자 인식 다크 가시 350ms.
+     클라이언트 네비 시 video cache hit 이어도 매번 350ms 다크 → S-PND-5 G1 으로 폐기.
+     측정: warm cascade 450ms → 100ms (350ms 단축 · 사용자 인정). ══ */
 
 /* ══ #hero-blk ══ */
 /* 어나운스 + 헤더 높이만큼 위로 당겨 전체화면 덮음 — clamp 값이 뷰포트마다 달라 고정값 대신 변수 사용 */
