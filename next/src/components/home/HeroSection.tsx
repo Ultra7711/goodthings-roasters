@@ -23,8 +23,28 @@ import { useEffect, useRef, useState } from 'react';
 
 export default function HeroSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const posterElRef = useRef<HTMLDivElement>(null);
   /* S-PND-5: poster 별도 layer 가시성 — video 가 실제 첫 frame 표시 가능 시점에 fade out. */
   const [posterHidden, setPosterHidden] = useState(false);
+  /* S-PND-5 P0a: cleanup 직전 video 의 현재 frame 을 dataURL 로 capture 해 보관.
+     재진입 시 .hero-bg-poster background 동적 갱신 + Web Animations API 로 fade-in.
+     useRef = Activity hidden 동안에도 mount 유지로 값 보존. */
+  const capturedFrameRef = useRef<string | null>(null);
+
+  /* S-PND-5 P0a: Activity visible 복귀 시 captured frame fade-in (/story 패턴 일관).
+     Web Animations API 사용 — keyframes 명시 (0 → 1) 로 시작점 보장.
+     React state/className/CSS transition timing 의존 회피.
+     cleanup 시 captured frame 이 .hero-bg-poster 의 backgroundImage 로 적용된 상태. */
+  useEffect(() => {
+    const posterEl = posterElRef.current;
+    if (!posterEl || !capturedFrameRef.current) return;
+    const anim = posterEl.animate(
+      [{ opacity: 0 }, { opacity: 1 }],
+      { duration: 400, easing: 'ease-out', fill: 'forwards' },
+    );
+    setPosterHidden(false);
+    return () => anim.cancel();
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -81,8 +101,16 @@ export default function HeroSection() {
       }, 300));
     };
 
-    /* 최초 autoplay 시도 */
-    void video.play().catch(() => {});
+    /* S-PND-5 P0a: 자동 재생 — /story 패턴 일관.
+       cold load (capturedFrame null) = 즉시 play (기존 동작).
+       재진입 (capturedFrame 있음) = 400ms 지연 후 play → captured frame fade-in 완료 후 video paint. */
+    if (!capturedFrameRef.current) {
+      void video.play().catch(() => {});
+    } else {
+      timers.push(setTimeout(() => {
+        void video.play().catch(() => {});
+      }, 400));
+    }
 
     /* 트리거 — 사용자/시스템 이벤트 모두 recover() 호출.
        recoveryInProgress 가드 + currentTime 진행 검사로 정상 재생 시 no-op. */
@@ -108,6 +136,50 @@ export default function HeroSection() {
 
     return () => {
       clearTimers();
+
+      /* S-PND-5 P0a: cleanup 시점에 video 의 현재 frame 을 dataURL 로 capture →
+         다음 visible cycle 의 fade-in 시작점 (captured frame backgroundImage) 으로 활용.
+         readyState >= 2 (HAVE_CURRENT_DATA) + videoWidth > 0 = paint 가능 frame 존재.
+         4 sample pixel 평균 brightness < 5 = iOS Safari GPU issue (WebKit Bug 237424) 또는
+         검은 scene → 폐기 (capturedFrameRef 갱신 안 함 = 기존 동작 fallback). */
+      try {
+        if (video.readyState >= 2 && video.videoWidth > 0) {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const samples = [
+              ctx.getImageData(canvas.width >> 2, canvas.height >> 2, 1, 1).data,
+              ctx.getImageData((canvas.width * 3) >> 2, canvas.height >> 2, 1, 1).data,
+              ctx.getImageData(canvas.width >> 2, (canvas.height * 3) >> 2, 1, 1).data,
+              ctx.getImageData((canvas.width * 3) >> 2, (canvas.height * 3) >> 2, 1, 1).data,
+            ];
+            const avgBrightness =
+              samples.reduce((s, px) => s + px[0] + px[1] + px[2], 0) / (samples.length * 3);
+            if (avgBrightness >= 5) {
+              capturedFrameRef.current = canvas.toDataURL('image/jpeg', 0.75);
+              /* cleanup 시점에 .hero-bg-poster backgroundImage 적용 → 다음 visible cycle
+                 first paint 시 captured frame 이 이미 적용된 상태에서 fade-in 시작. */
+              const posterEl = document.querySelector('.hero-bg-poster') as HTMLElement | null;
+              if (posterEl) {
+                posterEl.style.backgroundImage = `url(${capturedFrameRef.current})`;
+              }
+              /* video element 자체 invisible 처리 → visible 복귀 first paint 시 video element
+                 (z:1) 의 last frame buffer paint 가 .hero-bg-poster (z:0) 의 fade-in animation
+                 을 가리는 issue 차단. onPlaying 시 복원. */
+              const videoEl = document.querySelector('video.hero-bg') as HTMLVideoElement | null;
+              if (videoEl) {
+                videoEl.style.visibility = 'hidden';
+              }
+            }
+          }
+        }
+      } catch {
+        /* swallow — cross-origin tainted · iOS GPU access denied 등 */
+      }
+
       video.pause();
       document.removeEventListener('touchstart', recover);
       document.removeEventListener('click', recover);
@@ -123,10 +195,12 @@ export default function HeroSection() {
   return (
     <section className="blk" id="hero-blk" data-header-theme="dark">
       <div className="hero">
-        {/* 포스터 로드 전 gradient placeholder — 순수 다크에서 이미지로 전환 시 충격 완화 */}
+        {/* 포스터 로드 전 gradient placeholder — 순수 다크에서 이미지로 전환 시 충격 완화. */}
         <div className="hero-bg-placeholder" aria-hidden="true" />
-        {/* S-PND-5: poster 별도 layer — video preload 대기 없이 즉시 표시. video playing 시 fade out. */}
+        {/* S-PND-5: poster 별도 layer — video preload 대기 없이 즉시 표시. video playing 시 fade out.
+            P0a: 재진입 시 captured frame 이 cleanup 에서 backgroundImage 로 적용된 후 useEffect 에서 Web Animations API fade-in. */}
         <div
+          ref={posterElRef}
           className={`hero-bg-poster${posterHidden ? ' is-hidden' : ''}`}
           aria-hidden="true"
         />
@@ -137,8 +211,15 @@ export default function HeroSection() {
           preload="auto"
           // @ts-expect-error — React 19 VideoHTMLAttributes 에 fetchPriority 미정의 (HTML 표준은 허용)
           fetchPriority="high"
-          poster="/images/hero/hero-poster.jpg"
-          onPlaying={() => setPosterHidden(true)}
+          /* S-PND-5 P0a: poster attribute 폐기 — paused 상태의 video element (z:1) 가 poster
+             이미지를 위 paint 하여 .hero-bg-poster (z:0) 의 fade-in animation 을 가리는 issue 차단.
+             Cold load fallback = .hero-bg-poster 의 CSS background-image (hero-poster.jpg). */
+          onPlaying={() => {
+            setPosterHidden(true);
+            /* S-PND-5 P0a: video element visibility 복원 (cleanup 시 hidden 처리한 것 reset). */
+            const v = videoRef.current;
+            if (v) v.style.visibility = '';
+          }}
         >
           {/* S-PND-5: source 순서 = MP4 1순위 (모든 환경 HW 가속 H.264) + AV1 2순위 fallback.
               S-PND-4 의 AV1 1순위 → 디코딩 대기 + 빈 화면 길어짐 회귀 해소. WebM 자산 폐기.
