@@ -19,10 +19,11 @@ export const metadata: Metadata = {
 export default function CheckoutLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      {/* BUG-165 (S88): AnnouncementBar/SiteFooter 가 없는 독립 레이아웃이라
-          기본 OverscrollTop 색(#1E1B16/#4A4845)이 light 페이지 bg 와 부조화.
-          light(#FBF8F3) 로 오버라이드하여 자체 미니 헤더와 시각 통일. */}
-      <OverscrollTop top="#EFEAE0" bottom="#FBF8F3" />
+      {/* S285: AnnouncementBar 없는 독립 레이아웃 — top/bottom 모두 페이지 메인 bg
+          (--color-background-primary = #FBF8F3) 와 정합. 이전 top=#EFEAE0 (secondary
+          sand) 가 메인 bg 와 한 단계 darker → 사용자 의도와 어긋남. 통일 정책:
+          어나운스바 없는 페이지 = 상단 page bg, footer 없는 페이지 = 하단 page bg. */}
+      <OverscrollTop top="#FBF8F3" bottom="#FBF8F3" />
       {children}
       <ToastContainer />
     </>
