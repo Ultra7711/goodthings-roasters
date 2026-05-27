@@ -71,25 +71,16 @@ export default async function RootLayout({
       </head>
       {/* Providers: QueryClientProvider + CartDrawerProvider (ADR-004 Step B).
           AuthSyncProvider: Supabase 세션 → Zustand 동기화 브리지 (P0-2) +
-          로그인/로그아웃 시 ['cart'] 캐시 invalidate.
-
-          S-PND-1 후속: body SSR inline backgroundColor = #1E1B16 (warm black).
-          iOS Safari rubber-band 영역 색 = body bg. globals.css `body { background:
-          var(--color-background-inverse) }` 가 cascade 적용되지만 hydration 전
-          first paint 시 stylesheet 로드 timing 에 따라 user agent default white
-          fallback 가능. SSR inline style 로 첫 paint 부터 dark 강제. OverscrollColor
-          가 mount 후 페이지별 색으로 override (inline → inline cascade · 후자 win). */}
-      <body style={{ backgroundColor: '#1E1B16' }}>
+          로그인/로그아웃 시 ['cart'] 캐시 invalidate. */}
+      <body>
         {/* Next.js 16 cacheComponents: dynamic [param] 라우트 prerender 시
             usePathname / window 접근 클라 컴포넌트는 Suspense 로 격리해야 함. */}
         <Suspense fallback={null}>
           <NextTopLoader color="#7A6B52" height={2} showSpinner={false} />
         </Suspense>
-        {/* S-PND-1 후속: Suspense 외부 mount 보장. Vercel production build 의
-            hydration timing 차이로 OverscrollColor mount 지연 → body bg 적용
-            안 된 채 첫 paint → iOS Safari rubber-band white 회귀 가능성 차단.
-            OverscrollColor 자체가 useEffect 안에서만 DOM 접근 (SSR-safe). */}
-        <OverscrollColor />
+        <Suspense fallback={null}>
+          <OverscrollColor />
+        </Suspense>
         <Suspense fallback={null}>
           <TouchHoverGuard />
         </Suspense>
