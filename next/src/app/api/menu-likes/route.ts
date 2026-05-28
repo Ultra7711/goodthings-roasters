@@ -4,11 +4,16 @@
    - 로그인 사용자라면 자신이 좋아요한 menu_id 목록도 함께 반환
    ══════════════════════════════════════════════════════════════════════════ */
 
+import { connection } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api/errors';
 import { getClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 
 export async function GET(): Promise<Response> {
+  /* S295: Next.js 16 cacheComponents 환경에서 cookies() 호출이 prerender 종료 후
+     resolve 되어 HANGING_PROMISE_REJECTION 발생. await connection() 으로 명시적
+     dynamic 마킹 → Next.js 가 즉시 dynamic 처리하여 prerender attempt 자체 차단. */
+  await connection();
   try {
     const supabase = await createRouteHandlerClient();
 
