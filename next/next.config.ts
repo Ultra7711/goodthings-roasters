@@ -108,6 +108,20 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: SECURITY_HEADERS,
       },
+      {
+        // S294 version skew 차단 (다층 방어 #2):
+        //   HTML / RSC payload / API 응답에 must-revalidate 강제 → 사용자 browser /
+        //   Vercel CDN 의 stale HTML 이 새 deployment 의 chunks 와 mismatch 일으키는
+        //   회귀 (footer 영역 비정상 늘어남) 거의 차단. 브라우저는 304 로 cache 재사용
+        //   가능 — latency 영향 적음 (서버 prerender ~50ms).
+        //   _next/static / _next/image / favicon / images / fonts / monitoring 은 제외:
+        //   filename hash 포함된 immutable assets / 정적 자산 / Sentry tunnel.
+        //   참조: https://nextjs.org/docs/app/guides/self-hosting#version-skew
+        source: "/((?!_next/static|_next/image|favicon|images|fonts|monitoring).*)",
+        headers: [
+          { key: "Cache-Control", value: "private, no-cache, must-revalidate" },
+        ],
+      },
     ];
   },
 };
