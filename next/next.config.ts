@@ -32,12 +32,16 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
-  // Turbopack workspace root 를 next/ 로 고정.
+  // Turbopack + outputFileTracing workspace root 를 next/ 로 고정.
   // 상위 디렉터리(goodthings-roasters/)에 package-lock.json 이 존재할 수 있어
   // (supabase CLI 등 repo-level devDeps) 자동 추론이 루트를 잘못 선택하는 문제 회피.
+  // S295: Vercel 빌드에서 outputFileTracingRoot 자동 추론이 turbopack.root 와
+  // 다른 값으로 설정되어 "must have the same value" 경고 발생. 두 옵션 모두
+  // 동일 값으로 명시.
   turbopack: {
     root: path.join(__dirname),
   },
+  outputFileTracingRoot: path.join(__dirname),
 
   // @node-rs/argon2 는 native binary 를 포함하므로 서버 번들에서 제외한다.
   // Next.js 가 Node.js native 모듈을 webpack 으로 처리하지 않고 런타임에 require 한다.
