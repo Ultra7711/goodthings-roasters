@@ -23,7 +23,7 @@
 | J 굿데이즈 | ✅ (036) | — | ✅ 100% | ✅ | ✅ — S234 Phase 2 폴리싱 + GoodDays UI 전수 점검 |
 | K cafe-events | ✅ (035+058~061+064) | ✅ lib/admin/cafeEvents 분리 (S235) | ✅ 100% | ✅ | ✅ — S235 iframe HTML 모델 + S237 signature 통합 + SEO meta |
 | **L RBAC + audit** | ✅ (055~057) | ✅ auditServer | ✅ 100% | — | ✅ — S233 owner/staff 분리 + /admin/audit |
-| **M 뉴스레터** | ✅ (065~066) | ✅ newsletter | 🟡 어드민 미완 | — | 🟡 — Phase 1+2+3 + Phase 4 도메인 인증 ✅ (2026-05-26) · admin UI carry (구독자 목록 + bulk send + CSV) |
+| **M 뉴스레터** | ✅ (065~066) | ✅ newsletter | 🟡 부분 (구독자 목록만) | — | 🟡 — Phase 1+2+3 + Phase 4 도메인 인증 ✅ (2026-05-26) · `/admin/newsletter` 구독자 목록 200건 표시 완료 · 페이지네이션/검색/필터/CSV/bulk send UI carry (S250-2) |
 | **N 비즈 문의** | ✅ (067) | ✅ bizSubmit | 🟡 어드민 미완 | — | 🟡 — S243 폼 신설 (어드민 목록 carry) |
 | **O 리뷰 게시판** | 📋 (미마이그) | 📋 (미구현) | 📋 carry | — | 📋 — DEC-R1~R3 잠금 · UI/AI 정책 사용자 confirm 후 진입 (S247 어드민 통계 완료 후 진입 조건 충족) |
 
@@ -65,13 +65,13 @@
 | DEC-26 | CSV export — owner-only 가드 + audit 등록 (Subs/Orders/Audit) | ✅ | S233 |
 | DEC-27 | 배너 LQIP base64 placeholder (마이그 068 + generateImageBlurAction) | ✅ | S246 |
 | **DEC-S248-1** | **통계 강화 sprint — 출시 후 carry-over** (실데이터 누적 후 진입) | 📋 carry | S249+ |
-| **DEC-S248-2** | **plan 갱신부터** (S248 단계 1) | ⏳ 진행 중 | S248 |
-| **DEC-S248-3** | **메인 노출 메뉴 어드민 — site_settings 저장 (B 옵션)** | 📋 | S248 단계 2 |
-| **DEC-S248-4** | **Dropdown source = `cafe_menus` 전체 + ↑↓ reorder + 검색 + 중복 방지** | 📋 | S248 단계 2 |
-| **DEC-S248-5** | **`cafe_menus.status='시그니처'` 마커 그대로 유지** (PDP/리스트 배지 + 정렬 가중 — 단일 책임) | 📋 잠금 | S248 |
-| **DEC-S248-6** | **`/menu` 페이지 정렬 — 기존 status 정렬 그대로** (메인 노출과 분리) | 📋 잠금 | S248 |
-| **DEC-S248-7** | **메인 노출 메뉴 사용자 시각 — 기본 카드 그대로** ("메인 추천" 배지 추가 X) | 📋 잠금 | S248 |
-| **DEC-S248-8** | **0 slot fallback — 기존 `status='시그니처' .slice(0,3)` 자동 fallback** (안전망) | 📋 | S248 단계 2 |
+| **DEC-S248-2** | **plan 갱신부터** (S248 단계 1) | ✅ | S248 |
+| **DEC-S248-3** | **메인 노출 메뉴 어드민 — site_settings 저장 (B 옵션)** | ✅ | S248 단계 2 |
+| **DEC-S248-4** | **Dropdown source = `cafe_menus` 전체 + ↑↓ reorder + 검색 + 중복 방지** | ✅ | S248 단계 2 |
+| **DEC-S248-5** | **`cafe_menus.status='시그니처'` 마커 그대로 유지** (PDP/리스트 배지 + 정렬 가중 — 단일 책임) | ✅ 잠금 | S248 |
+| **DEC-S248-6** | **`/menu` 페이지 정렬 — 기존 status 정렬 그대로** (메인 노출과 분리) | ✅ 잠금 | S248 |
+| **DEC-S248-7** | **메인 노출 메뉴 사용자 시각 — 기본 카드 그대로** ("메인 추천" 배지 추가 X) | ✅ 잠금 | S248 |
+| **DEC-S248-8** | **0 slot fallback — 기존 `status='시그니처' .slice(0,3)` 자동 fallback** (안전망) | ✅ | S248 단계 2 |
 
 ---
 
@@ -102,7 +102,7 @@
 | S245 | 영양시트 + sort_order 자동 + 카드 정렬 + 컵 용량 + 카페인 매핑 + likes SSR hydration | ✅ | — | — |
 | S246 | drawer 플래시 진단 + mypage 폴리싱 + 어드민 배너 LQIP (068 마이그) | ✅ | — | — |
 | S247 | /menu 진입 속도 (priority + 클라이언트 분리) + cafe-menu 시각 폴리싱 + 영양시트 모바일 rubber-band fix | ✅ | — | — |
-| **S248 (현재)** | **plan 갱신 (단계 1) + 메인 노출 카페 메뉴 어드민 신설 (단계 2) + 통계 강화 carry-over (단계 3)** | ⏳ 진행 중 | **4.5~7h** | Opus 4.7 + Sonnet 4.6 |
+| **S248** | **plan 갱신 (단계 1) + 메인 노출 카페 메뉴 어드민 신설 (단계 2) + 통계 강화 carry-over (단계 3)** | ✅ | **4.5~7h** | Opus 4.7 + Sonnet 4.6 |
 | **S249+** | **통계 강화 sprint** (carry-over · DEC-S248-1) — 후보 10종 + Quick Win + Domain Insight | 📋 carry | 14~22h (Quick) + 11~19h (Domain) | Sonnet 4.6 |
 | **S250+** | **출시 차단 잔여 — D-2 정기배송 상세 + G-1 SOP + G-2 E2E + 뉴스레터/비즈 어드민** | 📋 | 18~28h | Sonnet 4.6 |
 | **S260** | **최종 리뷰어 검토 sprint** (4 reviewer 일괄) | 📋 | 4~6h + 수정 | Opus 4.7 |
@@ -210,7 +210,7 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 
 | 항목 | sprint | 추정 |
 |---|---|---|
-| plan 갱신 + 메인 노출 메뉴 어드민 + 통계 carry-over | S248 | 4.5~7h |
+| ~~plan 갱신 + 메인 노출 메뉴 어드민 + 통계 carry-over~~ | ~~S248~~ | ✅ 완료 (4.5~7h 차감) |
 | D-2 정기배송 상세 페이지 | S250-1 | 4~6h |
 | 뉴스레터 어드민 (구독자 목록 + 발송 이력) | S250-2 | 4~6h |
 | 비즈 문의 어드민 (목록 + 상세) | S250-3 | 3~5h |
@@ -302,12 +302,12 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 
 | 단계 | 합계 | 비고 |
 |---|---|---|
-| 출시 전 P1 (S248 + S250 + S260) | **~22.5~35h** | 1주~1.5주 풀타임 |
+| 출시 전 P1 (S250 + S260) | **~19.5~29h** | 1주 풀타임 (S248 완료 차감) |
 | 출시 후 1~2주 P1 | 도메인 인증·DEC-G1 합의 등 (시간 추정 ↓) | 뉴스레터 production + 비즈 첨부 |
 | 출시 후 1개월 P2 (Quick Win) | ~14~22h | S249+ 통계 Quick Win 묶음 |
 | 출시 후 2~3개월 P2 (Domain) | ~11~19h | S249+ 통계 Domain Insight 묶음 |
 | 출시 후 V2+ P3 | ~24~30h | Deep Analysis + 필터 확장 + arch sweep |
-| **전체 잔여** | **~71.5~106h** | 출시 전 풀타임 1~1.5주 + 출시 후 3~6개월 |
+| **전체 잔여** | **~68.5~100h** | 출시 전 풀타임 1주 + 출시 후 3~6개월 |
 
 ---
 
@@ -433,11 +433,11 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 - 신규 메모리 1건 (`feedback-multi-account-verification`)
 - 9 commits `d34c83e4..a07ee35a`
 
-### S248 — plan 갱신 + 메인 노출 메뉴 어드민 + 통계 carry-over 🟡 진행 중
+### S248 — plan 갱신 + 메인 노출 메뉴 어드민 + 통계 carry-over ✅
 
-- 단계 1 plan 갱신 ✅ (본 갱신 · 2026-05-22)
-- 단계 2 메인 노출 카페 메뉴 어드민 설정 📋
-- 단계 3 통계 강화 carry-over 메모리 📋
+- 단계 1 plan 갱신 ✅ (S248 · 2026-05-22)
+- 단계 2 메인 노출 카페 메뉴 어드민 설정 ✅ (mig 069 + SettingsForm + HomeFeaturedSubForm + lib/siteSettings + actions + CafeMenuSection fetch 교체 + 0 slot fallback)
+- 단계 3 통계 강화 carry-over ✅ (별 메모리 파일 없이 `docs/admin-implementation-plan.md` §2-2 에 직접 spec 박음 · S249+ Quick Win 4종 + Domain Insight 3종 + Deep 2종 + 제외 1종)
 
 ---
 
@@ -452,6 +452,7 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | 2026-05-14 | S230 | 마스터 통합 재구성 — 모든 어드민 일감 SoT 일원화 / Sprint 카탈로그 S230~S234 + 별 / 폴리싱 sprint §2-4 + 최종 리뷰어 검토 sprint §2-5 신설 / memory carry-over link 박음 / 합계 추정 갱신 |
 | 2026-05-22 | S248 | **plan 갱신** — §1 매트릭스에 Group L (RBAC+audit) · Group M (뉴스레터) · Group N (비즈 문의) 신설 / §1-2 DEC-19~27 + DEC-S248-1~8 박음 / §2 Sprint 카탈로그에 S231~S247 결과 row 추가 + S248 단계별 항목 박음 + S249+ 통계 강화 carry-over 신설 + S250+ 출시 차단 잔여 + S260 최종 리뷰어 / §3 출시 전 P1 재추정 (4.5~7h S248 + 23~37h S250 + 4~6h S260) + 출시 후 P2 통계 강화 묶음 / §4 마감 결정 분리 + DEC-G1·newsletter-3·S249-1·2 미확정 분리 / §6 전체 잔여 71.5~106h 재계산 |
 | **2026-05-28** | **S290** | **§9 출시 차단 + 후속 일감 통합 audit 신설** — 어드민 SoT 를 확장하여 어드민 외 항목 (S-PND production launch + Group O 리뷰 게시판 + 폴리싱 carry) 까지 단일 SoT 통합 / §1 매트릭스에 Group O (리뷰 게시판) 신설 / DEC-newsletter-3 ✅ 완료 마킹 (Phase 4) / DEC-R1-UI · DEC-R2-policy · DEC-R2-vendor · DEC-R1-photo 미확정 추가 / §9 도메인 5종 (A 어드민 / B 카페·상품 CSV / C 리뷰 / D 인프라·launch / E 폴리싱) + 우선순위 권장 진입 순서 + 전체 잔여 131~219h 재계산 |
+| **2026-05-28** | **S291** | **S248 stale 정정 + Group M 상태 구체화** — S248 단계 1+2+3 모두 ✅ 완료 마킹 (`/admin/settings` HomeFeaturedSubForm + mig 069 + lib/siteSettings + CafeMenuSection fetch 교체 실제 구현 확인 · plan 문서가 stale) / DEC-S248-2~8 ✅ 일괄 마킹 / §2-1 S248 sprint ⏳ → ✅ / §1 Group M 뉴스레터 "어드민 미완" → "부분 (구독자 목록만 · 페이지네이션/검색/CSV/bulk send carry)" 구체화 / §9-1 + §9-2 + §9-4 합계 재계산 (출시 차단 30~50h → 27~44h · 전체 131~219h → 128~213h) / §3-1 + §6 합계 재계산 (전체 71.5~106h → 68.5~100h) / 코드 변경 0 · 문서만 |
 
 ---
 
@@ -472,7 +473,7 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | G-2 | E2E 테스트 critical flow | ⏸️ 0% | 6~10h | S250-5 |
 | M-admin | 뉴스레터 어드민 (구독자 목록 + 발송 이력 + bulk send UI + CSV + 검색/필터/페이지네이션) | 🟡 미완 | 4~6h | S250-2 |
 | N-admin | 비즈 문의 어드민 (목록 + 상세) | 🟡 미완 | 3~5h | S250-3 |
-| S248-2 | 메인 노출 카페 메뉴 어드민 (`site_settings.home_featured_menu_ids` 0~3 슬롯 · DEC-S248-3~8) | 📋 | 3~6h | S248 단계 2 |
+| ~~S248-2~~ | ~~메인 노출 카페 메뉴 어드민 (`site_settings.home_featured` 0~3 슬롯 · DEC-S248-3~8)~~ | ✅ S248 완료 | — | — |
 | §234 P3 | 어드민 페이지 폴리싱 carry (사이드바·인터랙션·a11y) | 📋 | 2~4h | S250-6 |
 | S260 | 최종 리뷰어 검토 (code + security + typescript + database 4 reviewer 일괄 + CRITICAL/HIGH fix) | 📋 | 4~6h + α | S260 |
 
@@ -522,7 +523,7 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 ### §9-2. 우선순위 권장 진입 순서
 
 1. **🔴 S-PND-3 토스 키 갱신** — 외부 키 발급 신호 시 즉시 (30분)
-2. **🔴 A. 어드민 미작업 출시 차단 묶음** (S248-2 + S250-1~6 + S260) — 22.5~35h · 1~1.5주
+2. **🔴 A. 어드민 미작업 출시 차단 묶음** (S250-1~6 + S260) — 19.5~29h · 1주 (S248-2 완료 차감)
 3. **🔴 S-PND-V1 Vercel 배포** — 6~12h
 4. **🔴 후속 검증 묶음** (S-PND-3 결제 / S-PND-V2 로고 / Lighthouse LCP) — 1~2h
 5. **🟡 C. Group O 리뷰 게시판 Phase 1** — DEC-R1-UI confirm 후 16~32h
@@ -545,12 +546,12 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 
 | 단계 | 합계 |
 |------|------|
-| 출시 차단 (A + D 핵심: S248-2 + S250 + S260 + S-PND-3 + S-PND-V1) | **~30~50h** (1~1.5주 풀타임) |
+| 출시 차단 (A + D 핵심: S250 + S260 + S-PND-3 + S-PND-V1) | **~27~44h** (1주 풀타임) |
 | 리뷰 게시판 (C: Group O Phase 1+2 사진 제외) | **24~48h** |
 | 출시 후 1개월 (B + 어드민 통계 Quick Win) | **14~22h** |
 | 출시 후 2~3개월 (Domain Insight + CSV PII) | **11~19h** |
 | 출시 후 V2+ (Deep Analysis + arch sweep + CS AI 봇) | **52~80h** |
-| **전체 잔여** | **~131~219h** |
+| **전체 잔여** | **~128~213h** |
 
 ### §9-5. carry-over 메모리 cross-reference
 
