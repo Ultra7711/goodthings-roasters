@@ -242,7 +242,7 @@ export default function CheckoutPayment({
         </p>
         <button
           type="button"
-          className="mp-cancel-btn"
+          className="cta-btn cta-btn-light-outline"
           onClick={handleBack}
           style={{ width: '100%', height: 48, marginTop: 24 }}
           data-gtr-tap
@@ -275,7 +275,7 @@ export default function CheckoutPayment({
       <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
         <button
           type="button"
-          className="mp-cancel-btn"
+          className="cta-btn cta-btn-light-outline"
           onClick={handleBack}
           disabled={requesting}
           style={{ flex: '0 0 40%', height: 48, marginTop: 0, padding: '0 12px', minWidth: 0 }}
