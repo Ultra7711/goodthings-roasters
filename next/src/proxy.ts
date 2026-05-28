@@ -83,9 +83,13 @@ function buildContentSecurityPolicy(isDev: boolean, pathname: string): string {
   const directives = [
     `default-src 'self'`,
     `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://js.tosspayments.com https://*.toss.im https://dapi.kakao.com https://t1.daumcdn.net https://va.vercel-scripts.com`,
-    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://t1.daumcdn.net`,
+    // S295: cdn.jsdelivr.net 추가 — daum postcode SDK 가 popup 안 pretendard 폰트
+    // stylesheet (https://cdn.jsdelivr.net/gh/orioncactus/pretendard/...) load 시도.
+    // 미등록 시 style-src 차단으로 popup UI 깨짐.
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://t1.daumcdn.net https://cdn.jsdelivr.net`,
     `img-src 'self' blob: data: https://*.supabase.co https://*.tosspayments.com https://*.daumcdn.net https://postfiles.pstatic.net`,
-    `font-src 'self' https://fonts.gstatic.com data:`,
+    // pretendard 폰트 파일도 jsdelivr 호스팅 가능 — font-src 함께 허용.
+    `font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:`,
     // Supabase: HTTPS REST + WSS Realtime / TossPayments: 결제 API / Resend: 메일 트리거
     // OAuth providers: kakao/naver/google 토큰 교환
     // BUG-FIX 2026-04-23: Toss SDK 내부 모니터링·로깅 엔드포인트
