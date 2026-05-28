@@ -1592,9 +1592,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 }
 .chp-sum-sub-block {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px; margin-top: 12px;
+  padding: 12px 8px; margin: 0 -8px;
   background: var(--color-background-secondary);
-  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 400; color: var(--color-text-secondary);
+  font-family: var(--font-kr); font-size: 14px; font-weight: 400; color: var(--color-text-secondary);
 }
 .chp-sum-sub-block span:last-child { font-family: var(--font-en); font-weight: 500; color: var(--color-text-primary); }
 .chp-tax-note {

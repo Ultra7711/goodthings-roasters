@@ -46,44 +46,62 @@
 
 ### D-3. 혼합 카트 처리 (옵션 A — A-1 / A-2 분리)
 
-**결정 (2026-05-07 토스 TAM 답변 + S178 리서치 반영):**
+**결정 (2026-05-29 갱신 — S294 γ 1차 채택 · 심사 = 계약단계 confirm 절차 활용):**
 
 PDP / 카탈로그 가정 — 단발/정기 별도 카탈로그 구분 없음 + 모든 상품 정기 가능 + 동일 상품 단발+정기 동시 카트 가능 (Stripe-style mixed cart 가정 UI). 이 가정에서 (α) 정기/일반 카트 분리는 PDP 재설계 + 카탈로그 분리 비용이 커서 폐기.
 
-현실 옵션 = **A-1 (β · 1차 채택) / A-2 (γ · 외주 confirm 후 carry-over)** 양자택일.
+**1차 채택 = A-2 (γ 합산 통합) — 토스 라이브 심사 = TAM 권유 "계약단계 confirm" 절차 활용.** 거절 시 A-1 (β 두 결제 분리) 으로 fallback.
 
-#### A-1 (β) — 두 결제 분리 · **1차 출시 채택**
+**갱신 근거 (S294 재평가):**
+1. **payments §5.2 1:1 UNIQUE 제약** — `payments.order_id UNIQUE` 강제. (β) 채택 시 1 order ↔ 2 payments = UNIQUE 위반 → 2 orders 분리 필요 (큰 작업). (γ) = 1 order ↔ 1 payment 자연 정합.
+2. **billingService.chargeFirstCycle 본문** = `amount: order.total_amount` (정기 + 일반 합산) — backend 가 이미 (γ) 가정 작성. (β) 채택 시 backend 도 amount 분리 로직 재작성 필요.
+3. **TAM 권유 절차 정합** — "계약단계 confirm" = 라이브 심사 = PPT 제출 단계. 자료 본문에 TAM 답변 인용 + 정책 확인 요청 명시.
+4. **글로벌 표준 정합** — Stripe Subscriptions / Recurly mixed cart 단일 invoice 정합. 사용자 카드 1회 입력.
+5. **거절 리스크 대비** — 거절 시 frontend β 재구현 = 3~5h + PPT mixed 슬라이드 재작성. 카드사 14일 재심사는 어차피 (β) 도 동일.
+
+#### A-2 (γ) — 합산 통합 결제 · **1차 출시 채택 (S294)**
 
 1. 사용자가 결제하기 클릭
-2. **빌링키 발급 흐름** 진입 (`requestBillingAuth`) — 정기배송 카드/계좌 등록
+2. **빌링키 발급 흐름** 진입 (`payment.requestBillingAuth({ method: 'CARD' })`)
+3. successUrl 콜백 → `/billing/success` 가 POST `/api/billing/authorizations` 호출 → billingKey 발급 + `billing_methods` INSERT
+4. `/billing/success` 가 POST `/api/billing/charge` 호출 → 합산 amount (정기 첫 회 + 일반) `chargeBilling` 한 번
+5. atomic 후처리 (042 RPC `process_billing_charge_success`) — subscriptions INSERT + orders.status='paid' + payments INSERT
+6. 이후 자동결제 cron 은 정기 항목만 cycle 별 amount 로 `chargeBilling` (Phase 3-C — 출시 후)
+
+**근거:**
+- 토스페이먼츠 TAM 1차 답변 (2026-05-07 techchat): "기술적으로는 가능합니다. 다만 정책적으로 그렇게 사용해도 될지 **계약단계에서 한 번 더 체크**해주시면 될 것 같아요"
+- 라이브 심사 = TAM 권유 계약단계 confirm 절차. PPT 본문에 TAM 답변 인용 + 정책 확인 요청 명시.
+- 글로벌 표준 (Stripe / Recurly mixed cart 단일 invoice) 정합 — 사용자 카드 1회 입력
+- 코드 자산 정합 — billingService + 042 RPC + payments 1:1 제약 모두 (γ) 자연 정합
+
+**S294 구현 (이번 commit):**
+- `next/src/app/api/billing/customer-key/route.ts` 신설 — GET 회원 customer_key
+- `next/src/components/checkout/CheckoutPayment.tsx` γ 분기 — `hasSubscription` 시 `payment.requestBillingAuth({ method: 'CARD' })`
+- `next/src/app/(main)/billing/success/page.tsx` 신설 — authKey 콜백 → 빌링키 발급 → 첫 회 charge → 완료 화면
+- `next/src/components/checkout/CheckoutPage.tsx` — `orderId` (uuid) + `hasSubscription` prop 전달
+
+#### A-1 (β) — 두 결제 분리 · **거절 시 fallback carry-over**
+
+1. 사용자가 결제하기 클릭
+2. **빌링키 발급 흐름** 진입 (`requestBillingAuth`)
 3. 빌링키 발급 성공 → 정기 amount 만 `chargeBilling` 호출 (정기 첫 회차)
 4. 별도로 **일반 amount 위젯 결제 호출** (단발)
 5. 두 결제 모두 성공해야 주문 완료
 
-**근거:**
-- 토스 자동결제 약관 안전 (자동결제 amount = 정기 한정 해석)
-- 한국 시장 표준 (정기/일반 분리 흐름)
-- 단점: 사용자 카드 두 번 입력 (UX ↓)
+**구조적 제약:**
+- payments §5.2 1 order ↔ 1 payment UNIQUE 위반 — 2 orders 분리 또는 1:N payments 재설계 필요
+- billingService 의 합산 amount 호출 코드 → 정기 amount 분리 로직 재작성 필요
 
-#### A-2 (γ) — 합산 통합 결제 · **외주 confirm 후 전환 carry-over**
+**fallback 발동 조건:**
+- 토스가 (γ) 거절 + (β) 재구현 + PPT 재제출 요구 시
+- 또는 외주/토스 측이 자동결제 amount 합산을 명시적으로 금지할 때
 
-1. 사용자가 결제하기 클릭
-2. **빌링키 발급 흐름** 진입 (`requestBillingAuth`)
-3. 빌링키 발급 성공 → 합산 amount (정기 + 일반) `chargeBilling` 한 번 호출
-4. 결제 성공 → 주문 완료 (단일 트랜잭션)
-5. 이후 자동결제 cron 은 정기 항목만 cycle 별 amount 로 `chargeBilling`
-
-**조건:**
-- 토스페이먼츠 TAM 1차 답변 (2026-05-07 techchat): "기술적으로는 가능합니다. 다만 정책적으로 그렇게 사용해도 될지 계약단계에서 한 번 더 체크해주시면 될 것 같아요"
-- 가맹점 계약 보유 = 외주 웹페이지 제작 업체 → 외주 측 통한 토스 confirm + 가맹점 계약단계 명시 / 추가 승인 필요
-- confirm 결과 = `memory/research_billing_mixed_cart.md` 기록 + 본 ADR §6 D-3 갱신
-- 글로벌 표준 (Stripe / Recurly mixed cart 단일 invoice) 정합
-
-**전환 작업 범위 (A-1 → A-2):**
-- `process_billing_charge_success` RPC = 합산 amount 한 번 호출 (043 마이그 status 분기 불필요)
-- `/billing/success` Stage 2 (위젯 결제 잔여) 제거
-- §6 결정 추적 D-3 갱신 (A-2 활성화 일자 + confirm 출처)
-- PDP / 카트는 변경 없음 (결제 단계 코드만)
+**fallback 작업 범위 (A-2 → A-1):**
+- `billingService.chargeFirstCycle` — order_items 분리 → 정기 amount 만 charge
+- 2 orders 분리 또는 1:N payments 재설계 (payments §5.2 carry 해제)
+- `/checkout` 흐름 — 빌링 charge 완료 후 위젯 결제 후속 진입
+- PPT mixed 슬라이드 — "두 결제 분리" 흐름도로 재작성
+- ADR §6 결정 추적 D-3 갱신 (A-1 활성화 일자 + 거절 사유 명시)
 
 #### 대안 (기각)
 
@@ -368,7 +386,7 @@ create table public.subscription_billing_failures (
 |----|------|------|
 | D-1 | 코드 통합 진행, 활성화는 클라이언트 컨펌 후 | 2026-05-07 |
 | D-2 | 정기배송 = 카드 + 계좌이체 | 2026-05-07 |
-| D-3 | 혼합 카트 = A-1 (β 두 결제 분리) 1차 채택 / A-2 (γ 합산 통합) 외주 confirm 후 carry-over | 2026-05-07 (S178 TAM 답변 반영) |
+| D-3 | 혼합 카트 = A-2 (γ 합산 통합) **1차 채택** (S294 — 심사 = 계약단계 confirm 절차 활용 · payments §5.2 1:1 자연 정합 · billingService 기 정합). A-1 (β 두 결제 분리) 거절 시 fallback carry-over | 2026-05-07 작성 (S178) · **2026-05-29 갱신 (S294)** |
 | D-4 | 기존 데이터 truncate | 2026-05-07 |
 | D-5 | customerKey = profiles.customer_key (UUID, 회원만) | 2026-05-07 |
 | D-6 | billing_methods 별도 테이블 | 2026-05-07 |

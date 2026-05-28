@@ -337,9 +337,11 @@ export default function CheckoutPage() {
 
         {step === 'payment' && orderResult && (
           <CheckoutPayment
+            orderId={orderResult.id}
             orderNumber={orderResult.orderNumber}
             orderName={orderName}
             amount={orderResult.totalAmount}
+            hasSubscription={hasSubscription}
             customerEmail={form.email.trim().toLowerCase()}
             customerName={form.firstname.trim()}
             customerMobilePhone={(() => {
