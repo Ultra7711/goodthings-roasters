@@ -105,14 +105,14 @@ type LayerMatch = {
 } | null;
 
 /**
- * category 필드는 "non-coffee 논커피" · "Coffee Bean 커피빈 원두" 처럼
- * 복수 토큰을 공백으로 이어붙여 인덱싱한다. L1 정규화는 공백도 strip 하므로
- * 단순 substring 매치는 "커피" → "noncoffee논커피" 의 '논커피' 내부 hit,
- * "coffee" → "noncoffee" 내부 hit 같은 오매칭을 낳는다 (BUG-005).
+ * 모든 필드의 매치는 토큰 경계 확인 — raw 기준 시작 위치가 문자열 처음이거나
+ * 바로 앞 문자가 공백일 때만 허용.
  *
- * 해결: category 필드 한정, raw 기준 토큰 경계 확인.
- * 매치 시작의 raw 위치가 문자열 처음이거나 바로 앞 문자가 공백일 때만 허용.
- * (하이픈은 boundary 가 아님 — "non-coffee" 의 "coffee" 는 거부되어야 함)
+ * - category 필드는 "non-coffee 논커피" 처럼 복수 토큰 공백 이어붙여 인덱싱 (BUG-005).
+ * - menuDesc / desc / legalBody 등 자유 본문 필드는 "논커피 음료" 같은 표현이
+ *   그대로 들어가, "커피" 검색이 "논커피" 내부에 hit 하는 오매칭이 발생 (S293).
+ *
+ * 하이픈은 boundary 아님 — "non-coffee" 의 "coffee" 는 거부되어야 함.
  * prefix-of-token 은 허용 → "커피" 가 "커피빈" 머리에 걸리는 건 OK.
  */
 function findBoundaryIndex(
@@ -120,7 +120,10 @@ function findBoundaryIndex(
   haystack: string,
   needle: string,
 ): number {
-  if (field.key !== 'category') return haystack.indexOf(needle);
+  /* 단일 문자 검색 — boundary check skip. matchField 의 단음절 가드가 이미
+     nameOnly 필드(name/category/legalTitle) 한정으로 노이즈를 차단한다.
+     예: "티" → "밀크티" name 매치 허용 (사용자 의도). */
+  if (needle.length === 1) return haystack.indexOf(needle);
   let from = 0;
   while (from <= haystack.length - needle.length) {
     const idx = haystack.indexOf(needle, from);

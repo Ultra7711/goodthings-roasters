@@ -68,7 +68,7 @@ export default function SearchPage({ initialData }: Props) {
   const groups = useMemo(() => groupResults(results), [results]);
 
   return (
-    <div className="search-page-wrap">
+    <div className="search-page-wrap" data-header-theme="light">
       <div className="search-page-inner">
         {/* 쿼리 레이블 — 결과 0건 시 SearchEmpty 와 중복되므로 숨김 */}
         {hasQuery && hasResults && (

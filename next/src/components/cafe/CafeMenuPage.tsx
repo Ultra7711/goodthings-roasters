@@ -347,10 +347,13 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
 
   const handlePageChange = useCallback((next: number) => {
     shouldAnimateCardsRef.current = false;
-    setPage(next);
     setNutriId(null);
-    // /menu 는 일반 라우트 — window 스크롤만 사용
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    /* S293: scrollTo 를 setPage 보다 먼저 + instant. smooth + setPage 순서일 때
+       페이지 4(마지막) 처럼 카드가 적어 새 docHeight 가 짧아지는 케이스에서
+       진행 중인 smooth scroll 이 clamp → 상단 도달 실패. instant 로 즉시
+       0 고정 후 state update → DOM 변경되어도 scrollY=0 유지. */
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setPage(next);
   }, []);
 
   const handleOpenNutrition = useCallback((id: string) => {

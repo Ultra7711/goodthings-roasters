@@ -262,4 +262,16 @@ describe('matchEntry — cafe menu', () => {
     if (!r.matched) return;
     expect(r.layer).toBe(2);
   });
+
+  /* S293 회귀 방지 — "커피" 검색이 non-coffee 카테고리의 menuDesc 안 "논커피"
+     단어 안쪽 substring 으로 매치되는 버그 (우베코코넛 사례). */
+  it('menuDesc 의 "논커피" 안쪽 substring 으로 "커피" 매치되지 않는다 (S293)', () => {
+    const c = makeCafe();
+    c.name = '우베코코넛';
+    c.cat = 'non-coffee';
+    c.menuDesc =
+      '우베와 코코넛 밀크의 이국적인 만남, 달콤하고 고소한 풍미에 트로피컬한 향이 더해진 논커피 음료';
+    const entry = makeEntry(c);
+    expect(matchEntry(entry, '커피').matched).toBe(false);
+  });
 });
