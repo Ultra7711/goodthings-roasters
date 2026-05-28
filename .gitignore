@@ -16,6 +16,9 @@ node_modules/
 # Original high-res images (webp conversions used instead)
 images/original/
 
+# 토스 결제경로 PPT 캡처 자산 (대용량 + 도메인/시간 노출)
+images/screenshots/
+
 # Legacy / archive documents
 GOODTHINGS_Design_System_v1.3.md
 GOODTHINGS_Renewal_Project_v14.md

@@ -1,0 +1,7 @@
+output/
+chrome-profile/
+__pycache__/
+*.pyc
+.venv/
+# 실 비밀번호/Test PW 포함 — example 만 git 추적
+cover_info.json
