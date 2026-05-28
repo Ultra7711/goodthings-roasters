@@ -167,6 +167,8 @@ export default function FooterBottom() {
         <Link href="/legal/terms" className="f-legal-link">이용약관</Link>
         <span className="f-bottom-sep">·</span>
         <Link href="/legal/privacy" className="f-legal-link">개인정보처리방침</Link>
+        <span className="f-bottom-sep">·</span>
+        <Link href="/legal/returns" className="f-legal-link">취소·반품·교환</Link>
       </div>
 
       <div
