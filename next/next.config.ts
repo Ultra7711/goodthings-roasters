@@ -60,6 +60,17 @@ const nextConfig: NextConfig = {
   //   참조: node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/cacheComponents.md
   cacheComponents: true,
 
+  // Version Skew Protection (S294, 2026-05-28):
+  //   배포 직후 일정 시간 footer 영역이 비정상적으로 늘어나는 회귀 보고. cacheComponents
+  //   + Vercel 자동 배포 환경에서 사용자 browser cache 의 이전 HTML 이 새 deployment
+  //   의 CSS/JS chunks 를 요청 → 404 또는 mismatch → 일부 CSS 규칙 누락 → layout 깨짐.
+  //   deploymentId 설정 시 Next.js 가 dpl=<id> 쿼리 + x-deployment-id 헤더로 mismatch
+  //   감지 → 자동 hard reload (full page) → 일관 deployment chunks 강제.
+  //   VERCEL_DEPLOYMENT_ID 는 Vercel 자동 주입 (Build & Runtime 양쪽).
+  //   다층 방어: Vercel Dashboard → Settings → Advanced → Skew Protection 도 활성화.
+  //   참조: https://nextjs.org/docs/app/guides/self-hosting#version-skew
+  deploymentId: process.env.VERCEL_DEPLOYMENT_ID,
+
   // SRI 비활성화 (BUG-006 D-010, 2026-04-23):
   //   Stage B Preview QA 에서 Turbopack + experimental.sri 조합 버그 발견 —
   //   HTML 의 integrity 값과 실제 chunk SHA-256 이 불일치하여 브라우저가 chunk
