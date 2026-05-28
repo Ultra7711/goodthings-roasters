@@ -377,9 +377,16 @@ export function useRemoveCartItem() {
   });
 }
 
-/** 로컬 캐시·스토리지만 비움. 서버 카트는 주문 RPC 가 이미 정리.
+/** 로컬 캐시·스토리지만 비움. 서버 cart_items 는 migration 075 이후
+ *  confirm_payment RPC 가 atomic 으로 정리 (orders.status='paid' 전환과 동일
+ *  트랜잭션 · 회원만 · 결제한 order_items 매칭 항목만 삭제).
  *  로그인 모드 invalidate 제거 — setQueryData([]) 직후 refetch 가 서버
  *  정리 완료 전 시점이면 빈 카트를 이전 데이터로 덮을 수 있음 (TS H-2).
+ *
+ *  S292: 이전 주석 "주문 RPC 가 이미 정리" 가 거짓 가정이었음 (create_order
+ *  RPC 와 confirm_payment 어디에도 cart_items DELETE 없었음 → 모바일 결제 후
+ *  PC 에서 cart 부풀어짐 버그). 075 migration 으로 RPC 본체에 추가 + 본
+ *  주석을 사실관계 정합으로 갱신.
  *
  *  BUG-167: useCallback 으로 안정화. 미적용 시 매 렌더마다 새 함수 레퍼런스를
  *  반환하여 소비자(예: OrderCompletePage)의 useCallback/useEffect 의존성을
