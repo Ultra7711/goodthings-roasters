@@ -118,28 +118,35 @@ export default function CheckoutPage() {
      - address 5필드: 모두 빈 상태일 때만 일괄 채움 (덮어쓰기 가드).
        사용자가 한 필드라도 수정한 후 재진입해도 덮어쓰지 않음.
 
-     S210 회귀 fix — `addressLoading` 가드 추가:
-     기존 흐름은 session 완료 직후 useEffect 가 실행되면 defaultAddress 가
-     아직 fetch 중 (undefined) 이라 5필드 prefill skip → revealForm() 호출 →
-     isFormRevealed=true → defaultAddress 도착 후 useEffect 재실행하지만
-     `if (isFormRevealed) return` 가드에 막혀 prefill 영원히 skip.
-     → useDefaultAddressQuery 가 settle 할 때까지 revealForm 지연. */
+     S210 회귀 fix — `addressLoading` 가드 추가 (S210 시점).
+
+     S295 회귀 fix — `isFormRevealed` 가드 분리 (S295 시점):
+     S210 의 `if (isFormRevealed) return` 이 다음 race 에 막힘.
+     1) 비회원 → revealForm() (handleGuestContinue) → isFormRevealed=true
+        → 로그인 → /checkout 복귀 (Activity restore) → useCheckoutFlow 가
+        resetForm() 호출하지만 같은 render 의 prefill useEffect 가 먼저 실행
+        되어 isFormRevealed=true 잔존 상태로 가드에 막힘.
+     2) AuthSyncProvider 의 mergeGuestCartToServer 비동기 race — 첫
+        defaultAddress fetch 가 stale 결과 반환 → prefill skip + revealForm()
+        → 두 번째 fetch (invalidate 후) 도착 시 isFormRevealed=true 가드에 막힘.
+     해결: isFormRevealed 와 무관하게 fieldsEmpty 만으로 prefill 시도. 사용자
+     입력 보존은 fieldsEmpty 가드가 담당. revealForm() 만 isFormRevealed
+     가드 (한 번만 호출). */
   useEffect(() => {
     if (sessionLoading) return;
     if (!isLoggedIn || !user) return;
     if (addressLoading) return;
-    if (isFormRevealed) return;
 
     if (user.email && !form.email) setField('email', user.email);
 
-    if (
-      defaultAddress &&
+    const fieldsEmpty =
       !form.firstname &&
       !form.phone &&
       !form.zipcode &&
       !form.addr1 &&
-      !form.addr2
-    ) {
+      !form.addr2;
+
+    if (defaultAddress && fieldsEmpty) {
       setField('firstname', defaultAddress.name);
       setField('phone', defaultAddress.phone);
       setField('zipcode', defaultAddress.zipcode);
@@ -147,7 +154,7 @@ export default function CheckoutPage() {
       setField('addr2', defaultAddress.addr2);
     }
 
-    revealForm();
+    if (!isFormRevealed) revealForm();
   }, [
     sessionLoading,
     isLoggedIn,
