@@ -406,6 +406,36 @@ const TD_STYLE: React.CSSProperties = {
 
 URL state면 `<Link href replace>`, 로컬 state면 `<button onClick>` — 그 외 동일.
 
+#### 컨트롤 선택 기준 (DEC-S304-UI · 선택형 컨트롤 통일)
+
+같은 "분류 선택" UI라도 **역할**에 따라 컨트롤을 고정한다. 향후 신규 페이지는 이 표를 따른다.
+
+| 역할 | 컨트롤 | 시각 | 예 |
+|------|--------|------|-----|
+| **1차 목록 필터** (상태/역할/카테고리) · 섹션/뷰 네비 | `AdminTabsNav` | 언더라인 + primary indicator + count | Orders/Users/Subscriptions 상태·역할, Products/Menu 카테고리, Banners kind, Newsletter 섹션, **biz-inquiries 상태** |
+| **2차 필터** — 섹션 탭 *아래* 겹치는 하위 필터 | `AdminSegmentedControl` | pill (bg-muted track + active bg-card shadow) | Newsletter 구독자 상태(전체/활성/거부) — 섹션 탭 아래에서만 |
+| **폼·다이얼로그 라디오 선택지** (기간/주기/상태) | Chip (§5-23 · `data-slot="chip-radio"`) | border + primary-soft 활성 | analytics period / settings / subscriptions 다이얼로그 / cafe-events |
+| **2차 드롭다운 필터** (기간/결제수단/채널) | DropdownFilter (도메인 로컬) | outline 버튼 + 메뉴 | Orders/Users — 별도 패턴 |
+
+**원칙:** 언더라인 탭이 2줄 겹칠 때(섹션 탭 + 하위 필터)만 안쪽 줄을 세그먼트(pill)로 내린다. 그 외 1차 필터는 **항상 언더라인 탭**. 세그먼트를 단독 1차 필터로 쓰지 않는다(S304 biz-inquiries 회귀 정정).
+
+##### AdminSegmentedControl (S250-2)
+
+```tsx
+import { AdminSegmentedControl } from '@/components/admin/AdminSegmentedControl';
+
+<AdminSegmentedControl
+  mode="url"                               // 또는 mode="state" (AdminTabsNav 동일 union)
+  segments={[{ id, label, count }, ...]}
+  active={filters.status}
+  buildHref={(id) => buildHref({ status: id, page: 1 })}
+/>
+```
+
+- API = `AdminTabsNav` 와 동일 union(url/state) + count. count 는 박스 없이 텍스트 컬러만(활성=primary).
+- `data-slot="segmented-control-item"` 필수 (admin-theme.css `:not([data-slot])` reset 회피 · AdminTabsNav 답습).
+- 컴포넌트: `next/src/components/admin/AdminSegmentedControl.tsx`.
+
 ### 5-5. Badge (상태 표시 · DEC-2 §3)
 
 **Tone matrix wrapper (페이지별 로컬 정의):**
@@ -1229,7 +1259,8 @@ src/components/admin/...             — admin 공통 컴포넌트
   ✅   AdminPageHeader        — h2 + subtitle + rightSlot (DEC-8)
   ✅   AdminPagination        — 26×26 PageNav + url/state 양 모드 (DEC-9)
   ✅   AdminEmptyState        — 테이블 colSpan / 카드 variant
-  ✅   AdminTabsNav           — URL state / local state 양 모드 + count (DEC-11)
+  ✅   AdminTabsNav           — URL state / local state 양 모드 + count (DEC-11) · 1차 필터·섹션 네비
+  ✅   AdminSegmentedControl  — pill 세그먼트 · 섹션 탭 아래 2차 필터 전용 (S250-2 · §5-4 선택 기준)
   ✅   AdminDataTable         — shadcn Table 합성 + Column<T> generic (DEC-10)
   ✅   AdminBackLink          — "← 목록" 표준 (DEC-12)
   🔴 (S227 hypothetical seam — 1 caller · 보류)
@@ -1442,6 +1473,7 @@ import { listProductsAdmin } from '@/lib/admin/productsServer';
 | **DEC-16** | `lib/admin/productsServer.ts` 분리 (B2C `lib/productsServer.ts` 와 admin variant 분리) | ✅ S227 |
 | **DEC-17** (변경 · S229) | 풀 factory 폐기 → `lib/admin/listHelpers.ts` (AdminListResult<T,S,F> + applyRange + applyIlikeSearch) 3종 helper 추출. 3 도메인 (orders/users/subscriptions) 마이그. 재진단 근거: products 패턴 안 맞음 + 3 도메인 차이가 factory 비용보다 큼 (shallow interface 위험) | ✅ S229 `afbb82f4` |
 | **DEC-18** | 칩 표준 (§5-23) = analytics period switcher 스타일 답습. Subscriptions 다이얼로그 칩 (Button variant 답습 S228 임시) 폐기 → 칩 표준으로 변경 (S229 PR-C) | 📋 S229 PR-C |
+| **DEC-S304-UI** | 선택형 컨트롤 선택 기준 명문화 (§5-4): 1차 필터·섹션 네비=`AdminTabsNav`(언더라인) / 섹션 탭 아래 2차 필터=`AdminSegmentedControl`(pill) / 폼·다이얼로그 라디오=칩(§5-23). 세그먼트 단독 1차 필터 금지 → biz-inquiries 상태 필터 세그먼트→탭 회귀 정정 | ✅ S304 |
 
 기존 잠금 유지: ADR-008 (inline raw 금지) / DEC-1 (S125 폐기) / DEC-2 (shadcn override 4) / DEC-3 (마이그 순서) / DEC-4 (RHF carry) / DEC-5 (native select) / DEC-6 (작게 round)
 

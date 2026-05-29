@@ -22,7 +22,7 @@ import {
   type BizStatusTab,
   type BizSearchParams,
 } from '@/lib/admin/bizInquiries';
-import { AdminSegmentedControl } from '@/components/admin/AdminSegmentedControl';
+import { AdminTabsNav } from '@/components/admin/AdminTabsNav';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { Button } from '@/components/admin/ui/button';
@@ -128,10 +128,10 @@ export default function BizInquiriesClient({ rows, total, counts, filters }: Pro
 
   return (
     <>
-      {/* 상태 필터 — 세그먼트 컨트롤 */}
-      <AdminSegmentedControl
+      {/* 상태 필터 — 언더라인 탭 (1차 목록 필터 · Orders/Users/Subscriptions 정합) */}
+      <AdminTabsNav
         mode="url"
-        segments={STATUS_TABS.map((t) => ({ id: t.id, label: t.label, count: counts[t.id] ?? 0 }))}
+        tabs={STATUS_TABS.map((t) => ({ id: t.id, label: t.label, count: counts[t.id] ?? 0 }))}
         active={filters.status}
         buildHref={(id) => buildHref({ status: id as BizStatusTab, page: 1 })}
       />
