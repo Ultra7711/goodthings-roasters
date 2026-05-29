@@ -255,7 +255,11 @@ function FragmentRow({
                     <Button
                       key={s}
                       type="button"
-                      size="xs"
+                      size="sm"
+                      /* min-w 고정 — 라벨 길이/variant(outline↔default border)/두께
+                         변화와 무관하게 폭 고정 → 클릭 시 버튼 위치 흔들림 제거.
+                         가장 넓은 '연락중'(3자) 굵게 렌더 기준 여유 폭. */
+                      className="!h-7 min-w-[72px]"
                       variant={isCurrent ? 'default' : 'outline'}
                       disabled={isRowPending || isCurrent}
                       onClick={(e) => {
