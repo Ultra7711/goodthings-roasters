@@ -325,13 +325,11 @@ export function useUpdateCartQty() {
         if (!context.wasLoggedIn) writeGuestCart(context.previous);
       }
     },
-    onSettled: (_data, _err, _vars, context) => {
-      if (context?.wasLoggedIn) {
-        queryClient
-          .invalidateQueries({ queryKey: CART_QUERY_KEY })
-          .catch((err) => console.error('[useCart] invalidate failed', err));
-      }
-    },
+    /* S296: onSettled 전량 invalidate 제거. optimistic 이 서버와 동일한 clamp
+       (Math.min(99, Math.max(1, ...))) 를 적용하므로 캐시가 곧 서버 truth → 매 클릭
+       /api/cart GET 라운드트립 제거. 응답 기반 보정도 생략 — 빠른 연속 클릭 시 늦게
+       도착한 stale PATCH 응답이 최신 optimistic 값을 덮는 race 방지. 서버 동기화는
+       staleTime(30s)/window focus refetch 가 담당. 실패 시 onError 롤백. */
   });
 }
 
@@ -367,13 +365,9 @@ export function useRemoveCartItem() {
         if (!context.wasLoggedIn) writeGuestCart(context.previous);
       }
     },
-    onSettled: (_data, _err, _id, context) => {
-      if (context?.wasLoggedIn) {
-        queryClient
-          .invalidateQueries({ queryKey: CART_QUERY_KEY })
-          .catch((err) => console.error('[useCart] invalidate failed', err));
-      }
-    },
+    /* S296: onSettled 전량 invalidate 제거. 행 삭제는 멱등 — optimistic filter 가
+       이미 서버 truth 와 일치(DELETE 성공). 매 삭제 /api/cart GET 라운드트립 제거.
+       실패 시 onError 가 previous 스냅샷으로 롤백. */
   });
 }
 

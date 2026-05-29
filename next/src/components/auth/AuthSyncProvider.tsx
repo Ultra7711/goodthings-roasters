@@ -6,7 +6,8 @@
    - supabase.auth.onAuthStateChange 구독
    - 로그인(session 존재) + userId 신규:
      · mergeGuestCartToServer (게스트 localStorage 카트 흡수)
-     · invalidateQueries(['cart']) — 서버 카트 재페치
+     · merge ok(서버 cart 변경) 시에만 invalidateQueries(['cart']) — 재페치
+       (S296: skip/error 는 서버 불변 → useCartQuery 첫 fetch 로 충분, GET 중복 제거)
    - SIGNED_OUT:
      · clearMergeFlag(prevUserId) — 재로그인 시 재-merge 가능
      · invalidateQueries(['cart']) — 게스트 모드 전환
@@ -79,6 +80,11 @@ export default function AuthSyncProvider({ children }: Props) {
               console.error('[AuthSync] cart merge failed', result.detail);
               showToast('장바구니 동기화에 실패했습니다. 새로고침 후 다시 시도해 주세요.');
             }
+            /* S296: 서버 cart 가 실제 변경된 경우(게스트 항목 흡수 = ok)에만 재페치.
+               no-items/already-merged/error 는 서버 cart 불변 → useCartQuery 의 첫
+               fetch(session ready 시 자동) 로 충분 → 로그인 직후 /api/cart GET 중복
+               (2회→1회) 제거 → 헤더 카트 카운트 반영 가속. */
+            if (result.status === 'ok') invalidateCart();
           })
           .catch((err) => {
             /* M-1: mergeGuestCartToServer 가 throw 하는 경로 방어 */
@@ -86,7 +92,7 @@ export default function AuthSyncProvider({ children }: Props) {
             showToast('장바구니 동기화 중 오류가 발생했습니다.');
           })
           .finally(() => {
-            invalidateCart();
+            /* 주소는 cart 와 독립 — 로그인 시 항상 최신화 필요 (회원 기본 배송지). */
             invalidateDefaultAddress();
           });
       } else if (event === 'SIGNED_OUT') {
