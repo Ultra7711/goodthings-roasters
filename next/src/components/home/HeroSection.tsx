@@ -21,6 +21,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+/* S305: captured frame 캡처 배율 — 재진입 fade 전환용이라 full-res 불필요.
+   축소로 dataURL decode 비용 절감 (fade 시작 지연 완화). */
+const CAPTURE_SCALE = 0.5;
+
 export default function HeroSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const posterElRef = useRef<HTMLDivElement>(null);
@@ -37,13 +41,32 @@ export default function HeroSection() {
      cleanup 시 captured frame 이 .hero-bg-poster 의 backgroundImage 로 적용된 상태. */
   useEffect(() => {
     const posterEl = posterElRef.current;
-    if (!posterEl || !capturedFrameRef.current) return;
-    const anim = posterEl.animate(
-      [{ opacity: 0 }, { opacity: 1 }],
-      { duration: 400, easing: 'ease-out', fill: 'forwards' },
-    );
-    setPosterHidden(false);
-    return () => anim.cancel();
+    const frame = capturedFrameRef.current;
+    if (!posterEl || !frame) return;
+    /* S305: captured frame 디코딩 완료 후 fade 시작 — decode 전 animate 시작 시
+       이미지 미paint 로 fade 가 빈(다크) 채 흘러가는 "시작 지연" 체감 제거.
+       decode 비용 자체는 cleanup 의 CAPTURE_SCALE 축소로 단축 (본질). */
+    let cancelled = false;
+    let anim: Animation | null = null;
+    const img = new Image();
+    img.src = frame;
+    img.decode()
+      .then(() => {
+        if (cancelled) return;
+        anim = posterEl.animate(
+          [{ opacity: 0 }, { opacity: 1 }],
+          { duration: 400, easing: 'ease-out', fill: 'forwards' },
+        );
+        setPosterHidden(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setPosterHidden(false); /* decode 실패 fallback: fade 없이 즉시 표시 */
+      });
+    return () => {
+      cancelled = true;
+      anim?.cancel();
+    };
   }, []);
 
   useEffect(() => {
@@ -159,9 +182,10 @@ export default function HeroSection() {
          검은 scene → 폐기 (capturedFrameRef 갱신 안 함 = 기존 동작 fallback). */
       try {
         if (video.readyState >= 2 && video.videoWidth > 0) {
+          /* S305: 캡처 해상도 축소 (CAPTURE_SCALE) — full-res 불필요, dataURL decode 비용 절감. */
           const canvas = document.createElement('canvas');
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+          canvas.width = Math.round(video.videoWidth * CAPTURE_SCALE);
+          canvas.height = Math.round(video.videoHeight * CAPTURE_SCALE);
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
