@@ -165,6 +165,23 @@ export default function MyPagePage({
     };
   }, []);
 
+  /* ── S302: /auth/email-confirm 복귀 결과 토스트 ──
+     이메일 등록 확인 링크 클릭 → verifyOtp 후 /mypage?emailRegistered=1 (성공) 또는
+     ?error=email_confirm_failed 로 리다이렉트. 1회 토스트 후 query 정리(replace).
+     성공 시 프로필 탭으로 전환해 갱신된 이메일 노출. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('emailRegistered') === '1') {
+      toast('이메일이 등록되었습니다.');
+      setActiveNavId('profile');
+      router.replace('/mypage');
+    } else if (params.get('error') === 'email_confirm_failed') {
+      toast('이메일 확인 링크가 유효하지 않거나 만료되었습니다. 다시 시도해 주세요.');
+      router.replace('/mypage');
+    }
+  }, [router, toast]);
+
   /* ── 탭 전환 공통 핸들러 — S299 (탭바 sticky 상태 기준 A/B 정렬 · 사용자 결정) ──
      - 탭바가 아직 sticky 안 됨(hero 보이는 최초 상태) → A: 페이지 top (hero 부터).
      - 탭바가 sticky 로 천장에 붙음(스크롤 내려간 상태) → B: panel 을 탭바 직하로 정렬

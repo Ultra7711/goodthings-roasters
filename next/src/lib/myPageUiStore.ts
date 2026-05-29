@@ -32,6 +32,7 @@ type Listener = () => void;
 type State = {
   isAddrOpen: boolean;
   isPwOpen: boolean;
+  isEmailOpen: boolean;
   subEditId: string | null;
   subCycleEdit: SubscriptionCycle | null;
   isCycleDropdownOpen: boolean;
@@ -52,6 +53,7 @@ const STORE_KEY = '__gtr_my_page_ui_store__';
 const INITIAL_STATE: State = {
   isAddrOpen: false,
   isPwOpen: false,
+  isEmailOpen: false,
   subEditId: null,
   subCycleEdit: null,
   isCycleDropdownOpen: false,
@@ -113,6 +115,10 @@ export function setAddrOpen(open: boolean) {
 
 export function setPwOpen(open: boolean) {
   setState((s) => (s.isPwOpen === open ? s : { ...s, isPwOpen: open }));
+}
+
+export function setEmailOpen(open: boolean) {
+  setState((s) => (s.isEmailOpen === open ? s : { ...s, isEmailOpen: open }));
 }
 
 export function setSubEditId(id: string | null) {
@@ -195,6 +201,14 @@ export function useMyPagePwOpen(): boolean {
   return useSyncExternalStore(
     subscribe,
     () => getStore().state.isPwOpen,
+    () => false,
+  );
+}
+
+export function useMyPageEmailOpen(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => getStore().state.isEmailOpen,
     () => false,
   );
 }

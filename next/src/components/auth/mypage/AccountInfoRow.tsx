@@ -3,6 +3,7 @@
 import type { NewsletterStatusResult } from '@/lib/newsletter';
 import { isSyntheticEmail } from '@/lib/auth/syntheticEmail';
 import NewsletterToggleClient from './NewsletterToggleClient';
+import EmailRegisterForm from './EmailRegisterForm';
 
 type Props = {
   name: string;
@@ -31,12 +32,17 @@ export default function AccountInfoRow({ name, email, initialNewsletterStatus }:
       </div>
       {/* S241 Phase 2 — newsletter 토글 (이메일 row 직속 아래 · 디폴트 ON)
          S283 — initialStatus 로 client fetch spinner 폐기.
-         S301 — 가상 이메일(수신 불가) 유저는 토글 숨김 + 안내 (구독해도 발송 불가). */}
+         S301 — 가상 이메일(수신 불가) 유저는 토글 숨김 + 안내 (구독해도 발송 불가).
+         S302 — 가상 이메일 유저는 실제 이메일 등록 동선(EmailRegisterForm) 노출 →
+                계정 자산(복구·CRM) 확보. 등록 완료 시 토글 노출됨. */}
       {emailIsSynthetic ? (
-        <div className="mp-info-row">
-          <span className="mp-info-label">뉴스레터</span>
-          <span className="mp-info-value mp-info-value--muted">이메일 등록 후 이용 가능</span>
-        </div>
+        <>
+          <EmailRegisterForm />
+          <div className="mp-info-row">
+            <span className="mp-info-label">뉴스레터</span>
+            <span className="mp-info-value mp-info-value--muted">이메일 등록 후 이용 가능</span>
+          </div>
+        </>
       ) : (
         <NewsletterToggleClient initialStatus={initialNewsletterStatus} />
       )}

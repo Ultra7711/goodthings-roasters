@@ -27,7 +27,9 @@ import OrderCompleteHero from './OrderCompleteHero';
 import OrderItemsSection from './OrderItemsSection';
 import OrderShippingSection from './OrderShippingSection';
 import OrderEmailFooter from './OrderEmailFooter';
+import EmailPromotePrompt from './EmailPromotePrompt';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
+import { isSyntheticEmail } from '@/lib/auth/syntheticEmail';
 /* LastOrder 타입은 `@/types/order` StoredOrderSummary 로 통일 (S200 PR-A).
    useCheckoutFlow 가 저장하는 모델과 1:1 정합. */
 import type { StoredOrderSummary } from '@/types/order';
@@ -508,6 +510,12 @@ export default function OrderCompletePage() {
 
       {/* PR-E 이메일 안내 (자문 D §5.4) — guestEmail 우선, 없으면 인증 user.email */}
       <OrderEmailFooter email={order.guestEmail ?? user?.email ?? undefined} />
+
+      {/* S302 — 간편로그인(가상 이메일) 회원에게 이메일 계정 등록 제안 (DEC-E4).
+         로그인 + 가상 이메일일 때만. 비회원·실이메일 회원은 미노출. */}
+      {user && isSyntheticEmail(user.email) && (
+        <EmailPromotePrompt initialEmail={order.guestEmail ?? ''} />
+      )}
     </div>
   );
 }

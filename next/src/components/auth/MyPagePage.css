@@ -682,6 +682,15 @@
 }
 .mp-rights-note a:hover { color: var(--color-text-primary); }
 
+/* S302 — 이메일 등록 확인 메일 발송 후 안내 (EmailRegisterForm sent 상태) */
+.mp-form-note {
+  margin: 0;
+  font-size: var(--type-body-s-size);
+  line-height: var(--lh-kr-body-13);
+  color: var(--color-text-secondary);
+}
+.mp-form-note strong { color: var(--color-text-primary); font-weight: 500; }
+
 /* ══ MyPage — Mobile (≤767) 정규화 ══
    데스크탑 2단(7fr 5fr) → 1단 스택 · 주문 내역 sticky 해제
    · 타이틀 H1→H2 · 아코디언 액션 세로 · 주문 카드 min-width 해제 · 모달 폭 축소 */
