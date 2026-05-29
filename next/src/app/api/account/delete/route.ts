@@ -168,6 +168,7 @@ export async function POST(request: Request): Promise<Response> {
   const rpcResult = (rpcData ?? {}) as {
     orders_anonymized?: number;
     subscriptions_deleted?: number;
+    newsletter_deleted?: number;
   };
 
   logAuthEvent({
@@ -183,5 +184,6 @@ export async function POST(request: Request): Promise<Response> {
     deleted: true,
     ordersAnonymized: rpcResult.orders_anonymized ?? 0,
     subscriptionsDeleted: rpcResult.subscriptions_deleted ?? 0,
+    newsletterDeleted: rpcResult.newsletter_deleted ?? 0,
   });
 }

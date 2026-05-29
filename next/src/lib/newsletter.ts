@@ -101,10 +101,12 @@ export async function getNewsletterStatus(): Promise<NewsletterStatusResult> {
 
 export type SetSubscriptionResult =
   | { ok: true }
-  | { ok: false; error: 'unauthenticated' | 'no_record' | 'db_error' };
+  | { ok: false; error: 'unauthenticated' | 'db_error' };
 
-/* 회원 마이페이지 토글 (active / unsubscribed). 가입 시 trigger 가 자동 INSERT 하므로
-   대부분 UPDATE 경로. 만약 record 없으면 (이메일 trigger 실패 등 edge) 신규 INSERT. */
+/* 회원 마이페이지 토글 (active / unsubscribed).
+   set_newsletter_subscription RPC (079 · SECURITY DEFINER) 에 위임 — caller 의 auth email
+   기준 upsert + user_id 재연결. row 의 user_id 가 stale/NULL/missing 이어도 자가 치유하므로
+   "email 은 있는데 user_id 불일치" 로 인한 email unique 충돌(기존 fallback INSERT 버그) 차단. */
 export async function setNewsletterSubscription(
   enabled: boolean,
 ): Promise<SetSubscriptionResult> {
@@ -114,41 +116,11 @@ export async function setNewsletterSubscription(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: 'unauthenticated' };
 
-  const nextStatus = enabled ? 'active' : 'unsubscribed';
-
-  const { data: existing, error: selectError } = await supabase
-    .from('newsletter_subscribers')
-    .select('id')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (selectError) {
-    console.error('[newsletter] status check failed', selectError);
-    return { ok: false, error: 'db_error' };
-  }
-
-  if (existing) {
-    const { error } = await supabase
-      .from('newsletter_subscribers')
-      .update({ status: nextStatus })
-      .eq('id', existing.id);
-    if (error) {
-      console.error('[newsletter] status update failed', error);
-      return { ok: false, error: 'db_error' };
-    }
-    return { ok: true };
-  }
-
-  /* edge: trigger 실패로 record 없음. 신규 INSERT. */
-  if (!user.email) return { ok: false, error: 'no_record' };
-  const { error } = await supabase.from('newsletter_subscribers').insert({
-    email: user.email,
-    user_id: user.id,
-    source: 'signup_default',
-    status: nextStatus,
+  const { error } = await supabase.rpc('set_newsletter_subscription', {
+    p_enabled: enabled,
   });
   if (error) {
-    console.error('[newsletter] fallback insert failed', error);
+    console.error('[newsletter] set subscription failed', error);
     return { ok: false, error: 'db_error' };
   }
   return { ok: true };
