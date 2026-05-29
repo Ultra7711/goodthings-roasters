@@ -96,14 +96,18 @@ export default function MyPageSideNav({ activeId, counts, onChange }: Props) {
     } else {
       positionIndicator(true);
     }
-    /* 모바일에서 활성 탭이 화면 밖이면 가로 스크롤 진입.
-       inline: 'center' — Shop / Cafe / LegalSideNav 와 통일 (S198).
-       과거 root viewport 가로 scroll 부작용으로 'nearest' 다운그레이드 했으나,
-       이후 모바일 .root { overflow-x: hidden } 도입으로 부작용 차단 완료. */
+    /* 모바일에서 활성 탭을 가로 중앙으로 — list 내부 가로 scrollLeft 만 조정.
+       S299-B: scrollIntoView({block:'nearest'}) 폐기 — window 세로 스크롤도 건드려
+       MyPagePage 의 handleNavWithScroll(window.scrollTo) 와 세로 경쟁 → 탭 전환마다
+       세로 미세 이동 누적(슬금슬금 top). list.scrollTo({left}) 로 가로만 → 세로 무영향. */
     if (window.matchMedia(MOBILE_QUERY).matches) {
       const list = listRef.current;
       const activeBtn = list?.querySelector<HTMLButtonElement>('.mp-side-nav-item.is-active');
-      activeBtn?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      if (list && activeBtn) {
+        const targetLeft =
+          activeBtn.offsetLeft - (list.clientWidth - activeBtn.offsetWidth) / 2;
+        list.scrollTo({ left: Math.max(targetLeft, 0), behavior: 'smooth' });
+      }
     }
     updateScrollState();
   }, [activeId]);
