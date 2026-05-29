@@ -22,8 +22,10 @@
 import { useEffect, useRef, useState } from 'react';
 
 /* S305: captured frame 캡처 배율 — 재진입 fade 전환용이라 full-res 불필요.
-   축소로 dataURL decode 비용 절감 (fade 시작 지연 완화). */
-const CAPTURE_SCALE = 0.5;
+   축소로 dataURL decode 비용 절감 (fade 시작 전 다크 대기 단축).
+   0.25 = 픽셀 1/16 → decode 대폭 단축. 흐림은 fade 전환용·곧 video 라 잠깐.
+   흐림 거슬리면 0.35 로 후퇴. */
+const CAPTURE_SCALE = 0.25;
 
 export default function HeroSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
