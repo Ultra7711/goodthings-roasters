@@ -17,7 +17,6 @@ import {
   useCartQuery,
   useUpdateCartQty,
   useRemoveCartItem,
-  SHIPPING_FEE,
 } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useDrawer } from '@/hooks/useDrawer';
@@ -29,7 +28,7 @@ import { useEffect, useRef, useCallback } from 'react';
 
 export default function CartDrawer() {
   const { isOpen, close, closeForNavigation } = useCartDrawer();
-  const { items, totalQty, subtotal, totalPrice, isFreeShipping, gaugePct, remainForFree } = useCartQuery();
+  const { items, totalQty, subtotal, totalPrice, shippingFee, isFreeShipping, gaugePct, remainForFree } = useCartQuery();
   const updateQty = useUpdateCartQty();
   const removeItem = useRemoveCartItem();
   const pathname = usePathname();
@@ -178,7 +177,7 @@ export default function CartDrawer() {
                       : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하면 무료 배송`}
                   </span>
                   <span className={`cd-si-price${isFreeShipping ? ' free' : ''}`}>
-                    {isFreeShipping ? '무료' : formatPrice(SHIPPING_FEE)}
+                    {isFreeShipping ? '무료' : formatPrice(shippingFee)}
                   </span>
                 </div>
                 {subtotal > 0 && (

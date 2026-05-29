@@ -15,7 +15,6 @@ import {
   useCartQuery,
   useUpdateCartQty,
   useRemoveCartItem,
-  SHIPPING_FEE,
 } from '@/hooks/useCart';
 import type { CartItem } from '@/types/cart';
 import CartSkeleton from './CartSkeleton';
@@ -32,7 +31,7 @@ type CartClientProps = {
 
 export default function CartClient({ initialItems }: CartClientProps = {}) {
   const {
-    items, subtotal, totalPrice,
+    items, subtotal, totalPrice, shippingFee,
     isFreeShipping, gaugePct, remainForFree,
     isLoading,
   } = useCartQuery(initialItems);
@@ -119,7 +118,7 @@ export default function CartClient({ initialItems }: CartClientProps = {}) {
                   : `${remainForFree.toLocaleString('ko-KR')}원 더 구매하면 무료 배송`}
               </span>
               <span className={`cp-shipping-price${isFreeShipping ? ' free' : ''}`}>
-                {isFreeShipping ? '무료' : formatPrice(SHIPPING_FEE)}
+                {isFreeShipping ? '무료' : formatPrice(shippingFee)}
               </span>
             </div>
             {subtotal > 0 && (
