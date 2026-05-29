@@ -452,6 +452,7 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | 2026-05-14 | S230 | 마스터 통합 재구성 — 모든 어드민 일감 SoT 일원화 / Sprint 카탈로그 S230~S234 + 별 / 폴리싱 sprint §2-4 + 최종 리뷰어 검토 sprint §2-5 신설 / memory carry-over link 박음 / 합계 추정 갱신 |
 | 2026-05-22 | S248 | **plan 갱신** — §1 매트릭스에 Group L (RBAC+audit) · Group M (뉴스레터) · Group N (비즈 문의) 신설 / §1-2 DEC-19~27 + DEC-S248-1~8 박음 / §2 Sprint 카탈로그에 S231~S247 결과 row 추가 + S248 단계별 항목 박음 + S249+ 통계 강화 carry-over 신설 + S250+ 출시 차단 잔여 + S260 최종 리뷰어 / §3 출시 전 P1 재추정 (4.5~7h S248 + 23~37h S250 + 4~6h S260) + 출시 후 P2 통계 강화 묶음 / §4 마감 결정 분리 + DEC-G1·newsletter-3·S249-1·2 미확정 분리 / §6 전체 잔여 71.5~106h 재계산 |
 | **2026-05-28** | **S290** | **§9 출시 차단 + 후속 일감 통합 audit 신설** — 어드민 SoT 를 확장하여 어드민 외 항목 (S-PND production launch + Group O 리뷰 게시판 + 폴리싱 carry) 까지 단일 SoT 통합 / §1 매트릭스에 Group O (리뷰 게시판) 신설 / DEC-newsletter-3 ✅ 완료 마킹 (Phase 4) / DEC-R1-UI · DEC-R2-policy · DEC-R2-vendor · DEC-R1-photo 미확정 추가 / §9 도메인 5종 (A 어드민 / B 카페·상품 CSV / C 리뷰 / D 인프라·launch / E 폴리싱) + 우선순위 권장 진입 순서 + 전체 잔여 131~219h 재계산 |
+| **2026-05-29** | **S301** | **§9 우선순위 정정 — 도메인 구조 명확화** — `goodthings-roasters.com`(하이픈)=토스 심사 제출용 **임시** 도메인(Vercel 배포 ✅ S293~298) / 원래 `goodthingsroasters.com`(카페24 서비스 중·`hello@`)=토스 통과 후 전환. §9-1 D 의 S-PND-V1 → V1a(임시 배포 ✅)+V1b(원래 도메인 전환 carry·통과 트리거) 분리 · S-PND-3 토스 키=통과 트리거 / §9-2 진입순서 재정렬 (외부 대기=토스 심사 / 심사 대기 동안 진행=어드민 운영 도구 S250+S260 / 통과 트리거 묶음=키+도메인+로고) / "출시 차단" 실체 = 토스 통과+원래 도메인 전환, 어드민 운영 도구는 준비 작업으로 재분류 / 코드 0·문서만 |
 | **2026-05-28** | **S291** | **S248 stale 정정 + Group M 상태 구체화** — S248 단계 1+2+3 모두 ✅ 완료 마킹 (`/admin/settings` HomeFeaturedSubForm + mig 069 + lib/siteSettings + CafeMenuSection fetch 교체 실제 구현 확인 · plan 문서가 stale) / DEC-S248-2~8 ✅ 일괄 마킹 / §2-1 S248 sprint ⏳ → ✅ / §1 Group M 뉴스레터 "어드민 미완" → "부분 (구독자 목록만 · 페이지네이션/검색/CSV/bulk send carry)" 구체화 / §9-1 + §9-2 + §9-4 합계 재계산 (출시 차단 30~50h → 27~44h · 전체 131~219h → 128~213h) / §3-1 + §6 합계 재계산 (전체 71.5~106h → 68.5~100h) / 코드 변경 0 · 문서만 |
 
 ---
@@ -502,14 +503,18 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 **합계:** Phase 1 16~32h (사진 제외) / 20~40h (포함) · Phase 2 8~16h · 전체 24~48h (사진 제외) / 28~56h (포함)
 **DEC 잠금:** R1 최소 도입 · R2 무료 우선 (OpenAI Moderation) · R3 S247 어드민 통계 후 (✅ 충족)
 
-#### D. 인프라 · production launch (`project_pending_sprints.md`)
+#### D. 인프라 · production launch (S301 갱신 — 임시 심사 도메인 배포 완료 / 원래 도메인 전환은 토스 통과 트리거)
+
+> **도메인 구조 (S301 명확화):** 현재 `goodthings-roasters.com`(하이픈) = **토스 심사 제출용 임시 도메인** (Vercel 배포본). 토스 라이브 심사 통과 시 → 원래 `goodthingsroasters.com`(하이픈 없음 · `hello@` 이메일 도메인 · **현재 카페24 서비스 중**) 으로 전환. 즉 "진짜 출시" = 토스 통과 + 원래 도메인 마이그.
 
 | ID | 항목 | 우선순위 | 추정 |
 |----|------|---------|------|
-| S-PND-3 | 토스 결제 키 갱신 (사용자 외부 키 발급 후 30분) | 🔴 | 30분 |
-| S-PND-V1 | Vercel 배포 정리 (가입 + repo 연결 + 환경변수 + 도메인 NS 변경 + DNS 마이그 + 검증) | 🔴 production 핵심 | 6~12h |
-| S-PND-4 carry | Lighthouse LCP 측정 (Vercel 배포 후 PageSpeed Insights) | 🟡 진단 | 1h |
-| S-PND-V2 | Newsletter 로고 production URL 자동 확인 | 🟢 V1 후 자동 | 30분 |
+| S-PND-V1a | Vercel 배포 + 임시 심사 도메인 `goodthings-roasters.com` (가입 + repo 연결 + env + 함수 리전 icn1) | ✅ 완료 (S293~S298) | — |
+| 토스 심사 | 라이브 심사 (임시 도메인 제출 · 빌링+일반결제 S294/S295) | 🔴 **외부 대기** (진행 중) | — |
+| S-PND-3 | **(통과 트리거)** 토스 결제 키 교체 + PPT 갱신(S297) + `.env.local`/Vercel live 키 | 🔴 통과 직후 | 30분 + PPT |
+| S-PND-V1b | **(통과 트리거)** 원래 도메인 `goodthingsroasters.com` 전환 (카페24 → Vercel · DNS/NS 마이그 · 기존 서비스 다운타임/전파 주의) | 🔴 통과 직후 | 2~4h |
+| S-PND-V2 | **(통과 트리거)** Newsletter 로고 production URL 확인 | 🟢 도메인 전환 후 | 30분 |
+| S-PND-4 carry | Lighthouse LCP 측정 (PageSpeed Insights) | 🟡 진단 | 1h |
 
 #### E. 폴리싱 / carry
 
@@ -520,17 +525,19 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | CS AI 봇 | Claude API + tool use (주문 조회 / FAQ lookup) | 별도 sprint · 운영 데이터 누적 후 | 20~40h |
 | arch sweep | improve-codebase-architecture 최종 (S227~S260 결과 audit) | 출시 후 V2+ | 8~10h |
 
-### §9-2. 우선순위 권장 진입 순서
+### §9-2. 우선순위 권장 진입 순서 (S301 재정렬 — 임시 도메인 배포 완료 기준)
 
-1. **🔴 S-PND-3 토스 키 갱신** — 외부 키 발급 신호 시 즉시 (30분)
-2. **🔴 A. 어드민 미작업 출시 차단 묶음** (S250-1~6 + S260) — 19.5~29h · 1주 (S248-2 완료 차감)
-3. **🔴 S-PND-V1 Vercel 배포** — 6~12h
-4. **🔴 후속 검증 묶음** (S-PND-3 결제 / S-PND-V2 로고 / Lighthouse LCP) — 1~2h
-5. **🟡 C. Group O 리뷰 게시판 Phase 1** — DEC-R1-UI confirm 후 16~32h
-6. **🟡 Group O Phase 2 AI 필터링** — DEC-R2-* confirm 후 8~16h
-7. **🟢 B. CSV PII 정책 + S249+ Quick Win** — 출시 후 1개월 14~22h
-8. **🟢 S249+ Domain Insight + CSV 추가** — 출시 후 2~3개월 11~19h
-9. **🟢 V2+ Deep Analysis + CS AI 봇 + arch sweep** — 출시 후 V2+ 52~80h
+0. **✅ Vercel 배포 + 임시 심사 도메인** (S293~S298 완료)
+1. **🔴 [외부 대기] 토스 라이브 심사 통과** — 우리 코드 작업 없음. 통과 신호 대기 (default 진행 중 가정).
+2. **🟡 [심사 대기 동안 진행] A. 어드민 운영 도구 묶음** (S250-1~6 + S260) — 19.5~29h. 토스·도메인과 무관하게 준비 가능 → **지금 진입 가능한 메인 작업**.
+3. **🔴 [통과 트리거 묶음] 출시 전환** — S-PND-3(결제 키+PPT) + S-PND-V1b(원래 도메인 `goodthingsroasters.com` 전환·DNS/NS) + S-PND-V2(뉴스레터 로고) + Lighthouse LCP — 2~5h. 토스 통과가 신호.
+4. **🟡 C. Group O 리뷰 게시판 Phase 1** — DEC-R1-UI confirm 후 16~32h
+5. **🟡 Group O Phase 2 AI 필터링** — DEC-R2-* confirm 후 8~16h
+6. **🟢 B. CSV PII 정책 + S249+ Quick Win** — 출시 후 1개월 14~22h
+7. **🟢 S249+ Domain Insight + CSV 추가** — 출시 후 2~3개월 11~19h
+8. **🟢 V2+ Deep Analysis + CS AI 봇 + arch sweep** — 출시 후 V2+ 52~80h
+
+> **핵심 변화 (S301):** Vercel 배포·임시 도메인은 ✅. "출시 차단"의 실체는 ① 토스 심사 통과(외부 대기) ② 통과 후 원래 도메인 전환(트리거 묶음). 어드민 운영 도구(2번)는 출시 차단이 아니라 **심사 대기 동안 진행하는 준비 작업**으로 재분류.
 
 ### §9-3. 결정 대기 매트릭스
 
