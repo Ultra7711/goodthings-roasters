@@ -61,6 +61,14 @@ export default function HeroSection() {
       }
     };
 
+    /* S305: poster → video 전환. visibility 가드로 idempotent (이미 복원 시 no-op)
+       → timeupdate·recover 성공 다중 호출 안전. onPlaying 핸들러와 동일 효과. */
+    const showVideo = () => {
+      if (video.style.visibility !== 'hidden') return;
+      video.style.visibility = '';
+      setPosterHidden(true);
+    };
+
     const recover = () => {
       if (document.hidden || recoveryInProgress) return;
       recoveryInProgress = true;
@@ -71,18 +79,20 @@ export default function HeroSection() {
 
       timers.push(setTimeout(() => {
         if (document.hidden) { recoveryInProgress = false; return; }
-        if (video.currentTime > before + 0.05) { recoveryInProgress = false; return; }
+        if (video.currentTime > before + 0.05) { showVideo(); recoveryInProgress = false; return; }
 
         /* Tier 2: currentTime nudge — iOS Safari frame advance 강제.
-           hidden→visible 복귀 시 디코더 시간 동기 깨진 케이스 회복. */
+           hidden→visible 복귀 시 디코더 시간 동기 깨진 케이스 회복.
+           S305: 0.001 → 0.045 (한 프레임 24fps≈0.0417 확실 초과, 성공 threshold 0.05
+           미만 = seek-only false positive 회피). */
         try {
-          video.currentTime += 0.001;
+          video.currentTime += 0.045;
           void video.play().catch(() => {});
         } catch { /* swallow */ }
 
         timers.push(setTimeout(() => {
           if (document.hidden) { recoveryInProgress = false; return; }
-          if (video.currentTime > before + 0.05) { recoveryInProgress = false; return; }
+          if (video.currentTime > before + 0.05) { showVideo(); recoveryInProgress = false; return; }
 
           /* Tier 3: load() — 디코더 컨텍스트 reset. 6.5MB 재요청 비용 있지만
              브라우저 캐시 hit 면 즉시. nudge 도 안 풀리는 케이스의 last resort. */
@@ -107,8 +117,10 @@ export default function HeroSection() {
     if (!capturedFrameRef.current) {
       void video.play().catch(() => {});
     } else {
+      /* S305: 재진입 복귀는 단순 play() 1회로는 iOS 디코더 suspend 를 못 깸 (BUG-008).
+         recover() 3-tier (play → nudge → load) 로 태워 frozen 자동 회복 (터치 불요). */
       timers.push(setTimeout(() => {
-        void video.play().catch(() => {});
+        recover();
       }, 400));
     }
 
@@ -132,6 +144,9 @@ export default function HeroSection() {
     video.addEventListener('pause', onPause);
     video.addEventListener('waiting', onWaiting);
     video.addEventListener('stalled', onWaiting);
+    /* S305: playing 이벤트 누락(복귀 시 already-playing) 보완 — timeline 이 실제 진행하면
+       invisible(visibility:hidden) 해제. showVideo 가 idempotent 라 매 발화 무해. */
+    video.addEventListener('timeupdate', showVideo);
     window.addEventListener('gtr:route-change', onRouteChange);
 
     return () => {
@@ -188,6 +203,7 @@ export default function HeroSection() {
       video.removeEventListener('pause', onPause);
       video.removeEventListener('waiting', onWaiting);
       video.removeEventListener('stalled', onWaiting);
+      video.removeEventListener('timeupdate', showVideo);
       window.removeEventListener('gtr:route-change', onRouteChange);
     };
   }, []);
