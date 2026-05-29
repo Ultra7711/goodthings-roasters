@@ -21,10 +21,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-/* S305: captured frame 캡처 배율 — 재진입 fade 전환용이라 full-res 불필요.
-   축소로 dataURL decode 비용 절감 (fade 시작 전 다크 대기 단축).
-   0.35 = decode 단축과 화질의 균형 (0.25 는 cover 확대 시 깨짐 체감). */
-const CAPTURE_SCALE = 0.35;
+/* S305: captured frame 캡처 배율 — 재진입 fade 전환용. 축소로 dataURL decode
+   비용 절감(다크 대기 단축)하나, 데스크탑 cover 확대 시 흐림이 티남.
+   0.5 = 화질 마지노선(0.35/0.25 는 데스크탑서 흐림 과다). 다크 추가 단축은
+   해상도 외 방법(JPEG 품질↓/blob/decode 회피) 필요 — carry. */
+const CAPTURE_SCALE = 0.5;
 
 export default function HeroSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
