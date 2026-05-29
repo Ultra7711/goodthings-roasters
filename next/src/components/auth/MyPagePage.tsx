@@ -118,10 +118,9 @@ export default function MyPagePage({
      S266: 동일 ref 가 mp-page root 의 보관도 담당 — scroll listener 가 --mp-scroll-p
      를 inline style 로 갱신. */
   const pageRef = useRef<HTMLDivElement | null>(null);
-  /* S282-P3-M: navLockRef = scroll listener + handleNavWithScroll 공유 lock.
-     탭 클릭 시 hero state 강제 결정 + scrollTo → lock 활성 → scroll listener apply skip → oscillation/모호 상태 차단. */
-  const navLockRef = useRef(false);
-  const navLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* S299: expanded hero 레이어 측정 ref — nested sticky 의 EXPANDED_H 산출용.
+     scroll listener 가 아니라 ResizeObserver 1회 측정 → CSS 변수 주입 (스크롤 무관 → reflow loop 없음). */
+  const heroExpandedRef = useRef<HTMLDivElement | null>(null);
   const setBodyEl = useCallback((el: HTMLDivElement | null) => {
     pageRef.current = el;
     if (!el) return;
@@ -130,90 +129,30 @@ export default function MyPagePage({
     el.classList.add('is-loaded');
   }, []);
 
-  /* S266 → S282-P3-M — 모바일 hero collapsed/expanded binary snap (hysteresis + transition lock).
-     scroll 진입 임계점 120 / 복귀 60 → data-collapsed attribute toggle.
-     CSS 가 transition 250ms ease 로 부드러운 snap 전환.
-     hysteresis: threshold 채터링 방지 (사용자가 임계점 근처 멈춰도 안정).
-
-     S282-P3-M transition lock: hero height 변환 (expanded ↔ collapsed) 시 layout reflow 발생 →
-     페이지 height 변동 → scrollY 자동 조정 → 임계 사이 oscillation 발생.
-     lock = data-collapsed 토글 후 400ms 동안 apply skip → layout 안정 후 정상 동작 재개.
-
-     데스크탑은 listener 자체 미부착 — 항상 'false'. */
+  /* ── S299 nested sticky 측정 (S266~S282-P3-M JS scroll collapse 폐기) ──
+     [재설계] 모바일 hero collapse 를 layout-reflow-free 로 전환.
+     - 골격: nested sticky (expanded outer 가 스크롤로 천장 위로 빠져나가며 자리째 사라짐,
+       collapsed 1줄 bar 가 천장에 남음). height 불변 → document height 안정 → oscillation 0.
+     - 전환: scroll-driven animation (CSS) — expanded opacity 1→0 / collapsed opacity 0→1.
+     - JS 역할: expanded 레이어 자연 height 를 측정해 --mp-hero-expanded-h 주입만 (scroll listener 아님).
+       이름 길이·safe-area 가변 대응. nested sticky 의 top/animation-range 가 이 변수를 참조.
+     데스크탑은 hero 일반 흐름 (sticky 아님) — 측정값 미사용 (CSS @media 가드). */
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const mql = window.matchMedia('(max-width: 767px)');
-    const HYST_ENTER = 120;
-    const HYST_EXIT = 60;
-    const TRANSITION_LOCK_MS = 400; // CSS transition 250ms + buffer 150ms
+    const page = pageRef.current;
+    const expanded = heroExpandedRef.current;
+    if (!page || !expanded) return;
 
-    let raf = 0;
-    let attached = false;
-
-    const apply = () => {
-      raf = 0;
-      const el = pageRef.current;
-      if (!el) return;
-      if (!mql.matches) {
-        el.dataset.collapsed = 'false';
-        return;
-      }
-      /* navLockRef 활성 중엔 임계 체크 skip — scroll listener / handleNavWithScroll 공유 lock.
-         oscillation (scrollY 자동 조정) + 탭 클릭 후 모호 상태 둘 다 차단. */
-      if (navLockRef.current) return;
-      const cur = el.dataset.collapsed === 'true';
-      const y = window.scrollY;
-      const next = !cur && y >= HYST_ENTER
-        ? true
-        : cur && y < HYST_EXIT
-          ? false
-          : cur;
-      if (next !== cur) {
-        el.dataset.collapsed = next ? 'true' : 'false';
-        /* 토글 후 lock — layout reflow + scrollY 자동 조정 시간 buffer */
-        navLockRef.current = true;
-        if (navLockTimerRef.current) clearTimeout(navLockTimerRef.current);
-        navLockTimerRef.current = setTimeout(() => {
-          navLockRef.current = false;
-          navLockTimerRef.current = null;
-        }, TRANSITION_LOCK_MS);
-      }
+    const measure = () => {
+      /* expanded 콘텐츠 자연 height (sticky/transform 영향 없는 내부 레이어 측정) */
+      const h = expanded.offsetHeight;
+      if (h > 0) page.style.setProperty('--mp-hero-expanded-h', `${h}px`);
     };
+    measure();
 
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(apply);
-    };
-
-    const attach = () => {
-      if (attached) return;
-      attached = true;
-      window.addEventListener('scroll', onScroll, { passive: true });
-      apply();
-    };
-    const detach = () => {
-      if (!attached) return;
-      attached = false;
-      window.removeEventListener('scroll', onScroll);
-      if (navLockTimerRef.current) {
-        clearTimeout(navLockTimerRef.current);
-        navLockTimerRef.current = null;
-      }
-      navLockRef.current = false;
-      const el = pageRef.current;
-      if (el) el.dataset.collapsed = 'false';
-    };
-
-    if (mql.matches) attach();
-    const onChange = (e: MediaQueryListEvent) => (e.matches ? attach() : detach());
-    mql.addEventListener('change', onChange);
-
-    return () => {
-      mql.removeEventListener('change', onChange);
-      detach();
-      if (raf) cancelAnimationFrame(raf);
-      if (navLockTimerRef.current) clearTimeout(navLockTimerRef.current);
-    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(expanded);
+    return () => ro.disconnect();
   }, []);
 
   /* ── Side nav 활성 항목 ── */
@@ -247,38 +186,15 @@ export default function MyPagePage({
     };
   }, []);
 
-  /* ── 탭 전환 공통 핸들러 — S282-P3-M (사용자 결정 · 옵션 a 초기 상태 통일).
-     매 탭 클릭 = 페이지 top (scrollY 0) + hero expanded 강제.
-     - dataset.collapsed = 'false' 강제 (hero expanded)
-     - scrollTo 0 smooth
-     - navLockRef 400ms 활성 (smooth scrollTo 중 임계 체크 skip).
+  /* ── 탭 전환 공통 핸들러 — S299 (nested sticky 재설계로 단순화).
+     매 탭 클릭 = 페이지 top 으로 복귀 (모바일). hero 는 scroll-driven 이라 scrollY 0 이면
+     자동으로 expanded 상태로 복원 — data-collapsed/navLock/rAF×2 강제 불필요 (전부 폐기).
      데스크탑은 grid layout 이라 스크롤 불필요 → mql 가드. */
   const handleNavWithScroll = useCallback((target: MyPageNavId) => {
     setActiveNavId(target);
     if (typeof window === 'undefined') return;
     if (!window.matchMedia('(max-width: 767px)').matches) return;
-    const el = pageRef.current;
-    if (!el) return;
-
-    /* hero state 강제 expanded (초기 상태) */
-    el.dataset.collapsed = 'false';
-
-    /* navLock 활성 — scroll listener 임계 체크 skip */
-    navLockRef.current = true;
-    if (navLockTimerRef.current) clearTimeout(navLockTimerRef.current);
-    navLockTimerRef.current = setTimeout(() => {
-      navLockRef.current = false;
-      navLockTimerRef.current = null;
-    }, 400);
-
-    /* 페이지 top 으로 smooth scrollTo — double rAF 안 호출 (React commit + MyPageSideNav 의
-       activeId useEffect 안 scrollIntoView 호출 후 마지막에 우리 scrollTo 발화 → final position 보장).
-       scrollIntoView 가 vertical 영향 가능성 (block: 'nearest') → 우리가 마지막 적용. */
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   /* ── 데이터: 정기배송 (SSR initialData) + 주문 (S253 lazy)
@@ -355,16 +271,39 @@ export default function MyPagePage({
          hero-wrap (viewport 풀폭 sand) 와 mp-body (max-width 1440 centered) 를 묶음.
          setBodyEl ref 는 mp-page 에 박아 진입 연출이 hero 와 grid 모두 트리거. */}
       <div className="mp-page" ref={setBodyEl}>
+        {/* ── S299 nested sticky hero (모바일) ──
+           데스크탑: expanded 만 일반 흐름 (collapsed display:none · 현재 동작 유지).
+           모바일: hero-wrap(outer, height=expanded-h) 안에 expanded(스크롤로 사라짐) +
+           collapsed(inner sticky, 1줄, 천장에 남음). 전환은 scroll-driven opacity (CSS). */}
         <div className="mp-hero-wrap">
-          <div className="mp-hero-inner">
-            <HeroGreeting
-              name={displayName}
-              ordersCount={initialOrdersCount}
-              activeSubscriptionsCount={activeSubsCount}
-              membershipText={membershipText}
-              onLogout={() => void handleLogout()}
-              onNavigate={handleNavWithScroll}
-            />
+          <div className="mp-hero-expanded" ref={heroExpandedRef}>
+            <div className="mp-hero-inner">
+              <HeroGreeting
+                name={displayName}
+                ordersCount={initialOrdersCount}
+                activeSubscriptionsCount={activeSubsCount}
+                membershipText={membershipText}
+                onLogout={() => void handleLogout()}
+                onNavigate={handleNavWithScroll}
+              />
+            </div>
+          </div>
+          {/* collapsed 1줄 bar — 모바일 전용 (CSS @media). 스크린리더는 expanded 본체 사용 → aria-hidden. */}
+          <div className="mp-hero-collapsed" aria-hidden>
+            <div className="mp-hero-collapsed-inner">
+              <span className="mp-hero-collapsed-greeting">
+                안녕하세요, {displayName}님.
+              </span>
+              <button
+                type="button"
+                className="mp-hero-collapsed-logout"
+                tabIndex={-1}
+                onClick={() => void handleLogout()}
+                data-gtr-tap
+              >
+                로그아웃
+              </button>
+            </div>
           </div>
         </div>
 

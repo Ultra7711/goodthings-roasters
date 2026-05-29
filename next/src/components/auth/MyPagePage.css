@@ -28,9 +28,8 @@
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
-  /* S282-P3-M: browser native scroll anchor 차단 — sticky element height 변동 시
-     scrollY 자동 조정 차단 (oscillation 근본 원인 차단 · web research 결합). */
-  overflow-anchor: none;
+  /* S299: overflow-anchor:none 제거 — nested sticky 재설계로 hero height 변동(oscillation
+     근원) 소멸 → browser native scroll anchor 방어 불필요. 기본 anchoring 복원. */
 }
 
 /* ── Hero 풀블리드 영역 (S264 H-1) ──
@@ -41,6 +40,10 @@
   width: 100%;
   background: var(--brand-sand);
 }
+
+/* S299: collapsed 1줄 bar — 데스크탑 미사용 (모바일 nested sticky 전용 · @media 에서 활성).
+   데스크탑은 expanded 만 일반 흐름 (현재 동작 유지). */
+.mp-hero-collapsed { display: none; }
 
 .mp-hero-inner {
   max-width: 1440px;
@@ -758,95 +761,130 @@
     pointer-events: none;
   }
 
-  /* ── S282-P3-M 모바일 hero sticky collapse (옵션 A · CSS-first) ──
-     hero-wrap 항상 sticky · max-height 변환으로 reflow 영역 격리.
-     - max-height 600px (expanded · 자연 height 안전 maximum)
-     - max-height 64px (collapsed · 1줄 영역)
-     - transition: max-height 250ms ease → 부드러움 (height auto transition 불가 회피)
-     - overflow: hidden → 변환 중 inner 잘림 visual
-     - contain: layout → 자식 layout 영향 격리 (다른 영역 reflow 차단)
-     - mp-page overflow-anchor: none 결합 → browser scroll anchor 자동 조정 차단. */
+  /* ══ S299 모바일 hero nested sticky (S266~S282-P3-M JS scroll collapse 전면 폐기) ══
+     [재설계 근거] 기존: JS scroll listener 가 hero max-height 600→64 변동 →
+     document height 변동 → scrollY 자동조정 → 임계 근처 oscillation(떨림). 방어코드 5종 누적.
+     [신구조] nested sticky — outer(hero-wrap)가 스크롤로 천장 위로 빠져나가며 자리째 사라지고,
+     collapsed 1줄 bar(inner sticky)가 천장에 남음. height 불변 → oscillation 근원 소멸.
+     전환은 scroll-driven animation(컴포지터 · 메인스레드 0 · iOS scrollY 버그 무관).
+
+     EXPANDED_H = --mp-hero-expanded-h (JS ResizeObserver 측정 · expanded 레이어 offsetHeight ·
+     fallback 204px = padding 56+24 + title 80 + gap 16 + meta 28). COLLAPSED_H = 64px.
+     outer top = header − EXPANDED_H → 스크롤 시 expanded(상단)가 천장 위로 잘려 사라지고
+     collapsed(하단 64)가 정확히 header 천장에 안착. */
+
   .mp-hero-wrap {
     position: sticky;
-    top: var(--header-height);
+    /* expanded 영역(= --mp-hero-expanded-h)만큼 outer 가 천장 위로 빠져나감 →
+       collapsed inner(sticky top: header)가 천장에 남음. */
+    top: calc(var(--header-height) - var(--mp-hero-expanded-h, 204px));
     z-index: 6;
-    /* GPU compositor — sticky paint jitter 방어 (S263 carry) */
+    /* GPU compositor — iOS sticky paint flicker 완화 (S263 carry) */
     transform: translateZ(0);
     will-change: transform;
-    /* 옵션 A: height 변환 격리 */
-    max-height: 600px;
-    overflow: hidden;
-    contain: layout;
-    transition: max-height 250ms ease;
-  }
-  .mp-page[data-collapsed="true"] .mp-hero-wrap {
-    max-height: 64px;
-  }
-  /* sidenav stack top — hero collapsed total 64px (padding 20+20 + line-height 24) 정확 정합 +
-     stickybar padding-top 8px (hero 와 분리 gap · bg primary 자동 확장).
-     시각: hero (sand 64) ↘ sticky bar (primary 8 padding + sidenav). */
-  .mp-page[data-collapsed="true"] .mp-mobile-stickybar {
-    top: calc(var(--header-height) + 64px);
-    padding-top: 8px;
-    transition: top 250ms ease, padding-top 250ms ease;
   }
 
-  /* expanded → collapsed transition (hero-inner padding · page-title size · greeting-line display) */
+  /* expanded 레이어 — ResizeObserver 측정 대상. 스크롤되며 천장 위로 잘려 사라짐.
+     scroll-driven opacity 1→0 (아래 @supports). */
   .mp-hero-inner {
-    transition: padding 250ms ease;
-  }
-  .page-title-area.mp-hero {
-    transition: gap 250ms ease;
-  }
-  .page-title-area.mp-hero .page-title {
-    transition: font-size 250ms ease, line-height 250ms ease;
-  }
-  .mp-hero-meta-row .mp-hero-meta {
-    transition: max-height 250ms ease, opacity 250ms ease;
-    max-height: 40px;
-    opacity: 1;
-    overflow: hidden;
+    padding: calc(56px + env(safe-area-inset-top, 0px)) 24px 24px;
   }
 
-  /* collapsed 상태 — 1줄 인사말 + logout 우측 */
-  .mp-page[data-collapsed="true"] .mp-hero-inner {
-    /* hero collapsed total = 20 + 24 (정수 line-height) + 20 = 64px (양쪽 대칭 padding 20).
-       sidenav top = header-height + 64 정확 정합 + sticky bar padding-top 8 (primary gap). */
-    padding-top: calc(20px + env(safe-area-inset-top, 0px));
-    padding-bottom: 20px;
+  /* collapsed 1줄 bar — inner sticky, 천장(header)에 남음. 자연 흐름상 expanded 다음(하단 64).
+     scroll-driven opacity 0→1. 데스크탑 display:none 해제. */
+  .mp-hero-collapsed {
+    display: block;
+    position: sticky;
+    top: var(--header-height);
+    height: 64px; /* COLLAPSED_H — tabbar top 의 +64 와 정합 */
+    /* 초기(스크롤 0)엔 expanded 아래 위치하나 opacity 0 으로 비표시 → 중복 차단. */
+    opacity: 0;
+    pointer-events: none;
   }
-  .mp-page[data-collapsed="true"] .page-title-area.mp-hero {
-    /* expanded flex col → collapsed flex row · gap 12 · logout 우측 정렬 */
-    flex-direction: row;
+  .mp-hero-collapsed-inner {
+    display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    max-width: 1440px;
+    width: 100%;
+    margin: 0 auto;
+    height: 100%;
+    padding: 0 24px;
   }
-  .mp-page[data-collapsed="true"] .page-title-area.mp-hero .page-title {
-    /* S282-P3-M: 사용자 명시 18px (body-l 토큰 16px 와 별개 · sticky 가독성 우선).
-       line-height 24px (정수 · 18*1.33) → hero total 의 sub-pixel 차단.
-       weight 500. 자연 줄바꿈 허용 (이름 길어 한 줄 안 들어가면 wrap · ellipsis 폐기). */
+  .mp-hero-collapsed-greeting {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-kr);
     font-size: 18px;
     font-weight: 500;
     line-height: 24px;
     letter-spacing: var(--ls-neutral);
-    flex: 1;
-    min-width: 0;
+    color: var(--color-text-primary);
+    word-break: keep-all;
   }
-  .mp-page[data-collapsed="true"] .mp-hero-greeting-line {
-    /* 2 span 을 inline 으로 합쳐 한 줄 (안녕하세요, OOO님.) */
-    display: inline;
-  }
-  .mp-page[data-collapsed="true"] .mp-hero-meta-row {
-    /* meta-row 자체 폭 0 — logout 만 표시 (meta display:none 으로 자식 1개) */
+  .mp-hero-collapsed-logout {
     flex-shrink: 0;
-    margin-top: 0;
-    gap: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--text-link-color);
+    font-family: var(--font-kr);
+    font-size: var(--type-body-m-size);
+    font-weight: var(--text-link-font-weight);
+    letter-spacing: var(--text-link-letter-spacing);
+    line-height: 1;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--color-border-primary);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
   }
-  .mp-page[data-collapsed="true"] .mp-hero-meta-row .mp-hero-meta {
-    /* display: none — width 차지 X (page-title flex 1 가용 폭 확보 · 2줄 wrap 차단).
-       transition 폐기 — data-collapsed binary snap 이라 visual 부드러움 손실 작음. */
-    display: none;
+
+  /* tabbar(stickybar) — collapsed bar(64) 아래 천장 stack. top 고정 (변동 없음). */
+  .mp-mobile-stickybar {
+    top: calc(var(--header-height) + 64px);
+  }
+
+  /* ── scroll-driven 전환 (Safari 26+ · Chrome/Firefox) ──
+     문서 스크롤 0 ~ EXPANDED_H 구간에서 expanded fade-out / collapsed fade-in cross-fade.
+     height 는 절대 애니하지 않음 → reflow-free 유지. */
+  @supports (animation-timeline: scroll()) {
+    .mp-hero-inner {
+      animation: mp-hero-expanded-fade linear both;
+      animation-timeline: scroll();
+      animation-range: 0 var(--mp-hero-expanded-h, 204px);
+    }
+    .mp-hero-collapsed {
+      animation: mp-hero-collapsed-fade linear both;
+      animation-timeline: scroll();
+      animation-range: 0 var(--mp-hero-expanded-h, 204px);
+    }
+  }
+  @keyframes mp-hero-expanded-fade {
+    0%        { opacity: 1; pointer-events: auto; }
+    60%, 100% { opacity: 0; pointer-events: none; }
+  }
+  @keyframes mp-hero-collapsed-fade {
+    0%, 50%   { opacity: 0; pointer-events: none; }
+    100%      { opacity: 1; pointer-events: auto; }
+  }
+
+  /* ── fallback (iOS 18 이하 = scroll-driven 미지원) ──
+     nested sticky/collapsed bar 끄고 hero 일반 흐름 (스크롤로 자연 사라짐) + tabbar 단일 sticky.
+     collapse 없음 = 정적이지만 안정 (progressive enhancement). */
+  @supports not (animation-timeline: scroll()) {
+    .mp-hero-wrap { position: static; }
+    .mp-hero-collapsed { display: none; }
+    .mp-mobile-stickybar { top: var(--header-height); }
+  }
+
+  /* reduced-motion — scroll-driven 전환 비활성. expanded 만 노출(일반 흐름화). */
+  @media (prefers-reduced-motion: reduce) {
+    .mp-hero-wrap { position: static; }
+    .mp-hero-collapsed { display: none; }
+    .mp-mobile-stickybar { top: var(--header-height); }
+    .mp-hero-inner { animation: none; opacity: 1; }
   }
 
   /* ── S266 panel padding-top ──
