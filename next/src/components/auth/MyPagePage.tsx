@@ -10,6 +10,7 @@
 
 import './MyPagePage.css';
 import { useCallback, useState, useMemo, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
@@ -170,16 +171,24 @@ export default function MyPagePage({
        (= 탭바가 막 천장에 붙는 scrollY 로 이동 → 새 panel 콘텐츠를 위에서부터 보임).
      데스크탑은 grid layout(nav 항상 보임)이라 스크롤 불필요 → mql 가드. */
   const handleNavWithScroll = useCallback((target: MyPageNavId) => {
-    setActiveNavId(target);
-    if (typeof window === 'undefined') return;
-    if (!window.matchMedia('(max-width: 767px)').matches) return;
+    const isMobile =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(max-width: 767px)').matches;
+    if (!isMobile) {
+      setActiveNavId(target);
+      return;
+    }
+    /* 모바일: panel 교체를 flushSync 로 동기 커밋 → 새 panel height 반영된 안정 DOM 에서
+       측정+scrollTo. (동기 scrollTo 는 panel 교체 전 발화되어, 긴 주문내역→짧은 탭 전환 시
+       문서 height 급변 중 smooth scroll 이 어긋남.) */
+    flushSync(() => setActiveNavId(target));
     const grid = pageRef.current?.querySelector<HTMLElement>('.mp-grid');
     if (!grid) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     /* tabbar(= mp-grid 첫 자식)가 천장(header)에 붙기 시작하는 scrollY.
-       mp-grid 는 일반 흐름이라 (scrollY + rect.top) 으로 절대 위치 정확. */
+       mp-grid 는 일반 흐름이라 (scrollY + rect.top) 으로 절대 위치 정확 (scrollY 상쇄 → 고정값). */
     const headerH =
       parseFloat(
         getComputedStyle(document.documentElement).getPropertyValue('--header-height'),
@@ -287,7 +296,6 @@ export default function MyPagePage({
                S282-P3-M: mp-mobile-greeting 폐기 — hero-wrap 자체가 sticky + collapsed 1줄로 변환.
                sticky bar 의 bg 는 absolute child 로 분리 (iOS 26 Liquid Glass tinting fix). */}
             <div className="mp-mobile-stickybar">
-              <div className="mp-mobile-stickybar-bg" aria-hidden />
               <MyPageSideNav
                 activeId={activeNavId}
                 counts={counts}

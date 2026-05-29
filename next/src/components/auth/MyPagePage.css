@@ -119,9 +119,6 @@
 .mp-mobile-stickybar {
   display: contents;
 }
-.mp-mobile-stickybar-bg {
-  display: none;
-}
 /* S282-P3-M: mp-mobile-greeting 폐기 — hero-wrap 자체가 sticky + collapsed 1줄로 변환. */
 
 /* S197 PR-2 §2.2: 패널 박스 폐기 — bg/radius/bleed 제거, 단순 컨테이너로 단순화.
@@ -730,10 +727,11 @@
     transform: none;
   }
 
-  /* ── 모바일 sticky bar wrapper (S266 → S282-P3-M) ──
-     S282-P3-M: SideNav 만 sticky · greeting 영역 폐기 (hero-wrap 자체가 sticky collapsed 1줄 변환 담당).
-     wrapper 자체 background 미부착 (iOS 26 Liquid Glass toolbar tinting fix).
-     bg 는 absolute child (.mp-mobile-stickybar-bg) 가 담당. */
+  /* ── 모바일 sticky bar wrapper — S299-B Legal(LegalSideNav) 1:1 정합 ──
+     [근거] Legal tabbar 는 iOS 정상. 마이페이지만 떨림+틈 비침 → 유일 차이 =
+     transform/will-change(GPU 레이어) + absolute child bg(z-index:-1, sticky 진동 시 본체와
+     어긋나 틈 발생). Legal 처럼 transform/will-change 제거 + bg 직접 부착으로 복제.
+     (S263 absolute bg tinting fix 폐기 — Legal 이 bg 직접인데 정상이므로. tinting 재발 시 Legal 과 함께 재고.) */
   .mp-mobile-stickybar {
     display: block;
     position: sticky;
@@ -744,18 +742,7 @@
     margin-right: -24px;
     padding-left: 24px;
     padding-right: 24px;
-    background: transparent;
-    /* GPU compositor — sticky paint jitter 방어 (S263 carry) */
-    transform: translateZ(0);
-    will-change: transform;
-  }
-  .mp-mobile-stickybar-bg {
-    display: block;
-    position: absolute;
-    inset: 0;
     background: var(--color-background-primary);
-    z-index: -1;
-    pointer-events: none;
   }
 
   /* ══ S299 hero 일반 흐름 + tabbar 단일 sticky (Legal 답습 · nested sticky 폐기) ══
