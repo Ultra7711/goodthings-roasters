@@ -164,15 +164,30 @@ export default function MyPagePage({
     };
   }, []);
 
-  /* ── 탭 전환 공통 핸들러 — S299 (hero 일반 흐름 전환으로 단순화).
-     매 탭 클릭 = 페이지 top 으로 복귀 (모바일) → hero 다시 보임 + tabbar 천장 sticky 유지.
-     data-collapsed/navLock/rAF×2 등 collapse 제어 일절 없음 (전부 폐기).
-     데스크탑은 grid layout 이라 스크롤 불필요 → mql 가드. */
+  /* ── 탭 전환 공통 핸들러 — S299 (탭바 sticky 상태 기준 A/B 정렬 · 사용자 결정) ──
+     - 탭바가 아직 sticky 안 됨(hero 보이는 최초 상태) → A: 페이지 top (hero 부터).
+     - 탭바가 sticky 로 천장에 붙음(스크롤 내려간 상태) → B: panel 을 탭바 직하로 정렬
+       (= 탭바가 막 천장에 붙는 scrollY 로 이동 → 새 panel 콘텐츠를 위에서부터 보임).
+     데스크탑은 grid layout(nav 항상 보임)이라 스크롤 불필요 → mql 가드. */
   const handleNavWithScroll = useCallback((target: MyPageNavId) => {
     setActiveNavId(target);
     if (typeof window === 'undefined') return;
     if (!window.matchMedia('(max-width: 767px)').matches) return;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const grid = pageRef.current?.querySelector<HTMLElement>('.mp-grid');
+    if (!grid) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    /* tabbar(= mp-grid 첫 자식)가 천장(header)에 붙기 시작하는 scrollY.
+       mp-grid 는 일반 흐름이라 (scrollY + rect.top) 으로 절대 위치 정확. */
+    const headerH =
+      parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--header-height'),
+      ) || 56;
+    const stickThreshold = window.scrollY + grid.getBoundingClientRect().top - headerH;
+    /* 이미 sticky(붙음) → panel 직하 정렬(B) / 아직 안 붙음 → 페이지 top(A). */
+    const dest = window.scrollY > stickThreshold ? stickThreshold : 0;
+    window.scrollTo({ top: Math.max(dest, 0), behavior: 'smooth' });
   }, []);
 
   /* ── 데이터: 정기배송 (SSR initialData) + 주문 (S253 lazy)
