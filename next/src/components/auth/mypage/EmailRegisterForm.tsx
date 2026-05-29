@@ -42,6 +42,8 @@ export default function EmailRegisterForm() {
 
   return (
     <>
+      {/* S302: 배송지(AddressSection) 패턴 — 이메일 셀 자체가 토글 버튼.
+         미등록 표시 + chevron, 클릭 시 등록 폼 reveal. 별도 "이메일 등록" 행 폐기. */}
       <div
         className="mp-info-row mp-info-row--action"
         role="button"
@@ -55,9 +57,12 @@ export default function EmailRegisterForm() {
           }
         }}
       >
-        <span className="mp-info-label">이메일 등록</span>
-        <span className="mp-icon-btn" aria-hidden="true">
-          <ToggleIcon open={isOpen} />
+        <span className="mp-info-label">이메일</span>
+        <span className="mp-info-addr-right">
+          <span className="mp-info-value mp-info-value--muted">미등록</span>
+          <span className="mp-icon-btn" aria-hidden="true">
+            <ToggleIcon open={isOpen} />
+          </span>
         </span>
       </div>
       <div className={`mp-form-reveal${isOpen ? ' open' : ''}`}>

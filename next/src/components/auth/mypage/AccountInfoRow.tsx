@@ -24,17 +24,9 @@ export default function AccountInfoRow({ name, email, initialNewsletterStatus }:
         <span className="mp-info-label">이름</span>
         <span className="mp-info-value">{name}</span>
       </div>
-      <div className="mp-info-row">
-        <span className="mp-info-label">이메일</span>
-        <span className={`mp-info-value${emailIsSynthetic ? ' mp-info-value--muted' : ''}`}>
-          {emailIsSynthetic ? '미등록' : email}
-        </span>
-      </div>
-      {/* S241 Phase 2 — newsletter 토글 (이메일 row 직속 아래 · 디폴트 ON)
-         S283 — initialStatus 로 client fetch spinner 폐기.
-         S301 — 가상 이메일(수신 불가) 유저는 토글 숨김 + 안내 (구독해도 발송 불가).
-         S302 — 가상 이메일 유저는 실제 이메일 등록 동선(EmailRegisterForm) 노출 →
-                계정 자산(복구·CRM) 확보. 등록 완료 시 토글 노출됨. */}
+      {/* S302: 가상 이메일(미등록) 유저는 이메일 셀 자체가 등록 토글(배송지 패턴) →
+         계정 자산(복구·CRM) 확보. 일반 유저는 기존 정적 이메일 row + 뉴스레터 토글.
+         S301 — 가상 이메일 유저 뉴스레터는 "이메일 등록 후 이용 가능" 안내 (등록 시 토글 노출). */}
       {emailIsSynthetic ? (
         <>
           <EmailRegisterForm />
@@ -44,7 +36,13 @@ export default function AccountInfoRow({ name, email, initialNewsletterStatus }:
           </div>
         </>
       ) : (
-        <NewsletterToggleClient initialStatus={initialNewsletterStatus} />
+        <>
+          <div className="mp-info-row">
+            <span className="mp-info-label">이메일</span>
+            <span className="mp-info-value">{email}</span>
+          </div>
+          <NewsletterToggleClient initialStatus={initialNewsletterStatus} />
+        </>
       )}
     </>
   );
