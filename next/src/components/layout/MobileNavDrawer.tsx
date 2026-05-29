@@ -416,6 +416,14 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
             >
               FAQ
             </Link>
+            <span className="mn-f-sep">·</span>
+            <Link
+              href="/legal/returns"
+              className="mn-f-legal"
+              onClick={(e) => handleLegalClick(e, '/legal/returns')}
+            >
+              취소·반품·교환
+            </Link>
           </div>
           <div
             className={`mn-f-biz-detail${bizOpen ? ' open' : ''}`}
