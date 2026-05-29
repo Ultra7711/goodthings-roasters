@@ -693,7 +693,9 @@
     padding-left: 24px;
     padding-right: 24px;
     position: relative;
-    overflow-x: clip;
+    /* S299-B: overflow-x: clip 제거 — overflow 조상 안 sticky 는 iOS WebKit 에서 스크롤 중
+       합성 지연 → tabbar 위아래 떨림(header 사이 틈 비침). Legal(legal-shell)은 clip 없이
+       정상이고 동일 margin -24 bleed 를 쓰므로 clip 불필요. (가로 bleed 부작용 시 재검토.) */
   }
   /* S264 H-1: hero-inner 모바일 padding (header 안전 56 + bottom 24 gap).
      S282-P1: iPhone notch (iOS X+) 안전영역 가산 — env(safe-area-inset-top) 폴백 0px.
