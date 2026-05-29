@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import type { CSSProperties } from 'react';
 import {
   BarChart3,
+  Building2,
   Calendar,
   ChevronDown,
   ClipboardClock,
@@ -76,6 +77,7 @@ function buildNavGroups(adminLevel: 'owner' | 'staff'): NavGroup[] {
       items: [
         { href: '/admin/analytics', label: '통계', icon: BarChart3 },
         { href: '/admin/newsletter', label: '뉴스레터', icon: Mail },
+        { href: '/admin/biz-inquiries', label: '비즈 문의', icon: Building2 },
       ],
     },
     {
