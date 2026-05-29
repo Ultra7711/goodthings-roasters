@@ -118,9 +118,6 @@ export default function MyPagePage({
      S266: 동일 ref 가 mp-page root 의 보관도 담당 — scroll listener 가 --mp-scroll-p
      를 inline style 로 갱신. */
   const pageRef = useRef<HTMLDivElement | null>(null);
-  /* S299: expanded hero 레이어 측정 ref — nested sticky 의 EXPANDED_H 산출용.
-     scroll listener 가 아니라 ResizeObserver 1회 측정 → CSS 변수 주입 (스크롤 무관 → reflow loop 없음). */
-  const heroExpandedRef = useRef<HTMLDivElement | null>(null);
   const setBodyEl = useCallback((el: HTMLDivElement | null) => {
     pageRef.current = el;
     if (!el) return;
@@ -129,31 +126,12 @@ export default function MyPagePage({
     el.classList.add('is-loaded');
   }, []);
 
-  /* ── S299 nested sticky 측정 (S266~S282-P3-M JS scroll collapse 폐기) ──
-     [재설계] 모바일 hero collapse 를 layout-reflow-free 로 전환.
-     - 골격: nested sticky (expanded outer 가 스크롤로 천장 위로 빠져나가며 자리째 사라짐,
-       collapsed 1줄 bar 가 천장에 남음). height 불변 → document height 안정 → oscillation 0.
-     - 전환: scroll-driven animation (CSS) — expanded opacity 1→0 / collapsed opacity 0→1.
-     - JS 역할: expanded 레이어 자연 height 를 측정해 --mp-hero-expanded-h 주입만 (scroll listener 아님).
-       이름 길이·safe-area 가변 대응. nested sticky 의 top/animation-range 가 이 변수를 참조.
-     데스크탑은 hero 일반 흐름 (sticky 아님) — 측정값 미사용 (CSS @media 가드). */
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const page = pageRef.current;
-    const expanded = heroExpandedRef.current;
-    if (!page || !expanded) return;
-
-    const measure = () => {
-      /* expanded 콘텐츠 자연 height (sticky/transform 영향 없는 내부 레이어 측정) */
-      const h = expanded.offsetHeight;
-      if (h > 0) page.style.setProperty('--mp-hero-expanded-h', `${h}px`);
-    };
-    measure();
-
-    const ro = new ResizeObserver(measure);
-    ro.observe(expanded);
-    return () => ro.disconnect();
-  }, []);
+  /* ── S299 모바일 hero collapse 폐기 (Legal 단일 sticky 답습) ──
+     S266~S282-P3-M JS scroll collapse + S299 nested sticky 모두 폐기.
+     [근거] nested sticky(2중) 는 iOS WebKit #106062 버그로 진동·조기 풀림 발생
+     (Chromium 정상 → PC 에뮬에선 미발현). Legal 페이지(단일 sticky·hero 일반흐름)는
+     iOS 정상 = 검증된 자체 패턴 → 답습. hero 일반 흐름(스크롤로 사라짐) + tabbar 단일 sticky.
+     JS scroll 제어 일절 없음 → 떨림 근원 자체 소멸. */
 
   /* ── Side nav 활성 항목 ── */
   const [activeNavId, setActiveNavId] = useState<MyPageNavId>('orders');
@@ -186,9 +164,9 @@ export default function MyPagePage({
     };
   }, []);
 
-  /* ── 탭 전환 공통 핸들러 — S299 (nested sticky 재설계로 단순화).
-     매 탭 클릭 = 페이지 top 으로 복귀 (모바일). hero 는 scroll-driven 이라 scrollY 0 이면
-     자동으로 expanded 상태로 복원 — data-collapsed/navLock/rAF×2 강제 불필요 (전부 폐기).
+  /* ── 탭 전환 공통 핸들러 — S299 (hero 일반 흐름 전환으로 단순화).
+     매 탭 클릭 = 페이지 top 으로 복귀 (모바일) → hero 다시 보임 + tabbar 천장 sticky 유지.
+     data-collapsed/navLock/rAF×2 등 collapse 제어 일절 없음 (전부 폐기).
      데스크탑은 grid layout 이라 스크롤 불필요 → mql 가드. */
   const handleNavWithScroll = useCallback((target: MyPageNavId) => {
     setActiveNavId(target);
@@ -271,39 +249,18 @@ export default function MyPagePage({
          hero-wrap (viewport 풀폭 sand) 와 mp-body (max-width 1440 centered) 를 묶음.
          setBodyEl ref 는 mp-page 에 박아 진입 연출이 hero 와 grid 모두 트리거. */}
       <div className="mp-page" ref={setBodyEl}>
-        {/* ── S299 nested sticky hero (모바일) ──
-           데스크탑: expanded 만 일반 흐름 (collapsed display:none · 현재 동작 유지).
-           모바일: hero-wrap(outer, height=expanded-h) 안에 expanded(스크롤로 사라짐) +
-           collapsed(inner sticky, 1줄, 천장에 남음). 전환은 scroll-driven opacity (CSS). */}
+        {/* ── S299 hero (Legal 답습 · 데스크탑/모바일 공통 일반 흐름) ──
+           hero 는 sticky 아님. 스크롤하면 자연스럽게 위로 사라지고 tabbar 만 천장 sticky. */}
         <div className="mp-hero-wrap">
-          <div className="mp-hero-expanded" ref={heroExpandedRef}>
-            <div className="mp-hero-inner">
-              <HeroGreeting
-                name={displayName}
-                ordersCount={initialOrdersCount}
-                activeSubscriptionsCount={activeSubsCount}
-                membershipText={membershipText}
-                onLogout={() => void handleLogout()}
-                onNavigate={handleNavWithScroll}
-              />
-            </div>
-          </div>
-          {/* collapsed 1줄 bar — 모바일 전용 (CSS @media). 스크린리더는 expanded 본체 사용 → aria-hidden. */}
-          <div className="mp-hero-collapsed" aria-hidden>
-            <div className="mp-hero-collapsed-inner">
-              <span className="mp-hero-collapsed-greeting">
-                안녕하세요, {displayName}님.
-              </span>
-              <button
-                type="button"
-                className="mp-hero-collapsed-logout"
-                tabIndex={-1}
-                onClick={() => void handleLogout()}
-                data-gtr-tap
-              >
-                로그아웃
-              </button>
-            </div>
+          <div className="mp-hero-inner">
+            <HeroGreeting
+              name={displayName}
+              ordersCount={initialOrdersCount}
+              activeSubscriptionsCount={activeSubsCount}
+              membershipText={membershipText}
+              onLogout={() => void handleLogout()}
+              onNavigate={handleNavWithScroll}
+            />
           </div>
         </div>
 

@@ -41,10 +41,6 @@
   background: var(--brand-sand);
 }
 
-/* S299: collapsed 1줄 bar — 데스크탑 미사용 (모바일 nested sticky 전용 · @media 에서 활성).
-   데스크탑은 expanded 만 일반 흐름 (현재 동작 유지). */
-.mp-hero-collapsed { display: none; }
-
 .mp-hero-inner {
   max-width: 1440px;
   width: 100%;
@@ -692,10 +688,11 @@
    · 타이틀 H1→H2 · 아코디언 액션 세로 · 주문 카드 min-width 해제 · 모달 폭 축소 */
 @media (max-width: 767px) {
   /* S197 PR-2 모바일 padding override — 좌우만 24 로 축소 (60 → 24, 콘텐츠 폭 확보).
-     S264 H-1: hero 외부 분리 → mp-body padding-top 24 (gap 보존).
+     S299: hero ↔ tabbar 간격은 mp-grid margin-top 24 가 담당 → mp-body padding-top 0
+     (nested sticky hero 아래 불필요 상단 공백 제거).
      overflow-x: clip — mp-side-nav sticky 자식 보장 (S198). */
   .mp-body {
-    padding-top: 24px;
+    padding-top: 0;
     padding-left: 24px;
     padding-right: 24px;
     position: relative;
@@ -761,131 +758,13 @@
     pointer-events: none;
   }
 
-  /* ══ S299 모바일 hero nested sticky (S266~S282-P3-M JS scroll collapse 전면 폐기) ══
-     [재설계 근거] 기존: JS scroll listener 가 hero max-height 600→64 변동 →
-     document height 변동 → scrollY 자동조정 → 임계 근처 oscillation(떨림). 방어코드 5종 누적.
-     [신구조] nested sticky — outer(hero-wrap)가 스크롤로 천장 위로 빠져나가며 자리째 사라지고,
-     collapsed 1줄 bar(inner sticky)가 천장에 남음. height 불변 → oscillation 근원 소멸.
-     전환은 scroll-driven animation(컴포지터 · 메인스레드 0 · iOS scrollY 버그 무관).
-
-     EXPANDED_H = --mp-hero-expanded-h (JS ResizeObserver 측정 · expanded 레이어 offsetHeight ·
-     fallback 204px = padding 56+24 + title 80 + gap 16 + meta 28). COLLAPSED_H = 64px.
-     outer top = header − EXPANDED_H → 스크롤 시 expanded(상단)가 천장 위로 잘려 사라지고
-     collapsed(하단 64)가 정확히 header 천장에 안착. */
-
-  .mp-hero-wrap {
-    position: sticky;
-    /* expanded 영역(= --mp-hero-expanded-h)만큼 outer 가 천장 위로 빠져나감 →
-       collapsed inner(sticky top: header)가 천장에 남음. */
-    top: calc(var(--header-height) - var(--mp-hero-expanded-h, 204px));
-    z-index: 6;
-    /* GPU compositor — iOS sticky paint flicker 완화 (S263 carry) */
-    transform: translateZ(0);
-    will-change: transform;
-  }
-
-  /* expanded 레이어 — ResizeObserver 측정 대상. 스크롤되며 천장 위로 잘려 사라짐.
-     scroll-driven opacity 1→0 (아래 @supports). */
-  .mp-hero-inner {
-    padding: calc(56px + env(safe-area-inset-top, 0px)) 24px 24px;
-  }
-
-  /* collapsed 1줄 bar — inner sticky, 천장(header)에 남음. 자연 흐름상 expanded 다음(하단 64).
-     scroll-driven opacity 0→1. 데스크탑 display:none 해제. */
-  .mp-hero-collapsed {
-    display: block;
-    position: sticky;
-    top: var(--header-height);
-    height: 64px; /* COLLAPSED_H — tabbar top 의 +64 와 정합 */
-    /* 초기(스크롤 0)엔 expanded 아래 위치하나 opacity 0 으로 비표시 → 중복 차단. */
-    opacity: 0;
-    pointer-events: none;
-  }
-  .mp-hero-collapsed-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    max-width: 1440px;
-    width: 100%;
-    margin: 0 auto;
-    height: 100%;
-    padding: 0 24px;
-  }
-  .mp-hero-collapsed-greeting {
-    flex: 1;
-    min-width: 0;
-    font-family: var(--font-kr);
-    font-size: 18px;
-    font-weight: 500;
-    line-height: 24px;
-    letter-spacing: var(--ls-neutral);
-    color: var(--color-text-primary);
-    word-break: keep-all;
-  }
-  .mp-hero-collapsed-logout {
-    flex-shrink: 0;
-    padding: 0;
-    background: transparent;
-    border: none;
-    color: var(--text-link-color);
-    font-family: var(--font-kr);
-    font-size: var(--type-body-m-size);
-    font-weight: var(--text-link-font-weight);
-    letter-spacing: var(--text-link-letter-spacing);
-    line-height: 1;
-    cursor: pointer;
-    text-decoration: underline;
-    text-decoration-color: var(--color-border-primary);
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
-  }
-
-  /* tabbar(stickybar) — collapsed bar(64) 아래 천장 stack. top 고정 (변동 없음). */
-  .mp-mobile-stickybar {
-    top: calc(var(--header-height) + 64px);
-  }
-
-  /* ── scroll-driven 전환 (Safari 26+ · Chrome/Firefox) ──
-     문서 스크롤 0 ~ EXPANDED_H 구간에서 expanded fade-out / collapsed fade-in cross-fade.
-     height 는 절대 애니하지 않음 → reflow-free 유지. */
-  @supports (animation-timeline: scroll()) {
-    .mp-hero-inner {
-      animation: mp-hero-expanded-fade linear both;
-      animation-timeline: scroll();
-      animation-range: 0 var(--mp-hero-expanded-h, 204px);
-    }
-    .mp-hero-collapsed {
-      animation: mp-hero-collapsed-fade linear both;
-      animation-timeline: scroll();
-      animation-range: 0 var(--mp-hero-expanded-h, 204px);
-    }
-  }
-  @keyframes mp-hero-expanded-fade {
-    0%        { opacity: 1; pointer-events: auto; }
-    60%, 100% { opacity: 0; pointer-events: none; }
-  }
-  @keyframes mp-hero-collapsed-fade {
-    0%, 50%   { opacity: 0; pointer-events: none; }
-    100%      { opacity: 1; pointer-events: auto; }
-  }
-
-  /* ── fallback (iOS 18 이하 = scroll-driven 미지원) ──
-     nested sticky/collapsed bar 끄고 hero 일반 흐름 (스크롤로 자연 사라짐) + tabbar 단일 sticky.
-     collapse 없음 = 정적이지만 안정 (progressive enhancement). */
-  @supports not (animation-timeline: scroll()) {
-    .mp-hero-wrap { position: static; }
-    .mp-hero-collapsed { display: none; }
-    .mp-mobile-stickybar { top: var(--header-height); }
-  }
-
-  /* reduced-motion — scroll-driven 전환 비활성. expanded 만 노출(일반 흐름화). */
-  @media (prefers-reduced-motion: reduce) {
-    .mp-hero-wrap { position: static; }
-    .mp-hero-collapsed { display: none; }
-    .mp-mobile-stickybar { top: var(--header-height); }
-    .mp-hero-inner { animation: none; opacity: 1; }
-  }
+  /* ══ S299 hero 일반 흐름 + tabbar 단일 sticky (Legal 답습 · nested sticky 폐기) ══
+     [근거] nested sticky(2중) = iOS WebKit #106062 버그(스크롤 중 오재배치 → 진동·조기 풀림,
+     Chromium 정상이라 PC 에뮬 미발현). Legal 페이지(단일 sticky·hero 일반흐름)는 iOS 정상 =
+     검증된 자체 패턴 답습. hero-wrap 은 데스크탑처럼 일반 흐름(스크롤로 위로 사라짐), tabbar 만
+     단일 sticky (위 .mp-mobile-stickybar top: var(--header-height) 그대로 사용 · 중첩 0).
+     S266~S299 의 hero collapse / scroll-driven / 방어코드 일절 없음 → 떨림 근원 자체 소멸.
+     mp-hero-inner 모바일 padding 은 위 .mp-hero-inner 블록(line 704)에서 이미 정의. */
 
   /* ── S266 panel padding-top ──
      모든 view 의 첫 element 가 자체 padding 20 (mp-info-row / mp-order-card /
