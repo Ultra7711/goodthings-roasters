@@ -33,7 +33,18 @@ const ORDERS_SSR_LIMIT = 20;
 export const metadata = { title: '마이 페이지' };
 
 async function MyPageAuthed() {
+  /* ⚠️ S298 옵션 B 임시 계측 — prod Supabase 왕복 병목 진단용. 확인 후 제거 예정. */
+  const __t0 = performance.now();
   const claims = await requireAuth();
+  const __tAuth = performance.now();
+  const __timed = async <T,>(label: string, p: Promise<T>): Promise<T> => {
+    const s = performance.now();
+    try {
+      return await p;
+    } finally {
+      console.log(`[mypage.perf] ${label}=${(performance.now() - s).toFixed(0)}ms`);
+    }
+  };
 
   /* S253 + S282-P1/P2 마이페이지 최적화 — server prefetch:
      - subscriptions: 전체 (TanStack initialData · flash 차단)
@@ -42,33 +53,39 @@ async function MyPageAuthed() {
      - adminLevel: admin 인 경우 'owner' | 'staff' (HeroGreeting 라벨)
      - products: S282-P2 — SubscriptionView lazy fetch (server action) · 90% dead fetch 회피. */
   const [subscriptions, orders, ordersCount, adminClaims, newsletterStatus] = await Promise.all([
-    findSubscriptionsForUser()
+    __timed('subscriptions', findSubscriptionsForUser()
       .then((rows) => rows.map(toSubscription))
       .catch((err): Subscription[] => {
         console.error('[mypage.prefetch] subscriptions failed', err);
         return [];
-      }),
-    findOrdersForUser(ORDERS_SSR_LIMIT)
+      })),
+    __timed('orders', findOrdersForUser(ORDERS_SSR_LIMIT)
       .then((rows) => rows.map(toOrder))
       .catch((err): Order[] => {
         console.error('[mypage.prefetch] orders failed', err);
         return [];
-      }),
-    getOrdersCountForUser().catch((err): number => {
+      })),
+    __timed('ordersCount', getOrdersCountForUser().catch((err): number => {
       console.error('[mypage.prefetch] orders count failed', err);
       return 0;
-    }),
-    getAdminClaims().catch((err): null => {
+    })),
+    __timed('adminClaims', getAdminClaims().catch((err): null => {
       console.error('[mypage.prefetch] admin claims failed', err);
       return null;
-    }),
+    })),
     /* S283: newsletter status SSR prefetch — ProfileView 진입 시 client fetch "불러오는 중…" 폐기.
        view 전환마다 remount → useEffect 재발화 → 매번 fetch UX 어색함 회피. */
-    getNewsletterStatus().catch((err): NewsletterStatusResult => {
+    __timed('newsletter', getNewsletterStatus().catch((err): NewsletterStatusResult => {
       console.error('[mypage.prefetch] newsletter status failed', err);
       return { ok: false, error: 'db_error' };
-    }),
+    })),
   ]);
+  /* ⚠️ S298 임시 계측 출력 */
+  console.log(
+    `[mypage.perf] requireAuth=${(__tAuth - __t0).toFixed(0)}ms ` +
+    `parallel=${(performance.now() - __tAuth).toFixed(0)}ms ` +
+    `total=${(performance.now() - __t0).toFixed(0)}ms`,
+  );
 
   const adminLevel: AdminLevel | null = adminClaims?.adminLevel ?? null;
 
