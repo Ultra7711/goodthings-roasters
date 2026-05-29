@@ -194,8 +194,10 @@ export default function MyPagePage({
         getComputedStyle(document.documentElement).getPropertyValue('--header-height'),
       ) || 56;
     const stickThreshold = window.scrollY + grid.getBoundingClientRect().top - headerH;
-    /* 이미 sticky(붙음) → panel 직하 정렬(B) / 아직 안 붙음 → 페이지 top(A). */
-    const dest = window.scrollY > stickThreshold ? stickThreshold : 0;
+    /* 이미 sticky(붙음) → panel 직하 정렬(B) / 아직 안 붙음 → 페이지 top(A).
+       경계 2px 여유: B 이동 후 scrollY ≈ threshold 에서 재선택 시 `>` 가 false 되어
+       다시 A(첫 화면)로 빠지는 버그 방지 (smooth scroll 도달 오차 흡수). */
+    const dest = window.scrollY > stickThreshold - 2 ? stickThreshold : 0;
     window.scrollTo({ top: Math.max(dest, 0), behavior: 'smooth' });
   }, []);
 
