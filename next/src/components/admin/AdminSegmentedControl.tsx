@@ -58,18 +58,14 @@ function SegmentItem({
       : 'text-muted-foreground hover:text-foreground',
   );
   const countClass = cn(
-    'text-xs tabular-nums rounded-sm',
-    active ? 'bg-[var(--primary)] !text-white' : 'text-[var(--foreground-subtle)] bg-transparent',
+    'text-xs tabular-nums',
+    active ? 'text-[var(--primary)]' : 'text-[var(--foreground-subtle)]',
   );
 
   const inner = (
     <>
       {segment.label}
-      {segment.count != null && (
-        <span className={countClass} style={{ padding: '1px 6px' }}>
-          {segment.count.toLocaleString()}
-        </span>
-      )}
+      {segment.count != null && <span className={countClass}>{segment.count.toLocaleString()}</span>}
     </>
   );
 

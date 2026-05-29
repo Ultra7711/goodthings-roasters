@@ -1,11 +1,14 @@
 'use client';
 
 /* ══════════════════════════════════════════
-   BizInquiriesClient — 비즈 문의 목록 + 확장 상세 + 상태 변경 (S250-3)
-   행 클릭 시 상세 패널 펼침. 상태 버튼(신규/연락중/종결) → updateBizInquiryStatus.
+   BizInquiriesClient — 비즈 문의 목록 + 확장 상세 + 상태 변경 (S250-3 · S304)
+   - 상태 필터(세그먼트) + 검색(회사/담당자/이메일) + 페이지네이션 (URL state · S304)
+   - 행 클릭 시 상세 패널 펼침. 상태 버튼(신규/연락중/종결) → updateBizInquiryStatus.
+   NewsletterClient URL-state 패턴 답습.
    ══════════════════════════════════════════ */
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import type { BizInquiryRow, BizInquiryStatus } from '@/lib/admin/bizInquiriesServer';
 import {
@@ -15,12 +18,40 @@ import {
   describeBizProducts,
   BIZ_STATUS_LABEL,
   BIZ_STATUS_ORDER,
+  BIZ_PAGE_SIZE,
+  type BizStatusTab,
+  type BizSearchParams,
 } from '@/lib/admin/bizInquiries';
+import { AdminSegmentedControl } from '@/components/admin/AdminSegmentedControl';
+import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
+import { AdminPagination } from '@/components/admin/AdminPagination';
+import { Button } from '@/components/admin/ui/button';
 import { updateBizInquiryStatus } from './actions';
+
+type Props = {
+  rows: BizInquiryRow[];
+  total: number;
+  counts: Record<BizStatusTab, number>;
+  filters: BizSearchParams;
+};
+
+const STATUS_TABS: { id: BizStatusTab; label: string }[] = [
+  { id: 'all', label: '전체' },
+  { id: 'pending', label: '신규' },
+  { id: 'contacted', label: '연락중' },
+  { id: 'closed', label: '종결' },
+];
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function describeRange(page: number, total: number): string {
+  if (total === 0) return '0건';
+  const from = (page - 1) * BIZ_PAGE_SIZE + 1;
+  const to = Math.min(page * BIZ_PAGE_SIZE, total);
+  return `총 ${total.toLocaleString()}건 · ${from}–${to}번째`;
 }
 
 const STATUS_BADGE: Record<BizInquiryStatus, string> = {
@@ -46,10 +77,37 @@ function DetailField({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function BizInquiriesClient({ rows }: { rows: BizInquiryRow[] }) {
+export default function BizInquiriesClient({ rows, total, counts, filters }: Props) {
+  const router = useRouter();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [searchValue, setSearchValue] = useState(filters.q);
+
+  useEffect(() => {
+    setSearchValue(filters.q);
+  }, [filters.q]);
+
+  /* URL builder — 현재 filters + override */
+  function buildHref(override: Partial<BizSearchParams>): string {
+    const merged = { ...filters, ...override };
+    const params = new URLSearchParams();
+    if (merged.status !== 'all') params.set('status', merged.status);
+    if (merged.q.trim().length > 0) params.set('q', merged.q.trim());
+    if (merged.page > 1) params.set('page', String(merged.page));
+    const qs = params.toString();
+    return qs.length > 0 ? `?${qs}` : '?';
+  }
+
+  /* 검색 — 300ms debounced router.replace */
+  useEffect(() => {
+    if (searchValue === filters.q) return;
+    const t = setTimeout(() => {
+      router.replace(buildHref({ q: searchValue, page: 1 }));
+    }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue]);
 
   function handleStatusChange(id: string, status: BizInquiryStatus) {
     setPendingId(id);
@@ -66,47 +124,76 @@ export default function BizInquiriesClient({ rows }: { rows: BizInquiryRow[] }) 
     });
   }
 
-  if (rows.length === 0) {
-    return (
-      <div className="border border-border rounded-md overflow-hidden bg-card">
-        <p className="px-4 py-12 text-center text-muted-foreground text-sm">
-          접수된 비즈 문의가 없습니다.
-        </p>
-      </div>
-    );
-  }
+  const pageCount = Math.max(1, Math.ceil(total / BIZ_PAGE_SIZE));
 
   return (
-    <div className="border border-border rounded-md overflow-hidden bg-card">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/50">
-          <tr className="text-left text-muted-foreground">
-            <th className="px-4 py-3 font-medium">회사</th>
-            <th className="px-4 py-3 font-medium">담당자</th>
-            <th className="px-4 py-3 font-medium">업종</th>
-            <th className="px-4 py-3 font-medium">상태</th>
-            <th className="px-4 py-3 font-medium">문의일</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => {
-            const isOpen = expandedId === r.id;
-            const isRowPending = pending && pendingId === r.id;
-            return (
-              <FragmentRow
-                key={r.id}
-                row={r}
-                isOpen={isOpen}
-                isRowPending={isRowPending}
-                onToggle={() => setExpandedId(isOpen ? null : r.id)}
-                onStatusChange={handleStatusChange}
-                formatDate={formatDate}
-              />
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <>
+      {/* 상태 필터 — 세그먼트 컨트롤 */}
+      <AdminSegmentedControl
+        mode="url"
+        segments={STATUS_TABS.map((t) => ({ id: t.id, label: t.label, count: counts[t.id] ?? 0 }))}
+        active={filters.status}
+        buildHref={(id) => buildHref({ status: id as BizStatusTab, page: 1 })}
+      />
+
+      <div className="flex gap-2 mb-3 items-center">
+        <AdminSearchInput
+          value={searchValue}
+          onChange={setSearchValue}
+          placeholder="회사·담당자·이메일로 검색…"
+        />
+      </div>
+
+      <div className="border border-border rounded-md overflow-hidden bg-card">
+        {rows.length === 0 ? (
+          <p className="px-4 py-12 text-center text-muted-foreground text-sm">
+            {filters.q.trim().length > 0 || filters.status !== 'all'
+              ? '조건에 맞는 문의가 없습니다.'
+              : '접수된 비즈 문의가 없습니다.'}
+          </p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr className="text-left text-muted-foreground">
+                <th className="px-4 py-3 font-medium">회사</th>
+                <th className="px-4 py-3 font-medium">담당자</th>
+                <th className="px-4 py-3 font-medium">업종</th>
+                <th className="px-4 py-3 font-medium">상태</th>
+                <th className="px-4 py-3 font-medium">문의일</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => {
+                const isOpen = expandedId === r.id;
+                const isRowPending = pending && pendingId === r.id;
+                return (
+                  <FragmentRow
+                    key={r.id}
+                    row={r}
+                    isOpen={isOpen}
+                    isRowPending={isRowPending}
+                    onToggle={() => setExpandedId(isOpen ? null : r.id)}
+                    onStatusChange={handleStatusChange}
+                    formatDate={formatDate}
+                  />
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+
+        {/* 페이지네이션 footer */}
+        <div className="flex items-center justify-between gap-2 px-4 py-3 border-t border-border text-xs text-muted-foreground">
+          <div>{describeRange(filters.page, total)}</div>
+          <AdminPagination
+            mode="url"
+            page={filters.page}
+            pageCount={pageCount}
+            buildHref={(p) => buildHref({ page: p })}
+          />
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -162,24 +249,24 @@ function FragmentRow({
 
               <div className="flex items-center gap-2 pt-2 border-t border-border">
                 <span className="text-muted-foreground text-xs">상태 변경</span>
-                {BIZ_STATUS_ORDER.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    disabled={isRowPending || s === r.status}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onStatusChange(r.id, s);
-                    }}
-                    className={`px-3 py-1 rounded text-xs border transition-colors ${
-                      s === r.status
-                        ? 'border-foreground bg-foreground text-background cursor-default'
-                        : 'border-border text-muted-foreground hover:bg-muted disabled:opacity-50'
-                    }`}
-                  >
-                    {BIZ_STATUS_LABEL[s]}
-                  </button>
-                ))}
+                {BIZ_STATUS_ORDER.map((s) => {
+                  const isCurrent = s === r.status;
+                  return (
+                    <Button
+                      key={s}
+                      type="button"
+                      size="xs"
+                      variant={isCurrent ? 'default' : 'outline'}
+                      disabled={isRowPending || isCurrent}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onStatusChange(r.id, s);
+                      }}
+                    >
+                      {BIZ_STATUS_LABEL[s]}
+                    </Button>
+                  );
+                })}
               </div>
             </div>
           </td>

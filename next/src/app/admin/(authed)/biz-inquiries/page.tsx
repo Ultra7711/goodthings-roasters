@@ -1,8 +1,8 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   AdminBizInquiriesPage — /admin/biz-inquiries (S250-3)
+   AdminBizInquiriesPage — /admin/biz-inquiries (S250-3 · S304)
 
    - admin (owner + staff) 접근
-   - biz_inquiries 최근 200건 목록 + 확장 상세 + 상태 변경
+   - biz_inquiries 목록(상태필터·검색·페이지네이션) + 확장 상세 + 상태 변경
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { redirect } from 'next/navigation';
@@ -11,21 +11,29 @@ import { fetchBizInquiries } from '@/lib/admin/bizInquiriesServer';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import BizInquiriesClient from './BizInquiriesClient';
 
-export default async function AdminBizInquiriesPage() {
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AdminBizInquiriesPage({ searchParams }: PageProps) {
+  const raw = await searchParams;
   const claims = await getAdminClaims();
   if (!claims) redirect('/admin/login');
 
-  const rows = await fetchBizInquiries();
-  const pendingCount = rows.filter((r) => r.status === 'pending').length;
-  const contactedCount = rows.filter((r) => r.status === 'contacted').length;
+  const result = await fetchBizInquiries(raw);
 
   return (
     <div className="gtr-admin-page">
       <AdminPageHeader
         title="비즈 문의"
-        subtitle={`최근 ${rows.length}건 · 신규 ${pendingCount} · 연락중 ${contactedCount}`}
+        subtitle={`전체 ${result.counts.all.toLocaleString()}건 · 신규 ${result.counts.pending} · 연락중 ${result.counts.contacted} · 종결 ${result.counts.closed}`}
       />
-      <BizInquiriesClient rows={rows} />
+      <BizInquiriesClient
+        rows={result.rows}
+        total={result.total}
+        counts={result.counts}
+        filters={result.filters}
+      />
     </div>
   );
 }
