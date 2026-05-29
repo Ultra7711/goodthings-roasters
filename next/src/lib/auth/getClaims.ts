@@ -17,8 +17,24 @@
    - docs/oauth-security-plan.md §P2 (서버 가드 전면 전환)
    ══════════════════════════════════════════════════════════════════════════ */
 
+import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
+
+/* ── 요청 단위 auth 컨텍스트 캐시 (S297) ───────────────────────────────────
+   React cache() = 동일 요청(서버 컴포넌트 렌더) 내 1회만 실행 + 결과 공유.
+   기존: getClaims / getAdminClaims 가 각각 createServerClient + getUser() →
+   인스턴스 분리로 캐시 미공유 → 한 페이지 SSR 에 getUser 원격 왕복 2~4회.
+   변경: client + getUser + getSession 을 요청당 1회로 묶어 공유.
+   (route handler 는 보통 getClaims 1회 호출이라 메모 미적용이어도 무해.) */
+const getCachedAuthContext = cache(async () => {
+  const supabase = await createRouteHandlerClient();
+  const [{ data: userData }, { data: sessionData }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.auth.getSession(),
+  ]);
+  return { supabase, user: userData.user, session: sessionData.session };
+});
 
 /* ── 타입 ─────────────────────────────────────────────────────────────── */
 
@@ -45,10 +61,7 @@ export type AuthClaims = {
  *   if (claims) { /* 로그인 유저 * / }
  */
 export async function getClaims(): Promise<AuthClaims | null> {
-  const supabase = await createRouteHandlerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getCachedAuthContext();
 
   if (!user) return null;
 
@@ -131,10 +144,7 @@ export type AdminClaims = AuthClaims & {
  *   Security: JWT 변조 = Supabase 서명 검증으로 차단 · 실제 권한 검증은 server action RLS 로 backup.
  */
 export async function getAdminClaims(): Promise<AdminClaims | null> {
-  const supabase = await createRouteHandlerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user, session } = await getCachedAuthContext();
 
   if (!user) return null;
 
@@ -149,7 +159,6 @@ export async function getAdminClaims(): Promise<AdminClaims | null> {
      Hook 결과 = session.access_token decode 의 payload.app_metadata.admin_level.
      owner/staff 외 값은 무시 (security). */
   let hookAdminLevel: 'owner' | 'staff' | undefined;
-  const { data: { session } } = await supabase.auth.getSession();
   if (session?.access_token) {
     const parts = session.access_token.split('.');
     if (parts.length >= 2) {

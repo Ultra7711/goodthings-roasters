@@ -25,7 +25,11 @@ vi.mock('@/lib/supabaseServer', () => ({
   createRouteHandlerClient: vi.fn(async () => ({
     rpc: mockRpc,
     from: mockFrom,
-    auth: { getUser: vi.fn() },
+    auth: {
+      getUser: vi.fn(),
+      /* S297: getCachedAuthContext 가 getUser 와 함께 getSession 도 호출. */
+      getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
+    },
   })),
 }));
 
@@ -77,6 +81,7 @@ describe('getAdminClaims', () => {
       rpc: mockRpc,
       auth: {
         getUser: vi.fn(async () => ({ data: { user: null }, error: null })),
+        getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
       },
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     } as any);
@@ -194,6 +199,7 @@ describe('getClaims sanity (shared mock)', () => {
       rpc: mockRpc,
       auth: {
         getUser: vi.fn(async () => ({ data: { user: null }, error: null })),
+        getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
       },
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     } as any);
