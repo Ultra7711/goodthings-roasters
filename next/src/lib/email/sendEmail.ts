@@ -161,6 +161,7 @@ async function liveSend(payload: EmailPayload): Promise<EmailResult> {
     ...(payload.cc !== undefined ? { cc: payload.cc } : {}),
     ...(payload.bcc !== undefined ? { bcc: payload.bcc } : {}),
     ...(replyTo !== undefined ? { replyTo } : {}),
+    ...(payload.headers !== undefined ? { headers: payload.headers } : {}),
   } as CreateEmailOptions;
 
   const sendOptions: CreateEmailRequestOptions | undefined = payload.idempotencyKey

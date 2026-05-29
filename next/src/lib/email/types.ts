@@ -27,6 +27,12 @@ export type EmailPayload = {
    */
   idempotencyKey?: string;
   /**
+   * 추가 메일 헤더. 뉴스레터 발송의 `List-Unsubscribe` /
+   * `List-Unsubscribe-Post` (RFC 8058 one-click) 주입에 사용.
+   * 키·값은 호출 측 책임으로 CRLF 인젝션이 없어야 한다 (stripNewlines).
+   */
+  headers?: Record<string, string>;
+  /**
    * Session 11 에서 React Email 컴포넌트 주입 예정.
    * 현재는 옵션만 정의하며 stub/live 양쪽에서 전달만 하고 해석은 SDK 에 위임한다.
    */

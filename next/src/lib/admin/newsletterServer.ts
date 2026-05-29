@@ -21,6 +21,7 @@ import {
   type NewsletterStatusTab,
   type NewsletterSearchParams,
 } from './newsletter';
+import type { NewsletterBlock } from './newsletterCompose';
 
 export type NewsletterSubscriberRow = {
   id: string;
@@ -177,4 +178,60 @@ export async function fetchNewsletterSubscribersForExport(
   const trimmed = truncated ? all.slice(0, maxRows) : all;
   const nameMap = await lookupUserNames(supabase, trimmed);
   return { rows: trimmed.map((r) => mapRow(r, nameMap)), truncated };
+}
+
+/* ── 발송 이력 (S250-2 Phase 2) ───────────────────────────────────────── */
+
+export type NewsletterCampaignRow = {
+  id: string;
+  subject: string;
+  blocks: NewsletterBlock[];
+  recipientCount: number;
+  sentCount: number;
+  failedCount: number;
+  status: 'sent' | 'partial' | 'failed';
+  sentAtIso: string | null;
+  createdAtIso: string;
+};
+
+type CampaignDbRow = {
+  id: string;
+  subject: string;
+  blocks: unknown;
+  recipient_count: number;
+  sent_count: number;
+  failed_count: number;
+  status: 'sent' | 'partial' | 'failed';
+  sent_at: string | null;
+  created_at: string;
+};
+
+const NEWSLETTER_CAMPAIGNS_LIMIT = 50;
+
+/* 발송 이력 — admin RLS select (083 newsletter_campaigns_admin_select).
+   blocks(jsonb) 는 복제 재발송용. 컴포저에서 재검증하므로 여기선 캐스트만. */
+export async function fetchNewsletterCampaigns(): Promise<NewsletterCampaignRow[]> {
+  const supabase = await createRouteHandlerClient();
+  const { data, error } = await supabase
+    .from('newsletter_campaigns')
+    .select(
+      'id, subject, blocks, recipient_count, sent_count, failed_count, status, sent_at, created_at',
+    )
+    .order('created_at', { ascending: false })
+    .limit(NEWSLETTER_CAMPAIGNS_LIMIT);
+  if (error) {
+    console.error('[newsletterServer] campaigns fetch failed', summarizePgError(error));
+    return [];
+  }
+  return ((data ?? []) as CampaignDbRow[]).map((r) => ({
+    id: r.id,
+    subject: r.subject,
+    blocks: Array.isArray(r.blocks) ? (r.blocks as NewsletterBlock[]) : [],
+    recipientCount: r.recipient_count,
+    sentCount: r.sent_count,
+    failedCount: r.failed_count,
+    status: r.status,
+    sentAtIso: r.sent_at,
+    createdAtIso: r.created_at,
+  }));
 }

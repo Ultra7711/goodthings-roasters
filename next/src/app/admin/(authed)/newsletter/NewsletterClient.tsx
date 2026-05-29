@@ -18,6 +18,7 @@ import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminTabsNav } from '@/components/admin/AdminTabsNav';
+import { AdminSegmentedControl } from '@/components/admin/AdminSegmentedControl';
 import { AdminDataTable, type Column } from '@/components/admin/AdminDataTable';
 import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
 import { AdminPagination } from '@/components/admin/AdminPagination';
@@ -28,7 +29,12 @@ import {
   type NewsletterSearchParams,
   type NewsletterStatusTab,
 } from '@/lib/admin/newsletter';
-import type { NewsletterSubscriberRow } from '@/lib/admin/newsletterServer';
+import type {
+  NewsletterSubscriberRow,
+  NewsletterCampaignRow,
+} from '@/lib/admin/newsletterServer';
+import type { NewsletterDraft } from '@/lib/admin/newsletterCompose';
+import NewsletterComposer from './NewsletterComposer';
 
 type Props = {
   rows: NewsletterSubscriberRow[];
@@ -37,9 +43,17 @@ type Props = {
   filters: NewsletterSearchParams;
   /** CSV 내보내기는 owner 전용 (PII). staff 는 disabled. */
   isOwner: boolean;
+  campaigns: NewsletterCampaignRow[];
+  defaultTestEmail: string;
 };
 
 type Section = 'subscribers' | 'send' | 'history';
+
+const CAMPAIGN_STATUS_LABEL: Record<NewsletterCampaignRow['status'], string> = {
+  sent: '완료',
+  partial: '일부 실패',
+  failed: '실패',
+};
 
 const STATUS_TABS: { id: NewsletterStatusTab; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -59,11 +73,28 @@ function describeRange(page: number, total: number): string {
   return `총 ${total.toLocaleString()}건 · ${from}–${to}번째`;
 }
 
-export default function NewsletterClient({ rows, total, counts, filters, isOwner }: Props) {
+export default function NewsletterClient({
+  rows,
+  total,
+  counts,
+  filters,
+  isOwner,
+  campaigns,
+  defaultTestEmail,
+}: Props) {
   const router = useRouter();
   const [section, setSection] = useState<Section>('subscribers');
   const [searchValue, setSearchValue] = useState(filters.q);
   const [isExporting, startExport] = useTransition();
+  /* 복제 재발송 — 이력에서 "복제" 클릭 시 draft 주입 + composer 강제 remount. */
+  const [cloneDraft, setCloneDraft] = useState<NewsletterDraft | null>(null);
+  const [composerKey, setComposerKey] = useState(0);
+
+  function handleCloneCampaign(c: NewsletterCampaignRow) {
+    setCloneDraft({ subject: c.subject, blocks: c.blocks });
+    setComposerKey((k) => k + 1);
+    setSection('send');
+  }
 
   useEffect(() => {
     setSearchValue(filters.q);
@@ -206,10 +237,10 @@ export default function NewsletterClient({ rows, total, counts, filters, isOwner
 
       {section === 'subscribers' ? (
         <>
-          {/* 상태 필터 탭 */}
-          <AdminTabsNav
+          {/* 상태 필터 — 세그먼트 컨트롤 (섹션 탭과 시각 구분) */}
+          <AdminSegmentedControl
             mode="url"
-            tabs={STATUS_TABS.map((t) => ({
+            segments={STATUS_TABS.map((t) => ({
               id: t.id,
               label: t.label,
               count: counts[t.id] ?? 0,
@@ -250,11 +281,94 @@ export default function NewsletterClient({ rows, total, counts, filters, isOwner
             }
           />
         </>
+      ) : section === 'send' ? (
+        <NewsletterComposer
+          key={composerKey}
+          isOwner={isOwner}
+          activeCount={counts.active}
+          defaultTestEmail={defaultTestEmail}
+          initialDraft={cloneDraft}
+        />
       ) : (
-        <div className="border border-border rounded-md bg-card px-4 py-16 text-center text-muted-foreground text-sm">
-          {section === 'send' ? '뉴스레터 발송' : '발송 이력'} 기능은 준비 중입니다.
-        </div>
+        <CampaignHistory campaigns={campaigns} onClone={handleCloneCampaign} />
       )}
     </>
+  );
+}
+
+/* ─── 발송 이력 ───────────────────────────────────────────────────────── */
+
+function CampaignHistory({
+  campaigns,
+  onClone,
+}: {
+  campaigns: NewsletterCampaignRow[];
+  onClone: (c: NewsletterCampaignRow) => void;
+}) {
+  const columns: readonly Column<NewsletterCampaignRow>[] = [
+    { key: 'subject', header: '제목', cellClassName: 'text-sm', render: (c) => c.subject },
+    {
+      key: 'sent',
+      header: '발송',
+      cellClassName: 'text-xs text-muted-foreground tabular-nums',
+      render: (c) =>
+        c.failedCount > 0
+          ? `${c.sentCount}/${c.recipientCount} (실패 ${c.failedCount})`
+          : `${c.sentCount}/${c.recipientCount}`,
+    },
+    {
+      key: 'status',
+      header: '상태',
+      render: (c) =>
+        c.status === 'sent' ? (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-800">
+            {CAMPAIGN_STATUS_LABEL[c.status]}
+          </span>
+        ) : c.status === 'partial' ? (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-800">
+            {CAMPAIGN_STATUS_LABEL[c.status]}
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-100 text-red-800">
+            {CAMPAIGN_STATUS_LABEL[c.status]}
+          </span>
+        ),
+    },
+    {
+      key: 'sentAt',
+      header: '발송 시각',
+      cellClassName: 'text-xs text-muted-foreground tabular-nums',
+      render: (c) => (c.sentAtIso ? formatDate(c.sentAtIso) : formatDate(c.createdAtIso)),
+    },
+    {
+      key: 'actions',
+      header: '',
+      render: (c) => (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="!h-7"
+          onClick={() => onClone(c)}
+        >
+          복제하여 재발송
+        </Button>
+      ),
+    },
+  ];
+
+  return (
+    <AdminDataTable
+      columns={columns}
+      data={campaigns}
+      rowKey={(c) => c.id}
+      empty={
+        <AdminEmptyState
+          variant="table-row"
+          colSpan={columns.length}
+          message="발송 이력이 없습니다."
+        />
+      }
+    />
   );
 }

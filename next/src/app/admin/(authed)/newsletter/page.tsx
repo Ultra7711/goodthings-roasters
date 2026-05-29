@@ -8,7 +8,10 @@
 
 import { redirect } from 'next/navigation';
 import { getAdminClaims } from '@/lib/auth/getClaims';
-import { fetchNewsletterSubscribers } from '@/lib/admin/newsletterServer';
+import {
+  fetchNewsletterSubscribers,
+  fetchNewsletterCampaigns,
+} from '@/lib/admin/newsletterServer';
 import NewsletterClient from './NewsletterClient';
 
 type PageProps = {
@@ -17,9 +20,10 @@ type PageProps = {
 
 export default async function AdminNewsletterPage({ searchParams }: PageProps) {
   const raw = await searchParams;
-  const [result, claims] = await Promise.all([
+  const [result, claims, campaigns] = await Promise.all([
     fetchNewsletterSubscribers(raw),
     getAdminClaims(),
+    fetchNewsletterCampaigns(),
   ]);
   if (!claims) redirect('/admin/login');
 
@@ -30,6 +34,8 @@ export default async function AdminNewsletterPage({ searchParams }: PageProps) {
       counts={result.counts}
       filters={result.filters}
       isOwner={claims.adminLevel === 'owner'}
+      campaigns={campaigns}
+      defaultTestEmail={claims.email}
     />
   );
 }
