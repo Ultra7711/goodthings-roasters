@@ -1,0 +1,4 @@
+chore(gitignore): .vercel 추가 (S293 carry)
+
+Vercel CLI 가 생성하는 .vercel/ 디렉터리 (project link + env cache) tracked 차단.
+S293 Vercel CLI 도입 시 추가 누락분 정리.

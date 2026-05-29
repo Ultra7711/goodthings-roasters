@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Good Things Roasters — 프로젝트 현황 보고서</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+  :root {
+    --ink: #1c1a17;
+    --ink-soft: #4a463f;
+    --line: #d6d2c9;
+    --line-soft: #ece8e0;
+    --sand: #f5f1ea;
+    --sand-soft: #faf7f1;
+    --accent: #8a5a2b;
+    --good: #2f7a3a;
+    --warn: #b07b1a;
+    --bad: #a4322a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Malgun Gothic", "맑은 고딕", "Pretendard", "Apple SD Gothic Neo", sans-serif;
+    color: var(--ink);
+    font-size: 10.5pt;
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1, h2, h3, h4 {
+    color: var(--ink);
+    line-height: 1.3;
+    margin: 0;
+  }
+  h1 {
+    font-size: 22pt;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin-bottom: 4pt;
+  }
+  h2 {
+    font-size: 14pt;
+    font-weight: 600;
+    border-bottom: 1.5pt solid var(--ink);
+    padding-bottom: 4pt;
+    margin-top: 22pt;
+    margin-bottom: 10pt;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    margin-top: 14pt;
+    margin-bottom: 6pt;
+    color: var(--ink);
+    page-break-after: avoid;
+  }
+  h4 {
+    font-size: 10.5pt;
+    font-weight: 600;
+    margin-top: 10pt;
+    margin-bottom: 4pt;
+    color: var(--accent);
+    page-break-after: avoid;
+  }
+  p { margin: 4pt 0 8pt 0; }
+  ul, ol { margin: 4pt 0 8pt 0; padding-left: 18pt; }
+  li { margin-bottom: 2pt; }
+  strong { font-weight: 600; }
+  code {
+    font-family: "Consolas", "D2Coding", monospace;
+    font-size: 9pt;
+    background: var(--sand);
+    padding: 1pt 4pt;
+    border-radius: 2pt;
+    color: var(--ink-soft);
+  }
+  pre {
+    background: var(--sand-soft);
+    border: 1pt solid var(--line);
+    border-radius: 3pt;
+    padding: 10pt 12pt;
+    font-family: "Consolas", "D2Coding", monospace;
+    font-size: 9pt;
+    line-height: 1.45;
+    overflow: hidden;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6pt 0 12pt 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 0.6pt solid var(--line);
+    padding: 5pt 7pt;
+    vertical-align: top;
+    text-align: left;
+  }
+  th {
+    background: var(--sand);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  tr:nth-child(even) td { background: var(--sand-soft); }
+  blockquote {
+    margin: 8pt 0;
+    padding: 6pt 12pt;
+    border-left: 2.5pt solid var(--accent);
+    background: var(--sand-soft);
+    color: var(--ink-soft);
+    font-size: 10pt;
+  }
+  .cover {
+    padding: 16pt 0 8pt 0;
+    border-bottom: 2pt solid var(--ink);
+    margin-bottom: 14pt;
+  }
+  .cover .sub {
+    font-size: 11pt;
+    color: var(--ink-soft);
+    margin-top: 6pt;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4pt 16pt;
+    font-size: 9.5pt;
+    color: var(--ink-soft);
+    margin-top: 10pt;
+  }
+  .meta-grid b { color: var(--ink); }
+  .badge {
+    display: inline-block;
+    padding: 1pt 7pt;
+    border-radius: 10pt;
+    font-size: 8.5pt;
+    font-weight: 600;
+    margin-right: 4pt;
+  }
+  .b-good { background: #e3f0e5; color: var(--good); }
+  .b-warn { background: #fbf0d6; color: var(--warn); }
+  .b-bad  { background: #f6dad6; color: var(--bad); }
+  .b-mute { background: var(--sand); color: var(--ink-soft); }
+  hr {
+    border: none;
+    border-top: 0.6pt solid var(--line);
+    margin: 16pt 0;
+  }
+  .pb { page-break-before: always; }
+  .nowrap { white-space: nowrap; }
+  .footer {
+    text-align: center;
+    font-size: 8.5pt;
+    color: var(--ink-soft);
+    margin-top: 18pt;
+    border-top: 0.6pt solid var(--line);
+    padding-top: 8pt;
+  }
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <h1>Good Things Roasters — 프로젝트 현황 보고서</h1>
+  <div class="sub">스페셜티 커피 로스터리 자사몰 + 카페 브랜드 사이트</div>
+  <div class="meta-grid">
+    <div><b>작성일</b> · 2026-05-19</div>
+    <div><b>기준 시점</b> · Session 237 종료 직후</div>
+    <div><b>저장소 상태</b> · master 브랜치 · clean working tree</div>
+    <div><b>최신 커밋</b> · <code>05c95820</code></div>
+    <div><b>문서 목적</b> · 비개발 파트너·투자자 대상 프로젝트 전반 보고</div>
+    <div><b>도메인</b> · goodthingsroasters.com</div>
+  </div>
+</header>
+
+<h2>1. 한눈에 보는 요약</h2>
+
+<p>Good Things Roasters 는 스페셜티 커피 로스터리의 자사몰과 카페 브랜드 사이트를 통합한 웹 서비스입니다. 외부 솔루션(카페24·스마트스토어) 대신 자체 코드로 구축하여 결제 수수료·플랫폼 수수료를 절감하고, 브랜드 톤을 완전히 통제하는 것을 목표로 합니다.</p>
+
+<table>
+  <thead><tr><th style="width:18%">영역</th><th style="width:12%">진행률</th><th>요지</th></tr></thead>
+  <tbody>
+    <tr><td>디자인</td><td><span class="badge b-good">100%</span></td><td>디자인 시스템·프로토타입·반응형 4단계 모두 확정</td></tr>
+    <tr><td>프론트엔드 (고객 화면)</td><td><span class="badge b-good">약 98%</span></td><td>메인·샵·상품 상세·장바구니·결제·마이페이지·검색·매장 정보 모두 작동</td></tr>
+    <tr><td>백엔드 (서버·DB)</td><td><span class="badge b-good">약 92%</span></td><td>회원·주문·결제·정기배송 엔진 운영 가능 · 정기배송 자동 결제 cron만 미구축</td></tr>
+    <tr><td>어드민 (운영자 화면)</td><td><span class="badge b-warn">약 85%</span></td><td>주문·회원·정기배송·통계·사이트설정·갤러리·이벤트 운영 가능 · 상품 등록·카페 메뉴 일부 잔여</td></tr>
+    <tr><td>인프라·배포</td><td><span class="badge b-good">약 90%</span></td><td>Vercel·Supabase·Sentry·Resend 모두 가동 · 결제 라이브 키 전환과 운영 SOP 문서화 잔여</td></tr>
+  </tbody>
+</table>
+
+<p><strong>출시 준비도 —</strong> 핵심 거래 흐름(상품 탐색 → 결제 → 주문 확인 → 배송 추적 → 정기배송)이 모두 작동하므로, 카탈로그 데이터 입력과 결제 라이브 키 전환만 끝나면 일반 고객 오픈이 가능한 상태입니다. 정기배송 자동 결제 cron 은 출시 이후 첫 결제 사이클 도래 전(약 1개월 내)에 보완 예정입니다.</p>
+
+<h2>2. 완성도 현황 — 제작 끝난 영역</h2>
+
+<h3>2.1 고객 화면 (Frontend)</h3>
+
+<table>
+  <thead><tr><th style="width:22%">영역</th><th>완료 내용</th></tr></thead>
+  <tbody>
+    <tr><td>메인 페이지</td><td>히어로 영상 + 5개 시즌 챕터 (시그니처·라인업·카페 메뉴·브랜드 스토리·뉴스레터). 운영자가 어드민에서 시그니처 챕터의 이미지·HTML·문구를 직접 교체할 수 있도록 구축 완료</td></tr>
+    <tr><td>샵·상품 상세</td><td>원두 6종 카탈로그 + 상품 상세 페이지(이미지 갤러리·맛 프로필 레이더 차트·로스팅 단계·추출 가이드). 드립백·일반 원두 분기 처리</td></tr>
+    <tr><td>장바구니·결제</td><td>풀페이지 장바구니 + 우측 슬라이드 드로어 동시 지원. 토스페이먼츠 결제위젯 v2 연동. 회원·비회원 결제 모두 작동</td></tr>
+    <tr><td>주문 완료·추적</td><td>결제 직후 주문 완료 화면, 마이페이지 주문 내역, 송장 번호 자동 표시</td></tr>
+    <tr><td>마이페이지</td><td>회원 정보·주소록·주문 내역·정기배송 관리·탈퇴까지 풀 기능</td></tr>
+    <tr><td>로그인·회원가입</td><td>이메일·카카오·네이버 3종 소셜 로그인. 휴면 계정 정책 적용</td></tr>
+    <tr><td>카페 메뉴·매장 안내</td><td>카페 메뉴 그리드 + 좋아요 기능 + 시즌별 이벤트 배너 (운영자가 어드민에서 HTML 직접 편집 가능). 카카오맵 기반 매장 위치</td></tr>
+    <tr><td>굿데이즈 갤러리</td><td>카페 일상 사진 갤러리 (라이트박스·키보드 네비게이션)</td></tr>
+    <tr><td>검색</td><td>사이트 전체 통합 검색 (4단계 매칭: 정규화·동의어·발음·초성)</td></tr>
+    <tr><td>약관 페이지</td><td>이용약관·개인정보처리방침·사업자정보·배송 정책·반품 정책 5종</td></tr>
+    <tr><td>B2B 도매 문의</td><td>도매 거래 문의 폼</td></tr>
+    <tr><td>반응형</td><td>데스크탑(1440) · 랩탑(1024) · 태블릿(768) · 모바일(360) 4단계 모두 검증</td></tr>
+    <tr><td>브랜드 디자인</td><td>따뜻한 흑백 톤(Warm-shifted B&amp;W) 디자인 시스템 + 디자인 토큰 200여 개</td></tr>
+  </tbody>
+</table>
+
+<h3>2.2 운영자 어드민</h3>
+
+<table>
+  <thead><tr><th style="width:22%">영역</th><th>완료 내용</th></tr></thead>
+  <tbody>
+    <tr><td>로그인·권한</td><td>별도 <code>/admin/login</code> + Owner·Staff 2단계 권한 분리. 모든 조회·수정에 권한 가드 적용</td></tr>
+    <tr><td>대시보드</td><td>오늘 주문 수·이번 주 매출·활성 정기배송·대기 주문 4지표 카드 + 최근 주문 5건 + 베스트셀러 4종</td></tr>
+    <tr><td>주문 관리</td><td>5탭(전체·대기·결제완료·발송중·취소)·기간·결제수단·검색·페이지네이션. 송장 발송 다이얼로그 + 환불 안내</td></tr>
+    <tr><td>회원 관리</td><td>회원 목록·가입 채널 필터·상세 페이지·권한 단계 변경 UI</td></tr>
+    <tr><td>정기배송 관리</td><td>목록·일시정지·해지 UI (상세 페이지는 carry-over)</td></tr>
+    <tr><td>상품 관리</td><td>목록·정렬·활성 토글·편집(기본·상세·옵션 3탭). 신규 등록 폼 일부 잔여</td></tr>
+    <tr><td>카페 이벤트</td><td>이미지 3장 + HTML 자유 편집 + 안전 영역 가이드 + 라이브 미리보기</td></tr>
+    <tr><td>사이트 설정</td><td>공지 바·시즌 배너·시그니처 챕터·배송 정책 자동/수동 모드</td></tr>
+    <tr><td>굿데이즈 갤러리</td><td>이미지 업로드·정렬·alt 텍스트 편집·추천 토글·삭제</td></tr>
+    <tr><td>통계</td><td>매출 통계 readiness 분기 (50건 또는 14일 충족 시 자동 활성화) + 7/30/90일·전체 기간 매출·평균 객단가·재구매율·상품별 판매</td></tr>
+    <tr><td>감사 로그</td><td>모든 운영자 액션 기록 + CSV 내보내기 (Owner 전용). 도메인 필터는 carry-over</td></tr>
+    <tr><td>CSV 내보내기</td><td>주문·정기배송·감사 로그 (Owner 전용). 회원 PII CSV 는 정책 확정 후 진행</td></tr>
+  </tbody>
+</table>
+
+<h3>2.3 백엔드·인프라</h3>
+
+<table>
+  <thead><tr><th style="width:22%">영역</th><th>완료 내용</th></tr></thead>
+  <tbody>
+    <tr><td>데이터베이스</td><td>Supabase PostgreSQL · 마이그레이션 62개 누적 적용 · Row Level Security 전체 테이블 적용</td></tr>
+    <tr><td>결제</td><td>토스페이먼츠 위젯 + 웹훅 하이브리드 인증 (카드·계좌이체·간편결제·가상계좌·휴대폰·상품권 9종 대응)</td></tr>
+    <tr><td>이메일</td><td>Resend 자동 발신 (회원가입·주문 확인·발송 안내·비밀번호 재설정) + Google Workspace 수신</td></tr>
+    <tr><td>이미지 최적화</td><td>next/image 풀 마이그레이션 + LQIP blur placeholder 자동 생성</td></tr>
+    <tr><td>보안</td><td>요청별 nonce CSP·HSTS·COOP·CORP·Permissions-Policy 헤더. OWASP Top 10 대응</td></tr>
+    <tr><td>모니터링</td><td>Sentry 에러 트래킹 + Vercel Analytics + Speed Insights</td></tr>
+    <tr><td>배포</td><td>GitHub master push → Vercel 자동 빌드</td></tr>
+  </tbody>
+</table>
+
+<h3>2.4 누적 작업량 (참고치)</h3>
+
+<table>
+  <thead><tr><th style="width:40%">지표</th><th>수치</th></tr></thead>
+  <tbody>
+    <tr><td>개발 세션 수</td><td>237회</td></tr>
+    <tr><td>데이터베이스 마이그레이션</td><td>62개</td></tr>
+    <tr><td>의사결정 기록 (ADR)</td><td>9건</td></tr>
+    <tr><td>누적 git 커밋</td><td>약 1,900+</td></tr>
+    <tr><td>디자인 토큰</td><td>200여 개</td></tr>
+    <tr><td>컴포넌트</td><td>100+</td></tr>
+  </tbody>
+</table>
+
+<div class="pb"></div>
+
+<h2>3. 남은 ToDo / 로드맵</h2>
+
+<h3>3.1 출시 전 필수 (예상 2~3주)</h3>
+
+<table>
+  <thead><tr><th style="width:5%">#</th><th style="width:35%">항목</th><th style="width:18%">예상 공수</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>상품 카탈로그 데이터 입력</td><td>운영자 작업</td><td>원두 6종 + 옵션·레시피·이미지</td></tr>
+    <tr><td>2</td><td>카페 메뉴 데이터 입력</td><td>운영자 작업</td><td>메뉴 항목 + 가격 + 이미지</td></tr>
+    <tr><td>3</td><td>시그니처 챕터 콘텐츠 입력</td><td>운영자 작업</td><td>HTML 1종 + 이미지 3종 + 운영자 가이드 활용</td></tr>
+    <tr><td>4</td><td>토스페이먼츠 라이브 키 전환</td><td>0.5일</td><td>매뉴얼 보유 · 사고 이력 반영된 체크리스트 존재</td></tr>
+    <tr><td>5</td><td>Supabase 운영 DB 분리</td><td>1일</td><td>현재 개발 DB 가동 중 · 데이터 마이그레이션 + 환경변수 교체</td></tr>
+    <tr><td>6</td><td>보안 최종 점검</td><td>1일</td><td>OWASP·CSP·Rate Limit 재확인</td></tr>
+    <tr><td>7</td><td>운영 SOP 문서 작성</td><td>1일</td><td>주문 처리·환불·고객 응대 절차</td></tr>
+  </tbody>
+</table>
+
+<h3>3.2 출시 직후 1개월 내 보완</h3>
+
+<table>
+  <thead><tr><th style="width:38%">항목</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td>정기배송 자동 결제 cron 구축</td><td>첫 정기배송 결제 사이클 도래 전 필수</td></tr>
+    <tr><td>상품 신규 등록 폼 일부 보완</td><td>운영자가 신규 SKU 추가할 때 사용 (현재는 편집은 가능, 신규 등록 폼 마무리 잔여)</td></tr>
+    <tr><td>카페 메뉴 어드민 UI</td><td>현재는 코드에서 수정 → 어드민 UI 로 이관</td></tr>
+    <tr><td>정기배송 상세 페이지</td><td>어드민 정기배송 상세 보기</td></tr>
+  </tbody>
+</table>
+
+<h3>3.3 출시 후 우선순위 (1~3개월)</h3>
+
+<table>
+  <thead><tr><th style="width:38%">항목</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td>회원 정보 CSV 내보내기</td><td>PII 보호 정책 합의 후 진행</td></tr>
+    <tr><td>감사 로그 도메인 필터 + 페이지네이션</td><td>운영자 검색 부담 완화</td></tr>
+    <tr><td>상품 이미지 Storage 전환</td><td>현재 정적 이미지 → Supabase Storage</td></tr>
+    <tr><td>정기배송 할인 정책 확장</td><td>비즈니스 정책 확정 후</td></tr>
+  </tbody>
+</table>
+
+<h3>3.4 출시 이후 장기 로드맵</h3>
+
+<table>
+  <thead><tr><th style="width:38%">항목</th><th>트리거</th></tr></thead>
+  <tbody>
+    <tr><td>Core Web Vitals 측정 후 성능 최적화</td><td>실제 트래픽 RUM 데이터 누적 후</td></tr>
+    <tr><td>접근성(WCAG 2.1 AA) 자동 검수 + 수정</td><td>기능 안정화 후</td></tr>
+    <tr><td>E2E 테스트 (Playwright) 자동화</td><td>안정 운영 진입 후</td></tr>
+    <tr><td>사용자 페르소나 AI 시뮬레이션</td><td>실제 유저 데이터 확보 후</td></tr>
+  </tbody>
+</table>
+
+<div class="pb"></div>
+
+<h2>4. 기술 스택 / 아키텍처</h2>
+
+<h3>4.1 전체 흐름도</h3>
+
+<pre>
+┌──────────────────────────────────────────────┐
+│  고객 브라우저 (PC · 태블릿 · 모바일)              │
+└──────────────────┬───────────────────────────┘
+                   │ HTTPS
+                   ▼
+┌──────────────────────────────────────────────┐
+│  Vercel (Edge Network)                       │
+│  ├─ 고객 사이트 (메인·샵·결제·마이페이지)          │
+│  └─ 어드민 사이트 (/admin · 별도 로그인)          │
+└──────────────────┬───────────────────────────┘
+                   │
+        ┌──────────┼──────────┐
+        ▼          ▼          ▼
+   ┌─────────┐ ┌───────┐ ┌──────────┐
+   │Supabase │ │ Toss  │ │  Resend  │
+   │PostgreSQL│ │결제·웹훅│ │자동이메일 │
+   │+ Auth   │ │       │ │          │
+   │+ Storage│ └───────┘ └──────────┘
+   └─────────┘
+        │
+        ▼
+   ┌──────────┐
+   │ Sentry · │ 에러·성능 모니터링
+   │ Vercel   │
+   │ Analytics│
+   └──────────┘
+</pre>
+
+<h3>4.2 사용 기술</h3>
+
+<table>
+  <thead><tr><th style="width:22%">영역</th><th style="width:32%">기술</th><th>선택 이유</th></tr></thead>
+  <tbody>
+    <tr><td>웹 프레임워크</td><td>Next.js (최신 16) + React 19</td><td>한 코드베이스로 고객·어드민 동시 구축. 서버 렌더링으로 검색엔진 노출 유리</td></tr>
+    <tr><td>UI 라이브러리</td><td>Radix UI (headless) + 자체 디자인 토큰</td><td>접근성·키보드 네비게이션 기본 제공. 디자인은 100% 자체 통제</td></tr>
+    <tr><td>스타일</td><td>Tailwind CSS v4 + CSS Custom Properties</td><td>빠른 개발 + 디자인 시스템 토큰화</td></tr>
+    <tr><td>DB·인증·스토리지</td><td>Supabase (PostgreSQL 기반)</td><td>데이터베이스·회원 인증·이미지 저장소 통합. 자체 서버 운영 부담 없음</td></tr>
+    <tr><td>결제</td><td>토스페이먼츠 직접 연동</td><td>카페24 솔루션 대비 수수료 절감 (실질 합산 1.5~3.5% vs 5.0~6.5%)</td></tr>
+    <tr><td>이메일</td><td>Resend (발신) + Google Workspace (수신)</td><td>자동 발신 무료 한도 3,000건/월 + 도메인 이메일 별도</td></tr>
+    <tr><td>호스팅</td><td>Vercel</td><td>Next.js 공식 플랫폼 · GitHub push 자동 배포 · HTTPS 자동</td></tr>
+    <tr><td>모니터링</td><td>Sentry + Vercel Analytics + Speed Insights</td><td>에러·성능·사용자 행동 통합 추적</td></tr>
+    <tr><td>폼·검증</td><td>React Hook Form + Zod</td><td>클라이언트·서버 동일 스키마 사용</td></tr>
+    <tr><td>데이터 페치</td><td>TanStack Query</td><td>캐싱·낙관적 업데이트·자동 재시도</td></tr>
+    <tr><td>드래그 정렬</td><td>dnd-kit</td><td>어드민 이미지·옵션 행 재정렬</td></tr>
+  </tbody>
+</table>
+
+<h3>4.3 보안 설계</h3>
+
+<table>
+  <thead><tr><th style="width:32%">위협</th><th>대응</th></tr></thead>
+  <tbody>
+    <tr><td>데이터 무단 접근</td><td>Row Level Security 모든 테이블 적용 — 본인 데이터만 조회 가능</td></tr>
+    <tr><td>결제 위조</td><td>토스페이먼츠 웹훅 하이브리드 인증 (카드: GET 재조회, 가상계좌: timing-safe secret)</td></tr>
+    <tr><td>XSS·CSRF</td><td>per-request nonce Content Security Policy + HttpOnly 쿠키</td></tr>
+    <tr><td>무차별 대입 공격</td><td>Upstash Redis 기반 Rate Limit</td></tr>
+    <tr><td>비밀번호 유출</td><td>Argon2 해싱</td></tr>
+    <tr><td>운영자 권한 오남용</td><td>Owner / Staff 2단계 권한 + 모든 액션 감사 로그</td></tr>
+  </tbody>
+</table>
+
+<h3>4.4 운영 비용 (요약)</h3>
+
+<table>
+  <thead><tr><th style="width:42%">단계</th><th>월 비용 추정</th></tr></thead>
+  <tbody>
+    <tr><td>런칭 초기 (모든 무료 플랜)</td><td>약 ₩10,500 (도메인 + Google Workspace)</td></tr>
+    <tr><td>성장기 (Vercel Pro 전환)</td><td>약 ₩40,000 ~ 50,000</td></tr>
+    <tr><td>확장기 (Vercel Pro + Supabase Pro)</td><td>약 ₩75,000 ~ 90,000</td></tr>
+    <tr><td>결제 수수료</td><td>매출의 1.5 ~ 3.5% (카드·간편결제 기준)</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size:9pt;color:var(--ink-soft)">상세는 <code>docs/GTR_infrastructure.md</code> 참조.</p>
+
+<div class="pb"></div>
+
+<h2>5. 운영 준비도 / 출시 리스크</h2>
+
+<h3>5.1 운영 준비도 평가</h3>
+
+<table>
+  <thead><tr><th style="width:24%">항목</th><th style="width:14%">준비도</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td>결제·주문 처리</td><td><span class="badge b-good">매우 양호</span></td><td>라이브 결제 검증 완료 (S91 사고 복구 이후) · 발송 처리·환불 워크플로 작동</td></tr>
+    <tr><td>고객 응대 채널</td><td><span class="badge b-good">양호</span></td><td><code>hello@goodthingsroasters.com</code> Google Workspace · 자동 회신 발신 주소 분리</td></tr>
+    <tr><td>운영자 권한 분리</td><td><span class="badge b-good">양호</span></td><td>Owner / Staff 2단계 · 민감 액션(영구 삭제·CSV·사이트 설정) Owner 전용</td></tr>
+    <tr><td>감사 추적성</td><td><span class="badge b-good">양호</span></td><td>모든 운영자 액션 audit 로그 + CSV 내보내기 · 정부 PII 조회 컴플라이언스 답습</td></tr>
+    <tr><td>장애 모니터링</td><td><span class="badge b-good">양호</span></td><td>Sentry 실시간 알림 + Vercel Analytics</td></tr>
+    <tr><td>백업·복구</td><td><span class="badge b-warn">보강 필요</span></td><td>Supabase 자동 백업(Pro 플랜) 활성화 시점 결정 필요</td></tr>
+    <tr><td>법무 문서</td><td><span class="badge b-good">양호</span></td><td>약관·개인정보처리방침·사업자 정보·배송·반품 5종 SSG 배포</td></tr>
+    <tr><td>운영 매뉴얼</td><td><span class="badge b-warn">작성 중</span></td><td>SOP 문서 출시 직전 마무리 예정</td></tr>
+  </tbody>
+</table>
+
+<h3>5.2 알려진 출시 리스크</h3>
+
+<h4>🔴 High — 출시 전 반드시 해결</h4>
+<table>
+  <thead><tr><th style="width:5%">#</th><th style="width:30%">리스크</th><th style="width:25%">영향</th><th>대응</th></tr></thead>
+  <tbody>
+    <tr><td>R1</td><td>토스페이먼츠 라이브 키 미전환</td><td>결제 불가</td><td>출시 직전 키 교체 · 매뉴얼 보유</td></tr>
+    <tr><td>R2</td><td>정기배송 자동 결제 cron 미구축</td><td>정기배송 첫 사이클 결제 누락</td><td>출시 후 1개월 내 보완. 첫 사이클 도래 전 검증 완료 필수</td></tr>
+    <tr><td>R3</td><td>상품·카페 메뉴 데이터 입력 미완</td><td>카탈로그 빈 상태 노출</td><td>어드민에서 운영자 직접 입력. 데이터 입력 완료 후 정식 오픈</td></tr>
+  </tbody>
+</table>
+
+<h4>🟡 Medium — 출시 후 1~2주 내 보완</h4>
+<table>
+  <thead><tr><th style="width:5%">#</th><th style="width:30%">리스크</th><th style="width:25%">영향</th><th>대응</th></tr></thead>
+  <tbody>
+    <tr><td>R4</td><td>상품 신규 등록 폼 일부 미완</td><td>신규 SKU 추가 시 코드 수정 필요</td><td>출시 후 1~2주 내 폼 완성</td></tr>
+    <tr><td>R5</td><td>카페 메뉴 어드민 UI 미구축</td><td>카페 메뉴 수정 시 코드 수정 필요</td><td>출시 후 1~2주 내 UI 구축</td></tr>
+    <tr><td>R6</td><td>Supabase 운영 DB 미분리</td><td>개발 DB 와 데이터 격리 부족</td><td>출시 직전 분리 + 데이터 마이그레이션</td></tr>
+    <tr><td>R7</td><td>Core Web Vitals 미검증</td><td>모바일 LCP·INP 실측 데이터 부재</td><td>출시 후 실제 트래픽 기반 측정 → 최적화</td></tr>
+  </tbody>
+</table>
+
+<h4>🟢 Low — 장기 보완</h4>
+<table>
+  <thead><tr><th style="width:5%">#</th><th style="width:30%">리스크</th><th style="width:25%">영향</th><th>대응</th></tr></thead>
+  <tbody>
+    <tr><td>R8</td><td>접근성 자동 검수 미완</td><td>WCAG 2.1 AA 일부 항목 미검증</td><td>Phase 5 QA 단계에서 일괄 수정</td></tr>
+    <tr><td>R9</td><td>E2E 자동 테스트 부재</td><td>회귀 발생 시 수동 검증 의존</td><td>안정 운영 진입 후 Playwright 도입</td></tr>
+    <tr><td>R10</td><td>사용자 페르소나 시뮬레이션 미실행</td><td>실제 사용 패턴 사전 검증 부족</td><td>실제 유저 데이터 확보 후 진행</td></tr>
+  </tbody>
+</table>
+
+<h3>5.3 강점 요약</h3>
+<ol>
+  <li><strong>자체 결제 직연동</strong> — 카페24·플랫폼 솔루션 대비 결제·플랫폼 수수료 약 2~3%p 절감</li>
+  <li><strong>운영자 자유도</strong> — 시그니처 챕터·카페 이벤트·시즌 배너·약관 모두 운영자가 어드민에서 직접 편집 가능 (개발자 개입 불필요)</li>
+  <li><strong>권한 분리·감사 로그</strong> — Owner/Staff 권한 + 모든 액션 추적으로 운영 사고 대비</li>
+  <li><strong>현대적 기술 스택</strong> — Next.js 16·React 19·Supabase 등 최신 안정 버전 채택. 향후 5년 이상 유지보수 가능</li>
+  <li><strong>반응형 4단계 완성</strong> — PC·랩탑·태블릿·모바일 모든 화면에서 검증된 디자인</li>
+  <li><strong>모니터링 풀 셋업</strong> — Sentry·Vercel Analytics 로 출시 즉시 실시간 장애·성능 추적</li>
+</ol>
+
+<h3>5.4 의사결정 대기 항목 (비즈니스 측 결정 필요)</h3>
+
+<table>
+  <thead><tr><th style="width:38%">항목</th><th style="width:18%">결정 시점</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td>정기배송 할인율</td><td>출시 전</td><td>현재 UI 는 할인율 0% 가정으로 작동</td></tr>
+    <tr><td>정기배송 주기 옵션</td><td>출시 전</td><td>현재 2주·4주·8주 임시 설정</td></tr>
+    <tr><td>회원 PII CSV 내보내기 정책</td><td>출시 후</td><td>이메일·이름·전화 포함 여부 합의 필요</td></tr>
+    <tr><td>Supabase Pro / Vercel Pro 전환 시점</td><td>트래픽 보고 결정</td><td>무료 플랜 한도 도달 시</td></tr>
+    <tr><td>상품 카테고리 확장</td><td>출시 후</td><td>현재 원두 6종 단일 카테고리</td></tr>
+  </tbody>
+</table>
+
+<h2>부록 — 참고 문서</h2>
+
+<table>
+  <thead><tr><th style="width:38%">문서</th><th>내용</th></tr></thead>
+  <tbody>
+    <tr><td><code>docs/milestone.md</code></td><td>잔여 작업 상세 추적</td></tr>
+    <tr><td><code>docs/milestone-completed.md</code></td><td>완료 이력 아카이브</td></tr>
+    <tr><td><code>docs/admin-implementation-plan.md</code></td><td>어드민 구현 진행 매트릭스</td></tr>
+    <tr><td><code>docs/GTR_infrastructure.md</code></td><td>인프라 · 운영 비용 상세</td></tr>
+    <tr><td><code>docs/gtr-design-guide.md</code></td><td>디자인 시스템 가이드</td></tr>
+    <tr><td><code>docs/payments-flow.md</code></td><td>결제 플로우 스펙</td></tr>
+    <tr><td><code>docs/adr/</code></td><td>핵심 의사결정 기록 (ADR-001 ~ ADR-009)</td></tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  본 문서는 2026-05-19 시점 스냅샷이며, 작업 진행에 따라 정기 갱신됩니다. ·
+  Good Things Roasters · goodthingsroasters.com
+</div>
+
+</body>
+</html>

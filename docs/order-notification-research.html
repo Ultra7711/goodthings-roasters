@@ -1,0 +1,993 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Good Things Roasters — 온라인 주문 실시간 알림 솔루션 조사 보고서</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+  :root {
+    --ink: #1c1a17;
+    --ink-soft: #4a463f;
+    --ink-mute: #7a7468;
+    --line: #d6d2c9;
+    --line-soft: #ece8e0;
+    --sand: #f5f1ea;
+    --sand-soft: #faf7f1;
+    --accent: #8a5a2b;
+    --good: #2f7a3a;
+    --warn: #b07b1a;
+    --bad: #a4322a;
+    --slack: #4a154b;
+    --kakao: #ffe812;
+    --kakao-ink: #3c1e1e;
+    --discord: #5865f2;
+    --tele: #229ed9;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Malgun Gothic", "맑은 고딕", "Pretendard", "Apple SD Gothic Neo", sans-serif;
+    color: var(--ink);
+    font-size: 10.5pt;
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1, h2, h3, h4 { color: var(--ink); line-height: 1.3; margin: 0; }
+  h1 { font-size: 22pt; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 4pt; }
+  h2 {
+    font-size: 14pt; font-weight: 600;
+    border-bottom: 1.5pt solid var(--ink);
+    padding-bottom: 4pt;
+    margin-top: 22pt; margin-bottom: 10pt;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11.5pt; font-weight: 600;
+    margin-top: 14pt; margin-bottom: 6pt;
+    page-break-after: avoid;
+  }
+  h4 {
+    font-size: 10.5pt; font-weight: 600;
+    margin-top: 10pt; margin-bottom: 4pt;
+    color: var(--accent);
+    page-break-after: avoid;
+  }
+  p { margin: 4pt 0 8pt 0; }
+  ul, ol { margin: 4pt 0 8pt 0; padding-left: 18pt; }
+  li { margin-bottom: 2pt; }
+  strong { font-weight: 600; }
+  code {
+    font-family: "Consolas", "D2Coding", monospace;
+    font-size: 9pt;
+    background: var(--sand);
+    padding: 1pt 4pt;
+    border-radius: 2pt;
+    color: var(--ink-soft);
+  }
+  pre {
+    background: var(--sand-soft);
+    border: 1pt solid var(--line);
+    border-radius: 3pt;
+    padding: 10pt 12pt;
+    font-family: "Consolas", "D2Coding", monospace;
+    font-size: 9pt;
+    line-height: 1.5;
+    overflow: hidden;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6pt 0 12pt 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 0.6pt solid var(--line);
+    padding: 5pt 7pt;
+    vertical-align: top;
+    text-align: left;
+  }
+  th { background: var(--sand); font-weight: 600; color: var(--ink); }
+  tr:nth-child(even) td { background: var(--sand-soft); }
+
+  blockquote {
+    margin: 8pt 0;
+    padding: 6pt 12pt;
+    border-left: 2.5pt solid var(--accent);
+    background: var(--sand-soft);
+    color: var(--ink-soft);
+    font-size: 10pt;
+  }
+  .cover {
+    padding: 16pt 0 8pt 0;
+    border-bottom: 2pt solid var(--ink);
+    margin-bottom: 14pt;
+  }
+  .cover .sub {
+    font-size: 11pt;
+    color: var(--ink-soft);
+    margin-top: 6pt;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4pt 16pt;
+    font-size: 9.5pt;
+    color: var(--ink-soft);
+    margin-top: 10pt;
+  }
+  .meta-grid b { color: var(--ink); }
+  .badge {
+    display: inline-block;
+    padding: 1pt 7pt;
+    border-radius: 10pt;
+    font-size: 8.5pt;
+    font-weight: 600;
+    margin-right: 4pt;
+  }
+  .b-good { background: #e3f0e5; color: var(--good); }
+  .b-warn { background: #fbf0d6; color: var(--warn); }
+  .b-bad  { background: #f6dad6; color: var(--bad); }
+  .b-mute { background: var(--sand); color: var(--ink-soft); }
+  .b-star { background: #fef3c7; color: #92400e; }
+  hr { border: none; border-top: 0.6pt solid var(--line); margin: 16pt 0; }
+  .pb { page-break-before: always; }
+  .nowrap { white-space: nowrap; }
+  .footer {
+    text-align: center;
+    font-size: 8.5pt;
+    color: var(--ink-soft);
+    margin-top: 18pt;
+    border-top: 0.6pt solid var(--line);
+    padding-top: 8pt;
+  }
+
+  /* 메시지 카드 mockup 공통 */
+  .msg-card {
+    border-radius: 6pt;
+    padding: 10pt 12pt;
+    margin: 6pt 0 12pt 0;
+    font-size: 9.5pt;
+    line-height: 1.5;
+    page-break-inside: avoid;
+    border: 0.8pt solid var(--line);
+    background: white;
+  }
+  .msg-card .hdr {
+    display: flex;
+    align-items: center;
+    gap: 6pt;
+    padding-bottom: 6pt;
+    margin-bottom: 6pt;
+    border-bottom: 0.6pt solid var(--line-soft);
+  }
+  .msg-card .hdr .dot {
+    width: 10pt; height: 10pt; border-radius: 50%;
+    display: inline-block;
+  }
+  .msg-card .hdr .name { font-weight: 600; }
+  .msg-card .hdr .time { color: var(--ink-mute); font-size: 8.5pt; margin-left: auto; }
+  .msg-card .body { color: var(--ink); }
+  .msg-card .body .row { margin: 2pt 0; }
+  .msg-card .body .kv {
+    display: grid;
+    grid-template-columns: 60pt 1fr;
+    gap: 2pt 8pt;
+    margin: 4pt 0;
+  }
+  .msg-card .body .kv b { font-weight: 600; color: var(--ink-soft); }
+  .msg-card .body .items {
+    background: var(--sand-soft);
+    border-radius: 3pt;
+    padding: 6pt 10pt;
+    margin: 6pt 0;
+    font-size: 9pt;
+  }
+  .msg-card .body .items .it { padding: 1pt 0; }
+  .msg-card .btn-row { margin-top: 8pt; display: flex; gap: 6pt; }
+  .msg-card .btn {
+    border: 0.6pt solid var(--line);
+    padding: 4pt 10pt;
+    border-radius: 3pt;
+    font-size: 9pt;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--sand-soft);
+  }
+  .msg-card .btn.primary {
+    background: #2eb67d;
+    color: white;
+    border-color: #2eb67d;
+  }
+
+  /* 채널별 헤더 색상 */
+  .msg-slack .hdr .dot { background: #2eb67d; }
+  .msg-slack .hdr .channel { color: var(--ink-mute); font-size: 8.5pt; margin-left: 4pt; }
+  .msg-slack { border-color: #cfcfd6; }
+
+  .msg-kakao { background: #fdf6c1; border-color: #f0e29a; }
+  .msg-kakao .hdr { border-bottom-color: #ebd982; }
+  .msg-kakao .hdr .dot { background: var(--kakao-ink); }
+  .msg-kakao .body .items { background: #fefae6; }
+
+  .msg-email { border-color: #d6d2c9; }
+  .msg-email .hdr .dot { background: var(--ink-mute); }
+
+  .msg-push { background: #1c1a17; color: #e8e3da; border-color: #1c1a17; max-width: 350pt; }
+  .msg-push .hdr { border-bottom-color: #3c3a35; }
+  .msg-push .hdr .dot { background: #e8e3da; }
+  .msg-push .hdr .name { color: white; }
+  .msg-push .body { color: #e8e3da; }
+  .msg-push .body .row.swipe { font-size: 8.5pt; color: #aba79e; margin-top: 4pt; }
+
+  /* 흐름 다이어그램 */
+  .flow {
+    background: var(--sand-soft);
+    border: 0.6pt dashed var(--line);
+    border-radius: 4pt;
+    padding: 10pt 14pt;
+    margin: 8pt 0 12pt 0;
+    font-family: "Consolas", "D2Coding", monospace;
+    font-size: 9pt;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    page-break-inside: avoid;
+    white-space: pre;
+  }
+  .flow b { color: var(--ink); }
+
+  .tag-row { display: flex; gap: 6pt; flex-wrap: wrap; margin: 4pt 0 8pt 0; }
+  .tag {
+    display: inline-block;
+    padding: 1pt 8pt;
+    border-radius: 8pt;
+    font-size: 8.5pt;
+    font-weight: 500;
+    background: var(--sand);
+    color: var(--ink-soft);
+  }
+  .callout {
+    margin: 10pt 0;
+    padding: 8pt 12pt;
+    border-left: 3pt solid var(--accent);
+    background: var(--sand-soft);
+    border-radius: 0 4pt 4pt 0;
+    font-size: 10pt;
+    color: var(--ink);
+    page-break-inside: avoid;
+  }
+  .callout .tt {
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 2pt;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8pt 12pt;
+  }
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <h1>온라인 주문 실시간 알림 솔루션 조사 보고서</h1>
+  <div class="sub">Good Things Roasters · 출시 직전 단계 운영진 알림 채널 비교</div>
+  <div class="meta-grid">
+    <div><b>작성일</b> · 2026-05-22</div>
+    <div><b>버전</b> · v1.0</div>
+    <div><b>대상</b> · 운영진 알림 메인 채널 결정</div>
+    <div><b>조사 솔루션 수</b> · 10종</div>
+    <div><b>현 인프라</b> · Next.js · Supabase · Resend · 토스페이먼츠</div>
+    <div><b>의사결정 기한</b> · Stage 1 출시 전</div>
+  </div>
+</header>
+
+<h2>1. 배경과 핵심 질문</h2>
+<p>스페셜티 커피 로스터리 자사몰을 출시하면서, 운영진(대표 + 운영 보조 1~2인 가정)은 다음 시나리오를 마주합니다.</p>
+<ul>
+  <li>고객이 결제를 완료하면 <strong>운영진의 휴대폰 또는 PC 에 알림이 즉시 떠야 한다.</strong></li>
+  <li>알림에는 <strong>누가 / 무엇을 / 얼마에 / 어디로</strong> 가 한눈에 보여야 한다.</li>
+  <li>알림 → 어드민 상세 페이지로 한 번에 진입할 수 있으면 가장 좋다.</li>
+  <li>출시 초기에는 <strong>월 비용을 최소화</strong>하고, 주문량이 늘면 단계적으로 확장한다.</li>
+</ul>
+<p>본 보고서는 위 조건에 부합하는 <strong>10종 솔루션</strong>을 작동 방식 · 도달률 · 월 비용 · 구현 난이도 · 한국 환경 적합성 기준으로 비교하고, GTR 단계별 추천안을 제시합니다.</p>
+
+<h2>2. 솔루션 요약 비교 (10종)</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width:4%">#</th>
+      <th style="width:17%">채널</th>
+      <th style="width:10%">실시간성</th>
+      <th style="width:13%">도달률 (운영진)</th>
+      <th style="width:18%">월 비용 (출시 초기)</th>
+      <th style="width:10%">구현 난이도</th>
+      <th>한국 적합성</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>이메일 (Resend)</td><td><span class="badge b-warn">분~시간</span></td><td>30~60%</td><td><b>0원</b> (월 3,000건 무료)</td><td><span class="badge b-good">즉시</span></td><td>보조</td></tr>
+    <tr><td>2</td><td>카카오 알림톡</td><td><span class="badge b-good">초 단위</span></td><td>99%+</td><td>건당 9~15원</td><td><span class="badge b-warn">1~2주 (심사)</span></td><td><span class="badge b-star">표준</span></td></tr>
+    <tr><td>3</td><td>SMS / LMS</td><td><span class="badge b-good">초 단위</span></td><td>99%</td><td>SMS 12~20원 · LMS 30~40원</td><td><span class="badge b-good">반나절</span></td><td>알림톡 fallback</td></tr>
+    <tr><td>4</td><td><b>Slack Webhook</b></td><td><span class="badge b-good">초 단위</span></td><td>90%+</td><td><b>0원</b> (무제한)</td><td><span class="badge b-good">30분</span></td><td><span class="badge b-star">내부 운영진</span></td></tr>
+    <tr><td>5</td><td>Discord Webhook</td><td><span class="badge b-good">초 단위</span></td><td>90%+</td><td><b>0원</b></td><td><span class="badge b-good">30분</span></td><td>한국 적합성 ↓</td></tr>
+    <tr><td>6</td><td>Telegram Bot</td><td><span class="badge b-good">초 단위</span></td><td>90%+</td><td><b>0원</b></td><td><span class="badge b-good">1시간</span></td><td>한국 적합성 ↓</td></tr>
+    <tr><td>7</td><td>카카오 채널 (챗봇)</td><td><span class="badge b-good">초 단위</span></td><td>95%+</td><td>친구톡 단가 ↑</td><td><span class="badge b-bad">사업자+심사</span></td><td>운영진용 과잉</td></tr>
+    <tr><td>8</td><td>PWA 푸시 (web-push)</td><td><span class="badge b-good">초 단위</span></td><td>70~85%</td><td><b>0원</b> (VAPID)</td><td><span class="badge b-warn">1~2일</span></td><td>iOS 16.4+ 지원</td></tr>
+    <tr><td>9</td><td>Supabase Realtime + 어드민</td><td><span class="badge b-good">즉시</span></td><td>켜놨을 때만</td><td><b>0원</b></td><td><span class="badge b-good">반나절</span></td><td>보조</td></tr>
+    <tr><td>10</td><td>전용 모바일 앱 + FCM</td><td><span class="badge b-good">초 단위</span></td><td>95%+</td><td>앱 개발비 (별 프로젝트)</td><td><span class="badge b-bad">별 프로젝트</span></td><td>과잉</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <div class="tt">한눈에 보는 결론</div>
+  Stage 1 (출시 직후) — <b>Slack Webhook</b> 메인 + Resend 이메일 백업 + Supabase Realtime 어드민 보강 = <b>월 0원</b>.
+  Stage 2 (출시 1~3개월) — Slack + <b>카카오 알림톡</b> 추가 = <b>월 약 3,000~8,000원</b>.
+  Stage 3 (안정기) — Stage 2 + <b>PWA 푸시 + Slack App</b> 화 = <b>월 약 10,500~17,500원</b>.
+</div>
+
+<div class="pb"></div>
+
+<h2>3. 솔루션별 상세 분석</h2>
+
+<!-- 3.1 이메일 (Resend) -->
+<h3>3.1 이메일 (Resend) — 현재 도입 중</h3>
+<div class="tag-row">
+  <span class="tag">실시간성 ⚠ 분~시간</span>
+  <span class="tag">도달률 30~60%</span>
+  <span class="tag">월 0원</span>
+  <span class="tag">즉시 도입 가능</span>
+</div>
+
+<h4>작동 방식</h4>
+<div class="flow"><b>[고객 결제]</b> → server action → Resend API → 운영진 inbox
+                                                ↓
+                                          메일 앱 푸시 (선택적)</div>
+
+<h4>운영진 수신 화면 (mockup)</h4>
+<div class="msg-card msg-email">
+  <div class="hdr">
+    <span class="dot"></span>
+    <span class="name">Good Things Roasters</span>
+    <span style="color: var(--ink-mute); font-size:8.5pt; margin-left:6pt;">noreply@gtr.com</span>
+    <span class="time">오전 9:42</span>
+  </div>
+  <div class="body">
+    <div class="row"><b>[신규 주문]</b> #20260522-001 — 김선영</div>
+    <div class="items">
+      <div class="it">· 케냐 키리냐가 AA · 200g · 1개</div>
+      <div class="it">· 에티오피아 코체레 · 200g · 2개</div>
+    </div>
+    <div class="kv">
+      <b>합계</b><span>67,000원</span>
+      <b>배송지</b><span>서울 마포구 합정동 ...</span>
+    </div>
+    <div class="btn-row">
+      <span class="btn">어드민에서 보기</span>
+    </div>
+  </div>
+</div>
+
+<h4>장단점 정리</h4>
+<table>
+  <tr><th style="width:50%">장점</th><th>단점</th></tr>
+  <tr>
+    <td>
+      · 현 인프라에 이미 도입됨 (newsletter sprint 검증)<br>
+      · 월 3,000건 무료<br>
+      · 첨부 가능 (영수증 PDF)<br>
+      · 기록 보존 자동
+    </td>
+    <td>
+      · 실시간성 약함 (메일 앱 푸시 활성화 의존)<br>
+      · 한국 운영진의 이메일 체크 빈도 ↓<br>
+      · 도달률 30~60% (스팸/광고 분류 위험)
+    </td>
+  </tr>
+</table>
+
+<p><b>GTR 적합도</b> — ✅ 백업/기록용 채널로 유지. 메인 알림 채널로 사용하지 않을 것.</p>
+
+<!-- 3.2 카카오 알림톡 -->
+<h3>3.2 카카오 알림톡 ⭐ — 한국 커머스 표준</h3>
+<div class="tag-row">
+  <span class="tag">실시간성 ✅ 초 단위</span>
+  <span class="tag">도달률 99%+</span>
+  <span class="tag">건당 9~15원</span>
+  <span class="tag">사전 준비 1~2주</span>
+</div>
+
+<h4>작동 방식</h4>
+<div class="flow"><b>[고객 결제]</b> → server action → 공급사 API → 카카오 비즈 메시지 서버
+                                                              ↓
+                                                  운영진 카카오톡 푸시
+                                                              ↓
+                                          (도달 실패 시) LMS 자동 전환</div>
+
+<h4>운영진 수신 화면 (mockup)</h4>
+<div class="msg-card msg-kakao">
+  <div class="hdr">
+    <span class="dot"></span>
+    <span class="name">굳띵즈 운영 알림</span>
+    <span class="time">오전 9:42</span>
+  </div>
+  <div class="body">
+    <div class="row" style="font-weight:600; font-size:10pt;">[신규 주문 접수]</div>
+    <div class="kv">
+      <b>주문번호</b><span>#20260522-001</span>
+      <b>고객</b><span>김선영 (010-****-1234)</span>
+      <b>합계</b><span>67,000원 (3개 상품)</span>
+      <b>배송지</b><span>서울 마포구 합정동 ...</span>
+    </div>
+    <div class="btn-row">
+      <span class="btn">어드민에서 보기</span>
+    </div>
+  </div>
+</div>
+
+<h4>사전 준비 (출시 전 병행 가능)</h4>
+<ul>
+  <li>사업자등록증</li>
+  <li>통신판매신고증</li>
+  <li>카카오 비즈 메시지 발신 프로필 등록 (영업일 5~7일)</li>
+  <li>알림톡 템플릿 등록 + 심사 (영업일 1~3일)</li>
+</ul>
+
+<h4>장단점 정리</h4>
+<table>
+  <tr><th>장점</th><th>단점</th></tr>
+  <tr>
+    <td>
+      · 도달률 99%+ (한국 거의 모든 운영진이 카톡 사용)<br>
+      · 운영진 별도 앱 설치 / 가입 불필요<br>
+      · 1,000자까지 가능<br>
+      · 버튼/링크 첨부 가능 (어드민 deeplink)
+    </td>
+    <td>
+      · 사업자 인증 + 템플릿 심사 진입 장벽<br>
+      · 광고성 발송 금지 (정보성만)<br>
+      · 카카오 정책 위반 시 발송 정지 위험<br>
+      · 건당 단가 발생
+    </td>
+  </tr>
+</table>
+
+<h4>공급사 비교</h4>
+<table>
+  <tr>
+    <th style="width:18%">공급사</th>
+    <th>알림톡 단가</th>
+    <th>LMS fallback</th>
+    <th>콘솔 UX</th>
+    <th>특이사항</th>
+  </tr>
+  <tr><td><b>SOLAPI</b></td><td>9~12원</td><td>30~35원</td><td>⭐⭐⭐</td><td>Stripe 식 결제 / 개발자 친화</td></tr>
+  <tr><td>NCP SENS</td><td>11~14원</td><td>32~38원</td><td>⭐⭐</td><td>Naver Cloud 통합 / 안정성 ↑</td></tr>
+  <tr><td>Bizm (NHN)</td><td>12~15원</td><td>35~40원</td><td>⭐⭐</td><td>대기업 안정성 / B2B 영업</td></tr>
+  <tr><td>카카오 i 알림톡</td><td>11~14원</td><td>별도</td><td>⭐⭐</td><td>카카오 직영</td></tr>
+</table>
+
+<p><b>GTR 적합도</b> — ⭐⭐⭐ Stage 2 시점 도입 권장. 출시 전 사업자 인증·발신 프로필 사전 준비 가능.</p>
+
+<div class="pb"></div>
+
+<!-- 3.3 SMS / LMS -->
+<h3>3.3 SMS / LMS</h3>
+<div class="tag-row">
+  <span class="tag">실시간성 ✅ 초 단위</span>
+  <span class="tag">도달률 99%</span>
+  <span class="tag">SMS 12~20원 / LMS 30~40원</span>
+</div>
+
+<h4>장단점 정리</h4>
+<table>
+  <tr><th>장점</th><th>단점</th></tr>
+  <tr>
+    <td>
+      · 100% 도달 (피처폰까지)<br>
+      · 발신번호 사전 등록만 (사업자 인증 가벼움)<br>
+      · 운영진 카톡 안 봐도 도착
+    </td>
+    <td>
+      · 단가 ↑ (알림톡의 1.5~3배)<br>
+      · 단순 텍스트 (90자/SMS · 2,000자/LMS)<br>
+      · 버튼/링크 클릭 시 별 brower 진입<br>
+      · 알림톡 대비 사용 가치 ↓
+    </td>
+  </tr>
+</table>
+
+<p><b>GTR 적합도</b> — ⚠ 알림톡의 fallback 으로만. 단독 채택 불권장.</p>
+
+<!-- 3.4 Slack Webhook -->
+<h3>3.4 Slack Incoming Webhook ⭐ — 내부 운영진 최적</h3>
+<div class="tag-row">
+  <span class="tag">실시간성 ✅ 초 단위</span>
+  <span class="tag">도달률 90%+ (앱 깔린 경우)</span>
+  <span class="tag">월 0원 (무제한)</span>
+  <span class="tag">30분 구현</span>
+</div>
+
+<h4>작동 흐름 (상세)</h4>
+<div class="flow"><b>[고객 결제 완료]</b>
+       ↓
+  토스 webhook handler / server action
+       ↓
+  fetch(<b>SLACK_WEBHOOK_ORDERS</b>, { method:'POST', body: JSON })
+       ↓
+  Slack <b>#orders</b> 채널에 카드 메시지 등장
+       ↓
+  ┌─────────────────────────────────┐
+  ├─ 운영진 데스크탑 알림              │
+  ├─ 운영진 모바일 푸시               │
+  └─ 채널 멘션 (@channel · 선택)      │
+       ↓
+  메시지 클릭 → /admin/orders/[id] deeplink</div>
+
+<h4>운영진 수신 화면 (mockup)</h4>
+<div class="msg-card msg-slack">
+  <div class="hdr">
+    <span class="dot"></span>
+    <span class="name">Good Things Bot</span>
+    <span class="channel">#orders</span>
+    <span class="time">오전 9:42</span>
+  </div>
+  <div class="body">
+    <div class="row" style="font-weight:600; font-size:10.5pt; margin-bottom:6pt;">🟢 신규 주문 #20260522-001</div>
+    <div class="kv">
+      <b>고객</b><span>김선영</span>
+      <b>금액</b><span>67,000원</span>
+      <b>결제 수단</b><span>토스페이먼츠 · 카드</span>
+    </div>
+    <div class="items">
+      <div class="it" style="font-weight:600; margin-bottom:2pt;">상품 (3개)</div>
+      <div class="it">· 케냐 키리냐가 AA · 200g · 1개</div>
+      <div class="it">· 에티오피아 코체레 · 200g · 2개</div>
+    </div>
+    <div class="kv">
+      <b>배송지</b><span>서울 마포구 합정동 ...</span>
+      <b>요청사항</b><span>부재 시 경비실에 맡겨주세요</span>
+    </div>
+    <div class="btn-row">
+      <span class="btn primary">어드민에서 보기</span>
+      <span class="btn">발송 처리</span>
+    </div>
+  </div>
+</div>
+
+<h4>장단점 정리</h4>
+<table>
+  <tr><th>장점</th><th>단점</th></tr>
+  <tr>
+    <td>
+      · <b>완전 무료</b> (메시지 무제한)<br>
+      · 5분 설정 (앱 → Incoming Webhooks → URL 발급)<br>
+      · Block Kit 으로 카드 메시지 (이미지·버튼·필드)<br>
+      · 채널 분리 (<code>#orders</code> / <code>#subs</code> / <code>#errors</code>)<br>
+      · 검색 / 히스토리 보존 자동<br>
+      · 운영진간 즉시 의견 교환 (스레드)
+    </td>
+    <td>
+      · 운영진이 Slack 사용 의지 필요 (한국 보편성 ↓)<br>
+      · 모바일 푸시 = 사용자가 개별 설정<br>
+      · 무료 플랜 = 메시지 90일 보존
+    </td>
+  </tr>
+</table>
+
+<h4>구현 흐름 (요약 코드)</h4>
+<pre>// next/src/lib/notify/slack.ts
+export async function notifySlack(payload: SlackBlocks) {
+  if (!process.env.SLACK_WEBHOOK_ORDERS) return;
+  await fetch(process.env.SLACK_WEBHOOK_ORDERS, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).catch(() => {});  // 결제 흐름 차단 방지
+}
+
+// 결제 완료 server action 안
+await notifySlack(buildOrderBlocks(order));</pre>
+
+<div class="callout">
+  <div class="tt">기술적 안전망</div>
+  Slack webhook 실패가 결제 흐름을 막지 않도록 <b>fire-and-forget</b> 패턴 (<code>.catch(() => {})</code>) 사용. 환경변수 1개 (<code>SLACK_WEBHOOK_ORDERS</code>) 등록만으로 활성/비활성 토글 가능. DB 변경 0건.
+</div>
+
+<p><b>GTR 적합도</b> — ⭐⭐⭐ Stage 1 즉시 도입 권장. 알림톡 도입 후에도 병행 유지 (운영진간 내부 의견 교환).</p>
+
+<div class="pb"></div>
+
+<!-- 3.5 Discord -->
+<h3>3.5 Discord Webhook</h3>
+<div class="tag-row">
+  <span class="tag">실시간성 ✅</span>
+  <span class="tag">도달률 90%+</span>
+  <span class="tag">월 0원</span>
+</div>
+<table>
+  <tr><th>장점</th><th>단점</th></tr>
+  <tr>
+    <td>
+      · 완전 무료 + 무제한 (Slack 90일 제한 없음)<br>
+      · 웹훅 응답 속도 Slack 보다 빠름<br>
+      · 게임 / 커뮤니티 운영자에 친숙
+    </td>
+    <td>
+      · 한국 B2B 환경 사용 빈도 ↓<br>
+      · 비즈니스 신뢰도 ↓
+    </td>
+  </tr>
+</table>
+<p><b>GTR 적합도</b> — ⭐ 운영진이 이미 Discord 사용 중이면 Slack 대체 가능. 그 외 Slack 우선.</p>
+
+<!-- 3.6 Telegram -->
+<h3>3.6 Telegram Bot</h3>
+<div class="tag-row">
+  <span class="tag">실시간성 ✅</span>
+  <span class="tag">도달률 90%+</span>
+  <span class="tag">월 0원</span>
+</div>
+<table>
+  <tr><th>장점</th><th>단점</th></tr>
+  <tr>
+    <td>
+      · 완전 무료<br>
+      · API 풍부 (양방향 봇 명령 가능)<br>
+      · 메시지 보존 무제한<br>
+      · 매우 빠른 푸시
+    </td>
+    <td>
+      · 한국 운영진 가입률 ↓<br>
+      · 비즈니스 사용 사례 ↓ (한국 한정)
+    </td>
+  </tr>
+</table>
+<p><b>GTR 적합도</b> — ⚠ 비추천. 단, 1인 사업장 + Telegram 사용자라면 가능.</p>
+
+<!-- 3.7 카카오 채널 -->
+<h3>3.7 카카오 채널 + 챗봇</h3>
+<p>운영자용이 아니라 <b>고객 대응용</b> 채널. 운영진 알림 용도로는 과잉. 본 보고서 범위 외.</p>
+<p><b>GTR 적합도</b> — ❌ 운영진 알림 용도 비추천.</p>
+
+<!-- 3.8 PWA 푸시 -->
+<h3>3.8 PWA 푸시 (Web Push API)</h3>
+<div class="tag-row">
+  <span class="tag">실시간성 ✅ 초 단위</span>
+  <span class="tag">도달률 70~85%</span>
+  <span class="tag">월 0원 (VAPID)</span>
+</div>
+
+<h4>작동 흐름</h4>
+<div class="flow"><b>[운영진 어드민 페이지]</b>
+       ↓ "푸시 받기" 클릭 → VAPID subscription 생성 → Supabase 저장
+
+<b>[고객 결제]</b>
+       ↓
+  server → web-push 라이브러리 → VAPID
+       ↓
+  ┌─────────────────────────┐
+  ↓                         ↓
+OS 푸시 (휴대폰)         OS 푸시 (데스크탑)</div>
+
+<h4>운영진 수신 화면 (휴대폰 잠금 화면)</h4>
+<div class="msg-card msg-push">
+  <div class="hdr">
+    <span class="dot"></span>
+    <span class="name">굳띵즈 어드민</span>
+    <span class="time">지금</span>
+  </div>
+  <div class="body">
+    <div class="row" style="font-weight:600;">신규 주문 #20260522-001</div>
+    <div class="row">김선영 · 67,000원 (3개)</div>
+    <div class="row swipe">밀어서 열기 →</div>
+  </div>
+</div>
+
+<table>
+  <tr><th>장점</th><th>단점</th></tr>
+  <tr>
+    <td>
+      · 추가 비용 0원<br>
+      · 추가 인프라 0 (현 Next.js + Supabase 그대로)<br>
+      · OS 레벨 푸시 (잠금 화면 도달)<br>
+      · iOS 16.4+ 지원 (홈 화면 추가 시)
+    </td>
+    <td>
+      · 운영진이 각 디바이스에서 푸시 구독 수동 등록 필요<br>
+      · iOS Safari 빈도 제한<br>
+      · 디바이스 변경 시 재구독 필요<br>
+      · 잠금 해제 안 한 상태 도달률 ↓
+    </td>
+  </tr>
+</table>
+<p><b>GTR 적합도</b> — ⭐⭐ Stage 3 도입 권장. Slack + 알림톡 운영 안정 후 잠금 화면 즉시성 추가.</p>
+
+<!-- 3.9 Supabase Realtime -->
+<h3>3.9 Supabase Realtime + 어드민 대시보드</h3>
+<div class="tag-row">
+  <span class="tag">실시간성 ✅ 즉시</span>
+  <span class="tag">어드민 켜놨을 때만</span>
+  <span class="tag">월 0원</span>
+</div>
+<div class="flow"><b>[고객 결제]</b> → orders 테이블 INSERT
+                          ↓
+              Supabase Realtime broadcast (WebSocket)
+                          ↓
+        어드민 페이지 켜져 있으면 → 카드 즉시 등장 + 알림음
+        어드민 페이지 꺼져 있으면 → 도달 안 됨</div>
+
+<table>
+  <tr><th>장점</th><th>단점</th></tr>
+  <tr>
+    <td>
+      · 현 Supabase 플랜에 이미 포함<br>
+      · 추가 비용 0<br>
+      · 어드민 페이지 안에서 즉시 확인 → 처리 흐름 연결
+    </td>
+    <td>
+      · <b>운영진이 어드민 탭을 켜놓고 있어야 도달</b><br>
+      · "실시간 알림" 의미가 약함
+    </td>
+  </tr>
+</table>
+<p><b>GTR 적합도</b> — ✅ <b>보조 채널</b>로 권장. 단독 사용 금지. Slack / 알림톡 + 어드민 켜져 있을 때 보강.</p>
+
+<!-- 3.10 전용 앱 -->
+<h3>3.10 전용 모바일 앱 + FCM</h3>
+<p>별도 iOS / Android 앱 개발 → 운영진 설치 → FCM 푸시. 별 프로젝트로 분리됨.</p>
+<p><b>GTR 적합도</b> — ❌ 현 규모에서는 과잉. 일 50건 이상 + 운영진 확장 시점에 재검토.</p>
+
+<div class="pb"></div>
+
+<h2>4. 비용 시나리오 분석 — 일 주문량별 월 예상</h2>
+<blockquote>운영진 알림 발송 건수만 계산 (고객 알림 별개). 알림톡 정확한 단가는 공급사 · 계약 조건에 따라 변동.</blockquote>
+
+<h3>4.1 시나리오 A — 출시 직후 (일 5건 · 월 ~150건)</h3>
+<table>
+  <tr><th style="width:55%">채널 조합</th><th>월 예상 비용</th><th>비고</th></tr>
+  <tr style="background:#fef3c7;"><td><b>Slack + Resend + Supabase Realtime</b></td><td><b>0원</b></td><td>⭐ 권장 출발점</td></tr>
+  <tr><td>위 + 카카오 알림톡 (선택)</td><td>약 1,500~2,300원</td><td>150건 × 10~15원</td></tr>
+  <tr><td>알림톡 단독</td><td>약 1,500~2,300원</td><td>Slack 없으면 의견 교환 부재</td></tr>
+  <tr><td>알림톡 + LMS fallback 30%</td><td>약 2,800~4,000원</td><td>도달 실패 fallback</td></tr>
+  <tr><td>Resend 단독 (현재)</td><td>0원</td><td>도달률 30~60% — 비추천</td></tr>
+</table>
+
+<h3>4.2 시나리오 B — 출시 1~3개월 (일 10건 · 월 ~300건)</h3>
+<table>
+  <tr><th style="width:55%">채널 조합</th><th>월 예상 비용</th><th>비고</th></tr>
+  <tr><td>Slack + Resend</td><td>0원</td><td>운영진 휴대폰 푸시 의존 ↓</td></tr>
+  <tr style="background:#fef3c7;"><td><b>Slack + 카카오 알림톡</b></td><td><b>약 3,000~4,500원</b></td><td>⭐ Stage 2 권장</td></tr>
+  <tr><td>Slack + 알림톡 + LMS fallback 30%</td><td>약 5,700~8,100원</td><td>도달 실패 대비</td></tr>
+  <tr><td>Slack + 알림톡 + PWA 푸시</td><td>약 3,000~4,500원</td><td>푸시 추가 = 0원</td></tr>
+</table>
+
+<h3>4.3 시나리오 C — 안정기 (일 30건 · 월 ~900건)</h3>
+<table>
+  <tr><th style="width:55%">채널 조합</th><th>월 예상 비용</th><th>비고</th></tr>
+  <tr><td>Slack + 알림톡</td><td>약 8,100~13,500원</td><td></td></tr>
+  <tr style="background:#fef3c7;"><td><b>Slack + 알림톡 + LMS fallback + PWA 푸시</b></td><td><b>약 15,400~25,000원</b></td><td>⭐ Stage 3 권장</td></tr>
+  <tr><td>알림톡 단독 + LMS fallback</td><td>약 15,400~25,000원</td><td>의견 교환 부재</td></tr>
+</table>
+
+<h3>4.4 시나리오 D — 성수기 / 프로모션 (일 100건 · 월 ~3,000건)</h3>
+<table>
+  <tr><th style="width:55%">채널 조합</th><th>월 예상 비용</th><th>비고</th></tr>
+  <tr><td>Slack + 알림톡 + LMS fallback + PWA 푸시</td><td>약 51,000~85,000원</td><td></td></tr>
+  <tr><td>+ Resend 비용 (월 3,001~50,000건)</td><td>+ 약 28,000원 ($20)</td><td>Resend 무료 한도 초과 시</td></tr>
+</table>
+
+<div class="callout">
+  <div class="tt">N명 운영진 보정</div>
+  운영진이 N명일 때 알림톡은 N배 (운영진 각자에게 발송). Slack 은 채널 1개 = N명 무관. 운영진 3명일 때 알림톡 비용 3배 증가하므로, 내부 협업 채널 = Slack, 휴대폰 즉시 도달 = 알림톡 + PWA 푸시 조합이 비용 효율적.
+</div>
+
+<div class="pb"></div>
+
+<h2>5. GTR 단계별 추천안</h2>
+
+<h3>5.1 Stage 1 — 출시 직전 ~ 일 5건 미만 (현 시점)</h3>
+<p><b>조합:</b> Slack Webhook + Resend (현재) + Supabase Realtime 어드민 대시보드 보강</p>
+<table>
+  <tr><th style="width:25%">채널</th><th style="width:50%">역할</th><th>비용</th></tr>
+  <tr><td><b>Slack #orders</b></td><td>메인 알림 채널 · 운영진간 의견 교환 겸용</td><td>0원</td></tr>
+  <tr><td>Resend 이메일</td><td>백업 / 기록 보존 (현 상태 유지)</td><td>0원</td></tr>
+  <tr><td>Supabase Realtime</td><td>어드민 페이지 켜놨을 때 즉시 카드 등장</td><td>0원</td></tr>
+</table>
+<p><b>월 예상 비용: 0원</b> · <b>구현 sprint 추정: 2~4h</b> (Slack workspace 생성 + webhook 발급 + server action 1곳 추가 + 어드민 카운트 배지)</p>
+
+<h3>5.2 Stage 2 — 출시 1~3개월 / 일 5~10건</h3>
+<p><b>조합:</b> Stage 1 + 카카오 알림톡 추가</p>
+<table>
+  <tr><th style="width:25%">채널</th><th style="width:50%">역할</th><th>비용 (월)</th></tr>
+  <tr><td>Slack</td><td>내부 협업 + 백업</td><td>0원</td></tr>
+  <tr><td><b>카카오 알림톡</b></td><td>운영진 휴대폰 즉시 도달 메인</td><td>약 1,500~4,500원</td></tr>
+  <tr><td>LMS fallback</td><td>알림톡 실패 시 자동 전환</td><td>약 1,500~3,500원</td></tr>
+  <tr><td>Resend</td><td>백업 / 기록</td><td>0원</td></tr>
+  <tr><td>Supabase Realtime</td><td>어드민 보강</td><td>0원</td></tr>
+</table>
+<p><b>월 예상 비용: 약 3,000~8,000원</b> · <b>구현 sprint 추정: 6~10h</b></p>
+
+<div class="callout">
+  <div class="tt">Stage 1 단계에서 미리 준비할 것 (Stage 2 대비)</div>
+  · 사업자등록증 / 통신판매신고증 확보<br>
+  · SOLAPI 또는 NCP SENS 콘솔 가입<br>
+  · 카카오 비즈 메시지 발신 프로필 등록 (영업일 5~7일 소요)<br>
+  · 템플릿 초안 작성 → 심사 신청 (영업일 1~3일)
+</div>
+
+<h3>5.3 Stage 3 — 안정기 / 일 10건 이상</h3>
+<p><b>조합:</b> Stage 2 + PWA 푸시 + Slack App 화 (Block Kit Button)</p>
+<table>
+  <tr><th style="width:25%">채널</th><th style="width:50%">역할</th><th>비용 (월)</th></tr>
+  <tr><td>Slack App</td><td>Block Kit button (어드민 deeplink + 발송 처리 1탭)</td><td>0원</td></tr>
+  <tr><td>카카오 알림톡</td><td>운영진 휴대폰 메인</td><td>약 8,000~13,500원</td></tr>
+  <tr><td>LMS fallback</td><td>자동 전환</td><td>약 2,500~4,000원</td></tr>
+  <tr><td><b>PWA 푸시</b></td><td>잠금 화면 즉시 도달</td><td>0원</td></tr>
+  <tr><td>어드민 대시보드</td><td>통계 위젯 + 신규 주문 배지</td><td>0원</td></tr>
+</table>
+<p><b>월 예상 비용: 약 10,500~17,500원</b> · <b>구현 sprint 추정: 8~14h</b></p>
+
+<h2>6. GTR 적합도 종합 매트릭스</h2>
+<table>
+  <tr>
+    <th style="width:30%">솔루션</th>
+    <th>Stage 1 (출시 직전)</th>
+    <th>Stage 2 (1~3개월)</th>
+    <th>Stage 3 (안정기)</th>
+  </tr>
+  <tr><td><b>Slack Webhook</b></td><td><span class="badge b-star">⭐⭐⭐ 즉시 도입</span></td><td><span class="badge b-good">유지</span></td><td><span class="badge b-good">App 화 확장</span></td></tr>
+  <tr><td>이메일 (Resend)</td><td><span class="badge b-mute">백업</span></td><td><span class="badge b-mute">백업</span></td><td><span class="badge b-mute">백업</span></td></tr>
+  <tr><td>Supabase Realtime</td><td><span class="badge b-mute">보조</span></td><td><span class="badge b-mute">보조</span></td><td><span class="badge b-mute">보조</span></td></tr>
+  <tr><td><b>카카오 알림톡</b></td><td><span class="badge b-warn">사전 준비</span></td><td><span class="badge b-star">⭐⭐⭐ 도입</span></td><td><span class="badge b-star">메인</span></td></tr>
+  <tr><td>LMS fallback</td><td>—</td><td><span class="badge b-good">도입</span></td><td><span class="badge b-good">유지</span></td></tr>
+  <tr><td>PWA 푸시</td><td>—</td><td>—</td><td><span class="badge b-good">⭐⭐ 도입</span></td></tr>
+  <tr><td>Discord / Telegram</td><td><span class="badge b-warn">Slack 대체 시만</span></td><td><span class="badge b-warn">대체 시만</span></td><td><span class="badge b-warn">대체 시만</span></td></tr>
+  <tr><td>카카오 채널</td><td><span class="badge b-bad">운영진 X</span></td><td><span class="badge b-bad">X</span></td><td><span class="badge b-bad">X</span></td></tr>
+  <tr><td>전용 모바일 앱</td><td><span class="badge b-bad">과잉</span></td><td><span class="badge b-bad">과잉</span></td><td><span class="badge b-warn">일 50+ 시 재검토</span></td></tr>
+</table>
+
+<h2>7. 구현 로드맵</h2>
+
+<h3>7.1 Stage 1 즉시 진입 가능 (S250-7 sprint 후보 · 2~4h)</h3>
+<ol>
+  <li>Slack 워크스페이스 생성 (운영진 초대)</li>
+  <li><code>#orders</code> 채널 + Incoming Webhook URL 발급</li>
+  <li><code>lib/notify/slack.ts</code> 신규 (fire-and-forget)</li>
+  <li>토스 webhook handler / 결제 완료 server action 에서 호출</li>
+  <li>Block Kit 카드 메시지 디자인 (주문번호 · 고객 · 금액 · 상품 · 배송지 · deeplink)</li>
+  <li>환경변수 <code>SLACK_WEBHOOK_ORDERS</code> Vercel 등록</li>
+  <li>스테이징 mock 결제로 테스트</li>
+</ol>
+
+<h3>7.2 Stage 2 사전 준비 (Stage 1 진행과 병행)</h3>
+<ol>
+  <li>사업자 인증 서류 확보</li>
+  <li>SOLAPI / NCP SENS 콘솔 비교 후 결정</li>
+  <li>카카오 비즈 메시지 발신 프로필 등록 (5~7일)</li>
+  <li>알림톡 템플릿 초안 작성<br>
+    예: <code>[신규 주문] {{order_number}} 접수 — {{customer_name}} / {{amount}}원 ({{item_count}}건)</code></li>
+  <li>템플릿 심사 신청 (1~3일)</li>
+  <li>출시 후 일 5건 도달 시점 통합 sprint 진입</li>
+</ol>
+
+<h3>7.3 Stage 3 진입 시점 결정 기준</h3>
+<ul>
+  <li>일 주문 10건 이상 안정 + 운영진 휴대폰 잠금 화면 즉시성 필요 인식 시</li>
+  <li>알림톡 도달률 통계상 95% 미만으로 떨어질 때 PWA 푸시 fallback 우선</li>
+  <li>운영진 확장 (3인 이상) 시점</li>
+</ul>
+
+<div class="pb"></div>
+
+<h2>8. 결론 및 권고</h2>
+
+<h3>8.1 즉시 권고</h3>
+<div class="callout">
+  <b>Slack Webhook 메인 채널 + Resend 백업 + Supabase Realtime 어드민 대시보드 보강</b> 조합을 출시 전 도입.<br>
+  · 월 비용 0원<br>
+  · 구현 2~4h<br>
+  · 외부 의존성 0 (Google Workspace / Resend 결제 / 토스 정기배송 답변 대기와 무관하게 진행 가능)
+</div>
+
+<h3>8.2 단계 권고</h3>
+<ul>
+  <li><b>Stage 1 → 2 전환:</b> 일 5건 도달 + 사업자 인증 완료 시점에 카카오 알림톡 도입</li>
+  <li><b>Stage 2 → 3 전환:</b> 일 10건 안정 + 운영진 잠금 화면 즉시성 필요 시점에 PWA 푸시 + Slack App 확장</li>
+</ul>
+
+<h3>8.3 회피 권고</h3>
+<ul>
+  <li><b>Discord / Telegram</b> — 한국 비즈니스 보편성 ↓</li>
+  <li><b>카카오 채널 + 챗봇</b> — 운영진 알림 용도로는 과잉 (고객용은 별개)</li>
+  <li><b>전용 모바일 앱</b> — 일 50건 미만 단계 비용 대비 가치 부족</li>
+  <li><b>Resend 단독</b> — 도달률 부족, 백업 채널로만 유지</li>
+</ul>
+
+<h3>8.4 의사결정 잠금 (DEC 후보)</h3>
+<table>
+  <tr><th style="width:22%">DEC 번호</th><th>내용</th></tr>
+  <tr><td><b>DEC-NOTIFY-1</b></td><td>운영진 알림 메인 채널 = Slack (Stage 1) → 카카오 알림톡 추가 (Stage 2)</td></tr>
+  <tr><td><b>DEC-NOTIFY-2</b></td><td>백업 채널 = Resend 이메일 유지</td></tr>
+  <tr><td><b>DEC-NOTIFY-3</b></td><td>보조 채널 = Supabase Realtime + 어드민 카운트 배지 (모든 단계)</td></tr>
+  <tr><td><b>DEC-NOTIFY-4</b></td><td>Stage 2 공급사 = SOLAPI 우선 (가격 + 콘솔 UX 기준) — 가입 단계 재확정</td></tr>
+</table>
+
+<h2>부록 A. Slack Webhook 구현 예시 (참고 자료)</h2>
+<pre>// next/src/lib/notify/slack.ts
+type SlackBlocks = {
+  text: string;
+  blocks?: Array&lt;unknown&gt;;
+};
+
+export async function notifySlack(payload: SlackBlocks) {
+  const url = process.env.SLACK_WEBHOOK_ORDERS;
+  if (!url) return;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {
+    console.error('[slack] failed', e);
+  }
+}
+
+export function buildOrderBlocks(order: Order): SlackBlocks {
+  return {
+    text: `신규 주문 #${order.order_number}`,
+    blocks: [
+      {
+        type: 'header',
+        text: { type: 'plain_text', text: `🟢 신규 주문 #${order.order_number}` },
+      },
+      {
+        type: 'section',
+        fields: [
+          { type: 'mrkdwn', text: `*고객*\n${order.customer_name}` },
+          { type: 'mrkdwn', text: `*금액*\n${order.total.toLocaleString()}원` },
+        ],
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*상품 (${order.items.length}개)*\n` +
+            order.items.map(i =&gt; `• ${i.name} · ${i.quantity}개`).join('\n'),
+        },
+      },
+      {
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            text: { type: 'plain_text', text: '어드민에서 보기' },
+            url: `https://goodthingsroasters.com/admin/orders/${order.id}`,
+          },
+        ],
+      },
+    ],
+  };
+}</pre>
+
+<h2>부록 B. 공식 문서 / 가격 페이지 참고</h2>
+<ul>
+  <li>Slack Incoming Webhook 공식 가이드: <code>https://api.slack.com/messaging/webhooks</code></li>
+  <li>Slack Block Kit Builder: <code>https://app.slack.com/block-kit-builder</code></li>
+  <li>카카오 비즈 메시지 공식: <code>https://business.kakao.com/info/bizmessage/</code></li>
+  <li>SOLAPI 가격: <code>https://solapi.com/pricing/</code></li>
+  <li>NCP SENS 가격: <code>https://www.ncloud.com/product/applicationService/sens</code></li>
+  <li>Web Push API (MDN): <code>https://developer.mozilla.org/docs/Web/API/Push_API</code></li>
+</ul>
+<blockquote>가격은 본 보고서 작성 시점 (2026-05-22) 공시 기준. 공급사 정책 / 협상 / 볼륨 할인에 따라 변동.</blockquote>
+
+<div class="footer">Good Things Roasters · 온라인 주문 실시간 알림 솔루션 조사 보고서 · 2026-05-22</div>
+
+</body>
+</html>

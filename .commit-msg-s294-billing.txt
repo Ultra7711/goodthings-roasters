@@ -1,0 +1,48 @@
+feat(billing): S294 γ 합산 통합 빌링 결제 흐름
+
+[ADR-008 §D-3 정정 — A-2 (γ 합산 통합) 1차 채택]
+- 토스 라이브 심사 = TAM 권유 "계약단계 confirm" 절차 활용
+- A-1 (β 두 결제 분리) = 거절 시 fallback carry-over 격하
+- 근거: payments §5.2 1:1 자연 정합 / billingService 기 정합 (amount=order.total_amount) /
+  글로벌 표준 (Stripe / Recurly 단일 invoice) / 한국 PG 표준 미정 = 자율
+
+[Phase 3-B frontend]
+- CheckoutPayment β/γ 분기 — hasSubscription 시 payment.requestBillingAuth({ method })
+- /billing/success 페이지 신규 — authKey 콜백 → /api/billing/authorizations →
+  /api/billing/charge → 완료/에러 화면 분기
+- /api/billing/customer-key GET route 신설 — 회원 customer_key 반환
+- Widget SDK ↔ Payment SDK 키 분기 (S91 매트릭스 답습) —
+  WIDGET_KEY (test_gck_docs_*) / BILLING_KEY (test_ck_*) 별도 환경변수
+- 빌링 USER_CANCEL silent 처리 — 위젯 UserCancelError 외 별도 code 필드 매칭
+
+[Phase 3-C 흡수 — transfer 빌링 통합]
+- migration 077 — process_billing_charge_success RPC method='card' 가드 해제
+- billing_method.method 동적 조회 → payments INSERT method 동적 분기 (card | transfer)
+- CheckoutPayment 결제수단 세그먼트 UI (CARD ↔ TRANSFER) —
+  GTR 사각 디자인 (border-radius 0) + 동적 안내 텍스트 + 동적 버튼 라벨
+- 토스 라이브 신청 시 카드 + 계좌이체 빌링 둘 다 신청 (D-2 정합)
+
+[약관 갱신]
+- TERMS §10조의2 (정기배송 서비스) 신설 — 6개 조항
+  · 회원 한정 / 카드+계좌이체 / 즉시 해지 / 유형상품 환불 분리 명시
+- RETURNS "정기배송 해지 · 환불" 섹션 — 구독 해지 + 발송 후 상품 일반 환불 규정
+- PAYMENT_FAQ "정기배송은 어떻게 해지하나요?" Q&A 신설
+
+[UI 디테일]
+- chp-sum-sub-block 데스크탑 — margin/padding 다른 row 정렬 +
+  font-size 14px + 배경 좌우 -8/+8 확장 (모바일 그대로)
+- CheckoutPayment 안내 ↔ 세그먼트 8px (묶음) / 안내 ↔ CTA 32px (분리) —
+  Gestalt proximity 정합
+- 안내 텍스트 "첫 회차 결제" / "다음 배송일부터 자동 청구" 정확화 —
+  첫 회 = 사용자 의도 행위 / 이후 cycle = cron 자동
+
+[검증]
+- tsc PASS / vitest 799/799 PASS
+- 빌링 카드 등록 화면 도달 확인 (test_ck_* API 키 정상 활성)
+- 빌링키 발급 실 동작 = 가맹점 계약 측 자동결제 신청 carry (NOT_SUPPORTED_CARD_TYPE
+  = 토스 비즈센터 자동결제 신청 진행 후 활성)
+
+[Carry]
+- 토스 비즈센터 자동결제(빌링) 신청 — 사용자 액션 (Phase 3-D 연계)
+- chp-sum-sub-block CSS 시각 반영 확인 (Turbopack HMR stale 의심)
+- 잔여 PPT 캡처 + S295 진입

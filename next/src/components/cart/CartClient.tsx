@@ -21,6 +21,7 @@ import type { CartItem } from '@/types/cart';
 import CartSkeleton from './CartSkeleton';
 import OrderItemRow from '@/components/order/OrderItemRow';
 import OverscrollTop from '@/components/ui/OverscrollTop';
+import OverscrollAnchor from '@/components/ui/OverscrollAnchor';
 import { formatPrice } from '@/lib/utils';
 
 type CartClientProps = {
@@ -152,9 +153,8 @@ export default function CartClient({ initialItems }: CartClientProps = {}) {
         </>
       )}
     </div>
-    {/* S298 검증: sand 10px 흐름끝 footer — footer(실제 요소) + light(sand) 색이
-        iOS rubber-band 에 반영되는지 (가)요소존재/(나)dark·light 분리. 확인 후 제거. */}
-    <footer style={{ background: '#FBF8F3', height: 10 }} aria-hidden="true" />
+    {/* S298: footer 없는 페이지 — 흐름끝 anchor 로 iOS rubber-band 색 활성화 (하단 = page bg sand). */}
+    <OverscrollAnchor />
     </>
   );
 }

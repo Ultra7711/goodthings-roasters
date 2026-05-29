@@ -24,6 +24,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import OrderCompletePage from '@/components/checkout/OrderCompletePage';
 import OverscrollTop from '@/components/ui/OverscrollTop';
+import OverscrollAnchor from '@/components/ui/OverscrollAnchor';
 
 export const metadata: Metadata = {
   title: '주문 완료',
@@ -53,6 +54,8 @@ export default function OrderCompleteRoute({ searchParams }: PageProps) {
       <Suspense fallback={<div className="oc-page" style={{ minHeight: '100svh' }} />}>
         <OrderCompleteInner searchParams={searchParams} />
       </Suspense>
+      {/* S298: footer 없는 페이지 — 흐름끝 anchor 로 iOS rubber-band 색 활성화 (하단 = page bg sand). */}
+      <OverscrollAnchor />
     </>
   );
 }

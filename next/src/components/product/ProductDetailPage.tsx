@@ -28,6 +28,7 @@ import ProductRecipeGuide from './ProductRecipeGuide';
 import DripBagSteps from './DripBagSteps';
 import ProductAccordions from './ProductAccordions';
 import OverscrollTop from '@/components/ui/OverscrollTop';
+import OverscrollAnchor from '@/components/ui/OverscrollAnchor';
 
 type Props = { product: Product };
 
@@ -178,6 +179,8 @@ export default function ProductDetailPage({ product }: Props) {
         </section>
       </div>
     </div>
+    {/* S298: footer 없는 페이지 — 흐름끝 anchor 로 iOS rubber-band 색 활성화 (하단 = page bg sand). */}
+    <OverscrollAnchor />
     </>
   );
 }

@@ -43,9 +43,9 @@ export default function OverscrollColor() {
       /* modal/sheet open 시 (body.overflow:hidden) skip — cafe-nutri 등 자체 색
          처리 컴포넌트와 충돌 차단. body.bg / theme-color meta 가 시트 자체 값 유지. */
       if (body.style.overflow === 'hidden') return;
-      /* S298 검증: 상단 rubber-band (scrollY < 0) → 콘텐츠 길이 무관 항상 top color.
+      /* S298: 상단 rubber-band (scrollY < 0) → 콘텐츠 길이 무관 항상 top color.
          짧은 페이지(콘텐츠 < viewport)에서 atBottom 이 항상 true 가 되어 상단 당김도
-         bottom 색이 적용되던 문제 차단 — 상단은 어나운스(top) 강제. */
+         bottom 색이 적용되던 문제 차단 — 상단은 top(어나운스) 강제. */
       if (window.scrollY < 0) {
         apply(getTopColor());
         return;
