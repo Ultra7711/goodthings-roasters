@@ -152,6 +152,9 @@ export default function CartClient({ initialItems }: CartClientProps = {}) {
         </>
       )}
     </div>
+    {/* S298 검증: sand 10px 흐름끝 footer — footer(실제 요소) + light(sand) 색이
+        iOS rubber-band 에 반영되는지 (가)요소존재/(나)dark·light 분리. 확인 후 제거. */}
+    <footer style={{ background: '#FBF8F3', height: 10 }} aria-hidden="true" />
     </>
   );
 }

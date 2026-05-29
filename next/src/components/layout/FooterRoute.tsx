@@ -14,8 +14,7 @@ import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 
 /** 정확 일치 또는 하위 경로 매칭으로 footer 숨김 */
-/* S298 임시 검증: /cart 제거 — footer(흐름 끝 실제 요소)가 iOS rubber-band 에 sample 되는지 확인용. 확인 후 원복. */
-const FOOTER_HIDDEN = ['/order-complete', '/dev/order-complete'];
+const FOOTER_HIDDEN = ['/order-complete', '/dev/order-complete', '/cart'];
 
 type Props = { children: ReactNode };
 
