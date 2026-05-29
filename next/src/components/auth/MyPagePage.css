@@ -175,6 +175,8 @@
   color: var(--color-text-primary); text-align: right;
   line-height: var(--lh-kr-body-15);
 }
+/* S301: 가상 이메일(미등록) / 뉴스레터 미이용 안내 등 비활성 정보 — 보조 색상 */
+.mp-info-value--muted { color: var(--color-text-tertiary); }
 /* Android 데이터 디텍터 안전망 — 자동 생성된 mailto 링크 스타일 초기화 */
 .mp-info-value a[href^="mailto"] {
   color: inherit; text-decoration: none; pointer-events: none; cursor: default;
