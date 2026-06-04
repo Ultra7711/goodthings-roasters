@@ -26,6 +26,10 @@ export default function ShopHoursAccordion() {
   const [open, setOpen] = useState(false);
   const { hours } = useSiteSettings();
   const view = useShopStatus(hours);
+
+  /* 마스터 토글 OFF — 위젯 자체를 숨김 (어드민 사이트 설정). hook 호출 뒤 조건부 return. */
+  if (!hours.enabled) return null;
+
   const tone = view ? STATUS_TONE[view.status.kind] : 'var(--color-text-tertiary)';
 
   /* label "영업 마감 · 내일 12:00 오픈" → 상태어(색 적용) + 나머지(시간 강조) 분리 */

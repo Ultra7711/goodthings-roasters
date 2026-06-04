@@ -1,14 +1,16 @@
 /* ══════════════════════════════════════════
    sections/HoursSubForm.tsx — Section 4: 매장 영업시간
 
-   - 요일별 영업시간 (월~일) : 영업/휴무 토글 + 오픈/마감 time input
+   - 마스터 토글(enabled) : 위젯 표시 여부 (SettingsCard · notice/shipping 답습)
+   - 휴무 요일 : 멀티칩 (선택 = 휴무 · Switch 7개 폐기)
+   - 영업 시간 : 영업일만 시·분 드롭다운 (24시간제 · 오전/오후 표기 없음)
    - 비정기 휴무 : 날짜(date) + 사유 행 추가/삭제
    - Story 페이지 Location 위젯(실시간 상태 + 7일 아코디언)에 즉시 반영
    ══════════════════════════════════════════ */
 
 import type { HoursSettings } from '@/lib/siteSettings';
 import { WEEKDAY_KR } from '@/lib/shopHours';
-import { Switch } from '@/components/admin/ui/switch';
+import { SettingsCard } from '../_shared/SettingsCard';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
 
@@ -16,6 +18,80 @@ import { Input } from '@/components/admin/ui/input';
 const DAY_ORDER = ['1', '2', '3', '4', '5', '6', '0'] as const;
 
 type WeekKey = keyof HoursSettings['weekly'];
+
+/* 시·분 드롭다운 옵션 — 24시간제 (오전/오후 없음) · 분 5분 단위 */
+const HOUR_OPTS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MIN_OPTS = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
+
+interface TimeSelectProps {
+  value: string; // 'HH:MM'
+  onChange: (next: string) => void;
+  label: string;
+}
+
+/** native select + admin 표준 chevron(appearance-none 오버레이). 기본 브라우저 화살표 제거. */
+function SelectBox({
+  value,
+  options,
+  onChange,
+  label,
+}: {
+  value: string;
+  options: readonly string[];
+  onChange: (next: string) => void;
+  label: string;
+}) {
+  return (
+    <span className="relative inline-flex items-center">
+      <select
+        className="h-8 appearance-none rounded-md border border-border bg-[var(--surface)] pl-2.5 pr-7 text-sm tabular-nums cursor-pointer"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={label}
+      >
+        {options.map((o) => (
+          <option key={o} value={o}>{o}</option>
+        ))}
+      </select>
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="text-muted-foreground absolute right-2 pointer-events-none"
+        aria-hidden
+      >
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </span>
+  );
+}
+
+/** 시·분 드롭다운 페어 — 브라우저/OS locale 무관 24시간제 보장. */
+function TimeSelect({ value, onChange, label }: TimeSelectProps) {
+  const [h, m] = value.split(':');
+  return (
+    <span className="inline-flex items-center gap-1">
+      <SelectBox
+        value={h}
+        options={HOUR_OPTS}
+        onChange={(hh) => onChange(`${hh}:${m}`)}
+        label={`${label} 시`}
+      />
+      <span className="text-muted-foreground">:</span>
+      <SelectBox
+        value={m}
+        options={MIN_OPTS}
+        onChange={(mm) => onChange(`${h}:${mm}`)}
+        label={`${label} 분`}
+      />
+    </span>
+  );
+}
 
 interface HoursSubFormProps {
   value: HoursSettings;
@@ -55,56 +131,78 @@ export function HoursSubForm({ value, onChange }: HoursSubFormProps) {
     onChange({ closures: value.closures.filter((_, j) => j !== i) });
   }
 
-  return (
-    <div className="bg-[var(--surface)] border border-border rounded-[var(--radius)]">
-      <div className="px-6 py-4 border-b border-border">
-        <h3 className="m-0 text-sm font-medium">매장 영업시간</h3>
-        <div className="text-xs text-muted-foreground mt-0.5">
-          Story 페이지 Location 위젯(실시간 상태 + 7일 시간표)에 즉시 반영돼요.
-        </div>
-      </div>
+  const openDays = DAY_ORDER.filter((wd) => value.weekly[wd]);
+  const closedDays = DAY_ORDER.filter((wd) => !value.weekly[wd]);
+  const closedLabel =
+    closedDays.length === 0
+      ? '선택한 요일은 정기 휴무로 처리돼요.'
+      : `${closedDays.map((wd) => WEEKDAY_KR[Number(wd)]).join('·')}요일은 정기 휴무로 처리됩니다.`;
 
-      <div className="p-6 flex flex-col gap-5">
-        {/* 요일별 기본 영업시간 */}
-        <div className="flex flex-col gap-2.5">
-          {DAY_ORDER.map((wd) => {
-            const d = value.weekly[wd];
-            const onDay = !!d;
-            return (
-              <div key={wd} className="flex items-center gap-3">
-                <span className="w-7 text-sm font-medium">
+  return (
+    <SettingsCard
+      title="매장 영업시간"
+      subtitle="Story 페이지 Location 위젯(실시간 상태 + 7일 시간표)에 즉시 반영돼요."
+      on={value.enabled}
+      onToggle={() => onChange({ enabled: !value.enabled })}
+    >
+      <div className="flex flex-col gap-5">
+        {/* 휴무 요일 (멀티칩) */}
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium">휴무 요일</span>
+          <p className="text-xs text-muted-foreground">{closedLabel}</p>
+          <div className="flex flex-wrap gap-2 mt-0.5">
+            {DAY_ORDER.map((wd) => {
+              const isClosed = !value.weekly[wd];
+              return (
+                <button
+                  key={wd}
+                  type="button"
+                  onClick={() => toggleDay(wd)}
+                  aria-pressed={isClosed}
+                  aria-label={`${WEEKDAY_KR[Number(wd)]}요일 ${isClosed ? '영업으로 전환' : '휴무로 전환'}`}
+                  className={
+                    'size-9 rounded-md border text-sm font-medium cursor-pointer transition-colors ' +
+                    (isClosed
+                      ? 'bg-[var(--danger-soft)] border-[var(--danger)] text-[var(--danger)]'
+                      : 'border-border text-muted-foreground hover:border-foreground')
+                  }
+                >
                   {WEEKDAY_KR[Number(wd)]}
-                </span>
-                <Switch
-                  checked={onDay}
-                  onCheckedChange={() => toggleDay(wd)}
-                  aria-label={`${WEEKDAY_KR[Number(wd)]}요일 ${onDay ? '휴무로 전환' : '영업으로 전환'}`}
-                  className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
-                />
-                {onDay && d ? (
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="time"
-                      value={d.open}
-                      onChange={(e) => setTime(wd, 'open', e.target.value)}
-                      className="w-[120px]"
-                      aria-label={`${WEEKDAY_KR[Number(wd)]}요일 오픈 시각`}
-                    />
-                    <span className="text-muted-foreground">~</span>
-                    <Input
-                      type="time"
-                      value={d.close}
-                      onChange={(e) => setTime(wd, 'close', e.target.value)}
-                      className="w-[120px]"
-                      aria-label={`${WEEKDAY_KR[Number(wd)]}요일 마감 시각`}
-                    />
-                  </div>
-                ) : (
-                  <span className="text-sm text-muted-foreground">휴무</span>
-                )}
-              </div>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 영업 시간 (영업일만 · 시·분 드롭다운) */}
+        <div className="border-t border-border pt-4 flex flex-col gap-2.5">
+          <span className="text-sm font-medium">영업 시간</span>
+          {openDays.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              모든 요일이 휴무예요. 위 칩에서 영업 요일을 선택해 주세요.
+            </p>
+          ) : (
+            openDays.map((wd) => {
+              const d = value.weekly[wd]!;
+              const kr = WEEKDAY_KR[Number(wd)];
+              return (
+                <div key={wd} className="flex items-center gap-3">
+                  <span className="w-7 text-sm font-medium">{kr}</span>
+                  <TimeSelect
+                    value={d.open}
+                    onChange={(t) => setTime(wd, 'open', t)}
+                    label={`${kr}요일 오픈`}
+                  />
+                  <span className="text-muted-foreground">~</span>
+                  <TimeSelect
+                    value={d.close}
+                    onChange={(t) => setTime(wd, 'close', t)}
+                    label={`${kr}요일 마감`}
+                  />
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* 비정기 휴무 */}
@@ -164,6 +262,6 @@ export function HoursSubForm({ value, onChange }: HoursSubFormProps) {
           )}
         </div>
       </div>
-    </div>
+    </SettingsCard>
   );
 }

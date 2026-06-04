@@ -124,6 +124,8 @@ export type Closure = z.infer<typeof ClosureSchema>;
  * shopHours.ts 의 상태 계산이 이 설정을 소비한다.
  */
 export const HoursSettingsSchema = z.object({
+  /** 위젯 표시 여부 — false 면 Story Location 영업시간 위젯 자체를 숨김 (다른 섹션 enabled 패턴 답습) */
+  enabled: z.boolean().default(true),
   weekly: z.object({
     '0': DayHoursSchema,
     '1': DayHoursSchema,
@@ -139,6 +141,7 @@ export const HoursSettingsSchema = z.object({
 export type HoursSettings = z.infer<typeof HoursSettingsSchema>;
 
 export const HOURS_DEFAULTS: HoursSettings = {
+  enabled: true,
   weekly: {
     '0': { open: '11:00', close: '21:00' }, // 일
     '1': null, // 월 휴무
