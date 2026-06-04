@@ -13,6 +13,8 @@ import {
   fetchProductBySlug,
 } from '@/lib/productsServer';
 import ProductDetailPage from '@/components/product/ProductDetailPage';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { productJsonLd } from '@/lib/seo/jsonLd';
 
 type RouteParams = { slug: string };
 
@@ -44,5 +46,11 @@ export default async function ProductDetailRoute({
   const { slug } = await params;
   const product = await fetchProductBySlug(slug);
   if (!product) notFound();
-  return <ProductDetailPage product={product} />;
+  return (
+    <>
+      {/* SEO: 상품 structured data — 가격/재고/이미지 동적 반영 (rich result) */}
+      <JsonLd data={productJsonLd(product)} />
+      <ProductDetailPage product={product} />
+    </>
+  );
 }
