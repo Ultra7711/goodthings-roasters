@@ -15,6 +15,7 @@ import type {
   HomeFeaturedSettings,
   NoticeSettings,
   ShippingSettings,
+  HoursSettings,
 } from '@/lib/siteSettings';
 
 /* ── Number format ────────────────────────────────────────────── */
@@ -62,6 +63,11 @@ export function shallowEqualHomeFeatured(
   return true;
 }
 
+/** 영업시간 — 요일별·비정기 휴무 중첩 구조라 deep 비교 (JSON 직렬화). */
+export function equalHours(a: HoursSettings, b: HoursSettings): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 /* ── Toast 메시지 ──────────────────────────────────────────────── */
 
 export function describeUpdatedKeys(keys: ReadonlyArray<string>): string {
@@ -69,6 +75,7 @@ export function describeUpdatedKeys(keys: ReadonlyArray<string>): string {
     notice: '공지 배너',
     shipping: '무료 배송 정책',
     home_featured: '메인 노출 메뉴',
+    hours: '영업시간',
   };
   return keys.map((k) => labels[k] ?? k).join(' · ');
 }

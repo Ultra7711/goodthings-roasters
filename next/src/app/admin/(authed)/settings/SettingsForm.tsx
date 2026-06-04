@@ -24,6 +24,7 @@ import { Button } from '@/components/admin/ui/button';
 import type { CafeMenuItem } from '@/lib/cafeMenu';
 import type {
   HomeFeaturedSettings,
+  HoursSettings,
   NoticeSettings,
   ShippingSettings,
   SiteSettings,
@@ -35,10 +36,12 @@ import {
 import { ShippingSubForm } from './sections/ShippingSubForm';
 import { NoticeSubForm } from './sections/NoticeSubForm';
 import { HomeFeaturedSubForm } from './sections/HomeFeaturedSubForm';
+import { HoursSubForm } from './sections/HoursSubForm';
 import { Badge } from './_shared/Badge';
 import { describeError } from '@/lib/admin/errorDescribe';
 import {
   describeUpdatedKeys,
+  equalHours,
   shallowEqualHomeFeatured,
   shallowEqualNotice,
   shallowEqualShipping,
@@ -68,6 +71,7 @@ export default function SettingsForm({ initialSettings, isOwner, cafeMenus }: Se
     if (!shallowEqualNotice(savedSettings.notice, settings.notice)) n += 1;
     if (!shallowEqualShipping(savedSettings.shipping, settings.shipping)) n += 1;
     if (!shallowEqualHomeFeatured(savedSettings.home_featured, settings.home_featured)) n += 1;
+    if (!equalHours(savedSettings.hours, settings.hours)) n += 1;
     return n;
   }, [savedSettings, settings]);
   const isDirty = dirtyCount > 0;
@@ -80,6 +84,9 @@ export default function SettingsForm({ initialSettings, isOwner, cafeMenus }: Se
   }
   function updateHomeFeatured(patch: Partial<HomeFeaturedSettings>) {
     setSettings((prev) => ({ ...prev, home_featured: { ...prev.home_featured, ...patch } }));
+  }
+  function updateHours(patch: Partial<HoursSettings>) {
+    setSettings((prev) => ({ ...prev, hours: { ...prev.hours, ...patch } }));
   }
 
   function handleReset() {
@@ -96,6 +103,13 @@ export default function SettingsForm({ initialSettings, isOwner, cafeMenus }: Se
     }
     if (!shallowEqualHomeFeatured(savedSettings.home_featured, settings.home_featured)) {
       payload.home_featured = settings.home_featured;
+    }
+    if (!equalHours(savedSettings.hours, settings.hours)) {
+      /* 빈 날짜 비정기 휴무 행은 저장에서 제외 (입력 중 빈 행 방어) */
+      payload.hours = {
+        ...settings.hours,
+        closures: settings.hours.closures.filter((c) => c.date),
+      };
     }
 
     startTransition(async () => {
@@ -176,6 +190,9 @@ export default function SettingsForm({ initialSettings, isOwner, cafeMenus }: Se
           onChange={updateHomeFeatured}
           cafeMenus={cafeMenus}
         />
+
+        {/* Section 4 — 매장 영업시간 (Story Location 위젯 반영) */}
+        <HoursSubForm value={settings.hours} onChange={updateHours} />
       </div>
     </>
   );

@@ -22,6 +22,7 @@ import { z } from 'zod';
 import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import {
   HomeFeaturedSettingsSchema,
+  HoursSettingsSchema,
   NoticeSettingsSchema,
   parseSiteSettingsRows,
   ShippingSettingsSchema,
@@ -36,6 +37,7 @@ const SaveInputSchema = z.object({
   notice: NoticeSettingsSchema.optional(),
   shipping: ShippingSettingsSchema.optional(),
   home_featured: HomeFeaturedSettingsSchema.optional(),
+  hours: HoursSettingsSchema.optional(),
 });
 
 export type SaveSettingsInput = z.input<typeof SaveInputSchema>;
@@ -92,6 +94,7 @@ export async function saveSiteSettingsAction(
   if (data.notice) updates.push({ key: 'notice', value: data.notice });
   if (data.shipping) updates.push({ key: 'shipping', value: data.shipping });
   if (data.home_featured) updates.push({ key: 'home_featured', value: data.home_featured });
+  if (data.hours) updates.push({ key: 'hours', value: data.hours });
 
   if (updates.length === 0) {
     return { ok: false, error: 'no_changes' };
