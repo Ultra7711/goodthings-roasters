@@ -30,7 +30,7 @@ export const IRREGULAR_CLOSURES: IrregularClosure[] = [
   // 예시: { date: '2026-04-20', reason: '직원 연수' },
 ];
 
-const WEEKDAY_KR = ['일', '월', '화', '수', '목', '금', '토'] as const;
+export const WEEKDAY_KR = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
 type KSTParts = {
   year: number;
@@ -122,13 +122,11 @@ function findNextOpen(fromKst: KSTParts): NextOpen | null {
   return null;
 }
 
-function formatNextOpenLabel(next: NextOpen): string {
+/** 다음 영업일 짧은 표기 — "내일 12:00" / "토요일 11:00" (dayDiff 1=내일, 그 외 요일명). */
+function formatNextOpenShort(next: NextOpen): string {
   const time = formatTime(next.schedule.open[0], next.schedule.open[1]);
-  let dayPrefix: string;
-  if (next.dayDiff === 1) dayPrefix = '내일은';
-  else if (next.dayDiff === 2) dayPrefix = '모레는';
-  else dayPrefix = `${WEEKDAY_KR[next.weekday]}요일`;
-  return `${dayPrefix} ${time}에 오픈합니다`;
+  const dayLabel = next.dayDiff === 1 ? '내일' : `${WEEKDAY_KR[next.weekday]}요일`;
+  return `${dayLabel} ${time}`;
 }
 
 export type ShopStatus =
@@ -138,28 +136,28 @@ export type ShopStatus =
   | { kind: 'closed'; label: string };
 
 /**
- * 매장의 현재 상태를 계산한다.
+ * 매장의 현재 상태를 계산한다 (카카오/네이버 지도 영업상태 톤).
  *
- * 상태 분기 (문장형 `-합니다` 완결형, 타이틀 "직접 만나보세요."와 톤 일치):
- * - 영업 전:                      `오늘은 12:00에 오픈합니다`
- * - 영업 중:                      `오늘은 21:00까지 영업합니다`
- * - 영업 종료 후 (내일 영업일):     `내일은 12:00에 오픈합니다`
- * - 영업 종료 후 (내일 휴무):       `내일은 휴무 · 화요일 12:00에 오픈합니다`
- * - 휴무일 (내일 영업):             `금일 휴무 · 내일은 12:00에 오픈합니다`
- * - 휴무일 (내일도 휴무):           `금일 휴무 · 수요일 12:00에 오픈합니다`
+ * 상태 분기:
+ * - 영업 전:                      `영업 전 · 오늘 12:00 오픈`
+ * - 영업 중:                      `영업 중 · 21:00 마감`
+ * - 영업 종료 후 (내일 영업일):     `영업 마감 · 내일 12:00 오픈`
+ * - 영업 종료 후 (내일 휴무):       `영업 마감 · 화요일 12:00 오픈`
+ * - 휴무일 (내일 영업):             `휴무 · 내일 12:00 오픈`
+ * - 휴무일 (내일도 휴무):           `휴무 · 수요일 12:00 오픈`
  */
 export function getShopStatus(now: Date): ShopStatus {
   const kst = getKSTParts(now);
   const todayKey = formatDateKey(kst);
   const todaySchedule = getScheduleForDate(kst.weekday, todayKey);
   const next = findNextOpen(kst);
-  const nextOpenLabel = next ? formatNextOpenLabel(next) : '';
+  const nextShort = next ? formatNextOpenShort(next) : '';
 
   // 오늘이 휴무일 (정기/비정기)
   if (!todaySchedule) {
     return {
       kind: 'closed',
-      label: nextOpenLabel ? `금일 휴무 · ${nextOpenLabel}` : '금일 휴무',
+      label: nextShort ? `휴무 · ${nextShort} 오픈` : '휴무',
     };
   }
 
@@ -171,26 +169,67 @@ export function getShopStatus(now: Date): ShopStatus {
   if (nowMin < openMin) {
     return {
       kind: 'before-open',
-      label: `오늘은 ${formatTime(todaySchedule.open[0], todaySchedule.open[1])}에 오픈합니다`,
+      label: `영업 전 · 오늘 ${formatTime(todaySchedule.open[0], todaySchedule.open[1])} 오픈`,
     };
   }
 
   // 영업 종료 후
   if (nowMin >= closeMin) {
-    if (next && next.dayDiff === 1) {
-      // 내일이 바로 영업일 → 단순 라벨
-      return { kind: 'after-close', label: nextOpenLabel };
-    }
-    // 내일이 휴무 (또는 그 이후) → 사용자 의문 차단용 prefix
     return {
       kind: 'after-close',
-      label: nextOpenLabel ? `내일은 휴무 · ${nextOpenLabel}` : '영업 종료',
+      label: nextShort ? `영업 마감 · ${nextShort} 오픈` : '영업 종료',
     };
   }
 
   // 영업 중
   return {
     kind: 'open',
-    label: `오늘은 ${formatTime(todaySchedule.close[0], todaySchedule.close[1])}까지 영업합니다`,
+    label: `영업 중 · ${formatTime(todaySchedule.close[0], todaySchedule.close[1])} 마감`,
   };
+}
+
+/* ── 주간 시간표 (오늘부터 7일) ─────────────────────────────────────────── */
+
+export type DayScheduleView = {
+  dateKey: string;       // 'YYYY-MM-DD'
+  month: number;
+  day: number;
+  weekdayLabel: string;  // '월'
+  isToday: boolean;
+  closed: boolean;
+  /** 영업일: '12:00 ~ 21:00' · 휴무일: '휴무' */
+  timeLabel: string;
+  /** 비정기 휴무 사유 (정기 휴무·영업일은 undefined) */
+  reason?: string;
+};
+
+/**
+ * 오늘(KST)부터 7일간의 영업/휴무 시간표.
+ * Location 아코디언 펼침 영역에서 사용. 비정기 휴무는 사유 포함.
+ */
+export function getWeekSchedule(now: Date): DayScheduleView[] {
+  const kst = getKSTParts(now);
+  const baseUtcMs =
+    Date.UTC(kst.year, kst.month - 1, kst.day) - 9 * 3600 * 1000;
+
+  const out: DayScheduleView[] = [];
+  for (let i = 0; i < 7; i++) {
+    const t = getKSTParts(new Date(baseUtcMs + i * 24 * 3600 * 1000));
+    const dateKey = formatDateKey(t);
+    const closure = IRREGULAR_CLOSURES.find((c) => c.date === dateKey);
+    const schedule = closure ? null : WEEKLY_SCHEDULE[t.weekday];
+    out.push({
+      dateKey,
+      month: t.month,
+      day: t.day,
+      weekdayLabel: WEEKDAY_KR[t.weekday],
+      isToday: i === 0,
+      closed: !schedule,
+      timeLabel: schedule
+        ? `${formatTime(schedule.open[0], schedule.open[1])} ~ ${formatTime(schedule.close[0], schedule.close[1])}`
+        : '휴무',
+      reason: closure?.reason,
+    });
+  }
+  return out;
 }

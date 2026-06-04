@@ -33,6 +33,7 @@ import {
   type StoryTwoColItem,
 } from '@/lib/story';
 import KakaoMap from './KakaoMap';
+import ShopHoursAccordion from './ShopHoursAccordion';
 import { emphasizeHours } from '@/lib/emphasizeHours';
 
 /* 본문 \n\n → <br><br> 단락 분리 */
@@ -165,14 +166,9 @@ export default function StoryPage() {
               <p className="st-location-name sr-txt sr-txt--d2">{STORY_LOCATION.name}</p>
             </div>
             <p className="st-location-notice sr-txt sr-txt--d2">{emphasizeHours(STORY_LOCATION.notice)}</p>
-            <p className="st-location-hours sr-txt sr-txt--d3">
-              {STORY_LOCATION.hours.split('\n').map((line, i, arr) => (
-                <span key={i}>
-                  {emphasizeHours(line)}
-                  {i < arr.length - 1 && <br />}
-                </span>
-              ))}
-            </p>
+            <div className="sr-txt sr-txt--d3">
+              <ShopHoursAccordion fallbackHours={STORY_LOCATION.hours} />
+            </div>
           </div>
         </div>
       </section>

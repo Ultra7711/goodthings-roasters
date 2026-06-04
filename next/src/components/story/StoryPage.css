@@ -352,15 +352,83 @@
   color: var(--color-text-secondary);
   margin: 0;
 }
-.st-location-hours {
+/* ── 영업시간 아코디언 (ShopHoursAccordion) ── */
+.st-hours {
   font-family: var(--font-kr);
+}
+.st-hours-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
   font-size: var(--type-body-m-size);
-  font-weight: 400;
+  color: var(--color-text-primary);
+  text-align: left;
+}
+.st-hours-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-text-tertiary, #9a948c);
+}
+.st-hours-dot.is-open {
+  background: var(--color-success);
+}
+.st-hours-line {
+  flex: 1;
+  font-weight: 500;
+}
+.st-hours-chev {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  transition: transform var(--duration-normal, 0.3s) var(--ease-out, ease);
+}
+.st-hours-chev.is-open {
+  transform: rotate(180deg);
+}
+.st-hours-panel {
+  margin-top: 14px;
+  padding-left: 17px;
+  border-left: 2px solid var(--color-label-on-white);
+}
+.st-hours-week {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.st-hours-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  font-size: var(--type-body-m-size);
+  color: var(--color-text-secondary);
+}
+.st-hours-row.is-today {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+.st-hours-date {
+  font-variant-numeric: tabular-nums;
+}
+.st-hours-time {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.st-hours-fallback {
+  margin: 0;
+  font-size: var(--type-body-m-size);
   color: var(--color-text-primary);
   line-height: 28px;
-  margin: 0;
-  padding-left: 12px;
-  border-left: 2px solid var(--color-label-on-white);
 }
 /* Mobile: 세로 스택 — 맵 4:3, 정보 자연 높이 */
 @media (max-width: 767px) {
