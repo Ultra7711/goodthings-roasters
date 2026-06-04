@@ -129,8 +129,21 @@ export async function fetchAdminOrders(
   const filters = parseSearchParams(searchParamsRaw);
   const supabase = await createRouteHandlerClient();
 
-  /* 1) 탭 카운트 (RPC) */
-  const countsRes = await supabase.rpc('admin_orders_status_counts');
+  /* 1) 탭 카운트 — RPC(주요 5탭) + 환불신청·송장누락 head count (전용 필터).
+     refund_requested 는 RPC 의 cancelled 묶음에 합쳐져 분리 불가 → 별도 count.
+     untracked = shipping 인데 tracking 없는 이상건 → 별도 count. */
+  const [countsRes, refundRes, untrackedRes] = await Promise.all([
+    supabase.rpc('admin_orders_status_counts'),
+    supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'refund_requested'),
+    supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'shipping')
+      .is('tracking_number', null),
+  ]);
   if (countsRes.error) {
     console.error('[fetchAdminOrders] counts rpc failed', {
       code: countsRes.error.code,
@@ -139,11 +152,13 @@ export async function fetchAdminOrders(
   }
   const countsRaw = (countsRes.data ?? {}) as Record<string, number>;
   const counts: AdminOrdersResult['counts'] = {
-    all:       Number(countsRaw.all       ?? 0),
-    new:       Number(countsRaw.new       ?? 0),
-    shipping:  Number(countsRaw.shipping  ?? 0),
-    delivered: Number(countsRaw.delivered ?? 0),
-    cancelled: Number(countsRaw.cancelled ?? 0),
+    all:              Number(countsRaw.all       ?? 0),
+    new:              Number(countsRaw.new       ?? 0),
+    shipping:         Number(countsRaw.shipping  ?? 0),
+    delivered:        Number(countsRaw.delivered ?? 0),
+    cancelled:        Number(countsRaw.cancelled ?? 0),
+    refund_requested: refundRes.count ?? 0,
+    untracked:        untrackedRes.count ?? 0,
   };
 
   /* 2) orders + items 쿼리 */
@@ -165,6 +180,8 @@ export async function fetchAdminOrders(
   else if (filters.status === 'shipping')   query = query.eq('status', 'shipping');
   else if (filters.status === 'delivered')  query = query.eq('status', 'delivered');
   else if (filters.status === 'cancelled')  query = query.in('status', CANCELLED_GROUP);
+  else if (filters.status === 'refund_requested') query = query.eq('status', 'refund_requested');
+  else if (filters.status === 'untracked')  query = query.eq('status', 'shipping').is('tracking_number', null);
   else                                      query = query.neq('status', 'pending'); /* 'all' 탭: pending 제외 (S171) */
 
   const sinceIso = periodToSinceIso(filters.period);
@@ -267,6 +284,8 @@ export async function fetchAdminOrdersForExport(
   else if (filters.status === 'shipping')   query = query.eq('status', 'shipping');
   else if (filters.status === 'delivered')  query = query.eq('status', 'delivered');
   else if (filters.status === 'cancelled')  query = query.in('status', CANCELLED_GROUP);
+  else if (filters.status === 'refund_requested') query = query.eq('status', 'refund_requested');
+  else if (filters.status === 'untracked')  query = query.eq('status', 'shipping').is('tracking_number', null);
   else                                      query = query.neq('status', 'pending');
 
   const sinceIso = periodToSinceIso(filters.period);

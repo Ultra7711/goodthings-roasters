@@ -39,6 +39,8 @@ export const STATUS_TABS = [
   { id: 'shipping', label: '배송중' },
   { id: 'delivered', label: '완료' },
   { id: 'cancelled', label: '취소' },
+  { id: 'refund_requested', label: '환불신청' },
+  { id: 'untracked', label: '송장누락' },
 ] as const;
 
 export type StatusTabKey = (typeof STATUS_TABS)[number]['id'];
@@ -203,7 +205,9 @@ export function sanitizeSearchQuery(raw: string): string {
 /* ── searchParams 파싱 ──────────────────────────────────────────────── */
 
 const SearchParamsSchema = z.object({
-  status: z.enum(['all', 'new', 'shipping', 'delivered', 'cancelled']).default('all'),
+  status: z
+    .enum(['all', 'new', 'shipping', 'delivered', 'cancelled', 'refund_requested', 'untracked'])
+    .default('all'),
   period: z.enum(['all', '7d', '30d', '90d']).default('all'),
   payment: z.enum(['all', 'card', 'transfer']).default('all'),
   q: z.string().default(''),

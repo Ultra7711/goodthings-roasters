@@ -34,7 +34,9 @@ import { buildXlsxBuffer, bufferToBase64 } from '@/lib/admin/xlsxExport';
 import { logActionError } from '@/lib/admin/logActionError';
 
 const ExportOrdersInputSchema = z.object({
-  status: z.enum(['all', 'new', 'shipping', 'delivered', 'cancelled']).default('all'),
+  status: z
+    .enum(['all', 'new', 'shipping', 'delivered', 'cancelled', 'refund_requested', 'untracked'])
+    .default('all'),
   period: z.enum(['all', '7d', '30d', '90d']).default('all'),
   payment: z.enum(['all', 'card', 'transfer']).default('all'),
   q: z.string().default(''),
