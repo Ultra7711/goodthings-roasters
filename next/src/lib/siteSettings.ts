@@ -24,7 +24,7 @@ import { z } from 'zod';
 
 /* ── 영역 상수 ────────────────────────────────────────────────────────── */
 
-export const SITE_SETTING_KEYS = ['notice', 'shipping', 'home_featured'] as const;
+export const SITE_SETTING_KEYS = ['notice', 'shipping', 'home_featured', 'hours'] as const;
 export type SiteSettingKey = (typeof SITE_SETTING_KEYS)[number];
 
 /* ── 1. 공지 배너 (notice) ────────────────────────────────────────────── */
@@ -101,18 +101,70 @@ const HOME_FEATURED_DEFAULTS: HomeFeaturedSettings = {
   menu_ids: [],
 };
 
+/* ── 4. 매장 영업시간 (hours) ─────────────────────────────────────────── */
+
+/** 'HH:MM' (00:00~23:59) */
+const HHMM = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+
+/** 하루 영업 — null 이면 정기 휴무 */
+export const DayHoursSchema = z
+  .object({ open: HHMM, close: HHMM })
+  .nullable();
+export type DayHours = z.infer<typeof DayHoursSchema>;
+
+/** 비정기 휴무 (날짜 + 사유) */
+export const ClosureSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  reason: z.string().trim().max(60).default(''),
+});
+export type Closure = z.infer<typeof ClosureSchema>;
+
+/**
+ * 영업시간 — 요일별 기본 규칙(0=일 ~ 6=토) + 비정기 휴무.
+ * shopHours.ts 의 상태 계산이 이 설정을 소비한다.
+ */
+export const HoursSettingsSchema = z.object({
+  weekly: z.object({
+    '0': DayHoursSchema,
+    '1': DayHoursSchema,
+    '2': DayHoursSchema,
+    '3': DayHoursSchema,
+    '4': DayHoursSchema,
+    '5': DayHoursSchema,
+    '6': DayHoursSchema,
+  }),
+  closures: z.array(ClosureSchema).max(50).default([]),
+});
+
+export type HoursSettings = z.infer<typeof HoursSettingsSchema>;
+
+export const HOURS_DEFAULTS: HoursSettings = {
+  weekly: {
+    '0': { open: '11:00', close: '21:00' }, // 일
+    '1': null, // 월 휴무
+    '2': { open: '12:00', close: '21:00' }, // 화
+    '3': { open: '12:00', close: '21:00' }, // 수
+    '4': { open: '12:00', close: '21:00' }, // 목
+    '5': { open: '12:00', close: '21:00' }, // 금
+    '6': { open: '11:00', close: '21:00' }, // 토
+  },
+  closures: [],
+};
+
 /* ── 통합 ────────────────────────────────────────────────────────────── */
 
 export interface SiteSettings {
   notice: NoticeSettings;
   shipping: ShippingSettings;
   home_featured: HomeFeaturedSettings;
+  hours: HoursSettings;
 }
 
 export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   notice: NOTICE_DEFAULTS,
   shipping: SHIPPING_DEFAULTS,
   home_featured: HOME_FEATURED_DEFAULTS,
+  hours: HOURS_DEFAULTS,
 };
 
 /**
@@ -136,6 +188,7 @@ export function parseSiteSettingsRows(
     notice: safeParse(NoticeSettingsSchema, map.get('notice'), NOTICE_DEFAULTS),
     shipping: safeParse(ShippingSettingsSchema, map.get('shipping'), SHIPPING_DEFAULTS),
     home_featured: safeParse(HomeFeaturedSettingsSchema, map.get('home_featured'), HOME_FEATURED_DEFAULTS),
+    hours: safeParse(HoursSettingsSchema, map.get('hours'), HOURS_DEFAULTS),
   };
 }
 

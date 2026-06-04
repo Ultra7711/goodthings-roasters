@@ -7,6 +7,7 @@ import {
   type ShopStatus,
   type DayScheduleView,
 } from '@/lib/shopHours';
+import type { HoursSettings } from '@/lib/siteSettings';
 
 export type ShopStatusView = {
   status: ShopStatus;
@@ -16,22 +17,27 @@ export type ShopStatusView = {
 /**
  * 매장의 현재 영업 상태 + 오늘부터 7일 시간표를 반환하는 훅.
  *
+ * @param hours site_settings.hours (useSiteSettings().hours)
+ *
  * - SSR/첫 렌더링: `null` (hydration 안전 — 클라 현재시각 의존)
  * - 마운트 직후 1회 계산 + 60초 간격 자동 갱신
  *   (오픈/마감 시각 경계를 넘는 순간 라벨이 자연스럽게 전환됨)
  */
-export function useShopStatus(): ShopStatusView | null {
+export function useShopStatus(hours: HoursSettings): ShopStatusView | null {
   const [view, setView] = useState<ShopStatusView | null>(null);
 
   useEffect(() => {
     const update = () => {
       const now = new Date();
-      setView({ status: getShopStatus(now), week: getWeekSchedule(now) });
+      setView({
+        status: getShopStatus(now, hours),
+        week: getWeekSchedule(now, hours),
+      });
     };
     update();
     const interval = setInterval(update, 60_000);
     return () => clearInterval(interval);
-  }, []);
+  }, [hours]);
 
   return view;
 }

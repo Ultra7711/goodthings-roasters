@@ -167,7 +167,7 @@ export default function StoryPage() {
             </div>
             <p className="st-location-notice sr-txt sr-txt--d2">{emphasizeHours(STORY_LOCATION.notice)}</p>
             <div className="sr-txt sr-txt--d3">
-              <ShopHoursAccordion fallbackHours={STORY_LOCATION.hours} />
+              <ShopHoursAccordion />
             </div>
           </div>
         </div>

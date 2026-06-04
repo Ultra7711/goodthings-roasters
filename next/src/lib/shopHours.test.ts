@@ -7,41 +7,44 @@
 
 import { describe, expect, it } from 'vitest';
 import { getShopStatus, getWeekSchedule } from './shopHours';
+import { HOURS_DEFAULTS } from './siteSettings';
 
 /** KST 시각으로 Date 생성 (UTC = KST - 9h) */
 function kst(y: number, mo: number, d: number, h: number, mi = 0): Date {
   return new Date(Date.UTC(y, mo - 1, d, h - 9, mi));
 }
 
+const H = HOURS_DEFAULTS;
+
 describe('getShopStatus', () => {
   it('영업 중 — 화 15:00 → "영업 중 · 21:00 마감"', () => {
-    const s = getShopStatus(kst(2026, 6, 9, 15));
+    const s = getShopStatus(kst(2026, 6, 9, 15), H);
     expect(s.kind).toBe('open');
     expect(s.label).toBe('영업 중 · 21:00 마감');
   });
 
   it('영업 전 — 화 10:00 → "영업 전 · 오늘 12:00 오픈"', () => {
-    const s = getShopStatus(kst(2026, 6, 9, 10));
+    const s = getShopStatus(kst(2026, 6, 9, 10), H);
     expect(s.kind).toBe('before-open');
     expect(s.label).toBe('영업 전 · 오늘 12:00 오픈');
   });
 
   it('영업 마감, 내일 영업 — 화 22:00 → "영업 마감 · 내일 12:00 오픈"', () => {
-    const s = getShopStatus(kst(2026, 6, 9, 22));
+    const s = getShopStatus(kst(2026, 6, 9, 22), H);
     expect(s.kind).toBe('after-close');
     expect(s.label).toBe('영업 마감 · 내일 12:00 오픈');
   });
 
   it('영업 마감, 내일 휴무 — 일 22:00 → "영업 마감 · 화요일 12:00 오픈"', () => {
     // 2026-06-07 = 일요일 (다음날 월=휴무 → 다음 영업일 화)
-    const s = getShopStatus(kst(2026, 6, 7, 22));
+    const s = getShopStatus(kst(2026, 6, 7, 22), H);
     expect(s.kind).toBe('after-close');
     expect(s.label).toBe('영업 마감 · 화요일 12:00 오픈');
   });
 
   it('오늘 휴무, 내일 영업 — 월 14:00 → "휴무 · 내일 12:00 오픈"', () => {
     // 2026-06-08 = 월요일 (정기 휴무)
-    const s = getShopStatus(kst(2026, 6, 8, 14));
+    const s = getShopStatus(kst(2026, 6, 8, 14), H);
     expect(s.kind).toBe('closed');
     expect(s.label).toBe('휴무 · 내일 12:00 오픈');
   });
@@ -49,7 +52,7 @@ describe('getShopStatus', () => {
 
 describe('getWeekSchedule', () => {
   it('오늘부터 7일 — 화 기준 [0]=오늘 영업, 월(6/15)=휴무', () => {
-    const week = getWeekSchedule(kst(2026, 6, 9, 15));
+    const week = getWeekSchedule(kst(2026, 6, 9, 15), H);
     expect(week).toHaveLength(7);
 
     // [0] = 오늘(화 6/9)
