@@ -17,7 +17,7 @@
 | D 정기배송 | — | ✅ subscriptionsServer | 🟡 70% | — | 🟡 — D-2 상세 페이지 carry-over · CSV ✅ S233 |
 | **E 상품** | ✅ (046+050~052) | ✅ admin/productsServer | ✅ 100% | ✅ (S231/S232) | ✅ — S231 detail/option 마무리 + S232 Storage + create RPC + S245 정렬 + likes hydration |
 | **F 카페 메뉴** | ✅ (047) | ✅ cafeMenuServer + admin variant | ✅ 100% | ✅ (S244 menu-images) | ✅ — S244 어드민 신설 + S245 sort_order + likes + 영양시트 |
-| **G 운영·문서** | — | — | ⏸️ 0% | — | ⏸️ — SOP + E2E carry-over |
+| **G 운영·문서** | — | — | 🟡 50% | — | 🟡 — G-1 SOP ✅ (운영자용 S310 · `docs/operator-sop.md`) / G-2 E2E ✅ S308 / 개발자용 SOP carry |
 | H 사이트 설정 | ✅ (032/034/062/063) | ✅ lib/admin/settings 분리 | ✅ 100% | ✅ | ✅ — signature iframe + SEO meta + S246 LQIP |
 | I 통계 | ✅ (033) | ✅ analyticsServer | ✅ 100% (확장 S249+ carry) | — | ✅ — S249+ 강화 carry-over (DEC-S248-1) |
 | J 굿데이즈 | ✅ (036) | — | ✅ 100% | ✅ | ✅ — S234 Phase 2 폴리싱 + GoodDays UI 전수 점검 |
@@ -170,7 +170,7 @@
 | S250-1 | D-2 정기배송 상세 페이지 | 4~6h | `memory/project_admin_ui_followup.md` §D-2 |
 | S250-2 | 뉴스레터 어드민 (구독자 목록 + 발송 이력) | 4~6h | `project_newsletter_carryover.md` Phase 4 |
 | S250-3 | 비즈 문의 어드민 (목록 + 상세) | 3~5h | S243 carry |
-| S250-4 | G-1 SOP 문서 (운영자/개발자) | 4~6h | DEC-G1 결정 필요 |
+| S250-4 | G-1 SOP 문서 — 운영자용 ✅ (S310 `docs/operator-sop.md`) · 개발자용 carry | 4~6h | DEC-G1 ✅ 운영자용 확정 |
 | S250-5 | G-2 E2E 테스트 (critical user flow) | 6~10h | playwright |
 | S250-6 | 어드민 페이지 폴리싱 (이전 §2-4 S233 폴리싱 carry — Phase 3 미실행 부분) | 2~4h | S234 Phase 3 잔여 (사이드바·인터랙션·a11y) |
 
@@ -214,7 +214,7 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | D-2 정기배송 상세 페이지 | S250-1 | 4~6h |
 | 뉴스레터 어드민 (구독자 목록 + 발송 이력) | S250-2 | 4~6h |
 | 비즈 문의 어드민 (목록 + 상세) | S250-3 | 3~5h |
-| G-1 SOP 문서 (운영자/개발자) | S250-4 | 4~6h |
+| G-1 SOP 문서 (운영자용 ✅ S310 · 개발자용 carry) | S250-4 | 4~6h |
 | G-2 E2E 테스트 (critical flow) | S250-5 | 6~10h |
 | 어드민 페이지 폴리싱 (S234 Phase 3 carry) | S250-6 | 2~4h |
 | 최종 리뷰어 검토 (4 reviewer + fix) | S260 | 4~6h + α |
@@ -266,7 +266,7 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 
 | ID | 항목 | 시점 | 옵션 |
 |---|---|---|---|
-| **DEC-G1** | SOP 문서 범위 | S250-4 진입 전 | 사업자용 / 개발자용 / 양쪽 |
+| ~~DEC-G1~~ | SOP 문서 범위 | ✅ **운영자(사업자)용 확정** (S310) — `docs/operator-sop.md` 작성. 개발자용 SOP는 별도 carry | — |
 | ~~DEC-newsletter-3~~ | 뉴스레터 도메인 인증 시점 | ✅ **완료 2026-05-26** — Google Workspace + Resend DKIM/SPF/DMARC 모두 PASS | `project_newsletter_phase4_complete.md` |
 | **DEC-S249-1** | 차트 라이브러리 선택 | S249+ 진입 전 | CSS-only / **recharts (권장)** / nivo / Tremor |
 | **DEC-S249-2** | Quick Win + Domain 묶음 동시 진입 vs 분리 | S249+ 진입 전 | 일괄 / Quick → 검증 → Domain |
@@ -470,7 +470,7 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | ID | 항목 | 상태 | 추정 | sprint |
 |----|------|------|------|--------|
 | D-2 | 정기배송 상세 페이지 | 🟡 70% | 4~6h | S250-1 |
-| G-1 | SOP 문서 (운영자/개발자) | ⏸️ 0% | 4~6h | S250-4 |
+| G-1 | SOP 문서 (운영자용 ✅ · 개발자용 carry) | ✅ 운영자 S310 | 4~6h | S250-4 |
 | G-2 | E2E 테스트 critical flow | ⏸️ 0% | 6~10h | S250-5 |
 | M-admin | 뉴스레터 어드민 (구독자 목록 + 발송 이력 + bulk send UI + CSV + 검색/필터/페이지네이션) | 🟡 미완 | 4~6h | S250-2 |
 | N-admin | 비즈 문의 어드민 (목록 + 상세) | 🟡 미완 | 3~5h | S250-3 |
@@ -545,7 +545,7 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 
 | 우선순위 | DEC ID | 결정 시점 |
 |---------|--------|----------|
-| 🔴 출시 차단 | DEC-G1 (SOP 범위) | S250-4 진입 전 |
+| ~~🔴 출시 차단~~ | ~~DEC-G1 (SOP 범위)~~ | ✅ S310 확정 (운영자용) |
 | 🟡 출시 후 1개월 | DEC-S249-1 (차트 라이브러리) · DEC-S249-2 (Quick/Domain 묶음) | S249+ 진입 전 |
 | 🟡 리뷰 게시판 진입 | DEC-R1-UI · DEC-R1-photo · DEC-R2-policy · DEC-R2-vendor | Group O Phase 1/2 진입 전 |
 
