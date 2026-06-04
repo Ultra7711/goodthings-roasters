@@ -31,7 +31,7 @@ const pretendard = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://goodthingsroasters.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://goodthingsroasters.com'),
   title: {
     default: '굳띵즈 로스터스 - Good Things Roasters',
     template: '%s - 굳띵즈 로스터스',

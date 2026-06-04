@@ -17,7 +17,11 @@ import { fetchMenuLikesCountsSnapshot } from '@/lib/menuLikesServer';
 import CafeMenuPage from '@/components/cafe/CafeMenuPage';
 import CafeMenuSkeleton from '@/components/cafe/CafeMenuSkeleton';
 
-export const metadata = { title: '카페 메뉴' };
+export const metadata = {
+  title: '카페 메뉴',
+  description: '굳띵즈 로스터스 카페에서 즐기는 커피와 음료 메뉴를 소개합니다.',
+  alternates: { canonical: '/menu' },
+};
 
 export default async function CafeMenuRoute() {
   /* S279-D · DEC-S279-D-1: cafeMenuServer 'use cache' 폐기로 caller 측

@@ -13,7 +13,11 @@ import ShopPage from '@/components/shop/ShopPage';
 import ShopSkeleton from '@/components/shop/ShopSkeleton';
 import { fetchProducts } from '@/lib/productsServer';
 
-export const metadata = { title: '모든 상품' };
+export const metadata = {
+  title: '모든 상품',
+  description: '굳띵즈 로스터스의 스페셜티 원두 전체 라인업. 갓 로스팅한 싱글 오리진과 블렌드를 만나보세요.',
+  alternates: { canonical: '/shop' },
+};
 
 export default async function ShopRoute() {
   /* S279-D · DEC-S279-D-1: productsServer 의 'use cache' 폐기로

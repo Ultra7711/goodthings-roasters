@@ -7,7 +7,11 @@
 
 import StoryPage from '@/components/story/StoryPage';
 
-export const metadata = { title: '스토리' };
+export const metadata = {
+  title: '스토리',
+  description: 'good things, simply roasted. 굳띵즈 로스터스가 커피를 굽는 방식과 공간을 소개합니다.',
+  alternates: { canonical: '/story' },
+};
 
 export default function StoryRoute() {
   return <StoryPage />;

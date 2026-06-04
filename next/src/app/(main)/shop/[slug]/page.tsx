@@ -14,7 +14,7 @@ import {
 } from '@/lib/productsServer';
 import ProductDetailPage from '@/components/product/ProductDetailPage';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { productJsonLd } from '@/lib/seo/jsonLd';
+import { productJsonLd, absoluteUrl } from '@/lib/seo/jsonLd';
 
 type RouteParams = { slug: string };
 
@@ -29,9 +29,20 @@ export async function generateMetadata({ params }: { params: Promise<RouteParams
   const { slug } = await params;
   const product = await fetchProductBySlug(slug);
   if (!product) return { title: '상품을 찾을 수 없습니다' };
+  const title = extractKrName(product.name);
+  const description = product.desc.split('\n')[0];
+  const ogImage = product.images[0] ? absoluteUrl(product.images[0].src) : undefined;
   return {
-    title: extractKrName(product.name),
-    description: product.desc.split('\n')[0],
+    title,
+    description,
+    alternates: { canonical: `/shop/${slug}` },
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: `/shop/${slug}`,
+      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+    },
   };
 }
 

@@ -13,6 +13,10 @@ import LineupSection from '@/components/home/LineupSection';
 import StoryChapter from '@/components/home/StoryChapter';
 import NewsletterSection from '@/components/home/NewsletterSection';
 
+export const metadata = {
+  alternates: { canonical: '/' },
+};
+
 export default function HomePage() {
   /* S-PND-5: hero MP4 page-scoped preload. layout.tsx 박힘 = 모든 페이지 비용 회피 — home 진입 시에만 fetch 시작. */
   preload('/images/hero/hero-video.mp4', { as: 'video', fetchPriority: 'high' });

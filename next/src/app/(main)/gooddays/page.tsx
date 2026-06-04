@@ -13,7 +13,11 @@ import { connection } from 'next/server';
 import GoodDaysPage from '@/components/gooddays/GoodDaysPage';
 import { fetchGoodDaysGallery } from '@/lib/gooddaysServer';
 
-export const metadata = { title: '좋은 순간들' };
+export const metadata = {
+  title: '좋은 순간들',
+  description: '굳띵즈 로스터스의 좋은 순간들 — 매장과 이벤트의 기록을 담았습니다.',
+  alternates: { canonical: '/gooddays' },
+};
 
 type Props = {
   searchParams: Promise<{ img?: string }>;

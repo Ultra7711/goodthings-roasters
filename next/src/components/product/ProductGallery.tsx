@@ -23,6 +23,8 @@ type Props = {
   images: ProductImage[];
   /** 상품 status — 좌상단 floating 뱃지 표시 (Shop 카드와 동일 위치) */
   status?: ProductStatus;
+  /** 상품명 — 갤러리 이미지 alt (SEO·a11y) */
+  name: string;
 };
 
 /** yarl SlideImage 에 ProductImage 메타데이터 attach — render.slide / render.thumbnail 에서 사용 */
@@ -35,7 +37,7 @@ function imageBg(img: ProductImage): string {
     : img.bg;
 }
 
-export default function ProductGallery({ images, status }: Props) {
+export default function ProductGallery({ images, status, name }: Props) {
   const [idx, setIdx] = useState(0);
 
   /* 상품 변경 시 인덱스 리셋 */
@@ -125,7 +127,7 @@ export default function ProductGallery({ images, status }: Props) {
                 {s._img.src && (
                   <Image
                     src={s._img.src}
-                    alt=""
+                    alt={name}
                     fill
                     sizes="(max-width: 767px) 100vw, 50vw"
                     style={{ objectFit: 'contain' }}

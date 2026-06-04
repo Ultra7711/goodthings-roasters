@@ -7,7 +7,11 @@
 
 import BizInquiryPage from '@/components/biz/BizInquiryPage';
 
-export const metadata = { title: '비즈니스 문의' };
+export const metadata = {
+  title: '비즈니스 문의',
+  description: '납품·도매·협업 등 굳띵즈 로스터스 비즈니스 문의를 남겨주세요.',
+  alternates: { canonical: '/biz-inquiry' },
+};
 
 export default function BizInquiryRoute() {
   return <BizInquiryPage />;

@@ -18,8 +18,8 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://goodthingsroasters.
 const BRAND_NAME = '굳띵즈 로스터스';
 const BRAND_NAME_EN = 'Good Things Roasters';
 
-/** 상대 경로(/images/...)는 절대화, storage URL(http..)은 그대로. JSON-LD image 는 절대 URL 요구. */
-function absoluteUrl(path: string): string {
+/** 상대 경로(/images/...)는 절대화, storage URL(http..)은 그대로. JSON-LD image · OG image 는 절대 URL 요구. */
+export function absoluteUrl(path: string): string {
   return path.startsWith('http') ? path : `${BASE_URL}${path}`;
 }
 

@@ -103,7 +103,7 @@ export default function ProductDetailPage({ product }: Props) {
         <div id="pd-content" style={contentStyle}>
           <div id="pd-img-col">
             <div id="pd-img-wrap">
-              <ProductGallery images={product.images} status={product.status} />
+              <ProductGallery images={product.images} status={product.status} name={kr} />
             </div>
           </div>
 
