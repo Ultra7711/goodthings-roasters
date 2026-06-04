@@ -567,14 +567,16 @@
 .mp-order-card.open .mp-order-items { max-height: 1200px; opacity: 1; }
 .mp-order-items-inner { padding-top: 0; margin-top: 0; }
 
-/* S309: 배송정보 — 발송 처리된 주문(배송중/배송완료) 펼침 영역에 노출 */
+/* S309: 배송정보 — 발송 처리된 주문(배송중/배송완료) 펼침 영역에 노출.
+   배경 박스로 구분 → 바로 앞 아이템 카드의 ::after 구분선 제거(선 2개 중복 방지). */
+.mp-order-items-inner .order-item-card:has(+ .mp-order-delivery)::after { display: none; }
 .mp-order-delivery {
   display: flex; flex-direction: column; gap: 6px;
-  margin-top: 12px; padding-top: 12px;
-  border-top: 1px solid var(--color-border-hairline);
+  margin-top: 12px; padding: 12px 14px;
+  background: var(--color-background-secondary); border-radius: 8px;
 }
 .mp-order-delivery-label {
-  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 500;
+  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 600;
   color: var(--color-text-caption); letter-spacing: var(--ls-body-s);
 }
 .mp-order-delivery-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
