@@ -59,6 +59,13 @@ describeAdmin('S250-5 — 주문 발송 처리 → 배송중', () => {
     });
     await expect(page.getByText(seed.orderNumber).first()).toBeVisible();
 
+    /* 발송 전 대조 — seed 정합성 + RPC 가 실제로 상태를 바꿨음을 사후 대비로 증명.
+       (paid·tracking 없음 → 발송 후 shipping·tracking 채워짐 = dispatch RPC 호출 입증) */
+    const before = await getOrderShipState(seed.id);
+    expect(before.status).toBe('paid');
+    expect(before.trackingNumber).toBeNull();
+    expect(before.shippedAt).toBeNull();
+
     const openBtn = page.getByRole('button', { name: '발송 처리' }).first();
     await expect(openBtn).toBeVisible();
     await openBtn.click();
