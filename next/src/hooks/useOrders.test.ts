@@ -22,6 +22,8 @@ const STUB: Order[] = [
     price: '18,000원',
     priceNum: 18000,
     status: '배송중',
+    carrier: 'CJ대한통운',
+    trackingNumber: '1234567890',
     items: [],
   },
 ];

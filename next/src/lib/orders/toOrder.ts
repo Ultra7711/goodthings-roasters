@@ -58,6 +58,8 @@ export function toOrder(row: OrderRow): Order {
     price: formatPrice(totalAmount),
     priceNum: totalAmount,
     status: mapDbStatus(row.status),
+    carrier: row.carrier ?? null,
+    trackingNumber: row.tracking_number ?? null,
     items,
   };
 }

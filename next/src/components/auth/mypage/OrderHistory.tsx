@@ -40,10 +40,10 @@ export default function OrderHistory({ initialOrders }: OrderHistoryProps = {}) 
   const { orders, isLoading } = useOrdersQuery(initialOrders);
   const openOrders = useMyPageOpenOrders();
 
-  const copyOrderNumber = useCallback(async (num: string) => {
+  const copyText = useCallback(async (text: string, label: string) => {
     try {
-      await navigator.clipboard.writeText(num);
-      toast('주문번호가 복사되었습니다.');
+      await navigator.clipboard.writeText(text);
+      toast(`${label}가 복사되었습니다.`);
     } catch {
       toast('복사에 실패했습니다.');
     }
@@ -78,7 +78,7 @@ export default function OrderHistory({ initialOrders }: OrderHistoryProps = {}) 
                         aria-label="주문번호 복사"
                         onClick={(e) => {
                           e.stopPropagation();
-                          void copyOrderNumber(order.number);
+                          void copyText(order.number, '주문번호');
                         }}
                       >
                         <CopyIcon />
@@ -119,6 +119,35 @@ export default function OrderHistory({ initialOrders }: OrderHistoryProps = {}) 
                         onImageClick={(slug) => router.push(`/shop/${slug}`)}
                       />
                     ))}
+                    {/* 배송정보 — 발송 처리된 주문(배송중/배송완료)에만 노출.
+                        carrier/trackingNumber 는 orders_tracking_pair 제약상 항상 동시 존재. */}
+                    {(order.status === '배송중' || order.status === '배송완료') &&
+                      order.carrier &&
+                      order.trackingNumber && (
+                        <div className="mp-order-delivery">
+                          <span className="mp-order-delivery-label">배송정보</span>
+                          <div className="mp-order-delivery-row">
+                            <span className="mp-order-delivery-carrier">
+                              {order.carrier}
+                            </span>
+                            <span className="mp-order-delivery-sep">·</span>
+                            <span className="mp-order-delivery-tracking">
+                              {order.trackingNumber}
+                            </span>
+                            <button
+                              className="mp-order-copy-btn"
+                              type="button"
+                              aria-label="송장번호 복사"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void copyText(order.trackingNumber!, '송장번호');
+                              }}
+                            >
+                              <CopyIcon />
+                            </button>
+                          </div>
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>

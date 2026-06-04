@@ -567,6 +567,28 @@
 .mp-order-card.open .mp-order-items { max-height: 1200px; opacity: 1; }
 .mp-order-items-inner { padding-top: 0; margin-top: 0; }
 
+/* S309: 배송정보 — 발송 처리된 주문(배송중/배송완료) 펼침 영역에 노출 */
+.mp-order-delivery {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid var(--color-border-hairline);
+}
+.mp-order-delivery-label {
+  font-family: var(--font-kr); font-size: var(--type-body-s-size); font-weight: 500;
+  color: var(--color-text-caption); letter-spacing: var(--ls-body-s);
+}
+.mp-order-delivery-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.mp-order-delivery-carrier {
+  font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: 400;
+  color: var(--color-text-primary); flex-shrink: 0;
+}
+.mp-order-delivery-sep { color: var(--color-text-tertiary); flex-shrink: 0; }
+.mp-order-delivery-tracking {
+  font-family: var(--font-en); font-size: var(--type-body-m-size); font-weight: 400;
+  color: var(--color-text-primary); letter-spacing: var(--ls-body);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
 /* 회원 탈퇴 확인 모달 */
 /* 회원 탈퇴 모달 오버레이 + 쉐이킹 */
 .mp-modal-overlay {

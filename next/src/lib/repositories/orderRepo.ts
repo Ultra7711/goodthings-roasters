@@ -120,6 +120,10 @@ export type OrderRow = {
   agreed_at: string;
   created_at: string;
   updated_at: string;
+  /** 016 배송 출고 — 송장/택배사 페어 (orders_tracking_pair 제약 · 미발송 시 둘 다 null) */
+  tracking_number: string | null;
+  carrier: string | null;
+  shipped_at: string | null;
   order_items: OrderItemRow[];
 };
 
@@ -213,6 +217,7 @@ const ORDER_SELECT = `
   subtotal, shipping_fee, discount_amount, total_amount,
   status, terms_version, agreed_at,
   created_at, updated_at,
+  tracking_number, carrier, shipped_at,
   order_items (
     id, product_slug, product_name, product_category, product_volume,
     product_image_src, product_image_bg,

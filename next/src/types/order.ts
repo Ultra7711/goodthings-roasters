@@ -66,6 +66,10 @@ export type Order = {
   priceNum: number;
   /** 배송 상태 */
   status: OrderStatus;
+  /** 택배사명 (배송중/배송완료 시 노출 · 미발송 null). 016 dispatch_order */
+  carrier: string | null;
+  /** 송장번호 (배송중/배송완료 시 노출 · 미발송 null). 016 dispatch_order */
+  trackingNumber: string | null;
   /** 주문 아이템 목록 */
   items: OrderItem[];
 };
