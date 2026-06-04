@@ -11,7 +11,7 @@
    Section 4 는 SettingsCard (toggle 헤더) 를 쓰지 않고 자체 헤더 (count/max 표시) 보유.
    ══════════════════════════════════════════ */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
 import { Button } from '@/components/admin/ui/button';
 import { cn } from '@/lib/utils';
@@ -263,7 +263,7 @@ function HomeFeaturedAddRow({
 }
 
 /* MenuPickerInline — 검색 dropdown.
-   - native <details>/<summary> 기반 (라이브러리 0 · 키보드 esc 자연 처리)
+   - custom button + open state (라이브러리 0) · 외부 클릭/Esc 닫기 (ShippingDialog carrier 답습)
    - 검색 입력 (메뉴명 ilike) · status 배지 + 카테고리 표시
    - 다른 슬롯에 선택된 메뉴 disabled + "선택됨" 라벨. */
 function MenuPickerInline({
@@ -282,6 +282,26 @@ function MenuPickerInline({
   const [open, setOpen] = useState(!!autoOpen);
   const [query, setQuery] = useState('');
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  /* 외부 클릭 / Esc 닫기 (ShippingDialog carrier dropdown 답습) */
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -290,7 +310,7 @@ function MenuPickerInline({
   }, [cafeMenus, query]);
 
   return (
-    <div className="relative">
+    <div className="relative" ref={wrapRef}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
