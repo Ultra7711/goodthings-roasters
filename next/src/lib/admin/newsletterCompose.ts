@@ -38,17 +38,25 @@ export function isNewsletterImageUrl(url: string): boolean {
 const httpsUrl = z
   .string()
   .trim()
-  .url()
-  .refine((u) => u.startsWith('https://'), 'must be https');
+  .url('올바른 링크 형식이 아닙니다. (https://...)')
+  .refine((u) => u.startsWith('https://'), 'https:// 로 시작하는 링크만 사용할 수 있습니다.');
 
 const headingBlockSchema = z.object({
   type: z.literal('heading'),
-  text: z.string().trim().min(1).max(NEWSLETTER_HEADING_MAX),
+  text: z
+    .string()
+    .trim()
+    .min(1, '제목 블록의 내용을 입력해 주세요.')
+    .max(NEWSLETTER_HEADING_MAX, `제목은 ${NEWSLETTER_HEADING_MAX}자 이내로 입력해 주세요.`),
 });
 
 const paragraphBlockSchema = z.object({
   type: z.literal('paragraph'),
-  text: z.string().trim().min(1).max(NEWSLETTER_PARAGRAPH_MAX),
+  text: z
+    .string()
+    .trim()
+    .min(1, '문단 블록의 내용을 입력해 주세요.')
+    .max(NEWSLETTER_PARAGRAPH_MAX, `문단은 ${NEWSLETTER_PARAGRAPH_MAX}자 이내로 입력해 주세요.`),
 });
 
 const imageBlockSchema = z.object({
@@ -56,15 +64,19 @@ const imageBlockSchema = z.object({
   src: z
     .string()
     .trim()
-    .url()
-    .refine(isNewsletterImageUrl, 'must be a newsletter-images URL'),
+    .url('이미지를 업로드해 주세요.')
+    .refine(isNewsletterImageUrl, '이미지를 업로드해 주세요.'),
   alt: z.string().trim().max(NEWSLETTER_IMAGE_ALT_MAX).default(''),
   href: httpsUrl.optional(),
 });
 
 const ctaBlockSchema = z.object({
   type: z.literal('cta'),
-  label: z.string().trim().min(1).max(NEWSLETTER_CTA_LABEL_MAX),
+  label: z
+    .string()
+    .trim()
+    .min(1, '버튼 문구를 입력해 주세요.')
+    .max(NEWSLETTER_CTA_LABEL_MAX, `버튼 문구는 ${NEWSLETTER_CTA_LABEL_MAX}자 이내로 입력해 주세요.`),
   url: httpsUrl,
 });
 
@@ -78,8 +90,15 @@ export const newsletterBlockSchema = z.discriminatedUnion('type', [
 export type NewsletterBlock = z.infer<typeof newsletterBlockSchema>;
 
 export const newsletterDraftSchema = z.object({
-  subject: z.string().trim().min(1).max(NEWSLETTER_SUBJECT_MAX),
-  blocks: z.array(newsletterBlockSchema).min(1).max(NEWSLETTER_MAX_BLOCKS),
+  subject: z
+    .string()
+    .trim()
+    .min(1, '메일 제목을 입력해 주세요.')
+    .max(NEWSLETTER_SUBJECT_MAX, `제목은 ${NEWSLETTER_SUBJECT_MAX}자 이내로 입력해 주세요.`),
+  blocks: z
+    .array(newsletterBlockSchema)
+    .min(1, '블록을 최소 1개 이상 추가해 주세요.')
+    .max(NEWSLETTER_MAX_BLOCKS, `블록은 최대 ${NEWSLETTER_MAX_BLOCKS}개까지 추가할 수 있습니다.`),
 });
 
 export type NewsletterDraft = z.infer<typeof newsletterDraftSchema>;
