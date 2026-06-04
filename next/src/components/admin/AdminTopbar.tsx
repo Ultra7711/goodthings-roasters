@@ -7,7 +7,7 @@
    - 우측: 페이지 actions slot → 알림 벨 → 사용자 아바타
    ══════════════════════════════════════════ */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AdminTopbarSlotAnchor } from '@/components/admin/AdminTopbarActions';
@@ -52,23 +52,48 @@ export default function AdminTopbar({ email, displayName }: Props) {
   const name = displayName?.trim() || email.split('@')[0] || 'Admin';
   const initial = name.charAt(0).toUpperCase();
 
-  /* 알림 — 마운트 + 페이지 네비 시 갱신. 실패해도 무시(보조 기능). */
+  /* 알림 — 마운트 + 페이지 네비 + 창 복귀(focus) 시 갱신. 실패해도 무시(보조 기능).
+     focus 연타(alt-tab) 비용 방지를 위해 30초 dedup 가드. */
   const [notif, setNotif] = useState<AdminNotifications | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const bellWrapRef = useRef<HTMLDivElement | null>(null);
+  const lastFetchRef = useRef(0);
 
-  useEffect(() => {
-    let cancelled = false;
+  const NOTIF_DEDUP_MS = 30_000;
+  const loadNotifications = useCallback((opts?: { dedup?: boolean }) => {
+    const now = Date.now();
+    if (opts?.dedup && now - lastFetchRef.current < NOTIF_DEDUP_MS) return;
+    lastFetchRef.current = now;
     fetch('/api/admin/notifications')
       .then((r) => (r.ok ? r.json() : null))
       .then((d: AdminNotifications | null) => {
-        if (!cancelled && d) setNotif(d);
+        if (d) setNotif(d);
       })
       .catch(() => {});
+  }, []);
+
+  /* 마운트 + 페이지 네비 — 명시적 이동이므로 항상 최신 fetch */
+  useEffect(() => {
+    loadNotifications();
+  }, [pathname, loadNotifications]);
+
+  /* 창/탭 복귀(focus·visibility) — 30초 dedup 가드로 연속 호출 차단 */
+  useEffect(() => {
+    function onFocus() {
+      loadNotifications({ dedup: true });
+    }
+    function onVisible() {
+      if (document.visibilityState === 'visible') {
+        loadNotifications({ dedup: true });
+      }
+    }
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      cancelled = true;
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [pathname]);
+  }, [loadNotifications]);
 
   /* 드롭다운 외부 클릭 닫기 (ShippingDialog carrier dropdown 답습) */
   useEffect(() => {
