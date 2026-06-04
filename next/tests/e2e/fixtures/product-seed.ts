@@ -53,8 +53,10 @@ export async function seedTestProduct(): Promise<SeedProduct> {
   if (selErr) throw new Error(`seedTestProduct select 실패: ${selErr.message}`);
 
   if (existing) {
-    /* 이전 실행 잔존 — image rows + storage 만 일단 정리 후 재사용 */
+    /* 이전 실행 잔존 — image rows + storage 정리 + is_active=false 재보장.
+       (이전 실행이 활성 토글 후 cleanup 실패로 활성 잔존 시 격리 깨짐 방지) */
     await cleanupProductImages(admin, existing.id, existing.slug);
+    await admin.from('products').update({ is_active: false }).eq('id', existing.id);
     return { id: existing.id, slug: existing.slug };
   }
 
