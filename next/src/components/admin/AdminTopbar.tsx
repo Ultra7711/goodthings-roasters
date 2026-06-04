@@ -7,8 +7,11 @@
    - 우측: 페이지 actions slot → 알림 벨 → 사용자 아바타
    ══════════════════════════════════════════ */
 
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AdminTopbarSlotAnchor } from '@/components/admin/AdminTopbarActions';
+import type { AdminNotifications } from '@/lib/admin/notifications';
 
 const Bell = (p: React.SVGProps<SVGSVGElement> = {}) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
@@ -48,6 +51,37 @@ export default function AdminTopbar({ email, displayName }: Props) {
   const title = resolvePageTitle(pathname);
   const name = displayName?.trim() || email.split('@')[0] || 'Admin';
   const initial = name.charAt(0).toUpperCase();
+
+  /* 알림 — 마운트 + 페이지 네비 시 갱신. 실패해도 무시(보조 기능). */
+  const [notif, setNotif] = useState<AdminNotifications | null>(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const bellWrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/admin/notifications')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: AdminNotifications | null) => {
+        if (!cancelled && d) setNotif(d);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  /* 드롭다운 외부 클릭 닫기 (ShippingDialog carrier dropdown 답습) */
+  useEffect(() => {
+    if (!notifOpen) return;
+    function onDocClick(e: MouseEvent) {
+      if (!bellWrapRef.current) return;
+      if (!bellWrapRef.current.contains(e.target as Node)) setNotifOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [notifOpen]);
+
+  const totalNotif = notif?.total ?? 0;
 
   return (
     <header
@@ -90,37 +124,147 @@ export default function AdminTopbar({ email, displayName }: Props) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <AdminTopbarSlotAnchor style={{ display: 'flex', alignItems: 'center', gap: 8 }} />
 
-        <button
-          type="button"
-          aria-label="알림"
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 6,
-            border: '1px solid var(--border)',
-            background: 'var(--surface)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--foreground-muted)',
-            cursor: 'pointer',
-            position: 'relative',
-          }}
-        >
-          <Bell />
-          <span
-            aria-hidden
+        <div ref={bellWrapRef} style={{ position: 'relative' }}>
+          <button
+            type="button"
+            aria-label={totalNotif > 0 ? `알림 ${totalNotif}건` : '알림'}
+            aria-haspopup="menu"
+            aria-expanded={notifOpen}
+            onClick={() => setNotifOpen((v) => !v)}
             style={{
-              position: 'absolute',
-              top: 6,
-              right: 7,
-              width: 6,
-              height: 6,
-              borderRadius: 999,
-              background: 'var(--primary)',
+              width: 32,
+              height: 32,
+              borderRadius: 6,
+              border: '1px solid var(--border)',
+              background: notifOpen ? 'var(--neutral-soft)' : 'var(--surface)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--foreground-muted)',
+              cursor: 'pointer',
+              position: 'relative',
             }}
-          />
-        </button>
+          >
+            <Bell />
+            {totalNotif > 0 && (
+              <span
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -4,
+                  minWidth: 16,
+                  height: 16,
+                  padding: '0 4px',
+                  borderRadius: 999,
+                  background: 'var(--primary)',
+                  color: 'var(--primary-foreground, #fff)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  lineHeight: '16px',
+                  textAlign: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {totalNotif > 99 ? '99+' : totalNotif}
+              </span>
+            )}
+          </button>
+
+          {notifOpen && (
+            <div
+              role="menu"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 8px)',
+                right: 0,
+                width: 280,
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 10,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+                padding: 6,
+                zIndex: 20,
+              }}
+            >
+              <div
+                style={{
+                  padding: '6px 8px 8px',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'var(--foreground-muted)',
+                }}
+              >
+                할 일
+              </div>
+
+              {notif && totalNotif === 0 ? (
+                <div
+                  style={{
+                    padding: '12px 8px',
+                    fontSize: 13,
+                    color: 'var(--foreground-subtle)',
+                    textAlign: 'center',
+                  }}
+                >
+                  처리할 항목이 없습니다
+                </div>
+              ) : (
+                (notif?.items ?? []).map((it) => {
+                  const has = it.count > 0;
+                  return (
+                    <Link
+                      key={it.key}
+                      href={it.href}
+                      role="menuitem"
+                      onClick={() => setNotifOpen(false)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 8,
+                        padding: '8px 8px',
+                        borderRadius: 6,
+                        fontSize: 13,
+                        textDecoration: 'none',
+                        color: has
+                          ? 'var(--foreground)'
+                          : 'var(--foreground-subtle)',
+                        fontWeight: has ? 500 : 400,
+                      }}
+                    >
+                      <span>{it.label}</span>
+                      <span
+                        style={{
+                          minWidth: 20,
+                          height: 18,
+                          padding: '0 6px',
+                          borderRadius: 999,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          lineHeight: '18px',
+                          textAlign: 'center',
+                          background: has
+                            ? 'var(--primary-soft)'
+                            : 'var(--neutral-soft)',
+                          color: has
+                            ? 'var(--primary-soft-fg)'
+                            : 'var(--foreground-muted)',
+                        }}
+                      >
+                        {it.count}
+                      </span>
+                    </Link>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
 
         <div
           title={email}
