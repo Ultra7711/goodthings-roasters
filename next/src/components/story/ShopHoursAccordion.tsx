@@ -12,13 +12,27 @@ import { useState } from 'react';
 import { useSiteSettings } from '@/components/providers/SiteSettingsProvider';
 import { useShopStatus } from '@/hooks/useShopStatus';
 import { emphasizeHours } from '@/lib/emphasizeHours';
+import type { ShopStatus } from '@/lib/shopHours';
+
+/* 상태별 색 (카카오/네이버 톤) — dot + 상태어에 동일 적용 */
+const STATUS_TONE: Record<ShopStatus['kind'], string> = {
+  open: 'var(--color-success)', // 영업 중
+  'before-open': 'var(--color-info)', // 영업 전
+  'after-close': 'var(--color-text-tertiary)', // 영업 마감
+  closed: 'var(--color-error)', // 휴무
+};
 
 export default function ShopHoursAccordion() {
   const [open, setOpen] = useState(false);
   const { hours } = useSiteSettings();
   const view = useShopStatus(hours);
-  const isOpenNow = view?.status.kind === 'open';
-  const line = view?.status.label ?? '영업시간 안내';
+  const tone = view ? STATUS_TONE[view.status.kind] : 'var(--color-text-tertiary)';
+
+  /* label "영업 마감 · 내일 12:00 오픈" → 상태어(색 적용) + 나머지(시간 강조) 분리 */
+  const label = view?.status.label ?? '영업시간 안내';
+  const sepIdx = label.indexOf(' · ');
+  const statusWord = sepIdx >= 0 ? label.slice(0, sepIdx) : label;
+  const rest = sepIdx >= 0 ? label.slice(sepIdx + 3) : '';
 
   return (
     <div className="st-hours">
@@ -28,11 +42,17 @@ export default function ShopHoursAccordion() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <span
-          className={`st-hours-dot${isOpenNow ? ' is-open' : ''}`}
-          aria-hidden
-        />
-        <span className="st-hours-line">{emphasizeHours(line)}</span>
+        <span className="st-hours-line">
+          <strong className="st-hours-status" style={{ color: tone }}>
+            {statusWord}
+          </strong>
+          {rest && (
+            <>
+              {' · '}
+              {emphasizeHours(rest)}
+            </>
+          )}
+        </span>
         <svg
           className={`st-hours-chev${open ? ' is-open' : ''}`}
           width="16"
