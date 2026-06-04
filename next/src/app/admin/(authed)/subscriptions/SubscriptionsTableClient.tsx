@@ -17,9 +17,6 @@
    편집 버튼 = Pencil 아이콘화 (size='icon-xs' · 24×24 admin 아이콘 표준).
    describeRange 패턴 답습: `총 N건 · M~K번째` (단위 건).
 
-   carry-over (별 commit):
-   - EditSubscriptionDialog 토큰화 (배송주기 칩 · 폰트 크기 inline → className)
-
    참조:
    - lib/admin/subscriptions.ts            (헬퍼)
    - actions.ts                             (Server Actions)
@@ -380,8 +377,7 @@ const PencilIcon = () => (
    1) 다음 배송일 변경
    2) 주기 변경
    3) 상태 변경 (pause / resume / cancel)
-
-   carry-over (별 commit): inline style 토큰화 (배송주기 칩 · 폰트 크기).
+   4) 변경 이력
    ══════════════════════════════════════════════════════════════════════════ */
 
 type SectionKey = 'delivery' | 'cycle' | 'status' | 'history';
