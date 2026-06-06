@@ -207,6 +207,22 @@
   transform: translateY(-50%) translateX(0);
   transition: opacity 250ms ease, transform 250ms ease;
 }
+
+/* S311: 아이콘 stroke 중첩 제거. yarl 기본은 버튼 color 에 alpha(.8/.4)를 줘
+   multi-path 아이콘(줌 +/-)의 교차 stroke 가 중첩되어 진하게 보인다(hover 시
+   #fff 불투명이라 멀쩡한 게 단서). 색을 불투명(#fff)으로 고정하고 흐림 단계를
+   element opacity 로 이전 — 유효 알파(.8/.4/1)는 동일, stroke 중첩만 제거.
+   controls-hidden(아래) 보다 앞에 둬 가시성 토글 opacity:0 우선순위 보존. */
+.gd-lightbox {
+  --yarl__color_button: #fff;
+  --yarl__color_button_disabled: #fff;
+}
+.gd-lightbox .yarl__button { opacity: .8; }
+.gd-lightbox .yarl__button:disabled { opacity: .4; }
+@media (hover: hover) {
+  .gd-lightbox .yarl__button:hover { opacity: 1; }
+}
+
 .gd-lightbox .yarl__toolbar {
   transform: translateY(0);
   transition: opacity 250ms ease, transform 250ms ease;

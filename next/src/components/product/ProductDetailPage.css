@@ -334,9 +334,10 @@
   width: 100%;
   container-type: inline-size;
   --pd-yarl-thumbs-h: 96px;  /* thumbs container outer: 12 padding-top + 80 thumb height + 4 ε */
-  /* 화살표 색상 — 굿데이즈 라이트박스와 동일 (white 80% / hover 100%).
+  /* 화살표 색상 — 불투명 white. 흐림(80%)은 element opacity 로 처리(아래 nav 규칙).
+     S311: stroke alpha 로 흐림을 주면 chevron join 이 중첩되어 진해지므로 불투명화.
      bgTheme 분기 폐기 — 모든 슬라이드 위에 white 통일. */
-  --pd-yarl-arrow-color: hsla(0, 0%, 100%, .8);
+  --pd-yarl-arrow-color: #fff;
   --pd-yarl-arrow-color-hover: #fff;
 }
 
@@ -380,11 +381,11 @@
 }
 .pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_prev:not(:disabled),
 .pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_next:not(:disabled) {
-  opacity: .5;
+  opacity: .4;   /* S311: 기존 색 alpha .8 × opacity .5 = .4 유효 보존 (색 불투명화) */
 }
 .pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_prev:disabled,
 .pd-yarl-wrap:not(.no-nav):hover .yarl__navigation_next:disabled {
-  opacity: .15;
+  opacity: .12;  /* S311: 기존 .8 × .15 = .12 유효 보존 */
 }
 .pd-yarl-wrap .yarl__navigation_prev:not(:disabled):hover,
 .pd-yarl-wrap .yarl__navigation_next:not(:disabled):hover {
