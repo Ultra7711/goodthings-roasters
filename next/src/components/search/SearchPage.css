@@ -116,6 +116,11 @@
   background: var(--color-surface-stone-light);
   color: var(--color-text-tertiary);
 }
+/* 아이콘 크기 = 배경 박스 비례 (반응형). lucide size 속성 대신 CSS 로 제어. */
+.sp-card-thumb.sr-card-legal-thumb svg {
+  width: 52%;
+  height: auto;
+}
 
 .sr-card-legal-desc {
   font-family: var(--font-kr);

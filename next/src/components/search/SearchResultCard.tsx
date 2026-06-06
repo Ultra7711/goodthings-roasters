@@ -48,7 +48,9 @@ export default function SearchResultCard({ result }: Props) {
         aria-label={`${l.title} 페이지로 이동`}
       >
         <div className="sp-card-thumb sr-card-legal-thumb" aria-hidden>
-          <FileText size={32} strokeWidth={1.5} />
+          {/* 크기는 박스 비례로 CSS(.sr-card-legal-thumb svg) 제어. 확대에 맞춰
+              strokeWidth 를 가늘게(1) — 큰 아이콘엔 얇은 선이 균형. */}
+          <FileText strokeWidth={1} />
         </div>
         <div className="sp-card-info">
           <p className="sp-card-name">
