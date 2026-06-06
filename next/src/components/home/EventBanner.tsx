@@ -13,6 +13,7 @@
    - iframe srcDoc 으로 inline 임베드 → cross-origin 이슈 회피.
    ══════════════════════════════════════════ */
 
+import Link from 'next/link';
 import type { CafeEventBanner } from '@/lib/banners';
 import IframeBanner from './IframeBanner';
 
@@ -136,6 +137,13 @@ export default async function EventBanner({ event }: Props) {
             data-event-id={event.id}
             srcDoc={filledHtml}
             title={event.image_alt || '카페 배너'}
+          />
+          {/* iframe(sandbox)은 내부 클릭을 자체 소비하므로 전체 클릭 영역을
+              absolute Link 오버레이로 덮는다. 카페 이벤트 배너 → /menu. */}
+          <Link
+            href="/menu"
+            className="ev-link-overlay"
+            aria-label={event.cta_text || '카페 메뉴 보러 가기'}
           />
         </div>
       </div>

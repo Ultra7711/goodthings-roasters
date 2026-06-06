@@ -227,6 +227,14 @@
   /* S241: 합산 80 — cafe-menu-head bottom 56 + .ev-banner padding-top 24 = 80 (desktop).
      아래도 동일 — .ev-banner padding-bottom 24 + margin-bottom 56 = 80. */
   padding: 24px 0;
+  position: relative;
+}
+
+/* 배너 전체 클릭 → /menu. iframe(sandbox) 위를 덮는 투명 링크. */
+.ev-link-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
 }
 /* iframe — width 100% (viewport 풀블리드) · 컨텐츠 max-width 는 iframe 안 production
    HTML 의 .banner-text 가 처리 (max-width 1440 + padding 0 60 + margin auto, 메인

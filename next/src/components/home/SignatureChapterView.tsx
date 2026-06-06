@@ -20,6 +20,7 @@
    참조: lib/siteSettings.ts SignatureSettingsSchema
    ══════════════════════════════════════════ */
 
+import Link from 'next/link';
 import type { SignatureBanner } from '@/lib/banners';
 import IframeBanner from './IframeBanner';
 import './SignatureChapterView.css';
@@ -158,6 +159,13 @@ export default async function SignatureChapterView({
             className="sig-iframe sr-img"
             srcDoc={filledHtml}
             title={signature.image_alt || '시그니처 섹션'}
+          />
+          {/* iframe(sandbox)은 내부 클릭을 자체 소비하므로 전체 클릭 영역을
+              absolute Link 오버레이로 덮는다. 드립백 배너 → /shop. */}
+          <Link
+            href="/shop"
+            className="sig-link-overlay"
+            aria-label={signature.cta_text || '상품 보러 가기'}
           />
         </div>
       </section>

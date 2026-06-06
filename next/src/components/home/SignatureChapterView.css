@@ -36,6 +36,14 @@
    (cafe-events .ev-banner 답습) */
 .sig-bleed {
   padding: 0;
+  position: relative;
+}
+
+/* 배너 전체 클릭 → /shop. iframe(sandbox) 위를 덮는 투명 링크. */
+.sig-link-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
 }
 
 /* iframe — width 100% (viewport 풀블리드) · 컨텐츠 max-width 는 iframe 안 production
