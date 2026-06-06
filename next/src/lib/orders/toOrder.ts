@@ -11,7 +11,7 @@ import { formatDateKST, formatPrice } from '@/lib/utils';
 
 /* DB status → UI 한글 상태 매핑.
    pending 은 orderRepo 쿼리 단에서 제외 → 도달 불가. */
-export function mapDbStatus(status: DbOrderStatus): OrderStatus {
+function mapDbStatus(status: DbOrderStatus): OrderStatus {
   switch (status) {
     case 'paid':              return '배송준비';
     case 'shipping':          return '배송중';
