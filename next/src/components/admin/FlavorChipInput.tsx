@@ -57,14 +57,6 @@ export function decodeChipsFromColumns(noteTags: string, noteTagsEn: string): Fl
   return kos.map((ko, i) => ({ ko, en: ens[i] ?? '' }));
 }
 
-/** {ko, en}[] → DB 두 컬럼 ' | ' join */
-export function encodeChipsToColumns(chips: FlavorChip[]): { noteTags: string; noteTagsEn: string } {
-  return {
-    noteTags: chips.map((c) => c.ko).join(' | '),
-    noteTagsEn: chips.map((c) => c.en).join(' | '),
-  };
-}
-
 export function FlavorChipInput({
   value,
   onChange,

@@ -245,16 +245,6 @@ export async function getAdminClaims(): Promise<AdminClaims | null> {
   };
 }
 
-/**
- * admin 필수 서버 컴포넌트 가드. 비인증·비admin → `/admin/login` 리다이렉트.
- * S124: 어드민 영역은 메인 사이트 `/login` 이 아닌 `/admin/login` 으로 보냄.
- */
-export async function requireAdminOrRedirect(): Promise<AdminClaims> {
-  const adminClaims = await getAdminClaims();
-  if (!adminClaims) redirect('/admin/login');
-  return adminClaims;
-}
-
 /* ── owner (관리자) 가드 — S232 ───────────────────────────────────────
    민감 액션 (CSV 내보내기 · 영구 삭제 · 사용자 권한 변경 · 사이트 설정) 전용.
    ──────────────────────────────────────────────────────────────────── */

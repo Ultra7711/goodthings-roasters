@@ -66,11 +66,6 @@ export const CYCLE_DAYS = {
   '8주': 56,
 } as const satisfies Record<SubscriptionCycle, number>;
 
-/** 안전 헬퍼 — known cycle 만 받음. unknown 입력은 호출 측에서 narrowing 후 사용. */
-export function getCycleDays(cycle: SubscriptionCycle): number {
-  return CYCLE_DAYS[cycle];
-}
-
 /**
  * Cycle 변경 시 다음 배송일 재계산.
  *

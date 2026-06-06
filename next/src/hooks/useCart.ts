@@ -42,7 +42,6 @@ import type { ServerCartRow } from '@/lib/cart/mapRow';
    이 상수들은 backward-compat 용으로 남김 — 다음 정리 시 제거. */
 export const FREE_SHIPPING_THRESHOLD = 30000;
 export const SHIPPING_FEE = 3000;
-export const MIN_QUANTITY = 1;
 
 export const CART_QUERY_KEY = ['cart'] as const;
 

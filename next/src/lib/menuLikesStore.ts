@@ -164,31 +164,6 @@ export function commitMenuRanksOnReentry(): void {
 }
 
 /**
- * SSR snapshot hydrate (S245-P20 Phase 1).
- *
- * CafeMenuPage 첫 렌더 시 useState lazy initializer 로 1회 호출.
- * 첫 SSR 렌더부터 store 가 채워진 상태 → 카드 reorder/배지 점프 0.
- *
- * client fetchMenuLikes 자동 호출 폐기 (P14 회귀) — hydrate 가 그 자리 대체.
- * 사용자 토글 또는 재진입 시점에는 toggleMenuLike / commitMenuRanksOnReentry 사용.
- */
-export function hydrateMenuLikes(snapshot: {
-  counts: Record<string, number>;
-  liked: string[];
-}): void {
-  const popular = computePopularRanks(snapshot.counts);
-  setState((s) => ({
-    ...s,
-    counts: snapshot.counts,
-    liked: new Set(snapshot.liked),
-    sortCommitted: popular,
-    badgesCommitted: popular,
-    loading: false,
-  }));
-  getStore().fetched = true;
-}
-
-/**
  * counts-only SSR hydrate (S247 폴리싱).
  *
  * /menu 페이지 dynamic 화 회피 — counts 는 SSR 'use cache' snapshot 으로 받고

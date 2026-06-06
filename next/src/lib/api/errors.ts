@@ -92,18 +92,6 @@ export function apiValidationError(
 }
 
 /**
- * Rate limit 초과.
- * @param retryAfter 재시도 가능 시각까지 남은 초
- */
-export function apiRateLimited(retryAfter: number): Response {
-  const body: RateLimitedErrorBody = { error: 'rate_limited', retryAfter };
-  return Response.json(body, {
-    status: 429,
-    headers: { 'Retry-After': String(Math.ceil(retryAfter)) },
-  });
-}
-
-/**
  * 범용 에러 응답.
  * - `detail` 은 payment_failed 등 클라이언트에 전달해야 하는 사유만 포함.
  * - 서버 내부 스택·쿼리 오류는 절대 포함하지 않는다.

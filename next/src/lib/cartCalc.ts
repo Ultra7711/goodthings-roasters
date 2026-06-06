@@ -7,7 +7,6 @@
    프런트·서버가 동일한 배송비 규칙을 import 해 사용하도록 한다.
    ══════════════════════════════════════════ */
 
-import type { CartItem } from '@/types/cart';
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/hooks/useCart';
 
 export type CartTotals = {
@@ -36,15 +35,4 @@ export type CartTotals = {
 export function calcShippingFee(subtotal: number): number {
   if (subtotal === 0) return 0;
   return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-}
-
-/** 카트 아이템 리스트로부터 총액 세트 계산. */
-export function calcCartTotals(items: CartItem[]): CartTotals {
-  const subtotal = items.reduce((sum, i) => sum + i.priceNum * i.qty, 0);
-  const totalQty = items.reduce((sum, i) => sum + i.qty, 0);
-  const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
-  const shipping = calcShippingFee(subtotal);
-  const total = subtotal + shipping;
-
-  return { subtotal, shipping, total, isFreeShipping, totalQty };
 }

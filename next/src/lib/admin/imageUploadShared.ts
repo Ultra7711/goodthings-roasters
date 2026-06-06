@@ -6,7 +6,6 @@
    - 버킷 rename 은 별 sprint 로 분리 (마이그 + storage policy 갱신 필요) — carry-over.
    ══════════════════════════════════════════════════════════════════════════ */
 
-export const SEASON_BANNER_BUCKET = 'season-banners';
 export const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5MB (028 admin storage buckets RLS limit)
 export const ALLOWED_MIME = [
   'image/webp',
