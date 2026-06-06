@@ -1710,7 +1710,9 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
    다크 라우트: .root dark → shell transparent → dark.
    light 라우트: .root light → shell transparent → light (자기 색 일관). */
 .page-loading-shell {
-  min-height: 100dvh;
+  /* S311: dvh→svh — dvh 는 iOS 주소창 변동 시 실시간 출렁여 레이아웃 재계산 → footer 튐
+     (바로 아래 BUG-148 동일 사유). #main-content 와 단위 통일. */
+  min-height: 100svh;
   background: transparent;
 }
 .page-loading-shell--dark {
