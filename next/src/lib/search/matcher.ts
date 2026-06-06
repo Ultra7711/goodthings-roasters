@@ -124,6 +124,11 @@ function findBoundaryIndex(
      nameOnly 필드(name/category/legalTitle) 한정으로 노이즈를 차단한다.
      예: "티" → "밀크티" name 매치 허용 (사용자 의도). */
   if (needle.length === 1) return haystack.indexOf(needle);
+  /* name 필드 boundary 완화 — 메뉴·상품 고유명. 한국어 합성어(예: 황금삼방"커피",
+     입꼬뺙요리"커피")는 공백 없이 붙어 "커피"가 토큰 중간에 위치 → 단어 경계 규칙이
+     정당한 부분 매치를 막는다(name 하이라이트 누락 버그). boundary 의 본래 목적은
+     본문/category 의 "논커피" 같은 노이즈 차단(S293)이므로 name 만 indexOf 직접 매치. */
+  if (field.key === 'name') return haystack.indexOf(needle);
   let from = 0;
   while (from <= haystack.length - needle.length) {
     const idx = haystack.indexOf(needle, from);
