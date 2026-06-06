@@ -38,10 +38,10 @@ import {
   useMenuSortCommitted,
 } from '@/lib/menuLikesStore';
 
-// S216-D P5: 1500 → 3000. cm-thumb-flash animation 자체는 0.7s × 2 = 1.4s 로
-// iteration count 가 자체 종료 → 시각적 부조화 없음. likes fetch (~1.4~1.7s) 후
-// sortCommitted reorder 까지 scrollIntoView effect 가 추적 가능하도록 유지.
-const HIGHLIGHT_MS = 3000;
+// S311 D: 3000 → 6000. 점멸이 가시화(IO) 시점에 시작되므로(GenericCard flashActive)
+// scroll·likes fetch·로드 지연으로 가시화가 늦어도 점멸 3회(2.1s)가 끝나기 전에
+// highlightId 가 소거되지 않도록 여유를 둔다.
+const HIGHLIGHT_MS = 6000;
 // ShopPage 와 동일 — 탭(0.3s) 등장 후 카드 시작, 진입 후엔 0
 const CARD_BASE_DELAY_INIT = 420;
 

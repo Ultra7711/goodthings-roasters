@@ -21,7 +21,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 const COLS_BEAN = 2;
 const COLS_DRIP = 4;
 const CARD_BASE_DELAY_INIT = 420; // 초기 로드: 탭(0.3s) 등장 후 카드 시작 (ms)
-const HIGHLIGHT_MS = 2200;        // delay 0.6s + duration 0.7s × 2 = 2.0s + buffer
+const HIGHLIGHT_MS = 6000;        // S311 D: 가시화(IO) 트리거 점멸 — 소거 전 점멸 3회 완료 보장
 const VALID_FILTERS: FilterKey[] = ['all', 'bean', 'drip'];
 
 function isValidFilter(v: string | null): v is FilterKey {

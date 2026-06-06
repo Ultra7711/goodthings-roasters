@@ -214,8 +214,17 @@
   0%, 100% { opacity: 1; }
   45%      { opacity: .35; }
 }
-.sp-card--highlight .sp-card-thumb {
-  animation: sp-thumb-flash .7s ease .6s 2;
+/* S311 D: 고정 delay 0.6s → 가시화 시점(sp-card--flash) 트리거로 대체.
+   횟수 2→3 + 카드 전체 골드 링 동반 강조 (cm 과 통일). */
+.sp-card--highlight.sp-card--flash .sp-card-thumb {
+  animation: sp-thumb-flash .7s ease 3;
+}
+@keyframes sp-card-ring {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  45%      { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent-gold) 55%, transparent); }
+}
+.sp-card--highlight.sp-card--flash {
+  animation: sp-card-ring .7s ease 3;
 }
 
 /* 카드 정보 */

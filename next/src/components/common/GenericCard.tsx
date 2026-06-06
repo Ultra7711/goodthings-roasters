@@ -27,6 +27,7 @@ type VariantClasses = {
   card: string;
   visible: string;
   highlight: string;
+  flash: string;
   thumb: string;
   img: string;
   info: string;
@@ -40,6 +41,7 @@ const VARIANT_CLASS: Record<Variant, VariantClasses> = {
     card: 'sp-card',
     visible: 'sp-visible',
     highlight: 'sp-card--highlight',
+    flash: 'sp-card--flash',
     thumb: 'sp-card-thumb',
     img: 'sp-card-img',
     info: 'sp-card-info',
@@ -51,6 +53,7 @@ const VARIANT_CLASS: Record<Variant, VariantClasses> = {
     card: 'cm-card',
     visible: 'cm-visible',
     highlight: 'cm-card--highlight',
+    flash: 'cm-card--flash',
     thumb: 'cm-card-thumb',
     img: 'cm-card-img',
     info: 'cm-card-info',
@@ -135,6 +138,8 @@ export default function GenericCard({
   dataCmId,
 }: Props) {
   const [isVisible, setIsVisible] = useState(instant);
+  /* S311 D: 점멸 시작을 카드 가시화 시점에 동기화 (highlightId 세팅 즉시 X). */
+  const [flashActive, setFlashActive] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const cls = VARIANT_CLASS[variant];
@@ -168,10 +173,37 @@ export default function GenericCard({
     });
   }, [isHighlight]);
 
+  // S311 D: 점멸 시작 동기화 — highlightId 세팅 즉시 점멸하면 scroll·likes
+  // fetch·로드 지연 중 1.4초 점멸이 소진되어 시선 도착 전에 끝난다(인지 실패).
+  // IO 로 카드가 실제 화면에 보일 때 flashActive 를 켜 점멸을 시작한다.
+  useEffect(() => {
+    if (!isHighlight) {
+      setFlashActive(false);
+      return;
+    }
+    const el = cardRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting && e.intersectionRatio >= 0.5) {
+            setFlashActive(true);
+            io.disconnect();
+            break;
+          }
+        }
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [isHighlight]);
+
   const className = [
     cls.card,
     isVisible ? cls.visible : '',
     isHighlight ? cls.highlight : '',
+    isHighlight && flashActive ? cls.flash : '',
   ]
     .filter(Boolean)
     .join(' ');
