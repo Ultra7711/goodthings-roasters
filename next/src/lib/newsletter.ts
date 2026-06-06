@@ -85,14 +85,23 @@ export async function getNewsletterStatus(): Promise<NewsletterStatusResult> {
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: 'unauthenticated' };
 
+  /* limit(1) — 과거 user_id stale 로 한 회원에 중복 row 가 생긴 이력(S302) 대비.
+     maybeSingle 은 2건 이상이면 "multiple rows" 에러 → 최신 1건으로 방어. */
   const { data, error } = await supabase
     .from('newsletter_subscribers')
     .select('status')
     .eq('user_id', user.id)
+    .order('updated_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (error) {
-    console.error('[newsletter] status fetch failed', error);
+    /* PostgrestError 는 Error 상속이라 객체째 로깅하면 dev 오버레이에 {} 로만
+       표시됨 → code/message 명시 추출. */
+    console.error('[newsletter] status fetch failed', {
+      code: error.code,
+      message: error.message,
+    });
     return { ok: false, error: 'db_error' };
   }
   if (!data) return { ok: true, status: 'none' };
