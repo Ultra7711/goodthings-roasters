@@ -270,17 +270,18 @@
   0%, 100% { opacity: 1; }
   45%      { opacity: .35; }
 }
-/* S311 D: 점멸은 가시화 시점(cm-card--flash)에 시작 — 횟수 2→3.
-   썸네일 opacity + 카드 전체 골드 링 동반 강조 (scroll 중·주변 카드와 구분). */
+/* S311 D: 점멸은 가시화 시점(cm-card--flash)에 시작.
+   썸네일 opacity + 카드 전체 골드 링 동반 강조 (scroll 중·주변 카드와 구분).
+   S312: 골드 링 추가로 강조 충분 → 횟수 3→2. */
 .cm-card--highlight.cm-card--flash .cm-card-thumb {
-  animation: cm-thumb-flash .7s ease 3;
+  animation: cm-thumb-flash .7s ease 2;
 }
 @keyframes cm-card-ring {
   0%, 100% { box-shadow: 0 0 0 0 transparent; }
   45%      { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent-gold) 55%, transparent); }
 }
 .cm-card--highlight.cm-card--flash {
-  animation: cm-card-ring .7s ease 3;
+  animation: cm-card-ring .7s ease 2;
 }
 
 /* ══════════════════════════════════════════
