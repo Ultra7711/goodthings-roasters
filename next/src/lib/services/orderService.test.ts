@@ -1,7 +1,8 @@
 /* ══════════════════════════════════════════════════════════════════════════
    orderService.test.ts — 순수 계산 유틸 단위 테스트
 
-   대상: buildRpcItem, recomputeItems, calcShippingFee, resolveProduct, resolveVolume
+   대상: buildRpcItem, recomputeItems, resolveProduct, resolveVolume
+   배송비: useCartQuery(클라)·orderService(서버) 인라인 계산 (ADR-011) — 별도 단위 없음.
    비대상: createOrderFromInput (DB RPC 의존 — 통합 테스트에서 처리)
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -13,11 +14,7 @@ import {
   resolveVolume,
   OrderServiceError,
 } from './orderService';
-/* BUG-FIX 2026-04-23: calcShippingFee 를 orderService 에서 re-export 하지
-   않기 위해, test 는 cartCalc 원본 모듈에서 직접 import 한다. */
-import { calcShippingFee } from '@/lib/cartCalc';
 import { PRODUCTS } from '@/lib/products';
-import { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } from '@/hooks/useCart';
 
 /* ── 픽스처 ──────────────────────────────────────────────────────────── */
 
@@ -88,22 +85,6 @@ describe('resolveVolume — volume(label) 조회', () => {
       expect(e).toBeInstanceOf(OrderServiceError);
       expect((e as OrderServiceError).code).toBe('volume_sold_out');
     }
-  });
-});
-
-describe('calcShippingFee — 배송비 규칙 (cartCalc 와 동일)', () => {
-  it('소계 0 → 배송비 0', () => {
-    expect(calcShippingFee(0)).toBe(0);
-  });
-
-  it('FREE_SHIPPING_THRESHOLD 미만 → SHIPPING_FEE', () => {
-    expect(calcShippingFee(1000)).toBe(SHIPPING_FEE);
-    expect(calcShippingFee(FREE_SHIPPING_THRESHOLD - 1)).toBe(SHIPPING_FEE);
-  });
-
-  it('FREE_SHIPPING_THRESHOLD 이상 → 0', () => {
-    expect(calcShippingFee(FREE_SHIPPING_THRESHOLD)).toBe(0);
-    expect(calcShippingFee(FREE_SHIPPING_THRESHOLD + 100)).toBe(0);
   });
 });
 
@@ -231,39 +212,5 @@ describe('recomputeItems — 배열 + 소계', () => {
       expect(e).toBeInstanceOf(OrderServiceError);
       expect((e as OrderServiceError).code).toBe('product_not_found');
     }
-  });
-});
-
-describe('통합: 소계 + 배송비 규칙 일관성', () => {
-  it('소계 >= FREE_SHIPPING_THRESHOLD 이면 배송비 0 (무료)', () => {
-    /* 커피빈 500g = 34,000원 (일반적으로 threshold 30,000 초과) */
-    const v = coffeeBean.volumes.find((vol) => vol.price >= FREE_SHIPPING_THRESHOLD);
-    if (!v) return; // 테스트 스킵: 데이터 전제 불충족
-    const { subtotal } = recomputeItems([
-      {
-        productSlug: coffeeBean.slug,
-        volume: v.label,
-        quantity: 1,
-        itemType: 'normal',
-        subscriptionPeriod: null,
-      },
-    ], PRODUCTS);
-    expect(subtotal).toBe(v.price);
-    expect(calcShippingFee(subtotal)).toBe(0);
-  });
-
-  it('소계 < FREE_SHIPPING_THRESHOLD 이면 배송비 SHIPPING_FEE', () => {
-    const v = coffeeBean.volumes.find((vol) => vol.price < FREE_SHIPPING_THRESHOLD);
-    if (!v) return;
-    const { subtotal } = recomputeItems([
-      {
-        productSlug: coffeeBean.slug,
-        volume: v.label,
-        quantity: 1,
-        itemType: 'normal',
-        subscriptionPeriod: null,
-      },
-    ], PRODUCTS);
-    expect(calcShippingFee(subtotal)).toBe(SHIPPING_FEE);
   });
 });

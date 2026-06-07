@@ -36,13 +36,6 @@ import {
 } from '@/lib/guestCart';
 import type { ServerCartRow } from '@/lib/cart/mapRow';
 
-/* ── 배송비 기준 (DEPRECATED 상수 — site_settings.shipping 으로 대체됨, S129 H-5)
-   useCart hook 내부에서는 useSiteSettings() 로 dynamic 값 사용.
-   외부 import 자(MyPagePage 등)도 useSiteSettings 로 마이그레이션됨.
-   이 상수들은 backward-compat 용으로 남김 — 다음 정리 시 제거. */
-export const FREE_SHIPPING_THRESHOLD = 30000;
-export const SHIPPING_FEE = 3000;
-
 export const CART_QUERY_KEY = ['cart'] as const;
 
 /* 카트 mutation 실패 시 사용자 toast 메시지. action 별 일관 톤 + 유지보수성. */

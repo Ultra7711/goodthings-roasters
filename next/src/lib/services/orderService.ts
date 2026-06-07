@@ -4,7 +4,7 @@
    역할:
    - 권위(source of truth) 보장: 클라이언트가 보낸 가격은 전부 버리고
      PRODUCTS 카탈로그 기준으로 재계산.
-   - 배송비 규칙 동일 적용 (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE).
+   - 배송비 규칙 동일 적용 (site_settings.shipping 기준 인라인 계산 · ADR-011).
    - 게스트 주문 PIN argon2id 해시.
    - 게스트/회원 분기는 Route Handler 에서 결정 → 서비스는 주어진 userId 로만 동작.
 
@@ -14,7 +14,7 @@
 
    참조:
    - docs/backend-architecture-plan.md §7.2 (레이어 분리)
-   - lib/store.ts FREE_SHIPPING_THRESHOLD / SHIPPING_FEE (단일 소스)
+   - docs/adr/ADR-011 (배송비 인라인 중복 — Turbopack minify 버그 회피)
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { hash as argon2Hash } from '@node-rs/argon2';
@@ -36,11 +36,11 @@ import { fetchSiteSettings } from '@/lib/siteSettingsServer';
    createOrderFromInput 가 fetchSiteSettings() 호출 후 사용.
    fetch 실패 시 SITE_SETTINGS_DEFAULTS 가 자동 fallback (free_threshold=30000, base_fee=3500). */
 
-/* calcShippingFee 는 @/lib/cartCalc 로 이관 완료.
-   이 파일은 calcShippingFee 심볼을 직접 import/re-export 하지 않는다 —
-   Vercel Turbopack 프로덕션 번들에서 이 심볼이 식별되면 동일 파일 내 다른
-   변수(특히 배송비 계산 결과)가 함수 객체로 치환되는 버그가 발생하기 때문.
-   test 파일은 cartCalc 원본 모듈에서 직접 import. */
+/* 배송비는 createOrderFromInput 안에서 인라인 계산한다 (공용 함수로 추출 금지).
+   import 심볼명과 동일 파일 지역변수가 충돌하면 Vercel Turbopack 프로덕션 minify(SWC)
+   가 함수 호출 결과 대신 함수 객체를 할당하는 버그(vercel/next.js#86568)가 있어,
+   과거 배송비 누락 매출 손실이 발생했다 (2026-04-23 BUG-fix). 클라(useCartQuery)·서버
+   인라인 중복은 이 버그 회피를 위한 의도적 설계. 상세: docs/adr/ADR-011. */
 
 /* ══════════════════════════════════════════
    상수
