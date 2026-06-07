@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════
    PasswordChangeForm — 비밀번호 변경 (S197 PR-1.3.A)
    AccountManagement.tsx 분리 — 비밀번호 부분만 추출.
-   ProfileView 에서 사용.
+   AccountView 에서 사용 (S197 PR-2 에서 ProfileView → AccountView 이관).
    ══════════════════════════════════════════ */
 
 'use client';

@@ -25,7 +25,7 @@ export default function AccountView({ onLoggedOut }: Props) {
       <div className="mp-rights-note">
         <p>
           열람·정정·처리정지 등 개인정보 권리는{' '}
-          <a href="mailto:privacy@goodthingsroasters.com">privacy@goodthingsroasters.com</a>
+          privacy@goodthingsroasters.com
           {' '}으로 요청해 주세요.
         </p>
         <p>

@@ -2,15 +2,21 @@
    AccountDeleteSection — 회원 탈퇴 (S197 PR-1.3.A)
    AccountManagement.tsx 분리 — 탈퇴 부분만 추출.
    AccountView 에서 사용.
+
+   S312: 인라인 mp-modal → ConfirmModal 컴포넌트 + useScrollLockOnModal 훅으로
+         통일 (SubscriptionEditor 와 동일 패턴). 탈퇴 모달도 calm(애니메이션 없음)
+         으로 다른 confirm 모달과 동작 일치.
    ══════════════════════════════════════════ */
 
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { ChevronRight } from '@/components/ui/Icons';
 import { supabase } from '@/lib/supabase';
 import { useDeleteAccount } from '@/hooks/useAccountDeletion';
+import { useScrollLockOnModal } from '@/hooks/useScrollLockOnModal';
+import ConfirmModal from './ConfirmModal';
 import {
   useMyPageWithdrawOpen,
   setAddrOpen,
@@ -28,13 +34,8 @@ export default function AccountDeleteSection({ onLoggedOut }: Props) {
   const isWithdrawOpen = useMyPageWithdrawOpen();
   const deleteAccountMutation = useDeleteAccount();
 
-  /* 탈퇴 모달 스크롤 잠금 */
-  useEffect(() => {
-    if (!isWithdrawOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, [isWithdrawOpen]);
+  /* 탈퇴 모달 스크롤 잠금 (마이페이지 공용 훅) */
+  useScrollLockOnModal(isWithdrawOpen);
 
   const confirmWithdraw = useCallback(async () => {
     try {
@@ -83,33 +84,19 @@ export default function AccountDeleteSection({ onLoggedOut }: Props) {
       </div>
 
       {isWithdrawOpen && (
-        <div className="mp-modal-overlay" onClick={() => setWithdrawOpen(false)}>
-          <div className="mp-modal" onClick={(e) => e.stopPropagation()}>
-            <p className="mp-modal-title">떠나시는 건가요?</p>
-            <p className="mp-modal-desc">
+        <ConfirmModal
+          title="떠나시는 건가요?"
+          desc={
+            <>
               탈퇴 시 로그아웃 처리되며, 이후 동일 계정으로<br />
               재가입하시더라도 기존 주문 내역은 복구되지 않습니다.
-            </p>
-            <div className="mp-modal-actions">
-              <button
-                className="mp-modal-cancel"
-                type="button"
-                onClick={() => setWithdrawOpen(false)}
-                data-gtr-tap
-              >
-                취소
-              </button>
-              <button
-                className="mp-modal-confirm mp-modal-confirm--danger"
-                type="button"
-                onClick={() => void confirmWithdraw()}
-                data-gtr-tap
-              >
-                탈퇴
-              </button>
-            </div>
-          </div>
-        </div>
+            </>
+          }
+          confirmLabel="탈퇴"
+          confirmVariant="danger"
+          onCancel={() => setWithdrawOpen(false)}
+          onConfirm={() => void confirmWithdraw()}
+        />
       )}
     </>
   );
