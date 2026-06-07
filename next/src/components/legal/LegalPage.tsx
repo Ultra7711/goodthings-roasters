@@ -3,7 +3,6 @@
    ──────────────────────────────────────────
    layout (legal-page / legal-shell / legal-hero / legal-side / LegalSideNav) 은
    /legal/layout.tsx 가 처리. page 는 body 만 (S197 PR-2 후속).
-   - useAccordion=true 인 정보 페이지 (shipping · returns) 는 heading 단위 아코디언
 
    S281: 검색 페이지에서 ?q=... 로 진입 시 본문 검색어 자동 하이라이트 + 첫 매치
    scrollIntoView. 'use client' 변환 (useSearchParams + useEffect 필요).
@@ -14,34 +13,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { LegalDoc, LegalSection } from '@/app/(main)/legal/[slug]/content';
-import Accordion from '@/components/common/Accordion';
+import LegalMiniMap, { type MiniMapItem } from './LegalMiniMap';
 
 import './LegalPage.css';
 
 type Props = {
   doc: LegalDoc;
 };
-
-/** heading 있는 섹션과 직후의 heading-less 섹션을 하나의 그룹으로 묶음. */
-type SectionGroup = {
-  heading: string;
-  sections: LegalSection[];
-};
-
-function groupByHeading(sections: LegalSection[]): SectionGroup[] {
-  const groups: SectionGroup[] = [];
-  for (const section of sections) {
-    if (section.heading) {
-      groups.push({ heading: section.heading, sections: [section] });
-    } else if (groups.length > 0) {
-      groups[groups.length - 1].sections.push(section);
-    } else {
-      // heading 없는 첫 섹션 → 임시 그룹 (보통 발생 안 함)
-      groups.push({ heading: '', sections: [section] });
-    }
-  }
-  return groups;
-}
 
 /* ── S281 검색어 하이라이트 ─────────────────────────────────────────
    text 안에서 query (case-insensitive) 의 모든 위치를 <mark> 로 wrap.
@@ -145,7 +123,6 @@ function SectionContent({ section, opts }: { section: LegalSection; opts: Highli
 }
 
 export default function LegalPage({ doc }: Props) {
-  const groups = doc.useAccordion ? groupByHeading(doc.sections) : null;
   const searchParams = useSearchParams();
   const rawQ = searchParams.get('q')?.trim() ?? '';
   /* 매우 짧은 쿼리는 노이즈 (예: "1" 매치 다수) — 2자 이상만 highlight. */
@@ -182,14 +159,27 @@ export default function LegalPage({ doc }: Props) {
 
   const opts: HighlightOptions = { query, registerFirstMark };
 
+  /* 미니맵 항목 — heading 있는 섹션만. id 는 본문 section 의 anchor 와 일치. */
+  const navItems: MiniMapItem[] = useMemo(
+    () =>
+      doc.sections
+        .map((s, idx) => ({ id: `legal-sec-${idx}`, label: s.heading ?? '' }))
+        .filter((it) => it.label !== ''),
+    [doc],
+  );
+
   return (
     <>
       <header className="legal-hero">
         <h1 className="legal-title">
           <HighlightedText text={doc.title} opts={opts} />
         </h1>
-        {doc.effectiveDate && (
+        {/* 시행일 — 없는 페이지(payment-faq)도 빈 줄로 높이 reserve.
+            hero 높이 통일 → sidenav 시작 위치 페이지 전환 시 안 튐. */}
+        {doc.effectiveDate ? (
           <p className="legal-effective">{doc.effectiveDate}</p>
+        ) : (
+          <p className="legal-effective" aria-hidden="true">&nbsp;</p>
         )}
       </header>
 
@@ -204,32 +194,16 @@ export default function LegalPage({ doc }: Props) {
         </div>
       )}
 
-      {groups ? (
-        <div className="legal-accordion-list">
-          {groups.map((group, idx) => (
-            <Accordion
-              key={`${group.heading}-${idx}`}
-              label={group.heading}
-              defaultOpen
-            >
-              {group.sections.map((section, i) => (
-                <SectionContent key={i} section={section} opts={opts} />
-              ))}
-            </Accordion>
-          ))}
-        </div>
-      ) : (
-        doc.sections.map((section, idx) => (
-          <section key={idx} className="legal-section">
-            {section.heading && (
-              <h2 className="legal-section-heading">
-                <HighlightedText text={section.heading} opts={opts} />
-              </h2>
-            )}
-            <SectionContent section={section} opts={opts} />
-          </section>
-        ))
-      )}
+      {doc.sections.map((section, idx) => (
+        <section key={idx} id={`legal-sec-${idx}`} className="legal-section">
+          {section.heading && (
+            <h2 className="legal-section-heading">
+              <HighlightedText text={section.heading} opts={opts} />
+            </h2>
+          )}
+          <SectionContent section={section} opts={opts} />
+        </section>
+      ))}
 
         {doc.footer && doc.footer.length > 0 && (
           <footer className="legal-footer">
@@ -241,6 +215,8 @@ export default function LegalPage({ doc }: Props) {
           </footer>
         )}
       </article>
+
+      {navItems.length > 0 && <LegalMiniMap items={navItems} />}
     </>
   );
 }

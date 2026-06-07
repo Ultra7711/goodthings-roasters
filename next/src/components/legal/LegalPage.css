@@ -29,6 +29,8 @@
   column-gap: 64px;
   align-items: start;
 }
+/* 우측 섹션 미니맵은 viewport 우측 가장자리에 fixed (LegalMiniMap.css) —
+   1440 shell grid 밖. 해상도 무관 스크롤바 옆 고정. */
 .legal-hero { grid-area: hero; }
 .legal-side { grid-area: sidenav; }
 .legal-body { grid-area: body; }
@@ -69,19 +71,6 @@
 }
 .legal-intro p { margin-bottom: 8px; overflow-wrap: break-word; }
 .legal-section { margin-bottom: 32px; }
-/* 정보 페이지 (shipping / returns) — heading 단위 Accordion 묶음.
-   max-height 600px 기본값으로는 장문 섹션이 잘릴 수 있어 legal 전용 override. */
-.legal-accordion-list { display: block; }
-.legal-accordion-list .pd-accordion-body p { padding-left: 0; }
-.legal-accordion-list .legal-paragraph,
-.legal-accordion-list .legal-bullets,
-.legal-accordion-list .legal-defs {
-  /* pd-accordion-body 가 이미 font/color 지정하므로 본문 마진만 조정 */
-  margin: 0 0 8px;
-}
-.legal-accordion-list .legal-bullets { padding-left: 20px; }
-.legal-accordion-list .legal-defs { margin-top: 12px; }
-.legal-accordion-list .pd-accordion.open .pd-accordion-body { max-height: 2000px; }
 .legal-section-heading {
   font-family: var(--font-kr);
   font-size: 17px;

@@ -32,8 +32,6 @@ export type LegalDoc = {
   sections: LegalSection[];
   /** 페이지 하단 사업자 표기 (선택) */
   footer?: string[];
-  /** 정보·도움말 페이지에서 섹션 단위 아코디언 사용 (heading 단위로 그룹화) */
-  useAccordion?: boolean;
 };
 
 export const LEGAL_SLUGS = [
