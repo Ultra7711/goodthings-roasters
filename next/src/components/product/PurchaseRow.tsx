@@ -14,8 +14,16 @@ import type { Product } from '@/lib/products';
 import { useAddCartItem } from '@/hooks/useCart';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useToast } from '@/hooks/useToast';
-import { SUB_CYCLES } from '@/hooks/useProductPurchase';
 import OptionChipGroup, { type OptionChipItem } from './OptionChipGroup';
+
+/* 정기배송 주기 UI 옵션 — DB enum `public.subscription_period` 와 동기화 필수.
+   ADR-005 (예정): 주기 옵션을 lookup 테이블로 이관해 어드민 편집 허용. */
+const SUB_CYCLES = [
+  { value: '2', label: '2주마다 배송' },
+  { value: '4', label: '4주마다 배송' },
+  { value: '6', label: '6주마다 배송' },
+  { value: '8', label: '8주마다 배송' },
+] as const;
 
 type Props = {
   product: Product;

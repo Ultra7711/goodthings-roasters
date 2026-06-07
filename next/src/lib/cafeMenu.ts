@@ -100,15 +100,6 @@ export const CM_PER_PAGE_DESKTOP = 24;
 export const CM_PER_PAGE_TABLET = 20;
 export const CM_PER_PAGE_MOBILE = 10;
 
-/**
- * 시그니처 메뉴 prefix 처리 (S245-P20 후속).
- * 텍스트 only 컨텍스트 (alt / aria / title) — 시그니처는 ★ 텍스트 prefix.
- * UI 컴포넌트 렌더는 components/cafe/MenuName 사용 (SVG sparkle + 텍스트).
- */
-export function getMenuDisplayName(item: CafeMenuItem): string {
-  return item.status === '시그니처' ? `★ ${item.name}` : item.name;
-}
-
 /** 카테고리 라벨 (영양 시트 헤더용) */
 export const CAFE_CATEGORY_LABEL: Record<CafeMenuItem['cat'], string> = {
   brewing: 'COFFEE',
