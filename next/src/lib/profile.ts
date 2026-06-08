@@ -74,5 +74,17 @@ export async function updateNickname(input: string): Promise<UpdateNicknameResul
     console.error('[profile.updateNickname] failed', error);
     return { ok: false, error: 'db_error' };
   }
+
+  /* 기존 리뷰 author_nickname 스냅샷 동기화 (085) — 닉네임 변경을 과거 리뷰에 반영.
+     graceful: 실패해도 닉네임 변경 자체는 성공 처리 (다음 변경/표시에서 보정). */
+  const { error: syncErr } = await supabase
+    .from('reviews')
+    .update({ author_nickname: nickname })
+    .eq('user_id', user.id)
+    .neq('status', 'deleted');
+  if (syncErr) {
+    console.error('[profile.updateNickname] review nickname sync failed', syncErr);
+  }
+
   return { ok: true, nickname };
 }
