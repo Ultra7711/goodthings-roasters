@@ -25,7 +25,7 @@
 | **L RBAC + audit** | ✅ (055~057) | ✅ auditServer | ✅ 100% | — | ✅ — S233 owner/staff 분리 + /admin/audit |
 | **M 뉴스레터** | ✅ (065~066) | ✅ newsletter | 🟡 부분 (구독자 목록만) | — | 🟡 — Phase 1+2+3 + Phase 4 도메인 인증 ✅ (2026-05-26) · `/admin/newsletter` 구독자 목록 200건 표시 완료 · 페이지네이션/검색/필터/CSV/bulk send UI carry (S250-2) |
 | **N 비즈 문의** | ✅ (067) | ✅ bizSubmit | 🟡 어드민 미완 | — | 🟡 — S243 폼 신설 (어드민 목록 carry) |
-| **O 리뷰 게시판** | 📋 (미마이그) | 📋 (미구현) | 📋 carry | — | 📋 — DEC-R1~R3 잠금 · UI/AI 정책 사용자 confirm 후 진입 (S247 어드민 통계 완료 후 진입 조건 충족) |
+| **O 리뷰 게시판** | 📋 (미마이그) | 📋 (미구현) | 🟢 계획확정 | — | 🟢 **DEC 확정(S313)** · 실행계획 `docs/review-implementation-plan.md` · 포토 제외·텍스트+AI · 추정 28~56h · 착수 대기 |
 
 **범례:** ✅ 완료 · 🟡 부분 · 🔴 미완 · ⏸️ 결정 대기
 
@@ -270,10 +270,11 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | ~~DEC-newsletter-3~~ | 뉴스레터 도메인 인증 시점 | ✅ **완료 2026-05-26** — Google Workspace + Resend DKIM/SPF/DMARC 모두 PASS | `project_newsletter_phase4_complete.md` |
 | **DEC-S249-1** | 차트 라이브러리 선택 | S249+ 진입 전 | CSS-only / **recharts (권장)** / nivo / Tremor |
 | **DEC-S249-2** | Quick Win + Domain 묶음 동시 진입 vs 분리 | S249+ 진입 전 | 일괄 / Quick → 검증 → Domain |
-| **DEC-R1-UI** | 리뷰 UI 위치 | Group O Phase 1 진입 전 | PDP 안 섹션 / 카페 시트 안 / 별도 페이지 / 통합 (A+C) |
-| **DEC-R2-policy** | AI 필터링 차단 정책 | Group O Phase 2 진입 전 | 즉시 차단 / 어드민 검토 큐 / 자동 통과 + 사후 검토 |
-| **DEC-R2-vendor** | AI 필터링 옵션 | Group O Phase 2 진입 전 | OpenAI Moderation 단독 (무료) / Claude API 정밀 / Hybrid |
-| **DEC-R1-photo** | 리뷰 사진 업로드 포함 여부 | Group O Phase 1 Step 6 진입 전 | 포함 (+4~8h) / 제외 |
+| ~~DEC-R1-UI~~ | 리뷰 UI 위치 | ✅ **통합 확정 (S313)** — 상품 PDP 섹션 + 메뉴 바텀시트 내부 | `docs/review-implementation-plan.md` |
+| ~~DEC-R2-policy~~ | AI 필터링 차단 정책 | ✅ **확정 (S313)** — 유저단 즉시 차단 + 어드민 사후 검토(blocked↔approved) | 〃 |
+| **DEC-R2-vendor** | AI 필터링 옵션 | Group O Phase 2 진입 전 (잠정 OpenAI Moderation 무료 1차) | OpenAI Moderation 단독 (무료·권장) / Claude API 정밀 / Hybrid |
+| ~~DEC-R1-photo~~ | 리뷰 사진 업로드 포함 여부 | ✅ **제외 확정 (S313)** — Phase 3 보류 (도입 시 어드민 승인제) | 〃 |
+| ~~DEC-R-auth~~ | 작성 자격 | ✅ **확정 (S313)** — 로그인 누구나 (구매 인증 불필요) | 〃 |
 
 ---
 
