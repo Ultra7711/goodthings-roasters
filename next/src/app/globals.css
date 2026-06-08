@@ -695,10 +695,16 @@ body {
 
 /* 푸터 → components/layout/SiteFooter.css (S195 Pilot 15) */
 
-/* ══ 공용 밑줄 버튼 (.text-link / --subtle / --danger / --quiet) ══
+/* ══ 공용 밑줄 버튼 (.text-link / --subtle) ══
    --text-link-* 토큰(:root) 소비. base = secondary 위계 + gold hover.
-   분산돼 있던 lp-* / chp-guest-link / mp-cancel-link / mp-hero-meta-link 를
-   점진 통일하기 위한 단일 소스. (본문 인라인 .mp-rights-note a 는 성격이 달라 제외) */
+   font-size 는 부모 맥락 상속(사용처별 크기가 달라 공용에 고정하지 않음).
+   사용처: 약관 "보기"(base) + chp-guest-link(--subtle).
+   ── 통일 범위 (S313 검증 결과) ──
+   · lp-switch-link / lp-forgot / lp-guest-order-btn = tap-target hit-area +
+     반응형 14px 다운 + inline-flex 정렬이 클래스명에 얽혀 정당한 예외(보류).
+   · mp-cancel-link = dead 였음(삭제). mp-hero-meta-link = 완전 상속형
+     (font/color/ls inherit) + focus-visible 라 공용화 ROI 없어 현행 유지.
+   · 본문 인라인 .mp-rights-note a 는 성격이 달라 제외. */
 .text-link {
   display: inline;
   padding: 0; margin: 0;
@@ -719,14 +725,8 @@ body {
   transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
 .text-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
-/* 서브 — caption 위계 (비번찾기 / 비회원 결제) */
+/* 서브 — caption 위계 (비회원 결제) */
 .text-link--subtle { color: var(--text-link-subtle-color); }
-/* 위험 — tertiary + error hover (취소 등) */
-.text-link--danger { color: var(--color-text-tertiary); text-decoration-color: var(--color-border-secondary); }
-.text-link--danger:hover { color: var(--color-error); text-decoration-color: var(--color-error); }
-/* 은은 — 평소 밑줄 숨김, hover 시 text-primary (hero meta) */
-.text-link--quiet { color: inherit; text-decoration-color: transparent; }
-.text-link--quiet:hover { color: var(--color-text-primary); text-decoration-color: var(--color-text-primary); }
 
 /* ══ CTA 버튼 시스템 (.cta-btn / .cta-btn-light-filled / .cta-btn-light-outline) ══
    S196 Pilot 20-c 에서 CartDrawer.css 로 분리됐다가, S220 cart CTA 통일 시 globals 로 복귀.

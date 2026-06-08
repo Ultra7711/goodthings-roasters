@@ -335,20 +335,6 @@
 .mp-toggle-close { opacity: 0; transform: rotate(-90deg); }
 .mp-toggle-icon.open .mp-toggle-chevron { opacity: 0; transform: rotate(90deg); }
 .mp-toggle-icon.open .mp-toggle-close { opacity: 1; transform: rotate(0); }
-.mp-cancel-link {
-  background: none; border: none; padding: 0; cursor: pointer;
-  font-family: var(--font-kr);
-  font-size: var(--type-body-m-size);
-  font-weight: var(--text-link-font-weight);
-  letter-spacing: var(--text-link-letter-spacing);
-  color: var(--color-text-tertiary);
-  text-decoration: underline;
-  text-decoration-color: var(--color-border-secondary);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
-}
-.mp-cancel-link:hover { color: var(--color-error); text-decoration-color: var(--color-error); }
 .mp-form-reveal--sub .mp-info-row { border-bottom: none; box-shadow: none; flex-wrap: wrap; row-gap: 6px; }
 /* 정기배송 커스텀 드롭다운 — chp-field 인풋 + pd-dropdown-panel 메뉴 */
 .mp-cycle-dropdown-wrap { position: relative; }
