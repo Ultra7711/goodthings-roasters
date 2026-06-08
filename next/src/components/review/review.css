@@ -137,6 +137,17 @@
 .review-form .chp-field-textarea {
   margin-bottom: 0;
 }
+/* 시트(카페 바텀시트) 입력칸 배경을 content 영역(stone-light)과 일치 — 입력칸이
+   크림(#FBF8F3)으로 도드라지던 것 제거. page(PDP)는 크림 배경이라 그대로 유지. */
+.review-section--sheet .review-form .chp-input {
+  background: var(--color-surface-stone-light);
+}
+/* 시트 빈 별 — content(stone-light) 배경 위에서 border-input(#D9D6D2)은 대비가 약해
+   알레르기 칩 테두리 톤(rgba(28,27,25,0.10))으로 맞춤. 입력 별점 + 표시 별점 공통. */
+.review-section--sheet .review-star:not(.is-filled),
+.review-section--sheet .review-star-bg {
+  fill: rgba(28, 27, 25, 0.10);
+}
 
 /* ── 요약 헤더 (평균 + 분포) ── */
 .review-summary {
