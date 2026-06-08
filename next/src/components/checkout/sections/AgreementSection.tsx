@@ -5,11 +5,9 @@
 
 'use client';
 
-import { ChevronRight } from '@/components/ui/Icons';
-
-const AGREEMENT_LABELS = [
-  '[필수] 쇼핑몰 이용약관 동의',
-  '[필수] 개인정보 수집 및 이용 동의',
+const AGREEMENTS = [
+  { label: '[필수] 쇼핑몰 이용약관 동의', href: '/legal/terms' },
+  { label: '[필수] 개인정보 수집 및 이용 동의', href: '/legal/privacy' },
 ] as const;
 
 function CheckboxIcon() {
@@ -45,14 +43,22 @@ export default function AgreementSection({
         <span className="chp-agree-all-label">모든 약관 동의</span>
       </label>
       <div className="chp-agree-items">
-        {AGREEMENT_LABELS.map((label, idx) => (
+        {AGREEMENTS.map(({ label, href }, idx) => (
           <label key={idx} className="chp-agree-item" onClick={(e) => { e.preventDefault(); onToggle(idx); }}>
             <input type="checkbox" checked={agreements[idx]} readOnly />
             <span className={`chp-check-icon${agreements[idx] ? ' checked' : ''}`}>
               <CheckboxIcon />
             </span>
             <span className="chp-agree-item-label">{label}</span>
-            <span className="chp-agree-arrow" aria-hidden="true"><ChevronRight size={20} /></span>
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-link chp-agree-view"
+              onClick={(e) => e.stopPropagation()}
+            >
+              보기
+            </a>
           </label>
         ))}
       </div>
