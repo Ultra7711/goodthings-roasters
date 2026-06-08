@@ -76,7 +76,12 @@ create index reviews_menu_idx    on public.reviews(menu_id, created_at desc)    
 
 ---
 
-## Phase 1 — 텍스트 리뷰 (24~48h · 6~12 sprint)
+## Phase 1 — 텍스트 리뷰 ✅ 완료 (S314 · `cfeec225`~`561ce269`)
+
+> Step 0~5 + 어드민 모더레이션(/admin/reviews owner-only) + 차단 리뷰 알림 + 087(익명 보존) 완료.
+> 마이그 084·085·086·087 적용. 상세 = `memory/project_session314_complete.md`.
+> **남은: Phase 2(AI 필터) · 유도책 4종 · CSV export.**
+
 
 > 작성자 = 닉네임(실명 노출 0). 닉네임 인프라가 **선행(Step 0)**.
 
@@ -91,7 +96,10 @@ create index reviews_menu_idx    on public.reviews(menu_id, created_at desc)    
 
 ---
 
-## Phase 2 — AI 욕설 필터링 (8~16h · 2~4 sprint)
+## Phase 2 — AI 욕설 필터링 (8~16h · 2~4 sprint) ⏳ 다음 (S315)
+
+> **착수 전 구체화 필요 (S315 Step 0)**: 검수 방법(OpenAI Moderation 무료 단독 vs Claude hybrid·한국어 정확도)·검수 시점(작성 동기 차단 vs 비동기 큐)·정책(blocked 즉시/pending 큐/graceful 실패). `moderation_result` jsonb(085)·검토 큐(status 탭) 이미 준비됨.
+
 
 > 정책 = DEC-R2-policy(유저단 즉시 차단 + 어드민 사후). vendor = OpenAI Moderation 무료 1차.
 
