@@ -473,6 +473,9 @@
   transform: translateX(100%);
   transition: transform var(--drawer-transition-duration) var(--drawer-transition-easing);
   overflow-y: auto;
+  /* 세로 스크롤 출현 시 cns-content 의 margin-right:-scrollbar-w (sb 영역 배경 확장)
+     가 가로 overflow(가로 스크롤바)를 만드는 것을 차단. 배경 확장은 그대로 유지. */
+  overflow-x: hidden;
   /* panel 자체 스크롤바 자리 항상 예약 → 콘텐츠 너비 일정 (스크롤 출현/소멸 시
      image-wrap·콘텐츠 폭 변동 방지). */
   scrollbar-gutter: stable;
