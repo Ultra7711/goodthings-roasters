@@ -82,7 +82,7 @@
 .review-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
 .review-form-rating-row {
@@ -99,8 +99,12 @@
 
 .review-form-actions {
   display: flex;
-  justify-content: flex-end;
   gap: 8px;
+}
+
+/* 취소 / 등록 1:1 분할 — 좌우 꽉 채움 */
+.review-form-actions > .cta-btn {
+  flex: 1;
 }
 
 .review-form-error {
@@ -192,6 +196,8 @@
 .review-sort {
   display: flex;
   gap: 4px;
+  /* 위(요약/분포)와 간격은 넓게, 아래(목록)와는 좁게 — 비대칭 */
+  margin-top: 16px;
 }
 
 .review-sort-btn {
@@ -294,16 +300,40 @@
 .review-section {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
-.review-section-top {
+/* 좌(요약)·우(목록) 컬럼 — 1단에선 세로 흐름, PDP 데스크탑에선 2단 grid */
+.review-section-summary {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 16px;
 }
+.review-section-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* PDP 데스크탑(≥1024): 2단 — 좌 요약 sticky / 우 목록. 태블릿↓·시트는 1단 유지. */
+@media (min-width: 1024px) {
+  .review-section--page {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    column-gap: 60px;
+    align-items: start;
+  }
+  .review-section--page .review-section-summary {
+    position: sticky;
+    top: 88px;
+  }
+  /* 우 정렬 탭을 좌 타이틀(eyebrow + h2)의 h2 베이스라인에 맞춤.
+     좌 eyebrow 영역(line + margin-bottom 14) 높이만큼 정렬 탭을 내림. (inspect 미세조정) */
+  .review-section--page .review-sort {
+    margin-top: 30px;
+  }
+}
+
 
 .review-section-list {
   display: flex;
@@ -319,7 +349,26 @@
 
 .review-section-more {
   align-self: center;
-  margin-top: 4px;
+  /* 위(목록)와는 거의 붙이고(카드 도움돼요 버튼이 여백 역할), 아래(작성 버튼)와는 간격 확보 */
+  margin-top: -6px;
+  margin-bottom: 10px;
+  /* text-link 는 font-size inherit → wrap 이 크기 책임 (lessons §text-link) + 탭 영역 */
+  padding: 4px;
+  font-size: 13px;
+}
+
+/* 하단 작성 버튼 — 좌우 꽉 채움 (시트·모바일·태블릿) */
+.review-section-write-cta {
+  width: 100%;
+}
+
+/* PDP 데스크탑(≥1024): 단독 작성 버튼은 1/2 폭 중앙 (full 은 과도하게 넓음).
+   작성 폼(입력창+취소/등록)은 full 유지. */
+@media (min-width: 1024px) {
+  .review-section--page .review-section-write-cta {
+    width: 50%;
+    align-self: center;
+  }
 }
 
 .review-section-write {
@@ -334,4 +383,8 @@
 }
 .review-section--sheet .review-card {
   padding: 14px 0;
+}
+/* 시트 작성 폼: textarea 하단 margin 축소 (입력칸 ↔ 취소/등록 간격) */
+.review-section--sheet .review-section-write .chp-field-textarea {
+  margin-bottom: 12px;
 }

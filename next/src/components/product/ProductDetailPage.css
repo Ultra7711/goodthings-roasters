@@ -124,6 +124,18 @@
     padding: 0 var(--layout-padding-x);
   }
 }
+/* ⑤ Reviews chapter (S314) — brewing 상단 간격 답습 + 페이지 하단 여백(섹션 패딩 120/80) */
+.pd-chapter-reviews {
+  padding-top: 80px;
+  padding-bottom: 120px;
+}
+@media (max-width: 1023px) {
+  .pd-chapter-reviews {
+    padding-top: 56px;
+    padding-bottom: 80px;
+  }
+}
+
 /* ③ Brewing chapter — Advisory C §7.1 heading + 콘텐츠 */
 .pd-chapter-brewing {
   padding-top: 80px;
@@ -247,11 +259,11 @@
     margin-top: -48px;
   }
 }
-/* ④ Detail chapter — 페이지 끝 spacing.
-   #pd-accordions 자체는 padding/margin 0. 페이지 하단 80 (데스크탑) / 80 (모바일) 부여. */
+/* ④ Detail chapter. 뒤에 ⑤ Reviews 가 이어지므로 하단 spacing 0 — 리뷰 챕터
+   padding-top 이 간격을 담당 (S314: detail 이 더 이상 페이지 끝이 아님 · 160 중첩 해소). */
 .pd-chapter-detail {
   padding-top: 48px;
-  padding-bottom: 80px;
+  padding-bottom: 0;
 }
 
 /* 좌: 이미지 */

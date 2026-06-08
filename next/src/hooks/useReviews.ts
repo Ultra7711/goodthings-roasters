@@ -83,8 +83,9 @@ export function useReviews(target: ReviewTarget, pageSize: number) {
     (next: ReviewSort) => {
       if (next === sort) return;
       setSort(next);
-      setLoading(true);
-      void fetchPage(next, 0, false).finally(() => setLoading(false));
+      /* 기존 목록 유지하며 교체 (isLoading 미사용) — 전체 "불러오는 중" 교체로 인한
+         레이아웃 높이 변동(흔들림) 방지. 정렬 결과는 총개수 동일이라 높이 안정. */
+      void fetchPage(next, 0, false);
     },
     [sort, fetchPage],
   );
@@ -145,10 +146,9 @@ export function useReviews(target: ReviewTarget, pageSize: number) {
     [myHelpfuls],
   );
 
-  /* 작성/수정/삭제 후 새로고침 — 현재 정렬 첫 페이지로 리셋 */
+  /* 작성/수정/삭제 후 새로고침 — 현재 정렬 첫 페이지로 리셋 (기존 목록 유지하며 교체). */
   const refresh = useCallback(() => {
-    setLoading(true);
-    void fetchPage(sort, 0, false).finally(() => setLoading(false));
+    void fetchPage(sort, 0, false);
   }, [sort, fetchPage]);
 
   return {

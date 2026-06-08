@@ -179,13 +179,18 @@ export default function ProductDetailPage({ product }: Props) {
           <ProductAccordions category={product.category} slug={product.slug} />
         </section>
 
-        {/* ⑤ Reviews — 유저 리뷰 (S314 · 실 구매자만 작성) */}
+        {/* ⑤ Reviews — 유저 리뷰 (S314 · 실 구매자만 작성). 데스크탑 2단(좌 요약 sticky). */}
         <section className="pd-chapter pd-chapter-reviews">
-          <header className="pd-chapter-header">
-            <p className="pd-chapter-eyebrow">Reviews</p>
-            <h2 className="pd-chapter-h2">리뷰</h2>
-          </header>
-          <ReviewSection variant="page" target={{ productSlug: product.slug }} />
+          <ReviewSection
+            variant="page"
+            target={{ productSlug: product.slug }}
+            title={
+              <header className="pd-chapter-header">
+                <p className="pd-chapter-eyebrow">Reviews</p>
+                <h2 className="pd-chapter-h2">리뷰</h2>
+              </header>
+            }
+          />
         </section>
       </div>
     </div>

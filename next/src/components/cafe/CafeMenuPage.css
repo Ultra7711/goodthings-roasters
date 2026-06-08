@@ -770,6 +770,11 @@
   margin-top: 20px;
   border-top: 1px solid var(--color-border-hairline);
 }
+/* 알레르기 영역이 없어 영양정보 테이블 바로 뒤에 올 때는 테이블 마지막 행 선과
+   중첩되므로 리뷰 구분선 생략 (테이블 선이 구분 역할). */
+.cns-table + .cns-reviews {
+  border-top: none;
+}
 .cns-reviews-title {
   font-family: var(--font-kr);
   font-size: 13px;

@@ -25,7 +25,7 @@ export default function ReviewSummaryHeader({ summary, variant }: Props) {
     <div className="review-summary">
       <div className="review-summary-avg">
         <span className="review-summary-avg-num">{summary.average.toFixed(1)}</span>
-        <RatingStars value={summary.average} size={variant === 'sheet' ? 16 : 18} />
+        <RatingStars value={summary.average} size={32} />
         <span className="review-summary-count">리뷰 {summary.total}개</span>
       </div>
 

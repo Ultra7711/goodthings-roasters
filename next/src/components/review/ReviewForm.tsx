@@ -42,7 +42,7 @@ export default function ReviewForm({ target, initial, onSuccess, onCancel }: Pro
       </div>
 
       <Textarea
-        label="리뷰 내용"
+        ariaLabel="리뷰 내용"
         value={form.body}
         onChange={(v) => {
           form.setBody(v);
@@ -50,7 +50,6 @@ export default function ReviewForm({ target, initial, onSuccess, onCancel }: Pro
         }}
         maxLength={2000}
         rows={5}
-        helper="솔직한 후기를 남겨주세요. (최대 2000자)"
       />
 
       {form.error && <p className="review-form-error">{form.error}</p>}

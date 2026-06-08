@@ -27,8 +27,10 @@ export type TextareaProps = {
   /** 값 변경 콜백 */
   onChange: (value: string) => void;
 
-  /** 플로팅 레이블 텍스트 */
-  label: string;
+  /** 플로팅 레이블 텍스트 (생략 시 라벨 미표시 — aria-label 로 접근성 보장) */
+  label?: string;
+  /** 시각적 label 없이 접근성 라벨만 부여할 때 (label 미제공 시) */
+  ariaLabel?: string;
 
   /** 헬퍼 텍스트 (포커스 시) */
   helper?: string;
@@ -75,6 +77,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
     value,
     onChange,
     label,
+    ariaLabel,
     helper,
     error,
     id,
@@ -124,15 +127,18 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         readOnly={readOnly}
         style={style}
         value={value}
+        aria-label={!label ? ariaLabel : undefined}
         onChange={(e) => onChange(e.target.value)}
         onBlur={(e) => { setIsFocused(false); onBlur?.(e); }}
         onFocus={(e) => { setIsFocused(true); onFocus?.(e); }}
         onPaste={onPaste}
         onKeyDown={onKeyDown}
       />
-      <label className="chp-floating-label" htmlFor={id}>
-        {label}
-      </label>
+      {label && (
+        <label className="chp-floating-label" htmlFor={id}>
+          {label}
+        </label>
+      )}
 
       {/* 클리어 아이콘 — textarea 는 상단 우측 */}
       {showClearIcon && (
