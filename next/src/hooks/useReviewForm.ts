@@ -31,6 +31,8 @@ function mapReviewError(error: string, message?: string): string {
       return '구매한 상품에만 리뷰를 작성할 수 있습니다.';
     case 'already_reviewed':
       return '이미 작성한 리뷰가 있습니다. 기존 리뷰를 수정해 주세요.';
+    case 'blocked':
+      return '부적절한 표현이 포함되어 등록할 수 없습니다. 내용을 확인해 주세요.';
     case 'unauthenticated':
       return '로그인이 필요합니다.';
     case 'invalid':

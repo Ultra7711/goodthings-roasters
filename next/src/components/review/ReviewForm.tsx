@@ -77,7 +77,7 @@ export default function ReviewForm({ target, initial, onSuccess, onCancel }: Pro
           }}
           data-gtr-tap
         >
-          {form.isLoading ? '저장 중…' : initial ? '수정' : '등록'}
+          {form.isLoading ? (initial ? '수정 중…' : '등록 중…') : initial ? '수정' : '등록'}
         </button>
       </div>
     </div>
