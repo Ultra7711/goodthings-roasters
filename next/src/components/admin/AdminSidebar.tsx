@@ -17,6 +17,7 @@ import type { CSSProperties } from 'react';
 import {
   BarChart3,
   Building2,
+  MessageSquareText,
   Calendar,
   ChevronDown,
   ClipboardClock,
@@ -78,6 +79,10 @@ function buildNavGroups(adminLevel: 'owner' | 'staff'): NavGroup[] {
         { href: '/admin/analytics', label: '통계', icon: BarChart3 },
         { href: '/admin/newsletter', label: '뉴스레터', icon: Mail },
         { href: '/admin/biz-inquiries', label: '비즈 문의', icon: Building2 },
+        /* 리뷰 모더레이션 — owner-only (계획 DEC) */
+        ...(adminLevel === 'owner'
+          ? [{ href: '/admin/reviews', label: '리뷰', icon: MessageSquareText }]
+          : []),
       ],
     },
     {
