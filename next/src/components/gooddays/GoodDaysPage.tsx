@@ -40,6 +40,11 @@ import { useHistoryDismiss } from '@/hooks/useHistoryDismiss';
 
 type GdSlide = SlideImage & { blurDataURL?: string };
 
+/* 모바일 zone tap(좌우 이동) 을 unmount 하는 줌 임계값 (S313).
+   zoom>1 즉시가 아니라 살짝 줌(<1.3)은 zone tap 유지 → 좌우 이동 가능.
+   충분히 줌(>=1.3)되면 팬 우선이라 zone unmount (핀치 인식 방해 차단). */
+const ZONE_TAP_ZOOM_THRESHOLD = 1.3;
+
 type Props = {
   /** 서버 측에서 searchParams.img 으로 결정된 초기 이미지 src (없으면 null).
       page.tsx (server component) 가 prop 으로 전달 → 첫 paint 부터 라이트박스 open. */
@@ -78,11 +83,16 @@ export default function GoodDaysPage({ initialImgSrc, gallery }: Props) {
   /* 모바일 detection — render.buttonZoom hide 용 (모바일은 핀치 제스처로 충분).
      SSR 안전: 첫 렌더 false → mount 후 matchMedia 결과로 갱신. */
   const [isMobile, setIsMobile] = useState(false);
+  /* on.zoom 콜백이 stale isMobile 을 캡처하지 않도록 ref 미러 (S313). */
+  const isMobileRef = useRef(false);
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
-
-    setIsMobile(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    const update = (matches: boolean) => {
+      setIsMobile(matches);
+      isMobileRef.current = matches;
+    };
+    update(mq.matches);
+    const handler = (e: MediaQueryListEvent) => update(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
@@ -390,9 +400,13 @@ export default function GoodDaysPage({ initialImgSrc, gallery }: Props) {
               clickTimerRef.current = null;
             }
             lastZoomAtRef.current = performance.now();
-            const zoomed = zoom > 1;
-            setIsZoomed(zoomed);
-            setControlsHidden(zoomed);
+            /* Fix 2 (S313): zone tap(좌우 이동) 은 살짝 줌까지 유지 → 충분히 줌될 때만
+               unmount. zoom>1 즉시 제거 시 살짝 줌에도 좌우 이동 불가했던 회귀 fix. */
+            setIsZoomed(zoom > ZONE_TAP_ZOOM_THRESHOLD);
+            /* Fix 1 (S313): controls 자동 hide 는 모바일 핀치 몰입에만 적용.
+               데스크탑은 줌+ 버튼 클릭 시에도 toolbar 가 사라져(pointer-events:none)
+               연속 확대가 불가했음 → 데스크탑은 줌 자동 hide 제외 (UI 토글은 click 만). */
+            if (isMobileRef.current) setControlsHidden(zoom > 1);
           },
           /* image 클릭 → 컨트롤 토글 (X · 화살표 · 줌 +/- 일괄).
              - zoom 발화 직후 320ms 내 click → 더블클릭의 2nd tap 으로 간주 + 무시
