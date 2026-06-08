@@ -393,8 +393,7 @@
   --tab-border-active: 1px solid var(--color-text-primary);
   --tab-border-hover: rgba(0,0,0,.4);
 
-  /* ── 밑줄 버튼 — 공통 ── */
-  --text-link-font-size: var(--type-body-m-size);
+  /* ── 밑줄 버튼 — 공통 (크기는 .text-link 가 부모 맥락 상속하므로 토큰 없음) ── */
   --text-link-font-weight: 500;
   --text-link-letter-spacing: var(--ls-button);
   --text-link-padding-bottom: 1px;
@@ -1480,23 +1479,8 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
   color: var(--color-text-secondary); line-height: 24px; margin: 16px 0 0; text-align: center;
 }
 /* 비회원 Secondary CTA */
-.chp-guest-link-wrap { text-align: center; margin-top: 24px; }
-.chp-guest-link {
-  display: inline;
-  padding: 0; background: transparent; border: none; cursor: pointer;
-  font-family: var(--font-kr);
-  font-size: var(--text-link-font-size);
-  font-weight: var(--text-link-font-weight);
-  letter-spacing: var(--text-link-letter-spacing);
-  color: var(--text-link-subtle-color);
-  line-height: 1;
-  text-decoration: underline;
-  text-decoration-color: var(--color-border-primary);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
-}
-.chp-guest-link:hover { color: var(--color-accent-gold); text-decoration-color: var(--color-accent-gold); }
+/* 래퍼가 텍스트 크기 맥락(15px)을 책임 → 내부 .text-link 가 inherit. (S313 통일) */
+.chp-guest-link-wrap { text-align: center; margin-top: 24px; font-size: var(--type-body-m-size); }
 
 /* 약관 동의 */
 .chp-agree-all-row {

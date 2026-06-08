@@ -59,7 +59,7 @@ export default function ContactSection({
           </Link>
           <p className="chp-login-benefit">로그인하면 배송지 정보가 자동으로 채워집니다.</p>
           <div className="chp-guest-link-wrap">
-            <button className="chp-guest-link" type="button" onClick={onGuestContinue}>
+            <button className="text-link text-link--subtle" type="button" onClick={onGuestContinue}>
               비회원으로 주문하기
             </button>
           </div>
