@@ -49,14 +49,15 @@ export function useReviews(target: ReviewTarget, pageSize: number) {
   const reqIdRef = useRef(0);
 
   const fetchPage = useCallback(
-    async (nextSort: ReviewSort, offset: number, append: boolean) => {
+    async (nextSort: ReviewSort, offset: number, append: boolean, initial = false) => {
       const reqId = ++reqIdRef.current;
       const url = `/api/reviews?${qs}&sort=${nextSort}&offset=${offset}&limit=${pageSize}`;
       try {
         const res = await fetch(url);
+        if (reqId !== reqIdRef.current) return; // stale 응답 폐기
         if (!res.ok) return;
         const json = (await res.json()) as { data: ApiPayload };
-        if (reqId !== reqIdRef.current) return; // stale 응답 폐기
+        if (reqId !== reqIdRef.current) return; // await 사이 새 요청 → 폐기
         const data = json.data;
         setReviews((prev) => (append ? [...prev, ...data.reviews] : data.reviews));
         setSummary(data.summary);
@@ -69,6 +70,11 @@ export function useReviews(target: ReviewTarget, pageSize: number) {
         });
       } catch (err) {
         console.error('[useReviews] fetch failed', err);
+      } finally {
+        /* 초기 로딩 해제는 stale 가드 안에서만 — dev StrictMode 이중 fetch 시
+           폐기된 첫 요청의 finally 가 isLoading 을 조기에 꺼서 데이터 도착 전
+           EMPTY_SUMMARY(0.0) 가 노출되는 깜빡임 방지. 최신 요청만 해제. */
+        if (initial && reqId === reqIdRef.current) setLoading(false);
       }
     },
     [qs, pageSize],
@@ -76,7 +82,7 @@ export function useReviews(target: ReviewTarget, pageSize: number) {
 
   useEffect(() => {
     setLoading(true);
-    void fetchPage('latest', 0, false).finally(() => setLoading(false));
+    void fetchPage('latest', 0, false, true);
   }, [fetchPage]);
 
   const changeSort = useCallback(
