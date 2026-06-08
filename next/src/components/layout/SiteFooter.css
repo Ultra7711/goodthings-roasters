@@ -168,21 +168,24 @@ footer.blk {
   transition: color var(--duration-hover) linear;
 }
 .f-biz-inline {
-  /* .f-bottom-wrap(flex column)의 직접 자식이며 .f-bottom-row 의 형제 */
+  /* .f-bottom-wrap(flex column)의 직접 자식이며 .f-bottom-row 의 형제.
+     grid-template-rows 0fr→1fr 로 콘텐츠 실제 높이만큼 펼침 — 고정 max-height(240) 추측값
+     폐기로 모바일 긴 콘텐츠 잘림/2단 열림 해소. overflow 는 래퍼 .f-biz-inner 가 담당. */
   font-family: var(--font-kr);
   font-size: var(--type-caption-size);
   color: rgba(250,250,248,.4);
   line-height: 24px;
-  max-height: 0;
-  overflow: hidden;
+  display: grid;
+  grid-template-rows: 0fr;
   opacity: 0;
   transition:
-    max-height var(--duration-drawer) ease,
+    grid-template-rows var(--duration-drawer) ease,
     opacity var(--duration-transition) ease,
     margin var(--duration-drawer) ease;
   margin-top: 0;
 }
-.f-biz-inline.open { max-height: 240px; opacity: 1; margin-top: 8px; }
+.f-biz-inline.open { grid-template-rows: 1fr; opacity: 1; margin-top: 8px; }
+.f-biz-inner { overflow: hidden; min-height: 0; }
 
 /* 모바일: 1행 저작권 / 2행 사업자 정보·이용약관·개인정보 */
 @media (max-width: 767px) {

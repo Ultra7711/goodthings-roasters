@@ -177,6 +177,7 @@ export default function FooterBottom() {
         id="f-biz-detail"
         aria-hidden={!open}
       >
+        <div className="f-biz-inner">
         {BUSINESS_INFO.companyName}<span className="f-biz-sep">·</span>
         대표 {BUSINESS_INFO.ceo}<span className="f-biz-sep">·</span>
         사업자 등록번호 {BUSINESS_INFO.registrationNumber}<span className="f-biz-sep">·</span>
@@ -195,6 +196,7 @@ export default function FooterBottom() {
         이메일 {process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? '—'}<span className="f-biz-sep">·</span>
         개인정보관리책임자 {BUSINESS_INFO.privacyOfficer}<span className="f-biz-sep">·</span>
         호스팅 제공자 {BUSINESS_INFO.hostingProvider}
+        </div>
       </div>
     </div>
   );
