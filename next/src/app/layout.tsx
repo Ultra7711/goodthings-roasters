@@ -75,7 +75,11 @@ export default async function RootLayout({
   const siteSettings = await fetchSiteSettings();
 
   return (
-    <html lang="ko" className={`${inter.variable} ${pretendard.variable} antialiased`}>
+    <html
+      lang="ko"
+      suppressHydrationWarning
+      className={`${inter.variable} ${pretendard.variable} antialiased`}
+    >
       <head>
         <link rel="preload" as="image" href="/images/hero/hero-poster.webp" fetchPriority="high" />
         {/* iOS Safari 데이터 디텍터 — 이메일·전화번호 자동 링크 변환 방지 */}
