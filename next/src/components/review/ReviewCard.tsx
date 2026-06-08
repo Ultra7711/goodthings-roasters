@@ -49,16 +49,22 @@ export default function ReviewCard({
       <p className="review-card-body">{review.body}</p>
 
       <div className="review-card-foot">
-        <button
-          type="button"
-          className={`review-helpful-btn${isHelpful ? ' is-active' : ''}`}
-          aria-pressed={isHelpful}
-          onClick={onToggleHelpful}
-          data-gtr-tap
-        >
-          <ThumbIcon />
-          <span>도움돼요{review.helpfulCount > 0 ? ` ${review.helpfulCount}` : ''}</span>
-        </button>
+        <div className="review-card-foot-main">
+          <button
+            type="button"
+            className={`review-helpful-btn${isHelpful ? ' is-active' : ''}`}
+            aria-pressed={isHelpful}
+            onClick={onToggleHelpful}
+            data-gtr-tap
+          >
+            <ThumbIcon />
+            <span>도움돼요{review.helpfulCount > 0 ? ` ${review.helpfulCount}` : ''}</span>
+          </button>
+          {/* 검토 대기 — 본인에게만 노출 (타인엔 pending 자체가 안 옴) */}
+          {isMine && review.status === 'pending' && (
+            <span className="review-card-pending">검토중</span>
+          )}
+        </div>
 
         {isMine && (
           <div className="review-card-mine">

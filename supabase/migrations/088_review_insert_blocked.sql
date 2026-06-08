@@ -3,7 +3,7 @@
 --
 -- 배경:
 --   085 reviews_insert_own 은 insert status 를 ('pending','approved') 로만 제한했다.
---   Phase 2 동기 검수(createReview 안에서 OpenAI Moderation 호출)는 욕설 감지 시
+--   Phase 2 동기 검수(createReview 안에서 로컬 사전 분류)는 명백 욕설 감지 시
 --   리뷰를 status='blocked' 로 저장해야 한다 — moderation_result 보존 + 어드민
 --   /admin/reviews "차단됨" 탭 검토 + blocked 알림벨 연계를 위함.
 --

@@ -112,6 +112,16 @@
   color: var(--color-error);
 }
 
+/* 약(경계어) 인라인 경고 — 중립 안내 톤 (error 빨강과 구분) */
+.review-form-warn {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  background: var(--color-background-secondary);
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
 /* ── 요약 헤더 (평균 + 분포) ── */
 .review-summary {
   display: flex;
@@ -259,6 +269,20 @@
   justify-content: space-between;
   gap: 12px;
   margin-top: 12px;
+}
+
+/* 도움돼요 + 검토중 배지 (같은 라인 좌측 그룹) */
+.review-card-foot-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 검토 대기 배지 — 본인 전용 · 빨강 */
+.review-card-pending {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-error);
 }
 
 .review-helpful-btn {

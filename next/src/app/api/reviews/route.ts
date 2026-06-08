@@ -13,7 +13,7 @@ import { apiError, apiSuccess } from '@/lib/api/errors';
 import { getClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { toReview, REVIEW_SELECT, type ReviewRow } from '@/lib/reviewMap';
-import type { ReviewSort, ReviewSummary } from '@/types/review';
+import type { Review, ReviewSort, ReviewSummary } from '@/types/review';
 
 const LIMIT_DEFAULT = 5;
 const LIMIT_MAX = 20;
@@ -44,6 +44,7 @@ export async function GET(req: Request): Promise<Response> {
     }
 
     const supabase = await createRouteHandlerClient();
+    const claims = await getClaims();
 
     let query = supabase
       .from('reviews')
@@ -79,9 +80,26 @@ export async function GET(req: Request): Promise<Response> {
     const summary: ReviewSummary = (summaryData as ReviewSummary | null) ?? EMPTY_SUMMARY;
 
     const reviewRows = (rows ?? []) as ReviewRow[];
-    const reviews = reviewRows.map(toReview);
+    const approvedReviews = reviewRows.map(toReview);
 
-    const claims = await getClaims();
+    /* 본인 검토 대기(pending) — 첫 페이지 + 로그인 시 상단 노출 (타인엔 비공개).
+       RLS reviews_select_own 이 본인 전체 조회 허용. 평균/분포(summary)는 approved 만. */
+    let myPending: Review[] = [];
+    if (offset === 0 && claims) {
+      const { data: pendingRows, error: pendErr } = await supabase
+        .from('reviews')
+        .select(REVIEW_SELECT)
+        .eq(productSlug ? 'product_slug' : 'menu_id', (productSlug ?? menuId) as string)
+        .eq('user_id', claims.userId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      if (pendErr) {
+        console.error('[GET /api/reviews] my pending error', { code: pendErr.code });
+      } else {
+        myPending = (pendingRows ?? []).map(toReview);
+      }
+    }
+    const reviews = [...myPending, ...approvedReviews];
 
     /* 작성 권한 — 메뉴=로그인 누구나 / 상품=구매 이력(has_purchased_product RPC) */
     let canWrite = false;
@@ -115,7 +133,8 @@ export async function GET(req: Request): Promise<Response> {
       }
     }
 
-    const hasMore = offset + reviews.length < summary.total;
+    /* hasMore 는 공개(approved) 기준 — 본인 pending 은 페이지네이션 무관(첫 페이지 상단). */
+    const hasMore = offset + approvedReviews.length < summary.total;
 
     return apiSuccess({ reviews, summary, hasMore, myHelpfuls, canWrite });
   } catch (err) {

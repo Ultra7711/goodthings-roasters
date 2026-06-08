@@ -11,11 +11,6 @@
  */
 export type ReviewStatus = 'pending' | 'approved' | 'blocked' | 'deleted';
 
-/** 리뷰 대상 도메인 — 상품(product_slug) XOR 메뉴(menu_id) */
-export type ReviewTarget =
-  | { productSlug: string; menuId: null }
-  | { productSlug: null; menuId: string };
-
 /** 리뷰 (앱 camelCase — DB reviews 행 매핑) */
 export type Review = {
   id: string;
@@ -33,8 +28,8 @@ export type Review = {
   updatedAt: string;
 };
 
-/** 별점 분포 (1~5 각 개수) */
-export type RatingDistribution = Record<'1' | '2' | '3' | '4' | '5', number>;
+/** 별점 분포 (1~5 각 개수) — ReviewSummary 내부 참조 전용 */
+type RatingDistribution = Record<'1' | '2' | '3' | '4' | '5', number>;
 
 /** 리뷰 요약 — get_review_summary RPC 반환 (평균/분포/총개수) */
 export type ReviewSummary = {

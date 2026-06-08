@@ -172,9 +172,13 @@ export default function ReviewSection({ variant, target, title }: Props) {
             <div className="review-section-write" ref={writeFormRef}>
               <ReviewForm
                 target={formTarget}
-                onSuccess={() => {
+                onSuccess={(status) => {
                   setWriting(false);
-                  toast('리뷰가 등록되었습니다.');
+                  toast(
+                    status === 'pending'
+                      ? '리뷰가 접수되었습니다. 검토 후 공개됩니다.'
+                      : '리뷰가 등록되었습니다.',
+                  );
                   r.refresh();
                 }}
                 onCancel={() => setWriting(false)}

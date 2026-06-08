@@ -11,7 +11,7 @@ import { useRef } from 'react';
 import './review.css';
 import RatingInput from './RatingInput';
 import { Textarea } from '@/components/ui/Textarea';
-import { useReviewForm } from '@/hooks/useReviewForm';
+import { useReviewForm, type SubmittedStatus } from '@/hooks/useReviewForm';
 import { shakeFields } from '@/lib/shakeFields';
 
 type Props = {
@@ -19,7 +19,7 @@ type Props = {
   target: { productSlug: string | null; menuId: string | null };
   /** 수정 모드 초기값 (없으면 작성) */
   initial?: { id: string; rating: number; body: string };
-  onSuccess?: () => void;
+  onSuccess?: (status?: SubmittedStatus) => void;
   onCancel?: () => void;
 };
 
@@ -54,32 +54,62 @@ export default function ReviewForm({ target, initial, onSuccess, onCancel }: Pro
 
       {form.error && <p className="review-form-error">{form.error}</p>}
 
-      <div className="review-form-actions">
-        {onCancel && (
+      {form.needsConfirm && (
+        <p className="review-form-warn">
+          부적절할 수 있는 표현이 감지됐어요. 그대로 등록하면 검토 후 게재됩니다.
+        </p>
+      )}
+
+      {form.needsConfirm ? (
+        /* 약(경계어) 경고 — 수정 / 그대로 등록(검토 대기) */
+        <div className="review-form-actions">
           <button
             type="button"
             className="cta-btn cta-btn-light-outline"
-            onClick={onCancel}
+            onClick={form.cancelConfirm}
             disabled={form.isLoading}
             data-gtr-tap
           >
-            취소
+            수정
           </button>
-        )}
-        <button
-          type="button"
-          className="cta-btn cta-btn-light-filled"
-          disabled={form.isLoading}
-          onClick={() => {
-            void form.submit().then((ok) => {
-              if (!ok) setTimeout(() => shakeFields(formRef.current), 0);
-            });
-          }}
-          data-gtr-tap
-        >
-          {form.isLoading ? (initial ? '수정 중…' : '등록 중…') : initial ? '수정' : '등록'}
-        </button>
-      </div>
+          <button
+            type="button"
+            className="cta-btn cta-btn-light-filled"
+            disabled={form.isLoading}
+            onClick={() => void form.submit(true)}
+            data-gtr-tap
+          >
+            {form.isLoading ? '등록 중…' : '그대로 등록'}
+          </button>
+        </div>
+      ) : (
+        <div className="review-form-actions">
+          {onCancel && (
+            <button
+              type="button"
+              className="cta-btn cta-btn-light-outline"
+              onClick={onCancel}
+              disabled={form.isLoading}
+              data-gtr-tap
+            >
+              취소
+            </button>
+          )}
+          <button
+            type="button"
+            className="cta-btn cta-btn-light-filled"
+            disabled={form.isLoading}
+            onClick={() => {
+              void form.submit().then((outcome) => {
+                if (outcome === 'error') setTimeout(() => shakeFields(formRef.current), 0);
+              });
+            }}
+            data-gtr-tap
+          >
+            {form.isLoading ? (initial ? '수정 중…' : '등록 중…') : initial ? '수정' : '등록'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

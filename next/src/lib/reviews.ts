@@ -39,7 +39,7 @@ const reviewSchema = z
 export type CreateReviewInput = z.input<typeof reviewSchema>;
 
 export type CreateReviewResult =
-  | { ok: true; id: string }
+  | { ok: true; id: string; status: 'approved' | 'pending' }
   | {
       ok: false;
       error:
@@ -48,11 +48,16 @@ export type CreateReviewResult =
         | 'not_eligible'
         | 'already_reviewed'
         | 'blocked'
+        | 'needs_confirm'
         | 'db_error';
       message?: string;
     };
 
-export async function createReview(input: CreateReviewInput): Promise<CreateReviewResult> {
+export async function createReview(
+  input: CreateReviewInput,
+  /** 약(경계어) 인라인 경고 후 작성자가 '그대로 등록' 확인 시 true → pending 저장. */
+  confirmed = false,
+): Promise<CreateReviewResult> {
   const parsed = reviewSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: 'invalid', message: parsed.error.issues[0]?.message };
@@ -65,11 +70,21 @@ export async function createReview(input: CreateReviewInput): Promise<CreateRevi
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: 'unauthenticated' };
 
-  /* AI 욕설 필터 (Phase 2 · 동기 검수). 절대 throw 안 함 — 실패 시 graceful 'pending'.
-     clean→approved / flagged→blocked / 실패·키없음→pending(어드민 검토 큐). */
+  /* 욕설 필터 (Phase 2 · 로컬 사전 동기 검수). 결정적·throw 없음. */
   const moderation = await moderateReviewBody(body);
 
-  /* id 사전생성 + RETURNING 회피 (bizSubmit 답습 · RLS select 정책 적용 부작용 차단). */
+  /* 강(명백 욕설·혐오·위협) → 작성 거부 (저장 안 함 → 작성자 즉시 수정·재작성 자유). */
+  if (moderation.status === 'blocked') {
+    return { ok: false, error: 'blocked' };
+  }
+  /* 약(경계·문맥의존) → 1차엔 인라인 경고 요청 (저장 안 함). 작성자가 '그대로 등록'
+     (confirmed=true) 으로 재호출할 때만 pending 저장 → 어드민 검토 큐(허용/삭제). */
+  if (moderation.status === 'pending' && !confirmed) {
+    return { ok: false, error: 'needs_confirm' };
+  }
+
+  /* 저장: clean→approved 즉시 게재 / 약+confirmed→pending.
+     id 사전생성 + RETURNING 회피 (bizSubmit 답습 · author_nickname 은 트리거 강제). */
   const id = randomUUID();
   const { error } = await supabase.from('reviews').insert({
     id,
@@ -80,7 +95,6 @@ export async function createReview(input: CreateReviewInput): Promise<CreateRevi
     body,
     status: moderation.status,
     moderation_result: moderation.result,
-    /* author_nickname: 트리거 강제 (set_review_author_nickname). */
   });
 
   if (error) {
@@ -90,13 +104,7 @@ export async function createReview(input: CreateReviewInput): Promise<CreateRevi
     console.error('[reviews.createReview] insert failed', error);
     return { ok: false, error: 'db_error' };
   }
-
-  /* 차단 판정 — DB 엔 blocked 로 보존(어드민 검토·moderation_result)되, 작성자에겐 거부.
-     approved/pending 은 등록 처리(pending=AI 실패 시 어드민 승인 후 게재). */
-  if (moderation.status === 'blocked') {
-    return { ok: false, error: 'blocked' };
-  }
-  return { ok: true, id };
+  return { ok: true, id, status: moderation.status };
 }
 
 const updateSchema = z.object({
@@ -125,8 +133,8 @@ export async function updateReview(
   if (!user) return { ok: false, error: 'unauthenticated' };
 
   /* 수정 본문 재검수 (작성 우회 차단). status 전이 트리거상 작성자는 approved→blocked
-     전환이 불가하므로, 욕설 감지 시 update 자체를 거부(body 유지·기존 status 보존).
-     graceful(pending 판정)·통과는 그대로 수정 허용 — AI 실패로 정상 수정 막지 않음. */
+     전환이 불가하므로, 강(명백 욕설) 감지 시 update 자체를 거부(body 유지·기존 status 보존).
+     약(pending 판정)·통과는 그대로 수정 허용 — 경계어로 정상 수정 막지 않음. */
   const moderation = await moderateReviewBody(parsed.data.body);
   if (moderation.status === 'blocked') {
     return { ok: false, error: 'blocked' };

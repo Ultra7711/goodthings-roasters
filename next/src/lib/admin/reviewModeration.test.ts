@@ -1,111 +1,72 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   reviewModeration.test.ts — moderateReviewBody 판정 + graceful unit test
+   reviewModeration.test.ts — 로컬 사전 분류 판정 unit test
 
    커버리지:
-   - 키 부재 → pending (skipped)
-   - clean(flagged:false) → approved
-   - flagged:true → blocked + categories 추출
-   - http non-ok → pending (http_NNN)
-   - 파싱 실패(results 없음) → pending (parse_failed)
-   - fetch reject(network) → pending (network_error)
-   - abort(timeout) → pending (timeout)
-   - 절대 throw 안 함
+   - 강(명백 욕설) → blocked + matched 보존
+   - 강 우회(공백·숫자·특수문자 삽입) → 정규화로 blocked
+   - 약(혐오·경계) → pending
+   - clean → approved
+   - 화이트리스트(존맛·미친 강조 등 커피 리뷰 긍정어) → approved (오탐 방지 핵심)
+   - 빈/공백 → approved
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { moderateReviewBody } from './reviewModeration';
 
-const ORIGINAL_KEY = process.env.OPENAI_API_KEY;
-
-function mockFetchOk(payload: unknown) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async () => ({ ok: true, status: 200, json: async () => payload }) as unknown as Response),
-  );
-}
-
-describe('moderateReviewBody', () => {
-  beforeEach(() => {
-    process.env.OPENAI_API_KEY = 'test-key';
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    process.env.OPENAI_API_KEY = ORIGINAL_KEY;
-  });
-
-  it('키 부재 → pending (skipped: no_api_key)', async () => {
-    delete process.env.OPENAI_API_KEY;
-    const d = await moderateReviewBody('맛있어요');
-    expect(d.status).toBe('pending');
-    expect(d.result.skipped).toBe('no_api_key');
-  });
-
-  it('clean(flagged:false) → approved', async () => {
-    mockFetchOk({ results: [{ flagged: false, categories: {}, category_scores: { hate: 0.001 } }] });
-    const d = await moderateReviewBody('정말 향이 좋네요');
-    expect(d.status).toBe('approved');
-    expect(d.result.flagged).toBe(false);
-    expect(d.result.scores).toMatchObject({ hate: 0.001 });
-  });
-
-  it('flagged:true → blocked + 위반 카테고리만 추출', async () => {
-    mockFetchOk({
-      results: [
-        {
-          flagged: true,
-          categories: { harassment: true, hate: false, violence: true },
-          category_scores: { harassment: 0.95, hate: 0.02, violence: 0.8 },
-        },
-      ],
-    });
-    const d = await moderateReviewBody('욕설 본문');
+describe('moderateReviewBody — 로컬 사전 분류', () => {
+  it('명백 욕설 → blocked + matched 보존', async () => {
+    const d = await moderateReviewBody('씨발 맛없어');
     expect(d.status).toBe('blocked');
-    expect(d.result.flagged).toBe(true);
-    expect(d.result.categories).toEqual(['harassment', 'violence']);
-    expect(d.result.scores?.harassment).toBe(0.95);
+    expect(d.result.tier).toBe('strong');
+    expect(d.result.matched).toBeTruthy();
+    expect(d.result.provider).toBe('local');
   });
 
-  it('http non-ok → pending (http_NNN)', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => ({ ok: false, status: 429, json: async () => ({}) }) as unknown as Response),
-    );
-    const d = await moderateReviewBody('본문');
-    expect(d.status).toBe('pending');
-    expect(d.result.error).toBe('http_429');
+  it('욕설 우회(숫자·공백·특수문자) → 정규화로 blocked', async () => {
+    for (const text of ['시1발', '시 발', '씨@발', '병1신', 'ㅅ.ㅂ']) {
+      const d = await moderateReviewBody(text);
+      expect(d.status, `"${text}" 는 차단돼야 함`).toBe('blocked');
+    }
   });
 
-  it('파싱 실패(results 없음) → pending (parse_failed)', async () => {
-    mockFetchOk({ unexpected: true });
-    const d = await moderateReviewBody('본문');
-    expect(d.status).toBe('pending');
-    expect(d.result.error).toBe('parse_failed');
+  it('혐오·위협 → blocked (작성 거부)', async () => {
+    for (const text of ['짱깨 같은', '조센징', '김치녀', '뒈져라', '정신병자', '쪽바리']) {
+      const d = await moderateReviewBody(text);
+      expect(d.status, `"${text}" 는 차단돼야 함`).toBe('blocked');
+    }
   });
 
-  it('fetch reject(network) → pending (network_error)', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => {
-        throw new Error('connection refused');
-      }),
-    );
-    const d = await moderateReviewBody('본문');
-    expect(d.status).toBe('pending');
-    expect(d.result.error).toBe('network_error');
+  it('경계·문맥의존어 → pending (어드민 검토)', async () => {
+    for (const text of ['존나 맛있다', '졸라 좋음', '기레기네', '미친새 진짜', '찌질하다']) {
+      const d = await moderateReviewBody(text);
+      expect(d.status, `"${text}" 는 대기여야 함`).toBe('pending');
+      expect(d.result.tier).toBe('watch');
+    }
   });
 
-  it('abort(timeout) → pending (timeout)', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => {
-        const err = new Error('aborted');
-        err.name = 'AbortError';
-        throw err;
-      }),
-    );
-    const d = await moderateReviewBody('본문');
-    expect(d.status).toBe('pending');
-    expect(d.result.error).toBe('timeout');
+  it('정상 리뷰 → approved', async () => {
+    for (const text of ['정말 향이 좋아요', '고소하고 균형 잡힌 맛', '배송 빨라요']) {
+      const d = await moderateReviewBody(text);
+      expect(d.status, `"${text}" 는 게재돼야 함`).toBe('approved');
+      expect(d.result.tier).toBe('clean');
+      expect(d.result.matched).toBeNull();
+    }
+  });
+
+  it('화이트리스트(긍정 강조어) → approved (오탐 방지)', async () => {
+    for (const text of ['존맛탱 최고예요', '졸맛입니다', '미친 고소함', '존좋', '개존맛']) {
+      const d = await moderateReviewBody(text);
+      expect(d.status, `"${text}" 는 게재돼야 함(오탐 금지)`).toBe('approved');
+    }
+  });
+
+  it('욕설+긍정 혼합 → 욕설 우선 blocked', async () => {
+    const d = await moderateReviewBody('씨발 존맛이긴 함');
+    expect(d.status).toBe('blocked');
+  });
+
+  it('빈/공백 본문 → approved', async () => {
+    const d = await moderateReviewBody('   ');
+    expect(d.status).toBe('approved');
   });
 });
