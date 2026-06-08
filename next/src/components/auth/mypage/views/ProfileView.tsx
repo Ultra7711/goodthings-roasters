@@ -18,11 +18,13 @@ import AddressSection from '../AddressSection';
 type Props = {
   name: string;
   email: string;
+  /* 유저 리뷰 작성자 닉네임 (편집 가능). SSR prefetch. */
+  nickname: string;
   /* S283: newsletter status SSR prefetch — view 전환 시 "불러오는 중…" 폐기. */
   initialNewsletterStatus?: NewsletterStatusResult;
 };
 
-export default function ProfileView({ name, email, initialNewsletterStatus }: Props) {
+export default function ProfileView({ name, email, nickname, initialNewsletterStatus }: Props) {
   const { show: toast } = useToast();
   const { data: addressData, isPending: isAddressLoading } = useDefaultAddressQuery();
   const saveAddress = useSaveDefaultAddress();
@@ -45,7 +47,7 @@ export default function ProfileView({ name, email, initialNewsletterStatus }: Pr
 
   return (
     <div className="mp-section-body">
-      <AccountInfoRow name={name} email={email} initialNewsletterStatus={initialNewsletterStatus} />
+      <AccountInfoRow name={name} email={email} nickname={nickname} initialNewsletterStatus={initialNewsletterStatus} />
       <AddressSection
         initialAddress={addressData ?? null}
         isLoading={isAddressLoading}

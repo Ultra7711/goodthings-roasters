@@ -21,6 +21,7 @@ import {
 import { findOrdersForUser, getOrdersCountForUser } from '@/lib/repositories/orderRepo';
 import { toOrder } from '@/lib/orders/toOrder';
 import { getNewsletterStatus, type NewsletterStatusResult } from '@/lib/newsletter';
+import { getMyNickname } from '@/lib/profile';
 import type { Subscription } from '@/types/subscription';
 import type { Order } from '@/types/order';
 import MyPagePage from '@/components/auth/MyPagePage';
@@ -41,7 +42,7 @@ async function MyPageAuthed() {
      - ordersCount: count-only RPC (HeroGreeting + SideNav 카운트)
      - adminLevel: admin 인 경우 'owner' | 'staff' (HeroGreeting 라벨)
      - products: S282-P2 — SubscriptionView lazy fetch (server action) · 90% dead fetch 회피. */
-  const [subscriptions, orders, ordersCount, adminClaims, newsletterStatus] = await Promise.all([
+  const [subscriptions, orders, ordersCount, adminClaims, newsletterStatus, nickname] = await Promise.all([
     findSubscriptionsForUser()
       .then((rows) => rows.map(toSubscription))
       .catch((err): Subscription[] => {
@@ -68,6 +69,11 @@ async function MyPageAuthed() {
       console.error('[mypage.prefetch] newsletter status failed', err);
       return { ok: false, error: 'db_error' };
     }),
+    /* 유저 리뷰 작성자 닉네임 SSR prefetch — ProfileView 편집 행 flash 차단. */
+    getMyNickname().catch((err): string | null => {
+      console.error('[mypage.prefetch] nickname failed', err);
+      return null;
+    }),
   ]);
 
   const adminLevel: AdminLevel | null = adminClaims?.adminLevel ?? null;
@@ -80,6 +86,7 @@ async function MyPageAuthed() {
       initialOrdersCount={ordersCount}
       adminLevel={adminLevel}
       initialNewsletterStatus={newsletterStatus}
+      initialNickname={nickname ?? ''}
     />
   );
 }

@@ -53,6 +53,8 @@ type MyPagePageProps = {
   adminLevel: AdminLevel | null;
   /** S283: newsletter status SSR prefetch — ProfileView 진입 시 즉시 표시 (loading 폐기). */
   initialNewsletterStatus: NewsletterStatusResult;
+  /** 유저 리뷰 작성자 닉네임 SSR prefetch — ProfileView 편집 행 초기값 (flash 차단). */
+  initialNickname: string;
 };
 
 export default function MyPagePage({
@@ -62,6 +64,7 @@ export default function MyPagePage({
   initialOrdersCount,
   adminLevel,
   initialNewsletterStatus,
+  initialNickname,
 }: MyPagePageProps) {
   const router = useRouter();
   const { show: toast } = useToast();
@@ -267,6 +270,7 @@ export default function MyPagePage({
           <ProfileView
             name={profileDisplayName}
             email={effectiveEmail}
+            nickname={initialNickname}
             initialNewsletterStatus={initialNewsletterStatus}
           />
         );
@@ -278,6 +282,7 @@ export default function MyPagePage({
     initialOrders,
     profileDisplayName,
     effectiveEmail,
+    initialNickname,
     handleLoggedOut,
     initialNewsletterStatus,
   ]);

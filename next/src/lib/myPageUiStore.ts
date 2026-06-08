@@ -33,6 +33,7 @@ type State = {
   isAddrOpen: boolean;
   isPwOpen: boolean;
   isEmailOpen: boolean;
+  isNicknameOpen: boolean;
   subEditId: string | null;
   subCycleEdit: SubscriptionCycle | null;
   isCycleDropdownOpen: boolean;
@@ -54,6 +55,7 @@ const INITIAL_STATE: State = {
   isAddrOpen: false,
   isPwOpen: false,
   isEmailOpen: false,
+  isNicknameOpen: false,
   subEditId: null,
   subCycleEdit: null,
   isCycleDropdownOpen: false,
@@ -119,6 +121,10 @@ export function setPwOpen(open: boolean) {
 
 export function setEmailOpen(open: boolean) {
   setState((s) => (s.isEmailOpen === open ? s : { ...s, isEmailOpen: open }));
+}
+
+export function setNicknameOpen(open: boolean) {
+  setState((s) => (s.isNicknameOpen === open ? s : { ...s, isNicknameOpen: open }));
 }
 
 export function setSubEditId(id: string | null) {
@@ -209,6 +215,14 @@ export function useMyPageEmailOpen(): boolean {
   return useSyncExternalStore(
     subscribe,
     () => getStore().state.isEmailOpen,
+    () => false,
+  );
+}
+
+export function useMyPageNicknameOpen(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => getStore().state.isNicknameOpen,
     () => false,
   );
 }
