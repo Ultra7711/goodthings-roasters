@@ -107,19 +107,35 @@
   flex: 1;
 }
 
-.review-form-error {
+/* 메시지 고정 슬롯 — 에러/경고가 같은 높이를 항상 차지 → 메시지 유무와 무관하게
+   버튼 위치 고정(밀림 방지). error=빨강 / warn=중립 회색. */
+.review-form-msg {
+  min-height: 20px;
+  /* 입력칸과의 review-form gap(10) 상쇄 → 입력칸 바로 아래 밀착 (별점↔입력칸 간격은 유지) */
+  margin: -10px 0 0;
   font-size: 13px;
+  line-height: 20px;
+}
+.review-form-msg[data-tone='error'] {
   color: var(--color-error);
 }
-
-/* 약(경계어) 인라인 경고 — 중립 안내 톤 (error 빨강과 구분) */
-.review-form-warn {
-  font-size: 13px;
-  line-height: 1.5;
+.review-form-msg[data-tone='warn'] {
   color: var(--color-text-secondary);
-  background: var(--color-background-secondary);
-  padding: 10px 12px;
-  border-radius: 8px;
+}
+
+/* 리뷰 Textarea — floating label 미사용(ariaLabel 만) → 상단 label 자리 패딩 축소
+   (입력 첫 줄이 위로 붙음) + 하단 마진 0 (입력칸 ↔ 메시지/버튼 간격 최소).
+   클리어 아이콘 위치도 함께 보정. */
+.review-form .chp-textarea {
+  padding-top: 8px;
+}
+.review-form .chp-textarea-clear {
+  /* padding-top(8) 줄임에 맞춰 텍스트 첫 줄 중앙에 아이콘 정렬 (상단 기준 top 8 은 어긋남) */
+  top: 18px;
+  transform: translateY(-50%);
+}
+.review-form .chp-field-textarea {
+  margin-bottom: 0;
 }
 
 /* ── 요약 헤더 (평균 + 분포) ── */
@@ -407,8 +423,4 @@
 }
 .review-section--sheet .review-card {
   padding: 14px 0;
-}
-/* 시트 작성 폼: textarea 하단 margin 축소 (입력칸 ↔ 취소/등록 간격) */
-.review-section--sheet .review-section-write .chp-field-textarea {
-  margin-bottom: 12px;
 }

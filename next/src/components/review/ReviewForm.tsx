@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import './review.css';
 import RatingInput from './RatingInput';
 import { Textarea } from '@/components/ui/Textarea';
@@ -26,6 +26,18 @@ type Props = {
 export default function ReviewForm({ target, initial, onSuccess, onCancel }: Props) {
   const form = useReviewForm({ target, initial, onSuccess });
   const formRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  /* 작성/수정 폼 마운트 시 입력칸 자동 포커스 (입력 필드 단일).
+     preventScroll — 스크롤은 ReviewSection(컨테이너 scrollHeight)이 담당.
+     수정 모드는 커서를 본문 맨 뒤로 (작성 모드는 빈 값이라 0,0 = 무관). */
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.focus({ preventScroll: true });
+    const len = ta.value.length;
+    ta.setSelectionRange(len, len);
+  }, []);
 
   return (
     <div className="review-form" ref={formRef}>
@@ -42,6 +54,7 @@ export default function ReviewForm({ target, initial, onSuccess, onCancel }: Pro
       </div>
 
       <Textarea
+        ref={textareaRef}
         ariaLabel="리뷰 내용"
         value={form.body}
         onChange={(v) => {
@@ -52,13 +65,13 @@ export default function ReviewForm({ target, initial, onSuccess, onCancel }: Pro
         rows={5}
       />
 
-      {form.error && <p className="review-form-error">{form.error}</p>}
-
-      {form.needsConfirm && (
-        <p className="review-form-warn">
-          부적절할 수 있는 표현이 감지됐어요. 그대로 등록하면 검토 후 게재됩니다.
-        </p>
-      )}
+      {/* 메시지 고정 슬롯 — 에러/경고 동일 높이 (버튼 위치 고정) */}
+      <p
+        className="review-form-msg"
+        data-tone={form.error ? 'error' : form.needsConfirm ? 'warn' : undefined}
+      >
+        {form.error ?? (form.needsConfirm ? '부적절할 수 있는 표현이 감지됐어요.' : '')}
+      </p>
 
       {form.needsConfirm ? (
         /* 약(경계어) 경고 — 수정 / 그대로 등록(검토 대기) */
