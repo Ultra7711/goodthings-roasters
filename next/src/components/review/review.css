@@ -1,0 +1,78 @@
+/* ══════════════════════════════════════════
+   review.css — 유저 리뷰 전용 스타일 (Phase 1)
+   신규 컴포넌트 전용 CSS (기존 유틸 재활용 금지 · lessons §7).
+   ══════════════════════════════════════════ */
+
+/* ── 별점 입력 (RatingInput) ── */
+.review-rating-input {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.review-star-btn {
+  background: none;
+  border: none;
+  padding: 2px;
+  margin: 0;
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 4px;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms var(--ease-out, ease);
+}
+
+.review-star-btn:disabled {
+  cursor: default;
+}
+
+.review-star-btn:focus-visible {
+  outline: 2px solid var(--color-accent-gold);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .review-star-btn:not(:disabled):hover {
+    transform: scale(1.08);
+  }
+}
+
+.review-star {
+  display: block;
+  fill: var(--color-border-input);
+  transition: fill 120ms ease;
+}
+
+.review-star.is-filled {
+  fill: var(--color-warning);
+}
+
+/* ── 작성 폼 (ReviewForm) ── */
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-form-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-form-rating-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.review-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.review-form-error {
+  font-size: 13px;
+  color: var(--color-error);
+}
