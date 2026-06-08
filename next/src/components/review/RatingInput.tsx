@@ -10,8 +10,8 @@
 
 import { useCallback, useState } from 'react';
 
-/* 표준 5각별 path (24×24 viewBox) */
-const STAR_PATH =
+/* 표준 5각별 path (24×24 viewBox) — RatingStars(표시용)와 공유 */
+export const STAR_PATH =
   'M12 2l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545L12 17.011l-5.878 3.09 1.123-6.545L2.489 8.91l6.572-.955z';
 
 const STARS = [1, 2, 3, 4, 5] as const;

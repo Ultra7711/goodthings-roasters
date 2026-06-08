@@ -765,6 +765,19 @@
   padding: 16px 0 0;
   background: transparent;
 }
+.cns-reviews {
+  padding: 20px 0 0;
+  margin-top: 20px;
+  border-top: 1px solid var(--color-border-hairline);
+}
+.cns-reviews-title {
+  font-family: var(--font-kr);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 14px;
+  letter-spacing: var(--ls-neutral);
+}
 .cns-allergen-title {
   font-family: var(--font-kr);
   font-size: 12px;

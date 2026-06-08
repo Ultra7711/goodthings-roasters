@@ -29,6 +29,7 @@ import DripBagSteps from './DripBagSteps';
 import ProductAccordions from './ProductAccordions';
 import OverscrollTop from '@/components/ui/OverscrollTop';
 import OverscrollAnchor from '@/components/ui/OverscrollAnchor';
+import ReviewSection from '@/components/review/ReviewSection';
 
 type Props = { product: Product };
 
@@ -176,6 +177,15 @@ export default function ProductDetailPage({ product }: Props) {
         {/* ④ Detail — 아코디언 + SpecTable (V2 §5.5) */}
         <section className="pd-chapter pd-chapter-detail">
           <ProductAccordions category={product.category} slug={product.slug} />
+        </section>
+
+        {/* ⑤ Reviews — 유저 리뷰 (S314 · 실 구매자만 작성) */}
+        <section className="pd-chapter pd-chapter-reviews">
+          <header className="pd-chapter-header">
+            <p className="pd-chapter-eyebrow">Reviews</p>
+            <h2 className="pd-chapter-h2">리뷰</h2>
+          </header>
+          <ReviewSection variant="page" target={{ productSlug: product.slug }} />
         </section>
       </div>
     </div>

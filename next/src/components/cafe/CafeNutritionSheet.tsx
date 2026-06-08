@@ -27,6 +27,7 @@ import { CloseIcon } from '@/components/ui/Icons';
 import MenuCardBadges from './MenuCardBadges';
 import MenuLikeSheetButton from './MenuLikeSheetButton';
 import MenuName from './MenuName';
+import ReviewSection from '@/components/review/ReviewSection';
 
 /** 온도 pill (S245-P20 재설계 · outline 한 줄 텍스트). both = 표시 X. */
 function getTempBadge(
@@ -234,6 +235,12 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
                   </div>
                 );
               })()}
+
+              {/* 유저 리뷰 (S314 · 회원 누구나 작성) */}
+              <div className="cns-reviews">
+                <p className="cns-reviews-title">리뷰</p>
+                <ReviewSection variant="sheet" target={{ menuId: item.id }} />
+              </div>
             </div>
           </>
           );
