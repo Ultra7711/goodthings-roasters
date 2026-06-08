@@ -1,7 +1,8 @@
 /* ══════════════════════════════════════════════════════════════════════════
    GET /api/menu-likes
-   - 전체 메뉴 좋아요 집계 카운트 반환 (공개)
-   - 로그인 사용자라면 자신이 좋아요한 menu_id 목록도 함께 반환
+   - 로그인 사용자가 좋아요한 menu_id 목록 반환 (client liked hydrate 용)
+   - 비로그인은 빈 배열 (쿼리 0회)
+   - 전체 집계 counts 는 SSR snapshot(lib/menuLikesServer)이 담당 — 여기선 미반환
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { connection } from 'next/server';
@@ -15,40 +16,21 @@ export async function GET(): Promise<Response> {
      dynamic 마킹 → Next.js 가 즉시 dynamic 처리하여 prerender attempt 자체 차단. */
   await connection();
   try {
-    const supabase = await createRouteHandlerClient();
+    const claims = await getClaims();
+    if (!claims) return apiSuccess({ liked: [] });
 
-    // counts 집계와 인증 체크를 병렬 실행
-    const [{ data: rows, error }, claims] = await Promise.all([
-      supabase.from('menu_likes').select('menu_id'),
-      getClaims(),
-    ]);
+    const supabase = await createRouteHandlerClient();
+    const { data: myLikes, error } = await supabase
+      .from('menu_likes')
+      .select('menu_id')
+      .eq('user_id', claims.userId);
 
     if (error) {
-      console.error('[GET /api/menu-likes] select error', { code: error.code, message: error.message });
+      console.error('[GET /api/menu-likes] myLikes error', { code: error.code, message: error.message });
       return apiError('server_error');
     }
 
-    // menu_id → count 집계
-    const counts: Record<string, number> = {};
-    for (const row of rows ?? []) {
-      counts[row.menu_id] = (counts[row.menu_id] ?? 0) + 1;
-    }
-
-    let liked: string[] = [];
-    if (claims) {
-      const { data: myLikes, error: myErr } = await supabase
-        .from('menu_likes')
-        .select('menu_id')
-        .eq('user_id', claims.userId);
-
-      if (myErr) {
-        console.error('[GET /api/menu-likes] myLikes error', { code: myErr.code, message: myErr.message });
-      } else {
-        liked = (myLikes ?? []).map((r) => r.menu_id);
-      }
-    }
-
-    return apiSuccess({ counts, liked });
+    return apiSuccess({ liked: (myLikes ?? []).map((r) => r.menu_id) });
   } catch (err) {
     console.error('[GET /api/menu-likes] unexpected error', err);
     return apiError('server_error');
