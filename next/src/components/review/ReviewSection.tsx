@@ -16,6 +16,7 @@ import type { ReviewSort } from '@/types/review';
 import ReviewSummaryHeader from './ReviewSummaryHeader';
 import ReviewCard from './ReviewCard';
 import ReviewForm from './ReviewForm';
+import { ReviewSummarySkeleton, ReviewListSkeleton } from './ReviewSkeleton';
 
 const PAGE_SIZE: Record<'page' | 'sheet', number> = { page: 5, sheet: 3 };
 
@@ -88,7 +89,11 @@ export default function ReviewSection({ variant, target, title }: Props) {
       {/* 좌 컬럼 (데스크탑 sticky) — 타이틀 + 평균/별/개수/분포 */}
       <div className="review-section-summary">
         {title}
-        <ReviewSummaryHeader summary={r.summary} variant={variant} />
+        {r.isLoading ? (
+          <ReviewSummarySkeleton />
+        ) : (
+          <ReviewSummaryHeader summary={r.summary} variant={variant} />
+        )}
       </div>
 
       {/* 우 컬럼 — 정렬 + 목록 + 더보기 + 작성 */}
@@ -110,7 +115,7 @@ export default function ReviewSection({ variant, target, title }: Props) {
 
         {/* 목록 (비었을 때 — 작성 중이면 빈 안내 숨김) */}
         {r.isLoading ? (
-        <p className="review-section-empty">불러오는 중…</p>
+        <ReviewListSkeleton count={variant === 'sheet' ? 2 : 3} />
       ) : r.reviews.length === 0 ? (
         /* 빈 안내는 작성 가능자에게만(첫 리뷰 유도). 미구매/비로그인은 하단 권한 안내로 일원화. */
         !writing && canWrite && (
