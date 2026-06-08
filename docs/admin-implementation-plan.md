@@ -272,7 +272,9 @@ mattpocock `improve-codebase-architecture` + `zoom-out` skill 본격 적용. S22
 | **DEC-S249-2** | Quick Win + Domain 묶음 동시 진입 vs 분리 | S249+ 진입 전 | 일괄 / Quick → 검증 → Domain |
 | ~~DEC-R1-UI~~ | 리뷰 UI 위치 | ✅ **통합 확정 (S313)** — 상품 PDP 섹션 + 메뉴 바텀시트 내부 | `docs/review-implementation-plan.md` |
 | ~~DEC-R2-policy~~ | AI 필터링 차단 정책 | ✅ **확정 (S313)** — 유저단 즉시 차단 + 어드민 사후 검토(blocked↔approved) | 〃 |
-| **DEC-R2-vendor** | AI 필터링 옵션 | Group O Phase 2 진입 전 (잠정 OpenAI Moderation 무료 1차) | OpenAI Moderation 단독 (무료·권장) / Claude API 정밀 / Hybrid |
+| ~~DEC-R2-vendor~~ | AI 필터링 옵션 | ✅ **OpenAI Moderation 무료 단독 (S313)** — 부족 시 운영 데이터 보고 Claude 추가 | `docs/review-implementation-plan.md` |
+| ~~DEC-R-display~~ | 작성자 표시 | ✅ **닉네임 자동생성 (S313)** — profiles.nickname + 마이페이지 편집 (Phase 1 Step 0) | 〃 |
+| ~~DEC-R-meta~~ | 별점 요약 | ✅ **분포 막대 + 정렬 (S313)** (최신/도움순/별점) | 〃 |
 | ~~DEC-R1-photo~~ | 리뷰 사진 업로드 포함 여부 | ✅ **제외 확정 (S313)** — Phase 3 보류 (도입 시 어드민 승인제) | 〃 |
 | ~~DEC-R-auth~~ | 작성 자격 | ✅ **확정 (S313)** — 로그인 누구나 (구매 인증 불필요) | 〃 |
 

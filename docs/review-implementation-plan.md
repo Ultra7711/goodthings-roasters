@@ -14,7 +14,9 @@
 | **DEC-R1-photo** | 포토 리뷰 | **제외** (Phase 3 보류 — 도입 시 "어드민 승인제" 조건. Egress(월 5GB)·이미지 모더레이션 부담 때문) |
 | **DEC-R-auth** | 작성 자격 | **로그인 사용자 누구나** (구매 인증 불필요 → orders 연결 X) |
 | **DEC-R2-policy** | 필터 정책 | **유저단 즉시 차단** (AI 미통과 = 게재 거부) + **어드민 사후 검토**(blocked↔approved 토글) |
-| **DEC-R2-vendor** | AI vendor | **OpenAI Moderation API 무료 1차** (한국어 정확도 보통). 부족 시 Claude 정밀 하이브리드 — **잔여 확정 필요** |
+| **DEC-R2-vendor** | AI vendor | ✅ **OpenAI Moderation 무료 단독** (S313 확정). 부족 시 운영 데이터 보고 Claude 추가 |
+| **DEC-R-display** | 작성자 표시 | ✅ **닉네임** (S313 확정) — `profiles.nickname` 자동생성 + 마이페이지 편집. 실명 노출 0 |
+| **DEC-R-meta** | 별점 요약 | ✅ **분포 막대 + 정렬**(최신/도움순/별점) (S313 확정) |
 
 ---
 
@@ -62,13 +64,16 @@ create index reviews_menu_idx    on public.reviews(menu_id, created_at desc)    
 
 ---
 
-## Phase 1 — 텍스트 리뷰 (20~40h · 5~10 sprint)
+## Phase 1 — 텍스트 리뷰 (24~48h · 6~12 sprint)
+
+> 작성자 = 닉네임(실명 노출 0). 닉네임 인프라가 **선행(Step 0)**.
 
 | Step | 작업 | 추정 | 재사용 |
 |------|------|------|--------|
+| **0. 닉네임 인프라** | `profiles.nickname` 컬럼 + `handle_new_user` 자동생성(형용사+명사+숫자·중복 허용) + 기존회원 backfill + 마이페이지 프로필 편집 UI | 4~8h | handle_new_user(008)·마이페이지 폼 |
 | **1. DB 마이그** | `069_user_reviews` (reviews + review_helpfuls + RLS + 평균/분포 집계 RPC + helpful_count 트리거) | 4~8h | menu_likes(025) RLS·집계 패턴 |
 | **2. 별점 UI + 작성 폼** | 인터랙티브 별점(SVG 5개·hover/keyboard a11y) + 작성/수정 폼(`useAuthGuard`·Zod 1~2000자) + soft-delete | 4~8h | biz inquiry 폼·Zod·`useHistoryDismiss` |
-| **3. 카드 리스트** | 리뷰 카드(별점·작성자 **마스킹**·날짜·본문·도움돼요·본인 수정/삭제) + **정렬**(최신/별점/도움순) + 페이지네이션 | 4~8h | menuLikesStore(도움돼요 optimistic)·newsletter 페이지네이션 |
+| **3. 카드 리스트** | 리뷰 카드(별점·작성자 **닉네임**·날짜·본문·도움돼요·본인 수정/삭제) + **정렬**(최신/별점/도움순) + 페이지네이션 | 4~8h | menuLikesStore(도움돼요 optimistic)·newsletter 페이지네이션 |
 | **4. 통합 + 메타** | PDP 하단 섹션 + 바텀시트 내부 영역 + **평균★+분포 막대**(헤더) + 상품/메뉴 **카드 평균★·리뷰수 메타** | 4~8h | ProductDetailPage·CafeNutritionSheet·menuLikesServer snapshot |
 | **5. 어드민 모더레이션** | `/admin/reviews` 목록+필터(status/도메인)+상태 토글(approved↔blocked)+영구삭제+CSV+owner-only | 4~8h | biz/newsletter 어드민·AdminTabsNav·CSV |
 
@@ -110,9 +115,9 @@ create index reviews_menu_idx    on public.reviews(menu_id, created_at desc)    
 
 ## 추정 종합
 
-- **Phase 1 (텍스트)**: 20~40h
+- **Phase 1 (텍스트 + 닉네임 인프라 Step 0)**: 24~48h
 - **Phase 2 (AI 필터)**: 8~16h
-- **합계: 28~56h** (포토 제외) · sprint 환산 7~14 (1 sprint=4h)
+- **합계: 32~64h** (포토 제외) · sprint 환산 8~16 (1 sprint=4h)
 
 ## 회귀 검증 체크리스트 (구현 시)
 
@@ -126,8 +131,10 @@ create index reviews_menu_idx    on public.reviews(menu_id, created_at desc)    
 - [ ] PDP + 바텀시트 양쪽 렌더 · 1440/1024/768/360
 - [ ] tsc 0 + vitest pass
 
-## 착수 전 잔여 결정
+## 착수 전 결정 — 전부 확정 (S313)
 
-1. **DEC-R2-vendor 확정** — OpenAI Moderation 무료 단독 / Claude 정밀 추가 / Hybrid (권장: 무료 단독 1차, 운영 데이터 보고 정밀 추가)
-2. 작성자 표기 마스킹 규칙 (예: `홍*동` / 닉네임 / 이메일 prefix)
-3. 별점 분포 막대 포함 범위 (헤더만 / 정렬 필터까지)
+- ✅ AI vendor = **OpenAI Moderation 무료 단독**
+- ✅ 작성자 = **닉네임**(자동생성 + 마이페이지 편집 · 실명 노출 0)
+- ✅ 별점 = **분포 막대 + 정렬**(최신/도움순/별점)
+
+→ **미결 사항 없음.** 닉네임 인프라(Phase 1 Step 0) 선행 후 리뷰 본체 착수.
