@@ -111,7 +111,6 @@ function computePopularRanks(counts: Record<string, number>): Record<string, 1 |
 
 type MenuLikesResponse = {
   data: {
-    counts: Record<string, number>;
     liked: string[];
   };
 };
@@ -122,35 +121,6 @@ type ToggleResponse = {
     count: number;
   };
 };
-
-/** 마운트 시 1회 호출 — 중복 호출 안전 */
-export async function fetchMenuLikes(): Promise<void> {
-  const store = getStore();
-  if (store.fetched) return;
-  store.fetched = true;
-
-  try {
-    const res = await fetch('/api/menu-likes');
-    const json = (await res.json()) as MenuLikesResponse;
-    const counts = json.data?.counts ?? {};
-    const liked = new Set<string>(json.data?.liked ?? []);
-    const popular = computePopularRanks(counts);
-
-    setState((s) => ({
-      ...s,
-      counts,
-      liked,
-      /* 첫 도착 시 badgesCommitted 자동 채움 (fade-in).
-         이미 채워져 있다면(재진입 commit 후) 덮지 않음. */
-      badgesCommitted: Object.keys(s.badgesCommitted).length > 0
-        ? s.badgesCommitted
-        : popular,
-      loading: false,
-    }));
-  } catch {
-    setState((s) => ({ ...s, loading: false }));
-  }
-}
 
 /** 재진입 시 호출 — sort + 뱃지 둘 다 그 시점 popular 으로 갱신 */
 export function commitMenuRanksOnReentry(): void {

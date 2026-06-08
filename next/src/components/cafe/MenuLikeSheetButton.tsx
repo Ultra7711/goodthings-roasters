@@ -8,12 +8,13 @@
 
 'use client';
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   useMenuLiked,
   useMenuLikesCount,
   toggleMenuLike,
 } from '@/lib/menuLikesStore';
+import { HeartIcon, formatLikeCount, useLikePillWidth } from './MenuLikeShared';
 import { showToast } from '@/lib/toastStore';
 import { getSessionSnapshot } from '@/hooks/useSupabaseSession';
 
@@ -21,11 +22,6 @@ type Props = {
   menuId: string;
   menuName: string;
 };
-
-function formatCount(n: number): string {
-  if (n >= 1000) return `${+(n / 1000).toFixed(1)}K`;
-  return String(n);
-}
 
 /* 파티클 burst — 기존 MenuLikeButton 답습 */
 const PARTICLE_COLORS = [
@@ -72,25 +68,8 @@ export default function MenuLikeSheetButton({ menuId, menuName }: Props) {
   const countRef = useRef<HTMLSpanElement>(null);
   const [popping, setPopping] = useState(false);
 
-  /* count 있을 때 baseline + countScrollWidth 로 확장 (MenuLikeCount 답습) */
-  useLayoutEffect(() => {
-    const btn = btnRef.current;
-    const countEl = countRef.current;
-    if (!btn) return;
-
-    function getBaseline(el: HTMLElement): number {
-      const raw = getComputedStyle(el)
-        .getPropertyValue('--like-baseline')
-        .trim();
-      return parseInt(raw, 10) || 52;
-    }
-
-    if (count > 0 && countEl) {
-      btn.style.width = `${Math.ceil(getBaseline(btn) + countEl.scrollWidth)}px`;
-    } else {
-      btn.style.width = '';
-    }
-  }, [count, isLiked]);
+  /* count 있을 때 baseline + countScrollWidth 로 알약 확장 */
+  useLikePillWidth(btnRef, countRef, count, isLiked);
 
   const handleClick = () => {
     /* like 시점만 — pop + particle burst (unlike 시 X) */
@@ -119,20 +98,10 @@ export default function MenuLikeSheetButton({ menuId, menuName }: Props) {
       aria-label={isLiked ? '좋아요 취소' : '좋아요'}
       aria-pressed={isLiked}
     >
-      <svg
-        className="cns-like-icon"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        stroke="none"
-        aria-hidden="true"
-      >
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-      </svg>
+      <HeartIcon className="cns-like-icon" />
       {count > 0 && (
         <span ref={countRef} className="cns-like-count">
-          {formatCount(count)}
+          {formatLikeCount(count)}
         </span>
       )}
     </button>

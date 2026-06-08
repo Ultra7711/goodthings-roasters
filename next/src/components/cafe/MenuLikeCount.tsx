@@ -17,17 +17,13 @@
 
 'use client';
 
-import { useLayoutEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { useMenuLikesCount, useMenuLiked } from '@/lib/menuLikesStore';
+import { HeartIcon, formatLikeCount, useLikePillWidth } from './MenuLikeShared';
 
 type Props = {
   menuId: string;
 };
-
-function formatCount(n: number): string {
-  if (n >= 1000) return `${+(n / 1000).toFixed(1)}K`;
-  return String(n);
-}
 
 export default function MenuLikeCount({ menuId }: Props) {
   const count = useMenuLikesCount(menuId);
@@ -35,26 +31,8 @@ export default function MenuLikeCount({ menuId }: Props) {
   const wrapRef = useRef<HTMLSpanElement>(null);
   const countRef = useRef<HTMLSpanElement>(null);
 
-  /* 기존 MenuLikeButton width 계산 답습 — count 있으면 baseline + countWidth 로 확장.
-     baseline = 좌 padding + icon + gap + 우 padding (CSS 변수 --like-baseline 으로 BP 분기). */
-  useLayoutEffect(() => {
-    const wrap = wrapRef.current;
-    const countEl = countRef.current;
-    if (!wrap) return;
-
-    function getBaseline(el: HTMLElement): number {
-      const raw = getComputedStyle(el)
-        .getPropertyValue('--like-baseline')
-        .trim();
-      return parseInt(raw, 10) || 52;
-    }
-
-    if (count > 0 && countEl) {
-      wrap.style.width = `${Math.ceil(getBaseline(wrap) + countEl.scrollWidth)}px`;
-    } else {
-      wrap.style.width = '';
-    }
-  }, [count, isLiked]);
+  /* count 있으면 baseline + countWidth 로 알약 확장 (--like-baseline BP 분기). */
+  useLikePillWidth(wrapRef, countRef, count, isLiked);
 
   /* count 0 + 안 누른 메뉴 = 인디케이터 hidden (시각 노이즈 최소화) */
   if (count === 0 && !isLiked) return null;
@@ -69,20 +47,10 @@ export default function MenuLikeCount({ menuId }: Props) {
       }
       aria-hidden="true"
     >
-      <svg
-        className="cm-like-count-icon"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        stroke="none"
-        aria-hidden="true"
-      >
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-      </svg>
+      <HeartIcon className="cm-like-count-icon" />
       {count > 0 && (
         <span ref={countRef} className="cm-like-count-num">
-          {formatCount(count)}
+          {formatLikeCount(count)}
         </span>
       )}
     </span>
