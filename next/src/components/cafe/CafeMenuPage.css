@@ -303,9 +303,10 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  /* S245-P20 후속: 두 줄 텍스트 원 안 중앙 정렬 fix.
-     grid + place-items center 가 flex 보다 한글 vertical metric 정렬 더 정확.
-     font 12px · line-height 1.05 · padding-bottom 1px (한글 ascender 보정). */
+  /* 두 줄 텍스트 원 안 중앙 정렬 — grid + place-items center 로 1줄/2줄 모두 중앙.
+     S313: padding-bottom 1px 보정 제거. 텍스트를 위로 밀어올려 영문 NEW(cap-height
+     특성상 본래도 위로 보임)가 위로 떠 보이던 역효과 — 측정 line box -0.8px 위.
+     한글 글리프는 보정 없이 place-items center 로 잉크 중앙 정확. */
   display: grid;
   place-items: center;
   font-family: var(--font-kr);
@@ -317,7 +318,6 @@
   color: var(--color-text-inverse);
   white-space: pre-line;
   pointer-events: none;
-  padding: 0 0 1px;
 }
 /* 색상 variants — 기존 sp-card-badge variant 답습 */
 .cm-meta-badge--new { background: var(--color-status-new); }
