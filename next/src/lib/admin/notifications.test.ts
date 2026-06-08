@@ -23,6 +23,7 @@ type CountMap = {
   refund: number | null;
   untracked: number | null;
   biz: number | null;
+  review?: number | null;
 };
 
 type CountResult = { count: number | null; error: { code: string } | null };
@@ -49,10 +50,11 @@ function makeAdminStub(
       then: (resolve: (r: CountResult) => void) => {
         let key: keyof CountMap;
         if (table === 'biz_inquiries') key = 'biz';
+        else if (table === 'reviews') key = 'review';
         else if (status === 'paid') key = 'paid';
         else if (status === 'refund_requested') key = 'refund';
         else key = 'untracked'; // shipping + is(null)
-        resolve({ count: counts[key], error: errors[key] ?? null });
+        resolve({ count: counts[key] ?? 0, error: errors[key] ?? null });
         void untracked;
       },
     };
@@ -76,7 +78,7 @@ describe('fetchAdminNotifications', () => {
       makeAdminStub({ paid: 3, refund: 1, untracked: 0, biz: 2 }),
     );
 
-    const result = await fetchAdminNotifications();
+    const result = await fetchAdminNotifications('staff');
 
     expect(result.total).toBe(6);
     expect(result.items).toHaveLength(4);
@@ -106,7 +108,7 @@ describe('fetchAdminNotifications', () => {
       makeAdminStub({ paid: 0, refund: 0, untracked: 0, biz: 0 }),
     );
 
-    const result = await fetchAdminNotifications();
+    const result = await fetchAdminNotifications('staff');
     expect(result.total).toBe(0);
   });
 
@@ -118,10 +120,36 @@ describe('fetchAdminNotifications', () => {
       ),
     );
 
-    const result = await fetchAdminNotifications();
+    const result = await fetchAdminNotifications('staff');
     const byKey = Object.fromEntries(result.items.map((i) => [i.key, i]));
     expect(byKey.new_orders.count).toBe(0); // 에러 → null → 0
     expect(byKey.refund_requested.count).toBe(4);
     expect(result.total).toBe(4);
+  });
+
+  it('staff — 차단 리뷰 항목 미노출 (owner-only)', async () => {
+    getSupabaseAdminMock.mockReturnValue(
+      makeAdminStub({ paid: 0, refund: 0, untracked: 0, biz: 0 }),
+    );
+
+    const result = await fetchAdminNotifications('staff');
+    expect(result.items).toHaveLength(4);
+    expect(result.items.find((i) => i.key === 'blocked_reviews')).toBeUndefined();
+  });
+
+  it('owner — 차단 리뷰 항목 추가 (5번째)', async () => {
+    getSupabaseAdminMock.mockReturnValue(
+      makeAdminStub({ paid: 0, refund: 0, untracked: 0, biz: 0, review: 5 }),
+    );
+
+    const result = await fetchAdminNotifications('owner');
+    expect(result.items).toHaveLength(5);
+    const byKey = Object.fromEntries(result.items.map((i) => [i.key, i]));
+    expect(byKey.blocked_reviews).toMatchObject({
+      count: 5,
+      label: '차단된 리뷰',
+      href: '/admin/reviews?status=blocked',
+    });
+    expect(result.total).toBe(5);
   });
 });

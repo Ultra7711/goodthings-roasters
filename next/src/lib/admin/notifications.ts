@@ -19,7 +19,8 @@ export type AdminNotificationKey =
   | 'new_orders'
   | 'refund_requested'
   | 'untracked'
-  | 'new_biz';
+  | 'new_biz'
+  | 'blocked_reviews';
 
 export type AdminNotificationItem = {
   key: AdminNotificationKey;
@@ -37,10 +38,18 @@ export type AdminNotifications = {
  * 미처리 항목 4종 count 집계.
  * 개별 count 실패는 0 으로 fallback(알림은 보조 기능 — 페이지 동작 방해 금지).
  */
-export async function fetchAdminNotifications(): Promise<AdminNotifications> {
+export async function fetchAdminNotifications(
+  adminLevel: 'owner' | 'staff',
+): Promise<AdminNotifications> {
   const admin = getSupabaseAdmin();
 
-  const [paidRes, refundRes, untrackedRes, bizRes] = await Promise.all([
+  /* 차단 리뷰는 owner 전용(/admin/reviews owner-only) — staff 에겐 0 mock 으로 항목 제외. */
+  const blockedReviewQuery =
+    adminLevel === 'owner'
+      ? admin.from('reviews').select('id', { count: 'exact', head: true }).eq('status', 'blocked')
+      : Promise.resolve({ count: 0, error: null });
+
+  const [paidRes, refundRes, untrackedRes, bizRes, blockedReviewRes] = await Promise.all([
     admin
       .from('orders')
       .select('id', { count: 'exact', head: true })
@@ -58,6 +67,7 @@ export async function fetchAdminNotifications(): Promise<AdminNotifications> {
       .from('biz_inquiries')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'pending'),
+    blockedReviewQuery,
   ]);
 
   for (const [name, res] of [
@@ -101,6 +111,16 @@ export async function fetchAdminNotifications(): Promise<AdminNotifications> {
       href: '/admin/biz-inquiries?status=pending',
     },
   ];
+
+  /* owner 전용 — 차단된 리뷰 검토 항목 */
+  if (adminLevel === 'owner') {
+    items.push({
+      key: 'blocked_reviews',
+      label: '차단된 리뷰',
+      count: blockedReviewRes.count ?? 0,
+      href: '/admin/reviews?status=blocked',
+    });
+  }
 
   const total = items.reduce((sum, it) => sum + it.count, 0);
   return { items, total };

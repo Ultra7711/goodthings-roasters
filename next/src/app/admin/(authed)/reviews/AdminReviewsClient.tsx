@@ -163,7 +163,8 @@ export default function AdminReviewsClient({ rows, total, counts, filters }: Pro
               key={d.id}
               type="button"
               size="sm"
-              className="!h-8"
+              /* min-w 고정 — variant default↔outline border-width 변화로 인한 폭 흔들림 흡수 */
+              className="!h-8 min-w-[64px]"
               variant={filters.domain === d.id ? 'default' : 'outline'}
               onClick={() => router.replace(buildHref({ domain: d.id, page: 1 }))}
             >
@@ -283,7 +284,8 @@ function ReviewRow({
                       key={s}
                       type="button"
                       size="sm"
-                      className="!h-7 min-w-[72px]"
+                      /* min-w 콘텐츠('검토 대기' 4자) 초과 흡수 — border-width 변화 폭 흔들림 제거 */
+                      className="!h-7 min-w-[88px]"
                       variant={isCurrent ? 'default' : 'outline'}
                       disabled={isRowPending || isCurrent}
                       onClick={(e) => {

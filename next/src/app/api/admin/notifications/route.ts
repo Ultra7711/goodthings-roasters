@@ -16,6 +16,6 @@ export async function GET(): Promise<Response> {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  const data = await fetchAdminNotifications();
+  const data = await fetchAdminNotifications(claims.adminLevel);
   return NextResponse.json(data);
 }
