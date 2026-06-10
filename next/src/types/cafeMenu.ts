@@ -100,11 +100,6 @@ export function mapCafeMenuRow(row: CafeMenuItemRow): CafeMenuItem {
   };
 }
 
-/** LQIP 메타 컬럼 채워짐 여부. seed / admin 등록 검증용. */
-export function hasItemBlur(row: CafeMenuItemRow): boolean {
-  return row.blur_data_url !== null && row.width !== null && row.height !== null;
-}
-
 /* ── Admin 목록용 매핑 (S244) ────────────────────────────────────────────── */
 
 /**

@@ -7,12 +7,10 @@
    - numeric kcal — string 응답 안전 변환 (toNumber)
    - temp null — 디저트 온도 무관
    - status 빈 문자열 — 배지 미표시
-   - hasItemBlur: 3 컬럼 체크
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { describe, expect, it } from 'vitest';
 import {
-  hasItemBlur,
   mapCafeMenuRow,
   type CafeMenuItemRow,
 } from './cafeMenu';
@@ -157,43 +155,5 @@ describe('mapCafeMenuRow — 카테고리별 대표 케이스', () => {
     expect(item.cat).toBe('dessert');
     expect(item.temp).toBeNull();
     expect(item.kcal).toBe(420);
-  });
-});
-
-describe('hasItemBlur', () => {
-  it('3 컬럼 모두 채워짐 → true', () => {
-    expect(
-      hasItemBlur(makeRow({
-        blur_data_url: 'data:image/png;base64,abc123',
-        width: 800,
-        height: 600,
-      })),
-    ).toBe(true);
-  });
-
-  it('blur_data_url null → false', () => {
-    expect(
-      hasItemBlur(makeRow({ blur_data_url: null, width: 800, height: 600 })),
-    ).toBe(false);
-  });
-
-  it('width null → false', () => {
-    expect(
-      hasItemBlur(makeRow({
-        blur_data_url: 'data:image/png;base64,abc123',
-        width: null,
-        height: 600,
-      })),
-    ).toBe(false);
-  });
-
-  it('height null → false', () => {
-    expect(
-      hasItemBlur(makeRow({
-        blur_data_url: 'data:image/png;base64,abc123',
-        width: 800,
-        height: null,
-      })),
-    ).toBe(false);
   });
 });

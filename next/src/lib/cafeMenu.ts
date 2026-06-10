@@ -11,13 +11,6 @@
 
 import cafeMenuBlur from './cafe-menu-blur.json';
 
-export type CafeCategory =
-  | 'brewing'
-  | 'tea'
-  | 'non-coffee'
-  | 'dessert'
-  | 'signature'; // 시그니처는 필터 전용 (카테고리 필드는 brewing/non-coffee 를 가짐)
-
 /** 카드 status 배지 — null 은 뱃지 미표시 */
 export type CafeMenuStatus = '시즌' | '시그니처' | 'NEW' | '인기' | '품절' | '시즌 한정' | '';
 
