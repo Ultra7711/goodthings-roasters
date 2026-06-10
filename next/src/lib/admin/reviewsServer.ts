@@ -16,6 +16,7 @@ import {
   parseReviewSearchParams,
   sanitizeReviewQuery,
   type ReviewStatusTab,
+  type ReviewDomainTab,
   type ReviewSearchParams,
 } from './reviews';
 import type { ReviewStatus } from '@/types/review';
@@ -122,4 +123,46 @@ export async function fetchAdminReviews(
     counts,
     filters,
   };
+}
+
+/* ── XLSX export (newsletterServer 답습 · maxRows+1 truncated 판정) ─────── */
+
+export type ReviewExportFilters = {
+  status: ReviewStatusTab;
+  domain: ReviewDomainTab;
+  q: string;
+};
+
+export type ReviewExportResult = {
+  rows: AdminReviewRow[];
+  truncated: boolean;
+};
+
+/** 현재 필터(status·domain·q) 반영 · 페이지네이션 없이 maxRows 까지 (초과 시 truncated). */
+export async function fetchAdminReviewsForExport(
+  filters: ReviewExportFilters,
+  maxRows: number,
+): Promise<ReviewExportResult> {
+  const supabase = await createRouteHandlerClient();
+
+  let query = supabase
+    .from('reviews')
+    .select(SELECT_COLUMNS)
+    .order('created_at', { ascending: false })
+    .range(0, maxRows);
+  if (filters.status !== 'all') query = query.eq('status', filters.status);
+  if (filters.domain === 'product') query = query.not('product_slug', 'is', null);
+  else if (filters.domain === 'menu') query = query.not('menu_id', 'is', null);
+  query = applyIlikeSearch(query, sanitizeReviewQuery(filters.q), ['body', 'author_nickname']);
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('[reviewsServer] export query failed', summarizePgError(error));
+    return { rows: [], truncated: false };
+  }
+
+  const all = (data ?? []) as AdminReviewDbRow[];
+  const truncated = all.length > maxRows;
+  const trimmed = truncated ? all.slice(0, maxRows) : all;
+  return { rows: trimmed.map(mapRow), truncated };
 }

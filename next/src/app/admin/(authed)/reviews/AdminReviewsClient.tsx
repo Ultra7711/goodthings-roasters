@@ -10,6 +10,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Download } from 'lucide-react';
 import type { AdminReviewRow } from '@/lib/admin/reviewsServer';
 import {
   REVIEW_STATUS_LABEL,
@@ -20,10 +21,12 @@ import {
 } from '@/lib/admin/reviews';
 import type { ReviewStatus } from '@/types/review';
 import { AdminTabsNav } from '@/components/admin/AdminTabsNav';
+import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { AdminSearchInput } from '@/components/admin/AdminSearchInput';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { Button } from '@/components/admin/ui/button';
-import { updateReviewStatus, deleteReviewPermanent } from './actions';
+import { downloadXlsxFromBase64 } from '@/lib/admin/clientDownload';
+import { updateReviewStatus, deleteReviewPermanent, exportReviewsXlsxAction } from './actions';
 
 type Props = {
   rows: AdminReviewRow[];
@@ -87,6 +90,7 @@ export default function AdminReviewsClient({ rows, total, counts, filters }: Pro
   const [pending, startTransition] = useTransition();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState(filters.q);
+  const [isExporting, startExport] = useTransition();
 
   useEffect(() => {
     setSearchValue(filters.q);
@@ -111,6 +115,37 @@ export default function AdminReviewsClient({ rows, total, counts, filters }: Pro
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchValue]);
+
+  function handleExport() {
+    startExport(async () => {
+      const result = await exportReviewsXlsxAction({
+        status: filters.status,
+        domain: filters.domain,
+        q: filters.q,
+      });
+      if (!result.ok) {
+        const map: Record<string, string> = {
+          unauthorized: '권한이 없습니다.',
+          validation_failed: '입력값이 잘못되었습니다.',
+          server_error: '내보내는 중 오류가 발생했습니다.',
+        };
+        toast.error(map[result.error] ?? '오류가 발생했습니다.');
+        return;
+      }
+      if (result.rowCount === 0) {
+        toast.info('내보낼 리뷰가 없습니다.');
+        return;
+      }
+      downloadXlsxFromBase64(result.xlsxBase64, result.filename);
+      if (result.truncated) {
+        toast.warning(
+          `${result.rowCount.toLocaleString()}건 내보냈습니다. 상한(10,000건) 초과 — 필터를 좁혀 다시 내보내주세요.`,
+        );
+      } else {
+        toast.success(`${result.rowCount.toLocaleString()}건을 내보냈습니다.`);
+      }
+    });
+  }
 
   function handleStatusChange(id: string, status: ModStatus) {
     setPendingId(id);
@@ -148,6 +183,21 @@ export default function AdminReviewsClient({ rows, total, counts, filters }: Pro
 
   return (
     <>
+      <AdminTopbarActions>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="!h-7"
+          onClick={handleExport}
+          disabled={isExporting || total === 0}
+          title="현재 필터 기준으로 Excel 내보내기"
+        >
+          <Download />
+          {isExporting ? '내보내는 중…' : 'Excel 내보내기'}
+        </Button>
+      </AdminTopbarActions>
+
       <AdminTabsNav
         mode="url"
         tabs={STATUS_TABS.map((t) => ({ id: t.id, label: t.label, count: counts[t.id] ?? 0 }))}

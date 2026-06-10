@@ -104,7 +104,7 @@ export function nowKstDisplay(nowIso: string = new Date().toISOString()): string
  * INSERT 실패해도 caller 의 다운로드 자체는 영향 없음 (best-effort).
  */
 export async function logExportAudit(params: {
-  domain: 'subscriptions' | 'orders' | 'users' | 'products' | 'audit' | 'newsletter';
+  domain: 'subscriptions' | 'orders' | 'users' | 'products' | 'audit' | 'newsletter' | 'reviews';
   actorId: string;
   filters: Record<string, unknown>;
   rowCount: number;

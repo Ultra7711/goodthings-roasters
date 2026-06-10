@@ -18,6 +18,16 @@ import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { logActionError } from '@/lib/admin/logActionError';
+import { fetchAdminReviewsForExport } from '@/lib/admin/reviewsServer';
+import {
+  MAX_EXPORT_ROWS,
+  buildExportFilename,
+  formatKstDateTimeCell,
+  nowKstDisplay,
+  logExportAudit,
+} from '@/lib/admin/csvExport';
+import { buildXlsxBuffer, bufferToBase64 } from '@/lib/admin/xlsxExport';
+import { REVIEW_STATUS_LABEL } from '@/lib/admin/reviews';
 
 const UuidSchema = z
   .string()
@@ -60,6 +70,75 @@ export async function updateReviewStatus(
 
   revalidatePath('/admin/reviews');
   return { ok: true };
+}
+
+/* ── XLSX 내보내기 (owner-only · 현재 필터 기준) ──────────────────────────
+   exportNewsletterSubscribersXlsxAction 답습. */
+
+const ExportInputSchema = z.object({
+  status: z.enum(['all', 'pending', 'approved', 'blocked', 'deleted']).default('all'),
+  domain: z.enum(['all', 'product', 'menu']).default('all'),
+  q: z.string().default(''),
+});
+
+export type ExportReviewsInput = z.input<typeof ExportInputSchema>;
+
+export type ExportReviewsResult =
+  | { ok: true; filename: string; xlsxBase64: string; rowCount: number; truncated: boolean }
+  | { ok: false; error: 'unauthorized' | 'validation_failed' | 'server_error' };
+
+export async function exportReviewsXlsxAction(
+  input: ExportReviewsInput,
+): Promise<ExportReviewsResult> {
+  const claims = await getAdminOwnerClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const parsed = ExportInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: 'validation_failed' };
+
+  try {
+    const { rows, truncated } = await fetchAdminReviewsForExport(
+      { status: parsed.data.status, domain: parsed.data.domain, q: parsed.data.q },
+      MAX_EXPORT_ROWS,
+    );
+
+    const headers = ['대상유형', '대상', '별점', '작성자', '상태', '본문', '도움돼요', '작성일'] as const;
+    const dataRows = rows.map((r) => [
+      r.productSlug ? '상품' : '메뉴',
+      r.productSlug ?? r.menuId ?? '—',
+      r.rating,
+      r.authorNickname,
+      REVIEW_STATUS_LABEL[r.status],
+      r.body,
+      r.helpfulCount,
+      formatKstDateTimeCell(r.createdAtIso),
+    ]);
+
+    const buffer = await buildXlsxBuffer(headers, dataRows, {
+      domain: '리뷰',
+      generatedAtKst: nowKstDisplay(),
+    });
+    const filename = buildExportFilename('reviews', 'xlsx');
+
+    await logExportAudit({
+      domain: 'reviews',
+      actorId: claims.userId,
+      filters: parsed.data,
+      rowCount: rows.length,
+      truncated,
+    });
+
+    return {
+      ok: true,
+      filename,
+      xlsxBase64: bufferToBase64(buffer),
+      rowCount: rows.length,
+      truncated,
+    };
+  } catch (err: unknown) {
+    logActionError('[exportReviewsXlsxAction] failed', err instanceof Error ? err : null);
+    return { ok: false, error: 'server_error' };
+  }
 }
 
 /* 영구 삭제 — owner only. reviews RLS 에 delete 정책 없음 → service_role 로 hard delete
