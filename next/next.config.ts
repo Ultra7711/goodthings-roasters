@@ -81,16 +81,20 @@ const nextConfig: NextConfig = {
   //   공급망 방어는 Next.js 생태계 표준(Vercel/nextjs.org/Linear 모두 SRI 미사용)
   //   + Vercel 자체 CDN 무결성에 의존. D-007 운영 조건 #3 취소.
 
-  // next/image 최적화 설정 (S121, 2026-05-01):
-  //   - formats: AVIF 우선 협상 → WebP fallback (Safari 16+ AVIF 지원)
+  // next/image 최적화 설정 (S121, 2026-05-01 · S318 변형 누수 절감):
+  //   - formats: WebP 단일 (S318) — AVIF+WebP 2종은 같은 (src,w,q) 를 포맷별로
+  //     중복 변형(transformation)시켜 Vercel 무료 한도(5,000/월)를 2배로 소진.
+  //     원본이 .webp 라 변형 부담이 가장 작고 전 브라우저 호환. AVIF 용량 이점
+  //     (20~30%)은 포기하나 변형 카운트가 즉시 절반. (변형=cache MISS 시 1회 과금)
   //   - deviceSizes: GTR 반응형 브레이크포인트 (360/768/1024/1440 + 1920 고DPI)
   //   - imageSizes: 작은 fixed 사이즈 (아이콘·썸네일)
-  //   - qualities: Next.js 16 부터 필수 (allowlist 외 요청 시 400) — 75 기본 + 85 hero
+  //   - qualities: Next.js 16 부터 필수 (allowlist 외 요청 시 400) — 75 단일
+  //     (코드 전체 quality= 미지정 = 75 기본만 사용. 85 는 실사용 0 이라 제거).
   images: {
-    formats: ['image/avif', 'image/webp'],
+    formats: ['image/webp'],
     deviceSizes: [360, 768, 1024, 1440, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    qualities: [75, 85],
+    qualities: [75],
     /* Supabase Storage public URL 허용 (S129 H-5 시즌 배너 + 향후 admin 업로드 이미지) */
     remotePatterns: [
       {
