@@ -91,6 +91,13 @@ const nextConfig: NextConfig = {
   //   - qualities: Next.js 16 부터 필수 (allowlist 외 요청 시 400) — 75 단일
   //     (코드 전체 quality= 미지정 = 75 기본만 사용. 85 는 실사용 0 이라 제거).
   images: {
+    /* minimumCacheTTL (S318 근본 해결): 변형 이미지의 Vercel 엣지 캐시 수명.
+       미설정 시 기본 ~1시간 → 정적 이미지가 1시간마다 STALE → 재요청 시 재변형·
+       재과금. 이미지를 교체하지 않아도 봇/방문의 산발적 요청이 STALE 재변형을
+       반복 누적시키는 것이 변형 누수의 본체. 31일로 상향 → 정적 이미지는 한 번
+       변형 후 재변형 0. 어드민 교체는 buildAdminImageFilename + upsert:false 로
+       매번 새 URL 생성 → 옛 캐시 stale 문제 없음 (imageActions.ts). */
+    minimumCacheTTL: 2678400,
     formats: ['image/webp'],
     deviceSizes: [360, 768, 1024, 1440, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
