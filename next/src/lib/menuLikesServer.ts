@@ -1,4 +1,5 @@
 import 'server-only';
+import { isPrerenderAbort } from './prerenderAbort';
 
 /* ══════════════════════════════════════════════════════════════════════════
    lib/menuLikesServer.ts — menu_likes SSR snapshot (S245-P20 → S247 폴리싱 → S281-B 답습)
@@ -68,11 +69,12 @@ export async function fetchMenuLikesCountsSnapshot(): Promise<
   const { data, error } = await client.from('menu_likes').select('menu_id');
 
   if (error) {
-
-    console.error('[fetchMenuLikesCountsSnapshot] query failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    if (!isPrerenderAbort(error.message)) {
+      console.error('[fetchMenuLikesCountsSnapshot] query failed', {
+        code: error.code,
+        message: error.message?.slice(0, 200),
+      });
+    }
     return {};
   }
 

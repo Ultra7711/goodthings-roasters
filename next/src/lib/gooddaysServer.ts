@@ -1,4 +1,5 @@
 import 'server-only';
+import { isPrerenderAbort } from './prerenderAbort';
 
 /* ══════════════════════════════════════════════════════════════════════════
    lib/gooddaysServer.ts — gooddays_gallery 서버 fetch (S167 J-3)
@@ -92,11 +93,12 @@ export async function fetchGoodDaysGallery(): Promise<GoodDaysGalleryRow[]> {
     .order('sort_order', { ascending: true });
 
   if (error) {
-
-    console.error('[fetchGoodDaysGallery] query failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    if (!isPrerenderAbort(error.message)) {
+      console.error('[fetchGoodDaysGallery] query failed', {
+        code: error.code,
+        message: error.message?.slice(0, 200),
+      });
+    }
     return [];
   }
   return (data ?? []).map((row) => toRow(row as RawRow));

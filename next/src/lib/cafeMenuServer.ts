@@ -1,4 +1,5 @@
 import 'server-only';
+import { isPrerenderAbort } from './prerenderAbort';
 
 /* ══════════════════════════════════════════════════════════════════════════
    lib/cafeMenuServer.ts — cafe_menu_items 도메인 서버 fetch (S213 Group F Phase 1)
@@ -61,11 +62,12 @@ export async function fetchCafeMenu(): Promise<CafeMenuItem[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
-
-    console.error('[fetchCafeMenu] query failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    if (!isPrerenderAbort(error.message)) {
+      console.error('[fetchCafeMenu] query failed', {
+        code: error.code,
+        message: error.message?.slice(0, 200),
+      });
+    }
     return [];
   }
   if (!data) return [];

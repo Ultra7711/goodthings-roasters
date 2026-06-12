@@ -1,4 +1,5 @@
 import 'server-only';
+import { isPrerenderAbort } from './prerenderAbort';
 
 /* ══════════════════════════════════════════════════════════════════════════
    lib/bannersServer.ts — banners B2C 서버 fetch (S269 Y1)
@@ -95,14 +96,16 @@ async function fetchEnabledByKind(kind: BannerKind): Promise<Banner[]> {
       const aborted = /abort/i.test(msg);
       if (aborted && attempt < 2) continue;
 
-      console.error('[bannersServer] query failed', {
-        code: error.code,
-        message: msg.slice(0, 200),
-        details: error.details,
-        hint: error.hint,
-        attempt,
-        kind,
-      });
+      if (!isPrerenderAbort(msg)) {
+        console.error('[bannersServer] query failed', {
+          code: error.code,
+          message: msg.slice(0, 200),
+          details: error.details,
+          hint: error.hint,
+          attempt,
+          kind,
+        });
+      }
       return [];
     }
     if (!data) return [];

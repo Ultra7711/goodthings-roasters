@@ -49,6 +49,7 @@ import {
   type ProductWithRelationsRow,
 } from '@/types/product';
 import type { Product } from './products';
+import { isPrerenderAbort } from './prerenderAbort';
 
 /** revalidateTag 로 무효화 — 운영 일치 위해 export 보존. admin actions 호출. */
 export const PRODUCTS_CACHE_TAG = 'products';
@@ -94,11 +95,12 @@ export async function fetchProducts(): Promise<Product[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
-
-    console.error('[fetchProducts] query failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    if (!isPrerenderAbort(error.message)) {
+      console.error('[fetchProducts] query failed', {
+        code: error.code,
+        message: error.message?.slice(0, 200),
+      });
+    }
     return [];
   }
   if (!data) return [];
@@ -120,12 +122,13 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
     .maybeSingle();
 
   if (error) {
-
-    console.error('[fetchProductBySlug] query failed', {
-      slug,
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    if (!isPrerenderAbort(error.message)) {
+      console.error('[fetchProductBySlug] query failed', {
+        slug,
+        code: error.code,
+        message: error.message?.slice(0, 200),
+      });
+    }
     return null;
   }
   if (!data) return null;
@@ -146,11 +149,12 @@ export async function fetchAllProductSlugs(): Promise<string[]> {
     .eq('is_active', true);
 
   if (error) {
-
-    console.error('[fetchAllProductSlugs] query failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    if (!isPrerenderAbort(error.message)) {
+      console.error('[fetchAllProductSlugs] query failed', {
+        code: error.code,
+        message: error.message?.slice(0, 200),
+      });
+    }
     return [];
   }
   return (data ?? []).map((row) => (row as { slug: string }).slug);

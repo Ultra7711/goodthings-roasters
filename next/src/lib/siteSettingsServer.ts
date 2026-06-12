@@ -1,4 +1,5 @@
 import 'server-only';
+import { isPrerenderAbort } from './prerenderAbort';
 
 /* ══════════════════════════════════════════════════════════════════════════
    lib/siteSettingsServer.ts — site_settings 서버 fetch (S129 Group H)
@@ -60,10 +61,12 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     .select('key, value');
 
   if (error) {
-    console.error('[fetchSiteSettings] query failed', {
-      code: error.code,
-      message: error.message?.slice(0, 200),
-    });
+    if (!isPrerenderAbort(error.message)) {
+      console.error('[fetchSiteSettings] query failed', {
+        code: error.code,
+        message: error.message?.slice(0, 200),
+      });
+    }
     return SITE_SETTINGS_DEFAULTS;
   }
   if (!data) return SITE_SETTINGS_DEFAULTS;
