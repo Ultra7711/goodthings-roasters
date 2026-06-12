@@ -136,6 +136,23 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "private, no-cache, must-revalidate" },
         ],
       },
+      {
+        // S318: 정적 자산(이미지·영상) immutable 1년 캐시.
+        //   /public/images/* 는 해시 없는 고정 파일명이라 Vercel 기본 Cache-Control
+        //   이 max-age=0, must-revalidate → 재방문마다 304 재검증 round-trip 발생
+        //   (실측: hero-video.mp4 = 304 + X-Vercel-Cache HIT). 정적 자산은 거의
+        //   불변이므로 immutable 부여 → 브라우저가 재검증 없이 로컬 캐시 사용 →
+        //   Edge Request + 대역폭(새 방문/만료 시 full 전송) 절감.
+        //   🚨 교체 시 반드시 파일명 변경(예: hero-video-v2.mp4) 또는 ?v= 쿼리.
+        //      같은 파일명 덮어쓰기 시 사용자 브라우저가 최대 1년 stale (옛 파일 노출).
+        //      → CLAUDE.md "정적 자산 immutable 버저닝" 규칙 참조.
+        //   어드민 업로드(Supabase)는 buildAdminImageFilename + upsert:false 로
+        //   매번 새 URL 생성 → 별도 버저닝 불필요.
+        source: "/images/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
     ];
   },
 };

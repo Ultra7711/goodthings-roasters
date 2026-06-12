@@ -168,6 +168,7 @@ src/
 - 매직 넘버 금지 — 상수로 선언
 - **신규 모달/드로어/시트 작성 시 `useHistoryDismiss` hook 사용 의무** (S204 도입). 풀스크린/풀높이 모달은 모바일 back 버튼 = 닫기 가 표준. ConfirmModal 류 (명시 선택 강제) 는 예외. 자세한 패턴: `memory/feedback_modal_history_dismiss_required.md`.
 - **신규 정적 이미지 추가 시 `npm run gen:image-blur` 재실행** (S205 도입). LQIP blurDataURL 자동 생성 → cafe-menu-blur.json / products-blur.json 갱신 → next/image placeholder=blur 자동 적용.
+- 🚨 **정적 자산(`public/images/*`) 교체 시 파일명 버전 변경 의무** (S318 도입). `next.config.ts` headers 가 `/images/*` 에 `Cache-Control: immutable, max-age=31536000`(1년) 부여 → 브라우저가 재검증 없이 1년 캐시(대역폭·Edge Request 절감). **같은 파일명으로 덮어쓰면 사용자가 최대 1년간 옛 파일을 봄(stale)**. 교체 시 반드시 파일명 변경(예: `hero-video.mp4` → `hero-video-v2.mp4` + 코드 참조 수정) 또는 `?v=날짜` 쿼리 추가. 어드민 업로드(Supabase)는 `upsert:false` 로 자동 버저닝되어 무관.
 
 ---
 
