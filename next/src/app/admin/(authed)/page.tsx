@@ -11,6 +11,7 @@ import { getAdminClaims } from '@/lib/auth/getClaims';
 import { fetchAdminDashboard } from '@/lib/admin/dashboardServer';
 import { bestsellerPercents } from '@/lib/admin/dashboard';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
+import { IlogenExportButton } from './IlogenExportButton';
 
 const TONE_BG: Record<string, string> = {
   primary: 'var(--primary-soft)',
@@ -88,8 +89,16 @@ export default async function AdminDashboardPage() {
   const { stats, tasks, recentOrders, bestsellers } = overview;
   const bestsellerPcts = bestsellerPercents(bestsellers);
 
+  /* ILOGEN 엑셀 = owner-only · 발송 대기(신규 주문 처리=paid) 건수 표시. */
+  const claims = await getAdminClaims();
+  const isOwner = claims?.adminLevel === 'owner';
+  const pendingCount = tasks.find((t) => t.label === '신규 주문 처리')?.n ?? 0;
+
   return (
     <div>
+      {/* 로젠 ILOGEN 엑셀 — Topbar 우측 actions slot(알림 벨 왼편)에 portal 주입 */}
+      <IlogenExportButton isOwner={isOwner} pendingCount={pendingCount} />
+
       {/* 환영 헤더 — AdminPageHeader 패턴 답습 (WelcomeHeading = ReactNode 이므로 인라인) */}
       <div className="mb-5">
         <WelcomeHeading />

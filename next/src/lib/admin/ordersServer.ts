@@ -31,6 +31,7 @@ import {
   type ListedOrder,
   type StatusTabKey,
 } from './orders';
+import type { IlogenOrderInput, IlogenOrderItem } from './ilogenExport';
 
 export type OrderDetailItem = {
   productName: string;
@@ -324,6 +325,72 @@ export async function fetchAdminOrdersForExport(
     totalAmount: r.total_amount,
     paymentLabel: describePayment(r.payment_method),
     status: r.status,
+  }));
+
+  return { rows, truncated };
+}
+
+/* ── ILOGEN 발송 대기 fetcher (S319) ───────────────────────────────────
+   로젠택배 복수건(대량등록) 엑셀용. status='paid'(발송 대기) 전체 · 필터 없음.
+   이미 발송(shipping)된 건은 운송장 존재 → ILOGEN 중복 등록 방지로 제외.
+   배송 메시지 포함 select (toIlogenRow 가 사용). 먼저 들어온 주문 먼저(asc).
+   ───────────────────────────────────────────────────────────────────── */
+
+type IlogenOrderRow = {
+  order_number: string;
+  shipping_name: string;
+  shipping_phone: string | null;
+  shipping_zipcode: string | null;
+  shipping_addr1: string;
+  shipping_addr2: string | null;
+  shipping_message_code: string | null;
+  shipping_message_custom: string | null;
+  order_items: IlogenOrderItem[] | null;
+};
+
+export type AdminIlogenExportResult = {
+  rows: IlogenOrderInput[];
+  truncated: boolean;
+};
+
+/** 발송 대기(paid) 주문을 ILOGEN 양식 입력 구조로 fetch. maxRows + 1 로 truncated 판정. */
+export async function fetchPendingOrdersForIlogen(
+  maxRows: number,
+): Promise<AdminIlogenExportResult> {
+  const supabase = await createRouteHandlerClient();
+
+  const { data, error } = await supabase
+    .from('orders')
+    .select(
+      `order_number,
+       shipping_name, shipping_phone, shipping_zipcode,
+       shipping_addr1, shipping_addr2,
+       shipping_message_code, shipping_message_custom,
+       order_items ( product_name, product_volume, quantity )`,
+    )
+    .eq('status', 'paid')
+    .order('created_at', { ascending: true })
+    .range(0, maxRows);
+
+  if (error) {
+    console.error('[fetchPendingOrdersForIlogen] query failed', summarizePgError(error));
+    return { rows: [], truncated: false };
+  }
+
+  const all = (data ?? []) as IlogenOrderRow[];
+  const truncated = all.length > maxRows;
+  const trimmed = truncated ? all.slice(0, maxRows) : all;
+
+  const rows: IlogenOrderInput[] = trimmed.map((r) => ({
+    orderNumber: r.order_number,
+    shippingName: r.shipping_name,
+    shippingPhone: r.shipping_phone,
+    shippingZipcode: r.shipping_zipcode,
+    shippingAddr1: r.shipping_addr1,
+    shippingAddr2: r.shipping_addr2,
+    shippingMessageCode: r.shipping_message_code,
+    shippingMessageCustom: r.shipping_message_custom,
+    items: r.order_items ?? [],
   }));
 
   return { rows, truncated };

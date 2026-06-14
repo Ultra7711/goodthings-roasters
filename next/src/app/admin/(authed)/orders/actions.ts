@@ -21,8 +21,12 @@
 
 import { z } from 'zod';
 import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
-import { fetchAdminOrdersForExport } from '@/lib/admin/ordersServer';
+import {
+  fetchAdminOrdersForExport,
+  fetchPendingOrdersForIlogen,
+} from '@/lib/admin/ordersServer';
 import { describeStatus } from '@/lib/admin/orders';
+import { ILOGEN_HEADERS, toIlogenRow } from '@/lib/admin/ilogenExport';
 import {
   MAX_EXPORT_ROWS,
   buildExportFilename,
@@ -132,6 +136,53 @@ export async function exportOrdersXlsxAction(
   } catch (err: unknown) {
     logActionError(
       '[exportOrdersXlsxAction] failed',
+      err instanceof Error ? err : null,
+    );
+    return { ok: false, error: 'server_error' };
+  }
+}
+
+/* ── 로젠택배 ILOGEN 복수건 대량등록 엑셀 (S319) ────────────────────────
+   대시보드 원클릭 — 발송 대기(paid) 주문 전체를 ILOGEN 8컬럼 양식으로 export.
+   입력 없음 (항상 발송 대기 전체). owner-only (기존 export 정책 일관).
+   audit domain 은 'orders' 재사용 + filters.type='ilogen' 로 구분 (마이그 회피).
+   ───────────────────────────────────────────────────────────────────── */
+
+export async function exportIlogenXlsxAction(): Promise<ExportXlsxResult> {
+  const claims = await getAdminOwnerClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  try {
+    const { rows, truncated } = await fetchPendingOrdersForIlogen(MAX_EXPORT_ROWS);
+
+    const dataRows = rows.map(toIlogenRow);
+
+    /* ILOGEN 프로그램 업로드용 — notice 행 제외 (헤더 1행 + 데이터 2행~). */
+    const buffer = await buildXlsxBuffer(ILOGEN_HEADERS, dataRows, {
+      domain: '로젠택배(ILOGEN)',
+      generatedAtKst: nowKstDisplay(),
+      includeNotice: false,
+    });
+    const filename = buildExportFilename('ilogen', 'xlsx');
+
+    await logExportAudit({
+      domain: 'orders',
+      actorId: claims.userId,
+      filters: { type: 'ilogen', scope: 'pending' },
+      rowCount: rows.length,
+      truncated,
+    });
+
+    return {
+      ok: true,
+      filename,
+      xlsxBase64: bufferToBase64(buffer),
+      rowCount: rows.length,
+      truncated,
+    };
+  } catch (err: unknown) {
+    logActionError(
+      '[exportIlogenXlsxAction] failed',
       err instanceof Error ? err : null,
     );
     return { ok: false, error: 'server_error' };

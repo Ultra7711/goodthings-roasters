@@ -35,7 +35,7 @@ import ExcelJS from 'exceljs';
 export async function buildXlsxBuffer(
   headers: readonly string[],
   rows: ReadonlyArray<ReadonlyArray<string | number | null | undefined>>,
-  meta: { domain: string; generatedAtKst: string },
+  meta: { domain: string; generatedAtKst: string; includeNotice?: boolean },
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = '굳띵즈 로스터스';
@@ -43,15 +43,20 @@ export async function buildXlsxBuffer(
 
   const worksheet = workbook.addWorksheet(meta.domain);
 
-  const noticeText = `# 굳띵즈 로스터스 ${meta.domain} 내부 운영 자료 — 외부 공유 금지 · 생성 ${meta.generatedAtKst}`;
-  worksheet.addRow([noticeText]);
+  /* notice 행 = 내부 운영 자료 경고 (기본 포함). 단 ILOGEN 등 외부 프로그램에
+     그대로 업로드하는 기계 입력 파일은 includeNotice:false 로 제외 (행 밀림·오인 방지). */
+  const includeNotice = meta.includeNotice !== false;
+  if (includeNotice) {
+    const noticeText = `# 굳띵즈 로스터스 ${meta.domain} 내부 운영 자료 — 외부 공유 금지 · 생성 ${meta.generatedAtKst}`;
+    worksheet.addRow([noticeText]);
+  }
   worksheet.addRow([...headers]);
   for (const row of rows) {
     worksheet.addRow(row.map((v) => (v === null || v === undefined ? '' : v)));
   }
 
-  /* 헤더 행 (2행) bold. notice 행은 평문. */
-  worksheet.getRow(2).font = { bold: true };
+  /* 헤더 행 bold (notice 유무에 따라 1행 또는 2행). notice 행은 평문. */
+  worksheet.getRow(includeNotice ? 2 : 1).font = { bold: true };
 
   /* 컬럼 자동 너비 — 최대값 추정 (한글 1자 ≈ 2 width). headers 길이 기준
      최소치만 보장하여 단순 폴리싱 유지. */

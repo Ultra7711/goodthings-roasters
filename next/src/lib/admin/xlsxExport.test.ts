@@ -54,6 +54,29 @@ describe('buildXlsxBuffer', () => {
     expect(firstData[3]).toBe('진행중');
   });
 
+  it('includeNotice:false — notice 행 없이 헤더 1행 + 데이터 2행~ (ILOGEN 업로드용)', async () => {
+    const buf = await buildXlsxBuffer(
+      ['주문번호', '수하인명'],
+      [['GT-0001', '홍길동']],
+      { domain: '로젠택배(ILOGEN)', generatedAtKst: '2026.06.14 18:15 KST', includeNotice: false },
+    );
+    const wb = new ExcelJS.Workbook();
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    await wb.xlsx.load(buf as any);
+    const ws = wb.getWorksheet('로젠택배(ILOGEN)');
+    expect(ws).toBeTruthy();
+
+    /* 1행 = headers (notice 없음), 2행 = data */
+    const headerRow = ws!.getRow(1).values as unknown[];
+    expect(headerRow[1]).toBe('주문번호');
+    expect(headerRow[2]).toBe('수하인명');
+    expect(String(headerRow[1])).not.toContain('내부 운영 자료');
+
+    const firstData = ws!.getRow(2).values as unknown[];
+    expect(firstData[1]).toBe('GT-0001');
+    expect(firstData[2]).toBe('홍길동');
+  });
+
   it('null/undefined 셀을 빈 문자열로 정규화', async () => {
     const buf = await buildXlsxBuffer(
       ['a', 'b'],
