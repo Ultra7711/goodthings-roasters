@@ -50,5 +50,6 @@ jobs:
           cache: npm
           cache-dependency-path: next/package-lock.json
       - run: npm ci --ignore-scripts
-      # high/critical 만 CI 실패 — moderate 는 경고만
-      - run: npm audit --audit-level=high
+      # high/critical 만 CI 실패 — moderate 는 경고만.
+      # --omit=dev: 배포물 무관 dev 도구(tsx→esbuild 등) 취약점 제외 — 프로덕션 의존성만 게이트.
+      - run: npm audit --audit-level=high --omit=dev
