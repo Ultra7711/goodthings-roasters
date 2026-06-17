@@ -36,8 +36,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ── 2. npm audit — 의존성 취약점 검사 ─────────────────────
+  #   push 에서는 제외(코드와 무관한 신규 CVE Advisory 가 매 push CI 를 막는
+  #   반복 문제 차단). PR(의존성 변경 검증) + 주간 cron 으로만 실행.
+  #   선제 패치는 dependabot.yml 이 담당.
   npm-audit:
     name: npm Audit
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     defaults:
       run:

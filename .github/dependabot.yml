@@ -1,0 +1,31 @@
+# ═══════════════════════════════════════════════════════════════
+# dependabot.yml — 의존성 버전·보안 업데이트 자동 PR
+#
+# 목적: npm audit CI 반복 수동 대응 제거(선제 패치).
+#   - 취약점/업데이트를 Dependabot 이 PR 로 자동 생성 → 검토 후 머지.
+#   - security.yml 의 npm audit 은 push 에서 분리(cron + PR 전용)로 보완.
+#   - 보안 업데이트(Dependabot security updates)는 repo Settings >
+#     Code security 에서 활성화 필요(공개 repo 는 기본 alert 활성).
+# ═══════════════════════════════════════════════════════════════
+version: 2
+updates:
+  # ── npm (Next.js 앱) ──
+  - package-ecosystem: "npm"
+    directory: "/next"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    # minor·patch 는 묶어 PR 수 감소(major 는 개별 — breaking 검토 필요)
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  # ── GitHub Actions (워크플로 액션 버전) ──
+  #   actions/checkout·setup-node 등 Node.js 20 deprecated 자동 업데이트
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
