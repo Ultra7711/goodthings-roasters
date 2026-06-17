@@ -8,10 +8,12 @@ import { isPrerenderAbort } from './prerenderAbort';
    - fetchGoodDaysGallery() — /gooddays SSR fetch (is_active=true, sort_order asc)
    - listGoodDaysGalleryAdmin() — 어드민 전체 (is_active 무관)
 
-   설계 (S279-D · banners 답습 — DEC-S279-D-1):
+   설계 (S321 — 'use cache' 복원 · DEC-CACHE):
    - server-only 격리.
-   - 'use cache' 미사용 — admin 변경 즉시 /gooddays 반영 보장
-     (S167 admin 즉시 반영 incident · S278 banners 회귀 답습 차단).
+   - 'use cache' + cacheTag(GOODDAYS_CACHE_TAG) + cacheLife(revalidate 60s) —
+     매 요청 DB 조회를 60초당 1회로 절감. admin actions 가 이미
+     revalidateTag(GOODDAYS_CACHE_TAG, 'max') 호출 → 즉시 반영. 무효화 실패해도
+     최대 60초 stale = 안전망. menuLikes/siteSettings 선례 답습.
    - cachedClient singleton 패턴 폐기 — dev HMR closure 회귀 차단.
    - global.fetch override 로 cache: 'no-store' 강제.
    - connection() 는 caller (/gooddays default export) 책임.
@@ -22,6 +24,7 @@ import { isPrerenderAbort } from './prerenderAbort';
    - 036_gooddays_gallery.sql
    ══════════════════════════════════════════════════════════════════════════ */
 
+import { cacheTag, cacheLife } from 'next/cache';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { GdImageWithBlur } from './gooddays';
 
@@ -85,6 +88,10 @@ function toRow(raw: RawRow): GoodDaysGalleryRow {
  * caller 페이지의 default export 에서 await connection() 호출 책임.
  */
 export async function fetchGoodDaysGallery(): Promise<GoodDaysGalleryRow[]> {
+  'use cache';
+  cacheTag(GOODDAYS_CACHE_TAG);
+  cacheLife({ revalidate: 60 });
+
   const client = getAnonClient();
   const { data, error } = await client
     .from('gooddays_gallery')

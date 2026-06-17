@@ -18,11 +18,12 @@
    - reorderBannersAction 신설
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getAdminClaims } from '@/lib/auth/getClaims';
 import { BannerSchema, BannerKindSchema, type BannerKind } from '@/lib/banners';
+import { bannerCacheTag } from '@/lib/bannersServer';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { logActionError } from '@/lib/admin/logActionError';
 import {
@@ -121,10 +122,11 @@ function toDbRow(
 }
 
 
-function revalidateBanner(_kind: BannerKind) {
-  /* getActiveBanner / getComingBanner 는 'use cache' 미사용 (bannersServer.ts) →
-   * 매 요청 DB fetch. cacheTag invalidate 불필요. revalidatePath 만 호출하여
-   * RSC payload 새로 생성. */
+function revalidateBanner(kind: BannerKind) {
+  /* S321 'use cache' 복원 — fetchEnabledByKind 가 cacheTag(bannerCacheTag(kind)).
+   * revalidateTag 로 캐시 즉시 무효화 + revalidatePath 로 admin/메인 RSC payload
+   * 재생성. cacheLife 60s 안전망과 함께 운영자 변경 즉시 반영. */
+  revalidateTag(bannerCacheTag(kind), 'max');
   revalidatePath('/admin/banners');
   revalidatePath('/');
 }

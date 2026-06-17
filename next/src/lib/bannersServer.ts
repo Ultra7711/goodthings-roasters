@@ -12,11 +12,13 @@ import { isPrerenderAbort } from './prerenderAbort';
    admin variant 는 별도 분리 가능 (현재 별도 admin fetch 불필요 — server action
    이 직접 admin client 로 query).
 
-   설계 (S280-B · DEC-S279-D-1 정합 — ADR-010):
+   설계 (S321 — 'use cache' 복원 · DEC-CACHE):
    - server-only 격리.
    - anon 클라이언트 (RLS public SELECT 허용).
-   - 'use cache' 미사용 — row 수 작아 부담 미미 + 운영자 변경 즉시 반영 보장
-     (Next.js 16 revalidateTag/updateTag 가 dev 환경 invalidate 회귀 발견 후 폐기).
+   - 'use cache' + cacheTag(bannerCacheTag(kind)) + cacheLife(revalidate 60s) —
+     fetchEnabledByKind 공통 호출점에 적용 (getActiveBanner/getComingBanner 공유).
+     admin actions revalidateBanner 가 revalidateTag(bannerCacheTag(kind), 'max')
+     호출 → 즉시 반영 (S321 연결). 무효화 실패해도 최대 60초 stale = 안전망.
    - cachedClient singleton 패턴 폐기 — dev HMR closure 회귀 차단 (S278 학습 #4).
    - global.fetch override 로 cache: 'no-store' 강제.
    - connection() 책임 = caller (SSR 페이지 server component) 측 명시 호출.
@@ -32,6 +34,7 @@ import { isPrerenderAbort } from './prerenderAbort';
    - ADR-010 (caller-side connection responsibility · S280-B)
    ══════════════════════════════════════════════════════════════════════════ */
 
+import { cacheTag, cacheLife } from 'next/cache';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import {
   parseBannerRow,
@@ -83,6 +86,10 @@ const SELECT_COLS =
 /* Next.js 16 dev 환경의 Supabase fetch AbortError 가 RSC streaming timing
    이슈로 간헐 발생 → 최대 2회 retry. production 영향 없음. */
 async function fetchEnabledByKind(kind: BannerKind): Promise<Banner[]> {
+  'use cache';
+  cacheTag(bannerCacheTag(kind));
+  cacheLife({ revalidate: 60 });
+
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const client = getAnonClient();
     const { data, error } = await client
@@ -124,9 +131,9 @@ async function fetchEnabledByKind(kind: BannerKind): Promise<Banner[]> {
  * 메인 페이지 chapter 가 fetch.
  * cafe_event 는 자문 §5.3 우선순위 + 기간 / signature 는 단일 row + 기간 (보통 영구).
  *
- * 'use cache' 미사용: row 수 (kind 별 1~10) 가 작아 매 요청 DB fetch 부담 미미 +
- * 운영자가 admin 변경 직후 즉시 반영 보장 (revalidateTag/updateTag invalidate
- * 가 dev 환경에서 inconsistent 한 회귀 회피).
+ * S321 'use cache' 복원: row 목록 DB fetch (fetchEnabledByKind) 만 60초 캐시.
+ * 날짜 기반 선택(selectActiveBanner 의 `new Date()`)은 use cache 밖 = 매 요청 fresh
+ * → start_date/end_date 경계 정확 반영. admin 변경은 revalidateTag 즉시 반영.
  *
  * connection() 책임 = caller (CafeMenuSection / SignatureChapter) 측. Next.js 16
  * cacheComponents 룰 — selectActiveBanner 가 `new Date()` 로 today 계산하므로
