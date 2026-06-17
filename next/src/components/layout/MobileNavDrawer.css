@@ -114,8 +114,17 @@
 .mn-nav > .mn-link:first-child {
   margin-bottom: 32px;
 }
+/* 환영 인사 + 로그아웃(보조) 한 라인 — welcome 좌, 로그아웃 우 */
+.mn-welcome-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-sm);
+  padding-top: 16px;
+}
 .mn-welcome-txt {
-  display: block;
+  flex: 1;
+  min-width: 0;
   font-family: var(--font-kr);
   font-size: 16px;
   font-weight: var(--type-body-reading-weight);
@@ -124,37 +133,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding-top: 16px;
 }
-.mn-account-row {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  gap: var(--gap-sm);
-  padding: 16px 0;
-  min-height: 44px;
-}
-.mn-account-link-inline {
+/* 로그아웃 — 보조 텍스트 링크(밑줄). MyPage HeroGreeting `.mp-hero-logout` 답습(S242). */
+.mn-logout-btn-inline {
+  flex-shrink: 0;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
   font-family: var(--font-kr);
-  font-size: var(--type-h3-size);
-  font-weight: 400;
-  letter-spacing: var(--ls-nav);
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  transition: color var(--duration-hover) ease;
-}
-.mn-account-link-inline:hover { color: var(--color-text-primary); }
-/* 로그아웃 인라인 = MyPage HeroGreeting `.mp-hero-logout` 답습 (S242).
-   body-m + 500 + ls-button + underline 1px border-primary + offset 4 + hover gold.
-   parent .mn-account-row align-items: baseline 으로 마이페이지 (h3) 와 baseline 정렬. */
-.mn-account-link-inline.mn-logout-btn-inline {
   font-size: var(--type-body-m-size);
   font-weight: var(--text-link-font-weight);
   letter-spacing: var(--text-link-letter-spacing);
@@ -166,42 +153,28 @@
   text-underline-offset: 4px;
   transition: color var(--duration-hover) ease, text-decoration-color var(--duration-hover) ease;
 }
-.mn-account-link-inline.mn-logout-btn-inline:hover {
+.mn-logout-btn-inline:hover {
   color: var(--color-accent-gold);
   text-decoration-color: var(--color-accent-gold);
 }
-/* inline 화살표: 평상시 width 0 → 호버 시 24px 펼쳐짐 (옆 텍스트 자연 밀림).
-   compound 셀렉터로 specificity 0,2,0 → base .mn-link-arrow (0,1,0) 의 width 24px 덮음.
-   duration·easing 은 NAV `.mn-link-arrow` 와 동일 (var(--duration-hover) 200ms ease). */
-.mn-link-arrow.mn-link-arrow-inline {
-  width: 0;
-  overflow: hidden;
-  opacity: 0;
-  margin-left: 0;
-  transition:
-    width var(--duration-hover) ease,
-    opacity var(--duration-hover) ease,
-    margin-left var(--duration-hover) ease;
+/* 마이페이지 — 단독(NAV 와 동일 h3 위계, 환영 라인 아래) */
+.mn-account-link-inline {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 16px 0;
+  min-height: 44px;
+  cursor: pointer;
+  font-family: var(--font-kr);
+  font-size: var(--type-h3-size);
+  font-weight: 400;
+  letter-spacing: var(--ls-nav);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--duration-hover) ease;
 }
-/* @media (hover: hover) 가드 — S243 드득드득 fix (위 NAV 화살표 동일 사유). */
-@media (hover: hover) {
-  .mn-account-link-inline:hover .mn-link-arrow.mn-link-arrow-inline {
-    width: 24px;
-    opacity: 1;
-    margin-left: 8px;
-    animation: cat-arrow-slide var(--duration-hover) ease-out;
-  }
-}
-/* 골드 세로 라인 — .st-location-hours border-left 2px gold 패턴 차용 (BUG-140 · S77).
-   텍스트 height 에 맞추기 위해 1em 사용 (현재 H3 18px 컨텍스트 → 18px 라인). */
-.mn-account-sep {
-  display: inline-block;
-  width: 2px;
-  height: 1em;
-  background: var(--color-accent-gold);
-  align-self: center;
-  flex-shrink: 0;
-}
+.mn-account-link-inline:hover { color: var(--color-text-primary); }
 .mn-close {
   width: 40px;
   height: 40px;
@@ -239,42 +212,33 @@
   gap: 8px;
 }
 .mn-link-text { display: inline-block; }
-.mn-link-arrow {
-  width: 24px;
-  height: 24px;
-  color: var(--color-accent-gold);
-  opacity: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: opacity var(--duration-hover) ease;
+/* 골드 언더라인 — 모든 NAV 항목에 배치(숨김 scaleX 0). 기존 화살표(cat-arrow-slide)
+   대체: ① 현재 페이지=드로어 열릴 때 그어짐  ② tap 피드백=is-tapping 시 그어짐.
+   좌→우로 그어지는 연출(scaleX 0→1, transform-origin left). */
+.mn-link[aria-current="page"] { color: var(--color-text-primary); }
+.mn-link .mn-link-text { position: relative; }
+.mn-link .mn-link-text::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-accent-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  /* 앞부분 가속 곡선 — 클릭 직후 밑줄이 확 그어져 체감 속도↑ (딜레이는 350ms 유지) */
+  transition: transform var(--duration-tap) cubic-bezier(0.22, 1, 0.36, 1);
 }
-/* 모바일 드로어 NAV 화살표 hover: cat-arrow-slide (translateX -16 → 0 펼쳐짐) 유지,
-   duration 만 var(--duration-hover) 200ms 로 단축 (기존 600ms → 200ms).
-   마이페이지 inline 은 width 0→24 펼쳐짐 패턴 — 둘 다 "펼쳐짐" 효과로 통일 (BUG-140 · S77).
-
-   @media (hover: hover) 가드 — S243 드득드득 fix.
-   모바일 webkit/blink 가 touchstart 에 :hover 를 트리거하여 hover animation +
-   is-tapping animation 두 번 재생되는 충돌 차단. 데스크탑(마우스) 만 hover 활성. */
-@media (hover: hover) {
-  .mn-link:hover .mn-link-arrow {
-    opacity: 1;
-    transition: opacity var(--duration-hover) ease;
-    animation: cat-arrow-slide var(--duration-hover) ease-out;
-  }
+#mobile-nav.open .mn-link[aria-current="page"] .mn-link-text::after,
+.mn-link.is-tapping .mn-link-text::after {
+  transform: scaleX(1);
 }
-/* 모바일 탭 피드백 (TouchHoverGuard [data-gtr-tap] 패턴): --duration-tap 350ms 로 통일 */
-.mn-link.is-tapping .mn-link-arrow {
-  opacity: 1;
-  transition: opacity var(--duration-tap) ease;
-  animation: cat-arrow-slide var(--duration-tap) ease-out;
-}
-.mn-account-link-inline.is-tapping .mn-link-arrow.mn-link-arrow-inline {
-  width: 24px;
-  opacity: 1;
-  margin-left: 8px;
-  animation: cat-arrow-slide var(--duration-tap) ease-out;
+/* 다른 메뉴 탭 시(is-tapping 존재) 기존 현재페이지 밑줄 즉시 제거 → 탭한 항목 밑줄만 그어짐 */
+#mobile-nav.open .mn-nav:has(.mn-link.is-tapping) .mn-link[aria-current="page"]:not(.is-tapping) .mn-link-text::after {
+  transform: scaleX(0);
+  transition: none;
 }
 .mn-footer {
   flex-shrink: 0;
@@ -353,10 +317,3 @@
   transition: color var(--duration-hover) ease;
 }
 .mn-f-biz-lookup:hover { color: var(--color-text-primary); }
-
-/* cat-arrow-slide: MobileNavDrawer mn-link-arrow 애니메이션.
-   동일 keyframe 이 HomePage.css 에도 정의됨 (중복 허용 — CSS 규칙). */
-@keyframes cat-arrow-slide {
-  from { transform: translateX(-16px); }
-  to   { transform: translateX(0); }
-}

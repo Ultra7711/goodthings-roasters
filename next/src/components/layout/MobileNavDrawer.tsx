@@ -281,33 +281,26 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
           {/* 로그인 후 identity 카드: welcome (15px secondary) + 마이페이지 | 로그아웃 (H3 nav 크기, NAV 위) (BUG-140 · S77) */}
           {isLoggedIn && displayName && (
             <div className="mn-user-wrap">
-              <span className="mn-welcome-txt">
-                {displayName}님, 환영합니다.
-              </span>
-              <div className="mn-account-row">
-                <Link
-                  href="/mypage"
-                  className="mn-account-link-inline"
-                  onClick={handleAccountClick}
-                  data-gtr-tap
-                >
-                  <span className="mn-account-link-text">마이페이지</span>
-                  <span className="mn-link-arrow mn-link-arrow-inline" aria-hidden="true">
-                    <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4,24h34"/>
-                      <path d="M24,10l14,14-14,14"/>
-                    </svg>
-                  </span>
-                </Link>
-                <span className="mn-account-sep" aria-hidden="true" />
+              <div className="mn-welcome-row">
+                <span className="mn-welcome-txt">
+                  {displayName}님, 환영합니다.
+                </span>
                 <button
                   type="button"
-                  className="mn-account-link-inline mn-logout-btn-inline"
+                  className="mn-logout-btn-inline"
                   onClick={handleLogout}
                 >
                   로그아웃
                 </button>
               </div>
+              <Link
+                href="/mypage"
+                className="mn-account-link-inline"
+                onClick={handleAccountClick}
+                data-gtr-tap
+              >
+                <span className="mn-account-link-text">마이페이지</span>
+              </Link>
             </div>
           )}
 
@@ -320,12 +313,6 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
               data-gtr-tap
             >
               <span className="mn-link-text">로그인</span>
-              <span className="mn-link-arrow" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4,24h34"/>
-                  <path d="M24,10l14,14-14,14"/>
-                </svg>
-              </span>
             </Link>
           )}
 
@@ -342,12 +329,6 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
                 data-gtr-tap
               >
                 <span className="mn-link-text">{item.label}</span>
-                <span className="mn-link-arrow" aria-hidden="true">
-                  <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4,24h34"/>
-                    <path d="M24,10l14,14-14,14"/>
-                  </svg>
-                </span>
               </Link>
             );
           })}
