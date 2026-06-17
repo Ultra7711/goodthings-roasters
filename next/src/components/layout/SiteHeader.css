@@ -163,6 +163,25 @@
 /* 다크 글래스 헤더(홈 히어로 등) — 밝은 골드로 대비 확보 */
 #site-hdr-wrap.hdr-dark .nav-indicator { background: var(--color-accent-gold-on-dark); }
 
+/* ── 로고 글자 bounce (홈 진입 시 인디케이터가 good 의 g 에 충돌 → 시간차 통통) ──
+   글자별 높이/시간차 차등은 JS(Web Animations API)로 제어 (SiteHeader.tsx).
+   Lightning CSS 가 @keyframes 내 var() 를 드롭해 CSS 차등이 불가 → WAAPI 사용.
+   .lg-letter = 글자별 <g>. fill-box + 바닥 기준 origin 으로 제자리 통통. */
+.lg-letter { transform-box: fill-box; transform-origin: center bottom; fill: currentColor; transition: fill 360ms ease; }
+/* 홈 진입 시 로고 골드 점등 — 들어올 때(is-home 부여)만 good g → s 순차(물결).
+   transition-delay 가 is-home 에만 있어 복귀(is-home 제거)는 delay 0 = 한방에 복귀. */
+#logo-img.is-home .lg-letter { fill: var(--color-accent-gold); }
+#logo-img.is-home .lg-letter:nth-child(1)  { transition-delay: 0ms; }
+#logo-img.is-home .lg-letter:nth-child(2)  { transition-delay: 65ms; }
+#logo-img.is-home .lg-letter:nth-child(3)  { transition-delay: 130ms; }
+#logo-img.is-home .lg-letter:nth-child(4)  { transition-delay: 195ms; }
+#logo-img.is-home .lg-letter:nth-child(5)  { transition-delay: 260ms; }
+#logo-img.is-home .lg-letter:nth-child(6)  { transition-delay: 325ms; }
+#logo-img.is-home .lg-letter:nth-child(7)  { transition-delay: 390ms; }
+#logo-img.is-home .lg-letter:nth-child(8)  { transition-delay: 455ms; }
+#logo-img.is-home .lg-letter:nth-child(9)  { transition-delay: 520ms; }
+#logo-img.is-home .lg-letter:nth-child(10) { transition-delay: 585ms; }
+
 /* ══ 햄버거 토글 — 데스크탑 숨김 · 모바일 표시 (hdr-icons 끝에 배치) ══ */
 .hdr-menu-toggle {
   display: none;
