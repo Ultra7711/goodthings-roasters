@@ -7,6 +7,8 @@
    - 플랫폼 > Web 에 배포 도메인 등록 필수 (localhost 포함).
    - SDK 는 autoload=false 로 로드 후 `kakao.maps.load` 로 초기화 — Next.js SSR 안전.
    - 마커 클릭 시 CustomOverlay 말풍선 토글 → 상세보기·길찾기 링크 제공.
+   - 대안 A (네이버 연동): 지도 SDK 는 카카오 유지, 말풍선 링크만 네이버 플레이스/
+     길찾기로 연결 (NCP 키 보류 — 가입 확인 후 SDK 전환은 후속 단계).
    ══════════════════════════════════════════ */
 
 import { useEffect, useRef } from 'react';
@@ -129,10 +131,15 @@ function buildOverlayContent({
   }, { passive: false });
   wrap.addEventListener('click', (e) => e.stopPropagation());
 
+  /* 네이버 플레이스 연동 (대안 A) — 지도 SDK 는 카카오 유지, 말풍선 링크만 네이버로.
+     상세보기: 플레이스 entry 페이지(리뷰·예약·길찾기 진입점). placeId = naverPlaceId.
+     길찾기: 신형 directions URL (출발지 비움 '-', 도착지 = 좌표+상호+placeId+PLACE_POI). */
   const detailHref = placeId
-    ? `https://place.map.kakao.com/${placeId}`
-    : `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${lat},${lng}`;
-  const toHref = `https://map.kakao.com/link/to/${encodeURIComponent(placeName)},${lat},${lng}`;
+    ? `https://map.naver.com/p/entry/place/${placeId}`
+    : `https://map.naver.com/p/search/${encodeURIComponent(placeName)}`;
+  const toHref = placeId
+    ? `https://map.naver.com/p/directions/-/${lng},${lat},${encodeURIComponent(placeName)},${placeId},PLACE_POI/-/transit`
+    : `https://map.naver.com/p/directions/-/${lng},${lat},${encodeURIComponent(placeName)}/-/transit`;
 
   // textContent / setAttribute 만 사용 — placeName 이 외부 입력으로 확장돼도 XSS 차단.
   const nameEl = document.createElement('div');

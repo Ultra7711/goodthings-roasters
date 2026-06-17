@@ -156,8 +156,8 @@ export default function StoryPage() {
               lng={STORY_LOCATION.lng}
               level={STORY_LOCATION.zoomLevel}
               title={`${STORY_LOCATION.name} 위치`}
-              placeName={STORY_LOCATION.kakaoPlaceName}
-              placeId={STORY_LOCATION.kakaoPlaceId}
+              placeName={STORY_LOCATION.naverPlaceName}
+              placeId={STORY_LOCATION.naverPlaceId}
             />
           </div>
           <div className="st-location-info" data-sr>

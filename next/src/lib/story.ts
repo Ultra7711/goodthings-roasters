@@ -60,20 +60,21 @@ export const STORY_PROMISE = {
   body: '빠르게 만들 수 있어도, 그렇게 하지 않습니다.\n좋은 것에는 시간이 필요하다는 것을 알기에, 모든 과정에 정성을 담습니다.',
 };
 
-/* Location 섹션 — 2fr:1fr 그리드 + Kakao Map JS SDK */
+/* Location 섹션 — 2fr:1fr 그리드 + Kakao Map JS SDK (지도) + 네이버 플레이스(말풍선 링크) */
 export const STORY_LOCATION = {
   label: 'Location',
   name: 'Good Things Roasters',
   notice: '매장 이용 20:50까지  ·  라스트오더 20:30',
   /* 영업시간(요일별·휴무)은 site_settings.hours 로 이전 — ShopHoursAccordion 참조 */
-  /* Kakao Maps 좌표 (WGS84) — 매장 확정 좌표로 교체 필요 */
-  lat: 36.0981256,
-  lng: 128.4306089,
+  /* WGS84 좌표 — 네이버 플레이스 entry 기준 (map.naver.com/p/entry/place/1627274423) */
+  lat: 36.0980474,
+  lng: 128.4305856,
   zoomLevel: 3,
-  /* Kakao 플레이스 상세 페이지 ID — map.kakao.com 에서 `kko.to` 단축 URL 경유 확인 */
-  kakaoPlaceId: '2135570716',
-  /* 카카오맵 상호명 — 말풍선·길찾기 링크용. Location 섹션 제목(name) 과 분리. */
-  kakaoPlaceName: '굳띵즈',
+  /* 네이버 플레이스 상세 페이지 ID — 말풍선 "상세보기/길찾기" 링크용.
+     map.naver.com/p/entry/place/{naverPlaceId}. 지도 SDK 는 카카오 유지(NCP 키 보류). */
+  naverPlaceId: '1627274423',
+  /* 상호명 — 말풍선 제목·길찾기 도착지 라벨. Location 섹션 제목(name) 과 분리. */
+  naverPlaceName: '굳띵즈',
 };
 
 /* Hero 섹션 — 다크 배경 위에 EN/KR 순차 페이드 */
