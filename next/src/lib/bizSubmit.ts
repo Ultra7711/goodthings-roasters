@@ -4,7 +4,7 @@
    lib/bizSubmit.ts — B2B 비즈니스 문의 server action (S243-A-2)
 
    책임:
-   - /biz-inquiry 의 BizInquiryPage submit 처리 (게스트 + 회원 공통)
+   - /wholesale 의 BizInquiryPage submit 처리 (게스트 + 회원 공통)
    - Zod 검증 (필수 6 + biz_type + 동의 + 선택 필드)
    - biz_inquiries INSERT (회원이면 user_id 자동 연결)
    - 운영자 알림 메일 (Resend · sendBizInquiryNotificationEmail · fire-and-forget)

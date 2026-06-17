@@ -55,6 +55,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Menu', href: '/menu', resetEvent: 'gtr:menu-reset' },
   { label: 'Shop', href: '/shop', resetEvent: 'gtr:shop-reset' },
   { label: 'Good Days', href: '/gooddays', resetEvent: 'gtr:gooddays-reset' },
+  { label: 'Wholesale', href: '/wholesale', resetEvent: 'gtr:biz-reset' },
 ];
 
 export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn }: Props) {
@@ -167,16 +168,6 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
       return;
     }
     router.push('/');
-  }
-
-  function handleWholesaleClick(e: React.MouseEvent<HTMLAnchorElement>) {
-    if (pathname === '/biz-inquiry') {
-      e.preventDefault();
-      handleSamePathReset();
-      return;
-    }
-    setSnapClose(true);
-    onNavigate();
   }
 
   /**
@@ -360,23 +351,6 @@ export default function MobileNavDrawer({ open, onClose, onNavigate, isLoggedIn 
               </Link>
             );
           })}
-
-          {/* Wholesale: 별도 그룹 (NAV 4종 다음 32px 간격, 메인 4종과 동일 폰트·정렬).
-              FAQ 는 S243 에서 footer legal 영역으로 이관. */}
-          <Link
-            href="/biz-inquiry"
-            className="mn-sub-link"
-            onClick={handleWholesaleClick}
-            data-gtr-tap
-          >
-            Wholesale
-            <span className="mn-link-arrow" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4,24h34"/>
-                <path d="M24,10l14,14-14,14"/>
-              </svg>
-            </span>
-          </Link>
         </nav>
 
         <footer className="mn-footer">

@@ -115,6 +115,18 @@ const nextConfig: NextConfig = {
     unoptimized: process.env.NODE_ENV === 'development',
   },
 
+  async redirects() {
+    return [
+      {
+        // /biz-inquiry → /wholesale (라우트 경로 이전, 라벨 Wholesale 과 일치).
+        //   기존 외부 링크·북마크·잔여 색인 보존 (permanent = 308).
+        source: '/biz-inquiry',
+        destination: '/wholesale',
+        permanent: true,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

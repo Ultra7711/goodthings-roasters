@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════
-   BIZ INQUIRY PAGE — /biz-inquiry (라우트 단독 자산)
+   BIZ INQUIRY PAGE — /wholesale (구 /biz-inquiry · 라우트 단독 자산)
 
    S185 Pilot 6: globals.css 5848-6229 영역에서 라우트 단독 셀렉터만 colocate.
    #bi-body 의 page enter animation (`@keyframes pageEnter` 공유 — st/bi/gd)

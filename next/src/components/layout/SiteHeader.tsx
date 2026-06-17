@@ -65,6 +65,44 @@ export default function SiteHeader() {
   const [mounted, setMounted] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
+  /* 탭 sliding 골드 인디케이터 — active nav-link 의 위치/너비를 측정해 inline style 로 주입.
+     라우트 변경 시 CSS transition 으로 가로 이동. width 0 = active 없는 페이지(홈)→숨김. */
+  const navRef = useRef<HTMLElement>(null);
+  const [indicator, setIndicator] = useState<{ left: number; width: number; instant: boolean }>({
+    left: 0,
+    width: 0,
+    instant: true,
+  });
+  const indicatorReadyRef = useRef(false);
+
+  const measureIndicator = useCallback((instant: boolean) => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const active = nav.querySelector('.nav-link[aria-current="page"]') as HTMLElement | null;
+    if (!active) {
+      setIndicator((prev) => ({ ...prev, width: 0, instant }));
+      return;
+    }
+    setIndicator({ left: active.offsetLeft, width: active.offsetWidth, instant });
+  }, []);
+
+  /* pathname 변경 → 재측정. 첫 측정만 instant(점프 없이 위치 확정), 이후 라우트
+     변경은 transition 으로 sliding. paint 전(useLayoutEffect) 측정으로 깜빡임 차단. */
+  useLayoutEffect(() => {
+    measureIndicator(!indicatorReadyRef.current);
+    indicatorReadyRef.current = true;
+  }, [pathname, measureIndicator]);
+
+  /* 리사이즈(gap 축소 BP)·웹폰트 로드 후 글자 폭 변동 → 즉시 재측정(slide 없이). */
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const ro = new ResizeObserver(() => measureIndicator(true));
+    ro.observe(nav);
+    void document.fonts?.ready?.then(() => measureIndicator(true));
+    return () => ro.disconnect();
+  }, [measureIndicator]);
+
   /* SSR 안전: 클라이언트에서만 store 값 사용 */
   const { totalQty } = useCartQuery();
   const { isLoggedIn, isLoading: sessionLoading } = useSupabaseSession();
@@ -254,6 +292,17 @@ export default function SiteHeader() {
     }
   }
 
+  /* Wholesale 링크 클릭 → /wholesale 진입 연출 재트리거 (Story/Menu 동일 패턴).
+     - /wholesale 내에서 클릭 시: preventDefault 후 'gtr:biz-reset' 발송.
+       BizInquiryPage 가 수신해 스크롤 top + 폼 리셋. */
+  function handleWholesaleClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    closeSearch();
+    if (pathname === '/wholesale') {
+      e.preventDefault();
+      window.dispatchEvent(new Event('gtr:biz-reset'));
+    }
+  }
+
   function openSearch() {
     const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? HEADER_HEIGHT_FALLBACK;
     document.documentElement.style.setProperty('--search-drop-top', `${headerBottom}px`);
@@ -325,7 +374,7 @@ export default function SiteHeader() {
           </div>
 
           {/* 네비게이션 */}
-          <nav className="hdr-nav" aria-label="메인 내비게이션">
+          <nav ref={navRef} className="hdr-nav" aria-label="메인 내비게이션">
             <Link
               href="/story"
               className="nav-link"
@@ -358,6 +407,25 @@ export default function SiteHeader() {
             >
               Good Days
             </Link>
+            <Link
+              href="/wholesale"
+              className="nav-link"
+              aria-current={pathname.startsWith('/wholesale') ? 'page' : undefined}
+              onClick={handleWholesaleClick}
+            >
+              Wholesale
+            </Link>
+            {/* 탭 sliding 골드 인디케이터 — 위치/너비는 measureIndicator 가 주입 */}
+            <span
+              className="nav-indicator"
+              aria-hidden="true"
+              data-instant={indicator.instant ? 'true' : undefined}
+              style={{
+                transform: `translateX(${indicator.left}px)`,
+                width: `${indicator.width}px`,
+                opacity: indicator.width > 0 ? 1 : 0,
+              }}
+            />
           </nav>
 
           {/* 아이콘 버튼 그룹 */}

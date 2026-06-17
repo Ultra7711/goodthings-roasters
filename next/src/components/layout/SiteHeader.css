@@ -89,7 +89,7 @@
   height: var(--header-height); /* 60px */
 }
 .hdr-left { flex: 1; display: flex; align-items: center; }
-.hdr-nav { display: flex; gap: 36px; }
+.hdr-nav { display: flex; gap: 36px; position: relative; }
 /* 랩탑(≤1023): padding + gap 1차 축소 */
 @media (max-width: 1023px) {
   .hdr { padding: 0 40px; }
@@ -134,8 +134,34 @@
   align-items: center;
 }
 @media (hover: hover) { .nav-link:hover { opacity: 1; } }
-/* 현재 페이지 표시 — opacity 1 강조만 */
+/* 현재 페이지 표시 — opacity 1 강조 (골드 바는 단일 .nav-indicator 가 담당) */
 .nav-link[aria-current="page"] { opacity: 1; }
+
+/* ── 탭 sliding 골드 인디케이터 ──
+   active nav-link 의 위치(left)·너비(width)를 JS 로 측정해 inline style 로 주입.
+   라우트 변경 시 transform/width transition 으로 가로 이동.
+   width 0 = active 없는 페이지(홈 등) → opacity 0 으로 숨김. */
+.nav-indicator {
+  position: absolute;
+  /* hdr-nav 박스 = 텍스트 line-box(margin-block -12.5 로 tap 패딩 제외).
+     bottom 음수로 텍스트 하단(line-box 바닥) 약 5px 아래에 언더라인 배치
+     (양수면 텍스트 영역에 걸려 취소선처럼 보임). */
+  bottom: -5px;
+  left: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-accent-gold);
+  pointer-events: none;
+  transition:
+    transform var(--duration-transition) var(--ease-spring),
+    width var(--duration-transition) var(--ease-spring),
+    opacity var(--duration-hover) ease,
+    background-color var(--duration-transition) ease;
+}
+/* 첫 측정 전 / hdr-instant(테마 즉시 전환) — 이동 transition 억제(점프 방지) */
+.nav-indicator[data-instant="true"] { transition: opacity var(--duration-hover) ease; }
+/* 다크 글래스 헤더(홈 히어로 등) — 밝은 골드로 대비 확보 */
+#site-hdr-wrap.hdr-dark .nav-indicator { background: var(--color-accent-gold-on-dark); }
 
 /* ══ 햄버거 토글 — 데스크탑 숨김 · 모바일 표시 (hdr-icons 끝에 배치) ══ */
 .hdr-menu-toggle {

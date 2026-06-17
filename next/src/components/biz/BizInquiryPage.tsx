@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════
-   BizInquiryPage — /biz-inquiry
+   BizInquiryPage — /wholesale (구 /biz-inquiry)
    프로토타입 #biz-inquiry-page (L1055~1210 + L9919~10158) 이식.
 
    설계 결정:
@@ -156,12 +156,12 @@ export default function BizInquiryPage() {
     return () => window.removeEventListener('gtr:biz-reset', onReset);
   }, [resetForm]);
 
-  /* React 19 Activity preserve — 다른 페이지에서 /biz-inquiry 복귀 시
+  /* React 19 Activity preserve — 다른 페이지에서 /wholesale 복귀 시
      보존된 openDropdown 으로 드롭다운이 열린 채 보이는 회귀 차단.
      폼 입력값은 보존 (UX 의도) — 드롭다운 상태만 닫는다. */
   useEffect(() => {
     function onRouteChange(e: Event) {
-      if ((e as CustomEvent<string>).detail !== '/biz-inquiry') return;
+      if ((e as CustomEvent<string>).detail !== '/wholesale') return;
       setOpenDropdown(null);
     }
     window.addEventListener('gtr:route-change', onRouteChange);

@@ -1106,7 +1106,7 @@ textarea:focus-visible {
 }
 
 /* ════════════════════════════════════════════════
-   BIZ INQUIRY PAGE  ── /biz-inquiry
+   BIZ INQUIRY PAGE  ── /wholesale (구 /biz-inquiry)
    S185 Pilot 6 (옵션 A): 라우트 단독 자산은 components/biz/BizInquiryPage.css 로 colocate.
    잔류 cross-route 셀렉터 3종:
    - #bi-body pageEnter (line 1758-1762, st/bi/gd 공유)

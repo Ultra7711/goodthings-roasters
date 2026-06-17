@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════
    sitemap.ts — 검색엔진 색인용 URL 목록 (SEO 1차)
 
-   - 정적 공개 페이지 (홈/shop/menu/story/gooddays/biz-inquiry)
+   - 정적 공개 페이지 (홈/shop/menu/story/gooddays/wholesale)
    - 상품 상세 (/shop/[slug]) — fetchAllProductSlugs (anon · connection() 불요)
    - 법적 문서 (/legal/[slug]) — LEGAL_SLUGS 상수
    - 비공개/기능 페이지는 제외 (robots.ts disallow 와 정합)
@@ -22,7 +22,7 @@ const STATIC_ROUTES: ReadonlyArray<
   ['/menu', 'daily', 0.9],
   ['/story', 'monthly', 0.6],
   ['/gooddays', 'monthly', 0.6],
-  ['/biz-inquiry', 'monthly', 0.4],
+  ['/wholesale', 'monthly', 0.4],
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
