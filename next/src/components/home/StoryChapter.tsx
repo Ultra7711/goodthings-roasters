@@ -8,7 +8,9 @@
 
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
+import galleryBlur from '@/lib/gallery-blur.json';
 
 /* 메인 → 굿데이즈 ?img= 진입 시 cream→black 1단계 flash 차단.
    body.gd-route-transition → fixed 검정 오버레이 → Suspense fallback 검정 →
@@ -34,6 +36,9 @@ const GD_IMAGES = [
   { src: '/images/gallery/KakaoTalk_20260328_161956706_03.webp' },
   { src: '/images/gallery/KakaoTalk_20260328_161956706_04.webp' },
 ];
+
+/* S322: 갤러리 blur 메타(LQIP) — CafeMenuSection 패턴 일관. 파일명 키 조회. */
+const galleryMeta = galleryBlur as Record<string, { blurDataURL: string }>;
 
 export default function StoryChapter() {
   return (
@@ -72,19 +77,31 @@ export default function StoryChapter() {
             <h3 className="story-gd__h sr-txt sr-txt--d2">좋은 순간들</h3>
           </div>
           <div className="story-gd__grid">
-            {GD_IMAGES.map((img) => (
-              <Link
-                key={img.src}
-                href={`/gooddays?img=${encodeURIComponent(img.src)}`}
-                className="story-gd__card sr-img"
-                onClick={handleMomentClick}
-              >
-                <div
-                  className="story-gd__img"
-                  style={{ background: `url('${img.src}') center/cover no-repeat` }}
-                />
-              </Link>
-            ))}
+            {GD_IMAGES.map((img, i) => {
+              /* S322: CSS background(풀 1920×2560 다운로드) → next/image fill+sizes.
+                 표시 ~291px 썸네일에 맞춰 리사이즈된 변환본 전달(소스 파일은
+                 라이트박스 풀해상도용으로 유지). gooddays 그리드와 동일 패턴. */
+              const meta = galleryMeta[img.src.split('/').pop() ?? ''];
+              return (
+                <Link
+                  key={img.src}
+                  href={`/gooddays?img=${encodeURIComponent(img.src)}`}
+                  className="story-gd__card sr-img"
+                  onClick={handleMomentClick}
+                >
+                  <Image
+                    src={img.src}
+                    alt={`굳띵즈 좋은 순간들 ${i + 1}`}
+                    fill
+                    sizes="(max-width: 1023px) 50vw, 25vw"
+                    className="story-gd__img"
+                    style={{ objectFit: 'cover' }}
+                    placeholder={meta ? 'blur' : 'empty'}
+                    blurDataURL={meta?.blurDataURL}
+                  />
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
