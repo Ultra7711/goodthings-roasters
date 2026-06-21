@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>Good Things Roasters — 운영 비용 검토 보고서 (정정판)</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+  :root {
+    --ink: #1c1a17; --ink-soft: #4a463f; --ink-mute: #7a7468;
+    --line: #d6d2c9; --line-soft: #ece8e0;
+    --sand: #f5f1ea; --sand-soft: #faf7f1;
+    --accent: #8a5a2b; --good: #2f7a3a; --warn: #b07b1a; --bad: #a4322a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Malgun Gothic", "맑은 고딕", "Pretendard", "Apple SD Gothic Neo", sans-serif;
+    color: var(--ink); font-size: 10.5pt; line-height: 1.6;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  h1, h2, h3 { color: var(--ink); line-height: 1.3; margin: 0; }
+  h1 { font-size: 22pt; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 4pt; }
+  h2 { font-size: 14pt; font-weight: 600; border-bottom: 1.5pt solid var(--ink);
+       padding-bottom: 4pt; margin-top: 22pt; margin-bottom: 10pt; page-break-after: avoid; }
+  h3 { font-size: 11.5pt; font-weight: 600; margin-top: 14pt; margin-bottom: 6pt; page-break-after: avoid; }
+  p { margin: 4pt 0 8pt 0; }
+  ul { margin: 4pt 0 8pt 0; padding-left: 18pt; }
+  li { margin-bottom: 3pt; }
+  strong { font-weight: 600; }
+  code { font-family: "Consolas","D2Coding",monospace; font-size: 9pt; background: var(--sand);
+         padding: 1pt 4pt; border-radius: 2pt; color: var(--ink-soft); }
+  table { width: 100%; border-collapse: collapse; margin: 6pt 0 12pt 0; font-size: 9.3pt; page-break-inside: avoid; }
+  th, td { border: 0.6pt solid var(--line); padding: 5pt 7pt; vertical-align: top; text-align: left; }
+  th { background: var(--sand); font-weight: 600; }
+  tr:nth-child(even) td { background: var(--sand-soft); }
+  blockquote { margin: 8pt 0; padding: 6pt 12pt; border-left: 2.5pt solid var(--accent);
+               background: var(--sand-soft); color: var(--ink-soft); font-size: 10pt; }
+  .cover { padding: 16pt 0 8pt 0; border-bottom: 2pt solid var(--ink); margin-bottom: 14pt; }
+  .cover .sub { font-size: 11pt; color: var(--ink-soft); margin-top: 6pt; }
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4pt 16pt; font-size: 9.5pt; color: var(--ink-soft); margin-top: 10pt; }
+  .meta-grid b { color: var(--ink); }
+  .badge { display: inline-block; padding: 1pt 7pt; border-radius: 10pt; font-size: 8.5pt; font-weight: 600; margin-right: 3pt; white-space: nowrap; }
+  .b-good { background: #e3f0e5; color: var(--good); }
+  .b-warn { background: #fbf0d6; color: var(--warn); }
+  .b-bad  { background: #f6dad6; color: var(--bad); }
+  .b-mute { background: var(--sand); color: var(--ink-soft); }
+  hr { border: none; border-top: 0.6pt solid var(--line); margin: 16pt 0; }
+  .callout { border: 0.8pt solid var(--line); border-left: 3pt solid var(--warn); background: #fdf8ec;
+             border-radius: 4pt; padding: 9pt 12pt; margin: 8pt 0 12pt 0; font-size: 9.8pt; page-break-inside: avoid; }
+  .callout.good { border-left-color: var(--good); background: #f0f7f1; }
+  .callout.bad { border-left-color: var(--bad); background: #fbeeec; }
+  .callout .ttl { font-weight: 600; margin-bottom: 4pt; }
+  .legend { font-size: 8.8pt; color: var(--ink-soft); margin: 2pt 0 0; }
+  .footer { text-align: center; font-size: 8.5pt; color: var(--ink-soft); margin-top: 18pt;
+            border-top: 0.6pt solid var(--line); padding-top: 8pt; }
+  .src-list { font-size: 9pt; } .src-list li { margin-bottom: 3pt; word-break: break-all; }
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <h1>운영 비용 검토 보고서 <span style="font-size:12pt;color:var(--ink-mute);font-weight:400;">(정정판)</span></h1>
+  <div class="sub">Good Things Roasters · 정식 오픈 전 인프라 운영비용 점검</div>
+  <div class="meta-grid">
+    <div><b>작성일</b> · 2026-06-22 (S322)</div>
+    <div><b>버전</b> · v3.0 (v2.0 정정)</div>
+    <div><b>대상</b> · 운영비용 의사결정 보고</div>
+    <div><b>기준</b> · 각 서비스 공식 요금 + 실제 설정 확인</div>
+    <div><b>전제</b> · 단일 매장·정식 오픈 직전·실주문 0</div>
+    <div><b>정정</b> · v2.0(2026-04) 오류 반영</div>
+  </div>
+</header>
+
+<blockquote>
+  <b>작성 원칙.</b> 비용을 단정하지 않는다. 항목마다 확신도를 표기하고, 검증 못 한 값은 "확인 필요"로 남긴다.
+  금액은 <b>공식 출처의 USD 기준</b>으로만 적고, <b>원화 총액·환율 환산은 변동성으로 단정하지 않는다</b>(결제 시점 확정).
+  <div class="legend">확신도 — <span class="badge b-good">✅ 공식확인</span> 공식 출처로 검증 ·
+  <span class="badge b-warn">🔶 추정</span> 우리 규모 기반 판단 · <span class="badge b-bad">❓ 미검증</span> 이번 미확인·확인 필요</div>
+</blockquote>
+
+<h2>1. 핵심 요약</h2>
+<table>
+  <thead><tr><th style="width:22%">성격</th><th>항목</th><th style="width:18%">비용</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge b-bad">강제 고정비</span></td><td><b>Vercel Pro</b> — 상업(결제) 운영 시 필수</td><td>월 $20부터(USD)</td></tr>
+    <tr><td><span class="badge b-mute">매출 연동</span></td><td><b>토스페이먼츠</b> 결제 수수료 — 팔릴 때만·건별</td><td>매출 비례</td></tr>
+    <tr><td><span class="badge b-mute">연 1회</span></td><td><b>도메인</b> 갱신</td><td>연 갱신비</td></tr>
+    <tr><td><span class="badge b-good">무료 가능</span></td><td>Supabase · Resend · Upstash · Sentry · 네이버 지도 (우리 규모)</td><td>₩0 (한도 내)</td></tr>
+  </tbody>
+</table>
+<div class="callout good">
+  <div class="ttl">한 줄 결론</div>
+  실질 <b>강제 고정비는 Vercel Pro(월 $20부터) 하나</b>이며, 도메인 연 갱신비가 더해진다.
+  나머지 인프라는 우리 규모에서 <b>무료 범위로 시작 가능</b>하고, 트래픽·데이터가 커지면 그때 선택적으로 유료 전환한다.
+</div>
+
+<h2>2. 항목별 상세</h2>
+<table>
+  <thead><tr><th style="width:15%">서비스</th><th style="width:17%">역할</th><th style="width:14%">현재/플랜</th><th>비용·비고</th><th style="width:11%">확신도</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>Vercel</b></td><td>웹 호스팅</td><td>Pro 필요</td>
+      <td><b>월 $20부터</b>(USD·월 청구·카드 필수). 무료(Hobby)는 <b>상업 운영 약관 위반</b> → 결제 사이트 불가. $20에 사용크레딧 $20 + 1TB 전송 + Edge 1천만 요청 포함.</td>
+      <td><span class="badge b-good">✅</span></td>
+    </tr>
+    <tr>
+      <td><b>Supabase</b></td><td>DB·인증·이미지저장</td><td>Free 시작</td>
+      <td>현재 <b>₩0</b>. 용량·MAU 한도 초과 또는 관리형 백업 원하면 Pro <b>$25/월</b>(선택). <b>백업은 무료로 자동화 완료</b>(§4) → Pro 강제 아님.</td>
+      <td><span class="badge b-good">✅</span></td>
+    </tr>
+    <tr>
+      <td><b>토스페이먼츠</b></td><td>결제</td><td>심사 중</td>
+      <td>월 고정비 아님. <b>매출 연동 결제 수수료(건별 %)</b> — 가맹 계약 조건별.</td>
+      <td><span class="badge b-bad">❓ 계약 확인</span></td>
+    </tr>
+    <tr>
+      <td><b>Resend</b></td><td>주문·알림 메일</td><td>Free</td>
+      <td>현재 <b>₩0</b>(일 100통·월 3,000통). 주문 메일엔 충분. <b>뉴스레터를 100명↑ 대량 발송 시 유료 전환 가능</b>.</td>
+      <td><span class="badge b-good">✅</span></td>
+    </tr>
+    <tr>
+      <td><b>Upstash</b></td><td>보안(요청수 제한)</td><td><b>미연결</b></td>
+      <td>현재 <b>₩0</b>(미연결). 무료 티어(월 50만 요청) 우리 규모 충분 · <b>상업 이용 결제 강제 없음</b> · 카드 미등록 시 깜짝 청구 없음. ※ 현재 카딩/PIN 방어는 꺼진 상태(라이브 전 켜기 권장).</td>
+      <td><span class="badge b-good">✅</span></td>
+    </tr>
+    <tr>
+      <td><b>Sentry</b></td><td>에러 모니터링</td><td>Free</td>
+      <td>현재 <b>₩0</b>(월 5,000건). 초과해도 <b>과금 없이 이벤트만 드롭</b> → 깜짝 청구 없음.</td>
+      <td><span class="badge b-good">✅</span></td>
+    </tr>
+    <tr>
+      <td><b>네이버 지도</b></td><td>지도(전환 검토 중)</td><td>—</td>
+      <td>사업자 대표계정 무료 한도가 단일 매장 사용량을 크게 상회 → <b>무료 범위</b>. 상세: 별도 보고서.</td>
+      <td><span class="badge b-good">✅</span></td>
+    </tr>
+    <tr>
+      <td><b>도메인</b></td><td>goodthingsroasters.com</td><td>보유</td>
+      <td><b>연 1회 갱신비</b>. (v2.0 기재 가비아 약 ₩2,000 — 등록처·금액 이번 미검증)</td>
+      <td><span class="badge b-bad">❓ 미검증</span></td>
+    </tr>
+    <tr>
+      <td><b>Google Workspace</b></td><td>도메인 이메일</td><td>기존</td>
+      <td>v2.0 기재 <b>약 ₩8,500/월</b> — 이번 세션 미검증. 사용 여부·요금 확인 필요.</td>
+      <td><span class="badge b-bad">❓ 미검증</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3. 이전 보고서(v2.0·2026-04) 정정 사항</h2>
+<div class="callout bad">
+  <div class="ttl">⚠️ v2.0 는 그대로 사용 금지 — 아래가 정정됨</div>
+  <ul>
+    <li><b>Vercel "런칭 초기 Hobby 무료 ₩0"</b> → ❌ 오류. 결제·판매 사이트는 <b>Hobby 약관 위반(상업 사용 금지)</b>이라 <b>런칭부터 Pro($20/월)가 필수</b>. "초기 ₩0"은 성립하지 않음.</li>
+    <li><b>원화 총액 표기</b>(월 약 ₩10,500 등) → 환율·플랜 변동으로 단정 부적절 → <b>공식 USD 기준</b>으로 대체, 총액 단정 제거.</li>
+    <li><b>Upstash·Sentry 누락</b> → 본 보고서에 추가(둘 다 현재 ₩0).</li>
+  </ul>
+</div>
+
+<h2>4. 데이터 백업 (이번 세션 조치)</h2>
+<div class="callout good">
+  <div class="ttl">✅ 무료 자동 백업 구축 완료</div>
+  Supabase 무료 티어는 관리형 백업이 없으나, <b>GitHub Actions</b>로 <b>매일 자동 덤프 → gpg(AES256) 암호화 → 보관</b>하도록 구성했다.
+  <b>추가 비용 없이</b> 결제·주문 데이터 백업을 확보 → 백업 목적의 Supabase Pro 결제는 불필요.
+</div>
+
+<h2>5. 확인이 필요한 항목 (미검증)</h2>
+<ul>
+  <li>토스페이먼츠 <b>결제 수수료율</b> — 가맹 계약·정산 조건</li>
+  <li>도메인 <b>등록처·연 갱신비</b></li>
+  <li>Google Workspace <b>사용 여부·요금</b></li>
+  <li>각 무료 티어의 <b>초과 시점</b> — 실제 트래픽·데이터 누적 후 대시보드 확인</li>
+</ul>
+
+<h2>6. 결론</h2>
+<ul>
+  <li><b>강제 월 고정비 = Vercel Pro $20부터(USD).</b> 그 외 인프라는 우리 규모에서 무료로 시작 가능.</li>
+  <li><b>깜짝 청구 위험 낮음</b> — 무료 티어형(Upstash·Sentry 등)은 카드 미등록 또는 초과 시 중단 구조라 자동 청구가 없음. 실청구는 Vercel(구독)과 토스 수수료(매출 연동)에 한정.</li>
+  <li><b>데이터 백업은 무료로 해결</b>(Supabase Pro 불필요).</li>
+  <li>총액·원화 환산은 본 보고서에서 단정하지 않음 — 미검증 항목(§5) 확정 후 합산 권장.</li>
+</ul>
+
+<h2>출처</h2>
+<ul class="src-list">
+  <li>Vercel Pro Plan — https://vercel.com/docs/plans/pro-plan</li>
+  <li>Vercel Pricing — https://vercel.com/pricing</li>
+  <li>Supabase Pricing — https://supabase.com/pricing</li>
+  <li>Resend 한도 — https://resend.com/docs/knowledge-base/account-quotas-and-limits</li>
+  <li>Upstash Redis Pricing — https://upstash.com/docs/redis/overall/pricing</li>
+  <li>Sentry Pricing — https://sentry.io/pricing/</li>
+  <li>네이버 지도 — docs/maps-naver-ncp-pricing.pdf (별도 보고서)</li>
+</ul>
+
+<div class="footer">Good Things Roasters · 운영 비용 검토 보고서 (정정판 v3.0) · 2026-06-22 · 금액은 공식 출처 USD 기준·총액 미단정</div>
+
+</body>
+</html>

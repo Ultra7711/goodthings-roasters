@@ -175,4 +175,4 @@ next/src/app/
 | BUG & POLISHING 리스트 (프로덕션 버그·UX·폴리싱) | `docs/bug-and-polishing.md` |
 | 핸드오버 메모리 작성 규칙 | `docs/handover-memory-rule.md` |
 | OAuth 보안 계획 | `docs/oauth-security-plan.md` |
-| 인프라 스택 · 비용 | `docs/GTR_infrastructure.md` |
+| 인프라 스택 · 비용 | `docs/gtr-operating-cost-report.pdf` |

@@ -1,3 +1,6 @@
+> ⚠️ **구버전(v2.0·2026-04) — 보관용.** 비용 정정판(v3.0)은 `docs/gtr-operating-cost-report.pdf` 참조.
+> 본 문서엔 정정 전 오류(예: Vercel Hobby 무료 ₩0 — 상업 운영 약관 위반)가 포함되어 있어 그대로 인용하지 말 것.
+
 # GTR 기술 인프라 및 운영 비용 계획
 
 > Good Things Roasters (주식회사 브이티이코프)  

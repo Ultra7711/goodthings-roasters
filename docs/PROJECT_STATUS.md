@@ -197,7 +197,7 @@ Good Things Roasters 는 스페셜티 커피 로스터리의 자사몰과 카페
 | 확장기 (Vercel Pro + Supabase Pro) | 약 ₩75,000 ~ 90,000 |
 | 결제 수수료 | 매출의 1.5 ~ 3.5% (카드·간편결제 기준) |
 
-상세는 `docs/GTR_infrastructure.md` 참조.
+상세는 `docs/gtr-operating-cost-report.pdf` 참조.
 
 ---
 
@@ -271,7 +271,7 @@ Good Things Roasters 는 스페셜티 커피 로스터리의 자사몰과 카페
 | `docs/milestone.md` | 잔여 작업 상세 추적 |
 | `docs/milestone-completed.md` | 완료 이력 아카이브 |
 | `docs/admin-implementation-plan.md` | 어드민 구현 진행 매트릭스 |
-| `docs/GTR_infrastructure.md` | 인프라 · 운영 비용 상세 |
+| `docs/gtr-operating-cost-report.pdf` | 인프라 · 운영 비용 상세 |
 | `docs/gtr-design-guide.md` | 디자인 시스템 가이드 |
 | `docs/payments-flow.md` | 결제 플로우 스펙 |
 | `docs/adr/` | 핵심 의사결정 기록 (ADR-001 ~ ADR-009) |
