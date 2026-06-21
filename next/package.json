@@ -63,7 +63,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "16.2.3",
     "knip": "^6.16.1",
     "plaiceholder": "^3.0.0",
