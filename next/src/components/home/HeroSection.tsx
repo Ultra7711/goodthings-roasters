@@ -78,6 +78,14 @@ export default function HeroSection() {
     /* 단일 회복 진입점 — 모든 트리거가 이 함수만 호출.
        정상 재생 중이면 currentTime 진행 검사로 no-op (가벼운 가드). */
     let recoveryInProgress = false;
+    /* S322: 최초 재생 확립 여부. cold load 중 6.8MB 다운로드 버퍼링은 자연스레
+       waiting/stalled 를 발화하는데, 이를 frozen 으로 오인해 Tier 3 load() 가
+       영상을 처음부터 리셋 → "멈췄다 처음부터 재생" 무한 루프(사용자 보고).
+       hasStarted 전에는 play() 만 시도(buffering 은 브라우저 native 에 위임),
+       Tier 2(seek)·Tier 3(load) 는 한번 재생된 후 frozen(BUG-008) 에만 적용.
+       재진입(capturedFrame 보유 = 이미 재생됨)은 true 로 시작 → frozen 회복 보존
+       (Activity hidden→visible 시 useEffect 재실행으로 false 리셋되는 것 방지). */
+    let hasStarted = capturedFrameRef.current !== null;
     const timers: ReturnType<typeof setTimeout>[] = [];
     const clearTimers = () => {
       while (timers.length) {
@@ -101,6 +109,10 @@ export default function HeroSection() {
 
       /* Tier 1: 단순 play. 대부분의 케이스 (autoplay 차단·일반 pause) 해소. */
       void video.play().catch(() => {});
+
+      /* S322: 최초 재생 확립 전(cold load)에는 Tier 1 play() 만 — seek/load 는
+         다운로드 버퍼링을 망가뜨려 "처음부터 재생" 루프 유발. native 버퍼링에 위임. */
+      if (!hasStarted) { recoveryInProgress = false; return; }
 
       timers.push(setTimeout(() => {
         if (document.hidden) { recoveryInProgress = false; return; }
@@ -161,7 +173,10 @@ export default function HeroSection() {
        iOS momentum scroll 도 발화하므로 멈춘 hero 가 스크롤만으로 회복.
        passive: true 로 스크롤 성능 영향 X. */
     const onScroll = () => recover();
+    /* S322: 실제 재생 시작 신호 — 이후부터 frozen 회복(Tier 2/3) 활성화. */
+    const onPlaying = () => { hasStarted = true; };
 
+    video.addEventListener('playing', onPlaying);
     document.addEventListener('touchstart', recover, { passive: true });
     document.addEventListener('click', recover);
     document.addEventListener('scroll', onScroll, { passive: true });
@@ -222,6 +237,7 @@ export default function HeroSection() {
       }
 
       video.pause();
+      video.removeEventListener('playing', onPlaying);
       document.removeEventListener('touchstart', recover);
       document.removeEventListener('click', recover);
       document.removeEventListener('scroll', onScroll);
