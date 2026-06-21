@@ -112,13 +112,53 @@ function buildContentSecurityPolicy(isDev: boolean, pathname: string): string {
   return directives.join('; ');
 }
 
+/**
+ * S322: Supabase 세션(auth) 쿠키 존재 여부.
+ * 쿠키가 없으면 리프레시할 세션이 없으므로(익명 방문자·봇/스캐너) proxy 가
+ * createServerClient + auth.getUser() 를 건너뛸 수 있다 → Active CPU 절감.
+ * 기본 SSR 쿠키 명명(`sb-<ref>-auth-token`[.N]) 기준 — 로그아웃 시
+ * auth/callback 이 `sb-` 접두 쿠키를 일괄 삭제하는 관례와 일치.
+ * PKCE 진행 중(`...-auth-token-code-verifier`)도 매치 → OAuth 중엔 전체 경로 유지(안전측).
+ */
+function hasSupabaseSessionCookie(request: NextRequest): boolean {
+  return request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith('sb-') && cookie.name.includes('auth-token'));
+}
+
+/**
+ * S322: 모든 응답 공통 보안 헤더 — CSP + 결제 경로 Referrer-Policy 축소.
+ * 세션 단락 경로와 리프레시 경로 양쪽에서 재사용(익명 방문자도 CSP 동일 적용).
+ * Referrer-Policy: 3rd-party 분석/광고 태그에 order_number 누출 방어(Session 8 보안 #2).
+ * 전역 기본은 strict-origin-when-cross-origin(next.config.ts), 민감 경로만 same-origin.
+ */
+function applySecurityHeaders(response: NextResponse, csp: string, pathname: string): void {
+  response.headers.set('Content-Security-Policy', csp);
+  if (shouldOverrideReferrerPolicy(pathname)) {
+    response.headers.set('Referrer-Policy', 'same-origin');
+  }
+}
+
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const isDev = process.env.NODE_ENV === 'development';
+  const { pathname } = request.nextUrl;
 
   /* ── CSP 구성 ─────────────────────────────────────────────────────────
      BUG-006 D-007 (2026-04-23) 이후 nonce 기반 → strict-source-list + SRI.
-     요청별 동적 요소 없음 → 상수. 응답 헤더에 주입 (아래 §2). */
-  const csp = buildContentSecurityPolicy(isDev, request.nextUrl.pathname);
+     요청별 동적 요소 없음(pathname 의존만) → 상수. 응답 헤더에 주입. */
+  const csp = buildContentSecurityPolicy(isDev, pathname);
+
+  /* ── S322: 세션 쿠키 없는 요청 단락 ──────────────────────────────────────
+     익명 방문자·봇/스캐너는 리프레시할 Supabase 세션이 없다 → auth 기계
+     (createServerClient + auth.getUser) 를 건너뛰고 보안 헤더만 주입.
+     봇 트래픽이 proxy 함수에서 auth 처리를 돌리던 Active CPU 비용을 제거.
+     로그인 사용자(auth 쿠키 보유)는 아래 리프레시 경로 유지 = 세션 갱신 보존. */
+  if (!hasSupabaseSessionCookie(request)) {
+    const response = NextResponse.next();
+    applySecurityHeaders(response, csp, pathname);
+    return response;
+  }
+
   const requestHeaders = new Headers(request.headers);
 
   let supabaseResponse = NextResponse.next({
@@ -157,17 +197,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   //            (Supabase 공식 가이드 경고 그대로 수용)
   await supabase.auth.getUser();
 
-  /* ── 2. 응답 헤더에 CSP 주입 ───────────────────────────────────────────
+  /* ── 2/3. 보안 헤더 주입 (CSP + 결제 경로 Referrer-Policy 축소) ─────────
      정적 보안 헤더 (HSTS·COOP·CORP 등) 는 next.config.ts headers() 가 담당.
      CSP 는 proxy matcher 통과 경로만 적용되므로 여기서 주입. */
-  supabaseResponse.headers.set('Content-Security-Policy', csp);
-
-  /* ── 3. 결제 경로 Referrer-Policy 축소 (Session 8 보안 #2) ─────────────
-     3rd-party 분석/광고 태그에 order_number 누출 방어. 전역은
-     strict-origin-when-cross-origin 유지, 민감 경로만 same-origin 으로 축소. */
-  if (shouldOverrideReferrerPolicy(request.nextUrl.pathname)) {
-    supabaseResponse.headers.set('Referrer-Policy', 'same-origin');
-  }
+  applySecurityHeaders(supabaseResponse, csp, pathname);
 
   return supabaseResponse;
 }
