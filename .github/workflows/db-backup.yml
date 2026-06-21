@@ -1,0 +1,90 @@
+# ═══════════════════════════════════════════════════════════════
+# db-backup.yml — Supabase DB 자동 백업 (무료 티어 대안)
+#
+# 무료 티어는 관리형 자동 백업이 없으므로(Supabase 공식: `db dump` + off-site
+# 보관 권장), GitHub Actions cron 으로 logical dump 를 떠 gpg(AES256)로
+# 암호화한 뒤 artifact 로 보관한다.
+# 덤프엔 고객 PII·주문·결제 데이터가 포함되므로 반드시 암호화 보관.
+#
+# 트리거: 매일 03:00 KST(18:00 UTC) + 수동(workflow_dispatch)
+#
+# 필요한 Secrets (repo → Settings → Secrets and variables → Actions):
+#   - SUPABASE_DB_URL       : Session Pooler 연결문자열(IPv4). Supabase 대시보드
+#                             → Project Settings → Database → Connection string
+#                             → "Session pooler" 탭 (비밀번호 포함).
+#                             ※ 무료 티어 Direct 연결은 IPv6 → Actions 러너에서
+#                               연결 실패할 수 있어 Session Pooler(IPv4) 사용.
+#   - BACKUP_GPG_PASSPHRASE : 백업 암호화 패스프레이즈.
+#                             ⚠️ 분실 시 복호화 불가 — 비밀번호 관리자 등 안전한 곳에 별도 보관.
+#
+# 복원 절차: docs/db-backup.md 참조.
+#
+# ⚠️ 첫 실행은 secret 등록 후 "Run workflow"(수동)로 1회 검증할 것
+#    (CLI 플래그·연결이 환경에 맞는지 확인). 로그의 파일 크기로 덤프 정상 여부 확인.
+# ═══════════════════════════════════════════════════════════════
+
+name: DB Backup
+
+on:
+  schedule:
+    # 매일 18:00 UTC = 03:00 KST (저트래픽 시간대)
+    - cron: "0 18 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Supabase logical dump (encrypted)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Dump database (schema + data)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_DB_URL:-}" ]; then
+            echo "::error::SUPABASE_DB_URL secret 미설정 — 백업 중단"; exit 1
+          fi
+          # 스키마 + 데이터 분리 덤프 (Supabase 권장 패턴).
+          # roles 는 Supabase 관리형이라 제외 — 새 프로젝트 복원 시 스키마+데이터로 충분.
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" --data-only -f data.sql
+          ls -lh schema.sql data.sql
+
+      - name: Encrypt (gpg AES256) + bundle
+        env:
+          BACKUP_GPG_PASSPHRASE: ${{ secrets.BACKUP_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BACKUP_GPG_PASSPHRASE:-}" ]; then
+            echo "::error::BACKUP_GPG_PASSPHRASE secret 미설정 — 백업 중단"; exit 1
+          fi
+          STAMP="$(date -u +%Y%m%d-%H%M%S)"
+          tar czf "gtr-db-${STAMP}.tar.gz" schema.sql data.sql
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase "$BACKUP_GPG_PASSPHRASE" \
+            --symmetric --cipher-algo AES256 \
+            -o "gtr-db-${STAMP}.tar.gz.gpg" "gtr-db-${STAMP}.tar.gz"
+          # 평문 즉시 삭제 (artifact 에 평문 PII 가 남지 않도록)
+          rm -f schema.sql data.sql "gtr-db-${STAMP}.tar.gz"
+          echo "ARTIFACT_NAME=gtr-db-${STAMP}" >> "$GITHUB_ENV"
+          ls -lh ./*.gpg
+
+      - name: Upload encrypted backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: "*.tar.gz.gpg"
+          retention-days: 30
+          if-no-files-found: error
