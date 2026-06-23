@@ -23,15 +23,18 @@
         않아 clamp 로 0 이동이 되고, 뒤늦게 CSS 가 문서를 키워도 이미
         예약된 smooth scroll 은 unclamp 되지 않음. 첫 클릭 실패의 원인.
 
-   현재 접근: rAF 루프로 layout-synced 스크롤
-   - useEffect 안에서 매 프레임 wrapper.offsetHeight 실측
-   - 직전 프레임 대비 growth 만큼 동기 window.scrollBy(0, growth)
+   현재 접근: rAF 루프로 layout-synced 스크롤 (목표 정렬 방식)
+   - useEffect 안에서 매 프레임 wrapper.getBoundingClientRect() 실측
+   - 매 프레임 "푸터 하단을 (뷰포트 하단 - BIZ_DETAIL_BOTTOM_PADDING)에
+     맞추는" delta 만큼 동기 window.scrollBy(0, delta)
    - 동기 scrollBy 는 "해당 프레임의 현재 layout" 기준으로 이동하므로
-     growth 만큼 이미 늘어난 maxScrollTop 안에서 clamp 없이 이동
+     clamp 없이 정확히 정렬
    - CSS 트랜지션과 scroll 이 layout 레벨에서 완벽 동기 → 푸터가 뷰포트
      하단에 "붙은 채" 콘텐츠가 아래로 자라는 자연스러운 모션
+   - 여백(PADDING)이 루프 내내 유지되므로 종료 후 별도 smooth nudge 불필요.
+     (구 growth-누적 방식은 종료 후 PADDING 만큼 smooth scrollBy 를 따로
+      발사 → 모바일에서 "끝에서 멈칫 후 제자리" 모션이 매번 발생했음)
    - 성장이 멈춘 프레임이 연속 MAX_ZERO_GROWTH_FRAMES 이상이면 종료
-   - 루프 종료 후 BIZ_DETAIL_BOTTOM_PADDING 만큼의 여백 보정(smooth)
    ══════════════════════════════════════════ */
 
 'use client';
@@ -93,26 +96,24 @@ export default function FooterBottom() {
     if (!wrapper) return;
 
     const myToken = ++scrollTokenRef.current;
-    // useEffect 는 React commit 직후 paint 전 실행.
-    // .open 클래스는 이미 부착되었으나 CSS 트랜지션은 방금 시작이므로
-    // interpolated max-height ≈ 0 → 여기서 읽는 offsetHeight 는 닫힌 상태 높이.
-    let lastHeight = wrapper.offsetHeight;
     let zeroFrames = 0;
     const startTs = performance.now();
 
     const step = () => {
       if (scrollTokenRef.current !== myToken) return;
       const now = performance.now();
-      // 강제 layout — 이 순간 문서 전체 높이도 growth 만큼 이미 커진 상태
-      const currentHeight = wrapper.offsetHeight;
-      const growth = currentHeight - lastHeight;
+      // 강제 layout — 이 프레임의 푸터 하단 위치를 실측.
+      // growth(증가분) 누적 방식 대신 매 프레임 "푸터 하단을 뷰포트 하단 - 여백"에
+      // 동기 정렬한다. BIZ_DETAIL_BOTTOM_PADDING 이 루프 내내 유지되므로 트랜지션
+      // 종료 후 별도 smooth nudge(= 끝에서 멈칫 후 제자리 모션)가 불필요해진다.
+      const rect = wrapper.getBoundingClientRect();
+      const delta = rect.bottom - window.innerHeight + BIZ_DETAIL_BOTTOM_PADDING;
 
-      if (growth > 0) {
-        // 동기 scrollBy (behavior 없음). 이 프레임의 layout 에서 이미 maxScrollTop 이
-        // 같은 양만큼 증가해 있어 clamp 없이 정확히 이동한다.
-        // 결과: 푸터가 뷰포트 하단에 "붙은 채" 콘텐츠가 아래로 자라는 모션.
-        window.scrollBy(0, growth);
-        lastHeight = currentHeight;
+      if (delta > 0.5) {
+        // 동기 scrollBy (behavior 없음). 이 프레임의 layout 기준으로 정렬하므로
+        // clamp 없이 정확히 이동 → 푸터가 뷰포트 하단에 "붙은 채" 콘텐츠가
+        // 아래로 자라는 모션이 그대로 유지된다.
+        window.scrollBy(0, delta);
         zeroFrames = 0;
       } else {
         zeroFrames += 1;
@@ -122,16 +123,7 @@ export default function FooterBottom() {
         zeroFrames >= MAX_ZERO_GROWTH_FRAMES ||
         now - startTs > MAX_SCROLL_DURATION_MS;
 
-      if (done) {
-        // 최종 여백 보정 — 트랜지션 미세 오차로 패널 하단이 뷰포트 하단에
-        // 정확히 붙어버리는 경우를 위한 safety nudge
-        const rect = wrapper.getBoundingClientRect();
-        const overflow = rect.bottom - window.innerHeight + BIZ_DETAIL_BOTTOM_PADDING;
-        if (overflow > 0) {
-          window.scrollBy({ top: overflow, behavior: 'smooth' });
-        }
-        return;
-      }
+      if (done) return;
 
       rafIdRef.current = requestAnimationFrame(step);
     };
