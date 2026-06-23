@@ -13,5 +13,5 @@
 
    상단 rubber-band 는 OverscrollColor 의 scrollY<0 분기가 top color 로 처리한다. */
 export default function OverscrollAnchor({ color = '#FBF8F3' }: { color?: string }) {
-  return <footer aria-hidden="true" style={{ backgroundColor: color, height: 1 }} />;
+  return <footer aria-hidden="true" data-overscroll-footer style={{ backgroundColor: color, height: 1 }} />;
 }

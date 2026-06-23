@@ -80,8 +80,12 @@ export default function OverscrollColor() {
       return obs;
     };
 
+    /* overscroll 색 sample 대상 footer 만 타겟 (SiteFooter + OverscrollAnchor).
+       일반 'footer' 셀렉터는 본문 내부 <footer>(예: /legal 의 .legal-footer
+       회사정보)를 문서순서상 먼저 잡아 하단 overscroll 색을 엉뚱한(transparent)
+       값으로 칠하는 회귀 발생 → data-overscroll-footer 마커 단 요소만 선택. */
     let observer: IntersectionObserver | null = null;
-    const footer = document.querySelector<HTMLElement>('footer');
+    const footer = document.querySelector<HTMLElement>('footer[data-overscroll-footer]');
     if (footer) {
       observer = setupFooterObserver(footer);
     }
@@ -90,7 +94,7 @@ export default function OverscrollColor() {
        remount 될 수 있음 (예: /order-complete 등). MutationObserver 로 새 footer
        감지하여 observer 재설정. */
     const mutationObs = new MutationObserver(() => {
-      const currentFooter = document.querySelector<HTMLElement>('footer');
+      const currentFooter = document.querySelector<HTMLElement>('footer[data-overscroll-footer]');
       if (currentFooter && !footer?.isConnected) {
         observer?.disconnect();
         observer = setupFooterObserver(currentFooter);
