@@ -380,7 +380,26 @@ UI 표시는 **전부 어드민 설정에 연동**된다(재배포 0). 배송비
 
 **4. ₩0 주문 엣지** — 전액 포인트 사용 시 Toss ₩0 청구 불가. 전액 차단(잔여 ≥ Toss 최소 결제액) 또는 ₩0 전용 플로우. 체크아웃 redeem UI 책임(§13 Δ6).
 
-**5. U1~U9 표시** (§8 매핑) — PDP/장바구니 적립예정(`computeEarnAmount`)·체크아웃 사용 입력+미리보기(`previewRedeem`)·주문완료/마이페이지 잔액·`views/PointsView.tsx`(신규 원장 내역)·`MyPageSideNav` 메뉴·`useUserPoints` 훅·`formatPoints`. 전부 `site_settings.points` 플래그 연동(DEC-P8·OFF 시 숨김).
+**5. U1~U9 표시** (§8 매핑) — PDP/장바구니 적립예정(`computeEarnAmount`)·체크아웃 사용 입력+미리보기(`previewRedeem`)·주문완료/마이페이지 잔액·`views/PointsView.tsx`(신규 원장 내역)·`MyPageSideNav` 메뉴·`formatPoints`. 전부 `site_settings.points` 플래그 연동(DEC-P8·OFF 시 숨김).
+
+### P5 UI 빠른 조립 — 재사용 맵 (S328 정리 · 재탐색 0)
+
+> 머니 로직 완성 → P5 UI = "데이터 → 완성 순수함수 → 렌더" 조립. **신규 인프라 거의 0**.
+
+**즉시 재사용(이미 구축·검증):**
+- `formatPoints(n)` — `lib/utils.ts` (존재). 표시 통일.
+- **정책 클라 직읽기** — `useSiteSettings().points` (`SiteSettingsProvider` 운영 중·`OrderHistory`가 이미 사용). → PDP·장바구니·체크아웃에서 `computeEarnAmount`/`computeEarnForItems`/`previewRedeem` **클라 즉시 호출**(서버 왕복 0·정책 OFF 시 숨김 분기도 클라).
+- **잔액 = SSR prefetch prop** — 마이페이지 `getMyNickname`(`lib/profile.ts`) 패턴 답습. server에서 `getPointBalance` → prop. **신규 API 엔드포인트 불필요**(`useUserPoints` 훅·`/api/points` 미필요).
+- 적립/사용 계산·`getRecentPointLedger`·`deliverOrder` 전부 완성.
+
+**표면별 규모(대략·로직 완성 전제):**
+- U1·U2·U4·U5·U6·U9(적립 배지/잔액 텍스트) = 각 小(useSiteSettings + formatPoints 조립).
+- **U3 체크아웃 사용 입력+미리보기 = 中**(유일 복잡점·`previewRedeem` 재사용·`OrderSummary` 결제액 재계산 표시·`orderClient.pointsToUse` 이미 수용[P2]·잔액 SSR prop).
+- **U7 PointsView(신규)+사이드냅 = 中**(`getRecentPointLedger`+`formatPoints` 조립).
+- **U8 구매자 구매확정 버튼+사용/적립 표시 = 中**(`OrderHistory.tsx` status '배송중'→본인가드 액션→`deliverOrder`).
+- → 체감 **1회 집중 세션**, 본체 = U3·U7·U8 3개.
+
+**유일 신규 서버 글루**: 잔액 SSR prefetch(checkout/mypage page.tsx에 `getPointBalance` 추가) + 구매자 구매확정 member 서버액션(본인 주문 가드 → deliverOrder). 그 외 표시는 클라 조립.
 
 ### 약관 (출시 게이트)
 이용약관 **제10조의3 (적립금)** 적용(초안 = §15/S327 complete). `points.enabled=true` 전환과 함께 시행일 갱신.
