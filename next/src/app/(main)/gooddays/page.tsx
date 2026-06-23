@@ -24,9 +24,10 @@ type Props = {
 };
 
 async function GoodDaysContent({ searchParams }: Props) {
-  /* S279-D · DEC-S279-D-1: gooddaysServer 'use cache' 폐기로 caller 측
-     connection() 명시 — admin 변경 즉시 /gooddays 반영 보장. searchParams
-     의 dynamic 과 idempotent — 안전망. */
+  /* S321 에서 gooddaysServer 'use cache' + cacheLife(60s) 복원 (admin 반영은
+     revalidateTag 담당). 단 이 페이지는 searchParams(?img=) 를 서버 await 하고
+     라이트박스 첫 paint·back 버튼·메인 진입 연출(gd-route-transition)이 얽혀
+     connection 유지 (S323 audit — carry: 정적화 검토, ADR-012). */
   await connection();
   const [params, gallery] = await Promise.all([searchParams, fetchGoodDaysGallery()]);
   return <GoodDaysPage initialImgSrc={params.img ?? null} gallery={gallery} />;

@@ -1,10 +1,11 @@
 # ADR-010 — Caller-side connection() 책임: server fetch helper 패턴 통일
 
-- **Status:** Accepted
+- **Status:** Accepted (partially superseded by ADR-012, S323)
 - **Date:** 2026-05-25
 - **Session:** S280-B (S279-D 후속 정합화)
 - **Related:** DEC-S278-1 (new Date prerender 룰) / DEC-S279-D-1 (caller 측 connection 분리) / BUG-006 D-007 (root layout PPR 정합)
 - **Supersedes:** DEC-S278 의 bannersServer helper-internal connection() 패턴 (S280-B 부 caller-side 통일)
+- **Partially superseded by:** ADR-012 (S323) — S321 `'use cache'` 복원 + revalidateTag 반영 보장 후, 정적 가능 페이지(`/shop`·`/menu`·`/shop/[slug]`)는 `connection()` 제거하여 정적 prerender. banners(new Date)·cart(cookies)·gooddays(searchParams)·api 는 본 ADR대로 동적 유지.
 - **Implementation:** S280-B — bannersServer.ts 의 `await connection()` 제거. CafeMenuSection / SignatureChapter 의 caller 측 connection() 유지.
 
 ## Context

@@ -11,7 +11,6 @@
    ══════════════════════════════════════════ */
 
 import { Suspense } from 'react';
-import { connection } from 'next/server';
 import { fetchCafeMenu } from '@/lib/cafeMenuServer';
 import { fetchMenuLikesCountsSnapshot } from '@/lib/menuLikesServer';
 import CafeMenuPage from '@/components/cafe/CafeMenuPage';
@@ -24,10 +23,9 @@ export const metadata = {
 };
 
 export default async function CafeMenuRoute() {
-  /* S279-D · DEC-S279-D-1: cafeMenuServer 'use cache' 폐기로 caller 측
-     connection() 명시 — admin 변경 즉시 /menu 반영 보장. likes counts 는
-     fetchMenuLikesCountsSnapshot 의 별 정책 ('use cache' 보존). */
-  await connection();
+  /* S323 (ADR-012): S321 에서 cafeMenuServer 'use cache' + cacheLife(60s) 복원.
+     admin 변경 즉시 반영은 revalidateTag(CAFE_MENU_CACHE_TAG, 'max') 가 담당 →
+     caller connection() 불필요 → 정적 prerender. likes counts 도 'use cache' 보존. */
   const [items, likesCounts] = await Promise.all([
     fetchCafeMenu(),
     fetchMenuLikesCountsSnapshot(),

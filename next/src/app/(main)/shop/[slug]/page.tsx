@@ -6,7 +6,6 @@
    ══════════════════════════════════════════ */
 
 import { notFound } from 'next/navigation';
-import { connection } from 'next/server';
 import { extractKrName } from '@/lib/products';
 import {
   fetchAllProductSlugs,
@@ -19,8 +18,8 @@ import { productJsonLd, absoluteUrl } from '@/lib/seo/jsonLd';
 type RouteParams = { slug: string };
 
 export async function generateStaticParams(): Promise<RouteParams[]> {
-  /* S279-D · DEC-S279-D-1: build-time 안전 lightweight variant.
-     fetchProducts 는 caller 측 connection() 요구 — build-time 호출 불가. */
+  /* build-time 은 slug 만 필요 → 전체 row fetch(fetchProductBySlug) 대신
+     lightweight variant 사용. */
   const slugs = await fetchAllProductSlugs();
   return slugs.map((slug) => ({ slug }));
 }
@@ -51,9 +50,9 @@ export default async function ProductDetailRoute({
 }: {
   params: Promise<RouteParams>;
 }) {
-  /* S279-D · DEC-S279-D-1: productsServer 'use cache' 폐기로 caller 측
-     connection() 명시 — admin 변경 즉시 PDP 반영 보장. */
-  await connection();
+  /* S323 (ADR-012): S321 에서 productsServer 'use cache' + cacheLife(60s) 복원.
+     admin 변경 즉시 반영은 revalidateTag(PRODUCTS_CACHE_TAG, 'max') 가 담당 →
+     caller connection() 불필요. params 는 generateStaticParams 로 빌드타임 확정. */
   const { slug } = await params;
   const product = await fetchProductBySlug(slug);
   if (!product) notFound();

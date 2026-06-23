@@ -8,7 +8,6 @@
    ══════════════════════════════════════════ */
 
 import { Suspense } from 'react';
-import { connection } from 'next/server';
 import ShopPage from '@/components/shop/ShopPage';
 import ShopSkeleton from '@/components/shop/ShopSkeleton';
 import { fetchProducts } from '@/lib/productsServer';
@@ -20,9 +19,9 @@ export const metadata = {
 };
 
 export default async function ShopRoute() {
-  /* S279-D · DEC-S279-D-1: productsServer 의 'use cache' 폐기로
-     caller 측 connection() 명시 — admin 변경 즉시 메인 반영 보장. */
-  await connection();
+  /* S323 (ADR-012): S321 에서 productsServer 'use cache' + cacheLife(60s) 복원.
+     admin 변경 즉시 반영은 revalidateTag(PRODUCTS_CACHE_TAG, 'max') 가 담당 →
+     caller connection() 불필요 → 정적 prerender (Active CPU 절감). */
   const products = await fetchProducts();
   return (
     <Suspense fallback={<ShopSkeleton />}>
