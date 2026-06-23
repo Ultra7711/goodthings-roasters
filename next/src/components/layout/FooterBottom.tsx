@@ -65,6 +65,10 @@ export default function FooterBottom() {
   const scrollTokenRef = useRef(0);
   // rAF id 를 ref 로 유지 — 클로저 stale 가능성 차단, cleanup 취소 명시성 향상
   const rafIdRef = useRef(0);
+  // 라우트 전환으로 닫히는 경우(BUG-170) 닫기 스크롤을 생략하기 위한 플래그
+  const skipCloseScrollRef = useRef(false);
+  // 첫 마운트(초기 open=false) 의 닫기 effect 1회 스크롤 생략
+  const isInitRef = useRef(true);
 
   // 라우트 전환 시 rAF 루프 취소 + 토글 닫기 (BUG-170)
   // FooterBottom 은 레이아웃에 위치해 언마운트되지 않으므로 open=true + rAF 루프가
@@ -74,13 +78,23 @@ export default function FooterBottom() {
     /* eslint-disable react-hooks/set-state-in-effect */
     cancelAnimationFrame(rafIdRef.current);
     scrollTokenRef.current++;
+    skipCloseScrollRef.current = true; // 라우트 전환 닫기 = 새 페이지에서 스크롤 발사 금지
     setOpen(false);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [pathname]);
 
   useEffect(() => {
-    // 닫힐 때는 아무 것도 하지 않음 — cleanup 이 이전 루프를 취소한다
-    if (!open) return;
+    // 첫 마운트(초기 open=false) — 닫기 루프 1회 생략
+    if (isInitRef.current) {
+      isInitRef.current = false;
+      return;
+    }
+
+    // 라우트 전환으로 닫히는 경우 — 스크롤 생략 (BUG-170)
+    if (!open && skipCloseScrollRef.current) {
+      skipCloseScrollRef.current = false;
+      return;
+    }
 
     // prefers-reduced-motion 사용자: 자동 스크롤 완전 생략.
     // 페이지가 임의로 점프/스크롤되는 인상은 reduce motion 의도에 반하므로
@@ -109,10 +123,14 @@ export default function FooterBottom() {
       const rect = wrapper.getBoundingClientRect();
       const delta = rect.bottom - window.innerHeight + BIZ_DETAIL_BOTTOM_PADDING;
 
-      if (delta > 0.5) {
+      // 펼침 = 아래로(delta>0), 닫힘 = 위로(delta<0) 정렬 → 닫기는 펼침의 역재생.
+      // 닫힘 시 콘텐츠가 화면 안에서 위로 접히며 사라진다 (화면 밖 "쏟아짐" 제거).
+      const moved = open ? delta > 0.5 : delta < -0.5;
+
+      if (moved) {
         // 동기 scrollBy (behavior 없음). 이 프레임의 layout 기준으로 정렬하므로
         // clamp 없이 정확히 이동 → 푸터가 뷰포트 하단에 "붙은 채" 콘텐츠가
-        // 아래로 자라는 모션이 그대로 유지된다.
+        // 자라거나(펼침) 접히는(닫힘) 모션이 그대로 유지된다.
         window.scrollBy(0, delta);
         zeroFrames = 0;
       } else {
