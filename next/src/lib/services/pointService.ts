@@ -30,6 +30,50 @@ export function computeEarnAmount(subtotal: number, policy: PointsSettings): num
   return Math.floor(subtotal * policy.earn.rate);
 }
 
+/** 정기배송 차등 적립률 키 (subscription_period enum 과 정합). */
+const SUBSCRIPTION_RATE_KEYS = ['2주', '4주', '6주', '8주'] as const;
+type SubscriptionRateKey = (typeof SUBSCRIPTION_RATE_KEYS)[number];
+
+/** 주문 품목 1줄 — 적립 계산 입력(권위는 line_total). */
+export type EarnLineItem = {
+  lineTotal: number;
+  itemType: 'normal' | 'subscription';
+  /** 정기배송 cycle('2주'…). 일반 품목은 null. */
+  subscriptionPeriod: string | null;
+};
+
+/** 품목 1줄에 적용할 적립률 — 정기배송이면 cycle별 차등율, 아니면 일반율. */
+function resolveItemRate(item: EarnLineItem, policy: PointsSettings): number {
+  if (
+    item.itemType === 'subscription' &&
+    item.subscriptionPeriod &&
+    (SUBSCRIPTION_RATE_KEYS as readonly string[]).includes(item.subscriptionPeriod)
+  ) {
+    return policy.earn.subscription_rates[item.subscriptionPeriod as SubscriptionRateKey];
+  }
+  return policy.earn.rate;
+}
+
+/**
+ * 주문 적립액 계산(품목별) — 순수. DEC-S328 정기배송 차등 적립률.
+ * 정기배송 품목은 cycle별 비율, 일반 품목은 earn.rate 를 각 line_total 에 적용해 합산.
+ * 마스터/적립 OFF 면 0. 품목별 내림(floor) 후 합.
+ *
+ * deliverOrder(구매확정 시점)가 호출. computeEarnAmount(단일 금액)는 UI 단순 미리보기용.
+ */
+export function computeEarnForItems(
+  items: ReadonlyArray<EarnLineItem>,
+  policy: PointsSettings,
+): number {
+  if (!policy.enabled || !policy.earn.enabled) return 0;
+  let total = 0;
+  for (const item of items) {
+    if (!Number.isFinite(item.lineTotal) || item.lineTotal <= 0) continue;
+    total += Math.floor(item.lineTotal * resolveItemRate(item, policy));
+  }
+  return total;
+}
+
 /**
  * 행동 트리거 적립액(가입·리뷰·생일) — 정책 기반·순수.
  * 마스터/적립 OFF 또는 해당 트리거 OFF 면 0.

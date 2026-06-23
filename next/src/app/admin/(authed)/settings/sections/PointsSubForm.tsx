@@ -70,30 +70,60 @@ export function PointsSubForm({ value, onChange }: PointsSubFormProps) {
           on={earn.enabled}
           onToggle={() => patchEarn({ enabled: !earn.enabled })}
         >
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="적립률" hint="상품 소계 기준 (배송비 제외)">
-              <FormInput
-                suffix="%"
-                inputMode="decimal"
-                value={rateToPercent(earn.rate)}
-                onChange={(e) => patchEarn({ rate: percentToRate(e.target.value) })}
-              />
-            </FormField>
-            <FormField
-              label="구매확정 자동확정"
-              hint="발송 후 N일 경과 시 자동 적립 (청약철회 7일 이후 권장)"
-            >
-              <FormInput
-                suffix="일 후"
-                inputMode="numeric"
-                value={formatNumber(earn.auto_confirm_days)}
-                onChange={(e) =>
-                  patchEarn({
-                    auto_confirm_days: Math.min(60, Math.max(1, parseNumber(e.target.value))),
-                  })
-                }
-              />
-            </FormField>
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="적립률" hint="일반 품목 · 상품 소계 기준">
+                <FormInput
+                  suffix="%"
+                  inputMode="decimal"
+                  value={rateToPercent(earn.rate)}
+                  onChange={(e) => patchEarn({ rate: percentToRate(e.target.value) })}
+                />
+              </FormField>
+              <FormField
+                label="구매확정 자동확정"
+                hint="발송 후 N일 경과 시 자동 적립 (청약철회 7일 이후 권장)"
+              >
+                <FormInput
+                  suffix="일 후"
+                  inputMode="numeric"
+                  value={formatNumber(earn.auto_confirm_days)}
+                  onChange={(e) =>
+                    patchEarn({
+                      auto_confirm_days: Math.min(60, Math.max(1, parseNumber(e.target.value))),
+                    })
+                  }
+                />
+              </FormField>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="text-xs font-medium text-[var(--foreground)]">
+                정기배송 기간별 적립률{' '}
+                <span className="text-muted-foreground font-normal">
+                  (정기 품목은 일반율 대신 이 비율로 적립)
+                </span>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {(['2주', '4주', '6주', '8주'] as const).map((p) => (
+                  <FormField key={p} label={p}>
+                    <FormInput
+                      suffix="%"
+                      inputMode="decimal"
+                      value={rateToPercent(earn.subscription_rates[p])}
+                      onChange={(e) =>
+                        patchEarn({
+                          subscription_rates: {
+                            ...earn.subscription_rates,
+                            [p]: percentToRate(e.target.value),
+                          },
+                        })
+                      }
+                    />
+                  </FormField>
+                ))}
+              </div>
+            </div>
           </div>
         </SubSection>
 

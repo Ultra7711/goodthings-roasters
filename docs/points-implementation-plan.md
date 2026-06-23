@@ -319,3 +319,37 @@ UI 표시는 **전부 어드민 설정에 연동**된다(재배포 0). 배송비
 - **②수동가감**(`adjust_points` RPC·owner-only·audit) + **④정기배송 차등 적립률**(`earn.subscription_rates`·computeEarnForItems).
 - **구매자 구매확정 버튼(P5) + 자동확정 크론**(발송+`auto_confirm_days`) — 한 쌍. + **earned 회수**(구매확정 후 환불 시·DEC-S326-1 적립분·현 미구현) 동반 권장.
 - 선택: SweetTracker 폴링(실배송완료 정확도).
+
+---
+
+## 16. S328 Phase 4 잔여 (②수동가감 + ④정기배송 차등 적립률) 착수 패치
+
+> 코드 직독(094 adjust_points·admin_audit 020/055/070·users 상세·042 빌링) 재검증. **이 섹션이 §7 어드민 ②·§12 정기배송 차등 적립률을 보강·우선한다.**
+
+### 핵심 결정
+
+- **DEC-S328-1 수동 가감 = owner-only + 이중 기록.** `adjust_points` RPC(094·service_role·±·멱등) 호출. **금액 권위 = point_ledger**('adjusted'·description=사유), **actor 책임 = admin_audit**(action 'adjust_points'·reason="±N P · 사유"). applied=true 일 때만 admin_audit insert(멱등 중복 시 audit 중복 방지). UI = 회원 상세(`/admin/users/[id]`) 적립금 카드(잔액+원장+가감 모달·client nonce 멱등키).
+- **DEC-S328-2 정기배송 차등 적립률.** 정책 `earn.subscription_rates`(2주/4주/6주/8주·소수 0~1·기본 0.01·**JSONB+Zod 마이그 불요**). `computeEarnForItems(items, policy)`(품목별: 정기=cycle율·일반=earn.rate·line_total 기준 floor 합) 신설. **`deliverOrder`가 computeEarnAmount→computeEarnForItems 로 전환**(order_items fetch). `computeEarnAmount`(단일 금액)는 P5 UI 미리보기용 잔존.
+  - **빌링 흐름 확인 결과(❓해소)**: 정기 첫 회차 = `create_order`(pending·order_items에 item_type='subscription'+subscription_period) → `process_billing_charge_success`(paid 전이). **일반 order로 생성 → dispatch→배송완료(deliverOrder) 동일 경유** → computeEarnForItems가 cycle율 자동 적용. **반복 회차 빌링 RPC(`process_billing_renewal` 등)는 미구현**(next_delivery_at 처리 크론 부재) → 구현 시 동일 order/deliverOrder 경유라 ④ 자동 호환.
+
+### 산출물
+
+| # | 파일 | 변경 |
+|---|------|------|
+| ② | 마이그 **100** | `admin_audit_action_check` 에 'adjust_points' 추가(070 패턴·드롭→재추가). **원격 적용 필요(선행 액션).** |
+| ② | `pointRepo.ts` | `adjustPoints`(094 RPC·에러 매핑)·`getRecentPointLedger`(service_role·어드민 타 회원 원장) |
+| ② | `usersServer.ts` | `fetchAdminUserDetail` += point_balance + pointLedger(N=20) |
+| ② | `users/actions.ts` | `adjustPointsAction`(owner-only·Zod·멱등 nonce·adjust_points→admin_audit) |
+| ② | `users/[id]/{page,UserDetailClient}.tsx` | 적립금 카드(잔액·원장·수동 가감 모달) |
+| ② | `auditServer.ts`·`audit.ts` | AdminAuditAction += 'adjust_points'(/admin/audit 타임라인·라벨) |
+| ④ | `siteSettings.ts` | `earn.subscription_rates`(2/4/6/8주) |
+| ④ | `pointService.ts` | `computeEarnForItems` + `EarnLineItem`(7 테스트) |
+| ④ | `deliverOrder.ts` | order_items fetch → computeEarnForItems |
+| ④ | `PointsSubForm.tsx` | 정기 기간별 적립률 4입력 |
+
+**검증**: tsc 0 / vitest 898(891+7) / build PASS. `enabled=false` → computeEarnForItems 0 / 가감은 enabled 무관(수동).
+
+### 남은 작업
+
+- P5: 구매자 구매확정 버튼 + 자동확정 크론 + earned 회수.
+- 반복 회차 빌링(`process_billing_renewal` + next_delivery_at 크론) — 구현 시 ④ 자동 적용.

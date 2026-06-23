@@ -46,6 +46,7 @@ import {
   type StatusTone,
 } from '@/lib/admin/orders';
 import {
+  adjustPointsAction,
   forceDeleteAccountAction,
   grantAdminAction,
   revokeAdminAction,
@@ -53,6 +54,7 @@ import {
   type ForceDeleteAccountResult,
   type UserRoleActionResult,
 } from '../actions';
+import type { PointLedgerEntry } from '@/types/point';
 import { cn } from '@/lib/utils';
 import { AdminBackLink } from '@/components/admin/AdminBackLink';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
@@ -61,6 +63,9 @@ type Props = {
   profile: UserDetailProfile;
   orders: ListedUserOrder[];
   audit: AdminAuditEntry[];
+  /** S328 ②: 포인트 잔액 + 최근 원장. */
+  pointBalance: number;
+  pointLedger: PointLedgerEntry[];
   currentAdminId: string | null;
   /** S233-fu: owner (관리자) 만 권한 변경/단계 조정 가능. staff (운영자) 는 조회만. */
   isOwner: boolean;
@@ -105,6 +110,8 @@ export default function UserDetailClient({
   profile,
   orders,
   audit,
+  pointBalance,
+  pointLedger,
   currentAdminId,
   isOwner,
 }: Props) {
@@ -125,6 +132,12 @@ export default function UserDetailClient({
   const [deleteReason, setDeleteReason] = useState('');
   const [emailConfirm, setEmailConfirm] = useState('');
   const [isDeletePending, startDeleteTransition] = useTransition();
+  /* S328 ②: 포인트 수동 가감 다이얼로그 상태 */
+  const [pointDialogOpen, setPointDialogOpen] = useState(false);
+  const [pointAmount, setPointAmount] = useState('');
+  const [pointReason, setPointReason] = useState('');
+  const [pointNonce, setPointNonce] = useState('');
+  const [isPointPending, startPointTransition] = useTransition();
   const router = useRouter();
 
   /* 변경 후 새 admin_level (현재가 owner면 → staff, staff면 → owner) */
@@ -264,6 +277,63 @@ export default function UserDetailClient({
     });
   }
 
+  /* S328 ②: 포인트 수동 가감 — owner 전용. 양수=지급, 음수=차감. */
+  const parsedPointAmount = (() => {
+    const cleaned = pointAmount.trim().replace(/[^0-9-]/g, '');
+    const n = Number.parseInt(cleaned, 10);
+    return Number.isFinite(n) ? n : 0;
+  })();
+  const pointReasonTrim = pointReason.trim();
+  const canSubmitPoint =
+    parsedPointAmount !== 0 &&
+    Math.abs(parsedPointAmount) <= 10_000_000 &&
+    pointReasonTrim.length > 0 &&
+    !isPointPending;
+  const pointBalanceAfter = pointBalance + parsedPointAmount;
+
+  function openPointDialog() {
+    setPointAmount('');
+    setPointReason('');
+    setPointNonce(crypto.randomUUID());
+    setPointDialogOpen(true);
+  }
+
+  function closePointDialog() {
+    if (isPointPending) return;
+    setPointDialogOpen(false);
+  }
+
+  function submitPoint() {
+    if (!canSubmitPoint) return;
+    startPointTransition(async () => {
+      const result = await adjustPointsAction({
+        targetId: profile.id,
+        amount: parsedPointAmount,
+        reason: pointReasonTrim,
+        idempotencyKey: pointNonce,
+      });
+      if (!result.ok) {
+        const map: Record<string, string> = {
+          unauthorized: '관리자 권한이 필요합니다.',
+          validation_failed: '입력값을 확인해 주세요.',
+          user_not_found: '대상 회원을 찾을 수 없습니다.',
+          invalid_amount: '가감액이 올바르지 않습니다 (0 불가).',
+          insufficient_balance: '잔액이 부족하여 차감할 수 없습니다.',
+          server_error: '처리 중 오류가 발생했습니다.',
+        };
+        toast.error(map[result.error] ?? '포인트 가감에 실패했습니다.');
+        return;
+      }
+      toast.success(
+        result.applied
+          ? `포인트를 ${parsedPointAmount > 0 ? '지급' : '차감'}했습니다 (잔액 ${result.balance.toLocaleString()}P)`
+          : '이미 처리된 요청입니다.',
+      );
+      setPointDialogOpen(false);
+      router.refresh();
+    });
+  }
+
   return (
     <>
       <AdminTopbarActions>
@@ -312,6 +382,77 @@ export default function UserDetailClient({
             <DefRow label="가입일">{formatJoinedDate(profile.createdAtIso)}</DefRow>
             <DefRow label="최종 업데이트">{formatAuditTimestamp(profile.updatedAtIso)}</DefRow>
           </dl>
+        </section>
+
+        {/* 카드 1.2: 적립금 (S328 ②) */}
+        <section className={CARD_CLASS}>
+          <header className={CARD_HEADER_CLASS}>
+            <span>적립금</span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold tabular-nums text-foreground">
+                {pointBalance.toLocaleString()}P
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="!h-7"
+                onClick={openPointDialog}
+                disabled={!isOwner || isPointPending}
+                title={!isOwner ? '관리자 권한 필요' : undefined}
+              >
+                수동 가감
+              </Button>
+            </div>
+          </header>
+          {pointLedger.length === 0 ? (
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+              포인트 내역이 없습니다.
+            </div>
+          ) : (
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr style={{ background: 'var(--surface-muted)', color: 'var(--foreground-muted)' }}>
+                  <th style={TH_STYLE}>구분</th>
+                  <th style={{ ...TH_STYLE, textAlign: 'right' }}>변동</th>
+                  <th style={TH_STYLE}>사유</th>
+                  <th style={TH_STYLE}>시각</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pointLedger.map((e, i) => (
+                  <tr key={e.id} className={cn(i !== 0 && 'border-t border-border')}>
+                    <td style={TD_STYLE}>
+                      <PointEventBadge eventType={e.eventType} />
+                    </td>
+                    <td
+                      style={{ ...TD_STYLE, textAlign: 'right' }}
+                      className={cn(
+                        'text-sm font-medium tabular-nums',
+                        e.amount > 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]',
+                      )}
+                    >
+                      {e.amount > 0 ? '+' : ''}
+                      {e.amount.toLocaleString()}P
+                    </td>
+                    <td
+                      style={{ ...TD_STYLE, maxWidth: 320 }}
+                      className={cn(
+                        'text-sm overflow-hidden text-ellipsis whitespace-nowrap',
+                        e.description ? 'text-foreground' : 'text-[var(--foreground-subtle)]',
+                      )}
+                      title={e.description ?? undefined}
+                    >
+                      {e.description ?? '—'}
+                    </td>
+                    <td style={TD_STYLE} className="text-xs text-muted-foreground tabular-nums">
+                      {formatKstDateTime(e.createdAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </section>
 
         {/* 카드 1.5: 권한 설정 (S233-fu · admin 인 경우만) */}
@@ -537,6 +678,87 @@ export default function UserDetailClient({
                   : targetLevel === 'owner'
                     ? '관리자로 승격'
                     : '운영자로 변경'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* 포인트 수동 가감 다이얼로그 (S328 ②) */}
+        <Dialog
+          open={pointDialogOpen}
+          onOpenChange={(o) => (o ? setPointDialogOpen(true) : closePointDialog())}
+        >
+          <DialogContent className="max-w-[480px] p-0 gap-0">
+            <DialogHeader className="px-6 pt-5 pb-0">
+              <DialogTitle className="text-base font-medium">포인트 수동 가감</DialogTitle>
+              <DialogDescription className="text-xs mt-1">
+                <strong>{profile.email}</strong> 의 적립금을 지급(양수)하거나 차감(음수)합니다.
+                사유는 적립금 내역과 감사 로그에 기록됩니다. 현재 잔액{' '}
+                <span className="tabular-nums">{pointBalance.toLocaleString()}P</span>.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="px-6 py-5 flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="point-amount" className="text-xs text-muted-foreground">
+                  가감액 <span className="text-[var(--danger)]">(필수, 0 불가)</span>
+                </label>
+                <input
+                  id="point-amount"
+                  inputMode="numeric"
+                  value={pointAmount}
+                  onChange={(e) => setPointAmount(e.target.value)}
+                  disabled={isPointPending}
+                  placeholder="예: 5000 (지급) · -3000 (차감)"
+                  className="h-9 px-3 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-[var(--ring)] tabular-nums"
+                  autoComplete="off"
+                />
+                {parsedPointAmount !== 0 && (
+                  <div className="text-xs text-[var(--foreground-subtle)] tabular-nums">
+                    변경 후 잔액 {pointBalanceAfter.toLocaleString()}P
+                    {pointBalanceAfter < 0 && (
+                      <span className="text-[var(--danger)]"> · 잔액 부족 (차감 불가)</span>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="point-reason" className="text-xs text-muted-foreground">
+                  사유 <span className="text-[var(--danger)]">(필수, 최대 500자)</span>
+                </label>
+                <Textarea
+                  id="point-reason"
+                  value={pointReason}
+                  onChange={(e) => setPointReason(e.target.value.slice(0, 500))}
+                  disabled={isPointPending}
+                  placeholder="예: CS 보상 — 배송 지연 사과"
+                  rows={3}
+                />
+                <div className="text-xs text-[var(--foreground-subtle)] text-right">
+                  {pointReason.length} / 500
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="px-6 pb-5 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="!h-7"
+                onClick={closePointDialog}
+                disabled={isPointPending}
+              >
+                취소
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="!h-7"
+                onClick={submitPoint}
+                disabled={!canSubmitPoint || pointBalanceAfter < 0}
+              >
+                {isPointPending ? '처리 중…' : parsedPointAmount < 0 ? '차감' : '지급'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -817,6 +1039,31 @@ function ActionBadge({
       }}
     >
       {isGrant ? '운영자 권한 부여' : '어드민 권한 해제'}
+    </ShadcnBadge>
+  );
+}
+
+/* S328 ②: 포인트 원장 구분 배지 */
+const POINT_EVENT_META: Record<
+  PointLedgerEntry['eventType'],
+  { label: string; bg: string; fg: string }
+> = {
+  earned:   { label: '적립',   bg: 'var(--success-soft)', fg: 'var(--success)' },
+  used:     { label: '사용',   bg: 'var(--neutral-soft)', fg: 'var(--neutral-soft-fg)' },
+  expired:  { label: '소멸',   bg: 'var(--neutral-soft)', fg: 'var(--foreground-muted)' },
+  adjusted: { label: '수동조정', bg: 'var(--warning-soft)', fg: 'var(--warning)' },
+  reversed: { label: '복원',   bg: 'var(--info-soft)',    fg: 'var(--info)' },
+};
+
+function PointEventBadge({ eventType }: { eventType: PointLedgerEntry['eventType'] }) {
+  const m = POINT_EVENT_META[eventType];
+  return (
+    <ShadcnBadge
+      variant="outline"
+      className="border-transparent"
+      style={{ background: m.bg, color: m.fg }}
+    >
+      {m.label}
     </ShadcnBadge>
   );
 }

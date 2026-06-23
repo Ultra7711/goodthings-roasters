@@ -22,7 +22,7 @@
    - lib/services/pointService.ts (computeEarnAmount)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { computeEarnAmount } from '@/lib/services/pointService';
+import { computeEarnForItems, type EarnLineItem } from '@/lib/services/pointService';
 import { OrderNumberSchema } from '@/lib/schemas/order';
 import { fetchSiteSettings } from '@/lib/siteSettingsServer';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
@@ -63,22 +63,34 @@ export async function deliverOrder(orderNumber: string): Promise<DeliverResult> 
   }
   const orderNo = parsed.data;
 
-  /* 2) 주문 조회 — service_role (complete_delivery RPC 가 service_role 전용).
-        적립 기준액 = subtotal (Δ3). */
+  /* 2) 주문 + 품목 조회 — service_role (complete_delivery RPC 가 service_role 전용).
+        적립은 품목별(정기배송 차등 적립률·DEC-S328) → line_total/item_type/period 필요. */
   const admin = getSupabaseAdmin();
   const { data: order, error: lookupErr } = await admin
     .from('orders')
-    .select('id, subtotal')
+    .select('id, order_items ( line_total, item_type, subscription_period )')
     .eq('order_number', orderNo)
-    .maybeSingle<{ id: string; subtotal: number }>();
+    .maybeSingle<{
+      id: string;
+      order_items: Array<{
+        line_total: number;
+        item_type: 'normal' | 'subscription';
+        subscription_period: string | null;
+      }> | null;
+    }>();
 
   if (lookupErr || !order) {
     return { ok: false, error: 'not_found' };
   }
 
-  /* 3) 적립액 산정 — 정책 단일 권위(computeEarnAmount). enabled=false 면 0. */
+  /* 3) 적립액 산정 — 정책 단일 권위(computeEarnForItems·품목별). enabled=false 면 0. */
   const { points } = await fetchSiteSettings();
-  const earnAmount = computeEarnAmount(order.subtotal, points);
+  const items: EarnLineItem[] = (order.order_items ?? []).map((it) => ({
+    lineTotal: it.line_total,
+    itemType: it.item_type,
+    subscriptionPeriod: it.subscription_period,
+  }));
+  const earnAmount = computeEarnForItems(items, points);
 
   /* 4) RPC 원자 커밋 — 전이 + 적립(멱등 earn:||order_id) */
   const { data: rpcData, error: rpcError } = await admin.rpc('complete_delivery', {

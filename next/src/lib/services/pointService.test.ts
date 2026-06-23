@@ -13,9 +13,11 @@ import { describe, expect, it } from 'vitest';
 import { PointsSettingsSchema, type PointsSettings } from '@/lib/siteSettings';
 import {
   computeEarnAmount,
+  computeEarnForItems,
   computeTriggerEarn,
   previewRedeem,
   resolveRedeem,
+  type EarnLineItem,
 } from './pointService';
 
 /** 기본 정책 + 부분 override 헬퍼. enabled=true 로 켠 상태를 베이스로. */
@@ -257,5 +259,73 @@ describe('resolveRedeem (T1 서버 재계산 경계)', () => {
       isMember: true,
     });
     expect(used).toBe(2500);
+  });
+});
+
+/* ── computeEarnForItems — 정기배송 차등 적립률(DEC-S328) ──────────────── */
+
+describe('computeEarnForItems', () => {
+  const normal = (lineTotal: number): EarnLineItem => ({
+    lineTotal,
+    itemType: 'normal',
+    subscriptionPeriod: null,
+  });
+  const sub = (lineTotal: number, period: string): EarnLineItem => ({
+    lineTotal,
+    itemType: 'subscription',
+    subscriptionPeriod: period,
+  });
+
+  it('일반 품목은 earn.rate 를 품목별로 적용해 합산한다', () => {
+    const policy = makePolicy({ earn: { enabled: true, rate: 0.01 } });
+    // floor(10000*0.01)=100 + floor(15500*0.01)=155 = 255
+    expect(computeEarnForItems([normal(10_000), normal(15_500)], policy)).toBe(255);
+  });
+
+  it('정기배송 품목은 cycle별 차등 적립률을 적용한다', () => {
+    const policy = makePolicy({
+      earn: {
+        enabled: true,
+        rate: 0.01,
+        subscription_rates: { '2주': 0.05, '4주': 0.03, '6주': 0.02, '8주': 0.02 },
+      },
+    });
+    // 2주: floor(20000*0.05)=1000 · 4주: floor(20000*0.03)=600
+    expect(computeEarnForItems([sub(20_000, '2주'), sub(20_000, '4주')], policy)).toBe(1600);
+  });
+
+  it('혼합 주문 — 일반은 일반율, 정기는 차등율', () => {
+    const policy = makePolicy({
+      earn: {
+        enabled: true,
+        rate: 0.01,
+        subscription_rates: { '2주': 0.05, '4주': 0.03, '6주': 0.02, '8주': 0.02 },
+      },
+    });
+    // 일반 floor(10000*0.01)=100 + 정기2주 floor(20000*0.05)=1000 = 1100
+    expect(computeEarnForItems([normal(10_000), sub(20_000, '2주')], policy)).toBe(1100);
+  });
+
+  it('알 수 없는 cycle 의 정기 품목은 일반율로 폴백한다', () => {
+    const policy = makePolicy({ earn: { enabled: true, rate: 0.01 } });
+    // period '12주'(미지원) → earn.rate(0.01) 적용: floor(20000*0.01)=200
+    expect(computeEarnForItems([sub(20_000, '12주')], policy)).toBe(200);
+  });
+
+  it('마스터/적립 OFF 면 0', () => {
+    const off = makePolicy({ enabled: false });
+    expect(computeEarnForItems([normal(50_000), sub(50_000, '2주')], off)).toBe(0);
+    const earnOff = makePolicy({ earn: { enabled: false, rate: 0.05 } });
+    expect(computeEarnForItems([normal(50_000)], earnOff)).toBe(0);
+  });
+
+  it('line_total 이 0 이하인 품목은 건너뛴다', () => {
+    const policy = makePolicy({ earn: { enabled: true, rate: 0.01 } });
+    expect(computeEarnForItems([normal(0), normal(-100), normal(10_000)], policy)).toBe(100);
+  });
+
+  it('빈 품목 배열은 0', () => {
+    const policy = makePolicy({ earn: { enabled: true, rate: 0.01 } });
+    expect(computeEarnForItems([], policy)).toBe(0);
   });
 });

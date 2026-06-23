@@ -46,7 +46,8 @@ export type AdminAuditAction =
   | 'revoke_admin'
   | 'set_admin_level'
   | 'self_delete_account'
-  | 'force_delete_account';
+  | 'force_delete_account'
+  | 'adjust_points';
 
 /** 표시 한도 — 1-3인 운영 가정. 향후 페이지네이션 carry. */
 const FETCH_LIMIT = 100;
@@ -72,7 +73,8 @@ type RoleAuditRow = {
     | 'revoke_admin'
     | 'set_admin_level'
     | 'self_delete_account'
-    | 'force_delete_account';
+    | 'force_delete_account'
+    | 'adjust_points';
   reason: string | null;
   /** S258 P2: 070 마이그 — 탈퇴 후 추적용 email 스냅샷. */
   target_email_snapshot: string | null;

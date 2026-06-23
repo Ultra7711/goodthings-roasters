@@ -186,6 +186,19 @@ export const PointsSettingsSchema = z.object({
        * 이후가 되도록 권장(기본 8일·네이버 준용). DEC-S327-2.
        */
       auto_confirm_days: z.number().int().min(1).max(60).default(8),
+      /**
+       * 정기배송 기간별 차등 적립률(소수 0~1). DEC-S328 · §12.
+       * 정기배송 품목(item_type='subscription')은 cycle 에 해당하는 이 비율로 적립,
+       * 일반 품목은 earn.rate. computeEarnForItems 가 품목별 적용. 기본 = 일반율(0.01).
+       */
+      subscription_rates: z
+        .object({
+          '2주': z.number().min(0).max(1).default(0.01),
+          '4주': z.number().min(0).max(1).default(0.01),
+          '6주': z.number().min(0).max(1).default(0.01),
+          '8주': z.number().min(0).max(1).default(0.01),
+        })
+        .default({ '2주': 0.01, '4주': 0.01, '6주': 0.01, '8주': 0.01 }),
       triggers: z
         .object({
           signup: PointTriggerSchema,
@@ -199,6 +212,7 @@ export const PointsSettingsSchema = z.object({
       rate: 0.01,
       timing: 'delivered',
       auto_confirm_days: 8,
+      subscription_rates: { '2주': 0.01, '4주': 0.01, '6주': 0.01, '8주': 0.01 },
       triggers: { signup: TRIGGER_OFF, review: TRIGGER_OFF, birthday: TRIGGER_OFF },
     }),
   redeem: z

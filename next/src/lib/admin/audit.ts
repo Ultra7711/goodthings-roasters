@@ -60,6 +60,7 @@ export function describeAuditAction(
     /* S258 P2: 회원 탈퇴 2종 — self = 자기 탈퇴, force = 운영자 직권. */
     case 'self_delete_account':  return { label: '회원 자기 탈퇴', tone: 'neutral' };
     case 'force_delete_account': return { label: '운영자 직권 탈퇴', tone: 'warning' };
+    case 'adjust_points':        return { label: '포인트 수동 가감', tone: 'warning' };
   }
 }
 

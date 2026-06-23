@@ -31,6 +31,7 @@ import { z } from 'zod';
 import { getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { adjustPoints } from '@/lib/repositories/pointRepo';
 import { fetchAdminUsersForExport } from '@/lib/admin/usersServer';
 import {
   describeProvider,
@@ -222,6 +223,91 @@ export async function setAdminLevelAction(
   revalidatePath('/admin/users');
   revalidatePath(`/admin/users/${parsed.data.targetId}`);
   return { ok: true, targetId: parsed.data.targetId };
+}
+
+/* ── adjustPointsAction (S328 P4 ② · 포인트 수동 가감) ────────────────
+   - owner 전용 (staff 차단) — 금전 변동이라 정책·권한변경과 동급
+   - amount: 양수=지급, 음수=차감, 0 금지
+   - reason 필수 (회계 책임 — point_ledger description + admin_audit reason)
+   - idempotencyKey (client nonce) — 더블 제출/재시도 멱등
+   - adjust_points RPC(094·service_role) → ledger 기록 + 잔액 동기화(093 트리거)
+   - applied=true 일 때만 admin_audit insert (멱등 중복 시 audit 중복 방지)
+   ──────────────────────────────────────────────────────────────────── */
+
+const AdjustPointsInputSchema = z.object({
+  targetId: UuidSchema,
+  amount: z
+    .number()
+    .int()
+    .refine((v) => v !== 0, 'amount_zero')
+    .refine((v) => Math.abs(v) <= 10_000_000, 'amount_range'),
+  reason: z.string().trim().min(1).max(500),
+  /** client 생성 nonce (멱등). */
+  idempotencyKey: z.string().uuid(),
+});
+
+export type AdjustPointsInput = z.input<typeof AdjustPointsInputSchema>;
+
+export type AdjustPointsActionResult =
+  | { ok: true; applied: boolean; balance: number }
+  | {
+      ok: false;
+      error:
+        | 'unauthorized'
+        | 'validation_failed'
+        | 'user_not_found'
+        | 'invalid_amount'
+        | 'insufficient_balance'
+        | 'server_error';
+      detail?: string;
+    };
+
+export async function adjustPointsAction(
+  input: AdjustPointsInput,
+): Promise<AdjustPointsActionResult> {
+  /* owner 전용 — staff 차단 (금전 변동) */
+  const claims = await getAdminOwnerClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const parsed = AdjustPointsInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: 'validation_failed', detail: flattenZodError(parsed.error) };
+  }
+  const { targetId, amount, reason, idempotencyKey } = parsed.data;
+
+  /* 1) 포인트 가감 (094 RPC · service_role · 멱등) */
+  const result = await adjustPoints({
+    userId: targetId,
+    amount,
+    idempotencyKey: `adjust:${idempotencyKey}`,
+    description: reason,
+  });
+
+  if (!result.ok) {
+    return { ok: false, error: result.error };
+  }
+
+  /* 2) 회계 책임 기록 — applied(신규 반영) 일 때만 admin_audit insert.
+        멱등 중복(applied=false)은 이미 기록됐으므로 audit 중복 방지. */
+  if (result.applied) {
+    const sign = amount > 0 ? '+' : '';
+    const admin = getSupabaseAdmin();
+    const { error: auditErr } = await admin.from('admin_audit').insert({
+      actor_id: claims.userId,
+      target_user_id: targetId,
+      action: 'adjust_points',
+      reason: `${sign}${amount.toLocaleString()}P · ${reason}`.slice(0, 500),
+    });
+    if (auditErr) {
+      /* 금전 변동은 이미 반영됨. audit 실패는 로깅만(작업 자체는 성공). */
+      logActionError('[adjustPointsAction] admin_audit insert failed', auditErr, { targetId });
+    }
+  }
+
+  revalidatePath(`/admin/users/${targetId}`);
+  revalidatePath('/admin/audit');
+
+  return { ok: true, applied: result.applied, balance: result.balance };
 }
 
 /* ── exportUsersXlsxAction (S255-B · S255-C Users Excel export) ───────

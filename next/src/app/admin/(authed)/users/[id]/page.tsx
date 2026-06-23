@@ -32,6 +32,8 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
       profile={detail.profile}
       orders={detail.orders}
       audit={detail.audit}
+      pointBalance={detail.pointBalance}
+      pointLedger={detail.pointLedger}
       currentAdminId={claims?.userId ?? null}
       isOwner={claims?.adminLevel === 'owner'}
     />

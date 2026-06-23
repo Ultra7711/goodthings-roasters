@@ -16,6 +16,8 @@ import 'server-only';
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
+import { getRecentPointLedger } from '@/lib/repositories/pointRepo';
+import type { PointLedgerEntry } from '@/types/point';
 import { summarizePgError } from './errors';
 import { type AdminListResult, applyRange, applyIlikeSearch } from './listHelpers';
 import {
@@ -49,6 +51,8 @@ export type AdminUsersExportResult = {
 
 /** 상세 페이지 — 최근 주문 N개 */
 const RECENT_ORDERS_LIMIT = 20;
+/** 상세 페이지 — 최근 포인트 원장 N개 */
+const RECENT_POINTS_LIMIT = 20;
 
 type ProfileRow = {
   id: string;
@@ -259,6 +263,7 @@ type ProfileDetailRow = {
   phone: string | null;
   role: DbUserRole;
   admin_level: AdminLevel | null;
+  point_balance: number;
   created_at: string;
   updated_at: string;
 };
@@ -283,6 +288,9 @@ export type AdminUserDetail = {
   profile: UserDetailProfile;
   orders: ListedUserOrder[];
   audit: AdminAuditEntry[];
+  /** S328 ②: 포인트 잔액 + 최근 원장 (수동 가감 UI). */
+  pointBalance: number;
+  pointLedger: PointLedgerEntry[];
 };
 
 /**
@@ -304,12 +312,12 @@ export async function fetchAdminUserDetail(
 ): Promise<AdminUserDetail | null> {
   const supabase = await createRouteHandlerClient();
 
-  /* 1·2·3) 병렬 fetch */
-  const [profileRes, ordersRes, auditRes] = await Promise.all([
+  /* 1·2·3·4) 병렬 fetch (포인트 원장은 service_role · pointRepo) */
+  const [profileRes, ordersRes, auditRes, pointLedger] = await Promise.all([
     supabase
       .from('profiles')
       .select(
-        'id, email, full_name, display_name, phone, role, admin_level, created_at, updated_at',
+        'id, email, full_name, display_name, phone, role, admin_level, point_balance, created_at, updated_at',
       )
       .eq('id', id)
       .maybeSingle(),
@@ -324,6 +332,10 @@ export async function fetchAdminUserDetail(
       .select('id, actor_id, action, reason, created_at')
       .eq('target_user_id', id)
       .order('created_at', { ascending: false }),
+    getRecentPointLedger(id, RECENT_POINTS_LIMIT).catch((err: unknown) => {
+      console.error('[fetchAdminUserDetail] point ledger failed', err);
+      return [] as PointLedgerEntry[];
+    }),
   ]);
 
   if (profileRes.error) {
@@ -406,5 +418,5 @@ export async function fetchAdminUserDetail(
     createdAtIso: r.created_at,
   }));
 
-  return { profile, orders, audit };
+  return { profile, orders, audit, pointBalance: profileRow.point_balance ?? 0, pointLedger };
 }
