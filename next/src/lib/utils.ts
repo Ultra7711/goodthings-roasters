@@ -20,6 +20,11 @@ export function formatPrice(num: number): string {
   return `${num.toLocaleString('ko-KR')}원`;
 }
 
+/** 포인트를 표시 형식으로 포맷 (1200 → "1,200 P") */
+export function formatPoints(num: number): string {
+  return `${num.toLocaleString('ko-KR')} P`;
+}
+
 /** 상품명에서 한글 부분만 추출 ("에티오피아 예가체프 Ethiopia Yirgacheffe" → "에티오피아 예가체프") */
 export function extractKrName(name: string): string {
   const m = name.match(

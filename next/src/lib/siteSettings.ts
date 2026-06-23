@@ -24,7 +24,7 @@ import { z } from 'zod';
 
 /* ── 영역 상수 ────────────────────────────────────────────────────────── */
 
-export const SITE_SETTING_KEYS = ['notice', 'shipping', 'home_featured', 'hours'] as const;
+export const SITE_SETTING_KEYS = ['notice', 'shipping', 'home_featured', 'hours', 'points'] as const;
 export type SiteSettingKey = (typeof SITE_SETTING_KEYS)[number];
 
 /* ── 1. 공지 배너 (notice) ────────────────────────────────────────────── */
@@ -154,6 +154,65 @@ export const HOURS_DEFAULTS: HoursSettings = {
   closures: [],
 };
 
+/* ── 5. 적립금(포인트) 정책 (points) — 095 ────────────────────────────── */
+
+/**
+ * 포인트 시스템 정책. docs/points-implementation-plan.md §2(DEC)·§8(DEC-P8).
+ * 표시(U1~U9)·적립액 계산이 모두 이 설정에 연동된다(재배포 0).
+ *
+ * - enabled (마스터): false 면 U1~U9 전부 숨김·시스템 미가동(라이브 전 흔적 0).
+ * - earn.rate: 결제액 대비 적립률(소수 0~1). 표시 적립액도 이 값 기반 동적.
+ * - earn.timing: DEC-P1 적립 시점. 'delivered'(배송완료 후) 기본.
+ * - redeem: 최소 사용액·결제액 대비 최대 사용 비율.
+ * - expiry: DEC-P3 만료 구조 지원·초기 OFF.
+ */
+const PointTriggerSchema = z.object({
+  enabled: z.boolean().default(false),
+  amount: z.number().int().min(0).max(1_000_000).default(0),
+});
+
+const TRIGGER_OFF = { enabled: false, amount: 0 } as const;
+
+export const PointsSettingsSchema = z.object({
+  enabled: z.boolean().default(false),
+  earn: z
+    .object({
+      enabled: z.boolean().default(true),
+      rate: z.number().min(0).max(1).default(0.01),
+      timing: z.enum(['delivered', 'paid']).default('delivered'),
+      triggers: z
+        .object({
+          signup: PointTriggerSchema,
+          review: PointTriggerSchema,
+          birthday: PointTriggerSchema,
+        })
+        .default({ signup: TRIGGER_OFF, review: TRIGGER_OFF, birthday: TRIGGER_OFF }),
+    })
+    .default({
+      enabled: true,
+      rate: 0.01,
+      timing: 'delivered',
+      triggers: { signup: TRIGGER_OFF, review: TRIGGER_OFF, birthday: TRIGGER_OFF },
+    }),
+  redeem: z
+    .object({
+      enabled: z.boolean().default(true),
+      min: z.number().int().min(0).max(10_000_000).default(1000),
+      max_ratio: z.number().min(0).max(1).default(1.0),
+    })
+    .default({ enabled: true, min: 1000, max_ratio: 1.0 }),
+  expiry: z
+    .object({
+      enabled: z.boolean().default(false),
+      months: z.number().int().min(1).max(120).default(12),
+    })
+    .default({ enabled: false, months: 12 }),
+});
+
+export type PointsSettings = z.infer<typeof PointsSettingsSchema>;
+
+export const POINTS_DEFAULTS: PointsSettings = PointsSettingsSchema.parse({});
+
 /* ── 통합 ────────────────────────────────────────────────────────────── */
 
 export interface SiteSettings {
@@ -161,6 +220,7 @@ export interface SiteSettings {
   shipping: ShippingSettings;
   home_featured: HomeFeaturedSettings;
   hours: HoursSettings;
+  points: PointsSettings;
 }
 
 export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
@@ -168,6 +228,7 @@ export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   shipping: SHIPPING_DEFAULTS,
   home_featured: HOME_FEATURED_DEFAULTS,
   hours: HOURS_DEFAULTS,
+  points: POINTS_DEFAULTS,
 };
 
 /**
@@ -192,6 +253,7 @@ export function parseSiteSettingsRows(
     shipping: safeParse(ShippingSettingsSchema, map.get('shipping'), SHIPPING_DEFAULTS),
     home_featured: safeParse(HomeFeaturedSettingsSchema, map.get('home_featured'), HOME_FEATURED_DEFAULTS),
     hours: safeParse(HoursSettingsSchema, map.get('hours'), HOURS_DEFAULTS),
+    points: safeParse(PointsSettingsSchema, map.get('points'), POINTS_DEFAULTS),
   };
 }
 

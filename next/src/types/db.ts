@@ -75,3 +75,21 @@ export type DbPaymentStatus =
   | 'refunded'
   | 'failed'
   | 'cancelled';
+
+/** 090_points_schema.sql public.point_event_type */
+export type DbPointEventType =
+  | 'earned'
+  | 'used'
+  | 'expired'
+  | 'adjusted'
+  | 'reversed';
+
+/** 090_points_schema.sql public.point_source */
+export type DbPointSource =
+  | 'order'
+  | 'signup'
+  | 'review'
+  | 'birthday'
+  | 'manual'
+  | 'refund'
+  | 'expiry';
