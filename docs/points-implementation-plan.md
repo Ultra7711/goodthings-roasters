@@ -242,3 +242,36 @@ UI 표시는 **전부 어드민 설정에 연동**된다(재배포 0). 배송비
 **앱 레이어(P2 실제 구현)**: `schemas/order`(pointsToUse 입력)·`pointService.resolveRedeem`(T1 경계·순수·테스트)·`pointRepo.getPointBalance`(서버 잔액조회)·`orderService`(잔액조회 → resolveRedeem 재계산 T1 → create_order v2 `pointsUsed`)·`orderRepo`(createOrder += pointsUsed·deletePendingOrderForUser → `delete_pending_order` RPC화). **`deliverOrder` 서비스 = P4 이연**(위 Δ2).
 
 **검증**: 클라 위조 입력 캡(T1)·차감 원자·use/복원/적립 멱등·잔액 음수 차단·기존 결제/주문/구독 회귀 0(tsc/vitest/build).
+
+---
+
+## 14. S326 Phase 3 착수 패치 (환불 reversal · 코드 직독 재검증 결과)
+
+> 착수 시 `apply_webhook_event`(021 최신 정의·012/013/021 전수 grep) · `payments`(012) · `reverse_points`/`point_ledger`(094/091) · 097(pending 복원) · paymentRepo(앱) 직독으로 §3 T6·§4·§6 환불 경로를 재검증한 결과. **이 섹션이 P3에 한해 §4~§6·§10을 보강·우선한다.**
+
+### 핵심 결정 (사용자 승인)
+
+- **DEC-S326-1 환불 시 사용 포인트 = 현금 환불 비율과 동일 비율 자동 복원**(전액·부분 모두 자동·어드민 수동 0). 사용자 요구 = "수동은 관리 리스크". 부분환불 전액복원(과복원)·수동(누락 리스크) 양쪽 기각.
+  - 공식: `누적복원목표 = floor(points_used × 누적환불현금 / 승인현금)` · `이번복원 = 목표 − 기복원(refund 복원분 SUM)`. 전액환불 → 목표 = points_used 전액.
+  - 어드민은 Toss 콘솔에서 **환불할 현금만 결정** → 시스템이 같은 비율로 포인트 자동 복원. P4 `adjust_points`는 예외 분쟁용으로만 잔존.
+
+### 무결성 근거 (직독)
+
+- **과복원 불가(수학적)**: 012 `payments CHECK(refunded_amount <= approved_amount)` → 누적환불 ≤ 승인현금 → `floor(P×R/A) ≤ P`. `least(P, …)` 이중 방어.
+- **0 나눗셈 불가**: 012 `approved_amount CHECK(>0)` + payments found 확인. `approved<=0` guard 는 도달 불가 방어선(₩0 주문은 payments 행 자체 없음 → refund 분기 early return).
+- **멱등(이중복원 차단)**: webhook replay → 021 `payment_transactions.idempotency_key UNIQUE` 23505 → 전체 롤백 → 복원 미실행(1차). `reverse_points` `'refundrestore:'||idem` on conflict(2차).
+- **pending 복원 분리**: 기복원 SUM 은 `starts_with(idempotency_key,'refundrestore:')` 만 집계 → 097 pending 복원(`'restore:'`) 이중계산 차단. (paid+환불 주문 ≠ pending-cancel 주문 → 상태머신상 mutually exclusive · 접두 필터는 provable 방어.)
+- **게스트/탈퇴**: `user_id is null`(게스트 DEC-P6·015 탈퇴 익명화 set null) 또는 `points_used=0` → 자연 skip.
+- **적립분 회수**: DEC-P1(배송완료 후 적립)로 환불 대부분 미적립 → P3 범위 외. 배송완료 후 환불(드묾)의 적립 회수 = P4 어드민 adjust.
+
+### Δ. 앱 변경 0
+
+`paymentRepo.applyWebhookEventRpc` 가 5인자 그대로 호출 → `create or replace`(시그니처 불변)로 RPC 내부에서만 처리. webhookService/paymentRepo/테스트 무변경(tsc0·vitest891 유지). 기능 검증(적립→사용→환불 E2E)은 P5.
+
+### P3 마이그·검증
+
+| 마이그 | 내용 |
+|--------|------|
+| **099** | `apply_webhook_event` v2(021 본체 verbatim + refund_completed 분기에 비례 복원 블록 인라인·`reverse_points` 호출·`refundrestore:` 멱등키·grant 재선언) |
+
+**검증(구조)**: 함수 1개·5인자 시그니처 불변·prosrc 에 `refundrestore:`/`reverse_points` 포함·service_role only. **검증(기능)**: 부분→전액 환불 시 비례·누적 복원·이중복원 차단 = P5 E2E(현 `enabled=false`·라이브 결제 전 미도달).
