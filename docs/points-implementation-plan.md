@@ -104,11 +104,40 @@
 
 ---
 
-## 8. 프론트엔드
+## 8. 프론트엔드 — UI 표시 위치 매핑 (사용자 동선 전체)
 
-- **잔액 표시**: 마이페이지·헤더(선택). `getBalance`
-- **체크아웃 사용**: 보유 포인트 내 사용 입력 + 실시간 차감 미리보기(`previewRedeem`). 서버 재계산이 최종 권위(클라 표시는 UX용)
-- **마이페이지 내역**: 적립/사용/만료 이력(ledger). 적립 예정(pending) 표시
+> 클라 표시는 전부 **UX용**. 금액 권위는 항상 서버 재계산(`orderService`). 적립률·트리거가 어드민 설정이라 표시값도 **`site_settings.points` 기반 동적**.
+
+| # | 위치 | 컴포넌트(경로) | 표시 내용 |
+|---|------|----------------|-----------|
+| U1 | **상품 상세(PDP)** | `product/ProductDetailPage.tsx`·`product/PurchaseRow.tsx` | 구매 시 **적립 예정 포인트**("구매 적립 N P") — 가격 근처. 적립 OFF면 숨김 |
+| U2 | **장바구니** | `cart/CartClient.tsx`·`cart/CartDrawer.tsx` | 예상 적립 포인트(소계 기준) |
+| U3 | **체크아웃 — 사용** | `checkout/OrderSummary.tsx`·`checkout/CheckoutPayment.tsx` | **보유 잔액 + 사용 입력**(부분/전액 버튼)·최소사용액 가드·**사용 후 결제액 미리보기**(`previewRedeem`) |
+| U4 | **체크아웃 — 적립 안내** | `checkout/OrderSummary.tsx` | 이번 주문 **적립 예정**(배송완료 후 지급 문구·DEC-P1) |
+| U5 | **주문완료** | `checkout/OrderCompletePage.tsx`·`OrderCompleteHero.tsx` | 사용 포인트 + 적립 예정 포인트 안내 |
+| U6 | **마이페이지 대시보드** | `auth/mypage/HeroGreeting.tsx`·`MyPagePanel.tsx` | **보유 포인트 잔액**(눈에 띄게)·적립 예정(pending) 합계 |
+| U7 | **마이페이지 — 포인트 내역**(신규 view) | `auth/mypage/views/PointsView.tsx`(신규)·`MyPageSideNav.tsx`(메뉴 추가) | 적립/사용/만료 **ledger 이력** + **소멸 예정**(만료 ON 시) |
+| U8 | **주문내역** | `auth/mypage/OrderHistory.tsx`·`views/OrdersView.tsx` | 주문별 **사용/적립 포인트** 표시 |
+| U9 | **헤더(선택)** | `layout/SiteHeader.tsx` | 로그인 시 잔액 노출(선택·디자인 검토) |
+
+**신규 프론트 자산**: `views/PointsView.tsx`(내역)·`MyPageSideNav` 메뉴 항목·잔액/적립예정 표시 컴포넌트(공용)·`useUserPoints` 훅(`getBalance`/`previewRedeem`)·`formatPoints()`.
+
+**비로그인/게스트**: U1·U2의 적립 예정은 "로그인 시 적립" 안내로, U3 사용은 로그인 유도(게스트 미적립·DEC-P6/P7).
+
+### 어드민 설정 ↔ UI 표시 연동 (DEC-P8 · `site_settings.points` 플래그)
+
+UI 표시는 **전부 어드민 설정에 연동**된다(재배포 0). 배송비 `shipping.enabled` 마스터 토글 패턴 답습.
+
+| 플래그 | OFF 시 효과 |
+|--------|-------------|
+| **`points.enabled`** (마스터) | **U1~U9 전부 숨김** — 시스템 미가동. **라이브 전 구축 후 정책 확정 전까지 OFF로 두면 흔적 0**(안전) |
+| `earn.enabled` | 적립 표시(U1·U2·U4·U5·U8 적립분) 숨김 |
+| `redeem.enabled` | 체크아웃 사용 UI(U3) 숨김 |
+| `expiry.enabled` | 소멸 예정(U7) 숨김 |
+| 트리거별(`signup`·`review`·`birthday`) | 해당 적립 안내·지급 on/off |
+| `earn_rate`(값) | 표시 적립액 **동적 반영**(예: 1%→2% 변경 시 PDP 적립예정 즉시 반영) |
+
+→ **운영 시나리오**: 라이브 전 = `points.enabled=false`(코드만 존재·UI 0) → 정책 확정 후 어드민에서 ON + 적립률 설정 → 전 UI 자동 노출. 끄고 싶으면 마스터 OFF 1번으로 전체 숨김.
 
 ---
 
