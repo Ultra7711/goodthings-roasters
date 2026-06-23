@@ -25,6 +25,7 @@ import {
   HoursSettingsSchema,
   NoticeSettingsSchema,
   parseSiteSettingsRows,
+  PointsSettingsSchema,
   ShippingSettingsSchema,
   type SiteSettingKey,
   type SiteSettings,
@@ -38,6 +39,7 @@ const SaveInputSchema = z.object({
   shipping: ShippingSettingsSchema.optional(),
   home_featured: HomeFeaturedSettingsSchema.optional(),
   hours: HoursSettingsSchema.optional(),
+  points: PointsSettingsSchema.optional(),
 });
 
 export type SaveSettingsInput = z.input<typeof SaveInputSchema>;
@@ -95,6 +97,7 @@ export async function saveSiteSettingsAction(
   if (data.shipping) updates.push({ key: 'shipping', value: data.shipping });
   if (data.home_featured) updates.push({ key: 'home_featured', value: data.home_featured });
   if (data.hours) updates.push({ key: 'hours', value: data.hours });
+  if (data.points) updates.push({ key: 'points', value: data.points });
 
   if (updates.length === 0) {
     return { ok: false, error: 'no_changes' };

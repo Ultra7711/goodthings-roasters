@@ -19,7 +19,8 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { dispatchOrder, type DispatchResult } from '@/lib/admin/dispatch';
-import { getAdminClaims } from '@/lib/auth/getClaims';
+import { deliverOrder, type DeliverResult } from '@/lib/admin/deliverOrder';
+import { getAdminClaims, getAdminOwnerClaims } from '@/lib/auth/getClaims';
 import { OrderNumberSchema } from '@/lib/schemas/order';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { logActionError } from '@/lib/admin/logActionError';
@@ -40,6 +41,40 @@ export async function dispatchOrderAction(
   if (!claims) return { ok: false, error: 'unauthorized' };
 
   const result = await dispatchOrder(input);
+
+  if (result.ok) {
+    revalidatePath(`/admin/orders/${result.data.orderNumber}`);
+    revalidatePath('/admin/orders');
+  }
+
+  return result;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   completeDeliveryAction — 운영자 override 배송완료(구매확정) (S327 · Phase 4)
+
+   구매확정 모델(DEC-S327-1)의 적립 트리거 3종 중 운영자 예외 경로:
+   일상 경로 = 구매자 "구매확정" 버튼(P5) · 발송+N일 자동확정 크론(다음 세션).
+   본 버튼은 예외(운영자가 수령 확인·조기 확정)용.
+
+   책임:
+   1) owner 가드 — 적립(금전) 발생 + 예외적 수동 작업이라 owner-only
+      (정책 설정·adjust_points 와 동급 · staff 차단)
+   2) deliverOrder SoT 호출 — shipping→delivered 전이 + 적립(멱등)
+   3) revalidatePath — 상세/목록 캐시 무효화
+   ══════════════════════════════════════════════════════════════════════════ */
+
+export type CompleteDeliveryActionResult =
+  | DeliverResult
+  | { ok: false; error: 'unauthorized' };
+
+export async function completeDeliveryAction(
+  input: { orderNumber: string },
+): Promise<CompleteDeliveryActionResult> {
+  const claims = await getAdminOwnerClaims();
+  if (!claims) return { ok: false, error: 'unauthorized' };
+
+  const result = await deliverOrder(input.orderNumber);
 
   if (result.ok) {
     revalidatePath(`/admin/orders/${result.data.orderNumber}`);

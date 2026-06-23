@@ -180,6 +180,12 @@ export const PointsSettingsSchema = z.object({
       enabled: z.boolean().default(true),
       rate: z.number().min(0).max(1).default(0.01),
       timing: z.enum(['delivered', 'paid']).default('delivered'),
+      /**
+       * 구매확정 자동확정일 (발송 기준). 구매자가 "구매확정"을 누르지 않아도
+       * 발송 후 이 일수가 지나면 자동 확정 → 적립. 청약철회 기간(수령일+7일)
+       * 이후가 되도록 권장(기본 8일·네이버 준용). DEC-S327-2.
+       */
+      auto_confirm_days: z.number().int().min(1).max(60).default(8),
       triggers: z
         .object({
           signup: PointTriggerSchema,
@@ -192,6 +198,7 @@ export const PointsSettingsSchema = z.object({
       enabled: true,
       rate: 0.01,
       timing: 'delivered',
+      auto_confirm_days: 8,
       triggers: { signup: TRIGGER_OFF, review: TRIGGER_OFF, birthday: TRIGGER_OFF },
     }),
   redeem: z

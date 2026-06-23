@@ -26,6 +26,7 @@ import type {
   HomeFeaturedSettings,
   HoursSettings,
   NoticeSettings,
+  PointsSettings,
   ShippingSettings,
   SiteSettings,
 } from '@/lib/siteSettings';
@@ -37,11 +38,13 @@ import { ShippingSubForm } from './sections/ShippingSubForm';
 import { NoticeSubForm } from './sections/NoticeSubForm';
 import { HomeFeaturedSubForm } from './sections/HomeFeaturedSubForm';
 import { HoursSubForm } from './sections/HoursSubForm';
+import { PointsSubForm } from './sections/PointsSubForm';
 import { Badge } from './_shared/Badge';
 import { describeError } from '@/lib/admin/errorDescribe';
 import {
   describeUpdatedKeys,
   equalHours,
+  equalPoints,
   shallowEqualHomeFeatured,
   shallowEqualNotice,
   shallowEqualShipping,
@@ -72,6 +75,7 @@ export default function SettingsForm({ initialSettings, isOwner, cafeMenus }: Se
     if (!shallowEqualShipping(savedSettings.shipping, settings.shipping)) n += 1;
     if (!shallowEqualHomeFeatured(savedSettings.home_featured, settings.home_featured)) n += 1;
     if (!equalHours(savedSettings.hours, settings.hours)) n += 1;
+    if (!equalPoints(savedSettings.points, settings.points)) n += 1;
     return n;
   }, [savedSettings, settings]);
   const isDirty = dirtyCount > 0;
@@ -87,6 +91,9 @@ export default function SettingsForm({ initialSettings, isOwner, cafeMenus }: Se
   }
   function updateHours(patch: Partial<HoursSettings>) {
     setSettings((prev) => ({ ...prev, hours: { ...prev.hours, ...patch } }));
+  }
+  function updatePoints(patch: Partial<PointsSettings>) {
+    setSettings((prev) => ({ ...prev, points: { ...prev.points, ...patch } }));
   }
 
   function handleReset() {
@@ -110,6 +117,9 @@ export default function SettingsForm({ initialSettings, isOwner, cafeMenus }: Se
         ...settings.hours,
         closures: settings.hours.closures.filter((c) => c.date),
       };
+    }
+    if (!equalPoints(savedSettings.points, settings.points)) {
+      payload.points = settings.points;
     }
 
     startTransition(async () => {
@@ -193,6 +203,9 @@ export default function SettingsForm({ initialSettings, isOwner, cafeMenus }: Se
 
         {/* Section 4 — 매장 영업시간 (Story Location 위젯 반영) */}
         <HoursSubForm value={settings.hours} onChange={updateHours} />
+
+        {/* Section 5 — 적립금(포인트) 정책 (S327 · Phase 4) */}
+        <PointsSubForm value={settings.points} onChange={updatePoints} />
       </div>
     </>
   );

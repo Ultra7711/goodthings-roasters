@@ -275,3 +275,47 @@ UI 표시는 **전부 어드민 설정에 연동**된다(재배포 0). 배송비
 | **099** | `apply_webhook_event` v2(021 본체 verbatim + refund_completed 분기에 비례 복원 블록 인라인·`reverse_points` 호출·`refundrestore:` 멱등키·grant 재선언) |
 
 **검증(구조)**: 함수 1개·5인자 시그니처 불변·prosrc 에 `refundrestore:`/`reverse_points` 포함·service_role only. **검증(기능)**: 부분→전액 환불 시 비례·누적 복원·이중복원 차단 = P5 E2E(현 `enabled=false`·라이브 결제 전 미도달).
+
+---
+
+## 15. S327 Phase 4 (어드민 ①+③) 착수 패치 — 구매확정 모델 확정
+
+> 코드 직독(032 settings 패턴·098 RPC·dispatch.ts·pointService) 재검증 + 사용자 합의로 적립 트리거 모델을 확정한다. **이 섹션이 P4·DEC-P1 의 "배송완료 적립 트리거"를 보강·우선한다.** S327 범위 = ①정책 UI + ③배송완료 override(앱 글루). ②수동가감·④정기배송 차등적립률은 차기.
+
+### 핵심 결정 (사용자 승인)
+
+- **DEC-S327-1 적립 트리거 = 구매확정(네이버 방식).** `delivered` = 적립 시점으로 매핑(098 `complete_delivery` 그대로 재사용). 트리거 3종이 모두 `deliverOrder(orderNumber)` SoT 호출:
+  1. **구매자 "구매확정" 버튼**(프론트 P5 · 다음 세션)
+  2. **자동확정 크론**(발송 + `auto_confirm_days` 경과 · 다음 세션)
+  3. **운영자 override 버튼**(어드민 주문 상세 · S327 · 예외용)
+  - 근거: 운영자 1건씩 수동 = 깜빡임 리스크("수동은 관리 리스크" 일관 선호). 구매확정은 **구매자가 수령·보유 의사 표명** → "적립 후 반품" 갭을 청약철회 기간 이후 자동확정으로 최소화.
+- **DEC-S327-2 자동확정 N = 8일**(발송 기준 · 네이버 준용). 정책 `earn.auto_confirm_days`(Zod·기본 8·1~60). 청약철회(수령일+7일) 이후가 되도록. **JSONB+Zod라 마이그 불요.**
+- **DEC-S327-3 override RBAC = owner-only**(`getAdminOwnerClaims`). 적립(금전) 발생 + 예외적 수동이라 정책·adjust_points 와 동급. 일상 경로(구매자·자동)는 staff 무관.
+
+### 자동화 방식 리서치 결론 (carry — 다음 세션)
+
+- **폴링(pull) 채택 · webhook 비권장.** GTR 규모선 webhook 도 `expirationTime` 24h 갱신 크론이 필요 → push 이점 상쇄. 폴링=움직이는 부품 1개(콜백 엔드포인트·보안 불요)·멱등 RPC로 재폴링 안전·적립은 시간 비민감.
+- **provider = SweetTracker 조회 API**(carrier-agnostic·네이버/카카오 표준·`level 6`=배송완료·조회 무료 추정). 🔶 무료 한도·키 발급 확인 필요. 로젠 전용 API는 다른 택배사 발송건 누락이라 비권장(ShippingDialog 가 다중 택배사 허용).
+- **단 구매확정 모델이면 v1 폴링 불필요**(발송+N 시간 기준 자동확정). SweetTracker 폴링 = 실배송완료 라벨·정확한 카운트다운 앵커용 **선택적 후속 강화**.
+
+### S327 산출물 (앱 · 마이그 0)
+
+| 파일 | 변경 |
+|------|------|
+| `lib/siteSettings.ts` | `PointsSettingsSchema.earn.auto_confirm_days`(기본 8) 추가 |
+| `app/admin/(authed)/settings/{actions,SettingsForm}.tsx`·`_shared/helpers.ts` | `points` 저장 연결(owner-only 기존)·`equalPoints`·라벨 |
+| `app/admin/(authed)/settings/sections/PointsSubForm.tsx` (신규) | 마스터/결제적립/행동적립/사용/만료 정책 편집 UI |
+| `lib/admin/deliverOrder.ts` (신규 SoT) | order 조회 → computeEarnAmount → 098 complete_delivery(`earn:`||id 멱등). 트리거 3종 공유 |
+| `app/admin/(authed)/orders/[orderNumber]/{actions,OrderDetailClient}.tsx` | `completeDeliveryAction`(owner-only) + shipping 출고영역 [배송완료] 버튼 + ConfirmModal |
+
+**검증**: tsc 0 / vitest 891(변동 0) / build PASS. `enabled=false` → earn 0 → 전이만(회귀 0).
+
+### 약관 (출시 게이트)
+
+이용약관에 **제10조의3 (적립금)** 신설 필요(구매확정·자동확정 8일·구매확정 전 미적립·환불 시 회수권·만료·탈퇴 소멸·부정 회수). 현재 `enabled=false`라 **적립금 출시와 함께 시행일 갱신해 적용**(꺼진 기능 선노출 방지). 초안 = S327 complete 메모.
+
+### 차기 (P4 잔여 + P5)
+
+- **②수동가감**(`adjust_points` RPC·owner-only·audit) + **④정기배송 차등 적립률**(`earn.subscription_rates`·computeEarnForItems).
+- **구매자 구매확정 버튼(P5) + 자동확정 크론**(발송+`auto_confirm_days`) — 한 쌍. + **earned 회수**(구매확정 후 환불 시·DEC-S326-1 적립분·현 미구현) 동반 권장.
+- 선택: SweetTracker 폴링(실배송완료 정확도).

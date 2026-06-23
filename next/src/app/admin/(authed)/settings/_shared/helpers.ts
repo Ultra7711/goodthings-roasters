@@ -16,6 +16,7 @@ import type {
   NoticeSettings,
   ShippingSettings,
   HoursSettings,
+  PointsSettings,
 } from '@/lib/siteSettings';
 
 /* ── Number format ────────────────────────────────────────────── */
@@ -68,6 +69,11 @@ export function equalHours(a: HoursSettings, b: HoursSettings): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+/** 포인트 — earn.triggers 등 중첩 구조라 deep 비교 (JSON 직렬화). */
+export function equalPoints(a: PointsSettings, b: PointsSettings): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 /* ── Toast 메시지 ──────────────────────────────────────────────── */
 
 export function describeUpdatedKeys(keys: ReadonlyArray<string>): string {
@@ -76,6 +82,7 @@ export function describeUpdatedKeys(keys: ReadonlyArray<string>): string {
     shipping: '무료 배송 정책',
     home_featured: '메인 노출 메뉴',
     hours: '영업시간',
+    points: '적립금 정책',
   };
   return keys.map((k) => labels[k] ?? k).join(' · ');
 }

@@ -11,12 +11,16 @@
    - 어드민 메모는 읽기 전용 표시 (편집 액션은 carry-over · Group H 와 함께 진행 예정)
    ══════════════════════════════════════════════════════════════════════════ */
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { AdminTopbarActions } from '@/components/admin/AdminTopbarActions';
 import { AdminBackLink } from '@/components/admin/AdminBackLink';
+import ConfirmModal from '@/components/admin/ConfirmModal';
 import { ADMIN_READONLY_FIELD } from '@/components/admin/NativeSelectWrap';
 import { Button } from '@/components/admin/ui/button';
 import { Badge as ShadcnBadge } from '@/components/admin/ui/badge';
+import { completeDeliveryAction } from './actions';
 import {
   describeShippingMessage,
   describeStatus,
@@ -44,12 +48,43 @@ const TOSS_CONSOLE_URL = 'https://app.tosspayments.com/';
 const TOSS_REFUND_GUIDE_URL =
   'https://docs.tosspayments.com/guides/v2/cancel-payment';
 
+const DELIVER_ERROR: Record<string, string> = {
+  unauthorized: '권한이 없습니다. (관리자 전용)',
+  not_found: '주문을 찾을 수 없습니다.',
+  illegal_state: '배송중 상태에서만 배송완료 처리할 수 있습니다.',
+  validation_failed: '입력값을 확인해 주세요.',
+  server_error: '처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+};
+
 export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
+  const router = useRouter();
   const [shipOpen, setShipOpen] = useState(false);
+  const [deliverOpen, setDeliverOpen] = useState(false);
+  const [deliverPending, startDeliver] = useTransition();
   const status = describeStatus(detail.status);
   const isPaid = detail.status === 'paid';
+  const isShipping = detail.status === 'shipping';
   const isShippedOrLater =
     detail.status === 'shipping' || detail.status === 'delivered';
+
+  function handleConfirmDeliver() {
+    if (deliverPending) return;
+    startDeliver(async () => {
+      const res = await completeDeliveryAction({ orderNumber: detail.orderNumber });
+      if (res.ok) {
+        setDeliverOpen(false);
+        const earned = res.data.earnApplied && res.data.earnAmount > 0;
+        toast.success('배송완료로 처리했어요', {
+          description: earned
+            ? `회원에게 ${res.data.earnAmount.toLocaleString()}P 적립되었습니다`
+            : '적립금 정책이 비활성이거나 비회원 주문이라 적립은 없습니다',
+        });
+        router.refresh();
+      } else {
+        toast.error(DELIVER_ERROR[res.error] ?? DELIVER_ERROR.server_error);
+      }
+    });
+  }
   const isCancelled =
     detail.status === 'cancelled' ||
     detail.status === 'refund_requested' ||
@@ -277,6 +312,19 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
                       </div>
                     </div>
                   </div>
+                  {isShipping && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="!h-7 shrink-0"
+                      onClick={() => setDeliverOpen(true)}
+                      title="배송완료(구매확정) 처리 — 보통 구매자/자동확정이 처리, 예외용"
+                    >
+                      <CheckIcon />
+                      배송완료
+                    </Button>
+                  )}
                 </>
               ) : isPaid ? (
                 <>
@@ -413,6 +461,24 @@ export default function OrderDetailClient({ detail }: { detail: OrderDetail }) {
         onClose={() => setShipOpen(false)}
         orderNumber={detail.orderNumber}
         customerName={detail.customer.name}
+      />
+
+      <ConfirmModal
+        open={deliverOpen}
+        title="배송완료 처리"
+        description={
+          <>
+            이 주문을 <strong className="text-foreground">배송완료(구매확정)</strong>로
+            처리합니다. 회원 주문이고 적립금 정책이 활성이면 적립이 지급됩니다.
+            <br />
+            보통 구매자의 구매확정 또는 발송 후 자동확정으로 처리되며, 이 버튼은 예외
+            처리용입니다.
+          </>
+        }
+        confirmLabel="배송완료 처리"
+        pending={deliverPending}
+        onCancel={() => setDeliverOpen(false)}
+        onConfirm={handleConfirmDeliver}
       />
     </>
   );
@@ -663,6 +729,24 @@ function TruckIcon() {
       <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
       <circle cx="17" cy="18" r="2" />
       <circle cx="7" cy="18" r="2" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21.801 10A10 10 0 1 1 17 3.335" />
+      <path d="m9 11 3 3L22 4" />
     </svg>
   );
 }
