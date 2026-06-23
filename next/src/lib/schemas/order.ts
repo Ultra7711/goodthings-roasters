@@ -123,6 +123,12 @@ export const OrderCreateSchema = z.object({
   /** 약관 버전 문자열 (예: '2026-04-01') — 증빙용 */
   termsVersion: z.string().min(1).max(20),
   /**
+   * 사용 희망 적립 포인트 (회원 전용). 미전송 시 0.
+   * 이 값은 "요청"일 뿐 — 서버(orderService)가 실잔액·정책으로 캡한다(T1).
+   * 상한은 입력 sanity (실제 한도는 잔액/결제액/정책).
+   */
+  pointsToUse: z.number().int().min(0).max(10_000_000).default(0),
+  /**
    * 게스트 주문일 때 제공. 회원 주문이면 서버에서 무시(로그 후 null 처리).
    * null/undefined 모두 허용.
    */

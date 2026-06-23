@@ -25,10 +25,12 @@ import {
   type CreateOrderRpcItem,
   type CreateOrderRpcResult,
 } from '@/lib/repositories/orderRepo';
+import { getPointBalance } from '@/lib/repositories/pointRepo';
 import type {
   OrderCreateInput,
   OrderItemInput,
 } from '@/lib/schemas/order';
+import { resolveRedeem } from '@/lib/services/pointService';
 import { fetchSiteSettings } from '@/lib/siteSettingsServer';
 
 /* ── 배송비 정책 (S129 H-5) ──────────────────────────────────────────
@@ -217,10 +219,11 @@ export async function createOrderFromInput(
   const products = await fetchProducts();
   const { rpcItems, subtotal } = recomputeItems(input.items, products);
 
-  /* 2) 배송비 정책 — site_settings.shipping (어드민 동적 설정).
+  /* 2) 배송비 + 포인트 정책 — site_settings (어드민 동적 설정).
         실패 시 fetchSiteSettings 가 SITE_SETTINGS_DEFAULTS 반환 → ORDER_FREE_SHIPPING_THRESHOLD/FEE 와 동일.
-        enabled=false → 무료배송 정책 자체 비활성 (모든 결제에 base_fee). */
-  const { shipping: shippingPolicy } = await fetchSiteSettings();
+        enabled=false → 무료배송 정책 자체 비활성 (모든 결제에 base_fee).
+        points.enabled=false (기본) → resolveRedeem 이 0 반환 → 포인트 경로 완전 우회. */
+  const { shipping: shippingPolicy, points: pointsPolicy } = await fetchSiteSettings();
   const freeThreshold = shippingPolicy.enabled
     ? shippingPolicy.free_threshold
     : Number.POSITIVE_INFINITY;
@@ -229,7 +232,23 @@ export async function createOrderFromInput(
   const shippingFeeAmount =
     subtotal === 0 ? 0 : subtotal >= freeThreshold ? 0 : baseFee;
   const discountAmount = 0; // 프로모션 도입 시 확장
-  const totalAmount = subtotal + shippingFeeAmount - discountAmount;
+
+  /* 2-1) 포인트 사용 — 서버 재계산(T1). 클라 input.pointsToUse 는 "요청"일 뿐,
+          서버 실잔액·정책으로 캡한다. 게스트(userId null)·정책 OFF → 0.
+          실제 차감은 create_order(096) 내부 use_points 의 FOR UPDATE 가 권위 —
+          여기 잔액은 캡 계산용이며, 차감 시점 잔액부족은 RPC 가 거부한다(T2). */
+  const isMember = ctx.userId != null;
+  const pointsBalance = ctx.userId != null ? await getPointBalance(ctx.userId) : 0;
+  const payableBeforePoints = subtotal + shippingFeeAmount - discountAmount;
+  const pointsUsed = resolveRedeem({
+    requested: input.pointsToUse,
+    balance: pointsBalance,
+    payableTotal: payableBeforePoints,
+    policy: pointsPolicy,
+    isMember,
+  });
+
+  const totalAmount = subtotal + shippingFeeAmount - discountAmount - pointsUsed;
 
   /* 3) PIN 해시 (게스트만) */
   const guestPinHash =
@@ -268,6 +287,7 @@ export async function createOrderFromInput(
     subtotal,
     shippingFee: shippingFeeAmount,
     discountAmount,
+    pointsUsed,
     totalAmount,
     termsVersion: input.termsVersion,
     items: rpcItems,

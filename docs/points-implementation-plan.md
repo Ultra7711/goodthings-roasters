@@ -153,9 +153,9 @@ UI 표시는 **전부 어드민 설정에 연동**된다(재배포 0). 배송비
 
 | Phase | 범위 | 검증 |
 |-------|------|------|
-| P1 | 스키마(090~096) + `pointService`(순수 로직) | RPC 멱등·잔액 음수 차단·RLS 차단 단위/통합 |
-| P2 | `orderService` 사용 통합 + 배송완료 적립 훅 | 사용액 서버 재계산·잔액 검증·적립 idempotency |
-| P3 | 환불 reversal(097) | 사용분 복원·이중복원 차단 |
+| P1 ✅ | 스키마(090~095) + `pointService`(순수 로직) | RPC 멱등·잔액 음수 차단·RLS 차단 단위/통합 |
+| **P2 (진행)** | `orderService` 사용 통합 + pending 폐기 복원 + `complete_delivery`(배송완료 전이+적립 훅). **§13 S325 패치 참조** | 사용액 서버 재계산·잔액 검증·복원 멱등·적립 idempotency |
+| P3 | 환불 reversal (사용분 복원·`apply_webhook_event` 확장) | 사용분 복원·이중복원 차단 |
 | P4 | 어드민(정책·수동가감·내역·audit) | owner-only·audit 기록 |
 | P5 | 프론트(잔액·체크아웃·마이페이지) | E2E 적립→사용→환불 사이클 |
 | P6 | 회계 reconciliation + 부하/동시성 테스트 | ledger=잔액 불변식·동시 결제 |
@@ -178,5 +178,67 @@ UI 표시는 **전부 어드민 설정에 연동**된다(재배포 0). 배송비
 - 적립 단위·소수점 처리(원 단위 정수 권장)
 - 할인/쿠폰 병용 규칙(현재 쿠폰 없음 — 포인트 단독)
 - 정기배송(subscription) 적립/사용 정책
+  - **기간별 차등 적립률**(2주/4주/6주/8주 cycle별 rate) — 가능·P4 이연. 구조 수용됨:
+    정책 JSONB 확장(Zod `earn.subscription_rates`) + `computeEarnAmount`→항목별 `computeEarnForItems`
+    (order_items.subscription_period 기반) + 어드민 UI. **098 RPC·테이블 마이그 변경 불요**
+    (적립액은 앱 계산→RPC 기록만). ❓착수 시 확인: 반복 회차가 회차별 주문→complete_delivery 를
+    타는지 vs 별도 적립 트리거 필요(042 process_billing_charge_success 흐름 정밀 확인).
 - 적립 예정(pending) 노출 방식
 - 토스 라이브 키 없이 테스트 가능 범위(포인트 로직 자체는 결제와 분리 테스트 가능)
+
+---
+
+## 13. S325 Phase 2 착수 패치 (Δ1~Δ5 · 코드 직독 재검증 결과)
+
+> 착수 시 코드 직독(orderService·orderRepo·create_order[017]·dispatch_order[016]·confirm_payment[075]·012 전이 트리거·094 RPC)으로 §4~§6를 재검증한 결과, 계획이 빠뜨렸거나 모호한 6개 지점을 확정한다. **이 섹션이 P2에 한해 §4~§6·§10을 보강·우선한다.**
+
+### 핵심 결정 (사용자 승인)
+
+- **DEC-S325-1 사용분 차감 시점 = 주문 생성(pending) 시점**(option 1 채택). 생성 시 `FOR UPDATE` 즉시 차감 → 중복 사용 원천 차단. `confirm_payment`(최고 하드닝 RPC) 미수정. 대신 pending 폐기/취소 경로 복원 필수(Δ1).
+  - 대안(paid 확정 시 차감)은 동일 유저 pending 2건 동시 진행 시 확정 시점 잔액부족 갭(Toss 청구 후 처리 곤란) + confirm_payment 수정 필요 → 기각.
+
+### Δ1. pending 폐기 시 사용 포인트 복원 (계획 §4·§5 누락분)
+
+생성 시 차감의 필연적 짝. `point_ledger.order_id`는 `on delete set null`이라, 복원 없이 주문을 삭제/취소하면 **잔액이 영구 차감된 채로 남음(현금 손실 = CRITICAL)**. 차감(`used` −R) 후 주문이 paid 도달 못 하면 반드시 `reversed` +R 복원.
+
+**복원 경로(착수 시 037/038 직독 후 확정):**
+- `deletePendingOrderForUser`(앱코드 3-step) → **`delete_pending_order` RPC화**(복원+삭제 원자). 유저가 Toss 위젯 이탈 시.
+- `delete_stale_pending_orders`(038 cron) / `sweep_stale_pending_orders`(012 fallback) → 취소·삭제 대상 중 `points_used>0` 이면 `reversed` 복원 ledger 동반(set-based, 멱등 `idempotency_key='restore:'||order_id`).
+- 037(cancel_stale)·039(일회성·적용완료)는 직독 후 활성 여부 판정.
+
+복원 source = `refund`(090 enum 재사용·`description`에 'order_cancelled_points_restored'). 신규 enum 값 추가 안 함(KISS). 멱등키로 이중 복원 차단.
+
+### Δ2. `shipping→delivered` 전이 신설 — 버튼은 P4 이연
+
+**현 코드에 delivered 전이 경로가 전혀 없음**(어드민 주문 변경 = `dispatchOrderAction`[paid→shipping]·`updateAdminNotesAction`만. delivered는 enum·트리거·필터·`describeStatus`에만 존재·도달 불가). DEC-P1(배송완료 후 적립) 구현 = 전이 자체 신설 필요.
+
+- P2: **`complete_delivery` RPC(shipping→delivered 전이 + earn 인라인)**까지. RPC 직접 호출(SQL)로 검증.
+- **`deliverOrder` 앱 서비스(computeEarnAmount → RPC) + 어드민 "배송완료" 버튼 = P4 이연.** 앱 글루를 P2에 두면 caller 없는 dead code(knip) → P4에서 버튼과 함께 추가. `complete_delivery`는 SQL 객체라 knip 무관, `computeEarnAmount`(P1)는 P4 caller 대기.
+
+### Δ3. 적립 기준액 = `subtotal`(상품 소계·배송비/사용포인트 차감 안 함)
+
+`pointService.computeEarnAmount(subtotal, policy)` 그대로. 1% 기준 farming(1000P 사용→10P 적립, 순 −990) 실익 0 → `subtotal − points_used` 차감 불요.
+
+### Δ4. 범위 경계 — 정기배송/빌링 redeem 제외
+
+빌링 경로(`process_billing_charge_success`)는 `orderService.createOrderFromInput`(pointsToUse 입력점)을 경유하지 않음 → 정기배송 결제의 **포인트 사용은 P2에서 자연 제외**. delivered 적립은 일반/정기 구분 없이 `subtotal` 기준 적용(per-type 적립 정책 = §12 carry·`enabled=false`라 영향 0).
+
+### Δ5. `orders.points_used` 신규 컬럼
+
+`discount_amount`(프로모용·현재 0) 재사용 대신 전용 컬럼(`integer not null default 0 check >=0`). `total_amount = subtotal + shipping_fee − discount_amount − points_used`. 기존 주문 default 0 → total 불변. create_order v2 가 `p_total_amount == subtotal+shipping−discount−points` 산술 일치 assertion 추가(머니 불변식 방어·Turbopack scope 버그 backstop).
+
+### Δ6. ₩0 주문 엣지 (신규 제약 — P5/라이브)
+
+`max_ratio=1.0`이면 포인트가 전액(`total_amount=0`)을 덮을 수 있으나 Toss는 ₩0 청구 불가. **P2 백엔드는 안전(clamp `>=0`·저장)만 보장**. 전액 포인트 차단(잔여 ≥ Toss 최소 결제액) 또는 ₩0 전용 플로우 = **P5(체크아웃 redeem UI)·라이브 정책 책임**으로 명시. `points.enabled=false`라 현재 미도달.
+
+### P2 마이그·산출물
+
+| 마이그 | 내용 |
+|--------|------|
+| **096** | `orders.points_used` 컬럼 + `create_order` v2(drop+recreate·`p_points_used` 인자·`FOR UPDATE` 잔액검증·`used` ledger·차감 원자·total assertion·권한 재부여) |
+| **097** | 복원: `delete_pending_order` RPC 신설 + `sweep_stale_pending_orders`/`delete_stale_pending_orders` 복원 동반(037/038 직독 후 확정) |
+| **098** | `complete_delivery` RPC(shipping→delivered 전이 + earn 인라인·멱등 `earn:`||order_id·member만) |
+
+**앱 레이어(P2 실제 구현)**: `schemas/order`(pointsToUse 입력)·`pointService.resolveRedeem`(T1 경계·순수·테스트)·`pointRepo.getPointBalance`(서버 잔액조회)·`orderService`(잔액조회 → resolveRedeem 재계산 T1 → create_order v2 `pointsUsed`)·`orderRepo`(createOrder += pointsUsed·deletePendingOrderForUser → `delete_pending_order` RPC화). **`deliverOrder` 서비스 = P4 이연**(위 Δ2).
+
+**검증**: 클라 위조 입력 캡(T1)·차감 원자·use/복원/적립 멱등·잔액 음수 차단·기존 결제/주문/구독 회귀 0(tsc/vitest/build).

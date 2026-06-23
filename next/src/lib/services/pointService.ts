@@ -78,3 +78,29 @@ export function previewRedeem(
 
   return { usable, payable: payableTotal - usable, reason: null };
 }
+
+/**
+ * 사용 확정 포인트 — 서버 재계산의 단일 경계(T1). 순수.
+ * 클라가 보낸 `requested` 는 무시 가능한 "요청값"이며, 실제 사용액은
+ * 서버가 조회한 `balance` 와 정책으로 캡된 값이다.
+ *
+ * - 게스트(`isMember=false`)는 항상 0 (DEC-P6).
+ * - 그 외는 previewRedeem 규칙(min·잔액·결제액·max_ratio) 적용 결과의 usable.
+ *
+ * orderService(서버 권위)와 P5 프론트(표시)가 동일 결과를 공유한다.
+ */
+export function resolveRedeem(params: {
+  requested: number;
+  balance: number;
+  payableTotal: number;
+  policy: PointsSettings;
+  isMember: boolean;
+}): number {
+  if (!params.isMember) return 0;
+  return previewRedeem(
+    params.requested,
+    params.balance,
+    params.payableTotal,
+    params.policy,
+  ).usable;
+}

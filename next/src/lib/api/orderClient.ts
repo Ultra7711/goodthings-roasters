@@ -186,6 +186,8 @@ export function buildOrderPayload(
        서버 zod literal(true) 가 최종 검증. */
     agreement: { terms: true, privacy: true },
     termsVersion: CHECKOUT_TERMS_VERSION,
+    /* 포인트 사용 — 현재 0(체크아웃 redeem UI 는 P5). 서버가 잔액·정책으로 재계산(T1). */
+    pointsToUse: 0,
     guest: isLoggedIn ? null : { pin: form.guestPw },
   };
 

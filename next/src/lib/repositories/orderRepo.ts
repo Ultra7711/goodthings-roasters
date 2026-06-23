@@ -55,6 +55,8 @@ export type CreateOrderRpcParams = {
   subtotal: number;
   shippingFee: number;
   discountAmount: number;
+  /** 사용 포인트(원). orderService 가 서버 재계산(resolveRedeem)으로 확정한 값. 회원만 >0. */
+  pointsUsed: number;
   totalAmount: number;
   termsVersion: string;
   items: CreateOrderRpcItem[];
@@ -154,9 +156,10 @@ export async function createOrder(
   };
   const shippingFee = toInt(params.shippingFee, 0, 'shippingFee');
   const discountAmount = toInt(params.discountAmount, 0, 'discountAmount');
+  const pointsUsed = toInt(params.pointsUsed, 0, 'pointsUsed');
   const totalAmount = toInt(
     params.totalAmount,
-    params.subtotal + shippingFee - discountAmount,
+    params.subtotal + shippingFee - discountAmount - pointsUsed,
     'totalAmount',
   );
 
@@ -183,6 +186,7 @@ export async function createOrder(
       p_total_amount: totalAmount,
       p_terms_version: params.termsVersion,
       p_items: params.items,
+      p_points_used: pointsUsed,
     })
     .single<{
       id: string;
@@ -318,19 +322,18 @@ export async function findGuestOrderWithHash(
    "Toss 위젯에서 이전" 은 사용자 취소가 아니라 UX 네비게이션이므로
    cancelled status 로 남기지 않고 DELETE.
 
-   순서:
-   1) 026 RPC 가 pending 시점에 subscriptions 도 active 로 INSERT 하므로
-      먼저 관련 subscription DELETE (initial_order_id 매칭).
-   2) orders DELETE (order_items 는 ON DELETE CASCADE 로 자동 삭제).
-   - payments / payment_transactions 는 결제 confirm 후 생성이라
-     pending 시점에 row 가 없음 → RESTRICT FK 무관.
+   S325(Δ1): 포인트 사용분 복원 + 삭제 원자성을 위해 delete_pending_order RPC
+   (097) 로 이관. RPC 가 단일 트랜잭션으로:
+     1) pending 가드 + 본인 소유 확인(FOR UPDATE)
+     2) points_used>0 이면 reverse_points 복원(멱등 restore:||order_id)
+     3) 연관 subscription DELETE → order DELETE(order_items CASCADE)
+   - payments / payment_transactions 는 pending 시점에 row 없음 → RESTRICT FK 무관.
 */
 
 /**
- * 로그인 사용자의 pending 주문을 DELETE.
+ * 로그인 사용자의 pending 주문을 DELETE (사용 포인트 복원 포함 · 원자).
  * - 이미 pending 이 아니면 no-op (paid 이상은 환불 흐름으로).
- * - service_role + user_id 명시 필터로 타인 주문 보호.
- * - 관련 subscription 도 함께 DELETE (dead active subscription 방지).
+ * - service_role RPC + user_id 매칭으로 타인 주문 보호.
  * @returns 실제 DELETE 발생 시 true, no-op 이면 false.
  */
 export async function deletePendingOrderForUser(
@@ -339,34 +342,11 @@ export async function deletePendingOrderForUser(
 ): Promise<boolean> {
   const admin = getSupabaseAdmin();
 
-  /* 1) 대상 order id 확인 + pending 가드 */
-  const { data: target, error: lookupError } = await admin
-    .from('orders')
-    .select('id')
-    .eq('order_number', orderNumber)
-    .eq('user_id', userId)
-    .eq('status', 'pending')
-    .maybeSingle<{ id: string }>();
+  const { data, error } = await admin.rpc('delete_pending_order', {
+    p_order_number: orderNumber,
+    p_user_id: userId,
+  });
 
-  if (lookupError) throw lookupError;
-  if (!target) return false;
-
-  /* 2) 연관 subscription 선제 DELETE.
-        042 cutover 후 create_order RPC 는 subscription INSERT 를 하지 않으므로
-        pending order 에는 항상 0 row 영향이지만, FK initial_order_id ON DELETE SET NULL
-        의 dead row 방지 + 사후 마이그레이션 호환을 위해 defensive 보존. */
-  const { error: subError } = await admin
-    .from('subscriptions')
-    .delete()
-    .eq('initial_order_id', target.id);
-  if (subError) throw subError;
-
-  /* 3) order DELETE — order_items 는 CASCADE 로 자동 삭제 */
-  const { error: orderError } = await admin
-    .from('orders')
-    .delete()
-    .eq('id', target.id);
-  if (orderError) throw orderError;
-
-  return true;
+  if (error) throw error;
+  return data === true;
 }

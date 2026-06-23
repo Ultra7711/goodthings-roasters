@@ -15,6 +15,7 @@ import {
   computeEarnAmount,
   computeTriggerEarn,
   previewRedeem,
+  resolveRedeem,
 } from './pointService';
 
 /** 기본 정책 + 부분 override 헬퍼. enabled=true 로 켠 상태를 베이스로. */
@@ -169,5 +170,92 @@ describe('previewRedeem', () => {
     const policy = makePolicy({ redeem: { enabled: true, min: 0, max_ratio: 1.0 } });
     expect(previewRedeem(-500, 5000, 20_000, policy).usable).toBe(0);
     expect(previewRedeem(1500.9, 5000, 20_000, policy).usable).toBe(1500);
+  });
+});
+
+/* ── resolveRedeem — 서버 재계산 경계(T1) ──────────────────────────────── */
+
+describe('resolveRedeem (T1 서버 재계산 경계)', () => {
+  const policy = (o: Record<string, unknown> = {}) =>
+    PointsSettingsSchema.parse({ enabled: true, redeem: { enabled: true, min: 0, max_ratio: 1.0 }, ...o });
+
+  it('게스트(비회원)는 요청·잔액과 무관하게 항상 0 (DEC-P6)', () => {
+    // 잔액 9999·요청 9999 여도 게스트면 0
+    const used = resolveRedeem({
+      requested: 9999,
+      balance: 9999,
+      payableTotal: 50_000,
+      policy: policy(),
+      isMember: false,
+    });
+    expect(used).toBe(0);
+  });
+
+  it('클라가 잔액 초과 위조 요청해도 서버 잔액으로 캡한다 (T1 핵심)', () => {
+    // 클라 requested=999_999 (위조) · 서버 실잔액 3000 → 3000 으로 캡
+    const used = resolveRedeem({
+      requested: 999_999,
+      balance: 3000,
+      payableTotal: 50_000,
+      policy: policy(),
+      isMember: true,
+    });
+    expect(used).toBe(3000);
+  });
+
+  it('결제액·max_ratio 한도로도 캡한다', () => {
+    // 잔액 50000·요청 50000 이나 결제액 8000·ratio 0.5 → 4000 상한
+    const used = resolveRedeem({
+      requested: 50_000,
+      balance: 50_000,
+      payableTotal: 8000,
+      policy: policy({ redeem: { enabled: true, min: 0, max_ratio: 0.5 } }),
+      isMember: true,
+    });
+    expect(used).toBe(4000);
+  });
+
+  it('정책 마스터 OFF 면 회원이어도 0 (포인트 경로 완전 우회)', () => {
+    const used = resolveRedeem({
+      requested: 5000,
+      balance: 5000,
+      payableTotal: 50_000,
+      policy: PointsSettingsSchema.parse({ enabled: false }),
+      isMember: true,
+    });
+    expect(used).toBe(0);
+  });
+
+  it('최소 사용액 미만이면 0 (below_min)', () => {
+    const used = resolveRedeem({
+      requested: 500,
+      balance: 5000,
+      payableTotal: 50_000,
+      policy: policy({ redeem: { enabled: true, min: 1000, max_ratio: 1.0 } }),
+      isMember: true,
+    });
+    expect(used).toBe(0);
+  });
+
+  it('요청 0 이면 0', () => {
+    const used = resolveRedeem({
+      requested: 0,
+      balance: 5000,
+      payableTotal: 50_000,
+      policy: policy(),
+      isMember: true,
+    });
+    expect(used).toBe(0);
+  });
+
+  it('정상 회원 요청은 그대로 사용 확정', () => {
+    const used = resolveRedeem({
+      requested: 2500,
+      balance: 5000,
+      payableTotal: 50_000,
+      policy: policy(),
+      isMember: true,
+    });
+    expect(used).toBe(2500);
   });
 });
