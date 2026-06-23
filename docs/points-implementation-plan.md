@@ -351,5 +351,39 @@ UI 표시는 **전부 어드민 설정에 연동**된다(재배포 0). 배송비
 
 ### 남은 작업
 
-- P5: 구매자 구매확정 버튼 + 자동확정 크론 + earned 회수.
+- P5: 구매자 구매확정 버튼 + 자동확정 크론 + earned 회수. → **§17 통합 계획**(라이브 임박 시 일괄).
 - 반복 회차 빌링(`process_billing_renewal` + next_delivery_at 크론) — 구현 시 ④ 자동 적용.
+
+---
+
+## 17. P5 실행 계획 (라이브 임박 시 일괄) — S328 정리
+
+> **착수 트리거 = 토스 라이브 + `points.enabled=true` 직전.** 현재 P5 사용자 노출 부분은 도달 0(주문·적립 없음·라이브 전)이라 선구축 시 검증 불가 + 라이브 결제 흐름 선변경 위험([[feedback_feature_reach_base_before_build]]). **P1~P4 백엔드 완성·동작 준비 완료** → 켜는 순간 + 프론트 번들이 라이브 작업.
+
+### 단일 권위 (이미 구축됨 · P5가 재사용)
+
+- **`deliverOrder(orderNumber)`** (`lib/admin/deliverOrder.ts`) — 적립 트리거 3종(구매자·자동확정·운영자) 공유 SoT. shipping→delivered + `computeEarnForItems` 적립(098 멱등 `earn:`||id).
+- **`computeEarnForItems(items, policy)`** (`pointService.ts`) — 품목별 적립(정기=cycle율·일반=earn.rate). 적립 단일 정의.
+- **`computeEarnAmount(subtotal, policy)`** — 단일 금액 미리보기(U1/U2 PDP·장바구니용).
+- **`resolveRedeem`/`previewRedeem`** — 사용액 T1 경계(체크아웃 redeem). orderService 통합은 P2 완료.
+- **`getPointBalance`/`getRecentPointLedger`** (`pointRepo.ts`) — 잔액·원장 조회.
+
+### P5 구성요소 (착수 시)
+
+**1. 자동확정 크론** — shipping + `shipped_at ≥ earn.auto_confirm_days`(기본 8일) + 미환불 → `deliverOrder` 루프. 일 1회.
+   - 🔴 **미결 결정(아키텍처)**: ① **pg_cron + 순수 SQL**(037/038 코드베이스 표준·`cron.schedule`. 단 적립 계산 SQL 미러링 → TS `computeEarnForItems` 와 **드리프트 위험**·머니) vs ② **Next 라우트(`/api/cron/auto-confirm`·CRON_SECRET) + 트리거**(Vercel Cron[vercel.json 신규·Hobby 일1회] / GitHub Action[db-backup 선례] / pg_net). **②가 단일 권위 보존**(deliverOrder 재사용·드리프트 0)이라 머니 정합상 우세. 현 인프라: vercel.json·/api/cron 없음·pg_cron 사용중(037/038)·GitHub Actions(db-backup·security).
+   - 멱등: 이미 delivered skip(complete_delivery 내부 no-op). 환불/취소 상태 제외 필터.
+
+**2. 구매자 "구매확정" 버튼** — `components/auth/mypage/OrderHistory.tsx`. status `'배송중'`(shipping) 주문에 버튼 노출 → **본인 주문 가드 member 서버액션** → `deliverOrder(orderNumber)`. (Order 타입 status = 한글 라벨·`'배송완료'`=delivered). `useOrdersQuery` invalidate + 적립예정 안내 동반. enabled=false면 버튼 숨김(또는 적립 0 안내).
+
+**3. earned 회수** (자동확정 도입 시 동반 필수) — 구매확정(delivered) 후 환불 시 **적립분** reverse. 현 P3(099 `apply_webhook_event`)=사용분만 복원. 확장: refund 분기에 해당 주문 'earned' ledger 존재 시 `reverse_points`(또는 신규 회수)·멱등(`earnrevoke:`||idem). 또는 어드민 `adjust_points` 수동(S328 ②·이미 구축). DEC-S326-1 적립분 회수 미구현 구멍.
+
+**4. ₩0 주문 엣지** — 전액 포인트 사용 시 Toss ₩0 청구 불가. 전액 차단(잔여 ≥ Toss 최소 결제액) 또는 ₩0 전용 플로우. 체크아웃 redeem UI 책임(§13 Δ6).
+
+**5. U1~U9 표시** (§8 매핑) — PDP/장바구니 적립예정(`computeEarnAmount`)·체크아웃 사용 입력+미리보기(`previewRedeem`)·주문완료/마이페이지 잔액·`views/PointsView.tsx`(신규 원장 내역)·`MyPageSideNav` 메뉴·`useUserPoints` 훅·`formatPoints`. 전부 `site_settings.points` 플래그 연동(DEC-P8·OFF 시 숨김).
+
+### 약관 (출시 게이트)
+이용약관 **제10조의3 (적립금)** 적용(초안 = §15/S327 complete). `points.enabled=true` 전환과 함께 시행일 갱신.
+
+### 검증 (P5)
+적립(구매확정)→사용(체크아웃)→환불(사용분 복원 + 적립분 회수) **E2E 전체 사이클** + ₩0 엣지 + P6 reconciliation(SUM(ledger)=balance).
