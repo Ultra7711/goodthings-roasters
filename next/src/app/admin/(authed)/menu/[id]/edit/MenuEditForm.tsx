@@ -143,11 +143,6 @@ function isoToKstDate(iso: string | null): string {
   return new Date(t + KST_OFFSET_MS).toISOString().slice(0, 10);
 }
 
-/** KST 기준 오늘 'YYYY-MM-DD' (date input min). */
-function kstToday(): string {
-  return new Date(Date.now() + KST_OFFSET_MS).toISOString().slice(0, 10);
-}
-
 /** 자동 만료 토글 ON 시 기본 만료일 — 오늘 + DEFAULT_NEW_DAYS (KST). */
 function defaultExpiryDate(): string {
   return new Date(Date.now() + KST_OFFSET_MS + DEFAULT_NEW_DAYS * DAY_MS)
@@ -503,7 +498,7 @@ export default function MenuEditForm(props: Props) {
             <Field
               label="NEW 자동 만료"
               error={errors.newUntil?.message}
-              hint="끄면 무기한 NEW. 켜면 지정한 날짜의 끝(자정)에 NEW 가 자동 해제됩니다. 만료 후 날짜를 다시 미래로 지정하면 재노출됩니다."
+              hint="끄면 무기한 NEW. 켜면 지정한 날짜의 끝(자정)에 NEW 가 자동 해제됩니다. 지난 날짜로 지정하면 즉시 만료(테스트용)되고, 다시 미래로 지정하면 재노출됩니다."
             >
               <div className="space-y-2">
                 <div className="flex items-center gap-2 h-9">
@@ -524,7 +519,6 @@ export default function MenuEditForm(props: Props) {
                 {autoExpireOn && (
                   <Input
                     type="date"
-                    min={kstToday()}
                     className="max-w-[200px]"
                     {...register('newUntil')}
                   />
