@@ -11,8 +11,8 @@
 
 import cafeMenuBlur from './cafe-menu-blur.json';
 
-/** 카드 status 배지 — null 은 뱃지 미표시 */
-export type CafeMenuStatus = '시즌' | '시그니처' | 'NEW' | '인기' | '품절' | '시즌 한정' | '';
+/** 카드 status 배지 — null 은 뱃지 미표시. 'NEW' 는 badge2 로 분리 (S330). */
+export type CafeMenuStatus = '시즌' | '시그니처' | '인기' | '품절' | '시즌 한정' | '';
 
 /** 온도 뱃지 — 'both' 는 표시하지 않음, null 은 디저트 등 온도 무관 */
 export type CafeMenuTemp = 'ice-only' | 'hot-only' | 'warm' | 'both' | null;
@@ -24,6 +24,7 @@ export type CafeMenuItem = {
   cat: 'brewing' | 'tea' | 'non-coffee' | 'dessert';
   status: CafeMenuStatus;
   temp: CafeMenuTemp;
+  /** NEW 전용 마커 (S330). 'NEW' = 신규 배지 표시 · '' = 없음. status 와 직교. */
   badge2: string;
   price: number;
   desc: string;
@@ -140,7 +141,7 @@ export const CAFE_MENU: CafeMenuItem[] = [
   { id: 'd05', name: '딸기피스타치오 케이크', cat: 'dessert', status: '', temp: null, badge2: '', price: 7500, desc: '', img: '/images/cafe-menu/cm_img_strawberry_pistachio_cake.webp', bg: '#f5dde0', menuDesc: '고소한 피스타치오와 상큼한 딸기의 만남', vol: '120g', kcal: 415, satfat: '12.8g', sugar: '35.5g', sodium: '185mg', protein: '6.8g', caffeine: '0mg', allergen: '우유, 달걀, 밀, 견과류' },
   { id: 'd06', name: '티라미수', cat: 'dessert', status: '', temp: null, badge2: '', price: 7500, desc: '', img: '/images/cafe-menu/cm_img_tiramisu.webp', bg: '#e8e0d5', menuDesc: '부드러운 티라미수 케이크', vol: '110g', kcal: 430, satfat: '13.5g', sugar: '35.0g', sodium: '190mg', protein: '7.0g', caffeine: '35mg', allergen: '우유, 달걀, 밀' },
   { id: 'd07', name: '빅토리아', cat: 'dessert', status: '', temp: null, badge2: '', price: 7500, desc: '', img: '/images/cafe-menu/cm_img_victoria.webp', bg: '#f5e8e8', menuDesc: '부드러운 크림이 가득한 빅토리아 케이크', vol: '115g', kcal: 395, satfat: '11.8g', sugar: '33.5g', sodium: '170mg', protein: '6.5g', caffeine: '0mg', allergen: '우유, 달걀, 밀' },
-  { id: 'd08', name: '버터떡', cat: 'dessert', status: 'NEW', temp: null, badge2: '', price: 3000, desc: '', img: '/images/cafe-menu/cm_img_butterdduck.webp', bg: '#ECEAE6', menuDesc: '쫀득쫀득 풍미 가득 버터떡', vol: '115g', kcal: 155, satfat: '2.9g', sugar: '7g', sodium: '95mg', protein: '1g', caffeine: '0.0mg', allergen: '우유, 달걀, 밀, 쌀, 대두' },
+  { id: 'd08', name: '버터떡', cat: 'dessert', status: '', temp: null, badge2: 'NEW', price: 3000, desc: '', img: '/images/cafe-menu/cm_img_butterdduck.webp', bg: '#ECEAE6', menuDesc: '쫀득쫀득 풍미 가득 버터떡', vol: '115g', kcal: 155, satfat: '2.9g', sugar: '7g', sodium: '95mg', protein: '1g', caffeine: '0.0mg', allergen: '우유, 달걀, 밀, 쌀, 대두' },
 ];
 
 /** 필터 키 → 아이템 목록 (프로토타입 renderCmGrid 의 _cmRaw 로직) */
@@ -151,23 +152,16 @@ export function filterCafeMenu(items: CafeMenuItem[], filter: CafeFilterKey): Ca
 }
 
 /**
- * 카드 정렬 정책 (S245-P11 정정):
- *   1. status='NEW'           — 신규 메뉴
- *   2. popular (좋아요 1~3위) — menu_likes 카운트 기반 자동 (popularRanks 인자)
- *   3. status='시그니처'      — 운영자 명시 시그니처 마커
- *   4. 나머지                 — cat 순 (brewing → tea → non-coffee → dessert)
+ * 카드 정렬 정책 (S330 단일화):
+ *   카테고리 순 (brewing → tea → non-coffee → dessert) + sort_order asc.
  *
- * 그룹 내부:
- *   - NEW         : cat asc + sort_order asc
- *   - popular     : rank asc (1 → 2 → 3) — 좋아요 1위가 맨 앞
- *   - 시그니처    : cat asc + sort_order asc
- *   - 나머지      : cat asc + sort_order asc
+ * NEW · 인기(좋아요) · 시그니처는 정렬에 영향을 주지 않고 배지로만 표시한다.
+ *   - 운영자가 어드민에서 정한 순서(sort_order)가 곧 실제 노출 순서.
+ *   - 전체 탭과 카테고리 탭의 순서가 일관됨 (자동 상단 고정 제거).
+ *   - NEW: badge2='NEW' 로 표시 (status 와 직교) · 인기: 좋아요 rank 뱃지 · 시그니처: 전용 탭 + ★ 메뉴명.
  *
- * popularRanks 는 menuLikesStore 의 sortCommitted 와 동일 형식
- * (Record<id, 1|2|3>). useMenuSortCommitted() 로 구독.
- *
- * status='인기' enum 은 047 schema 에 있으나 실제 데이터/UX 에서는 popular
- * rank 자동 표시가 정책 — status 마커는 사용 안 함 (P11 1차 잘못 도입한 부분 정정).
+ * 이전(S245-P11)의 NEW→popular→시그니처 자동 상단 정렬은 운영자 통제 밖 변동과
+ * 어드민 UI 불일치를 유발하여 폐기 (S330).
  */
 const CAT_ORDER: Record<CafeMenuItem['cat'], number> = {
   brewing: 0,
@@ -176,36 +170,11 @@ const CAT_ORDER: Record<CafeMenuItem['cat'], number> = {
   dessert: 3,
 };
 
-/** 1차 우선순위 (major rank) */
-function getMajorRank(
-  item: CafeMenuItem,
-  popularRanks?: Record<string, 1 | 2 | 3>,
-): number {
-  if (item.status === 'NEW') return 0;
-  if (popularRanks && popularRanks[item.id] !== undefined) return 1;
-  if (item.status === '시그니처') return 2;
-  return 3;
-}
-
-export function sortCafeMenu(
-  items: CafeMenuItem[],
-  popularRanks?: Record<string, 1 | 2 | 3>,
-): CafeMenuItem[] {
+export function sortCafeMenu(items: CafeMenuItem[]): CafeMenuItem[] {
   return items
     .map((item, index) => ({ item, index }))
     .sort((a, b) => {
-      const majorA = getMajorRank(a.item, popularRanks);
-      const majorB = getMajorRank(b.item, popularRanks);
-      if (majorA !== majorB) return majorA - majorB;
-
-      /* popular 그룹 — rank asc (1 → 2 → 3) */
-      if (majorA === 1 && popularRanks) {
-        const rA = popularRanks[a.item.id];
-        const rB = popularRanks[b.item.id];
-        if (rA !== rB) return rA - rB;
-      }
-
-      /* cat asc — 같은 그룹 내 카테고리 순 */
+      /* cat asc — 카테고리 순 */
       const catA = CAT_ORDER[a.item.cat];
       const catB = CAT_ORDER[b.item.cat];
       if (catA !== catB) return catA - catB;

@@ -167,7 +167,7 @@ export default function CafeNutritionSheet({ item, onClose }: Props) {
 
               {/* S245-P20 재설계 — hero 좌상단 메타만 (좌하/우하 비움 · 시각 단순화).
                   온도/좋아요는 콘텐츠 영역으로 이동. */}
-              <MenuCardBadges menuId={item.id} status={item.status} />
+              <MenuCardBadges menuId={item.id} status={item.status} badge2={item.badge2} />
             </div>
 
             <div className="cns-content">

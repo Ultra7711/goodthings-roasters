@@ -6,8 +6,9 @@
    - urlFilter / target restore 모두 "adjusting state during render" 패턴으로
      effect-내-setState 규칙 위반 없이 prop → state 동기화.
    - likes 는 menuLikesStore 외부 store 로 격리 (S116). MenuLikeButton ·
-     MenuCardBadges 가 자체 구독하므로 카드는 likes 를 모름. CafeMenuPage 는
-     sort 결정 용도로만 sortCommitted 를 구독.
+     MenuCardBadges 가 자체 구독하므로 카드는 likes 를 모름.
+   - S330: 정렬은 카테고리 순 + sort_order 단일 (sortCommitted 의존 제거). 인기
+     rank 는 뱃지로만 표시 (badgesCommitted · commitMenuRanksOnReentry 유지).
    ══════════════════════════════════════════ */
 
 'use client';
@@ -35,7 +36,6 @@ import {
   commitMenuRanksOnReentry,
   fetchMyMenuLikes,
   hydrateMenuLikesCounts,
-  useMenuSortCommitted,
 } from '@/lib/menuLikesStore';
 
 // S311 D: 3000 → 6000. 점멸이 가시화(IO) 시점에 시작되므로(GenericCard flashActive)
@@ -102,11 +102,6 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
     : isTablet
       ? CM_PER_PAGE_TABLET
       : CM_PER_PAGE_DESKTOP;
-
-  /* sort 전용 store snapshot. 첫 마운트 시 빈 객체(NEW only sort), 재진입 시
-     commitMenuRanksOnReentry() 가 갱신 → CafeMenuPage 리렌더 + 카드 재정렬.
-     사용자 토글로는 절대 변동 없음. */
-  const sortCommitted = useMenuSortCommitted();
 
   // ───────────────────────────────────────────
   // Adjusting state during render — urlFilter / searchParams prop 동기화
@@ -231,7 +226,7 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
       bodyEl.classList.add('cm-anim');
       if (!isInitRef.current) {
         shouldAnimateCardsRef.current = true;
-        commitMenuRanksOnReentry(); // 재진입 시 sort + 뱃지 그 시점 popular 으로
+        commitMenuRanksOnReentry(); // 재진입 시 인기 rank 뱃지를 그 시점 popular 으로 (S330: 정렬 무관)
         bodyEl.classList.add('cm-cards-entering');
         // (COLS-1)*70ms stagger + 600ms duration + buffer
         setTimeout(() => bodyEl.classList.remove('cm-cards-entering'), 840);
@@ -273,7 +268,7 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
     function onReset() {
       setNutriId(null);
       setHighlightId(null);
-      commitMenuRanksOnReentry(); // reset 시점에 인기 sort + 뱃지 반영
+      commitMenuRanksOnReentry(); // reset 시점에 인기 rank 뱃지 반영 (S330: 정렬 무관)
       window.scrollTo({ top: 0, behavior: 'instant' });
       if (bodyEl) {
         bodyEl.classList.remove('cm-anim');
@@ -289,17 +284,15 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
     return () => window.removeEventListener('gtr:menu-reset', onReset);
   }, [bodyEl]);
 
-  // S216-D P5 (timing fix): likes fetch 완료 → sortCommitted 갱신 → 카드 reorder 시
-  // highlighted card 가 viewport 밖으로 밀려 footer 가 노출되는 케이스 보정.
-  // sortCommitted 변경마다 highlightId 카드 위치 재추적 + scrollIntoView 재실행.
-  // GenericCard 의 useEffect 는 [isHighlight] dep 이라 reorder 감지 못 함.
+  // highlightId / page 변경 시 해당 카드로 scrollIntoView (검색 결과 진입 보정).
+  // S330: 정렬이 sortCommitted 무관해져 reorder 가 없으므로 dep 에서 sortCommitted 제거.
   useEffect(() => {
     if (!highlightId) return;
     const el = document.querySelector<HTMLElement>(`[data-cm-id="${CSS.escape(highlightId)}"]`);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }, [highlightId, sortCommitted, page]);
+  }, [highlightId, page]);
 
   // highlight 자동 소거 — highlightId 가 새로 세팅될 때마다 이전 timer 초기화 후 재등록
   useEffect(() => {
@@ -319,11 +312,11 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
     };
   }, [highlightId]);
 
-  /* S245-P11 정정: 정렬 정책 = NEW → popular (좋아요 1~3위) → 시그니처 → cat 순.
-     popularRanks = sortCommitted (menu_likes 카운트 자동 rank 1/2/3 매핑). */
+  /* S330: 정렬 정책 = 카테고리 순 + sort_order 단일. NEW·인기·시그니처는
+     정렬 무관 (배지로만 표시) — sortCommitted 의존 제거. */
   const filtered: CafeMenuItem[] = useMemo(() => {
-    return sortCafeMenu(filterCafeMenu(items, filter), sortCommitted);
-  }, [filter, sortCommitted, items]);
+    return sortCafeMenu(filterCafeMenu(items, filter));
+  }, [filter, items]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));

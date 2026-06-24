@@ -199,7 +199,6 @@ export async function deleteCafeMenuAction(input: {
 const StatusEnum = z.enum([
   '',
   '시그니처',
-  'NEW',
   '인기',
   '시즌',
   '시즌 한정',
@@ -215,7 +214,8 @@ const MenuMetaSchema = z.object({
   cat: CafeMenuCategoryEnum,
   status: StatusEnum,
   temp: TempEnum,
-  badge2: z.string().max(20),
+  /* S330: badge2 = NEW 전용 마커 ('NEW' | '') */
+  badge2: z.enum(['', 'NEW']),
   price: z.number().int().min(0).max(99_999_999),
   bg: HexColor,
   sortOrder: z.number().int().min(0).max(9999),

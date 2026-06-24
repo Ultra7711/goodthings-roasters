@@ -551,6 +551,13 @@ export default function MenuTableClient({ rows }: Props) {
         />
       </div>
 
+      {isReorderActive && (
+        <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+          웹페이지 노출 순서 = <strong className="font-medium text-foreground">카테고리 순 + 아래 순서</strong>입니다.
+          NEW·인기·시그니처 배지는 순서에 영향을 주지 않고 표시만 됩니다.
+        </p>
+      )}
+
       <AdminDataTable
         columns={columns}
         data={filtered}

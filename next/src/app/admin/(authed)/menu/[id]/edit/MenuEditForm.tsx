@@ -42,6 +42,7 @@ import {
 import { PriceInput } from '@/components/admin/PriceInput';
 import { Button } from '@/components/admin/ui/button';
 import { Input } from '@/components/admin/ui/input';
+import { Switch } from '@/components/admin/ui/switch';
 import { Textarea } from '@/components/admin/ui/textarea';
 import { cn } from '@/lib/utils';
 import { describeError } from '@/lib/admin/errorDescribe';
@@ -60,7 +61,6 @@ import { createCafeMenuAction, updateCafeMenuAction } from '../../actions';
 const STATUS_OPTIONS = [
   { value: '', label: '없음' },
   { value: '시그니처', label: '시그니처' },
-  { value: 'NEW', label: 'NEW' },
   { value: '인기', label: '인기' },
   { value: '시즌', label: '시즌' },
   { value: '시즌 한정', label: '시즌 한정' },
@@ -89,7 +89,6 @@ type TabId = (typeof TABS)[number]['id'];
 const StatusEnum = z.enum([
   '',
   '시그니처',
-  'NEW',
   '인기',
   '시즌',
   '시즌 한정',
@@ -109,7 +108,8 @@ const FormSchema = z.object({
   cat: CafeMenuCategoryEnum,
   status: StatusEnum,
   temp: TempEnum,
-  badge2: z.string().max(20),
+  /* S330: NEW 전용 마커. 'NEW' = 신규 배지 표시 · '' = 없음. status 와 직교. */
+  badge2: z.enum(['', 'NEW']),
   price: z.number().int().min(0).max(99_999_999),
   bg: HexColor,
   sortOrder: z.number().int().min(0).max(9999),
@@ -167,7 +167,7 @@ function buildEditDefaults(row: CafeMenuItemRow): MenuFormValues {
     cat: row.cat,
     status: (row.status || '') as MenuFormValues['status'],
     temp: (row.temp || '') as MenuFormValues['temp'],
-    badge2: row.badge2 ?? '',
+    badge2: row.badge2 === 'NEW' ? 'NEW' : '',
     price: row.price ?? 0,
     bg: row.bg && /^#[0-9A-Fa-f]{6}$/.test(row.bg) ? row.bg : '#EEEEEE',
     sortOrder: row.sort_order ?? 0,
@@ -431,11 +431,27 @@ export default function MenuEditForm(props: Props) {
               </NativeSelectWrap>
             </Field>
 
-            <Field label="추가 배지 (badge2)" error={errors.badge2?.message}>
-              <Input
-                {...register('badge2')}
-                placeholder="(선택) NEW · 디카페인 등"
-                maxLength={20}
+            <Field
+              label="NEW 배지"
+              error={errors.badge2?.message}
+              hint="켜면 카드에 'NEW' 배지가 최우선으로 표시됩니다 (노출 순서엔 영향 없음)"
+            >
+              <Controller
+                control={control}
+                name="badge2"
+                render={({ field }) => (
+                  <div className="flex items-center gap-2 h-9">
+                    <Switch
+                      checked={field.value === 'NEW'}
+                      onCheckedChange={(c) => field.onChange(c ? 'NEW' : '')}
+                      aria-label="NEW 배지 표시"
+                      className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {field.value === 'NEW' ? '표시 중' : '표시 안 함'}
+                    </span>
+                  </div>
+                )}
               />
             </Field>
           </div>

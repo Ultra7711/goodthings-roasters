@@ -2,19 +2,16 @@ import { describe, expect, test } from 'vitest';
 import { sortCafeMenu, type CafeMenuItem } from './cafeMenu';
 
 /**
- * sortCafeMenu 정책 (S245-P11 정정):
- *   1. NEW
- *   2. popular (좋아요 1~3위 = popularRanks Record)
- *   3. 시그니처
- *   4. 나머지 cat 순 (brewing→tea→non-coffee→dessert)
- *   각 그룹 내부: cat asc + sort_order asc
- *   popular 그룹 내부: rank asc (1 → 2 → 3)
+ * sortCafeMenu 정책 (S330 단일화):
+ *   카테고리 순 (brewing → tea → non-coffee → dessert) + sort_order(input 순서) asc.
+ *   NEW(badge2)·인기·시그니처(status)는 정렬에 영향을 주지 않고 배지로만 표시.
  */
 
 function makeItem(
   id: string,
   cat: CafeMenuItem['cat'],
-  status: CafeMenuItem['status'],
+  status: CafeMenuItem['status'] = '',
+  badge2 = '',
 ): CafeMenuItem {
   return {
     id,
@@ -22,7 +19,7 @@ function makeItem(
     cat,
     status,
     temp: null,
-    badge2: '',
+    badge2,
     price: 0,
     desc: '',
     img: '',
@@ -40,116 +37,70 @@ function makeItem(
 }
 
 describe('sortCafeMenu', () => {
-  test('NEW 가 다른 status 보다 앞으로', () => {
+  test('카테고리 순 정렬 (brewing → tea → non-coffee → dessert)', () => {
     const items = [
-      makeItem('b01', 'brewing', ''),
-      makeItem('d01', 'dessert', 'NEW'),
+      makeItem('d1', 'dessert'),
+      makeItem('n1', 'non-coffee'),
+      makeItem('t1', 'tea'),
+      makeItem('b1', 'brewing'),
     ];
-    const sorted = sortCafeMenu(items);
-    expect(sorted.map((i) => i.id)).toEqual(['d01', 'b01']);
+    expect(sortCafeMenu(items).map((i) => i.id)).toEqual(['b1', 't1', 'n1', 'd1']);
   });
 
-  test('NEW > popular > 시그니처 > 나머지 순서', () => {
+  test('같은 카테고리 내 input(sort_order) 순서 유지', () => {
     const items = [
-      makeItem('a1', 'brewing', ''),
-      makeItem('a2', 'brewing', '시그니처'),
-      makeItem('a3', 'brewing', ''),
-      makeItem('a4', 'brewing', 'NEW'),
+      makeItem('a', 'brewing'),
+      makeItem('b', 'brewing'),
+      makeItem('c', 'brewing'),
     ];
-    const popularRanks = { a3: 1 as const };
-    const sorted = sortCafeMenu(items, popularRanks);
-    expect(sorted.map((i) => i.id)).toEqual(['a4', 'a3', 'a2', 'a1']);
+    expect(sortCafeMenu(items).map((i) => i.id)).toEqual(['a', 'b', 'c']);
   });
 
-  test('popular 그룹 — rank asc (1 → 2 → 3)', () => {
+  test('NEW(badge2) 는 정렬에 영향 없음 — dessert NEW 도 brewing 뒤', () => {
     const items = [
-      makeItem('a', 'brewing', ''),
-      makeItem('b', 'brewing', ''),
-      makeItem('c', 'brewing', ''),
+      makeItem('b1', 'brewing'),
+      makeItem('d1', 'dessert', '', 'NEW'),
     ];
-    /* 입력 순서와 rank 순서 다름 */
-    const popularRanks = { a: 3 as const, b: 1 as const, c: 2 as const };
-    const sorted = sortCafeMenu(items, popularRanks);
-    expect(sorted.map((i) => i.id)).toEqual(['b', 'c', 'a']);
+    expect(sortCafeMenu(items).map((i) => i.id)).toEqual(['b1', 'd1']);
   });
 
-  test('popularRanks 없으면 popular 그룹 적용 안 함', () => {
+  test('시그니처 status 는 정렬에 영향 없음 — non-coffee 시그니처도 brewing 뒤', () => {
     const items = [
-      makeItem('s1', 'brewing', '시그니처'),
+      makeItem('n1', 'non-coffee', '시그니처'),
       makeItem('b1', 'brewing', ''),
     ];
-    const sorted = sortCafeMenu(items);
-    expect(sorted.map((i) => i.id)).toEqual(['s1', 'b1']);
+    expect(sortCafeMenu(items).map((i) => i.id)).toEqual(['b1', 'n1']);
   });
 
-  test('NEW 그룹 — cat 순 (brewing→tea→non-coffee→dessert)', () => {
+  test('같은 카테고리 내 배지 무관 — input 순서 유지', () => {
     const items = [
-      makeItem('d1', 'dessert', 'NEW'),
-      makeItem('n1', 'non-coffee', 'NEW'),
-      makeItem('b1', 'brewing', 'NEW'),
-      makeItem('t1', 'tea', 'NEW'),
+      makeItem('a', 'brewing', '시그니처'),
+      makeItem('b', 'brewing', '', 'NEW'),
+      makeItem('c', 'brewing', '인기'),
     ];
-    const sorted = sortCafeMenu(items);
-    expect(sorted.map((i) => i.id)).toEqual(['b1', 't1', 'n1', 'd1']);
+    expect(sortCafeMenu(items).map((i) => i.id)).toEqual(['a', 'b', 'c']);
   });
 
-  test('일반 메뉴 cat 순 정렬', () => {
+  test('실제 시나리오 — 카테고리 그룹 + 그룹 내 순서', () => {
     const items = [
-      makeItem('d1', 'dessert', ''),
-      makeItem('n1', 'non-coffee', ''),
-      makeItem('t1', 'tea', ''),
-      makeItem('b1', 'brewing', ''),
+      makeItem('b01', 'brewing', '시그니처'),
+      makeItem('b02', 'brewing', '', 'NEW'),
+      makeItem('t01', 'tea'),
+      makeItem('n01', 'non-coffee'),
+      makeItem('d01', 'dessert', '', 'NEW'),
     ];
-    const sorted = sortCafeMenu(items);
-    expect(sorted.map((i) => i.id)).toEqual(['b1', 't1', 'n1', 'd1']);
-  });
-
-  test('실제 시나리오 — NEW + popular (1,2,3) + 시그니처 + 일반', () => {
-    const items = [
-      makeItem('s01', 'brewing', '시그니처'),
-      makeItem('b01', 'brewing', ''),
-      makeItem('b02', 'brewing', ''),
-      makeItem('b03', 'tea', ''),
-      makeItem('d01', 'dessert', ''),
-      makeItem('d09', 'dessert', 'NEW'),
-      makeItem('n01', 'non-coffee', 'NEW'),
-    ];
-    /* 좋아요 1위 = b02, 2위 = b03, 3위 = d01 */
-    const popularRanks = { b02: 1 as const, b03: 2 as const, d01: 3 as const };
-    const sorted = sortCafeMenu(items, popularRanks);
-    /* 1. NEW: n01 (non-coffee), d09 (dessert) — cat 순
-       2. popular: b02 (rank 1), b03 (rank 2), d01 (rank 3)
-       3. 시그니처: s01
-       4. 나머지: b01 */
-    expect(sorted.map((i) => i.id)).toEqual([
-      'n01', 'd09',
-      'b02', 'b03', 'd01',
-      's01',
+    /* brewing(b01,b02 input순) → tea(t01) → non-coffee(n01) → dessert(d01).
+       시그니처·NEW 는 순서 무관. */
+    expect(sortCafeMenu(items).map((i) => i.id)).toEqual([
       'b01',
+      'b02',
+      't01',
+      'n01',
+      'd01',
     ]);
   });
 
   test('빈 배열', () => {
     expect(sortCafeMenu([])).toEqual([]);
-  });
-
-  test('stable sort — 동일 우선순위는 input 순서 유지', () => {
-    const items = [
-      makeItem('a', 'brewing', ''),
-      makeItem('b', 'brewing', ''),
-      makeItem('c', 'brewing', ''),
-    ];
-    const sorted = sortCafeMenu(items);
-    expect(sorted.map((i) => i.id)).toEqual(['a', 'b', 'c']);
-  });
-
-  test('status=시그니처 가 popular 보다 뒤로 (popular 이 우선)', () => {
-    const items = [
-      makeItem('s01', 'brewing', '시그니처'),
-      makeItem('b01', 'brewing', ''),
-    ];
-    const popularRanks = { b01: 1 as const };
-    const sorted = sortCafeMenu(items, popularRanks);
-    expect(sorted.map((i) => i.id)).toEqual(['b01', 's01']);
   });
 });
