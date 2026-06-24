@@ -218,7 +218,6 @@ const MenuMetaSchema = z.object({
   badge2: z.string().max(20),
   price: z.number().int().min(0).max(99_999_999),
   bg: HexColor,
-  description: z.string().max(2000),
   sortOrder: z.number().int().min(0).max(9999),
   menuDesc: z.string().max(2000),
   vol: z.string().max(50),
@@ -258,7 +257,6 @@ function toCafeMenuDbRow(v: MenuMetaInput) {
     badge2: v.badge2,
     price: v.price,
     bg: v.bg,
-    description: v.description,
     menu_desc: v.menuDesc,
     /* S245-P18: 운영자가 숫자만 입력해도 표준 단위 자동 append */
     vol: appendUnit(v.vol, 'ml'),

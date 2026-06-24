@@ -13,7 +13,7 @@
 
    탭 (2탭):
    - basic     : id(자동/표시) / name / cat / status(시그니처 포함) / temp /
-                 price / badge2 / bg / description / sortOrder
+                 price / badge2 / bg / sortOrder
    - nutrition : vol / kcal / satfat / sugar / sodium / protein /
                  caffeine / allergen + menuDesc
 
@@ -112,7 +112,6 @@ const FormSchema = z.object({
   badge2: z.string().max(20),
   price: z.number().int().min(0).max(99_999_999),
   bg: HexColor,
-  description: z.string().max(2000),
   sortOrder: z.number().int().min(0).max(9999),
   /* 영양 — 모두 text (단위 포함) */
   menuDesc: z.string().max(2000),
@@ -146,7 +145,6 @@ function buildCreateDefaults(initialSortOrder: number): MenuFormValues {
     badge2: '',
     price: 0,
     bg: '#EEEEEE',
-    description: '',
     /* S245-P9 정정: cafe-menu seed = 전체 단일 시퀀스 (idx 기반).
        카테고리 무관 전체 max+1 prefill — cat 변경해도 sortOrder 변동 없음. */
     sortOrder: initialSortOrder,
@@ -172,7 +170,6 @@ function buildEditDefaults(row: CafeMenuItemRow): MenuFormValues {
     badge2: row.badge2 ?? '',
     price: row.price ?? 0,
     bg: row.bg && /^#[0-9A-Fa-f]{6}$/.test(row.bg) ? row.bg : '#EEEEEE',
-    description: row.description ?? '',
     sortOrder: row.sort_order ?? 0,
     menuDesc: row.menu_desc ?? '',
     vol: row.vol ?? '',
@@ -224,7 +221,6 @@ export default function MenuEditForm(props: Props) {
       'badge2',
       'price',
       'bg',
-      'description',
       'sortOrder',
     ],
     nutrition: [
@@ -492,16 +488,6 @@ export default function MenuEditForm(props: Props) {
                 )}
               />
             </div>
-          </Field>
-
-          {/* description */}
-          <Field label="짧은 설명" error={errors.description?.message}>
-            <Textarea
-              {...register('description')}
-              placeholder="(선택) 카드 보조 텍스트"
-              rows={2}
-              maxLength={2000}
-            />
           </Field>
 
           {/* sortOrder + id readonly */}
