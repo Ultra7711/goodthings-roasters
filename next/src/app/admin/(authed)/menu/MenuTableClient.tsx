@@ -430,15 +430,25 @@ export default function MenuTableClient({ rows }: Props) {
         }
         return (
           <div className="flex items-center gap-1 flex-wrap">
-            {row.isNew && (
-              <ShadcnBadge
-                variant="outline"
-                className="border-transparent"
-                style={{ background: TONES.success.bg, color: TONES.success.fg }}
-              >
-                NEW
-              </ShadcnBadge>
-            )}
+            {row.isNew &&
+              (row.isNewExpired ? (
+                <ShadcnBadge
+                  variant="outline"
+                  className="border-transparent"
+                  style={{ background: TONES.neutral.bg, color: TONES.neutral.fg }}
+                  title="NEW 자동 만료됨 — 편집에서 만료일을 다시 지정하면 재노출됩니다"
+                >
+                  NEW 만료
+                </ShadcnBadge>
+              ) : (
+                <ShadcnBadge
+                  variant="outline"
+                  className="border-transparent"
+                  style={{ background: TONES.success.bg, color: TONES.success.fg }}
+                >
+                  NEW
+                </ShadcnBadge>
+              ))}
             {tone && row.status && (
               <ShadcnBadge
                 variant="outline"

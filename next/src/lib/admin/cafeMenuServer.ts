@@ -54,7 +54,12 @@ export async function listAdminCafeMenuLite(): Promise<AdminCafeMenuListItem[]> 
   }
   if (!data) return [];
 
-  return (data as CafeMenuItemRow[]).map(mapAdminCafeMenuListItem);
+  /* S331: NEW 만료 여부(isNewExpired) 일관 판정용 now 캡처.
+     .map(mapAdminCafeMenuListItem) 직접 전달 금지 — Array index 가 nowMs 자리로 들어감. */
+  const now = Date.now();
+  return (data as CafeMenuItemRow[]).map((row) =>
+    mapAdminCafeMenuListItem(row, now),
+  );
 }
 
 /**

@@ -11,6 +11,8 @@
 
 import { describe, expect, it } from 'vitest';
 import {
+  isNewBadgeActive,
+  mapAdminCafeMenuListItem,
   mapCafeMenuRow,
   type CafeMenuItemRow,
 } from './cafeMenu';
@@ -41,6 +43,7 @@ function makeRow(overrides: Partial<CafeMenuItemRow> = {}): CafeMenuItemRow {
     height: null,
     sort_order: 0,
     is_active: true,
+    new_until: null,
     created_at: '2026-05-11T00:00:00Z',
     updated_at: '2026-05-11T00:00:00Z',
     ...overrides,
@@ -155,5 +158,88 @@ describe('mapCafeMenuRow — 카테고리별 대표 케이스', () => {
     expect(item.cat).toBe('dessert');
     expect(item.temp).toBeNull();
     expect(item.kcal).toBe(420);
+  });
+});
+
+/* ── S331: NEW 자동 만료 ─────────────────────────────────────────────── */
+
+const NOW = Date.parse('2026-06-24T00:00:00Z');
+
+describe('isNewBadgeActive — NEW 자동 만료 판정 (S331)', () => {
+  it('badge2 가 NEW 아니면 항상 false', () => {
+    expect(isNewBadgeActive('', null, NOW)).toBe(false);
+    expect(isNewBadgeActive('', '2099-01-01T00:00:00Z', NOW)).toBe(false);
+  });
+
+  it('NEW + new_until null = 무기한 활성', () => {
+    expect(isNewBadgeActive('NEW', null, NOW)).toBe(true);
+  });
+
+  it('NEW + 미래 만료일 = 활성', () => {
+    expect(isNewBadgeActive('NEW', '2026-06-30T14:59:59Z', NOW)).toBe(true);
+  });
+
+  it('NEW + 과거 만료일 = 비활성 (만료)', () => {
+    expect(isNewBadgeActive('NEW', '2026-06-20T14:59:59Z', NOW)).toBe(false);
+  });
+
+  it('NEW + 파싱 불가 날짜 = 안전하게 활성 유지', () => {
+    expect(isNewBadgeActive('NEW', 'not-a-date', NOW)).toBe(true);
+  });
+});
+
+describe('mapCafeMenuRow — NEW 만료 시 badge2 다운그레이드 (S331)', () => {
+  it('만료된 NEW → badge2 빈값', () => {
+    const item = mapCafeMenuRow(
+      makeRow({ badge2: 'NEW', new_until: '2026-06-20T14:59:59Z' }),
+      NOW,
+    );
+    expect(item.badge2).toBe('');
+  });
+
+  it('미래 만료일 NEW → 유지', () => {
+    const item = mapCafeMenuRow(
+      makeRow({ badge2: 'NEW', new_until: '2026-06-30T14:59:59Z' }),
+      NOW,
+    );
+    expect(item.badge2).toBe('NEW');
+  });
+
+  it('무기한 NEW (new_until null) → 유지', () => {
+    const item = mapCafeMenuRow(
+      makeRow({ badge2: 'NEW', new_until: null }),
+      NOW,
+    );
+    expect(item.badge2).toBe('NEW');
+  });
+});
+
+describe('mapAdminCafeMenuListItem — 만료 플래그 (S331)', () => {
+  it('만료된 NEW: isNew=true · isNewExpired=true · newUntil 보존', () => {
+    const item = mapAdminCafeMenuListItem(
+      makeRow({ badge2: 'NEW', new_until: '2026-06-20T14:59:59Z' }),
+      NOW,
+    );
+    expect(item.isNew).toBe(true);
+    expect(item.isNewExpired).toBe(true);
+    expect(item.newUntil).toBe('2026-06-20T14:59:59Z');
+  });
+
+  it('활성 무기한 NEW: isNew=true · isNewExpired=false', () => {
+    const item = mapAdminCafeMenuListItem(
+      makeRow({ badge2: 'NEW', new_until: null }),
+      NOW,
+    );
+    expect(item.isNew).toBe(true);
+    expect(item.isNewExpired).toBe(false);
+  });
+
+  it('NEW 아님: isNew=false · isNewExpired=false', () => {
+    const item = mapAdminCafeMenuListItem(
+      makeRow({ badge2: '', new_until: '2026-06-20T14:59:59Z' }),
+      NOW,
+    );
+    expect(item.isNew).toBe(false);
+    expect(item.isNewExpired).toBe(false);
   });
 });

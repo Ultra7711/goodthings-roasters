@@ -79,5 +79,9 @@ export async function fetchCafeMenu(): Promise<CafeMenuItem[]> {
   }
   if (!data) return [];
 
-  return (data as CafeMenuItemRow[]).map(mapCafeMenuRow);
+  /* S331: NEW 자동 만료 — 한 번 캡처한 now 로 전 row 일관 판정.
+     'use cache'(cacheLife 60s) 라 이 값은 최대 60초 캐시 → 만료 반영 최대 60초+ 지연(허용).
+     .map(mapCafeMenuRow) 직접 전달 금지 — Array index 가 nowMs 자리로 들어가 판정이 깨짐. */
+  const now = Date.now();
+  return (data as CafeMenuItemRow[]).map((row) => mapCafeMenuRow(row, now));
 }

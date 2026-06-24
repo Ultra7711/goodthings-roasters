@@ -110,6 +110,8 @@ const FormSchema = z.object({
   temp: TempEnum,
   /* S330: NEW 전용 마커. 'NEW' = 신규 배지 표시 · '' = 없음. status 와 직교. */
   badge2: z.enum(['', 'NEW']),
+  /* S331: NEW 자동 만료일 — '' = 무기한, 'YYYY-MM-DD' = 해당일 KST 종료까지 */
+  newUntil: z.string().regex(/^(\d{4}-\d{2}-\d{2})?$/, 'YYYY-MM-DD 형식'),
   price: z.number().int().min(0).max(99_999_999),
   bg: HexColor,
   sortOrder: z.number().int().min(0).max(9999),
@@ -127,6 +129,32 @@ const FormSchema = z.object({
 
 export type MenuFormValues = z.infer<typeof FormSchema>;
 
+/* ── NEW 자동 만료 날짜 헬퍼 (S331 · KST 기준 YYYY-MM-DD) ──────────────── */
+
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_NEW_DAYS = 14;
+
+/** timestamptz ISO → KST 기준 'YYYY-MM-DD' (편집 폼 prefill). 빈/오류 시 ''. */
+function isoToKstDate(iso: string | null): string {
+  if (!iso) return '';
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return '';
+  return new Date(t + KST_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/** KST 기준 오늘 'YYYY-MM-DD' (date input min). */
+function kstToday(): string {
+  return new Date(Date.now() + KST_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/** 자동 만료 토글 ON 시 기본 만료일 — 오늘 + DEFAULT_NEW_DAYS (KST). */
+function defaultExpiryDate(): string {
+  return new Date(Date.now() + KST_OFFSET_MS + DEFAULT_NEW_DAYS * DAY_MS)
+    .toISOString()
+    .slice(0, 10);
+}
+
 /* ── Props (Discriminated Union) ──────────────────────────────────────── */
 
 type Props =
@@ -143,6 +171,7 @@ function buildCreateDefaults(initialSortOrder: number): MenuFormValues {
     status: '',
     temp: '',
     badge2: '',
+    newUntil: '',
     price: 0,
     bg: '#EEEEEE',
     /* S245-P9 정정: cafe-menu seed = 전체 단일 시퀀스 (idx 기반).
@@ -168,6 +197,7 @@ function buildEditDefaults(row: CafeMenuItemRow): MenuFormValues {
     status: (row.status || '') as MenuFormValues['status'],
     temp: (row.temp || '') as MenuFormValues['temp'],
     badge2: row.badge2 === 'NEW' ? 'NEW' : '',
+    newUntil: row.badge2 === 'NEW' ? isoToKstDate(row.new_until) : '',
     price: row.price ?? 0,
     bg: row.bg && /^#[0-9A-Fa-f]{6}$/.test(row.bg) ? row.bg : '#EEEEEE',
     sortOrder: row.sort_order ?? 0,
@@ -198,6 +228,8 @@ export default function MenuEditForm(props: Props) {
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
     formState: { errors, isDirty },
     reset,
   } = useForm<MenuFormValues>({
@@ -219,6 +251,7 @@ export default function MenuEditForm(props: Props) {
       'status',
       'temp',
       'badge2',
+      'newUntil',
       'price',
       'bg',
       'sortOrder',
@@ -240,6 +273,11 @@ export default function MenuEditForm(props: Props) {
     basic: '기본 정보',
     nutrition: '영양 정보',
   };
+
+  /* S331: NEW 자동 만료 UI 연동 — badge2='NEW' 일 때만 노출, newUntil 유무로 ON/OFF 파생. */
+  const badge2Value = watch('badge2');
+  const newUntilValue = watch('newUntil');
+  const autoExpireOn = newUntilValue !== '';
 
   const onError = (errs: FieldErrors<MenuFormValues>) => {
     const errorKeys = Object.keys(errs) as Array<keyof MenuFormValues>;
@@ -443,7 +481,11 @@ export default function MenuEditForm(props: Props) {
                   <div className="flex items-center gap-2 h-9">
                     <Switch
                       checked={field.value === 'NEW'}
-                      onCheckedChange={(c) => field.onChange(c ? 'NEW' : '')}
+                      onCheckedChange={(c) => {
+                        field.onChange(c ? 'NEW' : '');
+                        /* NEW 끄면 자동 만료일도 정리 (서버에서도 방어하지만 UI 정합) */
+                        if (!c) setValue('newUntil', '', { shouldDirty: true });
+                      }}
                       aria-label="NEW 배지 표시"
                       className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
                     />
@@ -455,6 +497,41 @@ export default function MenuEditForm(props: Props) {
               />
             </Field>
           </div>
+
+          {/* NEW 자동 만료 (S331) — NEW 켜진 경우만 노출 */}
+          {badge2Value === 'NEW' && (
+            <Field
+              label="NEW 자동 만료"
+              error={errors.newUntil?.message}
+              hint="끄면 무기한 NEW. 켜면 지정한 날짜의 끝(자정)에 NEW 가 자동 해제됩니다. 만료 후 날짜를 다시 미래로 지정하면 재노출됩니다."
+            >
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 h-9">
+                  <Switch
+                    checked={autoExpireOn}
+                    onCheckedChange={(c) =>
+                      setValue('newUntil', c ? defaultExpiryDate() : '', {
+                        shouldDirty: true,
+                      })
+                    }
+                    aria-label="NEW 자동 만료 사용"
+                    className="data-[state=unchecked]:bg-[var(--switch-off-bg)]"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {autoExpireOn ? '자동 만료 사용' : '무기한 (수동 해제)'}
+                  </span>
+                </div>
+                {autoExpireOn && (
+                  <Input
+                    type="date"
+                    min={kstToday()}
+                    className="max-w-[200px]"
+                    {...register('newUntil')}
+                  />
+                )}
+              </div>
+            </Field>
+          )}
 
           {/* price */}
           <Field label="가격 (KRW)" required error={errors.price?.message}>

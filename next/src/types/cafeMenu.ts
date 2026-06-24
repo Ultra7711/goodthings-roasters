@@ -50,9 +50,30 @@ export type CafeMenuItemRow = {
   height: number | null;
   sort_order: number;
   is_active: boolean;
+  /** NEW 배지 자동 만료 일시 (S331). null=무기한. badge2='NEW' 와 함께 판정. */
+  new_until: string | null;
   created_at: string;
   updated_at: string;
 };
+
+/**
+ * NEW 배지 활성 판정 (S331).
+ *   badge2='NEW' AND (new_until 없음 OR new_until > now) → 활성
+ *   만료(new_until <= now) 시 false → 표시·상단정렬 제외 (badge2 원본은 DB 보존).
+ * nowMs 주입형 — 테스트 결정성 + 'use cache' fetch 시점 일관 판정.
+ */
+export function isNewBadgeActive(
+  badge2: string,
+  newUntil: string | null,
+  nowMs: number,
+): boolean {
+  if (badge2 !== 'NEW') return false;
+  if (!newUntil) return true;
+  const until = new Date(newUntil).getTime();
+  /* 파싱 실패(NaN) 시 안전하게 활성 유지 — 잘못된 값으로 NEW 가 사라지지 않게. */
+  if (Number.isNaN(until)) return true;
+  return until > nowMs;
+}
 
 /**
  * numeric 컬럼 안전 변환.
@@ -71,15 +92,23 @@ function toNumber(v: number | string | null | undefined): number {
  *   description → desc
  *   img_src     → img
  *   menu_desc   → menuDesc
+ *
+ * S331: NEW 자동 만료 반영 — new_until 지난 NEW 는 badge2 를 '' 로 다운그레이드.
+ *   정렬(sortCafeMenu)·배지(MenuCardBadges)가 badge2 기반이라 자동 일반 처리됨.
+ *   nowMs 기본값 Date.now() — caller(fetchCafeMenu)가 시점 주입 가능.
  */
-export function mapCafeMenuRow(row: CafeMenuItemRow): CafeMenuItem {
+export function mapCafeMenuRow(
+  row: CafeMenuItemRow,
+  nowMs: number = Date.now(),
+): CafeMenuItem {
+  const newActive = isNewBadgeActive(row.badge2, row.new_until, nowMs);
   return {
     id: row.id,
     name: row.name,
     cat: row.cat,
     status: row.status as CafeMenuStatus,
     temp: row.temp as CafeMenuTemp,
-    badge2: row.badge2,
+    badge2: newActive ? 'NEW' : '',
     price: row.price,
     desc: row.description,
     img: row.img_src,
@@ -111,8 +140,12 @@ export type AdminCafeMenuListItem = {
   name: string;
   cat: CafeMenuItemRow['cat'];
   status: string;
-  /** NEW 배지 여부 (S330 · badge2='NEW') */
+  /** NEW 배지 설정 여부 (S330 · badge2='NEW'). 만료와 무관 — 운영자가 NEW 로 지정했는지. */
   isNew: boolean;
+  /** NEW 자동 만료됨 (S331 · badge2='NEW' 이지만 new_until 지남). 어드민에 "(만료)" 표시. */
+  isNewExpired: boolean;
+  /** NEW 자동 만료 일시 (S331 · null=무기한). 편집 폼 prefill 용. */
+  newUntil: string | null;
   temp: string | null;
   price: number;
   displayPrice: string;
@@ -126,13 +159,19 @@ export type AdminCafeMenuListItem = {
 /** CafeMenuItemRow → AdminCafeMenuListItem (admin 목록 매핑) */
 export function mapAdminCafeMenuListItem(
   row: CafeMenuItemRow,
+  nowMs: number = Date.now(),
 ): AdminCafeMenuListItem {
+  const isNew = row.badge2 === 'NEW';
   return {
     id: row.id,
     name: row.name,
     cat: row.cat,
     status: row.status,
-    isNew: row.badge2 === 'NEW',
+    isNew,
+    /* 어드민은 만료돼도 NEW 설정 자체는 인지해야 하므로 isNew 는 badge2 기준 유지하고
+       만료 여부는 별도 플래그로 구분 표시 (공개 사이트는 mapCafeMenuRow 에서 다운그레이드). */
+    isNewExpired: isNew && !isNewBadgeActive(row.badge2, row.new_until, nowMs),
+    newUntil: row.new_until,
     temp: row.temp,
     price: row.price,
     displayPrice: `${row.price.toLocaleString('ko-KR')}원`,

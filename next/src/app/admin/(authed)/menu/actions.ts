@@ -216,6 +216,10 @@ const MenuMetaSchema = z.object({
   temp: TempEnum,
   /* S330: badge2 = NEW 전용 마커 ('NEW' | '') */
   badge2: z.enum(['', 'NEW']),
+  /* S331: NEW 자동 만료일 — '' = 무기한, 'YYYY-MM-DD' = 해당일 KST 종료까지 */
+  newUntil: z
+    .string()
+    .regex(/^(\d{4}-\d{2}-\d{2})?$/, 'YYYY-MM-DD 형식이어야 합니다'),
   price: z.number().int().min(0).max(99_999_999),
   bg: HexColor,
   sortOrder: z.number().int().min(0).max(9999),
@@ -255,6 +259,12 @@ function toCafeMenuDbRow(v: MenuMetaInput) {
     status: v.status, // '' = 미표시 (047 check 통과)
     temp: v.temp === '' ? null : v.temp, // null = 온도 무관
     badge2: v.badge2,
+    /* S331: NEW 자동 만료. NEW 아니거나 만료일 미지정이면 null(무기한).
+       날짜만 받아 해당일 KST 23:59:59 까지 NEW 유지 (시·분은 받지 않음). */
+    new_until:
+      v.badge2 === 'NEW' && v.newUntil
+        ? `${v.newUntil}T23:59:59+09:00`
+        : null,
     price: v.price,
     bg: v.bg,
     menu_desc: v.menuDesc,
