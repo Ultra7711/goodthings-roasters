@@ -434,7 +434,7 @@ export default function MenuEditForm(props: Props) {
             <Field
               label="NEW 배지"
               error={errors.badge2?.message}
-              hint="켜면 카드에 'NEW' 배지가 최우선으로 표시됩니다 (노출 순서엔 영향 없음)"
+              hint="켜면 'NEW' 배지가 표시되고, 메뉴가 카페 페이지 최상단에 우선 노출됩니다"
             >
               <Controller
                 control={control}
