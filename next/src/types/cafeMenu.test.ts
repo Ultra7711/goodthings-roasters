@@ -122,8 +122,8 @@ describe('mapCafeMenuRow — temp / status 엣지', () => {
     expect(mapCafeMenuRow(makeRow({ status: '' })).status).toBe('');
   });
 
-  it("status 'NEW'", () => {
-    expect(mapCafeMenuRow(makeRow({ status: 'NEW' })).status).toBe('NEW');
+  it("badge2 'NEW' — NEW 마커 매핑 (S330: status 에서 분리)", () => {
+    expect(mapCafeMenuRow(makeRow({ badge2: 'NEW' })).badge2).toBe('NEW');
   });
 
   it("status '시즌 한정'", () => {

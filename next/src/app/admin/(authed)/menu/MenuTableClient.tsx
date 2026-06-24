@@ -41,10 +41,11 @@ type Props = {
   rows: AdminCafeMenuListItem[];
 };
 
-type TabFilter = 'all' | 'signature' | 'brewing' | 'tea' | 'non-coffee' | 'dessert';
+type TabFilter = 'all' | 'new' | 'signature' | 'brewing' | 'tea' | 'non-coffee' | 'dessert';
 
 const TABS: ReadonlyArray<{ id: TabFilter; label: string }> = [
   { id: 'all', label: '전체' },
+  { id: 'new', label: 'NEW' },
   { id: 'signature', label: '시그니처' },
   { id: 'brewing', label: '브루잉' },
   { id: 'tea', label: '티' },
@@ -68,9 +69,9 @@ const TEMP_LABEL: Record<NonNullable<AdminCafeMenuListItem['temp']>, string> = {
 
 type StatusTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'primary';
 
+/* NEW 는 badge2 로 분리 (S330) — 상태 컬럼에서 별도 NEW 배지로 병기. */
 const STATUS_TONE: Record<string, StatusTone> = {
   '시그니처': 'primary',
-  NEW: 'success',
   '인기': 'warning',
   '시즌': 'info',
   '시즌 한정': 'info',
@@ -281,6 +282,8 @@ export default function MenuTableClient({ rows }: Props) {
     const result = rowsState.filter((r) => {
       if (tab === 'signature') {
         if (r.status !== '시그니처') return false;
+      } else if (tab === 'new') {
+        if (!r.isNew) return false;
       } else if (tab !== 'all') {
         if (r.cat !== tab) return false;
       }
@@ -297,12 +300,14 @@ export default function MenuTableClient({ rows }: Props) {
   }, [rowsState, tab, searchValue]);
 
   const counts = useMemo(() => {
+    let nw = 0;
     let sig = 0;
     let b = 0;
     let t = 0;
     let n = 0;
     let d = 0;
     for (const r of rowsState) {
+      if (r.isNew) nw += 1;
       if (r.status === '시그니처') sig += 1;
       if (r.cat === 'brewing') b += 1;
       else if (r.cat === 'tea') t += 1;
@@ -311,6 +316,7 @@ export default function MenuTableClient({ rows }: Props) {
     }
     return {
       all: rowsState.length,
+      new: nw,
       signature: sig,
       brewing: b,
       tea: t,
@@ -416,20 +422,33 @@ export default function MenuTableClient({ rows }: Props) {
     {
       key: 'status',
       header: '상태',
-      width: 'w-24',
+      width: 'w-32',
       render: (row) => {
         const tone = row.status ? STATUS_TONE[row.status] : null;
-        if (!tone || !row.status) {
+        if (!row.isNew && !(tone && row.status)) {
           return <span className="text-xs text-[var(--foreground-subtle)]">—</span>;
         }
         return (
-          <ShadcnBadge
-            variant="outline"
-            className="border-transparent"
-            style={{ background: TONES[tone].bg, color: TONES[tone].fg }}
-          >
-            {row.status}
-          </ShadcnBadge>
+          <div className="flex items-center gap-1 flex-wrap">
+            {row.isNew && (
+              <ShadcnBadge
+                variant="outline"
+                className="border-transparent"
+                style={{ background: TONES.success.bg, color: TONES.success.fg }}
+              >
+                NEW
+              </ShadcnBadge>
+            )}
+            {tone && row.status && (
+              <ShadcnBadge
+                variant="outline"
+                className="border-transparent"
+                style={{ background: TONES[tone].bg, color: TONES[tone].fg }}
+              >
+                {row.status}
+              </ShadcnBadge>
+            )}
+          </div>
         );
       },
     },

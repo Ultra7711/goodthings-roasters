@@ -111,6 +111,8 @@ export type AdminCafeMenuListItem = {
   name: string;
   cat: CafeMenuItemRow['cat'];
   status: string;
+  /** NEW 배지 여부 (S330 · badge2='NEW') */
+  isNew: boolean;
   temp: string | null;
   price: number;
   displayPrice: string;
@@ -130,6 +132,7 @@ export function mapAdminCafeMenuListItem(
     name: row.name,
     cat: row.cat,
     status: row.status,
+    isNew: row.badge2 === 'NEW',
     temp: row.temp,
     price: row.price,
     displayPrice: `${row.price.toLocaleString('ko-KR')}원`,
