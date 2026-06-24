@@ -9,13 +9,12 @@
      MenuPopularBadge 가 menuId 만 받고 자체 구독 → 카드 자체는 likes 모름
      → ShopCard 와 동등 stability
 
-   업계 통상 패턴 (sort/뱃지 = fetch snapshot, 카운트 = optimistic):
+   업계 통상 패턴 (뱃지 = fetch snapshot, 카운트 = optimistic):
    - counts / liked: 항상 live (사용자 토글 즉시 반영)
-   - sortCommitted: 페이지 마운트 시점 snapshot. 페이지 떠날 때까지 fixed.
-     첫 마운트는 비어있음(NEW only sort) — likes 도착해도 sort 변동 없음.
-     재진입(gtr:route-change · gtr:menu-reset) 시 그 시점 popular 으로 갱신.
    - badgesCommitted: 첫 likes 도착 시 자동 1회 fade-in. 재진입 시 갱신.
      사용자 토글로 변동 없음.
+   - (S331) 정렬용 sortCommitted 는 S330 정렬 단일화(NEW→카테고리순)로 정렬이
+     좋아요와 무관해져 dead 가 됨 → 제거. 인기 배지 표시 전용 badgesCommitted 만 유지.
 
    HMR 보호: globalThis 에 store 인스턴스 보존 (toastStore.ts 동일 패턴).
    ══════════════════════════════════════════ */
@@ -31,7 +30,6 @@ type Listener = () => void;
 type State = {
   counts: Record<string, number>;
   liked: Set<string>;
-  sortCommitted: Record<string, 1 | 2 | 3>;
   badgesCommitted: Record<string, 1 | 2 | 3>;
   loading: boolean;
 };
@@ -52,7 +50,6 @@ function getStore(): StoreInternal {
       state: {
         counts: {},
         liked: new Set<string>(),
-        sortCommitted: {},
         badgesCommitted: {},
         loading: true,
       },
@@ -88,7 +85,6 @@ export function getSnapshot(): State {
 const SERVER_SNAPSHOT: State = {
   counts: {},
   liked: new Set<string>(),
-  sortCommitted: {},
   badgesCommitted: {},
   loading: true,
 };
@@ -122,13 +118,12 @@ type ToggleResponse = {
   };
 };
 
-/** 재진입 시 호출 — sort + 뱃지 둘 다 그 시점 popular 으로 갱신 */
+/** 재진입 시 호출 — 인기 배지를 그 시점 popular 으로 갱신 */
 export function commitMenuRanksOnReentry(): void {
   const { state } = getStore();
   const popular = computePopularRanks(state.counts);
   setState((s) => ({
     ...s,
-    sortCommitted: popular,
     badgesCommitted: popular,
   }));
 }
@@ -137,8 +132,8 @@ export function commitMenuRanksOnReentry(): void {
  * counts-only SSR hydrate (S247 폴리싱).
  *
  * /menu 페이지 dynamic 화 회피 — counts 는 SSR 'use cache' snapshot 으로 받고
- * user liked 만 client fetchMyMenuLikes 로 분리. counts/sortCommitted/badgesCommitted
- * 모두 SSR 시점 popular 으로 fix → 정렬·뱃지 점프 0. liked 만 client 도착 후 채워짐.
+ * user liked 만 client fetchMyMenuLikes 로 분리. counts/badgesCommitted 모두 SSR
+ * 시점 popular 으로 fix → 뱃지 점프 0. liked 만 client 도착 후 채워짐.
  *
  * S247 fix: store.fetched=false 명시 reset — 계정 전환 (logout→다른 계정 login)
  * 시 globalThis store 가 잔존하면 이전 사용자 liked 가 그대로 보이는 회귀 발생.
@@ -150,7 +145,6 @@ export function hydrateMenuLikesCounts(counts: Record<string, number>): void {
   setState((s) => ({
     ...s,
     counts,
-    sortCommitted: popular,
     badgesCommitted: popular,
     loading: false,
   }));
@@ -277,14 +271,5 @@ export function useMenuPopularRank(menuId: string): 1 | 2 | 3 | null {
     subscribe,
     () => getStore().state.badgesCommitted[menuId] ?? null,
     () => null,
-  );
-}
-
-/** sort 결정용 — CafeMenuPage 가 sortCafeMenu 의 popularIds 인자로 사용 */
-export function useMenuSortCommitted(): Record<string, 1 | 2 | 3> {
-  return useSyncExternalStore(
-    subscribe,
-    () => getStore().state.sortCommitted,
-    () => SERVER_SNAPSHOT.sortCommitted,
   );
 }

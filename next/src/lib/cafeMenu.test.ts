@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { sortCafeMenu, type CafeMenuItem } from './cafeMenu';
+import { sortCafeMenu, type CafeMenuBadge2, type CafeMenuItem } from './cafeMenu';
 
 /**
  * sortCafeMenu 정책 (S330):
@@ -12,7 +12,7 @@ function makeItem(
   id: string,
   cat: CafeMenuItem['cat'],
   status: CafeMenuItem['status'] = '',
-  badge2 = '',
+  badge2: CafeMenuBadge2 = '',
 ): CafeMenuItem {
   return {
     id,

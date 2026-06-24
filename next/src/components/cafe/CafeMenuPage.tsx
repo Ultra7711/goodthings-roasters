@@ -54,9 +54,9 @@ type Props = {
 };
 
 export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
-  /* S247: counts-only hydrate (1회). sortCommitted/badgesCommitted 모두 SSR
-     popular 으로 fix → 카드 reorder/배지 점프 0. liked 는 아래 useEffect 에서
-     client fetch 로 채워짐 (좋아요 표시만 약간 지연). */
+  /* S247: counts-only hydrate (1회). badgesCommitted 를 SSR popular 으로 fix
+     → 인기 배지 점프 0 (S331: 정렬용 sortCommitted 는 제거됨). liked 는 아래
+     useEffect 에서 client fetch 로 채워짐 (좋아요 표시만 약간 지연). */
   useState(() => {
     hydrateMenuLikesCounts(initialLikesCounts);
     return true;

@@ -21,13 +21,13 @@
 'use client';
 
 import { useMenuPopularRank } from '@/lib/menuLikesStore';
-import type { CafeMenuStatus } from '@/lib/cafeMenu';
+import type { CafeMenuBadge2, CafeMenuStatus } from '@/lib/cafeMenu';
 
 type Props = {
   menuId: string;
   status: CafeMenuStatus;
   /** NEW 전용 마커 (S330) — 'NEW' 면 최우선 배지 표시. */
-  badge2: string;
+  badge2: CafeMenuBadge2;
 };
 
 /** status → { variant 클래스, 두 줄 텍스트 } 매핑 · '시그니처' 제외 · NEW 는 badge2 로 분리 */

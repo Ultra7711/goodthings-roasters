@@ -14,6 +14,9 @@ import cafeMenuBlur from './cafe-menu-blur.json';
 /** 카드 status 배지 — null 은 뱃지 미표시. 'NEW' 는 badge2 로 분리 (S330). */
 export type CafeMenuStatus = '시즌' | '시그니처' | '인기' | '품절' | '시즌 한정' | '';
 
+/** NEW 전용 마커 (S330 · S331 타입 좁힘). 'NEW'=배지 표시 · ''=없음. status 와 직교. */
+export type CafeMenuBadge2 = '' | 'NEW';
+
 /** 온도 뱃지 — 'both' 는 표시하지 않음, null 은 디저트 등 온도 무관 */
 export type CafeMenuTemp = 'ice-only' | 'hot-only' | 'warm' | 'both' | null;
 
@@ -25,7 +28,7 @@ export type CafeMenuItem = {
   status: CafeMenuStatus;
   temp: CafeMenuTemp;
   /** NEW 전용 마커 (S330). 'NEW' = 신규 배지 표시 · '' = 없음. status 와 직교. */
-  badge2: string;
+  badge2: CafeMenuBadge2;
   price: number;
   desc: string;
   img: string;

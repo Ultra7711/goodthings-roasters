@@ -583,7 +583,7 @@ export default function MenuTableClient({ rows }: Props) {
       {isReorderActive && (
         <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
           웹페이지 노출 순서 = <strong className="font-medium text-foreground">NEW 먼저 → 카테고리 순 + 아래 순서</strong>입니다.
-          NEW 배지는 자동으로 최상단에 노출되고, 인기·시그니처 배지는 순서에 영향 없이 표시만 됩니다.
+          NEW 배지는 <strong className="font-medium text-foreground">카테고리와 무관하게</strong> 최상단에 노출되고(만료일 지정 시 자동 해제), 인기·시그니처 배지는 순서에 영향 없이 표시만 됩니다.
         </p>
       )}
 
