@@ -152,16 +152,17 @@ export function filterCafeMenu(items: CafeMenuItem[], filter: CafeFilterKey): Ca
 }
 
 /**
- * 카드 정렬 정책 (S330 단일화):
- *   카테고리 순 (brewing → tea → non-coffee → dessert) + sort_order asc.
+ * 카드 정렬 정책 (S330):
+ *   1. NEW (badge2='NEW') — 카테고리 가로질러 최상단 (마케팅 우선 노출)
+ *   2. 나머지            — 카테고리 순 (brewing → tea → non-coffee → dessert) + sort_order asc
+ *   각 그룹 내부: 카테고리 순 + sort_order asc.
  *
- * NEW · 인기(좋아요) · 시그니처는 정렬에 영향을 주지 않고 배지로만 표시한다.
- *   - 운영자가 어드민에서 정한 순서(sort_order)가 곧 실제 노출 순서.
- *   - 전체 탭과 카테고리 탭의 순서가 일관됨 (자동 상단 고정 제거).
- *   - NEW: badge2='NEW' 로 표시 (status 와 직교) · 인기: 좋아요 rank 뱃지 · 시그니처: 전용 탭 + ★ 메뉴명.
+ * 인기(좋아요) · 시그니처는 정렬에 영향을 주지 않고 배지로만 표시한다.
+ *   - 인기: 좋아요 rank 뱃지 · 시그니처: 전용 탭 + ★ 메뉴명.
+ *   - NEW 외에는 운영자가 정한 sort_order 가 곧 노출 순서.
  *
- * 이전(S245-P11)의 NEW→popular→시그니처 자동 상단 정렬은 운영자 통제 밖 변동과
- * 어드민 UI 불일치를 유발하여 폐기 (S330).
+ * 이전(S245-P11)의 popular(좋아요) 자동 정렬은 운영자 통제 밖 변동을 유발하여
+ * 폐기. NEW 는 status='NEW' → badge2='NEW' 로 분리하되 상단 정렬은 유지 (S330).
  */
 const CAT_ORDER: Record<CafeMenuItem['cat'], number> = {
   brewing: 0,
@@ -174,6 +175,11 @@ export function sortCafeMenu(items: CafeMenuItem[]): CafeMenuItem[] {
   return items
     .map((item, index) => ({ item, index }))
     .sort((a, b) => {
+      /* NEW 최우선 (badge2='NEW') — 카테고리 가로질러 상단 노출 */
+      const newA = a.item.badge2 === 'NEW' ? 0 : 1;
+      const newB = b.item.badge2 === 'NEW' ? 0 : 1;
+      if (newA !== newB) return newA - newB;
+
       /* cat asc — 카테고리 순 */
       const catA = CAT_ORDER[a.item.cat];
       const catB = CAT_ORDER[b.item.cat];

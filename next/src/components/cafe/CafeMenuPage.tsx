@@ -7,8 +7,9 @@
      effect-내-setState 규칙 위반 없이 prop → state 동기화.
    - likes 는 menuLikesStore 외부 store 로 격리 (S116). MenuLikeButton ·
      MenuCardBadges 가 자체 구독하므로 카드는 likes 를 모름.
-   - S330: 정렬은 카테고리 순 + sort_order 단일 (sortCommitted 의존 제거). 인기
-     rank 는 뱃지로만 표시 (badgesCommitted · commitMenuRanksOnReentry 유지).
+   - S330: 정렬은 sortCafeMenu (NEW 상단 + 카테고리 순 + sort_order). 인기
+     자동정렬 의존 제거 → 인기 rank 는 뱃지로만 표시
+     (badgesCommitted · commitMenuRanksOnReentry 유지).
    ══════════════════════════════════════════ */
 
 'use client';
