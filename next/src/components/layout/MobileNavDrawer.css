@@ -210,12 +210,20 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  /* 탭 시 골드 물듦 전환 (밑줄과 동일 타이밍). aria-current open 의 골드→블랙(2s+900ms)은
+     더 높은 specificity 로 이 transition 을 override 함. */
+  transition: color calc(var(--duration-tap) * 0.6) ease;
 }
 .mn-link-text { display: inline-block; }
 /* 골드 언더라인 — 모든 NAV 항목에 배치(숨김 scaleX 0). 기존 화살표(cat-arrow-slide)
    대체: ① 현재 페이지=드로어 열릴 때 그어짐  ② tap 피드백=is-tapping 시 그어짐.
    좌→우로 그어지는 연출(scaleX 0→1, transform-origin left). */
-.mn-link[aria-current="page"] { color: var(--color-text-primary); }
+/* 선택됨 텍스트 — 드로어 진입 시 골드 → 블랙 전환(고정 골드 밑줄과 함께 들어와 정착). */
+.mn-link[aria-current="page"] { color: var(--color-accent-gold); }
+#mobile-nav.open .mn-link[aria-current="page"] {
+  color: var(--color-text-primary);
+  transition: color 900ms ease 2000ms;
+}
 .mn-link .mn-link-text { position: relative; }
 .mn-link .mn-link-text::after {
   content: '';
@@ -228,12 +236,20 @@
   background: var(--color-accent-gold);
   transform: scaleX(0);
   transform-origin: left center;
-  /* 앞부분 가속 곡선 — 클릭 직후 밑줄이 확 그어져 체감 속도↑ (딜레이는 350ms 유지) */
-  transition: transform var(--duration-tap) cubic-bezier(0.22, 1, 0.36, 1);
+  /* 가속(ease-in) — 느리게 시작→끝에서 확 그어짐. duration 을 탭딜레이(--duration-tap 350ms)의
+     60%(210ms)로 줄여 밑줄이 먼저 완성된 뒤, 남은 140ms 동안 '쭉 그어진 채 딜레이' → 네비게이션. */
+  transition: transform calc(var(--duration-tap) * 0.6) cubic-bezier(0.6, 0, 1, 1);
 }
 #mobile-nav.open .mn-link[aria-current="page"] .mn-link-text::after,
 .mn-link.is-tapping .mn-link-text::after {
   transform: scaleX(1);
+}
+/* 탭한 메뉴 텍스트도 골드로 물듦 (밑줄 골드와 함께 피드백). */
+.mn-link.is-tapping { color: var(--color-accent-gold); }
+/* 선택됨(현재 페이지)은 고정 — 드로어 열릴 때(재진입 포함) 애니메이션 없이 즉시 표시.
+   가속 애니메이션(위 transition)은 탭 피드백(is-tapping)에만 적용. */
+#mobile-nav.open .mn-link[aria-current="page"]:not(.is-tapping) .mn-link-text::after {
+  transition: none;
 }
 /* 다른 메뉴 탭 시(is-tapping 존재) 기존 현재페이지 밑줄 즉시 제거 → 탭한 항목 밑줄만 그어짐 */
 #mobile-nav.open .mn-nav:has(.mn-link.is-tapping) .mn-link[aria-current="page"]:not(.is-tapping) .mn-link-text::after {
