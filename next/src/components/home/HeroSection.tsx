@@ -32,6 +32,12 @@ export default function HeroSection() {
   const posterElRef = useRef<HTMLDivElement>(null);
   /* S-PND-5: poster 별도 layer 가시성 — video 가 실제 첫 frame 표시 가능 시점에 fade out. */
   const [posterHidden, setPosterHidden] = useState(false);
+  /* S332: 영상 양 source 모두 로드 실패 시 스피너→마우스 강제 전환 (무한 스피너 방지·실신호 fallback). */
+  const [videoFailed, setVideoFailed] = useState(false);
+  /* S332: 영상 실제 재생 시작 신호(robust) — 스피너→아이콘 전환용.
+     'playing' 단발 이벤트는 핸들러 attach 전 발화 시 놓쳐 무한 스피너 유발 →
+     timeupdate(재생 중 반복 발화)로 currentTime>0 확인해 보강. */
+  const [videoStarted, setVideoStarted] = useState(false);
   /* S-PND-5 P0a: cleanup 직전 video 의 현재 frame 을 dataURL 로 capture 해 보관.
      재진입 시 .hero-bg-poster background 동적 갱신 + Web Animations API 로 fade-in.
      useRef = Activity hidden 동안에도 mount 유지로 값 보존. */
@@ -175,8 +181,12 @@ export default function HeroSection() {
     const onScroll = () => recover();
     /* S322: 실제 재생 시작 신호 — 이후부터 frozen 회복(Tier 2/3) 활성화. */
     const onPlaying = () => { hasStarted = true; };
+    /* S332: 스피너→아이콘 전환용 robust 신호 — currentTime 진행 확인(timeupdate 반복 발화). */
+    const markStarted = () => { if (video.currentTime > 0) setVideoStarted(true); };
 
     video.addEventListener('playing', onPlaying);
+    video.addEventListener('timeupdate', markStarted);
+    video.addEventListener('playing', markStarted);
     document.addEventListener('touchstart', recover, { passive: true });
     document.addEventListener('click', recover);
     document.addEventListener('scroll', onScroll, { passive: true });
@@ -238,6 +248,8 @@ export default function HeroSection() {
 
       video.pause();
       video.removeEventListener('playing', onPlaying);
+      video.removeEventListener('timeupdate', markStarted);
+      video.removeEventListener('playing', markStarted);
       document.removeEventListener('touchstart', recover);
       document.removeEventListener('click', recover);
       document.removeEventListener('scroll', onScroll);
@@ -249,6 +261,17 @@ export default function HeroSection() {
       window.removeEventListener('gtr:route-change', onRouteChange);
     };
   }, []);
+
+  /* S332: 스크롤 cue 전환.
+     isInitialLoad — cold/최초 진입(captured frame 없음)에만 스피너 노출. 재진입은 captured-frame
+       fade 가 처리하므로 스피너 생략(posterHidden 전환이 re-render → 마우스 표시).
+     cueReady — 영상 시작(posterHidden) 또는 영상 실패(videoFailed) = 스피너→마우스 swap 시점. */
+  const isInitialLoad = capturedFrameRef.current === null;
+  /* 스피너 숨김 = 영상 실제 재생(videoStarted·robust) OR 로드 실패. posterHidden(onPlaying 단발)에
+     의존하지 않음 — 이벤트 레이스로 인한 무한 스피너 방지. */
+  const cueReady = videoStarted || videoFailed;
+  /* 스크롤 아이콘(마우스/스와이프) 노출 = 영상 시작 OR 재진입(스피너 단계 없음). */
+  const cueShown = cueReady || !isInitialLoad;
 
   return (
     <section className="blk" id="hero-blk" data-header-theme="dark">
@@ -278,6 +301,8 @@ export default function HeroSection() {
             const v = videoRef.current;
             if (v) v.style.visibility = '';
           }}
+          /* S332: 양 source 모두 실패 시 — 스피너→마우스 전환 신호 (포스터 정지 이미지 위 마우스). */
+          onError={() => setVideoFailed(true)}
         >
           {/* S-PND-5: source 순서 = MP4 1순위 (모든 환경 HW 가속 H.264) + AV1 2순위 fallback.
               S-PND-4 의 AV1 1순위 → 디코딩 대기 + 빈 화면 길어짐 회귀 해소. WebM 자산 폐기.
@@ -292,18 +317,45 @@ export default function HeroSection() {
             <span className="hero-slogan-line hero-slogan-line--1">good things,</span>
             <span className="hero-slogan-line hero-slogan-line--2">take time</span>
           </span>
-          <svg
-            className="hero-scroll-mouse"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="5" y="2" width="14" height="20" rx="7" />
-            <path className="mouse-wheel" d="M12 6v4" />
-          </svg>
+          {/* S332: 스크롤 cue — 영상 로딩 중 스피너 → 영상 시작 시 마우스 아이콘 cross-fade.
+              스피너는 최초 진입(isInitialLoad)에만 렌더(재진입은 captured-frame fade 가 처리). */}
+          <div className="hero-scroll-cue" aria-hidden="true">
+            {isInitialLoad && (
+              /* S332: 호(arc) 스피너 — 회전 + dashoffset 으로 짧은 호↔거의 정원 반복(Windows/Material 계열). */
+              <svg className={`hero-scroll-spinner${cueReady ? ' is-gone' : ''}`} viewBox="0 0 24 24">
+                <circle className="hero-scroll-spinner-arc" cx="12" cy="12" r="8" fill="none" />
+              </svg>
+            )}
+            {/* 데스크탑(hover) — 마우스 휠 아이콘 */}
+            <svg
+              className={`hero-scroll-mouse${cueShown ? ' is-shown' : ''}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="5" y="2" width="14" height="20" rx="7" />
+              <path className="mouse-wheel" d="M12 6v4" />
+            </svg>
+            {/* 모바일/터치(hover:none) — 스와이프업 화살표. 가속하며 올라가고 꼬리(트레일)가 길어짐.
+                stroke 불투명 + .swipe-anim 그룹 opacity 로 알파 적용 → 겹침 seam 방지. */}
+            <svg
+              className={`hero-scroll-swipe${cueShown ? ' is-shown' : ''}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <g className="swipe-anim">
+                <path d="M5.5 11l6.5-6.5 6.5 6.5" />
+                <path className="swipe-tail" d="M12 4.5V19" />
+              </g>
+            </svg>
+          </div>
         </div>
       </div>
     </section>

@@ -29,11 +29,17 @@
 
 
 /* ══ 키프레임 ══ */
+/* S332: from 명시 — .hero-slogan 기본값이 opacity:1(robust 가시) 이므로 reveal 시작점을
+   키프레임에서 정의. 키프레임 드롭(Turbopack/Lightning CSS · lessons §5·§6) 시 animation no-op →
+   기본 opacity:1 로 문구 항상 표시 ("히어로만 보이고 문구 없음" 버그 차단). */
 @keyframes heroSloganIn {
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes heroMouseIn {
-  to { opacity: 1; }
+/* S332: arc 스피너 컨테이너 회전. 0→360°(자체 경계 seamless) — 신축(heroDash)과 독립.
+   신축에 transform 을 안 쓰므로(dashoffset 만) 회전·신축 주기를 따로 둘 수 있음(끊김 없음). */
+@keyframes heroSpinRotator {
+  to { transform: rotate(360deg); }
 }
 @keyframes scrollWheel {
   0%   { opacity: .3; transform: translateY(0); }
@@ -126,7 +132,7 @@
     /* S199 — 모바일 전체 80 → 72 통일 */
     padding-bottom: 72px;
   }
-  .hero-scroll-mouse {
+  .hero-scroll-cue {
     transform: translateX(8px);
   }
 }
@@ -137,9 +143,11 @@
   line-height: var(--lh-hero-editorial);
   display: flex;
   flex-direction: column;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: heroSloganIn 0.9s ease-out 0.8s forwards;
+  /* S332: 기본 가시(robust) — 다크 위 즉시 노출(사용자 요청 "타이틀 카드").
+     reveal 는 enhancement. fill 'both' 로 delay 구간엔 from(opacity:0) 적용(플래시 없음),
+     키프레임 드롭 시엔 기본 opacity:1 로 항상 표시. */
+  opacity: 1;
+  animation: heroSloganIn 0.6s ease-out 0.15s both;
 }
 /* A안: 라인별 weight·alpha 대비 — 가벼움("good things,") → 묵직함("take time") */
 .hero-slogan-line {
@@ -153,19 +161,110 @@
   font-weight: var(--type-hero-editorial-weight-strong);
   color: rgba(250,250,248,.9);
 }
+/* S332: 스크롤 cue 래퍼 — 스피너(로딩) ↔ 마우스(영상 시작) 같은 자리 cross-fade.
+   40x40 슬롯 유지 + 자식 absolute 겹침. 기존 마우스의 top/모바일 translateX 는 래퍼로 이관. */
+.hero-scroll-cue {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  top: -3px;
+}
+.hero-scroll-spinner,
+.hero-scroll-mouse,
+.hero-scroll-swipe {
+  position: absolute;
+  inset: 0;
+  /* 320ms cross-fade — 스피너 out / 아이콘 in 동시. */
+  transition: opacity 320ms ease;
+}
 .hero-scroll-mouse {
   width: 40px;
   height: 40px;
   color: rgba(250,250,248,.5);
-  flex-shrink: 0;
-  opacity: 0;
-  animation: heroMouseIn 0.9s ease-out 1.4s forwards;
-  position: relative;
-  top: -3px;
+  opacity: 0;            /* 영상 시작 전 숨김 — .is-shown 으로 fade in */
 }
+.hero-scroll-mouse.is-shown { opacity: 1; }
 .hero-scroll-mouse .mouse-wheel {
   transform-origin: center;
   animation: scrollWheel 1.8s ease-in-out infinite;
+}
+/* 스와이프업 화살표 (모바일/터치) — 기본 숨김(데스크탑). hover:none 에서 노출.
+   stroke 는 불투명(currentColor=rgb) + .swipe-anim 그룹 opacity 로 알파 → 겹침 seam 방지. */
+.hero-scroll-swipe {
+  display: none;
+  width: 40px;
+  height: 40px;
+  color: rgb(250, 250, 248);
+  opacity: 0;
+}
+.hero-scroll-swipe.is-shown { opacity: 1; }
+.swipe-anim {
+  transform-origin: center;
+  /* 강한 ease-in — 느리게 기다 정점서 확 솟구침(가속 체감). 그룹 opacity 라 겹침 평탄화 후 알파. */
+  animation: heroSwipeUp 1.6s cubic-bezier(0.7, 0, 1, 1) infinite;
+}
+.swipe-tail {
+  stroke-dasharray: 14.5;      /* 꼬리 길이 (4.5→19 = 14.5) */
+}
+.swipe-anim .swipe-tail {
+  animation: heroSwipeTail 1.6s cubic-bezier(0.7, 0, 1, 1) infinite;
+}
+/* 시작 꼬리 없음(arrowhead만)·아래서(8px) 출발 → 강한 가속으로 솟구치며 트레일 형성 → 정점서 딜레이 → 페이드.
+   상승거리 확대(8→-2.5 = 10.5유닛)로 가속 체감 ↑. invisible 구간서 복귀 → 경계 값 동일(점프 없음). */
+@keyframes heroSwipeUp {
+  0%   { transform: translateY(8px);    opacity: 0; }
+  12%  { opacity: .5; }
+  50%  { transform: translateY(-2.5px); opacity: .5; }  /* 정점 도달(가속 끝) */
+  80%  { transform: translateY(-2.5px); opacity: .5; }  /* 딜레이 — 정점서 정지 유지(≈450ms) */
+  92%  { transform: translateY(-2.5px); opacity: 0; }   /* 페이드아웃 */
+  100% { transform: translateY(8px);    opacity: 0; }   /* 복귀(invisible) — 0%와 동일 */
+}
+@keyframes heroSwipeTail {
+  0%   { stroke-dashoffset: 14.5; }  /* 시작 — 꼬리 없음(arrowhead만) */
+  50%  { stroke-dashoffset: 0; }     /* 정점서 꼬리 전체(트레일) */
+  92%  { stroke-dashoffset: 0; }     /* 딜레이+페이드 동안 유지 */
+  100% { stroke-dashoffset: 14.5; }  /* 복귀(invisible) — 0%와 동일 */
+}
+/* 터치 기기 — 마우스 숨기고 스와이프 노출 */
+@media (hover: none) {
+  .hero-scroll-mouse { display: none; }
+  .hero-scroll-swipe { display: block; }
+}
+/* S332: 호(arc) 스피너 — 원 위 호가 회전하며 짧은 호↔거의 정원으로 신축 반복(Windows/Material 계열).
+   머리·꼬리 둘 다 움직임: 컨테이너 회전(heroSpinRotator) + 호 자체 회전(heroDash 의 transform).
+   머리가 고정이면 꼬리 끝 절대속도가 회전과 상쇄돼 "멈춘 듯" 보임 → 호에도 회전을 넣어 분산.
+   연속성: dashoffset 53→53(경계 동일) + 두 transform 모두 360 배수(컨테이너 360°, 호 360°) → 점프 없음.
+   주기 분리(회전 1.2s / 신축 2.4s)로 신축은 천천히. 영상 로딩 중 노출 → .is-gone 시 fade out. */
+.hero-scroll-spinner {
+  /* inset:0(공유 규칙) + viewBox 24 → 40px = 마우스/스와이프와 동일 박스·실효 두께(2×40/24=3.33px). */
+  opacity: 1;
+  animation: heroSpinRotator 1.2s linear infinite;
+}
+.hero-scroll-spinner.is-gone { opacity: 0; }
+.hero-scroll-spinner-arc {
+  stroke: rgba(250, 250, 248, 0.78);
+  stroke-width: 2;                               /* 마우스와 동일 (실효 3.33px) */
+  stroke-linecap: round;
+  stroke-dasharray: 50.27;                       /* 2πr · r=8 (지름 26.7px) */
+  transform-origin: center;
+  animation: heroDash 2.4s ease-in-out infinite; /* 회전(1.2s)보다 느리게 — 천천히 신축 */
+}
+@keyframes heroDash {
+  0%   { stroke-dashoffset: 47; transform: rotate(0deg); }    /* 짧은 호 */
+  50%  { stroke-dashoffset: 13; transform: rotate(180deg); }  /* 거의 정원 */
+  100% { stroke-dashoffset: 47; transform: rotate(360deg); }  /* 다시 짧게(360° = 경계 seamless) */
+}
+
+/* S332: reduced-motion — 슬로건 reveal·스피너 회전 비활성(전역 kill 없음 → 명시 가드). */
+@media (prefers-reduced-motion: reduce) {
+  .hero-slogan { animation: none; }
+  .hero-scroll-spinner { animation: none; }
+  .hero-scroll-spinner-arc { animation: none; stroke-dashoffset: 35; }
+  .hero-scroll-mouse .mouse-wheel { animation: none; }
+  /* 스와이프 — 펄스/꼬리 정지, 중간 길이 정적 표시(.5 알파 유지) */
+  .swipe-anim { animation: none; opacity: .5; transform: none; }
+  .swipe-anim .swipe-tail { animation: none; stroke-dashoffset: 4; }
 }
 
 /* 카페 메뉴 섹션 — 히어로 바로 아래 마진 없음 (프로토타입 라인 482) */
