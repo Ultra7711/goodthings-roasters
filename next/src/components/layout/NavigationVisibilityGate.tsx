@@ -68,6 +68,24 @@ const HDR_INSTANT = 'hdr-instant';
 const HDR_ON_SECONDARY = 'hdr-on-secondary';
 const PENDING_SECTION_THEME_ATTR = 'data-pending-section-theme';
 
+/* S334: 홈(/) 전환 커버 — #main-content visibility:hidden 동안 보이는 .root 배경을
+   히어로 진입 레이어(.hero-bg-poster)와 일치시켜 "전환 정적 poster → 진입 캡처 frameX" 점프를 제거.
+   - 가까운 재진입(Activity 유지): .hero-bg-poster DOM 생존 + cleanup 이 박은 inline 캡처 frameX 존재
+     → .root 에 미러 → 전환~진입 모두 동일 frameX.
+   - unmount 재방문/cold: .hero-bg-poster DOM 없음 또는 inline 빈값 → .root 정리 →
+     CSS .root[data-dest-home] poster.webp 폴백(영상도 frame0 → 일치).
+   style.backgroundImage 는 inline 값만 반환 → fresh mount("")와 재진입("url(...)")이 구분됨(전역 stale 불가). */
+function syncRootHeroCover(root: HTMLElement | null, isHome: boolean) {
+  if (!root) return;
+  if (!isHome) {
+    root.style.backgroundImage = '';
+    return;
+  }
+  const poster = document.querySelector<HTMLElement>('.hero-bg-poster');
+  const inlineBg = poster?.style.backgroundImage;
+  root.style.backgroundImage = inlineBg && inlineBg !== 'none' ? inlineBg : '';
+}
+
 export default function NavigationVisibilityGate() {
   const pathname = usePathname();
   const prevPathRef = useRef<string | null>(null);
@@ -117,6 +135,8 @@ export default function NavigationVisibilityGate() {
       // S333: 홈(/) 진입 전환 동안 .root 가 다크 대신 hero webp 를 보이게 → 재진입 "다크 먼저" 제거.
       if (href === '/') root?.setAttribute('data-dest-home', 'true');
       else root?.removeAttribute('data-dest-home');
+      // S334: .root 전환 커버를 히어로 진입 레이어(.hero-bg-poster inline)와 동기 (점프 제거).
+      syncRootHeroCover(root, href === '/');
       // 접근 C: 헤더 테마 클래스 선제 토글 (BUG-130, S96)
       // React state 경로(2 render cycle 지연) 없이 배경과 동일 tick에 전환.
       // hdr-instant로 transition 억제 → useLayoutEffect에서 제거.
@@ -179,6 +199,8 @@ export default function NavigationVisibilityGate() {
     // S333: 홈 머무는 동안 data-dest-home 유지(전환 시 webp 노출) · 이탈 시 제거.
     if (pathname === '/') root?.setAttribute('data-dest-home', 'true');
     else root?.removeAttribute('data-dest-home');
+    // S334: .root 전환 커버 보정 (click 미발화 케이스: 직접 진입/새로고침/route group 경계).
+    syncRootHeroCover(root, pathname === '/');
     // 접근 C: hdr-instant 제거 → 이후 React re-render부터 transition 복원
     const header = document.getElementById('site-hdr-wrap');
     if (header) header.classList.remove(HDR_INSTANT);

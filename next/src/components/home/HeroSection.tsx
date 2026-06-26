@@ -27,6 +27,18 @@ import { useEffect, useRef, useState } from 'react';
    해상도 외 방법(JPEG 품질↓/blob/decode 회피) 필요 — carry. */
 const CAPTURE_SCALE = 0.5;
 
+/* S334: 캡처 전환 커버 정리 — 영상 표시 시작/실패 시 .root + .hero-bg-placeholder 의
+   inline 캡처를 제거해 CSS poster.webp 폴백으로 복귀(홈 정주 중 .root 캡처 잔류로
+   overscroll 비침 방지). .hero-bg-poster 는 is-hidden fade-out 으로 별도 처리.
+   ⚠️ .root 는 NavigationVisibilityGate.syncRootHeroCover(전환 시 주입)와 공동 관리:
+   Gate=전환 진입 시점 / 여기=영상 시작 시점. 한쪽만 보고 수정 금지(hidden coupling). */
+function clearHeroCaptureCover() {
+  const root = document.querySelector('.root') as HTMLElement | null;
+  if (root) root.style.backgroundImage = '';
+  const placeholder = document.querySelector('.hero-bg-placeholder') as HTMLElement | null;
+  if (placeholder) placeholder.style.backgroundImage = '';
+}
+
 export default function HeroSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const posterElRef = useRef<HTMLDivElement>(null);
@@ -108,6 +120,9 @@ export default function HeroSection() {
       if (video.style.visibility !== 'hidden') return;
       video.style.visibility = '';
       setPosterHidden(true);
+      /* S334: 영상 표시 시작 → 전환 커버 inline 제거(.root/.hero-bg-placeholder) → CSS poster 폴백.
+         .hero-bg-poster 는 posterHidden(is-hidden) fade-out 으로 별도 처리. */
+      clearHeroCaptureCover();
     };
 
     const recover = () => {
@@ -228,11 +243,19 @@ export default function HeroSection() {
               samples.reduce((s, px) => s + px[0] + px[1] + px[2], 0) / (samples.length * 3);
             if (avgBrightness >= 5) {
               capturedFrameRef.current = canvas.toDataURL('image/jpeg', 0.75);
+              const frameUrl = `url(${capturedFrameRef.current})`;
               /* cleanup 시점에 .hero-bg-poster backgroundImage 적용 → 다음 visible cycle
-                 first paint 시 captured frame 이 이미 적용된 상태에서 fade-in 시작. */
+                 first paint 시 captured frame 이 이미 적용된 상태에서 fade-in 시작.
+                 S334: .hero-bg-placeholder 에도 동일 frameX 주입 → poster fade-in(0→1) 이
+                 드러내는 아래 placeholder 도 frameX 가 되어 "정적 poster(frame0) → frameX" 점프 제거.
+                 .root 전환 커버는 Gate(syncRootHeroCover)가 이 .hero-bg-poster inline 을 읽어 미러. */
               const posterEl = document.querySelector('.hero-bg-poster') as HTMLElement | null;
               if (posterEl) {
-                posterEl.style.backgroundImage = `url(${capturedFrameRef.current})`;
+                posterEl.style.backgroundImage = frameUrl;
+              }
+              const placeholderEl = document.querySelector('.hero-bg-placeholder') as HTMLElement | null;
+              if (placeholderEl) {
+                placeholderEl.style.backgroundImage = frameUrl;
               }
               /* video element 자체 invisible 처리 → visible 복귀 first paint 시 video element
                  (z:1) 의 last frame buffer paint 가 .hero-bg-poster (z:0) 의 fade-in animation
@@ -304,7 +327,11 @@ export default function HeroSection() {
             if (v) v.style.visibility = '';
           }}
           /* S332: 양 source 모두 실패 시 — 스피너→마우스 전환 신호 (포스터 정지 이미지 위 마우스). */
-          onError={() => setVideoFailed(true)}
+          onError={() => {
+            setVideoFailed(true);
+            /* S334: 영상 실패 → 전환 커버 inline 제거(overscroll 누출 방지). poster 정지 표시는 유지. */
+            clearHeroCaptureCover();
+          }}
         >
           {/* S-PND-5: source 순서 = MP4 1순위 (모든 환경 HW 가속 H.264) + AV1 2순위 fallback.
               S-PND-4 의 AV1 1순위 → 디코딩 대기 + 빈 화면 길어짐 회귀 해소. WebM 자산 폐기.
