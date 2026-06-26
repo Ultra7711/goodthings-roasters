@@ -13,6 +13,9 @@
 
 #bi-body {
   flex: 1;
+  /* S334: 폼이 짧을 때 docHeight 가 viewport 미만이면 진입 시 푸터 먼저 노출
+     (search/gooddays 와 동일 패턴). full viewport 로 최소 높이 확보. */
+  min-height: 100svh;
   display: grid;
   grid-template-columns: 5fr 7fr;
   max-width: 1440px;
