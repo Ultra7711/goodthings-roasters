@@ -285,15 +285,9 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
     return () => window.removeEventListener('gtr:menu-reset', onReset);
   }, [bodyEl]);
 
-  // highlightId / page 변경 시 해당 카드로 scrollIntoView (검색 결과 진입 보정).
-  // S330: 정렬이 sortCommitted 무관해져 reorder 가 없으므로 dep 에서 sortCommitted 제거.
-  useEffect(() => {
-    if (!highlightId) return;
-    const el = document.querySelector<HTMLElement>(`[data-cm-id="${CSS.escape(highlightId)}"]`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, [highlightId, page]);
+  // S334: ?item= 하이라이트 스크롤은 GenericCard(scrollTo(0)→rAF→scrollIntoView)가 전담.
+  // 기존 중복 useEffect 는 scrollTo(0) 누락으로 진입 scrollY 가 클 때(하단) "푸터부터
+  // 거슬러 올라감" 경합 유발 → 제거. ShopPage 와 동일 패턴(자체 scrollIntoView 없이 카드 위임).
 
   // highlight 자동 소거 — highlightId 가 새로 세팅될 때마다 이전 timer 초기화 후 재등록
   useEffect(() => {

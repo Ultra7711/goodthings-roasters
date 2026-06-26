@@ -147,6 +147,9 @@ export default function LegalPage({ doc }: Props) {
   /* 렌더 직후 첫 mark 가 캡처되면 scrollIntoView (smooth · 중앙). */
   useEffect(() => {
     if (!query) return;
+    /* S334: 검색어 첫 매치로 점프하기 전 맨 위로 — 진입 scrollY 가 큰 경우(하단)
+       "거슬러 올라감" 방지. GenericCard 의 scrollTo(0)→scrollIntoView 패턴 차용. */
+    window.scrollTo({ top: 0, behavior: 'instant' });
     /* 렌더 commit 직후 → next frame 에 scroll (layout 안정화 후). */
     const id = requestAnimationFrame(() => {
       const el = firstMarkRef.current;
