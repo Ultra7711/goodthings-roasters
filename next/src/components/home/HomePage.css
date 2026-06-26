@@ -106,6 +106,10 @@
   height: 100%;
   object-fit: cover;
   z-index: 1;
+  /* S334: 재진입 cross-fade — cleanup 에서 inline opacity:0 → 재생 준비 시 '' 로 fade-in.
+     .hero-bg-poster.is-hidden(opacity 0) fade-out 과 동시 진행 = 캡처↔video 교차(갭 끊김 완화).
+     cold load 는 inline 미설정(기본 opacity 1)이라 영향 없음. */
+  transition: opacity 400ms ease-out;
 }
 .hero-bg-overlay {
   position: absolute;

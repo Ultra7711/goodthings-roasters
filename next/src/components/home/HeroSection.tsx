@@ -117,8 +117,8 @@ export default function HeroSection() {
     /* S305: poster → video 전환. visibility 가드로 idempotent (이미 복원 시 no-op)
        → timeupdate·recover 성공 다중 호출 안전. onPlaying 핸들러와 동일 효과. */
     const showVideo = () => {
-      if (video.style.visibility !== 'hidden') return;
-      video.style.visibility = '';
+      if (video.style.opacity !== '0') return;
+      video.style.opacity = ''; // S334: opacity 0→'' CSS transition fade-in (poster fade-out 과 cross-fade)
       setPosterHidden(true);
       /* S334: 영상 표시 시작 → 전환 커버 inline 제거(.root/.hero-bg-placeholder) → CSS poster 폴백.
          .hero-bg-poster 는 posterHidden(is-hidden) fade-out 으로 별도 처리. */
@@ -177,8 +177,11 @@ export default function HeroSection() {
     if (!capturedFrameRef.current) {
       void video.play().catch(() => {});
     } else {
-      /* S305: 재진입 복귀는 단순 play() 1회로는 iOS 디코더 suspend 를 못 깸 (BUG-008).
-         recover() 3-tier (play → nudge → load) 로 태워 frozen 자동 회복 (터치 불요). */
+      /* S334: 갭 축소 — 재진입 즉시 play 로 디코더를 일찍 깨운다. cross-fade(video opacity 0)라
+         준비 전까지 캡처 프레임이 유지되고, 재생 시작 시 showVideo 가 fade-in(poster fade-out 과 교차).
+         recover() 3-tier 는 iOS frozen(BUG-008) 대비 보강으로 400ms 후 유지(단순 play 가 디코더
+         suspend 를 못 깨는 케이스 회복). */
+      void video.play().catch(() => {});
       timers.push(setTimeout(() => {
         recover();
       }, 400));
@@ -257,12 +260,13 @@ export default function HeroSection() {
               if (placeholderEl) {
                 placeholderEl.style.backgroundImage = frameUrl;
               }
-              /* video element 자체 invisible 처리 → visible 복귀 first paint 시 video element
-                 (z:1) 의 last frame buffer paint 가 .hero-bg-poster (z:0) 의 fade-in animation
-                 을 가리는 issue 차단. onPlaying 시 복원. */
+              /* S334: video 를 opacity:0 으로 (기존 visibility:hidden 대체). visible 복귀 first
+                 paint 시 video(z:1) last frame buffer 가 poster(z:0) fade-in 을 가리는 issue 차단은
+                 동일(opacity 0=불투명도 0). 차이=재생 준비 시 showVideo 가 opacity ''로 CSS transition
+                 fade-in → poster fade-out 과 cross-fade(visibility 는 즉시 전환이라 갭 끊김 유발). */
               const videoEl = document.querySelector('video.hero-bg') as HTMLVideoElement | null;
               if (videoEl) {
-                videoEl.style.visibility = 'hidden';
+                videoEl.style.opacity = '0';
               }
             }
           }
@@ -322,9 +326,9 @@ export default function HeroSection() {
              Cold load fallback = .hero-bg-poster 의 CSS background-image (hero-poster.jpg). */
           onPlaying={() => {
             setPosterHidden(true);
-            /* S-PND-5 P0a: video element visibility 복원 (cleanup 시 hidden 처리한 것 reset). */
+            /* S334: cleanup 에서 opacity:0 처리한 것 복원 → CSS transition fade-in (poster 와 cross-fade). */
             const v = videoRef.current;
-            if (v) v.style.visibility = '';
+            if (v) v.style.opacity = '';
           }}
           /* S332: 양 source 모두 실패 시 — 스피너→마우스 전환 신호 (포스터 정지 이미지 위 마우스). */
           onError={() => {
