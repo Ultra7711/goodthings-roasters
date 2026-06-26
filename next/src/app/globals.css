@@ -1755,8 +1755,14 @@ html.dest-dark .root {
    둘째 셀렉터는 dest-dark 미부여 케이스 fallback. */
 html.dest-dark .root[data-dest-home="true"],
 .root[data-dest-home="true"] {
+  /* S334: size cover→auto 100svh · position center top.
+     #main-content[data-transitioning] 은 visibility:hidden(레이아웃 공간 유지)이라
+     .root 높이=전체 페이지(수천px). cover 는 그 큰 박스 기준이라 영상이 과확대돼
+     hero(100svh) 의 poster/video 스케일과 어긋남 → 진입 시 "오브젝트 위로 튐" 점프.
+     viewport 높이(100svh) 고정 + 상단 정렬로 hero cover 스케일과 일치시킴.
+     (inline 캡처 frameX 도 backgroundImage 만 덮으므로 이 size/position 을 따름) */
   background:
-    url('/images/hero/hero-poster.webp') center / cover no-repeat,
+    url('/images/hero/hero-poster.webp') center top / auto 100svh no-repeat,
     var(--color-background-inverse);
 }
 .error-page {
