@@ -15,6 +15,7 @@ import {
   type Product,
 } from '@/lib/products';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useItemArrivalGuard } from '@/hooks/useItemArrivalGuard';
 
 /* V2 §4.1 grid 컬럼 — sp-grid--bean / sp-grid--drip CSS grid-template-columns 와 동기.
    값 변경 시 ShopPage.css 의 grid 정의 + imgPriority 가드 (i < COLS_*) 동시 갱신 필요. */
@@ -191,6 +192,9 @@ export default function ShopPage({ products }: { products: Product[] }) {
       }
     };
   }, [highlightSlug]);
+
+  // S334: ?item= 진입 "푸터 먼저 노출 + 빈페이지" race 차단 (CafeMenuPage 와 공통 가드).
+  useItemArrivalGuard('/shop');
 
   const isMobile = useMediaQuery('(max-width: 479px)');
   const perPage = isMobile ? SP_PER_PAGE_MOBILE : SP_PER_PAGE;

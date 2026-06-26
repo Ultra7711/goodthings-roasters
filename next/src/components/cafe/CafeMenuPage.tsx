@@ -16,7 +16,7 @@
 
 import './CafeMenuPage.css';
 import '@/components/ui/PageTitle.css';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import CafeFilterTabs from './CafeFilterTabs';
 import CafeMenuGrid from './CafeMenuGrid';
@@ -33,6 +33,7 @@ import {
   type CafeMenuItem,
 } from '@/lib/cafeMenu';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useItemArrivalGuard } from '@/hooks/useItemArrivalGuard';
 import {
   commitMenuRanksOnReentry,
   fetchMyMenuLikes,
@@ -187,20 +188,10 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
      재진입 시점은 gtr:route-change listener 안 commitMenuRanksOnReentry 가 처리.
      사용자 토글 후 sync 필요 시 toggleMenuLike 가 store optimistic update. */
 
-  // S216-D P5: home → /menu?item= 진입 시 풋터 먼저 노출 버그 fix.
-  // layout-level NavigationScrollReset 이 useLayoutEffect 로 scrollTo(0) 하지만
-  // home 처럼 출발 scrollY 가 큰 경우 race 발생 (CafeMenuPage Suspense 마운트
-  // 타이밍 + Activity preserve). 페이지 컨텍스트의 useLayoutEffect 로 paint 전
-  // 한 번 더 강제 보정. ?item= 시 GenericCard scrollIntoView 가 0 에서 시작.
-  useLayoutEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!searchParams.get('item')) return;
-    if (window.scrollY > 0) {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
-    // 마운트 시 한 번만
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // S334: ?item= 진입 "푸터 먼저 노출 + 빈페이지" race 차단.
+  // (S216-D P5 의 mount scrollTo(0) + onRouteChange scrollTo 를 가드로 단일화 —
+  //  docHeight 가 확정될 때까지 스크롤을 상단에 lock, 타겟 카드 도착 시 GenericCard 가 unlock)
+  useItemArrivalGuard('/menu');
 
   // 전체 메뉴 이미지 프리로드 — 최초 마운트에 1회.
   // 탭 전환 시 새로 mount 되는 카드가 네트워크에서 이미지를 받느라 배경색만 잠깐
@@ -240,14 +231,10 @@ export default function CafeMenuPage({ items, initialLikesCounts }: Props) {
     // 대용. gtr:route-change 는 NavigationVisibilityGate 발송.
     const onRouteChange = (e: Event) => {
       if ((e as CustomEvent<string>).detail !== '/menu') return;
-      // S216-D P5 (모바일 재진입 fix): ?item= 숏컷 재진입 시 NavigationScrollReset
-      // 후 잔존 scrollY 가 BFCache/Activity 로 복원되는 케이스 보정.
-      // window.location.search 로 stale closure 회피.
+      // S334: ?item= 재진입 scrollTo(0)/lock 은 useItemArrivalGuard 가
+      // gtr:route-change 에서 처리. 여기서는 page reset 분기만 유지.
       const params = new URLSearchParams(window.location.search);
       const hasItem = params.get('item');
-      if (hasItem && window.scrollY > 0) {
-        window.scrollTo({ top: 0, behavior: 'instant' });
-      }
       // S245-P13: cacheComponents/Activity 환경에서 page state 잔존 방지.
       // 외부 → /menu 진입 시 page 1 로 reset. ?item= 일 때는 item 검색 로직이
       // page 를 자동 결정하므로 skip (덮어쓰기 방지).

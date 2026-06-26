@@ -604,6 +604,12 @@ html.is-touching *:hover {
   transition: none !important;
 }
 
+/* S334: ?item= 진입 가드 — 타겟 카드 도착 전까지 스크롤을 상단에 lock (useItemArrivalGuard).
+   docHeight 미확정 프레임의 푸터/빈하단 노출 차단. scrollbar-gutter:stable 로 데스크탑 shift 없음. */
+html.item-arriving {
+  overflow: hidden;
+}
+
 .page-bg {
   background: var(--color-background-primary);
   min-height: 100svh;

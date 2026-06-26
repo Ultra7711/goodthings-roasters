@@ -18,6 +18,7 @@ import {
   type ReactNode,
 } from 'react';
 import { SCROLL_REVEAL_THRESHOLD } from '@/lib/constants';
+import { unlockItemArrival } from '@/hooks/useItemArrivalGuard';
 
 const STAGGER_MS = 70;
 
@@ -161,14 +162,17 @@ export default function GenericCard({
     return () => io.disconnect();
   }, [scrollRoot, isVisible]);
 
-  // highlight 시 카드 자체 scrollIntoView
+  // highlight 시 카드 자체 scrollIntoView — 타겟 카드 "도착" 시점.
   // scrollTo(0) 먼저 — 다른 페이지에서 ?item= 진입 시 브라우저가 이전 스크롤 위치를
   // 그대로 유지하는 경우(풋터 먼저 노출) 방지. 이미 0이면 no-op.
+  // S334: 진입 가드(useItemArrivalGuard)가 html.item-arriving 으로 스크롤을 상단에
+  // 묶어 둔 상태 → rAF 안에서 먼저 unlock 후 scrollIntoView (lock 중엔 scroll 무효).
   useEffect(() => {
     if (!isHighlight || !cardRef.current) return;
     window.scrollTo({ top: 0, behavior: 'instant' });
     const el = cardRef.current;
     requestAnimationFrame(() => {
+      unlockItemArrival();
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   }, [isHighlight]);
