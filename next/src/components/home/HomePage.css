@@ -525,6 +525,9 @@
     gap: 16px;
     min-height: 100px;
   }
+  /* S334: row flex:0 0 auto(부모 height auto) 에선 thumb height:100% 가 무효화돼
+     info(텍스트) 높이로 폴백 → status 없는 항목(소금빵) thumb 축소. px 고정으로 차단. */
+  .cmsplit-thumb { height: 100px; }
 }
 
 /* ══ V2 §2.6 — Story + GoodDays Cream → Dark ══
