@@ -103,18 +103,28 @@ export default function SiteHeader() {
     }));
   }, []);
 
+  /* S334: 진행 중 bounce 정리 — 재진입/홈 이탈 시 이전 WAAPI 애니메이션 잔여 제거.
+     cancel 누락 시 bounce(약 2s) 진행 중 홈↔타페이지 왕복하면 이전 bounce 와 새
+     bounce 가 같은 transform 에 겹쳐 "섞임"(모바일은 전환 빈번해 더 두드러짐). */
+  const bounceAnimsRef = useRef<Animation[]>([]);
+  const cancelBounce = useCallback(() => {
+    bounceAnimsRef.current.forEach((a) => a.cancel());
+    bounceAnimsRef.current = [];
+  }, []);
+
   /* 로고 글자 통통 bounce (WAAPI) — 진원지 good g(첫째) 최대 높이·즉시,
      오른쪽으로 갈수록 시간차(45ms)+높이 감쇠(-40%→-9%). 충격파 전파 느낌.
      CSS @keyframes var() 가 Lightning CSS 에서 드롭되어 JS 로 글자별 제어. */
   const bounceLogoLetters = useCallback(() => {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    cancelBounce(); // 이전 bounce 잔여 제거 후 재생 (왕복 섞임 방지)
     const letters = document.querySelectorAll<SVGGElement>('#logo-img .lg-letter');
     letters.forEach((el, i) => {
       /* px 단위 — SVG <g> 에서 translateY(%) 가 WAAPI 경로에서 미적용(transform-box
          반영 안 됨)이라 고정 px. 진원지 good g(i=0) -30px → 오른쪽으로 감쇠(-10.2px). */
       const peak1 = -(30 - i * 2.2); // i=0 → -30px, i=9 → -10.2px
       const peak2 = peak1 * 0.4;
-      el.animate(
+      const anim = el.animate(
         [
           { transform: 'translateY(0)' },
           { transform: `translateY(${peak1}px)`, offset: 0.35 },
@@ -124,8 +134,9 @@ export default function SiteHeader() {
         ],
         { duration: 1500, delay: i * 65, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
       );
+      bounceAnimsRef.current.push(anim);
     });
-  }, []);
+  }, [cancelBounce]);
 
   /* 홈(/) 진입 — 로고 글자 bounce + 순차 골드 점등 → 원래색 복귀. (인디케이터 비행 없음) */
   const triggerLogoIntro = useCallback(() => {
@@ -151,10 +162,11 @@ export default function SiteHeader() {
       }
       return;
     }
-    /* 홈을 떠나면 골드 해제 */
+    /* 홈을 떠나면 골드 해제 + 진행 중 bounce 정리 (S334: 왕복 섞임 방지) */
     setLogoGold(false);
+    cancelBounce();
     measureIndicator(firstMount);
-  }, [pathname, measureIndicator, triggerLogoIntro, lightLogoGold]);
+  }, [pathname, measureIndicator, triggerLogoIntro, lightLogoGold, cancelBounce]);
 
   /* 리사이즈(gap 축소 BP)·웹폰트 로드 후 글자 폭 변동 → 즉시 재측정(slide 없이). */
   useEffect(() => {
