@@ -11,7 +11,10 @@
 .search-page-wrap {
   /* S199 — 다른 페이지 (sp-body / mp-body / legal-shell) padding-top 정합. */
   padding: 100px 0 120px;
-  min-height: calc(100vh - var(--header-h, 60px));
+  /* S334: calc(100vh - 60px) → 100svh. 차감하면 컨테이너가 viewport 보다 작아
+     진입 시 짧은 docHeight 에 상속 scrollY 가 clamp → 푸터 먼저 노출. full viewport
+     로 docHeight 확보 (다른 정적 페이지 sp-body/legal 100vh·dvh 정합). */
+  min-height: 100svh;
 }
 
 .search-page-inner {

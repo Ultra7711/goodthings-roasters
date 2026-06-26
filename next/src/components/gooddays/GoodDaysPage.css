@@ -11,7 +11,9 @@
 
 #gd-page {
   background: var(--color-background-primary);
-  min-height: calc(100vh - 60px);
+  /* S334: calc(100vh - 60px) → 100svh. 차감 시 viewport 보다 작아 진입 시 푸터 먼저
+     노출(search 와 동일 패턴). full viewport 로 docHeight 확보. */
+  min-height: 100svh;
 }
 #gd-inner {
   max-width: 1440px;
