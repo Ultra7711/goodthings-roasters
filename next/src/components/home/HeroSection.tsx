@@ -52,8 +52,10 @@ export default function HeroSection() {
     const frame = capturedFrameRef.current;
     if (!posterEl || !frame) return;
     /* S305: captured frame 디코딩 완료 후 fade 시작 — decode 전 animate 시작 시
-       이미지 미paint 로 fade 가 빈(다크) 채 흘러가는 "시작 지연" 체감 제거.
-       decode 비용 자체는 cleanup 의 CAPTURE_SCALE 축소로 단축 (본질). */
+       이미지 미paint 로 fade 가 빈 채 흘러가는 "시작 지연" 체감 제거.
+       S333: 재진입 전환감(부드러운 fade-in)은 유지하되, fade 가 드러내는 아래 레이어를
+       다크 그라데이션 → webp(.hero-bg-placeholder 에 webp 레이어 추가)로 바꿔
+       "fade 동안 다크 비침"을 제거. 즉 webp(불투명) 위로 캡처 프레임이 0→1 cross-fade. */
     let cancelled = false;
     let anim: Animation | null = null;
     const img = new Image();
@@ -262,16 +264,16 @@ export default function HeroSection() {
     };
   }, []);
 
-  /* S332: 스크롤 cue 전환.
-     isInitialLoad — cold/최초 진입(captured frame 없음)에만 스피너 노출. 재진입은 captured-frame
-       fade 가 처리하므로 스피너 생략(posterHidden 전환이 re-render → 마우스 표시).
-     cueReady — 영상 시작(posterHidden) 또는 영상 실패(videoFailed) = 스피너→마우스 swap 시점. */
-  const isInitialLoad = capturedFrameRef.current === null;
-  /* 스피너 숨김 = 영상 실제 재생(videoStarted·robust) OR 로드 실패. posterHidden(onPlaying 단발)에
-     의존하지 않음 — 이벤트 레이스로 인한 무한 스피너 방지. */
+  /* S333: cue 분기를 "cold/재진입"(isInitialLoad) → "영상 준비됨 여부" 단일 기준으로 통일.
+     스피너 = 영상 미시작(=다크/로딩 가능 구간) 전체에 노출(cold·재진입 공통),
+     아이콘 = 영상 준비 시에만. 재진입 다크는 캡처 프레임 즉시 표시(위 useEffect)로
+     제거되므로, 스피너가 실제 뜨는 건 로딩(cold 첫방문·캡처 실패 fallback)뿐
+     → 불가피한 다크엔 항상 스피너+슬로건(요구사항2 충족).
+     cueReady = 영상 실제 재생(videoStarted·robust) OR 로드 실패(videoFailed).
+       posterHidden(onPlaying 단발)에 의존하지 않음 — 이벤트 레이스 무한 스피너 방지. */
   const cueReady = videoStarted || videoFailed;
-  /* 스크롤 아이콘(마우스/스와이프) 노출 = 영상 시작 OR 재진입(스피너 단계 없음). */
-  const cueShown = cueReady || !isInitialLoad;
+  /* 스크롤 아이콘(마우스/스와이프) 노출 = 영상 준비 시점. 그 전(로딩 다크)엔 스피너. */
+  const cueShown = cueReady;
 
   return (
     <section className="blk" id="hero-blk" data-header-theme="dark">
@@ -318,14 +320,13 @@ export default function HeroSection() {
             <span className="hero-slogan-line hero-slogan-line--2">take time</span>
           </span>
           {/* S332: 스크롤 cue — 영상 로딩 중 스피너 → 영상 시작 시 마우스 아이콘 cross-fade.
-              스피너는 최초 진입(isInitialLoad)에만 렌더(재진입은 captured-frame fade 가 처리). */}
+              S333: cold/재진입 분기(isInitialLoad) 제거 — 영상 준비 전엔 항상 렌더,
+              cueReady 시 is-gone 으로 fade out. 불가피한 다크엔 cold·재진입 무관 스피너 노출. */}
           <div className="hero-scroll-cue" aria-hidden="true">
-            {isInitialLoad && (
-              /* S332: 호(arc) 스피너 — 회전 + dashoffset 으로 짧은 호↔거의 정원 반복(Windows/Material 계열). */
-              <svg className={`hero-scroll-spinner${cueReady ? ' is-gone' : ''}`} viewBox="0 0 24 24">
-                <circle className="hero-scroll-spinner-arc" cx="12" cy="12" r="8" fill="none" />
-              </svg>
-            )}
+            {/* S332: 호(arc) 스피너 — 회전 + dashoffset 으로 짧은 호↔거의 정원 반복(Windows/Material 계열). */}
+            <svg className={`hero-scroll-spinner${cueReady ? ' is-gone' : ''}`} viewBox="0 0 24 24">
+              <circle className="hero-scroll-spinner-arc" cx="12" cy="12" r="8" fill="none" />
+            </svg>
             {/* 데스크탑(hover) — 마우스 휠 아이콘 */}
             <svg
               className={`hero-scroll-mouse${cueShown ? ' is-shown' : ''}`}

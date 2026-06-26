@@ -1745,6 +1745,20 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
 html.dest-dark .root {
   background: var(--color-background-inverse);
 }
+/* S333: 홈(/) 진입 전환 동안 #main-content visibility:hidden 으로 히어로가 숨겨진 사이,
+   .root 가 다크(#1E1B16) 대신 hero webp 커버를 보이게 → 재진입 "다크 먼저 보임" 제거.
+   전환(루트 webp) → main 가시 → 히어로 placeholder webp → 캡처 프레임 fade 까지 전부
+   커피 톤으로 연속. dest-dark(다크 inverse)는 webp 미로드 시 fallback 으로 아래에 유지.
+   data-dest-home 은 destination '/' 에만 부여 → /story 등 타 다크 라우트 무영향.
+   dest-dark 보다 뒤(아래) 선언 = 같은 .root 에 둘 다 있어도 webp 우선. */
+/* 특이도: html.dest-dark .root (0,2,1) 를 이겨야 함 → html.dest-dark .root[...] (0,3,1).
+   둘째 셀렉터는 dest-dark 미부여 케이스 fallback. */
+html.dest-dark .root[data-dest-home="true"],
+.root[data-dest-home="true"] {
+  background:
+    url('/images/hero/hero-poster.webp') center / cover no-repeat,
+    var(--color-background-inverse);
+}
 .error-page {
   min-height: 100dvh;
   display: flex; flex-direction: column;

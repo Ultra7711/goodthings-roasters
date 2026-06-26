@@ -74,12 +74,14 @@
 .hero-bg-placeholder {
   position: absolute;
   inset: 0;
-  /* S283: 원래 다크 gradient 단독 복원 (af73bd51 최초 도입 동일).
-     S282-H 의 LQIP single-layer 박힘 → 다크 사라져 플래시 회귀.
-     LQIP ::after layer 도입 시도 → LQIP 가 hero-poster (밝은 사진) blur 라 fade-in 후
-     흰처럼 보임 → video paint 실패 시 LQIP 가 계속 표시 = "흰 배경" 인식.
-     결론: LQIP 폐기 + 다크 gradient 단독 (af73bd51 답습). video paint 시 = 영상 표시. */
-  background: linear-gradient(135deg, #2A2420 0%, #1C1B16 50%, #0F0E0D 100%);
+  /* S283: 다크 gradient 가 바닥 fallback (LQIP 흰 플래시 회귀 폐기 경위는 git history).
+     S333: webp 커버를 바닥 레이어 "위층"으로 추가 — 재진입 시 .hero-bg-poster(캡처
+     프레임)가 opacity 0→1 fade-in 할 때 드러나는 아래 레이어를 다크가 아닌 webp(불투명
+     커피 이미지)로 만든다 → "fade 동안 다크 비침 = 깜빡 플래시" 제거(webp→캡처 cross-fade).
+     레이어 순서: webp(위, 로드 시 다크 덮음) / 다크 gradient(아래, cold 첫방문 webp 미로드 fallback). */
+  background:
+    url('/images/hero/hero-poster.webp') center / cover no-repeat,
+    linear-gradient(135deg, #2A2420 0%, #1C1B16 50%, #0F0E0D 100%);
   z-index: 0;
 }
 /* S-PND-5: poster 별도 layer — video preload 대기·metadata 의존 없이 즉시 표시.

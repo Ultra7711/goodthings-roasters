@@ -114,6 +114,9 @@ export default function NavigationVisibilityGate() {
         root?.removeAttribute('data-dest-dark');
         html.classList.remove('dest-dark');
       }
+      // S333: 홈(/) 진입 전환 동안 .root 가 다크 대신 hero webp 를 보이게 → 재진입 "다크 먼저" 제거.
+      if (href === '/') root?.setAttribute('data-dest-home', 'true');
+      else root?.removeAttribute('data-dest-home');
       // 접근 C: 헤더 테마 클래스 선제 토글 (BUG-130, S96)
       // React state 경로(2 render cycle 지연) 없이 배경과 동일 tick에 전환.
       // hdr-instant로 transition 억제 → useLayoutEffect에서 제거.
@@ -173,6 +176,9 @@ export default function NavigationVisibilityGate() {
       root?.removeAttribute('data-dest-dark');
       html.classList.remove('dest-dark');
     }
+    // S333: 홈 머무는 동안 data-dest-home 유지(전환 시 webp 노출) · 이탈 시 제거.
+    if (pathname === '/') root?.setAttribute('data-dest-home', 'true');
+    else root?.removeAttribute('data-dest-home');
     // 접근 C: hdr-instant 제거 → 이후 React re-render부터 transition 복원
     const header = document.getElementById('site-hdr-wrap');
     if (header) header.classList.remove(HDR_INSTANT);
