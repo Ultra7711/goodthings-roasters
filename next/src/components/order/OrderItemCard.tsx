@@ -22,6 +22,7 @@
 import Image from 'next/image';
 import type { MouseEvent } from 'react';
 import { extractKrName, formatPrice } from '@/lib/utils';
+import { getProductImageMeta } from '@/lib/products';
 import './OrderItemCard.css';
 
 export type OrderItemCardVariant = 'compact' | 'detailed';
@@ -54,6 +55,12 @@ export default function OrderItemCard({
   onImageClick,
 }: OrderItemCardProps) {
   const isDetailed = variant === 'detailed';
+
+  /* S333: 정적 상품 이미지 LQIP blur placeholder — getProductImageMeta(products-blur.json) 재활용.
+     매치 없으면(비정적 src) undefined → placeholder 'empty' = 현재 bg 단색 폴백 유지. ShopCard 와 일관. */
+  const blurDataURL = item.image?.src
+    ? getProductImageMeta(item.image.src)?.blurDataURL
+    : undefined;
 
   const displayPrice = isDetailed ? item.priceNum : item.priceNum * item.qty;
 
@@ -90,6 +97,8 @@ export default function OrderItemCard({
               fill
               style={{ objectFit: 'cover' }}
               sizes="80px"
+              placeholder={blurDataURL ? 'blur' : 'empty'}
+              blurDataURL={blurDataURL}
             />
           ) : (
             <Image
@@ -98,6 +107,8 @@ export default function OrderItemCard({
               width={100}
               height={100}
               style={{ objectFit: 'contain' }}
+              placeholder={blurDataURL ? 'blur' : 'empty'}
+              blurDataURL={blurDataURL}
             />
           ))}
       </div>
