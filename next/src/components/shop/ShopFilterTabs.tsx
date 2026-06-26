@@ -62,9 +62,17 @@ export default function ShopFilterTabs({ active, onChange }: Props) {
     } else {
       positionIndicator(true);
     }
+    /* 활성 탭을 가로 중앙으로 스크롤 (모바일 수평 스크롤).
+       S334: scrollIntoView 는 block:'nearest' 라도 window 세로축을 건드릴 수 있어
+       모바일에서 ?item= 진입 카드 smooth scroll(GenericCard)과 세로축 경합 → 역방향
+       떨림 유발. 가로 컨테이너의 scrollLeft 만 직접 조정해 window 세로 누수 원천 차단.
+       offsetLeft 는 스크롤 콘텐츠 좌표계이므로 scrollLeft 타깃으로 그대로 사용. */
     const tabs = tabsRef.current;
     const activeTab = tabs?.querySelector<HTMLButtonElement>('.sp-filter-tab.active');
-    activeTab?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    if (tabs && activeTab) {
+      const target = activeTab.offsetLeft - (tabs.clientWidth - activeTab.offsetWidth) / 2;
+      tabs.scrollTo({ left: target, behavior: 'smooth' });
+    }
     updateScrollState();
   }, [active]);
 
