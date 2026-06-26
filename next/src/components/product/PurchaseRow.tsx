@@ -54,14 +54,22 @@ export default function PurchaseRow({ product, volIdx, onVolChange }: Props) {
   }, [product.slug]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  /* 외부 클릭 시 주기 dropdown 닫기 */
+  /* 외부 클릭 + Escape 키로 주기 dropdown 닫기 */
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
       const t = e.target as Node;
       if (cycleBoxRef.current && !cycleBoxRef.current.contains(t)) setCycleOpen(false);
     }
+    /* S334: Escape 로 닫기(키보드 접근성) — 외부 클릭 외 표준 dismiss 보강. */
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setCycleOpen(false);
+    }
     document.addEventListener('click', onDocClick);
-    return () => document.removeEventListener('click', onDocClick);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('click', onDocClick);
+      document.removeEventListener('keydown', onKeyDown);
+    };
   }, []);
 
   /* 전체 품절 판정 */

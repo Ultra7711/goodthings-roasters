@@ -53,6 +53,8 @@ export default function RatingInput({ value, onChange, size = 32, disabled }: Pr
       aria-label="별점 선택"
       onKeyDown={onKeyDown}
       onMouseLeave={() => setHover(0)}
+      /* S334: 포커스가 그룹을 떠날 때 hover 미리보기 정리(마우스 hover 후 키보드 이탈 케이스). */
+      onBlur={() => setHover(0)}
     >
       {STARS.map((n) => (
         <button
