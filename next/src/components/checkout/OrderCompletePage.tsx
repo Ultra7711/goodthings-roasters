@@ -270,6 +270,10 @@ export default function OrderCompletePage() {
 
     return () => {
       cancelled = true;
+      /* S334: in-flight guard 리셋 — 미리셋 시 confirmingRef 가 영구 true 로 남아,
+         새 paymentKey 재진입(Activity preserve)·Strict Mode 재실행에서 confirm API 가
+         차단되어 무한 pending 발생. effect 재실행/언마운트 경계에서 false 로 되돌린다. */
+      confirmingRef.current = false;
     };
   }, [searchParams, callConfirm]);
 

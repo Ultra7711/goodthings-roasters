@@ -19,6 +19,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { apiError, apiSuccess } from '@/lib/api/errors';
+import { enforceSameOrigin } from '@/lib/api/csrf';
 import { getClaims } from '@/lib/auth/getClaims';
 import { deletePendingOrderForUser } from '@/lib/repositories/orderRepo';
 import { OrderNumberSchema } from '@/lib/schemas/order';
@@ -28,9 +29,14 @@ type RouteParams = {
 };
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: RouteParams,
 ): Promise<Response> {
+  /* S334: 다른 모든 state-change POST 와 동일하게 CSRF(동일 origin) 가드 추가.
+     pending 주문 DELETE 는 상태 변경이므로 교차 origin 요청 차단. */
+  const forbidden = enforceSameOrigin(request);
+  if (forbidden) return forbidden;
+
   const { orderNumber } = await params;
 
   const parsed = OrderNumberSchema.safeParse(orderNumber);
