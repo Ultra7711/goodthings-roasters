@@ -28,6 +28,7 @@ import {
 } from '@/lib/payments/tossBillingClient';
 import { TossApiError, TossNetworkError } from '@/lib/payments/tossClient';
 import { classifyBillingError, computeRetryAt } from '@/lib/payments/billingErrorPolicy';
+import { sendBillingFailureEmail } from '@/lib/email/notifications';
 import { fetchProducts } from '@/lib/productsServer';
 import { fetchSiteSettings } from '@/lib/siteSettingsServer';
 import type { OrderItemType, DbSubscriptionPeriod, DbPaymentMethod } from '@/types/db';
@@ -571,7 +572,7 @@ async function recordBillingFailure(
     /* R-3a: retry_at===null = 영구 오류 or 재시도 소진(24/48/72h) → 구독 일시정지.
        무한 재청구 차단. 결제수단 재등록 후 사용자가 재개. (charge/run·retry 양쪽 일관) */
     if (retryAt === null) {
-      const { error: pauseErr } = await admin.rpc('pause_subscription_for_billing', {
+      const { data: paused, error: pauseErr } = await admin.rpc('pause_subscription_for_billing', {
         p_subscription_id: subscriptionId,
       });
       if (pauseErr) {
@@ -586,6 +587,10 @@ async function recordBillingFailure(
           subscriptionId,
           errorCode,
         });
+        /* R-3b: 이번에 active→paused 로 전환된 경우만 재등록 유도 알림(중복 방지). */
+        if (paused === true) {
+          void sendBillingFailureEmail(subscriptionId);
+        }
       }
     }
   } catch (recErr) {

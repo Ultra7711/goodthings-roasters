@@ -24,6 +24,11 @@ vi.mock('@/lib/siteSettingsServer', () => ({
   fetchSiteSettings: () => fetchSiteSettingsMock(),
 }));
 
+const sendBillingFailureEmailMock = vi.fn();
+vi.mock('@/lib/email/notifications', () => ({
+  sendBillingFailureEmail: (...args: unknown[]) => sendBillingFailureEmailMock(...args),
+}));
+
 import { chargeRecurringCycle, BillingServiceError } from './billingService';
 
 /* ── chainable supabase admin mock ─────────────────────────────────────── */
@@ -99,7 +104,14 @@ function setupAdmin(opts: {
   const rpcResults = opts.rpc ?? {};
   const admin = {
     from: vi.fn((t: string) => builders[t]),
-    rpc: vi.fn((fn: string) => ({ single: async () => rpcResults[fn] ?? { data: null, error: null } })),
+    /* .rpc(fn).single() (create/process) 와 await .rpc(fn) (pause) 둘 다 지원 — thenable + single. */
+    rpc: vi.fn((fn: string) => {
+      const resp = rpcResults[fn] ?? { data: null, error: null };
+      return {
+        single: async () => resp,
+        then: (resolve: (v: BuilderResp) => unknown) => resolve(resp),
+      };
+    }),
   };
   getSupabaseAdminMock.mockReturnValue(admin);
   return { admin, failuresBuilder };
@@ -190,6 +202,8 @@ describe('chargeRecurringCycle', () => {
       (c) => c[0] === 'pause_subscription_for_billing',
     );
     expect(pauseCalls).toHaveLength(0);
+    // R-3b: 일시 오류는 paused 아님 → 알림 미발송
+    expect(sendBillingFailureEmailMock).not.toHaveBeenCalled();
   });
 
   it('영구 실패(토스) → 실패 기록 + retry_at null', async () => {
@@ -202,6 +216,7 @@ describe('chargeRecurringCycle', () => {
         create_recurring_order: {
           data: { order_id: 'o-1', order_number: 'GT-20260628-00003', total_amount: 21500 },
         },
+        pause_subscription_for_billing: { data: true }, // active→paused 전환됨
       },
     });
     const { TossApiError } = await import('@/lib/payments/tossClient');
@@ -219,6 +234,8 @@ describe('chargeRecurringCycle', () => {
     expect(admin.rpc).toHaveBeenCalledWith('pause_subscription_for_billing', {
       p_subscription_id: SUB_ID,
     });
+    // R-3b: paused 전환 시 재등록 유도 알림 발송
+    expect(sendBillingFailureEmailMock).toHaveBeenCalledWith(SUB_ID);
   });
 
   it('비활성 구독 → subscription_not_active (결제 안 함)', async () => {

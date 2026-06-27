@@ -18,6 +18,7 @@ import { sendEmail } from './sendEmail';
 import { renderWelcomeEmail } from './templates/welcomeEmail';
 import { renderOrderConfirmationEmail } from './templates/orderConfirmationEmail';
 import { renderShippingNotificationEmail } from './templates/shippingNotificationEmail';
+import { renderBillingFailureEmail } from './templates/billingFailureEmail';
 import { renderNewsletterWelcomeEmail } from './templates/newsletterWelcomeEmail';
 import {
   renderBizInquiryNotificationEmail,
@@ -332,5 +333,55 @@ export async function sendShippingNotificationEmail(
     }
   } catch (err) {
     console.error('[notifications] sendShippingNotificationEmail unexpected error', err);
+  }
+}
+
+/**
+ * 정기배송 자동결제 실패(구독 일시정지) 알림 — 결제수단 재등록 유도 (R-3b).
+ * recordBillingFailure 가 영구/소진 실패로 구독을 paused 전환할 때 fire-and-forget 호출.
+ * idempotencyKey 로 동일 구독 24h 내 중복 발송 차단(Resend 캐시).
+ */
+export async function sendBillingFailureEmail(subscriptionId: string): Promise<void> {
+  try {
+    const admin = getSupabaseAdmin();
+    const { data: sub, error: subErr } = await admin
+      .from('subscriptions')
+      .select('product_name, user_id')
+      .eq('id', subscriptionId)
+      .maybeSingle<{ product_name: string; user_id: string }>();
+    if (subErr || !sub) {
+      console.error('[notifications] sendBillingFailureEmail: subscription not found', {
+        code: subErr?.code,
+      });
+      return;
+    }
+
+    const { data: profile, error: profErr } = await admin
+      .from('profiles')
+      .select('email')
+      .eq('id', sub.user_id)
+      .maybeSingle<{ email: string }>();
+    if (profErr || !profile?.email) {
+      console.error('[notifications] sendBillingFailureEmail: profile email not found', {
+        code: profErr?.code,
+      });
+      return;
+    }
+
+    const { subject, html, text } = renderBillingFailureEmail({
+      productName: sub.product_name,
+    });
+    const result = await sendEmail({
+      to: profile.email,
+      subject,
+      html,
+      text,
+      idempotencyKey: `billing-failure:${subscriptionId}`,
+    });
+    if (!result.ok) {
+      console.error('[notifications] sendBillingFailureEmail FAIL', { code: result.error.code });
+    }
+  } catch (err) {
+    console.error('[notifications] sendBillingFailureEmail unexpected error', err);
   }
 }
