@@ -34,6 +34,7 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
       audit={detail.audit}
       pointBalance={detail.pointBalance}
       pointLedger={detail.pointLedger}
+      activeSubscriptionCount={detail.activeSubscriptionCount}
       currentAdminId={claims?.userId ?? null}
       isOwner={claims?.adminLevel === 'owner'}
     />

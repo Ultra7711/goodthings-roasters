@@ -4,9 +4,9 @@
    커버리지:
    - 401 unauthorized          — claims 없음
    - 400 validation_failed     — confirm 문자열 불일치
-   - 409 conflict              — RPC 'subscription_active'
    - 500 server_error          — auth.admin.deleteUser 실패 (orphan 경로)
    - 200 success               — RPC + deleteUser + signOut 정상
+   - 200 활성 구독 포함         — 차단 폐기(104) · subscriptionsDeleted 반환
 
    Mock 전략:
    - vi.mock 으로 csrf / ratelimit / getClaims / supabaseAdmin / supabaseServer 를
@@ -125,17 +125,20 @@ describe('POST /api/account/delete', () => {
     expect(body.detail).toBe('confirm_phrase_mismatch');
   });
 
-  it('409 — 활성 구독 존재 시 subscription_active conflict', async () => {
-    getSupabaseAdminMock.mockReturnValue(
-      makeAdminStub({
-        rpcError: { message: 'subscription_active', code: 'P0001' },
-      }),
-    );
+  it('200 — 활성 구독 있어도 차단하지 않고 일괄삭제(차단 폐기 · 104)', async () => {
+    /* 104 정책: RPC 가 활성 구독을 raise 하지 않고 전 status 일괄삭제 →
+       활성 구독 보유 회원도 200 + subscriptionsDeleted 로 정상 탈퇴. */
+    const admin = makeAdminStub({
+      rpcData: { orders_anonymized: 1, subscriptions_deleted: 2 },
+    });
+    getSupabaseAdminMock.mockReturnValue(admin);
     const res = await POST(makeRequest({ confirm: '탈퇴' }));
-    expect(res.status).toBe(409);
-    const body = (await res.json()) as { error: string; detail?: string };
-    expect(body.error).toBe('conflict');
-    expect(body.detail).toBe('subscription_active');
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      data: { deleted: boolean; subscriptionsDeleted: number };
+    };
+    expect(body.data.deleted).toBe(true);
+    expect(body.data.subscriptionsDeleted).toBe(2);
   });
 
   it('500 — auth.admin.deleteUser 실패 시 orphan 경로 server_error', async () => {

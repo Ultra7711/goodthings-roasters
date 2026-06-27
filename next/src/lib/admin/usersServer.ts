@@ -291,6 +291,8 @@ export type AdminUserDetail = {
   /** S328 ②: 포인트 잔액 + 최근 원장 (수동 가감 UI). */
   pointBalance: number;
   pointLedger: PointLedgerEntry[];
+  /** S336: 활성/일시정지 정기배송 수 — owner 강제 탈퇴 시 정보 고지용. */
+  activeSubscriptionCount: number;
 };
 
 /**
@@ -312,8 +314,8 @@ export async function fetchAdminUserDetail(
 ): Promise<AdminUserDetail | null> {
   const supabase = await createRouteHandlerClient();
 
-  /* 1·2·3·4) 병렬 fetch (포인트 원장은 service_role · pointRepo) */
-  const [profileRes, ordersRes, auditRes, pointLedger] = await Promise.all([
+  /* 1·2·3·4·5) 병렬 fetch (포인트 원장은 service_role · pointRepo) */
+  const [profileRes, ordersRes, auditRes, pointLedger, subCountRes] = await Promise.all([
     supabase
       .from('profiles')
       .select(
@@ -336,6 +338,13 @@ export async function fetchAdminUserDetail(
       console.error('[fetchAdminUserDetail] point ledger failed', err);
       return [] as PointLedgerEntry[];
     }),
+    /* 5) 활성/일시정지 구독 수 (S336) — subscriptions_select_admin RLS(044).
+          head+count 로 행 본문 없이 개수만 조회. owner 강제 탈퇴 다이얼로그 고지용. */
+    supabase
+      .from('subscriptions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', id)
+      .in('status', ['active', 'paused']),
   ]);
 
   if (profileRes.error) {
@@ -356,6 +365,16 @@ export async function fetchAdminUserDetail(
       summarizePgError(auditRes.error),
     );
   }
+  if (subCountRes.error) {
+    console.error(
+      '[fetchAdminUserDetail] subscription count failed',
+      summarizePgError(subCountRes.error),
+    );
+  }
+
+  /* 조회 실패 시 0 — 배너 미표시(고지 누락). 강제 탈퇴 자체는 owner 의도이므로
+     count 미확보가 작업을 막지 않는다(셀프 탈퇴의 보수적 판정과 성격 다름). */
+  const activeSubscriptionCount = subCountRes.count ?? 0;
 
   const profileRow = profileRes.data as ProfileDetailRow | null;
   if (!profileRow) return null;
@@ -418,5 +437,12 @@ export async function fetchAdminUserDetail(
     createdAtIso: r.created_at,
   }));
 
-  return { profile, orders, audit, pointBalance: profileRow.point_balance ?? 0, pointLedger };
+  return {
+    profile,
+    orders,
+    audit,
+    pointBalance: profileRow.point_balance ?? 0,
+    pointLedger,
+    activeSubscriptionCount,
+  };
 }

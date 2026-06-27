@@ -435,7 +435,6 @@ export type ForceDeleteAccountResult =
         | 'self_action'
         | 'not_found'
         | 'target_is_admin'
-        | 'subscription_active'
         | 'server_error';
       detail?: string;
     };
@@ -479,16 +478,14 @@ export async function forceDeleteAccountAction(
 
   const targetEmailSnapshot = (target.email as string | null) ?? null;
 
-  /* delete_account RPC (015) — 활성 구독 차단 + orders 익명화 + cancelled/expired subs DELETE */
+  /* delete_account RPC (104) — orders 익명화 + 전 status 구독 일괄삭제.
+     활성 구독 차단(subscription_active)은 104 에서 폐기 — 더 이상 raise 되지 않음.
+     활성 구독 회원 강제 탈퇴 시 UI 에서 사전 고지(activeSubscriptionCount 배너). */
   const { data: rpcData, error: rpcError } = await admin.rpc('delete_account', {
     p_user_id: parsed.data.targetId,
   });
 
   if (rpcError) {
-    const msg = rpcError.message ?? '';
-    if (msg.includes('subscription_active')) {
-      return { ok: false, error: 'subscription_active' };
-    }
     logActionError('[forceDeleteAccountAction] rpc failed', rpcError);
     return { ok: false, error: 'server_error' };
   }

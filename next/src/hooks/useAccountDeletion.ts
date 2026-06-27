@@ -9,7 +9,11 @@
    - hook 은 pure adapter
 
    Network error 만 throw → mutateAsync 호출자 try-catch 에서 처리.
-   200/409/429 = result.kind 반환.
+   200/429 = result.kind 반환.
+
+   탈퇴정책 변경(S336): 활성 구독 차단(409 subscription_active) 폐기 — 서버가 더 이상
+   409 를 반환하지 않으므로 해당 분기 제거. 만일의 409 는 일반 error 로 처리(아래 !res.ok).
+   구독 일괄취소 동의는 호출처(AccountDeleteSection)의 2차 확인 모달이 책임진다.
    ══════════════════════════════════════════════════════════════════════════ */
 
 'use client';
@@ -18,7 +22,6 @@ import { useMutation } from '@tanstack/react-query';
 
 export type AccountDeletionResult =
   | { kind: 'success' }
-  | { kind: 'subscription_active' }
   | { kind: 'rate_limited' }
   | { kind: 'error' };
 
@@ -28,14 +31,6 @@ export async function postAccountDelete(): Promise<AccountDeletionResult> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ confirm: '탈퇴' }),
   });
-
-  if (res.status === 409) {
-    const json = (await res.json().catch(() => null)) as
-      | { detail?: string }
-      | null;
-    if (json?.detail === 'subscription_active') return { kind: 'subscription_active' };
-    return { kind: 'error' };
-  }
 
   if (res.status === 429) return { kind: 'rate_limited' };
 

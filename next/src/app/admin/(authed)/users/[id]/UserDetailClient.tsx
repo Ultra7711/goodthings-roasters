@@ -66,6 +66,8 @@ type Props = {
   /** S328 ②: 포인트 잔액 + 최근 원장. */
   pointBalance: number;
   pointLedger: PointLedgerEntry[];
+  /** S336: 활성/일시정지 정기배송 수 — 강제 탈퇴 다이얼로그 고지용. */
+  activeSubscriptionCount: number;
   currentAdminId: string | null;
   /** S233-fu: owner (관리자) 만 권한 변경/단계 조정 가능. staff (운영자) 는 조회만. */
   isOwner: boolean;
@@ -112,6 +114,7 @@ export default function UserDetailClient({
   audit,
   pointBalance,
   pointLedger,
+  activeSubscriptionCount,
   currentAdminId,
   isOwner,
 }: Props) {
@@ -262,8 +265,6 @@ export default function UserDetailClient({
           self_action: '본인 계정은 어드민에서 탈퇴 처리할 수 없습니다.',
           not_found: '대상 회원을 찾을 수 없습니다.',
           target_is_admin: '어드민 계정은 강제 탈퇴할 수 없습니다. 먼저 권한을 해제하세요.',
-          subscription_active:
-            '활성 정기배송이 있어 탈퇴할 수 없습니다. 먼저 정기배송을 해지해 주세요.',
           server_error: '탈퇴 처리 중 오류가 발생했습니다.',
         };
         toast.error(map[result.error] ?? '탈퇴 처리에 실패했습니다.');
@@ -837,7 +838,7 @@ export default function UserDetailClient({
               <div className="text-muted-foreground leading-relaxed mb-3">
                 <strong className="text-foreground">운영자 직권 탈퇴</strong> — 약관 위반·부정 이용 등이 확인된 경우에만 사용합니다.
                 회원 정보는 즉시 파기되며, 주문 거래 기록은 익명화 후 5년간 보존됩니다.
-                활성 정기배송이 있으면 처리되지 않습니다 (선 해지 후 재시도).
+                활성 정기배송이 있으면 탈퇴 시 함께 해지·취소됩니다.
               </div>
               <Button
                 type="button"
@@ -875,6 +876,21 @@ export default function UserDetailClient({
             </DialogHeader>
 
             <div className="px-6 py-5 flex flex-col gap-4">
+              {/* S336: 활성/일시정지 정기배송 고지 — owner 실수 방지(차단 아님, 정보 표시). */}
+              {activeSubscriptionCount > 0 && (
+                <div
+                  className="rounded-md border px-3.5 py-3 text-xs leading-relaxed"
+                  style={{
+                    borderColor: 'var(--warning)',
+                    background: 'var(--warning-soft)',
+                    color: 'var(--warning)',
+                  }}
+                >
+                  이 회원은 진행 중인 정기배송{' '}
+                  <strong>{activeSubscriptionCount}건</strong>이 있습니다. 탈퇴 시 모두
+                  취소(삭제)되며 복구되지 않습니다.
+                </div>
+              )}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="force-delete-reason" className="text-xs text-muted-foreground">
                   사유 <span className="text-[var(--danger)]">(필수, 최대 500자)</span>

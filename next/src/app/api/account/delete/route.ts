@@ -6,18 +6,17 @@
    2) Rate Limit — account_delete (3 req / 15 m, IP 기준)
    3) requireAuth 동급 가드 — getClaims() 로 userId 확인
    4) 재인증 확인 — body.confirm === '탈퇴' (실수 방지)
-   5) RPC delete_account(userId) — 활성 구독 체크 + orders 익명화 + cancelled/expired 구독 삭제
+   5) RPC delete_account(userId) — orders 익명화 + 전 status 구독 일괄삭제
    6) supabaseAdmin.auth.admin.deleteUser(userId) — profiles/addresses CASCADE
    7) 서버 세션 쿠키 signOut — 다음 요청에서 인증 해제
    8) 로그 + 200 응답
 
-   정책 (docs/milestone.md Session 8-E · 리서치 2026-04-17):
-   - 활성/일시정지 구독 있으면 409 subscription_active — 선 해지 후 탈퇴
+   정책 (docs/milestone.md Session 8-E · 리서치 2026-04-17 · 탈퇴정책 변경 S336):
+   - 활성/일시정지 구독 차단 폐기 — 클라이언트 2차 확인 모달 동의 후 전 구독 일괄취소(104)
    - 주문 이력은 PII 익명화 후 5년 보존 (전자상거래법 §6)
    - auth.users 삭제 실패 시 orphan PII=[DELETED] 허용 (안전 방향) + 500 반환
 
    에러 매핑:
-   - RPC 'subscription_active' → 409 conflict (detail: 'subscription_active')
    - RPC 'user_id_required'    → 400 validation_failed (이론상 도달 불가)
    - admin.deleteUser 실패     → 500 server_error (orphan 경고 로그)
    ══════════════════════════════════════════════════════════════════════════ */
@@ -74,26 +73,16 @@ export async function POST(request: Request): Promise<Response> {
 
   const admin = getSupabaseAdmin();
 
-  /* 5) RPC — 활성 구독 체크 + orders 익명화 + cancelled/expired 구독 삭제 */
+  /* 5) RPC — orders 익명화 + 전 status 구독 일괄삭제 (활성 구독 차단 폐기 · 104) */
   const { data: rpcData, error: rpcError } = await admin.rpc('delete_account', {
     p_user_id: userId,
   });
 
   if (rpcError) {
-    /* PostgREST 는 raise exception 의 message 를 error.message 에 담는다 */
+    /* PostgREST 는 raise exception 의 message 를 error.message 에 담는다.
+       활성 구독 차단(subscription_active)은 104 에서 폐기 — 더 이상 raise 되지 않음.
+       남은 RPC 오류(user_id_required 등)는 모두 내부 에러로 처리. */
     const msg = rpcError.message ?? '';
-    if (msg.includes('subscription_active')) {
-      logAuthEvent({
-        event: 'account.delete.blocked',
-        emailMasked,
-        outcome: 'blocked',
-        errorCode: 'subscription_active',
-        userId,
-        ip,
-        userAgent,
-      });
-      return apiError('conflict', { detail: 'subscription_active' });
-    }
 
     /* 그 외 RPC 오류는 내부 에러 — 프로덕션에서는 code 만, dev/staging 에서 msg 포함 (L-1) */
     console.error('[account.delete] RPC failed', {

@@ -37,30 +37,13 @@ describe('200 성공', () => {
   });
 });
 
-/* ── 409 분기 ────────────────────────────────────────────────────────────── */
+/* ── 409 — 구독 차단 폐기(S336) ─────────────────────────────────────────────
+   subscription_active 차단을 폐기(104). 서버는 더 이상 409 를 반환하지 않지만,
+   만일의 409 가 와도 특수 분기 없이 일반 error 로 처리되어야 한다. */
 
-describe('409 subscription_active', () => {
-  it('detail=subscription_active → kind: subscription_active', async () => {
+describe('409 (구독 차단 폐기 · S336)', () => {
+  it('subscription_active detail 이어도 일반 error 로 처리', async () => {
     mockFetch(409, { detail: 'subscription_active' });
-    const result = await postAccountDelete();
-    expect(result.kind).toBe('subscription_active');
-  });
-
-  it('detail 불일치 → kind: error', async () => {
-    mockFetch(409, { detail: 'other_reason' });
-    const result = await postAccountDelete();
-    expect(result.kind).toBe('error');
-  });
-
-  it('body 없음 → kind: error', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 409,
-        json: () => Promise.reject(new Error('parse_error')),
-      }),
-    );
     const result = await postAccountDelete();
     expect(result.kind).toBe('error');
   });
