@@ -31,10 +31,23 @@ python capture.py
 # 3) 특정 단계부터 재개
 python capture.py --step 6
 
-# 4) PPT 조립
+# 4) 일반결제 PPT 조립
 python compose.py
 # → output/payment-route.pptx
+
+# 5) 빌링(정기결제) PPT 전용 단계 재캡처
+python capture.py --step 7   # 약관 (returns / payment-faq / terms §10조의2)
+python capture.py --step 8   # 정기배송 PDP(일반/토글 ON) + 장바구니 (자동)
+python capture.py --step 9   # 빌링 주문서 + 빌링 결제창 (수동)
+
+# 6) 빌링 PPT 조립
+python b_compose.py
+# → output/payment-route-billing.pptx
 ```
+
+> 🔁 **헤더 메뉴·약관 등 전 페이지 공통 요소가 바뀌면** `06a~c`(토스 결제창·비씨 인증,
+> 우리 헤더 없는 외부 화면)를 제외한 **모든 슬라이드 재캡처**가 필요하다. `--step` 없이
+> `python capture.py` 전체 실행 → `compose.py` + `b_compose.py` 재조립.
 
 ## 캡처 단계
 
@@ -53,6 +66,24 @@ python compose.py
 | ⑥-1 결제수단 카드 | `06a_widget_card.png` | **수동** (결제수단 선택까지) |
 | ⑥-2 카드사 드롭다운 | `06b_widget_card_select.png` | **수동** |
 | ⑥-3 비씨카드 인증 | `06c_bc_auth.png` | **수동** (외부 popup) |
+
+### 빌링(정기결제) PPT 전용 — `b_compose.py` (S340)
+
+| Step | 파일 | 자동 / 수동 |
+|------|------|------|
+| ⑦ 약관 — 환불(정기) | `b_03_refund_returns.png` | 자동 (`/legal/returns`) |
+| ⑦ 약관 — 정기결제 Q&A | `b_03_refund_faq.png` | 자동 (`/legal/payment-faq`) |
+| ⑦ 약관 — 이용약관 §10조의2 | `b_app_b_terms_no_lockin.png` | 자동 (`/legal/terms`, 스크롤) |
+| ⑧ PDP 일반 (토글 OFF) | `b_app_a1_pdp_normal.png` | 자동 |
+| ⑧ PDP 정기배송 (토글 ON) | `b_05b_pdp_subscription.png` · `b_app_a2_pdp_subscription.png` | 자동 |
+| ⑧ 장바구니 (정기 라벨) | `b_05c_cart_subscription.png` | 자동 |
+| ⑨ 주문서 (회원·γ 합산) | `b_05d_checkout_subscription.png` | **수동** (회원 로그인) |
+| ⑨ 빌링 카드 입력창 | `b_06a_billing_card.png` | **수동** (토스 외부 화면) |
+| ⑨ 빌링 계좌이체 입력창 | `b_06b_billing_transfer.png` | **수동** (토스 외부 화면) |
+
+> 일반 PPT 재사용 5종(`02_footer`·`04a_login`·`04b_signup`·`04c_guest_checkout`·`05a_shop`)은
+> 일반결제 캡처를 그대로 사용한다. `§10조의2`는 6항→10항 개정으로 길어져, 한 화면에 안 들어오면
+> 핵심 항 위주로 캡처하거나 `b_compose.py` SLIDE_PLAN 을 2장으로 분할한다.
 
 ## 토스 PDF 가이드 의무 사항
 

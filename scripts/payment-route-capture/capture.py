@@ -163,6 +163,114 @@ def step_06_payment_widget() -> None:
     grab_full_screen("06c_bc_auth")
 
 
+def step_07_billing_legal(page: Page) -> None:
+    """⑦ 빌링 PPT 약관 슬라이드 재캡처 (S340 약관 R-4 정합).
+
+    정기배송 약관 변경(자동결제 동의·가격고정·결제실패 자동정지·재등록)을 반영해
+    b_compose.py SLIDE_PLAN 의 약관 3종을 다시 캡처한다. 페이지가 길어 스크롤 위치
+    조정이 필요하므로 각 단계 pause 로 사용자가 화면을 맞춘 뒤 캡처한다.
+    (일반 PPT 의 03_refund 는 step_03_refund 와 동일 페이지 — `--step 3` 으로 별도 갱신.)
+    """
+    print("\n[Step 7] 빌링 약관 재캡처 (returns / payment-faq / terms §10조의2)")
+
+    # 7-1 환불 정책 (정기배송) — /legal/returns ([자동결제 실패 시] 블록 추가됨)
+    page.goto(f"{BASE_URL}/legal/returns", timeout=PAGE_LOAD_TIMEOUT_MS)
+    wait_settle(page, 800)
+    pause("'정기배송 해지·환불' + '[자동결제 실패 시]' 블록이 보이게 스크롤 맞추고 Enter (b_03_refund_returns)")
+    grab_full_screen("b_03_refund_returns")
+
+    # 7-2 정기결제 Q&A — /legal/payment-faq ('자동결제 실패 시' Q 추가됨)
+    page.goto(f"{BASE_URL}/legal/payment-faq", timeout=PAGE_LOAD_TIMEOUT_MS)
+    wait_settle(page, 800)
+    pause("'정기배송 자동결제가 실패하면' Q 가 보이게 스크롤 맞추고 Enter (b_03_refund_faq)")
+    grab_full_screen("b_03_refund_faq")
+
+    # 7-3 이용약관 §10조의2 (정기배송) — /legal/terms (6항 → 10항 개정)
+    page.goto(f"{BASE_URL}/legal/terms", timeout=PAGE_LOAD_TIMEOUT_MS)
+    wait_settle(page, 800)
+    try:
+        page.get_by_text("제10조의2", exact=False).first.scroll_into_view_if_needed(timeout=4000)
+        page.wait_for_timeout(500)
+    except Exception as e:
+        print(f"  [warn] §10조의2 자동 스크롤 실패(수동 조정 필요): {e}")
+    pause(
+        "§10조의2(정기배송) 조항이 보이게 스크롤 맞추고 Enter (b_app_b_terms_no_lockin)\n"
+        "       ※ 10개 항으로 길어져 한 화면에 안 들어오면 핵심 항(자동결제 동의·가격고정·"
+        "결제실패·즉시 해지) 위주로. 2장 필요 시 b_compose.py SLIDE_PLAN 분할 검토."
+    )
+    grab_full_screen("b_app_b_terms_no_lockin")
+
+
+def step_08_billing_pdp_cart(page: Page) -> None:
+    """⑧ 빌링 PPT 상품 경로 — 정기배송 PDP(일반/토글 ON) + 장바구니 (자동 + 수동 fallback).
+
+    SLIDE_PLAN: b_app_a1_pdp_normal · b_05b_pdp_subscription ·
+    b_app_a2_pdp_subscription · b_05c_cart_subscription.
+    정기배송 가능 상품(PDP 에 '정기배송으로 받기' 토글 존재)을 자동 탐색한다.
+    """
+    print("\n[Step 8] 빌링 상품 경로 (정기배송 PDP + 장바구니)")
+    page.goto(f"{BASE_URL}/shop", timeout=PAGE_LOAD_TIMEOUT_MS)
+    wait_settle(page, 1200)
+
+    # 정기배송 가능 상품 자동 탐색 (앞쪽 카드 최대 8개)
+    sub_slug = None
+    cards = page.locator("[data-slug]")
+    for i in range(min(cards.count(), 8)):
+        slug = cards.nth(i).get_attribute("data-slug")
+        page.goto(f"{BASE_URL}/shop/{slug}", timeout=PAGE_LOAD_TIMEOUT_MS)
+        wait_settle(page, 1000)
+        if page.get_by_text("정기배송으로 받기").count() > 0:
+            sub_slug = slug
+            print(f"  정기배송 가능 상품: {slug}")
+            break
+    if sub_slug is None:
+        pause("정기배송 가능 상품 자동 탐색 실패 — 정기배송 상품 PDP 로 직접 이동 후 Enter")
+
+    # 어필-1: 일반 결제 상태(토글 OFF) PDP
+    grab_full_screen("b_app_a1_pdp_normal")
+
+    # 정기배송 토글 ON → 주기 select reveal
+    try:
+        page.get_by_text("정기배송으로 받기").first.click(timeout=4000)
+        page.wait_for_timeout(600)
+    except Exception as e:
+        print(f"  [warn] 정기배송 토글 클릭 실패(수동): {e}")
+        pause("'정기배송으로 받기' 체크 후 Enter")
+    grab_full_screen("b_05b_pdp_subscription")
+    grab_full_screen("b_app_a2_pdp_subscription")  # 분기 비교용(동일 화면 · 별도 슬라이드)
+
+    # 장바구니 담기 → /cart (정기배송 라벨 노출)
+    try:
+        page.get_by_text("장바구니에 담기", exact=True).first.click(timeout=5000)
+        page.wait_for_timeout(1200)
+        page.keyboard.press("Escape")
+        page.wait_for_timeout(400)
+    except Exception as e:
+        print(f"  [warn] 장바구니 담기 실패(수동): {e}")
+        pause("정기배송 상품을 장바구니에 담은 후 Enter")
+    page.goto(f"{BASE_URL}/cart", timeout=PAGE_LOAD_TIMEOUT_MS)
+    wait_settle(page, 1000)
+    grab_full_screen("b_05c_cart_subscription")
+
+
+def step_09_billing_checkout_widget(page: Page) -> None:
+    """⑨ 빌링 PPT 주문서 + 빌링 결제창 (수동 — 회원 로그인 + γ 합산 + 토스 빌링창).
+
+    SLIDE_PLAN: b_05d_checkout_subscription · b_06a_billing_card · b_06b_billing_transfer.
+    b_06a/b 는 토스 빌링 입력창(외부 화면 · 우리 헤더 없음)이라 헤더 변경과 무관 —
+    UI 변동 없으면 기존 캡처 재사용 가능. PC 시계만 최신이면 됨.
+    """
+    print("\n[Step 9] 빌링 주문서 + 빌링 결제창 (수동)")
+    page.goto(f"{BASE_URL}/login?from=checkout", timeout=PAGE_LOAD_TIMEOUT_MS)
+    wait_settle(page, 800)
+    pause("회원 로그인 → 정기배송 상품 주문서(γ 합산 · 정기결제 분기)까지 진입 후 Enter (b_05d_checkout_subscription)")
+    grab_full_screen("b_05d_checkout_subscription")
+    pause("결제수단 '카드' 빌링 입력창이 뜨면 Enter (b_06a_billing_card · 변경 없으면 기존 재사용 가능)")
+    grab_full_screen("b_06a_billing_card")
+    pause("결제수단 '계좌이체' 빌링 입력창으로 전환 후 Enter (b_06b_billing_transfer)")
+    grab_full_screen("b_06b_billing_transfer")
+
+
 # ── 메인 ─────────────────────────────────────
 
 
@@ -196,6 +304,10 @@ def run(start_step: int) -> None:
             (4, step_04_auth),
             (5, lambda pg: (step_05_shop_to_cart(pg), step_05_checkout_guest(pg), step_05_checkout_member(pg))),
             (6, lambda _: step_06_payment_widget()),
+            # 빌링(정기결제) PPT 전용 단계 — b_compose.py SLIDE_PLAN 대응
+            (7, step_07_billing_legal),
+            (8, step_08_billing_pdp_cart),
+            (9, step_09_billing_checkout_widget),
         ]
         for idx, fn in steps:
             if idx < start_step:
