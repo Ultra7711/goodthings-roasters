@@ -14,7 +14,11 @@
 
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
 import type { DbSubscriptionStatus } from '@/types/db';
-import type { Subscription, SubscriptionCycle } from '@/types/subscription';
+import type {
+  Subscription,
+  SubscriptionCycle,
+  SubscriptionBillingStatus,
+} from '@/types/subscription';
 import { CYCLE_DAYS } from '@/lib/subscription/cycles';
 import { formatDateKST } from '@/lib/utils';
 
@@ -52,8 +56,14 @@ export function calculateNextDeliveryDate(base: Date, cycle: string): Date {
   return new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
-/** DB row → 클라이언트 응답 변환 (모든 subscription route handler 공용) */
-export function toSubscription(row: SubscriptionRow): Subscription {
+/**
+ * DB row → 클라이언트 응답 변환 (모든 subscription route handler 공용).
+ * billingStatus 는 목록 조회 경로(prefetch · GET)에서만 전달 — mutation 단건은 생략.
+ */
+export function toSubscription(
+  row: SubscriptionRow,
+  billingStatus?: SubscriptionBillingStatus,
+): Subscription {
   const cycle = row.cycle as SubscriptionCycle;
   if (!(cycle in CYCLE_DAYS)) {
     throw new Error(`Invalid subscription cycle: ${row.cycle}`);
@@ -67,7 +77,46 @@ export function toSubscription(row: SubscriptionRow): Subscription {
     nextDate: formatDateKST(row.next_delivery_at),
     status: row.status,
     imageUrl: row.product_image_src,
+    ...(billingStatus !== undefined ? { billingStatus } : {}),
   };
+}
+
+/**
+ * 본인 구독별 결제수단 상태 맵 (R-3d · 108 RPC).
+ * billing_methods 는 service-role only RLS → SECURITY DEFINER RPC 로 우회 조회.
+ * 반환은 상태 라벨만(민감값 없음). 목록 조회 경로에서 toSubscription 머지에 사용.
+ */
+export async function getMySubscriptionBillingHealth(): Promise<
+  Map<string, SubscriptionBillingStatus>
+> {
+  const supabase = await createRouteHandlerClient();
+  const { data, error } = await supabase.rpc('get_my_subscription_billing_health');
+  if (error) throw error;
+
+  const map = new Map<string, SubscriptionBillingStatus>();
+  for (const row of (data ?? []) as Array<{
+    subscription_id: string;
+    billing_status: SubscriptionBillingStatus;
+  }>) {
+    map.set(row.subscription_id, row.billing_status);
+  }
+  return map;
+}
+
+/**
+ * 구독 목록 + billing 상태 머지 (R-3d). prefetch · GET /api/subscriptions 공용.
+ * health 조회 실패 시에도 목록은 반환(billingStatus 생략 → UI 는 ok 취급).
+ */
+export async function findSubscriptionsWithBillingHealth(): Promise<Subscription[]> {
+  const rows = await findSubscriptionsForUser();
+  let health: Map<string, SubscriptionBillingStatus>;
+  try {
+    health = await getMySubscriptionBillingHealth();
+  } catch (err) {
+    console.error('[subscriptionRepo.billingHealth] failed', err);
+    health = new Map();
+  }
+  return rows.map((row) => toSubscription(row, health.get(row.id) ?? 'ok'));
 }
 
 /* ── SELECT ─────────────────────────────────────────────────────────── */
@@ -200,6 +249,27 @@ export async function resumeSubscription(
     .eq('id', id)
     .eq('status', 'paused')
     .select(SUB_SELECT)
+    .single<SubscriptionRow>();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * 결제수단 재연결 + 자동 재개 (R-3d · 108 RPC reattach_subscription_billing).
+ * 소유권·카드 유효성 검증 + billing_method_id 연결 + paused 면 active 전환
+ * (next=now+cycle) + 미해결 failures resolve 를 atomic 처리. SECURITY DEFINER.
+ */
+export async function reattachSubscriptionBilling(
+  subscriptionId: string,
+  billingMethodId: string,
+): Promise<SubscriptionRow> {
+  const supabase = await createRouteHandlerClient();
+  const { data, error } = await supabase
+    .rpc('reattach_subscription_billing', {
+      p_subscription_id: subscriptionId,
+      p_billing_method_id: billingMethodId,
+    })
     .single<SubscriptionRow>();
 
   if (error) throw error;

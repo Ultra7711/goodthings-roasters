@@ -79,6 +79,15 @@ export default function SubscriptionItem({
     setCycleDropdownOpen(false);
   }, []);
 
+  /* R-3d: 결제수단 끊김(detached) / 영구실패(payment_failed) → 재등록 동선.
+     끊긴 구독은 주기변경·일시정지보다 재등록이 선행. */
+  const needsReattach =
+    sub.billingStatus === 'detached' || sub.billingStatus === 'payment_failed';
+
+  const handleReattach = useCallback(() => {
+    router.push(`/billing/reattach?subscriptionId=${encodeURIComponent(sub.id)}`);
+  }, [router, sub.id]);
+
   const hasCycleChange =
     isEditing && subCycleEdit !== null && subCycleEdit !== sub.cycle;
 
@@ -126,7 +135,12 @@ export default function SubscriptionItem({
             <span className="mp-sub-item-vol">{' · '}{sub.volume}</span>
             <span className="mp-sub-item-vol">{' · '}정기배송 {sub.cycle}</span>
           </span>
-          {sub.status === 'paused' ? (
+          {needsReattach ? (
+            <span className="mp-sub-item-status mp-sub-item-status--warning">
+              <InfoCircleIcon size={18} />
+              결제수단 재등록 필요
+            </span>
+          ) : sub.status === 'paused' ? (
             <span className="mp-sub-item-status mp-sub-item-status--paused">
               <InfoCircleIcon size={18} />
               일시정지 중
@@ -201,19 +215,48 @@ export default function SubscriptionItem({
             </span>
           </div>
 
-          {sub.status === 'paused' && (
-            <div className="mp-sub-paused-notice">
+          {needsReattach ? (
+            <div className="mp-sub-paused-notice mp-sub-paused-notice--warning">
               <InfoCircleIcon size={18} />
-              {hasCycleChange
-                ? '배송이 일시정지 중입니다. 재개 후 변경된 주기가 적용됩니다.'
-                : '배송이 일시정지 중입니다.'}
+              {sub.status === 'paused'
+                ? '결제수단이 만료·해지되어 정기배송이 정지되었습니다. 결제수단을 재등록하면 다음 주기부터 자동으로 재개됩니다.'
+                : '등록된 결제수단을 사용할 수 없습니다. 다음 결제 전에 재등록해 주세요.'}
             </div>
+          ) : (
+            sub.status === 'paused' && (
+              <div className="mp-sub-paused-notice">
+                <InfoCircleIcon size={18} />
+                {hasCycleChange
+                  ? '배송이 일시정지 중입니다. 재개 후 변경된 주기가 적용됩니다.'
+                  : '배송이 일시정지 중입니다.'}
+              </div>
+            )
           )}
 
           {/* dirty: secondary "취소" + primary "주기변경 적용" 2종 / clean: secondary 2종 (건너뛰기 + 일시정지/재개).
              dirty 의 "취소" = subCycleEdit null 원복 (아코디언 유지 → clean 상태로 다른 액션 가능).
              X 아이콘 = dirty 시 자동 폐기 + 닫기 (현재 동작 유지). Layout 일정 (양쪽 모두 2열 grid). */}
-          {hasCycleChange ? (
+          {needsReattach ? (
+            <div className="mp-form-reveal-actions mp-form-reveal-actions--sub">
+              <button
+                className="mp-cancel-btn"
+                type="button"
+                disabled
+                onClick={onSkipRequest}
+                data-gtr-tap
+              >
+                건너뛰기
+              </button>
+              <button
+                className="mp-save-btn"
+                type="button"
+                onClick={handleReattach}
+                data-gtr-tap
+              >
+                결제수단 재등록
+              </button>
+            </div>
+          ) : hasCycleChange ? (
             <div className="mp-form-reveal-actions mp-form-reveal-actions--sub">
               <button
                 className="mp-cancel-btn"

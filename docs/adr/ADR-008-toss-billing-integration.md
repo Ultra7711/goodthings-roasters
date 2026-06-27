@@ -1,8 +1,65 @@
 # ADR-008 — 토스페이먼츠 빌링(자동결제) 통합
 
-**상태:** Proposed (S173 작성, 클라이언트 빌링 계약 승인 대기)
-**작성일:** 2026-05-07
+**상태:** Accepted · **Living** (S173 작성 · S339 SoT 승격 — 정책 변경 시 본 ADR §0 + §6 동시 갱신 의무)
+**작성일:** 2026-05-07 (최종 갱신 2026-06-28 / S339)
 **관련:** payments-flow.md, subscription-full-implementation-plan.md, ADR-002, ADR-005
+
+> 🟢 **이 문서는 Living SoT 다.** 빌링/구독 자동결제의 **현재 유효한 정책 전부**는 아래 **§0 유효 정책 스냅샷** 한 곳에 모은다. §1~§5 본문은 2026-05-07 설계 시점 스냅샷이며 일부는 이후 결정으로 폐기됐다(§0.2 Supersession Log 참조). **새 세션·작업자는 §0 만 읽으면 방향이 잡힌다.** 본문과 §0 이 충돌하면 **§0 이 우선**한다.
+>
+> ⚠️ **갱신 규칙(필수):** 빌링/구독 결정을 바꾸거나 추가하면 session-complete 메모리뿐 아니라 **반드시 본 ADR §0 스냅샷 + §6 결정 추적을 같은 커밋에서 갱신**한다. 이를 빠뜨리면 SoT 가 다시 화석화되어 매 세션 정책을 잃는다. → [[feedback_billing_decisions_adr_living_sot]]
+
+---
+
+## 0. 유효 정책 스냅샷 (Living · 2026-06-28 / S339 기준)
+
+> 현재 살아있는 정책만. 각 항목 끝 `[출처]` 는 결정 ID(§6). ⚠️ 표시는 §1~§5 본문의 폐기 항목을 가리킨다.
+
+### 0.1 현재 유효 정책
+
+**결제 모델**
+- 정기배송 = 토스 **빌링키 자동결제**. **회원 전용**(`profiles.customer_key` UUID·불변). 결제수단 = **카드 + 계좌이체**(간편결제 미지원). `[D-2·D-5]`
+- 혼합 카트 = **γ 합산 단일 결제**(1 order ↔ 1 payment). 자동 회차 청구는 **정기 항목만**. `[D-3·S294]`
+- 빌링키 저장 = `billing_methods`(토스 **토큰 + 마스킹만** 보관 · 실 카드정보는 토스 보유). **service-role only RLS**. `[D-6·S176]`
+- 🟢 **결제수단 "목록 관리 UI" 미채택** — 카드 목록을 노출/관리하지 않는다. 결제수단은 **구독별 빌링키 종속**, 변경·재등록은 **토스 위젯 재등록(일회성)** 으로만. 빌링키=토큰(민감정보 아님)·민감정보 최소 보유·빌링 심사 전제. `[DEC-S336-PAY1]` ⚠️ 이 결정이 §3.4 `methods` 목록/삭제/default·§3.5 "MyPage 카드 관리 CRUD"·Phase 3-D "MyPage 카드관리"를 폐기
+
+**가격 · 배송**
+- 단가 = **가입 시점 고정(스냅샷)** `subscriptions.unit_price·quantity`. 배송비 = **회차 시점 현행 정책**(site_settings 동적·무료배송 임계 반영). 배송비 스냅샷 미채택. `[DEC-S337-1]`
+- 배송지 = 매 회차 회원 **기본 배송지**(`addresses.is_default`). 미설정 시 해당 회차 청구 보류. `[DEC-S337-3]`
+- 정기 **할인 미적용**(현행). 도입 시 스냅샷 단가 계산에 반영.
+
+**스케줄러 · 청구**
+- 스케줄러 = **Vercel Cron + 트리거 분리**(pg_cron+pg_net 기각). **매일 1회 KST 10시**(UTC `0 1 * * *`). `[DEC-S338-1·2]` ⚠️ D-7 pg_cron 매시간 폐기
+- 멱등/복구 = **get-or-create + order 보존**(이번 주기 pending 회차 재사용 → 같은 order_number → 토스 멱등 복구). 주방어 = `create_recurring_order` 의 `next_delivery_at>now()` DB 가드(subscription FOR UPDATE). `[DEC-S338-4·S337-2]` · [[reference_toss_idempotency_key]]
+- 토스 출금(외부·비가역) ↔ DB 반영(내부) 2단계 — 출금 성공 후 process 실패 시 `RPC_FAILED_AFTER_CHARGE` 기록 + CRITICAL + retryable. `[S338 R-2a]`
+- cron 한도(Vercel Hobby = 2개): `charge/run`(KST10) + `charge/retry`(KST11). 3번째(카드만료 알림)·빈도 상향은 **Pro 전환 후**. `[DEC-S338-R3]` · [[project_billing_r3_pro_backlog]]
+
+**실패 · 재개 (dunning)**
+- 자동결제 실패 → 재시도(일시 오류 24/48/72h) → 소진 또는 영구 오류(만료·정지·빌링키 invalid) → **`paused` 전환**(무한 재청구 차단). `[D-8·S338 R-3a]`
+- paused = `cancelled` 아님. **결제수단 재등록 시 재개**(재등록 유도 모델). 영구 실패 시 재등록 유도 **이메일** 발송(24h 중복차단). `[S338 R-3a·R-3b]`
+- 🟢 **재개 정책 = `next_delivery_at` 다음 정상 주기로 이월**(`now()+cycle_days`), **즉시 청구 없음**. (기존 `resumeSubscription`·`/api/subscriptions/[id]/resume` 가 이미 이 계산) `[DEC-S339]`
+- 🟢 **재등록 동선 = 일회성 토스 위젯 redirect**(카드 목록 비노출). 토스 도메인에서 카드 입력 → 토큰만 저장 → **해당 구독 1건에만 연결**. `detached + paused` 면 **자동 재개**. `[DEC-S339 / R-3d]`
+- 🟢 **결제수단 상태(billingStatus) = 3-state** `[DEC-S339-3·4 / R-3d]`:
+  - `ok` — billing_method 유효(존재 + `deleted_at IS NULL`) · 정상.
+  - `detached` — `billing_method_id IS NULL` **OR** 가리키는 카드 soft-deleted(`deleted_at IS NOT NULL`). billing_methods 는 soft delete 라 카드 삭제 시 FK `set null` 미발동 → soft-deleted 카드를 계속 가리킴 → 회차 청구 `billing_method invalid` 실패. (NULL 케이스 실재: S336 잔여 `refreshing-afternoon`) → **재등록 필수**.
+  - `payment_failed` — billing_method 는 유효하나 `paused` + 미해결 `subscription_billing_failures`(`resolved_at IS NULL`) 존재(dunning·카드 만료/정지 등 영구 실패). → **재등록 권장**(그냥 재개 시 다음 청구 또 실패하는 루프 차단). 식별 = security-definer RPC 가 failures 큐 LEFT JOIN.
+
+**출시**
+- 운영 활성화 = **토스 라이브 심사 통과 후**(클라이언트 컨펌 선행). 출시 전략 = **자동결제 완주**(수동/반자동 시작안 기각). `[D-1·DEC-S338-3]` · [[project_toss_live_review_status]]
+- 라이브 전 **테스트 데이터 truncate**(orders·payments·subscriptions 등). `[D-4]`
+
+**탈퇴 (구독 연동)**
+- 활성/정지 구독 보유 회원 탈퇴 = 선해지 강제 폐기 → **2차 동의 모달 후 일괄 취소**. 빌링키 토스 측 명시 해지는 별도 sprint(현행 DB CASCADE 만). `[DEC-S335-W1~W5]`
+
+### 0.2 Supersession Log (폐기된 본문 → 대체)
+
+| 폐기 항목 | 본문 위치 | 대체 정책 | 출처 |
+|----------|----------|----------|------|
+| pg_cron 매시간 자동결제 트리거 | §2 D-7 · §3.2 · §4 Phase 3-C | Vercel Cron + 트리거 분리 · 매일 KST 10시 | DEC-S338-1·2 |
+| MyPage 카드 관리 CRUD UI · `methods` 목록/삭제/default 소비 | §3.4 · §3.5 · §4 Phase 3-D | 결제수단 목록 미채택 · 토스 위젯 재등록 | DEC-S336-PAY1 |
+| "카드 재등록 유도 페이지"(추상 표현) | §4 Phase 3-D | 일회성 재등록 redirect 동선(구독 1건 연결+자동재개)으로 구체화 | DEC-S339 (R-3d) |
+| 혼합 카트 미정(A 옵션 추상) | §2 D-3 초안 | γ 합산 단일 결제 1차 채택 | S294 (D-3 갱신본) |
+
+> 🔻 **Dead code 인지:** `methods` GET(목록)·`[id]` DELETE·`[id]/default` POST 라우트는 구현됐으나 DEC-S336-PAY1 로 **소비처 0(dead)**. R-3d 재등록은 `authorizations`(발급) + 신규 `reattach-billing` 만 사용. dead 라우트 삭제는 별도 정리 sprint(`[id]` DELETE 는 향후 orphan billing_method 정리에 재사용 여지로 보존 검토).
 
 ---
 
@@ -151,6 +208,8 @@ billing_methods
 `subscriptions.billing_method_id` FK 추가 (어떤 카드로 자동결제할지).
 
 ### D-7. 자동결제 트리거
+
+> ⚠️ **SUPERSEDED (DEC-S338-1·2).** pg_cron+pg_net 기각 → **Vercel Cron + 트리거 분리**(배치 로직은 표준 라우트, vercel.json crons 1줄). 빈도 = **매일 1회 KST 10시**(UTC `0 1 * * *`). 아래 원안은 역사적 맥락. 현재 정책 = §0.1 "스케줄러·청구".
 
 **결정:** **pg_cron 1시간 간격 + service_role function**.
 
@@ -306,6 +365,8 @@ create table public.subscription_billing_failures (
 
 ### 3.4 API 엔드포인트 신설
 
+> ⚠️ **부분 SUPERSEDED (DEC-S336-PAY1).** `GET /methods`(목록)·`DELETE /methods/[id]`·`POST /methods/[id]/default` 는 구현됐으나 **결제수단 목록 UI 미채택**으로 소비처 0(dead). 재등록은 `POST /authorizations`(발급) + 신규 `POST /api/subscriptions/[id]/reattach-billing`(R-3d) 으로 처리. 현재 정책 = §0.1·§0.2.
+
 | 메서드 | 경로 | 역할 |
 |--------|------|------|
 | POST | `/api/billing/authorizations` | authKey → billingKey 발급 + 저장 |
@@ -320,7 +381,7 @@ create table public.subscription_billing_failures (
 |----------|------|
 | `CheckoutPayment.tsx` | 정기배송 포함 시 `requestBillingAuth` 분기. 일반만 있으면 기존 위젯 결제 그대로 |
 | `/billing/success/page.tsx` (신규) | authKey 콜백 처리 + `/api/billing/authorizations` 호출 |
-| MyPage 정기배송 카드 관리 | `billing_methods` CRUD UI |
+| ~~MyPage 정기배송 카드 관리 (`billing_methods` CRUD UI)~~ | ⚠️ **SUPERSEDED (DEC-S336-PAY1)** — 목록 관리 UI 미채택. 대신 끊긴 구독에서 **일회성 토스 위젯 재등록**(`/billing/reattach` · R-3d) |
 
 ---
 
@@ -345,17 +406,21 @@ create table public.subscription_billing_failures (
 
 ### Phase 3-C — 자동 cron
 
-1. **migration 043** — pg_cron `run_subscription_billing` + 매시간 schedule
-2. `subscription_billing_failures` 처리 cron (재시도 + 일시중지 정책)
-3. Edge Function or Next.js API integration (pg_net 호출)
+> ⚠️ **SUPERSEDED (DEC-S338).** pg_net/pg_cron 대신 **Vercel Cron → 표준 라우트** 구현됨. 실제 구현 = `/api/billing/charge/run`(KST10) + `/api/billing/charge/retry`(KST11) + `cronAuth`(Bearer/x-cron-secret). 마이그 105·106·107. 아래 원안은 역사적 맥락.
+
+1. ~~**migration 043** — pg_cron `run_subscription_billing` + 매시간 schedule~~ → Vercel Cron (DEC-S338-1)
+2. `subscription_billing_failures` 처리 cron (재시도 + 일시중지 정책) → R-3a `retry` 라우트로 구현
+3. ~~Edge Function or Next.js API integration (pg_net 호출)~~ → Vercel Cron Bearer 자동주입
 4. staging 검증
 
 ### Phase 3-D — 실패 처리 / UX
 
-1. 카드 만료 30일 전 알림 (Resend 메일 템플릿)
-2. 빌링 실패 시 사용자 메일 + 마이페이지 배너
-3. 카드 재등록 유도 페이지
-4. 운영자 admin 빌링 실패 모니터링
+> 🟢 **구현 현황 (S338~S339):** 2(실패 메일)=R-3b 완료. 3(재등록)=**R-3d 로 구체화** — "유도 페이지"(추상) → **끊긴 구독 배지 + 일회성 토스 위젯 재등록 redirect**(카드목록 비노출·구독 1건 연결·자동재개) `[DEC-S339]`. 1(카드만료 알림)=**Pro 백로그**([[project_billing_r3_pro_backlog]]). 마이페이지 "카드 관리"는 DEC-S336-PAY1 로 폐기.
+
+1. 카드 만료 30일 전 알림 (Resend 메일 템플릿) — ⏸ **Pro 백로그**(3번째 cron + expires_at 보강 필요)
+2. 빌링 실패 시 사용자 메일 ~~+ 마이페이지 배너~~ — ✅ 메일 R-3b 완료
+3. ~~카드 재등록 유도 페이지~~ → 🟢 **R-3d 끊긴 구독 재등록 동선**(`/billing/reattach`)
+4. 운영자 admin 빌링 실패 모니터링 — 후속
 5. **계좌 빌링 결제 흐름** — Phase 3-A 는 카드만 처리 (`process_billing_charge_success` RPC method='card' 가드, billingService 카드 가정). 계좌 빌링 결제는 토스 transfer billing API 호출 + RPC 가드 완화 + billing_methods.account_number_masked 활용 흐름으로 별도 설계.
 
 ### Phase 3-E — 운영 전환
@@ -390,9 +455,29 @@ create table public.subscription_billing_failures (
 | D-4 | 기존 데이터 truncate | 2026-05-07 |
 | D-5 | customerKey = profiles.customer_key (UUID, 회원만) | 2026-05-07 |
 | D-6 | billing_methods 별도 테이블 | 2026-05-07 |
-| D-7 | pg_cron 매시간 자동결제 | 2026-05-07 |
+| D-7 | ~~pg_cron 매시간 자동결제~~ **SUPERSEDED → DEC-S338-1·2** | 2026-05-07 |
 | D-8 | 실패 처리 매트릭스 (3차 재시도 → 일시중지) | 2026-05-07 |
 | D-9 | 026 RPC subscription INSERT 시점 변경을 Phase 3-A에 흡수 | 2026-05-07 |
+
+### 후속 결정 (S294~S339 · §0 스냅샷 SoT)
+
+| ID | 결정 | 상태 | 일자 |
+|----|------|------|------|
+| D-3(갱신) | 혼합 카트 = γ 합산 단일 결제 1차 채택 (A-1 β fallback) | Active | 2026-05-29 (S294) |
+| DEC-S335-W1~5 | 활성 구독 회원 탈퇴 = 선해지 강제 폐기 → 2차 모달 일괄취소 (빌링키 토스 해지는 별도 sprint) | Active | S335~336 |
+| **DEC-S336-PAY1** | **결제수단 목록 관리 UI 미채택** — 구독별 빌링키 종속 · 변경/재등록 = 토스 위젯 재등록 · 토큰+마스킹만 보관 | **Active (supersedes §3.4 methods·§3.5 카드관리)** | S336 |
+| DEC-S337-1 | 단가 = 가입시점 고정(스냅샷) · 배송비 = 회차시점 현행 정책 | Active | S337 |
+| DEC-S337-2 | 멱등 = `next_delivery_at>now()` DB 가드(주) + 토스 Idempotency-Key(보조) | Active | S337 |
+| DEC-S337-3 | 회차 주문 출처 = profiles contact · 기본배송지 · terms_version 상수 | Active | S337 |
+| DEC-S338-1 | 스케줄러 = Vercel Cron + 트리거 분리 (pg_cron+pg_net 기각) | **Active (supersedes D-7)** | S338 |
+| DEC-S338-2 | 청구 빈도 = 매일 1회 KST 10시 (UTC `0 1 * * *`) | **Active (supersedes D-7)** | S338 |
+| DEC-S338-3 | 출시 전략 = 자동결제 완주 (수동/반자동 기각) | Active | S338 |
+| DEC-S338-4 | 멱등/복구 = get-or-create + order 보존 (advisory lock 기각) | Active | S338 |
+| DEC-S338-R3 | Vercel Hobby cron 2개 한도 (run+retry) · 3번째·빈도상향 = Pro 백로그 | Active | S338 |
+| **DEC-S339-1** | **재개 정책 = next_delivery 다음 주기 이월(now+cycle) · 즉시청구 없음** | **Active** | S339 |
+| **DEC-S339-2** | **재등록 = 일회성 토스 위젯 redirect 동선(카드목록 비노출·구독 1건 연결) · detached+paused 자동 재개** | **Active** | S339 |
+| **DEC-S339-3** | **끊김(detached) 정의 = billing_method_id NULL OR 가리키는 카드 soft-deleted** | **Active** | S339 |
+| **DEC-S339-4** | **billingStatus 3-state(ok/detached/payment_failed)** — dunning paused(유효 카드+미해결 failure)를 `payment_failed` 로 분리 식별(failures 큐 조인). 영구실패 구독이 '그냥 재개'로 빠지는 루프 차단 | **Active** | S339 |
 
 ---
 

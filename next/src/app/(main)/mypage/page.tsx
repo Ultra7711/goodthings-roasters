@@ -14,10 +14,7 @@ import { Suspense } from 'react';
 import { requireAuth, getAdminClaims, type AdminLevel } from '@/lib/auth/getClaims';
 /* Skeleton fallback / ChipsPreview 의 css 보장 (server component chunk 의존) */
 import '@/components/auth/MyPagePage.css';
-import {
-  findSubscriptionsForUser,
-  toSubscription,
-} from '@/lib/repositories/subscriptionRepo';
+import { findSubscriptionsWithBillingHealth } from '@/lib/repositories/subscriptionRepo';
 import { findOrdersForUser, getOrdersCountForUser } from '@/lib/repositories/orderRepo';
 import { toOrder } from '@/lib/orders/toOrder';
 import { getNewsletterStatus, type NewsletterStatusResult } from '@/lib/newsletter';
@@ -43,8 +40,7 @@ async function MyPageAuthed() {
      - adminLevel: admin 인 경우 'owner' | 'staff' (HeroGreeting 라벨)
      - products: S282-P2 — SubscriptionView lazy fetch (server action) · 90% dead fetch 회피. */
   const [subscriptions, orders, ordersCount, adminClaims, newsletterStatus, nickname] = await Promise.all([
-    findSubscriptionsForUser()
-      .then((rows) => rows.map(toSubscription))
+    findSubscriptionsWithBillingHealth()
       .catch((err): Subscription[] => {
         console.error('[mypage.prefetch] subscriptions failed', err);
         return [];

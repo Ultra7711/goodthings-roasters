@@ -291,6 +291,11 @@
   background: var(--color-background-secondary);
   border-radius: 6px;
 }
+/* R-3d: 결제수단 재등록 안내 — 골드 강조(텍스트·아이콘) */
+.mp-sub-paused-notice--warning {
+  color: var(--color-accent-gold);
+  align-items: flex-start;
+}
 /* 배송 주기 변경 — 한 줄 인라인 표시 (변경된 값에만 골드 강조) */
 .mp-sub-cycle-change {
   font-family: var(--font-kr); font-size: var(--type-body-m-size); font-weight: var(--type-body-m-weight);
@@ -436,6 +441,12 @@
   color: var(--color-text-tertiary);
   /* S253: inline-flex baseline = first item (SVG) bottom → 라인 박스 확장 차단.
      기존 `svg { top: -1px }` baseline hack 폐기 (cm-menu-name-with-sig S252 답습). */
+  vertical-align: middle;
+}
+/* R-3d: 결제수단 끊김/실패 — 재등록 필요 경고(paused 변형 + 골드 강조) */
+.mp-sub-item-status--warning {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--color-accent-gold);
   vertical-align: middle;
 }
 
