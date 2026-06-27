@@ -33,6 +33,8 @@ const RETRYABLE_CODES: ReadonlySet<string> = new Set<string>([
   'COMMON_ERROR',
   // 내부 분류(토스 외) — 네트워크/타임아웃은 즉시 재시도 대상.
   'NETWORK_ERROR',
+  // 토스 출금 성공 후 후처리(RPC) 실패 — 재시도가 같은 order 로 멱등 복구(R-2a).
+  'RPC_FAILED_AFTER_CHARGE',
 ]);
 
 /* 영구 오류 — 결제수단 재등록 전까지 재시도 무의미. */

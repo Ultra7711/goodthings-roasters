@@ -107,7 +107,6 @@ describe('POST /api/billing/charge/recurring', () => {
     chargeMock.mockResolvedValueOnce({
       orderId: 'b2c3d4e5-6789-4def-ab12-3456789abcde',
       orderNumber: 'GT-20260628-00001',
-      paymentKey: 'pk_test_recurring',
       amount: 19000,
       nextDeliveryAt: '2026-07-12T00:00:00.000Z',
     });

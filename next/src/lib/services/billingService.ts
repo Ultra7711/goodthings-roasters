@@ -53,7 +53,9 @@ export type BillingServiceErrorCode =
   | 'subscription_snapshot_missing'
   | 'no_default_address'
   | 'product_not_found'
-  | 'already_charged_this_cycle';
+  | 'already_charged_this_cycle'
+  /* 토스 출금 성공 후 후처리(RPC) 실패 — 출금됨·DB 미반영. 재시도로 복구(R-2a). */
+  | 'charge_post_process_failed';
 
 export class BillingServiceError extends Error {
   readonly code: BillingServiceErrorCode;
@@ -504,10 +506,24 @@ const RECURRING_TERMS_VERSION = 'subscription-recurring';
 export type ChargeRecurringResult = {
   orderId: string;
   orderNumber: string;
-  paymentKey: string;
   amount: number;
   nextDeliveryAt: string;
 };
+
+/**
+ * 에러 메시지에서 빌링키·고객키·결제키 류 민감 토큰을 마스킹 (R-2a).
+ * 토스/내부 에러 메시지가 subscription_billing_failures.error_message 로 DB 평문 저장되므로,
+ * 만약 키 값이 섞여 들어오면(방어적) 마스킹한다.
+ */
+function sanitizeErrorMessage(msg: string | null): string | null {
+  if (!msg) return msg;
+  return msg
+    .replace(
+      /(bill(?:ing)?[_-]?key|customer[_-]?key|payment[_-]?key)\s*[=:]\s*[^\s,;"']+/gi,
+      '$1=***',
+    )
+    .slice(0, 500);
+}
 
 /**
  * subscription_billing_failures 에 실패 1건 기록 (분류 + retry_at 산정).
@@ -520,7 +536,8 @@ async function recordBillingFailure(
   errorMessage: string | null,
 ): Promise<void> {
   /* 기록 실패가 청구 결과(원래 에러) 흐름을 가리지 않도록 내부에서 삼킨다.
-     단 손실은 로그로 남겨 운영 추적 가능하게 한다(R-3 dunning 의존 데이터). */
+     단 이 테이블은 R-3 dunning 의 유일 입력 → 유실 시 재시도·알림이 영영 누락된다.
+     production 에서도 CRITICAL 마커로 남겨 운영이 즉시 인지하도록 한다. */
   try {
     /* 기존 미해결 실패 횟수 → retry 스케줄 단계 결정 */
     const { count } = await admin
@@ -534,11 +551,11 @@ async function recordBillingFailure(
     await admin.from('subscription_billing_failures').insert({
       subscription_id: subscriptionId,
       error_code: errorCode,
-      error_message: errorMessage ? errorMessage.slice(0, 500) : null,
+      error_message: sanitizeErrorMessage(errorMessage),
       retry_at: retryAt,
     });
   } catch (recErr) {
-    console.error('[billing.recurring] failed to record billing failure', {
+    console.error('[billing.recurring][CRITICAL] 실패 기록 유실 — dunning 누락 위험', {
       subscriptionId,
       errorCode,
       ...(process.env.NODE_ENV !== 'production' && {
@@ -749,7 +766,19 @@ export async function chargeRecurringCycle(input: {
       p_raw_response: payment,
     })
     .single<{ payment_id: string; next_delivery_at: string }>();
-  if (rpcErr) throw rpcErr;
+  if (rpcErr) {
+    /* 토스 출금은 성공(status DONE 검증 후)인데 후처리 RPC 실패 →
+       토스=출금완료, DB=order pending·payments 미기록. 회차 주문 보존(106) +
+       process 멱등(106)으로 재시도 시 같은 order 로 복구된다.
+       dunning 큐에 올려 R-3 재시도가 복구하도록 기록 + CRITICAL 경고. */
+    const rpcMsg = (rpcErr as { message?: string }).message ?? 'rpc error';
+    await recordBillingFailure(admin, sub.id, 'RPC_FAILED_AFTER_CHARGE', rpcMsg);
+    console.error('[billing.recurring][CRITICAL] 토스 출금 성공 후 후처리 실패 — 재시도 복구 필요', {
+      subscriptionId: sub.id,
+      orderNumber: orderRow.order_number,
+    });
+    throw new BillingServiceError('charge_post_process_failed', rpcMsg, rpcErr);
+  }
   if (!rpcResult) throw new BillingServiceError('toss_charge_failed', 'rpc empty');
 
   /* 결제 audit — 성공 회차는 운영 가시성 위해 기록(민감정보 제외). */
@@ -763,7 +792,6 @@ export async function chargeRecurringCycle(input: {
   return {
     orderId: orderRow.order_id,
     orderNumber: orderRow.order_number,
-    paymentKey: payment.paymentKey,
     amount: payment.totalAmount,
     nextDeliveryAt: rpcResult.next_delivery_at,
   };

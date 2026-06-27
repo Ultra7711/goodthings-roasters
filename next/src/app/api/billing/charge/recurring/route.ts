@@ -65,6 +65,8 @@ export async function POST(request: Request): Promise<Response> {
           return apiError('conflict', { detail: err.code });
         case 'toss_charge_failed':
         case 'charge_not_done':
+        /* 출금됨·DB 미반영 — 재시도 복구 대상. payment_failed 로 응답(cron 재시도 흡수). */
+        case 'charge_post_process_failed':
           return apiError('payment_failed', { detail: err.code });
         default:
           return apiError('server_error');

@@ -226,4 +226,31 @@ describe('chargeRecurringCycle', () => {
       code: 'subscription_snapshot_missing',
     });
   });
+
+  it('토스 출금 성공 후 후처리 RPC 실패 → RPC_FAILED_AFTER_CHARGE 기록 + charge_post_process_failed (R-2a)', async () => {
+    const failureInsert = vi.fn(async () => ({ error: null }));
+    setupAdmin({
+      failureInsert,
+      rpc: {
+        create_recurring_order: {
+          data: { order_id: 'o-1', order_number: 'GT-20260628-00009', total_amount: 21500 },
+        },
+        // 후처리 RPC 실패 주입 (토스 출금은 이미 성공)
+        process_recurring_billing_charge: { error: { message: 'deadlock detected' } },
+      },
+    });
+    chargeBillingMock.mockResolvedValueOnce({
+      status: 'DONE',
+      paymentKey: 'pk_test',
+      totalAmount: 21500,
+    });
+
+    await expect(chargeRecurringCycle({ subscriptionId: SUB_ID })).rejects.toMatchObject({
+      code: 'charge_post_process_failed',
+    });
+    // 토스 출금됨 → dunning 큐에 기록되어 R-3 재시도가 같은 order 로 복구
+    expect(failureInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ error_code: 'RPC_FAILED_AFTER_CHARGE' }),
+    );
+  });
 });
