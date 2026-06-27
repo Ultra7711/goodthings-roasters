@@ -117,6 +117,12 @@ export type ChargeBillingInput = {
   orderId: string;
   /** 구매상품명 (≤100자). */
   orderName: string;
+  /**
+   * 멱등키 (선택). 자동 반복 청구(회차)에서 동일 회차 재호출 시 중복 결제 차단용.
+   * 토스 `Idempotency-Key` 헤더(≤300자, 15일 유효)로 전달 — 동일 키 = 첫 결과 반환.
+   * 회차 식별(subscriptionId + 주기)로 deterministic 하게 구성한다.
+   */
+  idempotencyKey?: string;
   /** 구매자 이메일 (선택, ≤100자). */
   customerEmail?: string;
   /** 구매자명 (선택, ≤100자). */
@@ -174,8 +180,9 @@ export type TossBillingPaymentResponse = {
  * - 자동 cycle: pg_cron 이 next_delivery_at 도래 구독 일괄 처리
  *
  * 멱등성:
- * - Idempotency-Key 헤더는 토스 docs 미명시 — orderId unique 보장으로 중복 차단.
- * - 같은 orderId 재호출 시 토스가 ALREADY_PROCESSED_PAYMENT 등으로 거부.
+ * - 첫 회차: orderId unique 보장으로 중복 차단(같은 orderId 재호출 시 토스 거부).
+ * - 자동 회차: input.idempotencyKey → `Idempotency-Key` 헤더(15일 유효). 동일 회차
+ *   재시도 시 토스가 첫 결과를 그대로 반환 → 중복 출금 0. DB 멱등 가드와 이중 방어.
  *
  * 정상:
  * - 200 OK + status='DONE' → 결제 성공
@@ -195,6 +202,9 @@ export async function chargeBilling(
   const encoded = encodeURIComponent(input.billingKey);
   return tossFetch<TossBillingPaymentResponse>(`/v1/billing/${encoded}`, {
     method: 'POST',
+    ...(input.idempotencyKey
+      ? { headers: { 'Idempotency-Key': input.idempotencyKey } }
+      : {}),
     body: JSON.stringify({
       customerKey: input.customerKey,
       amount: input.amount,

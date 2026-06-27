@@ -27,7 +27,10 @@ import {
   type TossBillingPaymentResponse,
 } from '@/lib/payments/tossBillingClient';
 import { TossApiError, TossNetworkError } from '@/lib/payments/tossClient';
-import type { OrderItemType, DbSubscriptionPeriod } from '@/types/db';
+import { classifyBillingError, computeRetryAt } from '@/lib/payments/billingErrorPolicy';
+import { fetchProducts } from '@/lib/productsServer';
+import { fetchSiteSettings } from '@/lib/siteSettingsServer';
+import type { OrderItemType, DbSubscriptionPeriod, DbPaymentMethod } from '@/types/db';
 
 /* ══════════════════════════════════════════
    에러
@@ -43,7 +46,14 @@ export type BillingServiceErrorCode =
   | 'duplicate_subscription'
   | 'toss_authorization_failed'
   | 'toss_charge_failed'
-  | 'charge_not_done';
+  | 'charge_not_done'
+  /* R-1 회차 자동 청구 */
+  | 'subscription_not_found'
+  | 'subscription_not_active'
+  | 'subscription_snapshot_missing'
+  | 'no_default_address'
+  | 'product_not_found'
+  | 'already_charged_this_cycle';
 
 export class BillingServiceError extends Error {
   readonly code: BillingServiceErrorCode;
@@ -206,6 +216,10 @@ type SubscriptionItemForCharge = {
   product_volume: string | null;
   product_image_src: string | null;
   cycle: DbSubscriptionPeriod;
+  /** 가입 시점 단가 스냅샷 (105) — subscriptions.unit_price 저장용. */
+  unit_price: number;
+  /** 가입 시점 수량 스냅샷 (105) — subscriptions.quantity 저장용. */
+  quantity: number;
 };
 
 /**
@@ -234,7 +248,7 @@ export async function chargeFirstCycle(input: {
     .select(
       `id, order_number, user_id, status, total_amount,
        order_items (product_slug, product_name, product_volume, product_image_src,
-                    item_type, subscription_period)`,
+                    item_type, subscription_period, unit_price, quantity)`,
     )
     .eq('id', input.orderId)
     .eq('user_id', input.userId)
@@ -251,6 +265,8 @@ export async function chargeFirstCycle(input: {
         product_image_src: string | null;
         item_type: OrderItemType;
         subscription_period: DbSubscriptionPeriod | null;
+        unit_price: number;
+        quantity: number;
       }>;
     }>();
   if (orderErr) throw orderErr;
@@ -289,6 +305,8 @@ export async function chargeFirstCycle(input: {
       product_volume: it.product_volume,
       product_image_src: it.product_image_src,
       cycle: it.subscription_period as DbSubscriptionPeriod,
+      unit_price: it.unit_price,
+      quantity: it.quantity,
     }));
   if (subscriptionItems.length === 0) {
     throw new BillingServiceError('no_subscription_items');
@@ -474,4 +492,279 @@ export async function setDefaultBillingMethod(input: {
     }
     throw error;
   }
+}
+
+/* ══════════════════════════════════════════
+   6. 회차 자동 청구 (R-1)
+   ══════════════════════════════════════════ */
+
+/** 회차 주문 약관 버전 — 가입 시 빌링 등록 동의에 근거 (R-4 약관 정합 예정). */
+const RECURRING_TERMS_VERSION = 'subscription-recurring';
+
+export type ChargeRecurringResult = {
+  orderId: string;
+  orderNumber: string;
+  paymentKey: string;
+  amount: number;
+  nextDeliveryAt: string;
+};
+
+/**
+ * subscription_billing_failures 에 실패 1건 기록 (분류 + retry_at 산정).
+ * R-1 은 기록만 — paused 전환·재시도 실행은 R-3(dunning).
+ */
+async function recordBillingFailure(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  subscriptionId: string,
+  errorCode: string,
+  errorMessage: string | null,
+): Promise<void> {
+  /* 기록 실패가 청구 결과(원래 에러) 흐름을 가리지 않도록 내부에서 삼킨다.
+     단 손실은 로그로 남겨 운영 추적 가능하게 한다(R-3 dunning 의존 데이터). */
+  try {
+    /* 기존 미해결 실패 횟수 → retry 스케줄 단계 결정 */
+    const { count } = await admin
+      .from('subscription_billing_failures')
+      .select('id', { count: 'exact', head: true })
+      .eq('subscription_id', subscriptionId)
+      .is('resolved_at', null);
+    const attemptCount = count ?? 0;
+    const retryAt = computeRetryAt(errorCode, attemptCount, Date.now());
+
+    await admin.from('subscription_billing_failures').insert({
+      subscription_id: subscriptionId,
+      error_code: errorCode,
+      error_message: errorMessage ? errorMessage.slice(0, 500) : null,
+      retry_at: retryAt,
+    });
+  } catch (recErr) {
+    console.error('[billing.recurring] failed to record billing failure', {
+      subscriptionId,
+      errorCode,
+      ...(process.env.NODE_ENV !== 'production' && {
+        msg:
+          recErr instanceof Error
+            ? recErr.message.slice(0, 200)
+            : String(recErr).slice(0, 200),
+      }),
+    });
+  }
+}
+
+/**
+ * 정기배송 N회차(2회차+) 자동 청구.
+ *
+ * 흐름:
+ *  1) subscription 조회 + active/스냅샷/빌링수단 가드
+ *  2) billing_method(active) · 기본 배송지 · profile · 상품 카테고리 조회
+ *     - 기본 배송지 없음 / 상품 단종 → 실패 기록 후 throw (청구 보류)
+ *  3) 배송비 = site_settings 동적, 금액 = unit_price*quantity 스냅샷
+ *  4) create_recurring_order RPC — 회차 주문(pending) 원자 생성 + 멱등 가드
+ *  5) chargeBilling(Idempotency-Key) → DONE 검증
+ *  6) process_recurring_billing_charge RPC — payments + order paid + next_delivery 전진
+ *
+ * 멱등: ① RPC 의 next_delivery_at>now() 가드(주 방어) ② Idempotency-Key(이중).
+ *
+ * @throws BillingServiceError
+ */
+export async function chargeRecurringCycle(input: {
+  subscriptionId: string;
+}): Promise<ChargeRecurringResult> {
+  const admin = getSupabaseAdmin();
+
+  /* 1) subscription 조회 + 상태/스냅샷 가드 */
+  const { data: sub, error: subErr } = await admin
+    .from('subscriptions')
+    .select(
+      `id, user_id, product_slug, product_name, product_volume, product_image_src,
+       cycle, status, next_delivery_at, billing_method_id, unit_price, quantity`,
+    )
+    .eq('id', input.subscriptionId)
+    .maybeSingle<{
+      id: string;
+      user_id: string;
+      product_slug: string;
+      product_name: string;
+      product_volume: string | null;
+      product_image_src: string | null;
+      cycle: DbSubscriptionPeriod;
+      status: string;
+      next_delivery_at: string;
+      billing_method_id: string | null;
+      unit_price: number | null;
+      quantity: number | null;
+    }>();
+  if (subErr) throw subErr;
+  if (!sub) throw new BillingServiceError('subscription_not_found');
+  if (sub.status !== 'active') {
+    throw new BillingServiceError('subscription_not_active', sub.status);
+  }
+  if (sub.unit_price == null || sub.quantity == null) {
+    throw new BillingServiceError('subscription_snapshot_missing');
+  }
+  if (!sub.billing_method_id) {
+    throw new BillingServiceError('billing_method_not_found');
+  }
+
+  /* 2) billing_method (active) */
+  const { data: bm, error: bmErr } = await admin
+    .from('billing_methods')
+    .select('id, billing_key, method')
+    .eq('id', sub.billing_method_id)
+    .eq('user_id', sub.user_id)
+    .is('deleted_at', null)
+    .maybeSingle<{ id: string; billing_key: string; method: DbPaymentMethod }>();
+  if (bmErr) throw bmErr;
+  if (!bm) throw new BillingServiceError('billing_method_not_found');
+
+  /* 3) 기본 배송지 — 없으면 청구 보류 + 실패 기록 */
+  const { data: addr, error: addrErr } = await admin
+    .from('addresses')
+    .select('name, phone, zipcode, addr1, addr2')
+    .eq('user_id', sub.user_id)
+    .eq('is_default', true)
+    .maybeSingle<{
+      name: string;
+      phone: string;
+      zipcode: string;
+      addr1: string;
+      addr2: string | null;
+    }>();
+  if (addrErr) throw addrErr;
+  if (!addr) {
+    await recordBillingFailure(admin, sub.id, 'NO_DEFAULT_ADDRESS', '기본 배송지 미설정');
+    throw new BillingServiceError('no_default_address');
+  }
+
+  /* 4) profile (contact + customerKey) */
+  const { data: profile, error: profErr } = await admin
+    .from('profiles')
+    .select('customer_key, email, phone')
+    .eq('id', sub.user_id)
+    .maybeSingle<{ customer_key: string; email: string; phone: string | null }>();
+  if (profErr) throw profErr;
+  if (!profile) throw new BillingServiceError('profile_not_found');
+
+  /* 5) 상품 카테고리 (order_items NOT NULL) — 단종 시 보류 */
+  const products = await fetchProducts();
+  const product = products.find((p) => p.slug === sub.product_slug);
+  if (!product) {
+    await recordBillingFailure(admin, sub.id, 'PRODUCT_NOT_FOUND', `상품 단종: ${sub.product_slug}`);
+    throw new BillingServiceError('product_not_found', sub.product_slug);
+  }
+
+  /* 6) 배송비 — site_settings 동적 (orderService 인라인 규칙 동일) */
+  const { shipping } = await fetchSiteSettings();
+  const subtotal = sub.unit_price * sub.quantity;
+  const freeThreshold = shipping.enabled
+    ? shipping.free_threshold
+    : Number.POSITIVE_INFINITY;
+  const shippingFee = subtotal >= freeThreshold ? 0 : shipping.base_fee;
+
+  const contactPhone = profile.phone ?? addr.phone;
+
+  /* 7) 회차 주문(pending) 원자 생성 — 멱등 가드는 RPC 내부(next_delivery_at>now) */
+  const { data: orderRow, error: orderErr } = await admin
+    .rpc('create_recurring_order', {
+      p_subscription_id: sub.id,
+      p_contact_email: profile.email,
+      p_contact_phone: contactPhone,
+      p_shipping_name: addr.name,
+      p_shipping_phone: addr.phone,
+      p_shipping_zipcode: addr.zipcode,
+      p_shipping_addr1: addr.addr1,
+      p_shipping_addr2: addr.addr2 ?? '',
+      p_product_category: product.category,
+      p_shipping_fee: shippingFee,
+      p_terms_version: RECURRING_TERMS_VERSION,
+    })
+    .single<{ order_id: string; order_number: string; total_amount: number }>();
+  if (orderErr) {
+    const msg = (orderErr as { message?: string }).message ?? '';
+    if (msg.includes('already_charged_this_cycle')) {
+      throw new BillingServiceError('already_charged_this_cycle');
+    }
+    if (msg.includes('subscription_not_active')) {
+      throw new BillingServiceError('subscription_not_active');
+    }
+    if (msg.includes('snapshot_missing')) {
+      throw new BillingServiceError('subscription_snapshot_missing');
+    }
+    if (msg.includes('billing_method')) {
+      throw new BillingServiceError('billing_method_not_found');
+    }
+    throw orderErr;
+  }
+  if (!orderRow) {
+    throw new BillingServiceError('order_not_found', 'create_recurring_order empty');
+  }
+
+  /* 8) 빌링 결제 — Idempotency-Key = 회차 식별(중복 출금 차단).
+        키는 (구독, 이번 주기 예정일)로 deterministic. 동일 회차 재시도/동시호출 시
+        토스가 첫 결과를 반환 → 출금 중복 0. payments.payment_key UNIQUE + orders 1:1
+        과 함께, 동시 호출의 두 번째 회차 주문은 후처리에서 UNIQUE 위반으로 안전 차단된다.
+        (완전한 동시 실행 제거는 R-2 스케줄러 advisory lock 으로 보강.) */
+  const idempotencyKey = `recurring-${sub.id}-${new Date(sub.next_delivery_at).getTime()}`;
+  let payment: TossBillingPaymentResponse;
+  try {
+    payment = await chargeBilling({
+      billingKey: bm.billing_key,
+      customerKey: profile.customer_key,
+      amount: orderRow.total_amount,
+      orderId: orderRow.order_number,
+      orderName: sub.product_name.slice(0, 100),
+      idempotencyKey,
+    });
+  } catch (err) {
+    /* 토스 실패 → 분류 기록. 회차 주문 pending 은 cleanup(038/039) 이 정리. */
+    if (err instanceof TossApiError) {
+      await recordBillingFailure(admin, sub.id, err.code, err.message);
+      throw new BillingServiceError('toss_charge_failed', err.code, err);
+    }
+    if (err instanceof TossNetworkError) {
+      await recordBillingFailure(admin, sub.id, 'NETWORK_ERROR', err.message);
+      throw new BillingServiceError('toss_charge_failed', 'network', err);
+    }
+    throw err;
+  }
+
+  if (payment.status !== 'DONE') {
+    await recordBillingFailure(
+      admin,
+      sub.id,
+      `STATUS_${payment.status}`,
+      `unexpected status ${payment.status}`,
+    );
+    throw new BillingServiceError('charge_not_done', payment.status);
+  }
+
+  /* 9) 결제 성공 atomic 후처리 — payments + order paid + next_delivery 전진 */
+  const { data: rpcResult, error: rpcErr } = await admin
+    .rpc('process_recurring_billing_charge', {
+      p_order_id: orderRow.order_id,
+      p_subscription_id: sub.id,
+      p_payment_key: payment.paymentKey,
+      p_total_amount: payment.totalAmount,
+      p_method: bm.method,
+      p_raw_response: payment,
+    })
+    .single<{ payment_id: string; next_delivery_at: string }>();
+  if (rpcErr) throw rpcErr;
+  if (!rpcResult) throw new BillingServiceError('toss_charge_failed', 'rpc empty');
+
+  /* 결제 audit — 성공 회차는 운영 가시성 위해 기록(민감정보 제외). */
+  console.info('[billing.recurring] charged', {
+    subscriptionId: sub.id,
+    orderNumber: orderRow.order_number,
+    amount: payment.totalAmount,
+    nextDeliveryAt: rpcResult.next_delivery_at,
+  });
+
+  return {
+    orderId: orderRow.order_id,
+    orderNumber: orderRow.order_number,
+    paymentKey: payment.paymentKey,
+    amount: payment.totalAmount,
+    nextDeliveryAt: rpcResult.next_delivery_at,
+  };
 }
