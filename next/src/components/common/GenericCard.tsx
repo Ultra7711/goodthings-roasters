@@ -139,8 +139,12 @@ export default function GenericCard({
   dataCmId,
 }: Props) {
   const [isVisible, setIsVisible] = useState(instant);
-  /* S311 D: 점멸 시작을 카드 가시화 시점에 동기화 (highlightId 세팅 즉시 X). */
-  const [flashActive, setFlashActive] = useState(false);
+  /* S311 D / S340: 점멸은 "아이템 도착(arrived) + 썸네일 이미지 로드(imgReady)" 둘 다
+     충족 시 시작하는 파생 값(flashActive, 아래). 로딩 지연 중 점멸이 소진돼 인지
+     실패하던 문제(이미지가 뜨기 전 점멸이 지나가버림)를 해결. */
+  const [arrived, setArrived] = useState(false);
+  /* 이미지 없는 카드(placeholder div)는 로드 대기 없이 즉시 ready. */
+  const [imgReady, setImgReady] = useState(!imgSrc);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const cls = VARIANT_CLASS[variant];
@@ -177,21 +181,17 @@ export default function GenericCard({
     });
   }, [isHighlight]);
 
-  // S311 D: 점멸 시작 동기화 — highlightId 세팅 즉시 점멸하면 scroll·likes
-  // fetch·로드 지연 중 1.4초 점멸이 소진되어 시선 도착 전에 끝난다(인지 실패).
-  // IO 로 카드가 실제 화면에 보일 때 flashActive 를 켜 점멸을 시작한다.
+  // S311 D / S340: "아이템 도착" 감지 — scrollIntoView 로 카드가 화면에 충분히
+  // (ratio ≥ 0.5) 들어오면 arrived. 점멸 자체는 imgReady 와 AND 로 시작(아래).
   useEffect(() => {
-    if (!isHighlight) {
-      setFlashActive(false);
-      return;
-    }
+    if (!isHighlight) return;
     const el = cardRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
           if (e.isIntersecting && e.intersectionRatio >= 0.5) {
-            setFlashActive(true);
+            setArrived(true);
             io.disconnect();
             break;
           }
@@ -203,11 +203,16 @@ export default function GenericCard({
     return () => io.disconnect();
   }, [isHighlight]);
 
+  // S340: 점멸 = 아이템 도착(arrived) + 썸네일 이미지 로드(imgReady) 둘 다 충족 시 (파생).
+  // 흐린/빈 썸네일 위에서 점멸이 새어 인지 실패하던 문제 해결. 이미지 없는 카드는
+  // imgReady 가 초기 true 라 arrived 만으로 시작. isHighlight 아니면 자동 false.
+  const flashActive = isHighlight && arrived && imgReady;
+
   const className = [
     cls.card,
     isVisible ? cls.visible : '',
     isHighlight ? cls.highlight : '',
-    isHighlight && flashActive ? cls.flash : '',
+    flashActive ? cls.flash : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -268,6 +273,8 @@ export default function GenericCard({
             priority={imgPriority}
             placeholder={imgBlurDataURL ? 'blur' : 'empty'}
             blurDataURL={imgBlurDataURL}
+            /* S340: 점멸 시작 게이트 — 실제 이미지 로드 완료(캐시 hit 포함) 시 ready. */
+            onLoad={() => setImgReady(true)}
           />
         ) : (
           <div className={cls.img} style={imgStyle} />
