@@ -70,10 +70,18 @@ export class TossNetworkError extends Error {
    내부 유틸
    ══════════════════════════════════════════ */
 
-function getSecretKey(): string {
-  const key = process.env.TOSS_SECRET_KEY;
+/** 토스 연동 종류별 시크릿 키 구분.
+ *  - 'widget' : 결제위젯 연동 (일반 결제 confirm/조회) → TOSS_SECRET_KEY
+ *  - 'api'    : API 개별 연동 (빌링 발급·자동결제) → TOSS_API_SECRET_KEY
+ *  빌링은 클라이언트가 NEXT_PUBLIC_TOSS_API_CLIENT_KEY 로 authKey 를 발급하므로
+ *  서버도 동일 키 쌍의 API 시크릿으로 호출해야 한다(키 쌍 불일치 시 토스 거부). */
+export type TossKeyType = 'widget' | 'api';
+
+function getSecretKey(keyType: TossKeyType = 'widget'): string {
+  const envName = keyType === 'api' ? 'TOSS_API_SECRET_KEY' : 'TOSS_SECRET_KEY';
+  const key = process.env[envName];
   if (!key) {
-    throw new Error('TOSS_SECRET_KEY 미설정 — 서버 환경변수 확인 필요');
+    throw new Error(`${envName} 미설정 — 서버 환경변수 확인 필요`);
   }
   return key;
 }
@@ -113,9 +121,10 @@ async function readJsonSafe(res: Response): Promise<unknown> {
 export async function tossFetch<T>(
   path: string,
   init: RequestInit,
+  keyType: TossKeyType = 'widget',
 ): Promise<T> {
   const url = `${TOSS_API_BASE}${path}`;
-  const authHeader = buildBasicAuthHeader(getSecretKey());
+  const authHeader = buildBasicAuthHeader(getSecretKey(keyType));
 
   const attempt = async (): Promise<T> => {
     const controller = new AbortController();

@@ -98,6 +98,7 @@ export async function issueBillingAuthorization(
         customerKey: input.customerKey,
       }),
     },
+    'api', // 빌링 = API 개별 연동 시크릿 (TOSS_API_SECRET_KEY)
   );
 }
 
@@ -207,5 +208,6 @@ export async function chargeBilling(
         ? { taxExemptionAmount: input.taxExemptionAmount }
         : {}),
     }),
-  });
+  }, 'api'); // 빌링 = API 개별 연동 시크릿 (TOSS_API_SECRET_KEY)
 }
+
