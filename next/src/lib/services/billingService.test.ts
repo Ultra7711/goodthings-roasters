@@ -60,9 +60,6 @@ vi.mock('@/lib/supabaseAdmin', () => ({
 import {
   issueBillingMethod,
   chargeFirstCycle,
-  listBillingMethods,
-  setDefaultBillingMethod,
-  BillingServiceError,
 } from './billingService';
 import {
   issueBillingAuthorization,
@@ -442,81 +439,3 @@ describe('chargeFirstCycle', () => {
   });
 });
 
-/* ════════════════════════════════════════════════════════════════════════
-   listBillingMethods
-   ════════════════════════════════════════════════════════════════════════ */
-
-describe('listBillingMethods', () => {
-  it('snake_case → camelCase 매핑 + billing_key 응답에 노출 X', async () => {
-    // listBillingMethods 는 select 후 .order().order() chain → 결과는 array 형태로 await 됨
-    // chained stub 의 .order 가 stub 반환, 마지막 .order 가 thenable 이어야 함
-    const orderTerminal = {
-      data: [
-        {
-          id: BILLING_METHOD_ID,
-          method: 'card',
-          card_company: '11',
-          card_number_masked: '****-****-****-1234',
-          bank_name: null,
-          account_number_masked: null,
-          is_default: true,
-          expires_at: null,
-          registered_at: '2026-05-07T12:00:00+00:00',
-        },
-      ],
-      error: null,
-    };
-    admin.stub.order = vi.fn(() => ({
-      order: vi.fn(() => Promise.resolve(orderTerminal)),
-    })) as never;
-
-    const result = await listBillingMethods(USER_ID);
-    expect(result).toEqual([
-      {
-        id: BILLING_METHOD_ID,
-        method: 'card',
-        cardCompany: '11',
-        cardNumberMasked: '****-****-****-1234',
-        bankName: null,
-        accountNumberMasked: null,
-        isDefault: true,
-        expiresAt: null,
-        registeredAt: '2026-05-07T12:00:00+00:00',
-      },
-    ]);
-    // billing_key 가 응답에 없음을 확인
-    expect(JSON.stringify(result)).not.toContain('billing_key');
-    expect(JSON.stringify(result)).not.toContain(BILLING_KEY);
-  });
-});
-
-/* ════════════════════════════════════════════════════════════════════════
-   setDefaultBillingMethod
-   ════════════════════════════════════════════════════════════════════════ */
-
-describe('setDefaultBillingMethod', () => {
-  it('정상 RPC 호출 — set_default_billing_method', async () => {
-    admin.pushRpc(null); // void return
-
-    await setDefaultBillingMethod({
-      billingMethodId: BILLING_METHOD_ID,
-      userId: USER_ID,
-    });
-
-    expect(admin.stub.rpc).toHaveBeenCalledWith('set_default_billing_method', {
-      p_billing_method_id: BILLING_METHOD_ID,
-      p_user_id: USER_ID,
-    });
-  });
-
-  it('RPC error message 가 not_found 포함 → billing_method_not_found', async () => {
-    admin.pushRpc(null, { message: 'set_default_billing_method: not_found (xxx)' });
-
-    await expect(
-      setDefaultBillingMethod({
-        billingMethodId: BILLING_METHOD_ID,
-        userId: USER_ID,
-      }),
-    ).rejects.toBeInstanceOf(BillingServiceError);
-  });
-});

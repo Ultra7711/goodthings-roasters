@@ -4,12 +4,11 @@
    역할:
    - 빌링키 발급 (issueBillingMethod) — Toss API + DB INSERT
    - 첫 회차 결제 (chargeFirstCycle) — Toss API + atomic RPC (042)
-   - 카드 목록/삭제/기본 변경 — service_role 직접 쿼리
+   - 회차 자동 청구 (chargeRecurringCycle) — Toss API + atomic RPC (105·106)
 
    원칙:
    - billing_methods · subscription_billing_failures = service-role only RLS
      → 본 모듈은 supabaseAdmin 만 사용, userId 명시 필터로 타인 보호.
-   - billing_key 는 응답 type 에서 제외 (BillingMethodForUser).
    - 첫 회차 실패 = throw (사용자 재등록 유도). cron 재시도는 Phase 3-C.
    - 혼합 카트 처리는 Phase 3-B (CheckoutPayment 분기) 책임.
 
@@ -27,7 +26,7 @@ import {
   type TossBillingPaymentResponse,
 } from '@/lib/payments/tossBillingClient';
 import { TossApiError, TossNetworkError } from '@/lib/payments/tossClient';
-import { classifyBillingError, computeRetryAt } from '@/lib/payments/billingErrorPolicy';
+import { computeRetryAt } from '@/lib/payments/billingErrorPolicy';
 import { sendBillingFailureEmail } from '@/lib/email/notifications';
 import { fetchProducts } from '@/lib/productsServer';
 import { fetchSiteSettings } from '@/lib/siteSettingsServer';
@@ -73,20 +72,8 @@ export class BillingServiceError extends Error {
 }
 
 /* ══════════════════════════════════════════
-   공개 타입 (billing_key 제외 — 클라이언트 응답용)
+   공개 타입
    ══════════════════════════════════════════ */
-
-export type BillingMethodForUser = {
-  id: string;
-  method: 'card' | 'transfer';
-  cardCompany: string | null;
-  cardNumberMasked: string | null;
-  bankName: string | null;
-  accountNumberMasked: string | null;
-  isDefault: boolean;
-  expiresAt: string | null;
-  registeredAt: string;
-};
 
 export type ChargeFirstCycleResult = {
   paymentKey: string;
@@ -383,118 +370,6 @@ function orderNameFromItems(
   if (items.length === 1) return items[0].product_name.slice(0, 100);
   // "산뜻한 오후 외 N건" 형식, 100자 안전.
   return `${items[0].product_name.slice(0, 80)} 외 ${items.length - 1}건`;
-}
-
-/* ══════════════════════════════════════════
-   3. 카드 목록
-   ══════════════════════════════════════════ */
-
-export async function listBillingMethods(
-  userId: string,
-): Promise<BillingMethodForUser[]> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin
-    .from('billing_methods')
-    .select(
-      `id, method, card_company, card_number_masked,
-       bank_name, account_number_masked,
-       is_default, expires_at, registered_at`,
-    )
-    .eq('user_id', userId)
-    .is('deleted_at', null)
-    .order('is_default', { ascending: false })
-    .order('registered_at', { ascending: false });
-  if (error) throw error;
-
-  return (data ?? []).map((row) => ({
-    id: row.id as string,
-    method: row.method as 'card' | 'transfer',
-    cardCompany: (row.card_company as string | null) ?? null,
-    cardNumberMasked: (row.card_number_masked as string | null) ?? null,
-    bankName: (row.bank_name as string | null) ?? null,
-    accountNumberMasked: (row.account_number_masked as string | null) ?? null,
-    isDefault: row.is_default as boolean,
-    expiresAt: (row.expires_at as string | null) ?? null,
-    registeredAt: row.registered_at as string,
-  }));
-}
-
-/* ══════════════════════════════════════════
-   4. soft delete
-   ══════════════════════════════════════════ */
-
-/**
- * 카드 soft delete + (선택) default 자동 이전.
- * 삭제된 카드가 default 였으면 가장 최근 등록된 다른 active 카드를 default 로.
- */
-export async function softDeleteBillingMethod(input: {
-  billingMethodId: string;
-  userId: string;
-}): Promise<void> {
-  const admin = getSupabaseAdmin();
-
-  /* 소유권 + active 검증 */
-  const { data: target, error: lookupErr } = await admin
-    .from('billing_methods')
-    .select('id, is_default')
-    .eq('id', input.billingMethodId)
-    .eq('user_id', input.userId)
-    .is('deleted_at', null)
-    .maybeSingle<{ id: string; is_default: boolean }>();
-  if (lookupErr) throw lookupErr;
-  if (!target) throw new BillingServiceError('billing_method_not_found');
-
-  /* soft delete */
-  const { error: delErr } = await admin
-    .from('billing_methods')
-    .update({ deleted_at: new Date().toISOString(), is_default: false })
-    .eq('id', target.id);
-  if (delErr) throw delErr;
-
-  /* 기존 default 였으면 다른 카드를 default 로 자동 이전 (가장 최근 등록) */
-  if (target.is_default) {
-    const { data: candidate, error: candErr } = await admin
-      .from('billing_methods')
-      .select('id')
-      .eq('user_id', input.userId)
-      .is('deleted_at', null)
-      .order('registered_at', { ascending: false })
-      .limit(1)
-      .maybeSingle<{ id: string }>();
-    if (candErr) throw candErr;
-    if (candidate) {
-      const { error: updErr } = await admin
-        .from('billing_methods')
-        .update({ is_default: true })
-        .eq('id', candidate.id);
-      if (updErr) throw updErr;
-    }
-  }
-}
-
-/* ══════════════════════════════════════════
-   5. default 변경
-   ══════════════════════════════════════════ */
-
-/**
- * default 카드 변경 — 042 RPC `set_default_billing_method` 로 atomic 처리.
- * partial unique index `billing_methods_user_default_uniq` 보호 하 두 UPDATE 순서.
- */
-export async function setDefaultBillingMethod(input: {
-  billingMethodId: string;
-  userId: string;
-}): Promise<void> {
-  const admin = getSupabaseAdmin();
-  const { error } = await admin.rpc('set_default_billing_method', {
-    p_billing_method_id: input.billingMethodId,
-    p_user_id: input.userId,
-  });
-  if (error) {
-    if ((error as { message?: string }).message?.includes('not_found')) {
-      throw new BillingServiceError('billing_method_not_found');
-    }
-    throw error;
-  }
 }
 
 /* ══════════════════════════════════════════
