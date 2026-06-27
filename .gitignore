@@ -27,3 +27,4 @@ goodthings_renewal_v14_archive.html
 
 # 임시 검토 PDF (커밋 대상 아님)
 docs/*검토.pdf
+.env*
