@@ -31,6 +31,7 @@ import { useDefaultAddressQuery } from '@/hooks/useDefaultAddress';
 import { useCartDrawer } from '@/contexts/CartDrawerContext';
 import { useToast } from '@/hooks/useToast';
 import { GUEST_PASSWORD_MIN_LENGTH } from '@/lib/validation';
+import { isSyntheticEmail } from '@/lib/auth/syntheticEmail';
 import CheckoutPayment from './CheckoutPayment';
 import MiniHeader from './MiniHeader';
 import EmptyCart from './EmptyCart';
@@ -137,7 +138,12 @@ export default function CheckoutPage() {
     if (!isLoggedIn || !user) return;
     if (addressLoading) return;
 
-    if (user.email && !form.email) setField('email', user.email);
+    /* 소셜 로그인(카카오·네이버 이메일 미제공) 가상 이메일(...-oauth.internal)은
+       실제 이메일이 아니므로 prefill 하지 않는다. 채우면 form.email 이 항상 차 있어
+       사용자가 지워도 본 effect 가 재복구 → 입력 불가(백스페이스·X 클리어 무력). */
+    if (user.email && !isSyntheticEmail(user.email) && !form.email) {
+      setField('email', user.email);
+    }
 
     const fieldsEmpty =
       !form.firstname &&

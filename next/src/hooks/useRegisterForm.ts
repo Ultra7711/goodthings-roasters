@@ -31,8 +31,6 @@ type UseRegisterFormReturn = {
   password: string;
   password2: string;
   errors: RegisterFormErrors;
-  /** 성공/안내 메시지 (에러 아님) */
-  notice: string | null;
   isLoading: boolean;
   /** 비밀번호 확인 필드 비활성 여부 (첫 비번 미입력 시) */
   pw2Disabled: boolean;
@@ -59,14 +57,16 @@ function mapSignUpError(message: string): string {
 }
 
 type UseRegisterFormOptions = {
-  /** 성공 시 이동할 경로 (open redirect 방어 검증 필요) */
+  /** 성공(session 즉시 발급) 시 이동할 경로 (open redirect 방어 검증 필요) */
   redirectTo?: string;
+  /** 이메일 인증 활성(session 미발급) 시 호출 — 안내 + 로그인 전환은 호출처 책임. */
+  onEmailConfirmRequired?: () => void;
 };
 
 export function useRegisterForm(
   options: UseRegisterFormOptions = {},
 ): UseRegisterFormReturn {
-  const { redirectTo = '/' } = options;
+  const { redirectTo = '/', onEmailConfirmRequired } = options;
   const router = useRouter();
 
   const [name, setNameState] = useState('');
@@ -74,7 +74,6 @@ export function useRegisterForm(
   const [password, setPasswordState] = useState('');
   const [password2, setPassword2State] = useState('');
   const [errors, setErrors] = useState<RegisterFormErrors>({});
-  const [notice, setNotice] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   /** 특정 필드 에러 + submit 에러 제거 */
@@ -155,7 +154,6 @@ export function useRegisterForm(
   const runRegister = useCallback(
     async (nameValue: string, emailValue: string, passwordValue: string) => {
       setIsLoading(true);
-      setNotice(null);
       try {
         const { data, error } = await supabase.auth.signUp({
           email: emailValue,
@@ -168,18 +166,18 @@ export function useRegisterForm(
           setErrors({ submit: mapSignUpError(error.message) });
           return;
         }
-        /* 이메일 인증이 비활성화된 경우 session 즉시 발급 → redirectTo
-           활성화된 경우 session 은 null, 사용자에게 메일 확인 안내 */
+        /* 이메일 인증이 비활성화된 경우 session 즉시 발급 → redirectTo.
+           활성화된 경우 session 은 null → 호출처가 안내 + 로그인 전환 (폼 잔류·재제출 방지). */
         if (data.session) {
           router.push(redirectTo);
         } else {
-          setNotice('가입 확인 메일을 보냈습니다. 메일함을 확인해 주세요.');
+          onEmailConfirmRequired?.();
         }
       } finally {
         setIsLoading(false);
       }
     },
-    [router, redirectTo],
+    [router, redirectTo, onEmailConfirmRequired],
   );
 
   const handleSubmit = useCallback(
@@ -232,7 +230,6 @@ export function useRegisterForm(
     password,
     password2,
     errors,
-    notice,
     isLoading,
     pw2Disabled: password.length === 0,
     setName,

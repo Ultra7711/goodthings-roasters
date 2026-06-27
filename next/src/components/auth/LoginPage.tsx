@@ -25,6 +25,7 @@ import { useOrderNumberFormat } from '@/hooks/useOrderNumberFormat';
 import { shakeFields } from '@/lib/shakeFields';
 import { useToast } from '@/hooks/useToast';
 import { TextField } from '@/components/ui/TextField';
+import { FullscreenLoader } from '@/components/ui/FullscreenLoader';
 import { supabase } from '@/lib/supabase';
 
 /* ── 폼 모드 ── */
@@ -137,19 +138,37 @@ export default function LoginPage() {
     }
   }, [fromCheckout, redirectTo, toast]);
 
+  /* setState 직후 즉시 navigation 하면 로더 오버레이가 페인트되기 전에 페이지가 떠나
+     스피너가 전혀 안 보인다(카카오·네이버 버그). 이중 rAF 로 1프레임 페인트 후 이동. */
   const handleKakaoLogin = useCallback(() => {
     setSocialLoading('kakao');
-    window.location.href = '/api/auth/kakao';
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        window.location.href = '/api/auth/kakao';
+      }),
+    );
   }, []);
 
   const handleNaverLogin = useCallback(() => {
     setSocialLoading('naver');
-    window.location.href = '/api/auth/naver';
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        window.location.href = '/api/auth/naver';
+      }),
+    );
   }, []);
+
+  /* ── 회원가입 성공(이메일 인증 메일 발송) → 안내 + 로그인 전환 ──
+     이메일 인증 활성이라 session 즉시 발급이 안 됨 → 회원가입 폼에 머물면 재제출 반복
+     (무한 가입 시도)이 되므로, reset 폼 패턴처럼 toast 안내 후 로그인 모드로 전환한다. */
+  const handleRegisterEmailConfirm = useCallback(() => {
+    toast('가입 확인 메일을 보냈습니다. 메일함에서 인증을 완료한 뒤 로그인해 주세요.');
+    setMode('login');
+  }, [toast]);
 
   /* ── 폼 훅 ── */
   const loginForm = useLoginForm({ fromCheckout, redirectTo });
-  const registerForm = useRegisterForm({ redirectTo });
+  const registerForm = useRegisterForm({ redirectTo, onEmailConfirmRequired: handleRegisterEmailConfirm });
 
   /* ── 비밀번호 재설정 (간이) ── */
   const [resetEmail, setResetEmail] = useState('');
@@ -451,9 +470,6 @@ export default function LoginPage() {
               {registerForm.errors.submit && (
                 <div className="lp-submit-error">{registerForm.errors.submit}</div>
               )}
-              {registerForm.notice && (
-                <div className="lp-submit-notice">{registerForm.notice}</div>
-              )}
               <button className="lp-submit-btn" type="submit" disabled={registerForm.isLoading} aria-busy={registerForm.isLoading} data-gtr-tap>
                 {registerForm.isLoading ? '처리 중…' : '계정 만들기'}
               </button>
@@ -575,12 +591,9 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* SNS 로그인 중 전체 화면 오버레이 */}
+      {/* SNS 로그인 중 전체 화면 로더 (공통 FullscreenLoader) */}
       {socialLoading !== null && (
-        <div className="auth-overlay" role="status" aria-live="polite">
-          <div className="auth-spinner" aria-hidden="true" />
-          <p className="auth-overlay-txt">{socialProviderLabel} 로그인 중…</p>
-        </div>
+        <FullscreenLoader label={`${socialProviderLabel} 로그인 중…`} />
       )}
     </div>
   );

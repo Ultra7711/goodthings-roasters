@@ -1,0 +1,32 @@
+/* ══════════════════════════════════════════
+   Spinner — 호(arc) 스피너 (히어로 S332 디자인 이식)
+   컨테이너 회전(1.2s) + 호 신축·회전(2.4s) 주기 분리 → 끊김 없는 신축.
+   stroke = currentColor (부모 color 로 컬러 제어).
+   ══════════════════════════════════════════ */
+
+@keyframes gtrSpinRotator {
+  to { transform: rotate(360deg); }
+}
+@keyframes gtrSpinDash {
+  0%   { stroke-dashoffset: 47; transform: rotate(0deg); }    /* 짧은 호 */
+  50%  { stroke-dashoffset: 13; transform: rotate(180deg); }  /* 거의 정원 */
+  100% { stroke-dashoffset: 47; transform: rotate(360deg); }  /* 다시 짧게(seamless) */
+}
+
+.gtr-spinner {
+  display: block;
+  animation: gtrSpinRotator 1.2s linear infinite;
+}
+.gtr-spinner-arc {
+  stroke: currentColor;
+  stroke-width: 2;                 /* viewBox 24 기준 — 40px 렌더 시 실효 3.33px */
+  stroke-linecap: round;
+  stroke-dasharray: 50.27;         /* 2πr · r=8 */
+  transform-origin: center;
+  animation: gtrSpinDash 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gtr-spinner { animation: none; }
+  .gtr-spinner-arc { animation: none; stroke-dashoffset: 35; }
+}
