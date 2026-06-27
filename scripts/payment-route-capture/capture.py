@@ -75,11 +75,17 @@ def step_02_footer(page: Page) -> None:
 
 
 def step_03_refund(page: Page) -> None:
-    """③ 환불 규정 (/legal/returns)."""
-    print("\n[Step 3] 환불 규정 캡처")
+    """③ 환불 규정 (/legal/returns) — 페이지가 길어 2장 분할(compose SLIDE_PLAN: 03_refund · 03_refund_2).
+
+    오늘(S340) [자동결제 실패 시] 블록 추가로 더 길어짐 → 상단/하단 스크롤 분할 캡처.
+    """
+    print("\n[Step 3] 환불 규정 캡처 (2장 분할)")
     page.goto(f"{BASE_URL}/legal/returns", timeout=PAGE_LOAD_TIMEOUT_MS)
     wait_settle(page, 800)
+    pause("③-1 상단(주문취소·정기배송 해지·[자동결제 실패 시])이 보이게 스크롤 맞추고 Enter (03_refund)")
     grab_full_screen("03_refund")
+    pause("③-2 하단(반품·교환·배송비 부담·환불 절차)으로 스크롤하고 Enter (03_refund_2)")
+    grab_full_screen("03_refund_2")
 
 
 def step_04_auth(page: Page) -> None:
