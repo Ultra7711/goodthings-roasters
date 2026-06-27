@@ -166,7 +166,7 @@ describe('chargeRecurringCycle', () => {
     const failureInsert = vi.fn(
       async (_row: { error_code: string; retry_at: string | null }) => ({ error: null }),
     );
-    setupAdmin({
+    const { admin } = setupAdmin({
       failureInsert,
       rpc: {
         create_recurring_order: {
@@ -185,13 +185,18 @@ describe('chargeRecurringCycle', () => {
     const arg = failureInsert.mock.calls[0][0] as { error_code: string; retry_at: string | null };
     expect(arg.error_code).toBe('PROVIDER_ERROR');
     expect(arg.retry_at).not.toBeNull(); // 일시 → 재시도 예정
+    // R-3a: 일시 오류는 재시도 대기 → paused 전환 안 함
+    const pauseCalls = (admin.rpc as ReturnType<typeof vi.fn>).mock.calls.filter(
+      (c) => c[0] === 'pause_subscription_for_billing',
+    );
+    expect(pauseCalls).toHaveLength(0);
   });
 
   it('영구 실패(토스) → 실패 기록 + retry_at null', async () => {
     const failureInsert = vi.fn(
       async (_row: { error_code: string; retry_at: string | null }) => ({ error: null }),
     );
-    setupAdmin({
+    const { admin } = setupAdmin({
       failureInsert,
       rpc: {
         create_recurring_order: {
@@ -210,6 +215,10 @@ describe('chargeRecurringCycle', () => {
     const arg = failureInsert.mock.calls[0][0] as { error_code: string; retry_at: string | null };
     expect(arg.error_code).toBe('INVALID_STOPPED_CARD');
     expect(arg.retry_at).toBeNull(); // 영구 → 재시도 안 함
+    // R-3a: 영구 오류(retry_at null) → 구독 일시정지 호출
+    expect(admin.rpc).toHaveBeenCalledWith('pause_subscription_for_billing', {
+      p_subscription_id: SUB_ID,
+    });
   });
 
   it('비활성 구독 → subscription_not_active (결제 안 함)', async () => {

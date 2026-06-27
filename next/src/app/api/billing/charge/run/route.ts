@@ -21,23 +21,11 @@ import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import {
   chargeRecurringCycle,
   BillingServiceError,
-  type BillingServiceErrorCode,
+  RECURRING_SKIP_CODES,
 } from '@/lib/services/billingService';
 
 /* Vercel 함수 300s budget 내 안전 상한. 초과분은 다음 실행으로 이월(로깅). */
 const BATCH_LIMIT = 200;
-
-/* 정상 보류·멱등(결제 시도 전/데이터 미비) — 실패가 아니라 skip 으로 집계. */
-const SKIP_CODES: ReadonlySet<BillingServiceErrorCode> = new Set([
-  'already_charged_this_cycle',
-  'subscription_not_active',
-  'subscription_not_found',
-  'subscription_snapshot_missing',
-  'billing_method_not_found',
-  'no_default_address',
-  'product_not_found',
-  'profile_not_found',
-]);
 
 export async function GET(request: Request): Promise<Response> {
   if (!isCronRequest(request)) return apiError('unauthorized');
@@ -74,7 +62,7 @@ export async function GET(request: Request): Promise<Response> {
       await chargeRecurringCycle({ subscriptionId: sub.id });
       charged += 1;
     } catch (err) {
-      if (err instanceof BillingServiceError && SKIP_CODES.has(err.code)) {
+      if (err instanceof BillingServiceError && RECURRING_SKIP_CODES.has(err.code)) {
         /* 멱등·보류 — 정상 흐름(이미청구·비활성·데이터미비). 실패 기록은 서비스가 담당. */
         skipped += 1;
       } else {

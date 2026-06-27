@@ -503,6 +503,19 @@ export async function setDefaultBillingMethod(input: {
 /** 회차 주문 약관 버전 — 가입 시 빌링 등록 동의에 근거 (R-4 약관 정합 예정). */
 const RECURRING_TERMS_VERSION = 'subscription-recurring';
 
+/* 배치(charge/run·retry)에서 '실패'가 아니라 정상 보류·멱등으로 집계할 에러 코드.
+   (데이터 미비·비활성·이미 청구됨 — 결제 시도 전이거나 멱등 거부.) */
+export const RECURRING_SKIP_CODES: ReadonlySet<BillingServiceErrorCode> = new Set([
+  'already_charged_this_cycle',
+  'subscription_not_active',
+  'subscription_not_found',
+  'subscription_snapshot_missing',
+  'billing_method_not_found',
+  'no_default_address',
+  'product_not_found',
+  'profile_not_found',
+]);
+
 export type ChargeRecurringResult = {
   orderId: string;
   orderNumber: string;
@@ -554,6 +567,27 @@ async function recordBillingFailure(
       error_message: sanitizeErrorMessage(errorMessage),
       retry_at: retryAt,
     });
+
+    /* R-3a: retry_at===null = 영구 오류 or 재시도 소진(24/48/72h) → 구독 일시정지.
+       무한 재청구 차단. 결제수단 재등록 후 사용자가 재개. (charge/run·retry 양쪽 일관) */
+    if (retryAt === null) {
+      const { error: pauseErr } = await admin.rpc('pause_subscription_for_billing', {
+        p_subscription_id: subscriptionId,
+      });
+      if (pauseErr) {
+        console.error('[billing.recurring][CRITICAL] paused 전환 실패 — 무한재청구 위험', {
+          subscriptionId,
+          ...(process.env.NODE_ENV !== 'production' && {
+            msg: (pauseErr as { message?: string }).message?.slice(0, 200),
+          }),
+        });
+      } else {
+        console.warn('[billing.recurring] 구독 일시정지(영구/소진 빌링 실패)', {
+          subscriptionId,
+          errorCode,
+        });
+      }
+    }
   } catch (recErr) {
     console.error('[billing.recurring][CRITICAL] 실패 기록 유실 — dunning 누락 위험', {
       subscriptionId,

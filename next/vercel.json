@@ -3,6 +3,10 @@
     {
       "path": "/api/billing/charge/run",
       "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/billing/charge/retry",
+      "schedule": "0 2 * * *"
     }
   ]
 }

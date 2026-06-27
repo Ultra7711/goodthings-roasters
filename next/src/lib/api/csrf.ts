@@ -40,6 +40,8 @@ const CSRF_EXEMPT_PATHS: ReadonlySet<string> = new Set<string>([
   // R-2b: 회차 청구 배치 스케줄러 — Vercel Cron/외부 cron 호출(브라우저 아님).
   // 인증은 isCronRequest(x-cron-secret | Bearer)로 대체.
   '/api/billing/charge/run',
+  // R-3a: 회차 청구 재시도(dunning) 배치 — Vercel Cron 호출.
+  '/api/billing/charge/retry',
 ]);
 
 /**
