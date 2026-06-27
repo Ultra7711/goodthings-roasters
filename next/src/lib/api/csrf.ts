@@ -37,6 +37,9 @@ const CSRF_EXEMPT_PATHS: ReadonlySet<string> = new Set<string>([
   // R-1: 정기배송 회차 자동 청구 — pg_cron/내부 트리거 호출(브라우저 아님).
   // 인증은 x-cron-secret(timing-safe)으로 대체. Origin 없음/상이 정상.
   '/api/billing/charge/recurring',
+  // R-2b: 회차 청구 배치 스케줄러 — Vercel Cron/외부 cron 호출(브라우저 아님).
+  // 인증은 isCronRequest(x-cron-secret | Bearer)로 대체.
+  '/api/billing/charge/run',
 ]);
 
 /**
