@@ -44,6 +44,9 @@
 - [ ] ⬜ **(선택) Upstash Cron ping 라우트 선구현**
   `/api/cron/redis-ping` — DB 1주 비활성 삭제 예방(DEC-S323-A). 라이브 직전 구현 권장이나 미리 짜둘 수 있음. ~40줄.
   상세: `docs/upstash-setup.md §8`
+- [ ] ⬜ **[SEO] BreadcrumbList JSON-LD 추가** (선택·코드 누락) — 현재 구조화 데이터는 Organization·LocalBusiness(root) + Product(`/shop/[slug]`)만 구현됨. 상품 상세에 빵부스러기(Home > Shop > 상품명) 미구현.
+  - 구현: `src/lib/seo/jsonLd.ts`(`breadcrumbJsonLd()` 빌더 추가) + `src/app/(main)/shop/[slug]/page.tsx`(기존 `JsonLd` 재사용). ~1–2h.
+  - (보류) 카페 메뉴(`/menu`) 별도 구조화 = ROI 낮음(availability/재고 데이터 없음·LocalBusiness root 마크업으로 충분). 필요 시 T3.
 
 ---
 
@@ -57,8 +60,10 @@
   상세: `NEXT_SESSION.md` 대기 태스크 #1 · [[project_session340_complete]]
 - [ ] ⬜ **도메인 전환** — `goodthingsroasters.com`(정식·하이픈X) Vercel 추가+DNS → `NEXT_PUBLIC_APP_URL` 교체(임시 하이픈→정식·3환경) → 재배포.
   상세: [[project_toss_live_review_status]] §도메인 전환 체크리스트(DEC-S310-DOMAIN)
-- [ ] ⬜ **GSC 등록** — 도메인 속성 + DNS TXT 인증 + sitemap 제출 + Rich Results Test(Product·LocalBusiness·Organization). ⚠️ 임시 도메인으로 선등록 금지.
-  상세: 동상
+- [ ] ⬜ **[SEO] GSC(구글) 등록 + 검증** — SEO 3차(검증·색인 단계·도메인 의존으로 멈춤). 코드측 robots/sitemap/JSON-LD는 1·2차 완비.
+  ① 도메인 속성 생성 + DNS TXT 인증 ② `/sitemap.xml` 제출 ③ Rich Results Test(Product·LocalBusiness·Organization·BreadcrumbList) ④ URL 검사→색인 요청(핵심 페이지) ⑤ robots/sitemap `BASE_URL` 정식 도메인 자동 반영 확인(`NEXT_PUBLIC_APP_URL` 교체 후).
+  ⚠️ 임시 도메인으로 선등록 금지(심사 중). 상세: [[project_toss_live_review_status]]
+- [ ] ⬜ **[SEO] 네이버 서치어드바이저(웹마스터도구) 등록** — 한국 커머스 색인 필수(GSC와 별개·체크리스트 누락분). 사이트 등록 + 소유확인(HTML 태그/파일) + sitemap 제출 + 수집 요청. ⚠️ 정식 도메인 연결 후.
 - [ ] ⬜ **PPTX 갱신 + 마이페이지 캡처** — S297 sprint(b_06c/d + 마이페이지 4장). 캡처=로컬 Windows(OS시계).
   상세: `scripts/payment-route-capture/` · `NEXT_SESSION.md` 대기 태스크 #3
 - [ ] ⬜ **D-2 정기배송 본진행** — 실 빌링키 + cron 자동결제 실거래 검증.
@@ -137,6 +142,7 @@
 | 빌링 정책 SoT | `docs/adr/ADR-008` §0 |
 | 데이터 삭제 SQL | `docs/ops/cleanup-test-billing-data.sql` |
 | 포인트 시스템 | `docs/points-implementation-plan.md` §17 · `memory/project_points_system_backlog.md` |
+| SEO (코드측 1·2차 완비) | `next/src/app/robots.ts` · `sitemap.ts` · `manifest.ts` · `opengraph-image.tsx` · `next/src/lib/seo/jsonLd.ts` · `next/src/components/seo/JsonLd.tsx` |
 
 ## 부록 B — 완료·아카이브 (참고용·재작업 불요)
 
