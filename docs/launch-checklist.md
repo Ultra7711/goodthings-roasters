@@ -101,7 +101,7 @@
 - [ ] ⬜ **정기배송 주기 옵션 확정** — 현재 2·4·8주 임시.
 - [ ] 🔶 **Supabase 운영 DB 분리** — S341 audit: 코드 구조는 **env 교체만으로 분리 가능**(하드코딩 0·`NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY`/`SUPABASE_SERVICE_ROLE_KEY` 기반). **현재 로컬·Vercel이 동일 Supabase 프로젝트 사용(미분리)** 확인. → 출시 시 prod 전용 프로젝트 생성+env 교체 결정(비즈/운영). 코드 작업 0.
 - [x] ✅ **보안 점검 — 토스 응답 로그/저장 마스킹** (S341 audit+fix) — 일반결제(paymentService)는 C-3 마스킹 정상. **빌링(billingService)에서 카드정보 평문 저장 결함 발견→수정**(chargeFirstCycle·chargeRecurringCycle 2곳 `maskTossPayload` 적용·PCI DSS 3.4). 커밋 예정.
-- [ ] 🔶 **보안 점검 — RLS production 적용 확인** — S341 audit: 마이그 코드 **완비**(007/030/031/044 존재·민감테이블 service_role 격리·체계적). **production 실적용은 코드로 확인 불가**(SQL Editor 수동 워크플로). → Supabase SQL Editor에서 `SELECT polname, tablename FROM pg_policies WHERE schemaname='public' ORDER BY tablename;` 실행해 마이그와 대조. (저심각: reviews·newsletter_subscribers RLS 미확인)
+- [x] ✅ **보안 점검 — RLS production 적용 확인** (S341·2026-06-28) — Supabase `pg_policies` 전수 대조 완료. **drift 0**. 결제 핵심(payments·billing_methods·subscription_billing_failures) = rls_enabled + 정책 0(service_role only) ✓. orders=2(011 hardening 의도적 `orders_insert_own` drop 반영)·subscriptions·point_ledger·profiles·addresses·reviews·newsletter 등 24개 테이블 전부 코드 일치. reviews·newsletter RLS도 정상(audit "미확인"은 오판).
 
 ---
 
