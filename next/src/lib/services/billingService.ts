@@ -26,6 +26,7 @@ import {
   type TossBillingPaymentResponse,
 } from '@/lib/payments/tossBillingClient';
 import { TossApiError, TossNetworkError } from '@/lib/payments/tossClient';
+import { maskTossPayload } from '@/lib/payments/mask';
 import { computeRetryAt } from '@/lib/payments/billingErrorPolicy';
 import { sendBillingFailureEmail } from '@/lib/email/notifications';
 import { fetchProducts } from '@/lib/productsServer';
@@ -348,7 +349,8 @@ export async function chargeFirstCycle(input: {
       p_payment_key: payment.paymentKey,
       p_total_amount: payment.totalAmount,
       p_subscription_items: subscriptionItems,
-      p_raw_response: payment,
+      /* C-3 정합: 카드정보(card.number 등) 평문 저장 방지 — paymentService 와 동일 마스킹 (PCI DSS 3.4). */
+      p_raw_response: maskTossPayload(payment),
     })
     .single<{ subscription_ids: string[] }>();
   if (rpcErr) throw rpcErr;
@@ -677,7 +679,8 @@ export async function chargeRecurringCycle(input: {
       p_payment_key: payment.paymentKey,
       p_total_amount: payment.totalAmount,
       p_method: bm.method,
-      p_raw_response: payment,
+      /* C-3 정합: 카드정보 평문 저장 방지 — paymentService 와 동일 마스킹 (PCI DSS 3.4). */
+      p_raw_response: maskTossPayload(payment),
     })
     .single<{ payment_id: string; next_delivery_at: string }>();
   if (rpcErr) {
