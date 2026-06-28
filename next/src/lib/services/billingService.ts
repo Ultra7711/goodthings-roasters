@@ -358,11 +358,52 @@ export async function chargeFirstCycle(input: {
     throw new BillingServiceError('toss_charge_failed', 'rpc empty');
   }
 
+  /* 첫 결제 성공 후 — 이전 거절·이탈로 남은 미연결(타입2) orphan 빌링키 정리.
+     방금 결제한 billingMethod.id 는 keepId 로 보호. fire-and-forget(B·S341). */
+  await cleanupOrphanBillingMethods(input.userId, billingMethod.id);
+
   return {
     paymentKey: payment.paymentKey,
     status: payment.status,
     subscriptionIds: rpcResult.subscription_ids ?? [],
   };
+}
+
+/**
+ * orphan 빌링키 정리 (S341·B) — cleanup_orphan_billing_methods RPC(110) 래퍼.
+ *
+ * 결제/재등록 성공 직후 fire-and-forget 호출. 어떤 active/paused 구독도 안 가리키고
+ * 1시간 이상 지난(진행 중 결제 보호) billing_method 를 soft delete.
+ * `keepId`(방금 성공한 카드)는 항상 보존.
+ *
+ * 정리 실패가 결제/재등록 성공 흐름을 절대 깨뜨리지 않도록 내부에서 에러를 삼킨다.
+ * (orphan 정리는 데이터 위생 — 실패 시 다음 트리거에서 재정리된다.)
+ */
+export async function cleanupOrphanBillingMethods(
+  userId: string,
+  keepId: string,
+): Promise<void> {
+  try {
+    const admin = getSupabaseAdmin();
+    const { error } = await admin.rpc('cleanup_orphan_billing_methods', {
+      p_user_id: userId,
+      p_keep_id: keepId,
+    });
+    if (error) {
+      console.warn('[billing.cleanup] orphan 정리 실패(무시·다음 트리거 재정리)', {
+        code: (error as { code?: string }).code,
+        ...(process.env.NODE_ENV !== 'production' && {
+          msg: (error as { message?: string }).message?.slice(0, 200),
+        }),
+      });
+    }
+  } catch (err) {
+    console.warn('[billing.cleanup] orphan 정리 예외(무시)', {
+      ...(process.env.NODE_ENV !== 'production' && {
+        msg: err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200),
+      }),
+    });
+  }
 }
 
 function orderNameFromItems(

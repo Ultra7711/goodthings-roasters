@@ -21,6 +21,7 @@
 - 혼합 카트 = **γ 합산 단일 결제**(1 order ↔ 1 payment). 자동 회차 청구는 **정기 항목만**. `[D-3·S294]`
 - 빌링키 저장 = `billing_methods`(토스 **토큰 + 마스킹만** 보관 · 실 카드정보는 토스 보유). **service-role only RLS**. `[D-6·S176]`
 - 🟢 **결제수단 "목록 관리 UI" 미채택** — 카드 목록을 노출/관리하지 않는다. 결제수단은 **구독별 빌링키 종속**, 변경·재등록은 **토스 위젯 재등록(일회성)** 으로만. 빌링키=토큰(민감정보 아님)·민감정보 최소 보유·빌링 심사 전제. `[DEC-S336-PAY1]` ⚠️ 이 결정이 §3.4 `methods` 목록/삭제/default·§3.5 "MyPage 카드 관리 CRUD"·Phase 3-D "MyPage 카드관리"를 폐기
+- 🟢 **orphan 빌링키 자동 정리** — 재등록(타입1 교체버림)·첫 결제 성공(타입2 발급후미연결)으로 생기는 미연결 billing_method 를 `cleanup_orphan_billing_methods` RPC(110)가 **성공 직후 fire-and-forget** soft delete(active/paused 미연결 + `registered_at`>1h grace=진행 중 결제 보호). 핵심 결제 RPC 무수정. 잔여(가입 포기 orphan)=향후 cron. 토스 빌링키 삭제 API 없음→DB soft delete만. `[DEC-S341]`
 
 **가격 · 배송**
 - 단가 = **가입 시점 고정(스냅샷)** `subscriptions.unit_price·quantity`. 배송비 = **회차 시점 현행 정책**(site_settings 동적·무료배송 임계 반영). 배송비 스냅샷 미채택. `[DEC-S337-1]`
@@ -59,7 +60,7 @@
 | "카드 재등록 유도 페이지"(추상 표현) | §4 Phase 3-D | 일회성 재등록 redirect 동선(구독 1건 연결+자동재개)으로 구체화 | DEC-S339 (R-3d) |
 | 혼합 카트 미정(A 옵션 추상) | §2 D-3 초안 | γ 합산 단일 결제 1차 채택 | S294 (D-3 갱신본) |
 
-> 🔻 **Dead code 인지:** `methods` GET(목록)·`[id]` DELETE·`[id]/default` POST 라우트는 구현됐으나 DEC-S336-PAY1 로 **소비처 0(dead)**. R-3d 재등록은 `authorizations`(발급) + 신규 `reattach-billing` 만 사용. dead 라우트 삭제는 별도 정리 sprint(`[id]` DELETE 는 향후 orphan billing_method 정리에 재사용 여지로 보존 검토).
+> 🔻 **Dead code 정리(S340·S341 완료):** `methods` GET(목록)·`[id]` DELETE·`[id]/default` POST 라우트 + `setDefaultBillingMethod` 래퍼는 DEC-S336-PAY1 로 소비처 0 → **S340 제거**(`d0637999`). DB 함수 `set_default_billing_method` 도 **S341 drop**(마이그 109). orphan billing_method 정리는 "재사용 보존" 대신 **`cleanup_orphan_billing_methods` RPC(110) 신규**로 해결(DEC-S341). 잔존 dead = `billing_methods.is_default` 컬럼(읽는 곳 0 — 향후 컬럼 정리 별건).
 
 ---
 
@@ -478,6 +479,7 @@ create table public.subscription_billing_failures (
 | **DEC-S339-2** | **재등록 = 일회성 토스 위젯 redirect 동선(카드목록 비노출·구독 1건 연결) · detached+paused 자동 재개** | **Active** | S339 |
 | **DEC-S339-3** | **끊김(detached) 정의 = billing_method_id NULL OR 가리키는 카드 soft-deleted** | **Active** | S339 |
 | **DEC-S339-4** | **billingStatus 3-state(ok/detached/payment_failed)** — dunning paused(유효 카드+미해결 failure)를 `payment_failed` 로 분리 식별(failures 큐 조인). 영구실패 구독이 '그냥 재개'로 빠지는 루프 차단 | **Active** | S339 |
+| **DEC-S341** | **orphan 빌링키 자동 정리** — `cleanup_orphan_billing_methods` RPC(110)로 "어떤 active/paused 구독도 안 가리키고 `registered_at`이 1h 이상 지난" billing_method 를 soft delete. 호출 = `chargeFirstCycle`(첫 결제 성공 후·타입2 발급후미연결) + reattach route(재등록 성공 후·타입1 교체버림), fire-and-forget(핵심 결제 RPC 무수정). grace 1h = 진행 중 결제 카드 보호(동시성). 잔여="가입 시도→첫결제 거절→포기(구독0)" orphan 은 트리거 미도래로 잔존(빈도극소·보안0)→향후 cron 배치(Pro). 토스 v2 빌링키 삭제 API 없음→DB soft delete만. 042 dead RPC `set_default_billing_method` drop(109)·`is_default` dead column 인지(별도 정리). | **Active** | S341 |
 
 ---
 

@@ -60,6 +60,7 @@ vi.mock('@/lib/supabaseAdmin', () => ({
 import {
   issueBillingMethod,
   chargeFirstCycle,
+  cleanupOrphanBillingMethods,
 } from './billingService';
 import {
   issueBillingAuthorization,
@@ -436,6 +437,33 @@ describe('chargeFirstCycle', () => {
         p_total_amount: 30000,
       }),
     );
+    /* B(S341): 첫 결제 성공 후 orphan 정리 호출 — 방금 카드(keep) 보호 */
+    expect(admin.stub.rpc).toHaveBeenCalledWith('cleanup_orphan_billing_methods', {
+      p_user_id: USER_ID,
+      p_keep_id: BILLING_METHOD_ID,
+    });
+  });
+});
+
+/* ════════════════════════════════════════════════════════════════════════
+   cleanupOrphanBillingMethods (B · S341)
+   ════════════════════════════════════════════════════════════════════════ */
+
+describe('cleanupOrphanBillingMethods', () => {
+  it('RPC 를 (user_id, keep_id) 인자로 호출한다', async () => {
+    admin.pushRpc(2); // 2개 정리됨 (returns int)
+    await cleanupOrphanBillingMethods(USER_ID, BILLING_METHOD_ID);
+    expect(admin.stub.rpc).toHaveBeenCalledWith('cleanup_orphan_billing_methods', {
+      p_user_id: USER_ID,
+      p_keep_id: BILLING_METHOD_ID,
+    });
+  });
+
+  it('RPC 에러여도 throw 하지 않는다 (fire-and-forget — 결제 흐름 보호)', async () => {
+    admin.pushRpc(null, { code: 'XX000', message: 'boom' });
+    await expect(
+      cleanupOrphanBillingMethods(USER_ID, BILLING_METHOD_ID),
+    ).resolves.toBeUndefined();
   });
 });
 

@@ -16,6 +16,7 @@ import {
   toSubscription,
   type SubscriptionRow,
 } from '@/lib/repositories/subscriptionRepo';
+import { cleanupOrphanBillingMethods } from '@/lib/services/billingService';
 
 const ID_SCHEMA = z.string().uuid();
 const BODY_SCHEMA = z.object({
@@ -72,6 +73,10 @@ export async function POST(request: Request, ctx: Ctx): Promise<Response> {
     });
     return apiError('server_error');
   }
+
+  /* 재연결 성공 후 — 교체로 버려진(타입1) 옛 빌링키 orphan 정리.
+     방금 연결한 billingMethodId 는 keepId 로 보호. fire-and-forget(B·S341). */
+  await cleanupOrphanBillingMethods(claims.userId, parsed.data.billingMethodId);
 
   /* 재연결 직후이므로 billingStatus='ok' 확정 */
   return apiSuccess(toSubscription(updated, 'ok'));
