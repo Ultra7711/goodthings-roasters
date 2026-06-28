@@ -7,6 +7,7 @@
    - organizationJsonLd()      : 전역 브랜드 (root layout)
    - localBusinessJsonLd(hours): 매장 + 영업시간 (story page · site_settings.hours 재활용)
    - productJsonLd(product)    : 상품 + 가격/재고 (shop/[slug])
+   - breadcrumbJsonLd(items)   : 빵부스러기 계층 (shop/[slug] — Home > Shop > 상품명)
    ══════════════════════════════════════════ */
 
 import type { HoursSettings } from '@/lib/siteSettings';
@@ -103,5 +104,21 @@ export function productJsonLd(product: Product): Record<string, unknown> {
           ? 'https://schema.org/OutOfStock'
           : 'https://schema.org/InStock',
     },
+  };
+}
+
+/* 빵부스러기 — 마지막 항목(현재 페이지)은 path 생략 → item 미출력(Google 권장). */
+export function breadcrumbJsonLd(
+  items: ReadonlyArray<{ name: string; path?: string }>,
+): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: item.name,
+      ...(item.path ? { item: absoluteUrl(item.path) } : {}),
+    })),
   };
 }

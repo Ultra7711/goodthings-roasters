@@ -44,8 +44,7 @@
 - [ ] ⬜ **(선택) Upstash Cron ping 라우트 선구현**
   `/api/cron/redis-ping` — DB 1주 비활성 삭제 예방(DEC-S323-A). 라이브 직전 구현 권장이나 미리 짜둘 수 있음. ~40줄.
   상세: `docs/upstash-setup.md §8`
-- [ ] ⬜ **[SEO] BreadcrumbList JSON-LD 추가** (선택·코드 누락) — 현재 구조화 데이터는 Organization·LocalBusiness(root) + Product(`/shop/[slug]`)만 구현됨. 상품 상세에 빵부스러기(Home > Shop > 상품명) 미구현.
-  - 구현: `src/lib/seo/jsonLd.ts`(`breadcrumbJsonLd()` 빌더 추가) + `src/app/(main)/shop/[slug]/page.tsx`(기존 `JsonLd` 재사용). ~1–2h.
+- [x] ✅ **[SEO] BreadcrumbList JSON-LD 추가** (S342) — 상품 상세(`/shop/[slug]`)에 빵부스러기(홈 > Shop > 상품명) 구조화 데이터 추가. `breadcrumbJsonLd()` 범용 빌더(`src/lib/seo/jsonLd.ts`·마지막 노드 item 생략 Google 권장) + `shop/[slug]/page.tsx` 기존 `JsonLd` 재사용. tsc0. 검증=T1 Rich Results Test 때 함께.
   - (보류) 카페 메뉴(`/menu`) 별도 구조화 = ROI 낮음(availability/재고 데이터 없음·LocalBusiness root 마크업으로 충분). 필요 시 T3.
 
 ---

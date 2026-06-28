@@ -13,7 +13,7 @@ import {
 } from '@/lib/productsServer';
 import ProductDetailPage from '@/components/product/ProductDetailPage';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { productJsonLd, absoluteUrl } from '@/lib/seo/jsonLd';
+import { productJsonLd, breadcrumbJsonLd, absoluteUrl } from '@/lib/seo/jsonLd';
 
 type RouteParams = { slug: string };
 
@@ -60,6 +60,14 @@ export default async function ProductDetailRoute({
     <>
       {/* SEO: 상품 structured data — 가격/재고/이미지 동적 반영 (rich result) */}
       <JsonLd data={productJsonLd(product)} />
+      {/* SEO: 빵부스러기 — Home > Shop > 상품명 (검색결과 경로 노출) */}
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: '홈', path: '/' },
+          { name: 'Shop', path: '/shop' },
+          { name: extractKrName(product.name) },
+        ])}
+      />
       <ProductDetailPage product={product} />
     </>
   );
