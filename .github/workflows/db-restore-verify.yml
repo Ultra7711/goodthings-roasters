@@ -1,0 +1,134 @@
+# ═══════════════════════════════════════════════════════════════
+# db-restore-verify.yml — 백업 복원 검증 자동화 (S341 · db-backup.yml 의 짝)
+#
+# 목적:
+#   db-backup.yml 이 만든 최신 암호화 백업을 가져와, 격리된 supabase local
+#   스택에 실제 복원해 "복원되지 않는 백업"을 상시 감지한다. 실 DB 는 일절
+#   건드리지 않는다(runner 내 임시 스택·잡 종료 시 휘발).
+#
+# 왜 supabase local 인가:
+#   백업 schema 의 RLS 정책이 auth.uid() 등 supabase 시스템 스키마를 참조한다.
+#   db dump 는 그 정의를 미포함(roles 제외와 동일)하므로, 순수 postgres 복원은
+#   정책 생성에서 실패한다. supabase local 은 auth/storage/확장을 제공해 정확.
+#
+# ⚠️ 알려진 한계 (이 검증이 드러내는 것):
+#   db-backup.yml 은 public 스키마만 덤프 → auth.users(회원 인증) 미백업.
+#   data 복원 시 profiles/orders 의 auth.users FK 가 위반될 수 있어 FK 를 잠시
+#   비활성(session_replication_role=replica)하고 로드한다. 즉 본 검증은
+#   "백업이 복호화되고 schema+data 가 구조적으로 로드되는지"를 보장하되,
+#   auth.users 미백업은 복구 전략의 별도 과제로 남는다(→ docs/db-backup.md).
+#
+# 트리거: 매주 월 04:00 KST(19:00 UTC·backup 03KST 이후) + 수동
+#
+# 필요한 Secret: BACKUP_GPG_PASSPHRASE (db-backup.yml 과 공유 — 추가 등록 불요)
+# 추가 DB secret 불요 (local 스택 사용).
+#
+# ⚠️ 첫 실행은 "Run workflow"(수동)로 1회 검증·조정할 것
+#    (supabase CLI 플래그·auth FK·테이블 임계가 실제 덤프와 맞는지 로그 확인).
+# ═══════════════════════════════════════════════════════════════
+
+name: DB Restore Verify
+
+on:
+  schedule:
+    - cron: "0 19 * * 1"   # 매주 월요일 19:00 UTC = 04:00 KST
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read            # 다른 워크플로(db-backup)의 artifact 다운로드용
+
+concurrency:
+  group: db-restore-verify
+  cancel-in-progress: false
+
+jobs:
+  restore-verify:
+    name: Restore latest backup into supabase local
+    runs-on: ubuntu-latest
+    env:
+      LOCAL_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+    steps:
+      - name: Checkout (config.toml)
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: 최신 db-backup artifact 다운로드
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          RUN_ID=$(gh run list --workflow db-backup.yml --status success -L 1 \
+            --json databaseId -q '.[0].databaseId')
+          if [ -z "${RUN_ID:-}" ]; then
+            echo "::error::성공한 db-backup run 이 없음 — 검증할 백업 없음"; exit 1
+          fi
+          echo "backup run id: $RUN_ID"
+          gh run download "$RUN_ID" --dir ./backup
+          GPG_FILE=$(find ./backup -name '*.tar.gz.gpg' | head -1)
+          if [ -z "${GPG_FILE:-}" ]; then
+            echo "::error::artifact 에 .tar.gz.gpg 없음"; exit 1
+          fi
+          echo "GPG_FILE=$GPG_FILE" >> "$GITHUB_ENV"
+          ls -lh "$GPG_FILE"
+
+      - name: 복호화 + 해제
+        env:
+          BACKUP_GPG_PASSPHRASE: ${{ secrets.BACKUP_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BACKUP_GPG_PASSPHRASE:-}" ]; then
+            echo "::error::BACKUP_GPG_PASSPHRASE secret 미설정"; exit 1
+          fi
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase "$BACKUP_GPG_PASSPHRASE" \
+            --decrypt "$GPG_FILE" > restore.tar.gz
+          tar xzf restore.tar.gz
+          ls -lh schema.sql data.sql
+
+      - name: 빈 supabase local 스택 기동 (마이그/seed 제거 → 빈 public)
+        run: |
+          set -euo pipefail
+          # 백업 schema.sql 과 충돌하지 않도록 로컬 마이그·seed 미적용 빈 public 으로 시작.
+          # (runner 내 checkout 사본만 수정 — repo 영향 없음)
+          rm -f supabase/migrations/*.sql || true
+          : > supabase/seed.sql
+          supabase start
+          psql "$LOCAL_DB_URL" -tAc "select 'db up: ' || version();"
+
+      - name: 백업 복원 (schema → data)
+        run: |
+          set -euo pipefail
+          # 1) 스키마 — 에러 시 즉시 실패(복원 무결성 핵심).
+          psql "$LOCAL_DB_URL" -v ON_ERROR_STOP=1 -f schema.sql
+          # 2) 데이터 — auth.users 미백업 FK 위반 회피 위해 FK/트리거 비활성 세션.
+          #    한 세션에서 set 후 data.sql 실행(prepend).
+          printf 'set session_replication_role = replica;\n' | cat - data.sql > data_wrapped.sql
+          psql "$LOCAL_DB_URL" -v ON_ERROR_STOP=1 -f data_wrapped.sql
+
+      - name: 복원 검증 (테이블·핵심 row 수)
+        run: |
+          set -euo pipefail
+          TABLES=$(psql "$LOCAL_DB_URL" -tAc \
+            "select count(*) from information_schema.tables where table_schema='public'")
+          echo "public 테이블 수: $TABLES"
+          if [ "${TABLES:-0}" -lt 20 ]; then
+            echo "::error::복원된 public 테이블 수 비정상 ($TABLES) — 백업 손상 의심"; exit 1
+          fi
+          echo "── 핵심 테이블 row 수 (0 허용 — 백업 시점 데이터량에 의존) ──"
+          for t in orders subscriptions payments billing_methods profiles products; do
+            C=$(psql "$LOCAL_DB_URL" -tAc "select count(*) from public.$t" 2>/dev/null || echo "ERR")
+            echo "  $t: $C"
+            if [ "$C" = "ERR" ]; then
+              echo "::error::핵심 테이블 public.$t 복원 누락"; exit 1
+            fi
+          done
+          echo "✅ 복원 검증 통과 — 백업이 복호화·복원·로드된다."
+
+      - name: Cleanup (always)
+        if: always()
+        run: supabase stop || true

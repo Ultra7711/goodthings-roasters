@@ -48,9 +48,28 @@ psql "<대상_DB_URL>" -f schema.sql
 psql "<대상_DB_URL>" -f data.sql
 ```
 
+## 복원 검증 자동화 (S341)
+
+수동 리허설(위 §복원 절차)을 매번 하지 않도록 `.github/workflows/db-restore-verify.yml` 이
+**매주 월 04:00 KST** 최신 백업을 격리된 **supabase local** 스택에 실제 복원해 검증한다.
+- 실 DB 미접촉(runner 내 임시 스택·잡 종료 시 휘발). 추가 secret 불요(`BACKUP_GPG_PASSPHRASE` 공유).
+- supabase local 사용 이유: 백업 schema 의 RLS 가 `auth.uid()` 등 시스템 스키마를 참조 →
+  순수 postgres 복원은 정책 생성 실패. local 은 auth/storage/확장 제공.
+- 검증: schema 복원(ON_ERROR_STOP) + data 로드 + public 테이블 수·핵심 테이블 존재.
+- 실패 시 workflow fail → GitHub 알림 = "복원 안 되는 백업" 상시 감지.
+- ⚠️ 첫 실행은 "Run workflow"(수동)로 검증·조정(CLI 플래그·테이블 임계 실측).
+
 ## 한계·주의
 
-- 🔶 **roles 미포함** — Supabase 관리형 role 은 덤프에서 제외(스키마+데이터로 새 프로젝트 복원에는 충분). RLS 정책은 스키마에 포함됨.
+- 🔴 **auth.users(회원 인증) 미백업** — `db dump` 는 public 스키마만 덤프하므로 **auth 스키마
+  (이메일·비밀번호 해시·OAuth identity)는 백업에 없다.** 새 프로젝트로 복원 시:
+  - profiles/orders 의 `auth.users` FK 가 위반된다(복원 검증은 `session_replication_role=replica`
+    로 FK 를 비활성해 data 를 로드 — 구조 검증은 되나 정합은 깨짐).
+  - **즉 현재 백업으로는 주문·상품·설정은 복구되나 회원 계정은 복구되지 않는다.**
+  - 보강 방향(백로그): `db dump --schema auth,public` 또는 전체 pg_dump 로 auth 포함 검토.
+    단 auth 는 supabase 관리·roles 의존이라 복원 절차가 복잡 → 별도 sprint. 또는 회원
+    재가입/OAuth 재연결을 수용하는 정책이면 현행 유지. **출시 전 결정 필요.**
+- 🔶 **roles 미포함** — Supabase 관리형 role 은 덤프에서 제외. RLS 정책은 스키마에 포함됨.
 - artifact 보존 **30일** — 더 길게/off-site 보관이 필요하면 외부 스토리지 업로드 단계 추가 검토.
 - 🔶 현재는 출시 전이라 실제 고객 데이터가 적음 — 본 백업은 **출시 대비 준비** 성격.
 - CLI 플래그(`db dump --data-only` 등)는 표준 패턴이나 CLI 버전에 따라 조정이 필요할 수 있음 → 첫 실행 로그로 확인.

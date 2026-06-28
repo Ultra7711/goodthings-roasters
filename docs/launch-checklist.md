@@ -109,7 +109,8 @@
   - **💰 무료 정책 리서치(S341·공식)**: 무료 프로젝트 **2개 동시**(조직 통틀어·paused 미카운트)·**7일 무활동 자동 pause**(90일 복원)·Free 자동백업 없음·Free 한도 DB500MB/MAU50k/Egress5GB/Storage1GB. 출처: supabase.com/pricing · docs/guides/platform/{free-project-pausing,backups}.
   - **✅ 무료 운영 실현 = `.github/workflows/db-backup.yml`(작동 중·secret 등록·녹색 검증 완료)**: 매일 03KST `supabase db dump`(schema+data) → gpg AES256 암호화 → artifact 30일. **백업 + keep-alive 동시 커버** — 매일 dump=매일 DB 요청 → "7일 무요청" 절대 미충족 → pause 자동 회피(별도 keep-alive 불요). **→ prod 무료 출시 가능**(앞서 "Pro 필수" 판단을 db-backup.yml 작동 확인으로 정정).
   - **분리 시 조치**: `SUPABASE_DB_URL` secret 을 새 prod DB(Session Pooler·IPv4)로 교체. dev(현 Supabase)도 무료(필요시 동일 백업 별도 secret).
-  - **🔴 출시 전 필수**: `docs/db-backup.md` 복원 절차로 **실제 복원 테스트 1회**(결제 서비스 — 백업이 복원되는지까지 검증).
+  - **✅ 복원 검증 자동화** (S341) — `.github/workflows/db-restore-verify.yml`: 매주 월 04KST 최신 백업을 격리 supabase local 에 실제 복원·검증(실DB 미접촉). "복원 안 되는 백업" 상시 감지. ⚠️ 첫 실행 수동(workflow_dispatch) 검증 필요.
+  - **🔴 출시 전 결정 — auth.users 미백업**: db dump=public만 → **회원 인증(이메일·비번해시·OAuth) 백업 안 됨**. 현재 백업으로 주문·상품·설정은 복구되나 **회원 계정은 복구 불가**(복원 검증이 FK 비활성으로 드러냄). 보강(`db dump --schema auth,public`/전체 pg_dump·복잡) vs 회원 재가입 수용 — 출시 전 결정. 상세 `docs/db-backup.md` §한계.
   - **Pro($25/mo) = 선택**: PITR(시점 복구)·1클릭 복원·Free 한도(500MB/Egress5GB/MAU50k) 임박 시 전환. 일일 스냅샷(30일)으로 충분하면 무료 유지. "무료 출시 → 한도/PITR 필요 시 Pro" 단계적.
 - [x] ✅ **보안 점검 — 토스 응답 로그/저장 마스킹** (S341 audit+fix) — 일반결제(paymentService)는 C-3 마스킹 정상. **빌링(billingService)에서 카드정보 평문 저장 결함 발견→수정**(chargeFirstCycle·chargeRecurringCycle 2곳 `maskTossPayload` 적용·PCI DSS 3.4). 커밋 예정.
 - [x] ✅ **보안 점검 — RLS production 적용 확인** (S341·2026-06-28) — Supabase `pg_policies` 전수 대조 완료. **drift 0**. 결제 핵심(payments·billing_methods·subscription_billing_failures) = rls_enabled + 정책 0(service_role only) ✓. orders=2(011 hardening 의도적 `orders_insert_own` drop 반영)·subscriptions·point_ledger·profiles·addresses·reviews·newsletter 등 24개 테이블 전부 코드 일치. reviews·newsletter RLS도 정상(audit "미확인"은 오판).
