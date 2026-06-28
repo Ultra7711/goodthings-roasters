@@ -127,6 +127,14 @@ jobs:
               echo "::error::핵심 테이블 public.$t 복원 누락"; exit 1
             fi
           done
+          # ── auth 스키마 백업 여부 실측 (S341 — B안 결정용) ──────────────
+          # 백업 data.sql 이 auth.users 를 포함하면 복원 후 count>0.
+          # 미포함이면 supabase local 기본(빈) → 0. 이 값으로 회원 백업 여부 확정.
+          echo "── auth 스키마 (회원 계정 백업 여부 실측) ──"
+          for t in users identities; do
+            C=$(psql "$LOCAL_DB_URL" -tAc "select count(*) from auth.$t" 2>/dev/null || echo "ERR")
+            echo "  auth.$t: $C"
+          done
           echo "✅ 복원 검증 통과 — 백업이 복호화·복원·로드된다."
 
       - name: Cleanup (always)
