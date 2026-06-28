@@ -14,6 +14,7 @@ import 'server-only';
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { createRouteHandlerClient } from '@/lib/supabaseServer';
+import { getClaims } from '@/lib/auth/getClaims';
 import {
   emptyOverview,
   mapOverview,
@@ -38,8 +39,16 @@ function summarizeError(err: unknown): {
  * - admin_dashboard_overview RPC (1 round-trip) 호출.
  * - admin 가드 실패 (insufficient_privilege) 또는 schema/네트워크 오류 시
  *   emptyOverview() 로 fallback (UI 깨짐 방지).
+ *
+ * 비인증 가드: layout 가드와 page fetch 가 병렬 렌더되므로, 비로그인/세션만료
+ * 상태에서 anon role 로 RPC 가 발사되어 42501(permission denied) 로그 노이즈가
+ * 발생한다. getClaims() (요청 캐시 히트·비용 0) 로 세션 유무를 먼저 확인하여
+ * anon RPC 자체를 차단한다. getAdminClaims() 의 user-null skip 패턴과 정합.
  */
 export async function fetchAdminDashboard(): Promise<DashboardOverview> {
+  const claims = await getClaims();
+  if (!claims) return emptyOverview();
+
   const supabase = await createRouteHandlerClient();
   const { data, error } = await supabase.rpc('admin_dashboard_overview');
 
