@@ -99,7 +99,14 @@
 - [ ] ⬜ **시그니처 챕터 콘텐츠 입력** — HTML 1종 + 이미지 3종.
 - [ ] ⬜ **정기배송 할인율 확정** — 현재 UI는 0% 가정 작동. 비즈 결정.
 - [ ] ⬜ **정기배송 주기 옵션 확정** — 현재 2·4·8주 임시.
-- [ ] 🔶 **Supabase 운영 DB 분리** — S341 audit: 코드 구조는 **env 교체만으로 분리 가능**(하드코딩 0·`NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY`/`SUPABASE_SERVICE_ROLE_KEY` 기반). **현재 로컬·Vercel이 동일 Supabase 프로젝트 사용(미분리)** 확인. → 출시 시 prod 전용 프로젝트 생성+env 교체 결정(비즈/운영). 코드 작업 0.
+- [ ] ⬜ **Supabase 운영 DB 분리** (전략 확정·S341) — 코드는 env 교체만으로 분리 가능(하드코딩 0). 현재 로컬·Vercel 동일 프로젝트(미분리).
+  **전략(DEC 후보): 임시 도메인을 dev로 강등 + 정식 도메인에 새 prod.**
+  - **dev** = `goodthings-roasters.com`(하이픈·현 임시 도메인) + **현 Supabase 그대로**(seed·Storage·Auth·테스트데이터 유지·재구축 0) + test 토스 키.
+  - **prod** = `goodthingsroasters.com`(정식) + **새 Supabase**(마이그 001~110 재적용 + seed) + live 토스 키.
+  - **부수 효과**: prod 빈 DB 시작 → T1 "테스트 데이터 일괄 삭제(cleanup SQL)" **불필요해짐**.
+  - **🔴 실행 = 심사 통과 후**(심사 중 임시 도메인=심사 대상·dev 전환 금지). 정식 도메인 연결·소셜 OAuth prod 재설정·live 키와 **T1 한 묶음**.
+  - **Vercel 재구성**: master→정식도메인→새 Supabase env / 임시도메인→별도 브랜치·preview→현 Supabase env (정확 매핑 Vercel 설정 확인).
+  - **💰 무료 정책 리서치(S341·공식)**: 무료 프로젝트 **2개 동시**(조직 통틀어·paused 미카운트)·**7일 무활동 자동 pause**(90일 복원)·Free 한도 DB500MB/MAU50k/Egress5GB/Storage1GB. **dev=Free OK**(pause돼도 복원). **prod=Pro($25/mo) 사실상 필수** — 무료 prod 는 출시 초기 저트래픽 7일 pause=실서비스 다운 리스크. Pro=pause없음+7일 일일백업+prod 적합(공식 production checklist Pro 전제). 출처: supabase.com/pricing · docs/guides/platform/free-project-pausing.
 - [x] ✅ **보안 점검 — 토스 응답 로그/저장 마스킹** (S341 audit+fix) — 일반결제(paymentService)는 C-3 마스킹 정상. **빌링(billingService)에서 카드정보 평문 저장 결함 발견→수정**(chargeFirstCycle·chargeRecurringCycle 2곳 `maskTossPayload` 적용·PCI DSS 3.4). 커밋 예정.
 - [x] ✅ **보안 점검 — RLS production 적용 확인** (S341·2026-06-28) — Supabase `pg_policies` 전수 대조 완료. **drift 0**. 결제 핵심(payments·billing_methods·subscription_billing_failures) = rls_enabled + 정책 0(service_role only) ✓. orders=2(011 hardening 의도적 `orders_insert_own` drop 반영)·subscriptions·point_ledger·profiles·addresses·reviews·newsletter 등 24개 테이블 전부 코드 일치. reviews·newsletter RLS도 정상(audit "미확인"은 오판).
 
