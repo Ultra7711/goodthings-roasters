@@ -1,0 +1,22 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 109_drop_set_default_billing_method.sql — dead RPC 제거 (S341)
+--
+-- 배경:
+--   042_billing_charge_rpc.sql 이 default 카드 변경용으로 도입한
+--   set_default_billing_method(uuid, uuid) RPC. 결제수단 목록 관리 UI 미채택
+--   (DEC-S336-PAY1) 으로 코드 소비처가 0 이 됨 — S340 에서 billingService 의
+--   setDefaultBillingMethod 래퍼 및 /api/billing/methods 라우트 일괄 제거됨
+--   (커밋 d0637999). 함수만 DB 에 잔존 → drop.
+--
+-- 안전성:
+--   - 코드 grep 소비처 0 (S341 재확인). billingService.ts 잔존은 헤더 주석뿐.
+--   - 다른 RPC/트리거/뷰가 호출하지 않음 (042 에서만 정의·재정의 없음).
+--   - drop 후 필요 시 042 정의로 재생성 가능 (비가역 아님).
+--
+-- 참조:
+--   - supabase/migrations/042_billing_charge_rpc.sql §3 (원 정의)
+--   - docs/launch-checklist.md T0
+--   - memory/project_session340_complete.md (태스크 #2)
+-- ═══════════════════════════════════════════════════════════════════════════
+
+drop function if exists public.set_default_billing_method(uuid, uuid);

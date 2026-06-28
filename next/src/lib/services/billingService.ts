@@ -15,7 +15,7 @@
    참조:
    - docs/adr/ADR-008-toss-billing-integration.md §3
    - supabase/migrations/040_billing_methods_schema.sql
-   - supabase/migrations/042_*.sql (process_billing_charge_success · set_default_billing_method)
+   - supabase/migrations/042_*.sql (process_billing_charge_success)
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
