@@ -106,7 +106,11 @@
   - **부수 효과**: prod 빈 DB 시작 → T1 "테스트 데이터 일괄 삭제(cleanup SQL)" **불필요해짐**.
   - **🔴 실행 = 심사 통과 후**(심사 중 임시 도메인=심사 대상·dev 전환 금지). 정식 도메인 연결·소셜 OAuth prod 재설정·live 키와 **T1 한 묶음**.
   - **Vercel 재구성**: master→정식도메인→새 Supabase env / 임시도메인→별도 브랜치·preview→현 Supabase env (정확 매핑 Vercel 설정 확인).
-  - **💰 무료 정책 리서치(S341·공식)**: 무료 프로젝트 **2개 동시**(조직 통틀어·paused 미카운트)·**7일 무활동 자동 pause**(90일 복원)·Free 한도 DB500MB/MAU50k/Egress5GB/Storage1GB. **dev=Free OK**(pause돼도 복원). **prod=Pro($25/mo) 사실상 필수** — 무료 prod 는 출시 초기 저트래픽 7일 pause=실서비스 다운 리스크. Pro=pause없음+7일 일일백업+prod 적합(공식 production checklist Pro 전제). 출처: supabase.com/pricing · docs/guides/platform/free-project-pausing.
+  - **💰 무료 정책 리서치(S341·공식)**: 무료 프로젝트 **2개 동시**(조직 통틀어·paused 미카운트)·**7일 무활동 자동 pause**(90일 복원)·Free 자동백업 없음·Free 한도 DB500MB/MAU50k/Egress5GB/Storage1GB. 출처: supabase.com/pricing · docs/guides/platform/{free-project-pausing,backups}.
+  - **✅ 무료 운영 실현 = `.github/workflows/db-backup.yml`(작동 중·secret 등록·녹색 검증 완료)**: 매일 03KST `supabase db dump`(schema+data) → gpg AES256 암호화 → artifact 30일. **백업 + keep-alive 동시 커버** — 매일 dump=매일 DB 요청 → "7일 무요청" 절대 미충족 → pause 자동 회피(별도 keep-alive 불요). **→ prod 무료 출시 가능**(앞서 "Pro 필수" 판단을 db-backup.yml 작동 확인으로 정정).
+  - **분리 시 조치**: `SUPABASE_DB_URL` secret 을 새 prod DB(Session Pooler·IPv4)로 교체. dev(현 Supabase)도 무료(필요시 동일 백업 별도 secret).
+  - **🔴 출시 전 필수**: `docs/db-backup.md` 복원 절차로 **실제 복원 테스트 1회**(결제 서비스 — 백업이 복원되는지까지 검증).
+  - **Pro($25/mo) = 선택**: PITR(시점 복구)·1클릭 복원·Free 한도(500MB/Egress5GB/MAU50k) 임박 시 전환. 일일 스냅샷(30일)으로 충분하면 무료 유지. "무료 출시 → 한도/PITR 필요 시 Pro" 단계적.
 - [x] ✅ **보안 점검 — 토스 응답 로그/저장 마스킹** (S341 audit+fix) — 일반결제(paymentService)는 C-3 마스킹 정상. **빌링(billingService)에서 카드정보 평문 저장 결함 발견→수정**(chargeFirstCycle·chargeRecurringCycle 2곳 `maskTossPayload` 적용·PCI DSS 3.4). 커밋 예정.
 - [x] ✅ **보안 점검 — RLS production 적용 확인** (S341·2026-06-28) — Supabase `pg_policies` 전수 대조 완료. **drift 0**. 결제 핵심(payments·billing_methods·subscription_billing_failures) = rls_enabled + 정책 0(service_role only) ✓. orders=2(011 hardening 의도적 `orders_insert_own` drop 반영)·subscriptions·point_ledger·profiles·addresses·reviews·newsletter 등 24개 테이블 전부 코드 일치. reviews·newsletter RLS도 정상(audit "미확인"은 오판).
 
