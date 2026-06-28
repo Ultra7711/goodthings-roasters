@@ -40,7 +40,7 @@
 ## T0 — 지금 가능 (외부 트리거 없음)
 
 - [x] ✅ **042 RPC `set_default_billing_method` drop** (S341) — 코드 소비처 0(DEC-S336-PAY1) 확인 후 drop. 마이그 `109_drop_set_default_billing_method.sql` + billingService 헤더 주석 정리. **109 production 적용 완료(2026-06-28).**
-- [x] ✅ **orphan 빌링키 자동 정리** (S341·DEC-S341) — `cleanup_orphan_billing_methods` RPC(마이그 110): active/paused 미연결 + `registered_at`>1h(진행 중 결제 보호) billing_method soft delete. 호출=chargeFirstCycle 성공 후(타입2)+reattach route 성공 후(타입1)·fire-and-forget(핵심 결제 RPC 무수정). tsc0·billing 테스트 14 green. ⚠️ **사용자: 110 마이그 SQL Editor 적용 필요.** 잔여=가입포기 orphan(향후 cron 배치·Pro)·`is_default` dead 컬럼 정리(별건). 상세 ADR-008 §0 DEC-S341.
+- [x] ✅ **orphan 빌링키 자동 정리** (S341·DEC-S341) — `cleanup_orphan_billing_methods` RPC(마이그 110): active/paused 미연결 + `registered_at`>1h(진행 중 결제 보호) billing_method soft delete. 호출=chargeFirstCycle 성공 후(타입2)+reattach route 성공 후(타입1)·fire-and-forget(핵심 결제 RPC 무수정). tsc0·billing 테스트 14 green. **110 production 적용 완료(2026-06-28).** 잔여=가입포기 orphan(향후 cron 배치·Pro)·`is_default` dead 컬럼 정리(별건). 상세 ADR-008 §0 DEC-S341.
 - [ ] ⬜ **(선택) Upstash Cron ping 라우트 선구현**
   `/api/cron/redis-ping` — DB 1주 비활성 삭제 예방(DEC-S323-A). 라이브 직전 구현 권장이나 미리 짜둘 수 있음. ~40줄.
   상세: `docs/upstash-setup.md §8`
