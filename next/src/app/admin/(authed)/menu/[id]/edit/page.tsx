@@ -18,6 +18,7 @@ import MenuActiveToggleClient from './MenuActiveToggleClient';
 import MenuDangerZoneClient from './MenuDangerZoneClient';
 import MenuEditForm from './MenuEditForm';
 import MenuImageClient from './MenuImageClient';
+import AdminFormSkeleton from '@/components/admin/AdminFormSkeleton';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -25,7 +26,7 @@ type PageProps = {
 
 export default function AdminMenuEditPage({ params }: PageProps) {
   return (
-    <Suspense fallback={<EditSkeleton />}>
+    <Suspense fallback={<AdminFormSkeleton />}>
       <EditInner params={params} />
     </Suspense>
   );
@@ -105,30 +106,6 @@ async function EditInner({ params }: PageProps) {
         menuId={row.id}
         menuName={row.name}
         isOwner={isOwner}
-      />
-    </div>
-  );
-}
-
-function EditSkeleton() {
-  return (
-    <div aria-hidden style={{ minHeight: 400 }}>
-      <div
-        style={{
-          height: 24,
-          width: 200,
-          background: 'var(--surface-muted)',
-          borderRadius: 4,
-          marginBottom: 24,
-        }}
-      />
-      <div
-        style={{
-          height: 200,
-          background: 'var(--surface-muted)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-        }}
       />
     </div>
   );

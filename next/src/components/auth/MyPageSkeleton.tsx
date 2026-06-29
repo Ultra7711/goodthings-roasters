@@ -24,9 +24,7 @@ import '@/components/auth/mypage/MyPagePanel.css';
 const H_PAGE_TITLE = 'var(--lh-h1)';
 const H_BODY_L = 28;
 const H_BODY_M = 24;
-const H_BODY_UI = 21;
 const H_BODY_S = 20;
-const H_CHIP = 23;
 
 type BoxProps = {
   height: number | string;
@@ -43,11 +41,11 @@ function SkelBox({ height, width = '100%' }: BoxProps) {
    S282-P1 (variant): 카드 다양성 답습 — orders 마다 status 배지 폭 / summary 폭 / detail 유무 차이.
    동일 3개 stack 폐기 → 실제 카드 다양성 1:1 답습으로 swap 시 layout shift ↓. */
 type CardVariant = {
-  statusW: number;
   summaryW: string;
-  detailW: string | null; // null = detail row 폭 0 (단일 상품 주문 답습)
 };
 
+/* 중입자: 날짜·주문번호(meta 2줄) + 요약 1줄. 상태배지·셰브론·상세 등
+   미세요소는 박스화 생략. 카드 padding(20 0) + hairline 은 유지 → 높이 보존. */
 function OrderCardSkeleton({
   isLast = false,
   variant,
@@ -62,32 +60,24 @@ function OrderCardSkeleton({
         boxShadow: isLast ? 'none' : 'inset 0 -1px 0 0 var(--color-border-hairline)',
       }}
     >
-      {/* meta row: date+number 좌 · status 우 */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0 }}>
-          <SkelBox height={H_BODY_S} width={90} />
-          <SkelBox height={H_BODY_M} width={140} />
-        </div>
-        <SkelBox height={H_CHIP} width={variant.statusW} />
+      {/* meta: 날짜 + 주문번호 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <SkelBox height={H_BODY_S} width={90} />
+        <SkelBox height={H_BODY_M} width={140} />
       </div>
-      {/* content row: summary/detail 좌 · chevron 우 */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12 }}>
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <SkelBox height={H_BODY_M} width={variant.summaryW} />
-          {variant.detailW && <SkelBox height={H_BODY_UI} width={variant.detailW} />}
-        </div>
-        <SkelBox height={24} width={24} />
+      {/* 요약 1줄 */}
+      <div style={{ marginTop: 12 }}>
+        <SkelBox height={H_BODY_M} width={variant.summaryW} />
       </div>
     </div>
   );
 }
 
-/* S282-P1: 실제 orders 다양성 답습 — status 배지 폭 (배송준비 / 배송중 / 배송완료 등 4~5 글자 = 50~70px),
-   summary 폭 (단일 상품 vs "외 N건" · 30~80%), detail 유무 (단일 상품 = null · 다품목 = volume "외 N건"). */
+/* 주문별 요약 폭 다양성만 답습 (단일 상품 vs "외 N건"). */
 const CARD_VARIANTS: readonly CardVariant[] = [
-  { statusW: 56, summaryW: '60%', detailW: '45%' },  // 배송완료 · 다품목
-  { statusW: 48, summaryW: '40%', detailW: null },   // 배송중 · 단일
-  { statusW: 64, summaryW: '75%', detailW: '55%' },  // 배송준비 · 다품목 (긴 이름)
+  { summaryW: '60%' },
+  { summaryW: '40%' },
+  { summaryW: '75%' },
 ] as const;
 
 export default function MyPageSkeleton() {

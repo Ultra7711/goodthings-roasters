@@ -2,8 +2,10 @@
    CartSkeleton — /cart useCartQuery isLoading fallback (BUG-159 · S94)
 
    S202: OrderItemRow (.oir) 구조로 마이그레이션. 글로벌 .cp-item* / .cp-th* /
-   .cp-table-hdr / .cp-qty / .cp-remove 의존 제거. CartClient 와 동일하게
-   editable variant 골격(thumb · info · stepper · right(delete + price))로 채움.
+   .cp-table-hdr / .cp-qty / .cp-remove 의존 제거.
+   S343: 중입자 통일 — editable variant 골격에서 썸네일 + 이름 + 가격(3조각)만
+   채움. 카테고리·메타·스텝퍼·삭제 미세요소 생략. .oir 높이는 썸네일(112px)이
+   지배하므로 입자도 축소에도 CLS 0.
 
    shipping / footer 영역은 CartClient 와 동일한 .cp-shipping-row · .cp-skel-footer
    잔존 클래스 사용 (이번 정리 범위 밖).
@@ -14,34 +16,21 @@ const SKELETON_ITEM_COUNT = 2;
 function SkeletonItem() {
   return (
     <div className="oir" data-variant="editable">
-      {/* Thumb 74×112 (모바일 72×108) — .skel 이 inset:0 으로 채움 */}
+      {/* 썸네일 통박스 — .oir 높이(112px · align-items:center)를 지배.
+          내부 입자도를 줄여도 행 높이 불변 → CLS 0. */}
       <div className="oir__thumb">
         <div className="skel" style={{ position: 'absolute', inset: 0, borderRadius: 0 }} />
       </div>
 
-      {/* Info column */}
+      {/* Info — 이름 1줄 (중입자: 카테고리·메타·스텝퍼 미세요소 생략) */}
       <div className="oir__info">
-        {/* category eyebrow — body-s 13 × lh1 */}
-        <div className="oir__category">
-          <div className="skel" style={{ height: 13, width: 60 }} />
-        </div>
-        {/* name — body-l ≈18 × lh1.4 */}
         <div className="oir__name">
           <div className="skel" style={{ height: 18, width: 160 }} />
         </div>
-        {/* meta — body-ui 14 × lh1.4 */}
-        <div className="oir__meta">
-          <div className="skel" style={{ height: 14, width: 110 }} />
-        </div>
-        {/* stepper 104×36 */}
-        <div className="oir__stepper">
-          <div className="skel" style={{ height: 36, width: 104, borderRadius: 0 }} />
-        </div>
       </div>
 
-      {/* Right column — delete top / price bottom */}
+      {/* Right — 가격 1줄 (삭제 아이콘 생략 · min-height 80 유지로 행 높이 보존) */}
       <div className="oir__right">
-        <div className="skel" style={{ height: 16, width: 16 }} />
         <div className="skel" style={{ height: 16, width: 70 }} />
       </div>
     </div>

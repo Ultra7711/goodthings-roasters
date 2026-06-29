@@ -1641,18 +1641,51 @@ select.chp-input:focus ~ .chp-floating-label { color: var(--color-text-primary);
      (@media hover:none mobile 차단 정책 그룹)
    ══════════════════════════════════════════ */
 
-/* ══ 스켈레톤 — 정적 (S199 V2 자문 §1.5: shimmer 금지 정합).
-   BUG-159 (S94) shimmer animation 제거. 색상 gradient 는 디자인 시스템 일관성으로 유지.
-   다른 페이지 .skel 공유 (mypage / shop / cart / search) — 동일 회색 gradient. */
+/* ══ 스켈레톤 — 불투명 warm-gray 원톤 + shimmer sweep (S343).
+   ① 원톤: 불투명 단색 → 어느 배경(페이지 #FBF8F3 / 썸네일 컨테이너 #eaeaea) 위든
+      동일 톤. (기존 반투명 rgba 는 배경 따라 합성 톤이 달라져 썸네일만 진했음.)
+   ② 모션: ::after 하이라이트 밴드를 translateX(-100%→100%) 로 쓸어 흐르는 광택.
+      밴드가 컨테이너 밖에서 리셋 → 점프 없음 (background-position 방식의 튐 회피).
+      reduced-motion 시 정지.
+   다른 페이지 .skel 공유 (mypage / shop / cart / search). */
 .skel {
+  position: relative;
+  overflow: hidden;
+  background-color: #ECE9E4;
+  border-radius: 4px;
+}
+.skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  /* 하이라이트 = 페이지 배경색에 점근 (배경색 초과 금지) · warm 톤 유지.
+     흰색 밴드는 cool 하고 너무 밝아 배경을 넘어 보였음 → 배경색 기반으로 교체. */
   background: linear-gradient(
     90deg,
-    rgba(0, 0, 0, .06) 25%,
-    rgba(0, 0, 0, .10) 37%,
-    rgba(0, 0, 0, .06) 63%
+    transparent 0%,
+    color-mix(in srgb, var(--color-background-primary) 50%, transparent) 50%,
+    transparent 100%
   );
-  background-size: 400% 100%;
-  border-radius: 4px;
+  animation: skel-sweep 2.4s ease-in-out infinite;
+}
+@keyframes skel-sweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skel::after { animation: none; }
+}
+
+/* 스켈레톤 썸네일 — 컨테이너 외곽선 제거 (.skel 채운 동안만 · :has).
+   실제 이미지 로드 시 .skel 이 사라지면 border/shadow 복귀.
+   border-color: transparent — 1px 공간은 유지하여 swap 시 CLS 0. */
+.sp-card-thumb:has(> .skel),
+.cm-card-thumb:has(> .skel) {
+  border-color: transparent;
+}
+.oir__thumb:has(> .skel) {
+  box-shadow: none;
 }
 
 /* ── Shop skeleton ── */

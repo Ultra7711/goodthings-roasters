@@ -36,7 +36,6 @@ export function ReviewListSkeleton({ count = DEFAULT_CARDS }: { count?: number }
           </div>
           <span className="skel review-skel-line" />
           <span className="skel review-skel-line review-skel-line--short" />
-          <span className="skel review-skel-foot" />
         </div>
       ))}
     </div>

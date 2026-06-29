@@ -444,8 +444,7 @@
 .review-skel-count,
 .review-skel-cardstars,
 .review-skel-author,
-.review-skel-line,
-.review-skel-foot {
+.review-skel-line {
   display: block;
 }
 .review-skel-avgnum { width: 42px; height: 30px; }
@@ -455,4 +454,3 @@
 .review-skel-author { width: 64px; height: 13px; }
 .review-skel-line { width: 100%; height: 13px; margin-top: 8px; }
 .review-skel-line--short { width: 56%; }
-.review-skel-foot { width: 84px; height: 28px; border-radius: 999px; margin-top: 12px; }
