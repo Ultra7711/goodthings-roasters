@@ -41,6 +41,21 @@
   background: var(--brand-sand);
 }
 
+/* hero 스켈레톤 — sand 배경(--brand-sand) 위 톤 정합 (S343 후속).
+   일반 .skel(#ECE9E4 무채회색)은 채도 있는 sand 위에서 떠 보임 → sand-shifted.
+   base + shimmer 밴드(::after) 둘 다 sand 기반. (모션/구조는 globals .skel::after 상속) */
+.mp-hero .skel {
+  background-color: #DBD0C2;
+}
+.mp-hero .skel::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--brand-sand) 50%, transparent) 50%,
+    transparent 100%
+  );
+}
+
 .mp-hero-inner {
   max-width: 1440px;
   width: 100%;

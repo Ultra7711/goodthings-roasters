@@ -454,3 +454,17 @@
 .review-skel-author { width: 64px; height: 13px; }
 .review-skel-line { width: 100%; height: 13px; margin-top: 8px; }
 .review-skel-line--short { width: 56%; }
+
+/* 카페 시트(sheet) 리뷰 스켈레톤 — stone-light 배경 위 톤 정합 (S343 후속).
+   .cns-reviews 배경(--color-surface-stone-light) 상속 영역 → 무채 .skel 미세 충돌 보정. */
+.review-section--sheet .skel {
+  background-color: #D6D3CE;
+}
+.review-section--sheet .skel::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-surface-stone-light) 50%, transparent) 50%,
+    transparent 100%
+  );
+}
